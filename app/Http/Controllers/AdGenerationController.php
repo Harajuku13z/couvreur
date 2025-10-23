@@ -220,7 +220,9 @@ class AdGenerationController extends Controller
                         'content_json' => json_encode([
                             'service' => $service,
                             'city' => $city->toArray(),
-                            'ai_prompt' => $aiPrompt
+                            'ai_prompt' => $aiPrompt,
+                            'service_featured_image' => $service['featured_image'] ?? setting('company_logo', ''),
+                            'service_icon' => $service['icon'] ?? 'fas fa-tools'
                         ])
                     ]);
 
@@ -301,7 +303,9 @@ class AdGenerationController extends Controller
                         'content_json' => json_encode([
                             'keyword' => $keyword,
                             'city' => $city->toArray(),
-                            'ai_prompt' => $aiPrompt
+                            'ai_prompt' => $aiPrompt,
+                            'service_featured_image' => setting('company_logo', ''),
+                            'service_icon' => 'fas fa-tools'
                         ])
                     ]);
 
@@ -498,6 +502,8 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
                 ]);
                 
                 if (!empty(trim($content))) {
+                    // Nettoyer le HTML généré par l'IA
+                    $content = $this->cleanGeneratedHtml($content);
                     return $content;
                 }
             }
@@ -507,6 +513,27 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         
         // Fallback en cas d'échec
         return $this->generateFallbackAdContent($service, $city);
+    }
+
+    /**
+     * Nettoyer le HTML généré par l'IA
+     */
+    private function cleanGeneratedHtml($html)
+    {
+        // Supprimer les balises ```html et ```
+        $html = preg_replace('/```html\s*/', '', $html);
+        $html = preg_replace('/```\s*$/', '', $html);
+        $html = preg_replace('/```\s*/', '', $html);
+        
+        // Supprimer les explications avant/après le HTML
+        $html = preg_replace('/^[^<]*/', '', $html);
+        $html = preg_replace('/[^>]*$/', '', $html);
+        
+        // Nettoyer les espaces et retours à la ligne
+        $html = preg_replace('/\s+/', ' ', $html);
+        $html = trim($html);
+        
+        return $html;
     }
 
     /**
@@ -733,6 +760,8 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
                 ]);
                 
                 if (!empty(trim($content))) {
+                    // Nettoyer le HTML généré par l'IA
+                    $content = $this->cleanGeneratedHtml($content);
                     return $content;
                 }
             }
