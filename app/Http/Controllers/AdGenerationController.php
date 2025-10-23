@@ -344,23 +344,102 @@ class AdGenerationController extends Controller
         $companyName = setting('company_name', 'Notre Entreprise');
         $companyPhone = setting('company_phone', '');
         $companyEmail = setting('company_email', '');
+        $companyCity = setting('company_city', '');
+        $companyRegion = setting('company_region', '');
         
         $content = '<div class="ad-content">';
         $content .= '<h1>' . $service['name'] . ' à ' . $city->name . '</h1>';
         $content .= '<p>Service professionnel de ' . $service['name'] . ' à ' . $city->name . '. ' . $companyName . ' vous propose ses services avec expertise et qualité.</p>';
         
-        if (!empty($service['description'])) {
-            $content .= '<div class="service-description">' . $service['description'] . '</div>';
-        }
+        // Contenu spécifique à la ville
+        $content .= '<div class="grid md:grid-cols-2 gap-8">';
+        $content .= '<div class="space-y-6">';
         
-        $content .= '<h2>Pourquoi choisir ' . $companyName . ' ?</h2>';
-        $content .= '<ul>';
-        $content .= '<li>Expertise professionnelle</li>';
-        $content .= '<li>Devis gratuit et sans engagement</li>';
-        $content .= '<li>Intervention rapide</li>';
-        $content .= '<li>Qualité garantie</li>';
+        // Introduction générale adaptée à la ville
+        $content .= '<div class="space-y-4">';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Découvrez notre <strong class="text-blue-600">expertise professionnelle en ' . $service['name'] . '</strong> à ' . $city->name;
+        if ($city->postal_code) {
+            $content .= ' (' . $city->postal_code . ')';
+        }
+        $content .= '. Nous assurons la protection et l\'étanchéité de votre toiture, de la réparation à la rénovation complète, avec des matériaux de qualité et des techniques éprouvées.';
+        $content .= '</p>';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Experts en couverture, nous garantissons la durabilité de votre toiture et intervenons sur tous types de toitures : tuiles, ardoises, toitures plates, etc.';
+        $content .= '</p>';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Chaque projet bénéficie d\'une attention personnalisée et d\'un accompagnement complet pour garantir la satisfaction de nos clients.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        // Engagement qualité
+        $content .= '<div class="bg-blue-50 p-6 rounded-lg">';
+        $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>';
+        $content .= '<p class="leading-relaxed mb-3">';
+        $content .= 'Chez <strong>' . $companyName . '</strong>, nous mettons un point d\'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.';
+        $content .= '</p>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité, respectueux des normes et de l\'environnement.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        // Prestations
+        $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $service['name'] . '</h3>';
+        $content .= '<ul class="space-y-3">';
+        $content .= '<li class="flex items-start"><span><strong>Réparation de toiture en urgence</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Rénovation complète de couverture</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Pose de tuiles et ardoises</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Étanchéité de toiture plate</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Traitement anti-mousse</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Réparation de fuites</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Ventilation de toiture</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Isolation sous toiture</strong></span></li>';
         $content .= '</ul>';
         
+        // Pourquoi choisir notre entreprise - adapté à la ville
+        $content .= '<div class="bg-green-50 p-6 rounded-lg">';
+        $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Notre réputation à ' . $city->name . ' et dans la région repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer les projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        $content .= '</div>';
+        
+        // Colonne droite
+        $content .= '<div class="space-y-6">';
+        
+        // Expertise locale
+        $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Forts de notre expérience, nous connaissons parfaitement les spécificités de ' . $city->name . ' et de sa région pour un service adapté et de qualité.';
+        $content .= '</p>';
+        
+        // Devis
+        $content .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
+        $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
+        $content .= '<p class="mb-4">';
+        $content .= 'Contactez-nous dès maintenant pour un devis personnalisé et gratuit pour vos ' . $service['name'] . ' à ' . $city->name . '.';
+        $content .= '</p>';
+        $content .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">';
+        $content .= 'Demande de devis';
+        $content .= '</a>';
+        $content .= '</div>';
+        
+        // Informations pratiques
+        $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
+        $content .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>';
+        $content .= '<ul class="space-y-2 text-sm">';
+        $content .= '<li class="flex items-center"><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
+        $content .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
+        $content .= '<li class="flex items-center"><span>Garantie de satisfaction pour une toiture impeccable</span></li>';
+        $content .= '</ul>';
+        $content .= '</div>';
+        
+        $content .= '</div>';
+        $content .= '</div>';
+        
+        // Informations de contact
         if ($companyPhone) {
             $content .= '<p><strong>Téléphone :</strong> ' . $companyPhone . '</p>';
         }
@@ -387,14 +466,95 @@ class AdGenerationController extends Controller
         $content .= '<h1>' . $keyword . ' à ' . $city->name . '</h1>';
         $content .= '<p>Service professionnel de ' . $keyword . ' à ' . $city->name . '. ' . $companyName . ' vous propose ses services avec expertise et qualité.</p>';
         
-        $content .= '<h2>Pourquoi choisir ' . $companyName . ' ?</h2>';
-        $content .= '<ul>';
-        $content .= '<li>Expertise professionnelle</li>';
-        $content .= '<li>Devis gratuit et sans engagement</li>';
-        $content .= '<li>Intervention rapide</li>';
-        $content .= '<li>Qualité garantie</li>';
+        // Contenu spécifique à la ville
+        $content .= '<div class="grid md:grid-cols-2 gap-8">';
+        $content .= '<div class="space-y-6">';
+        
+        // Introduction générale adaptée à la ville
+        $content .= '<div class="space-y-4">';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Découvrez notre <strong class="text-blue-600">expertise professionnelle en ' . $keyword . '</strong> à ' . $city->name;
+        if ($city->postal_code) {
+            $content .= ' (' . $city->postal_code . ')';
+        }
+        $content .= '. Nous assurons la protection et l\'étanchéité de votre toiture, de la réparation à la rénovation complète, avec des matériaux de qualité et des techniques éprouvées.';
+        $content .= '</p>';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Experts en couverture, nous garantissons la durabilité de votre toiture et intervenons sur tous types de toitures : tuiles, ardoises, toitures plates, etc.';
+        $content .= '</p>';
+        $content .= '<p class="text-lg leading-relaxed">';
+        $content .= 'Chaque projet bénéficie d\'une attention personnalisée et d\'un accompagnement complet pour garantir la satisfaction de nos clients.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        // Engagement qualité
+        $content .= '<div class="bg-blue-50 p-6 rounded-lg">';
+        $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>';
+        $content .= '<p class="leading-relaxed mb-3">';
+        $content .= 'Chez <strong>' . $companyName . '</strong>, nous mettons un point d\'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.';
+        $content .= '</p>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité, respectueux des normes et de l\'environnement.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        // Prestations
+        $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $keyword . '</h3>';
+        $content .= '<ul class="space-y-3">';
+        $content .= '<li class="flex items-start"><span><strong>Réparation de toiture en urgence</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Rénovation complète de couverture</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Pose de tuiles et ardoises</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Étanchéité de toiture plate</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Traitement anti-mousse</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Réparation de fuites</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Ventilation de toiture</strong></span></li>';
+        $content .= '<li class="flex items-start"><span><strong>Isolation sous toiture</strong></span></li>';
         $content .= '</ul>';
         
+        // Pourquoi choisir notre entreprise - adapté à la ville
+        $content .= '<div class="bg-green-50 p-6 rounded-lg">';
+        $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Notre réputation à ' . $city->name . ' et dans la région repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer les projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.';
+        $content .= '</p>';
+        $content .= '</div>';
+        
+        $content .= '</div>';
+        
+        // Colonne droite
+        $content .= '<div class="space-y-6">';
+        
+        // Expertise locale
+        $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
+        $content .= '<p class="leading-relaxed">';
+        $content .= 'Forts de notre expérience, nous connaissons parfaitement les spécificités de ' . $city->name . ' et de sa région pour un service adapté et de qualité.';
+        $content .= '</p>';
+        
+        // Devis
+        $content .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
+        $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
+        $content .= '<p class="mb-4">';
+        $content .= 'Contactez-nous dès maintenant pour un devis personnalisé et gratuit pour vos ' . $keyword . ' à ' . $city->name . '.';
+        $content .= '</p>';
+        $content .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">';
+        $content .= 'Demande de devis';
+        $content .= '</a>';
+        $content .= '</div>';
+        
+        // Informations pratiques
+        $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
+        $content .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>';
+        $content .= '<ul class="space-y-2 text-sm">';
+        $content .= '<li class="flex items-center"><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
+        $content .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
+        $content .= '<li class="flex items-center"><span>Garantie de satisfaction pour une toiture impeccable</span></li>';
+        $content .= '</ul>';
+        $content .= '</div>';
+        
+        $content .= '</div>';
+        $content .= '</div>';
+        
+        // Informations de contact
         if ($companyPhone) {
             $content .= '<p><strong>Téléphone :</strong> ' . $companyPhone . '</p>';
         }
