@@ -298,7 +298,13 @@ class ConfigController extends Controller
      */
     public function portfolioIndex()
     {
-        $portfolioItems = Setting::get('portfolio_items', []);
+        $portfolioData = Setting::get('portfolio_items', '[]');
+        $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        
+        // S'assurer que $portfolioItems est toujours un tableau
+        if (!is_array($portfolioItems)) {
+            $portfolioItems = [];
+        }
         
         // Ajouter un ID aux éléments qui n'en ont pas et nettoyer les images manquantes
         foreach ($portfolioItems as $index => &$item) {
