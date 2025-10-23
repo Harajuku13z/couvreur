@@ -41,7 +41,7 @@ class ArticleController extends Controller
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:2000',
             'featured_image' => 'nullable|string|max:1000',
             'status' => 'required|in:draft,published'
         ]);
@@ -74,7 +74,7 @@ class ArticleController extends Controller
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:2000',
             'featured_image' => 'nullable|string|max:1000',
             'status' => 'required|in:draft,published'
         ]);
