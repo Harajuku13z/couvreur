@@ -100,7 +100,7 @@ try {
     
     // Vérifier les fichiers physiques
     echo "\n📁 Vérification des fichiers physiques:\n";
-    $servicesDir = '/public_html/public/uploads/services';
+    $servicesDir = '/public_html/uploads/services';
     if (is_dir($servicesDir)) {
         $files = scandir($servicesDir);
         $imageFiles = array_filter($files, function($file) {
@@ -113,22 +113,6 @@ try {
         }
     } else {
         echo "❌ Répertoire public/uploads/services/ non trouvé\n";
-    }
-    
-    // Vérifier le lien symbolique storage
-    echo "\n🔗 Vérification du lien symbolique storage:\n";
-    $storageLink = '/public_html/public/storage';
-    if (is_link($storageLink)) {
-        echo "✅ Lien symbolique storage existe\n";
-        echo "   Pointe vers: " . readlink($storageLink) . "\n";
-    } else {
-        echo "❌ Lien symbolique storage manquant\n";
-        echo "   Création du lien symbolique...\n";
-        if (symlink('/public_html/storage/app/public', $storageLink)) {
-            echo "✅ Lien symbolique créé\n";
-        } else {
-            echo "❌ Erreur lors de la création du lien symbolique\n";
-        }
     }
     
 } catch (Exception $e) {
