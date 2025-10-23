@@ -1670,6 +1670,14 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     private function buildCleanServiceContent($text)
     {
         $companyName = setting('company_name', 'Notre Entreprise');
+        $companyPhone = setting('company_phone', '');
+        $companyEmail = setting('company_email', '');
+        $companyCity = setting('company_city', '');
+        $companyRegion = setting('company_region', '');
+        
+        // Détecter le type de service à partir du texte
+        $serviceType = $this->detectServiceType($text);
+        $serviceContent = $this->getServiceSpecificContent($serviceType);
         
         $html = '<div class="service-content">';
         $html .= '<div class="grid md:grid-cols-2 gap-8">';
@@ -1693,24 +1701,19 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '</p>';
         $html .= '</div>';
         
-        // Prestations
-        $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations</h3>';
+        // Prestations spécifiques au service
+        $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceContent['title'] . '</h3>';
         $html .= '<ul class="space-y-3">';
-        $html .= '<li class="flex items-start"><span><strong>Diagnostic complet et gratuit</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Matériaux de qualité supérieure</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Équipe d\'artisans qualifiés</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Respect des délais et du budget</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Garantie décennale</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Suivi personnalisé</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Nettoyage et remise en état</strong></span></li>';
-        $html .= '<li class="flex items-start"><span><strong>Conseils d\'entretien</strong></span></li>';
+        foreach ($serviceContent['prestations'] as $prestation) {
+            $html .= '<li class="flex items-start"><span><strong>' . $prestation . '</strong></span></li>';
+        }
         $html .= '</ul>';
         
         // Pourquoi choisir notre entreprise
         $html .= '<div class="bg-green-50 p-6 rounded-lg">';
         $html .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
         $html .= '<p class="leading-relaxed">';
-        $html .= 'Notre réputation dans la région repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer des projets dans les temps. Nous sommes fiers de compter parmi nos clients de nombreuses familles et entreprises satisfaites.';
+        $html .= 'Notre réputation à ' . $companyCity . ' et en ' . $companyRegion . ' repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer des projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.';
         $html .= '</p>';
         $html .= '</div>';
         
@@ -1729,7 +1732,7 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
         $html .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
         $html .= '<p class="mb-4">';
-        $html .= 'Contactez-nous dès maintenant pour un devis personnalisé et gratuit.';
+        $html .= 'Contactez-nous dès maintenant pour un devis personnalisé et gratuit pour vos ' . $serviceContent['title'] . '.';
         $html .= '</p>';
         $html .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">';
         $html .= 'Demande de devis';
@@ -1751,6 +1754,132 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '</div>';
         
         return $html;
+    }
+    
+    /**
+     * Détecter le type de service à partir du texte
+     */
+    private function detectServiceType($text)
+    {
+        $text = strtolower($text);
+        
+        if (strpos($text, 'toiture') !== false || strpos($text, 'couverture') !== false) {
+            return 'toiture';
+        } elseif (strpos($text, 'façade') !== false || strpos($text, 'ravalement') !== false) {
+            return 'facade';
+        } elseif (strpos($text, 'gouttière') !== false || strpos($text, 'évacuation') !== false) {
+            return 'gouttiere';
+        } elseif (strpos($text, 'maçonnerie') !== false || strpos($text, 'petit') !== false) {
+            return 'maconnerie';
+        } elseif (strpos($text, 'ramonage') !== false || strpos($text, 'cheminée') !== false) {
+            return 'ramonage';
+        } elseif (strpos($text, 'ouverture') !== false || strpos($text, 'confort') !== false) {
+            return 'ouverture';
+        }
+        
+        return 'general';
+    }
+    
+    /**
+     * Obtenir le contenu spécifique selon le type de service
+     */
+    private function getServiceSpecificContent($serviceType)
+    {
+        $contents = [
+            'toiture' => [
+                'title' => 'Travaux de toiture',
+                'prestations' => [
+                    'Réparation de toiture en urgence',
+                    'Rénovation complète de couverture',
+                    'Pose de tuiles et ardoises',
+                    'Étanchéité de toiture plate',
+                    'Traitement anti-mousse',
+                    'Réparation de fuites',
+                    'Ventilation de toiture',
+                    'Isolation sous toiture'
+                ]
+            ],
+            'facade' => [
+                'title' => 'Ravalement & façades',
+                'prestations' => [
+                    'Diagnostic complet et gratuit',
+                    'Matériaux de qualité supérieure',
+                    'Équipe d\'artisans qualifiés',
+                    'Respect des délais et du budget',
+                    'Garantie décennale',
+                    'Suivi personnalisé',
+                    'Nettoyage et remise en état',
+                    'Conseils d\'entretien'
+                ]
+            ],
+            'gouttiere' => [
+                'title' => 'Gouttières & évacuations',
+                'prestations' => [
+                    'Installation de gouttières',
+                    'Réparation et remplacement',
+                    'Nettoyage et entretien',
+                    'Évacuation des eaux pluviales',
+                    'Protection contre les débordements',
+                    'Installation de descentes',
+                    'Raccordement au réseau',
+                    'Maintenance préventive'
+                ]
+            ],
+            'maconnerie' => [
+                'title' => 'Maçonnerie & petits travaux',
+                'prestations' => [
+                    'Réparation de murs',
+                    'Enduits et crépis',
+                    'Petits travaux de maçonnerie',
+                    'Réparation de joints',
+                    'Restauration de pierres',
+                    'Réparation de fissures',
+                    'Travaux de finition',
+                    'Rénovation de façades'
+                ]
+            ],
+            'ramonage' => [
+                'title' => 'Ramonage & cheminées',
+                'prestations' => [
+                    'Ramonage de cheminées',
+                    'Nettoyage des conduits',
+                    'Inspection vidéo',
+                    'Réparation de conduits',
+                    'Installation de chapeaux',
+                    'Débouchage d\'urgence',
+                    'Contrôle de tirage',
+                    'Entretien préventif'
+                ]
+            ],
+            'ouverture' => [
+                'title' => 'Ouvertures & confort',
+                'prestations' => [
+                    'Installation de fenêtres',
+                    'Pose de portes',
+                    'Isolation thermique',
+                    'Ventilation naturelle',
+                    'Étanchéité à l\'air',
+                    'Rénovation d\'ouvertures',
+                    'Amélioration du confort',
+                    'Optimisation énergétique'
+                ]
+            ],
+            'general' => [
+                'title' => 'Services',
+                'prestations' => [
+                    'Diagnostic complet et gratuit',
+                    'Matériaux de qualité supérieure',
+                    'Équipe d\'artisans qualifiés',
+                    'Respect des délais et du budget',
+                    'Garantie décennale',
+                    'Suivi personnalisé',
+                    'Nettoyage et remise en état',
+                    'Conseils d\'entretien'
+                ]
+            ]
+        ];
+        
+        return $contents[$serviceType] ?? $contents['general'];
     }
     
     /**
