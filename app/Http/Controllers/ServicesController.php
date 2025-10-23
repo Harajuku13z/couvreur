@@ -93,7 +93,7 @@ class ServicesController extends Controller
         }
         
         // Générer automatiquement le contenu avec l'IA
-        $aiContent = $this->generateServiceContentWithAI(
+        $aiContent = $this->generatePureAIContent(
             $validated['name'], 
             $validated['short_description'],
             [
@@ -103,8 +103,7 @@ class ServicesController extends Controller
                 'company_address' => $companyAddress,
                 'company_city' => $companyCity,
                 'company_region' => $companyRegion,
-            ],
-            $validated['ai_prompt'] ?? null
+            ]
         );
         
         // Gérer l'upload d'image de mise en avant
@@ -413,7 +412,7 @@ class ServicesController extends Controller
         }
         
         // Régénérer le contenu avec l'IA (force la régénération complète)
-        $aiContent = $this->generateServiceContentWithAI(
+        $aiContent = $this->generatePureAIContent(
             $service['name'], 
             $service['short_description'] ?? 'Service professionnel de ' . $service['name'],
             [
@@ -488,7 +487,7 @@ class ServicesController extends Controller
         $regenerated = 0;
         foreach ($services as $index => $service) {
             try {
-                $aiContent = $this->generateServiceContentWithAI(
+                $aiContent = $this->generatePureAIContent(
                     $service['name'], 
                     $service['short_description'] ?? 'Service professionnel de ' . $service['name'],
                     $companyInfo
@@ -599,7 +598,7 @@ class ServicesController extends Controller
         ];
         
         // Forcer la régénération avec un contenu plus long
-        $aiContent = $this->generateServiceContentWithAI(
+        $aiContent = $this->generatePureAIContent(
             $service['name'], 
             'Service professionnel de ' . $service['name'] . ' avec expertise complète et solutions personnalisées',
             $companyInfo
@@ -1013,7 +1012,157 @@ class ServicesController extends Controller
     }
 
     /**
-     * Générer tout le contenu du service avec l'IA
+     * NOUVELLE MÉTHODE - Génération pure avec IA sans préconfiguration
+     */
+    private function generatePureAIContent($serviceName, $shortDescription, $companyInfo)
+    {
+        $apiKey = setting('chatgpt_api_key');
+        
+        if (!$apiKey) {
+            \Log::error('Clé API manquante pour génération IA pure');
+            return $this->generatePersonalizedDefaultContent($serviceName, $shortDescription, $companyInfo);
+        }
+        
+        try {
+            // Prompt simple et direct
+            $prompt = "Tu es un expert en rédaction web pour le secteur de la rénovation.
+
+INFORMATIONS:
+- Entreprise: {$companyInfo['company_name']}
+- Ville: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+- Service: {$serviceName}
+- Description: {$shortDescription}
+
+MISSION:
+Crée un contenu HTML professionnel pour ce service. Utilise EXACTEMENT cette structure:
+
+<div class=\"grid md:grid-cols-2 gap-8\">
+  <div class=\"space-y-6\">
+    <div class=\"space-y-4\">
+      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName}]</p>
+      <p class=\"text-lg leading-relaxed\">[Expertise spécifique au service]</p>
+      <p class=\"text-lg leading-relaxed\">[Approche client]</p>
+    </div>
+    
+    <div class=\"bg-blue-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
+      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale.</p>
+      <p class=\"leading-relaxed\">[Matériaux et techniques spécifiques à {$serviceName}]</p>
+    </div>
+    
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
+    <ul class=\"space-y-3\">
+      [6-8 prestations spécifiques à {$serviceName}]
+    </ul>
+    
+    <div class=\"bg-green-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
+      <p class=\"leading-relaxed\">[Réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
+    </div>
+  </div>
+  
+  <div class=\"space-y-6\">
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+    <p class=\"leading-relaxed\">[Expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
+    
+    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName}.</p>
+      <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
+    </div>
+    
+    <div class=\"bg-gray-50 p-6 rounded-lg\">
+      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
+      <ul class=\"space-y-2 text-sm\">
+        [4-6 infos pratiques pour {$serviceName}]
+      </ul>
+    </div>
+  </div>
+</div>
+
+INSTRUCTIONS:
+1. ADAPTE complètement le contenu à {$serviceName}
+2. ÉCRIS du contenu UNIQUE et SPÉCIFIQUE
+3. ÉVITE les répétitions et le contenu générique
+4. PERSONNALISE selon le type de service
+5. UTILISE les informations de l'entreprise
+
+FORMAT JSON:
+{
+  \"description\": \"[HTML complet avec la structure ci-dessus]\",
+  \"short_description\": \"[Description courte 140 caractères max]\",
+  \"icon\": \"fas fa-[icône appropriée]\",
+  \"meta_title\": \"[Titre SEO 60 caractères max]\",
+  \"meta_description\": \"[Description SEO 160 caractères max]\",
+  \"og_title\": \"[Titre réseaux sociaux]\",
+  \"og_description\": \"[Description réseaux sociaux]\",
+  \"meta_keywords\": \"[Mots-clés séparés par virgules]\"
+}
+
+Réponds UNIQUEMENT avec le JSON valide.";
+
+            \Log::info('Génération IA pure pour service', [
+                'service_name' => $serviceName,
+                'prompt_length' => strlen($prompt)
+            ]);
+            
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.openai.com/v1/chat/completions', [
+                'model' => setting('chatgpt_model', 'gpt-3.5-turbo'),
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ],
+                'max_tokens' => 4000,
+                'temperature' => 0.8
+            ]);
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '';
+                
+                \Log::info('Réponse IA pure reçue', [
+                    'service_name' => $serviceName,
+                    'content_length' => strlen($content),
+                    'content_preview' => substr($content, 0, 300)
+                ]);
+                
+                // Parser directement le JSON
+                $jsonStart = strpos($content, '{');
+                $jsonEnd = strrpos($content, '}');
+                
+                if ($jsonStart !== false && $jsonEnd !== false) {
+                    $jsonContent = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+                    $aiData = json_decode($jsonContent, true);
+                    
+                    if ($aiData) {
+                        return [
+                            'description' => $aiData['description'] ?? $shortDescription,
+                            'short_description' => $aiData['short_description'] ?? $shortDescription,
+                            'icon' => $aiData['icon'] ?? 'fas fa-tools',
+                            'meta_title' => $aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
+                            'meta_description' => $aiData['meta_description'] ?? $shortDescription,
+                            'og_title' => $aiData['og_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
+                            'og_description' => $aiData['og_description'] ?? $shortDescription,
+                            'meta_keywords' => $aiData['meta_keywords'] ?? $serviceName . ', ' . $companyInfo['company_city']
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur génération IA pure: ' . $e->getMessage());
+        }
+        
+        // Fallback minimal
+        return $this->generatePersonalizedDefaultContent($serviceName, $shortDescription, $companyInfo);
+    }
+
+    /**
+     * Générer tout le contenu du service avec l'IA - ANCIENNE MÉTHODE
      */
     private function generateServiceContentWithAI($serviceName, $shortDescription, $companyInfo, $customPrompt = null)
     {
