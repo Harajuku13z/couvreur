@@ -493,11 +493,10 @@ class ServicesController extends Controller
                     $companyInfo
                 );
                 
-                // Vérifier que le contenu est suffisamment long
-                if (strlen($aiContent['description']) < 500) {
-                    \Log::warning('Description trop courte pour service: ' . $service['name'], [
-                        'description_length' => strlen($aiContent['description'])
-                    ]);
+                // Utiliser le contenu de l'IA même s'il est court
+                \Log::info('Utilisation du contenu IA pour service: ' . $service['name'], [
+                    'description_length' => strlen($aiContent['description'])
+                ]);
                 }
                 
                 $services[$index]['description'] = $this->cleanHtmlContent($aiContent['description']);
@@ -606,14 +605,10 @@ class ServicesController extends Controller
             $companyInfo
         );
         
-        // Vérifier que le contenu est suffisamment long
-        if (strlen($aiContent['description']) < 1000) {
-            \Log::warning('Contenu encore trop court, utilisation du fallback étendu', [
-                'service_name' => $service['name'],
-                'description_length' => strlen($aiContent['description'])
-            ]);
-            $aiContent = $this->generateExtendedFallbackContent($service['name'], $service['short_description'], $companyInfo);
-        }
+        // Utiliser le contenu de l'IA même s'il est court
+        \Log::info('Utilisation du contenu IA pour service: ' . $service['name'], [
+            'description_length' => strlen($aiContent['description'])
+        ]);
         
         $services[$serviceIndex]['description'] = $this->cleanHtmlContent($aiContent['description']);
         $services[$serviceIndex]['short_description'] = $aiContent['short_description'];
@@ -1033,6 +1028,11 @@ class ServicesController extends Controller
             // Prompt complet pour générer tout le contenu
             $prompt = $this->buildCompletePrompt($serviceName, $shortDescription, $companyInfo, $customPrompt);
             
+            \Log::info('Génération IA pour service', [
+                'service_name' => $serviceName,
+                'prompt_length' => strlen($prompt)
+            ]);
+            
             $response = \Illuminate\Support\Facades\Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
@@ -1052,6 +1052,12 @@ class ServicesController extends Controller
                 $data = $response->json();
                 $content = $data['choices'][0]['message']['content'] ?? '';
                 
+                \Log::info('Réponse IA reçue', [
+                    'service_name' => $serviceName,
+                    'content_length' => strlen($content),
+                    'content_preview' => substr($content, 0, 200)
+                ]);
+                
                 // Incrémenter les statistiques d'utilisation de l'IA
                 $currentCount = (int) setting('ai_generations_count', 0);
                 Setting::set('ai_generations_count', $currentCount + 1);
@@ -1060,6 +1066,11 @@ class ServicesController extends Controller
                 
                 // Parser le contenu JSON retourné par l'IA
                 return $this->parseAIResponse($content, $serviceName, $shortDescription, $companyInfo);
+            } else {
+                \Log::error('Erreur API OpenAI', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
             }
         } catch (\Exception $e) {
             \Log::error('Erreur génération IA: ' . $e->getMessage());
@@ -1250,22 +1261,24 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                 
                 if ($data) {
                     $description = $data['description'] ?? $shortDescription;
+                    $shortDesc = $data['short_description'] ?? $shortDescription;
                     
-                    // Vérifier que la description est suffisamment longue
-                    if (strlen($description) < 500) {
-                        \Log::warning('Description IA trop courte, utilisation du fallback', [
-                            'service_name' => $serviceName,
-                            'description_length' => strlen($description)
-                        ]);
-                        return $this->generateFallbackContent($serviceName, $shortDescription, $companyInfo);
-                    }
+                    // Utiliser le contenu de l'IA même s'il est court
+                    \Log::info('Utilisation du contenu IA généré', [
+                        'service_name' => $serviceName,
+                        'description_length' => strlen($description),
+                        'short_description_length' => strlen($shortDesc)
+                    ]);
                     
                     return [
                         'description' => $this->cleanHtmlContent($description),
-                        'short_description' => $data['short_description'] ?? $shortDescription,
+                        'short_description' => $shortDesc,
                         'icon' => $data['icon'] ?? 'fas fa-tools',
                         'meta_title' => $data['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
-                        'meta_description' => $data['meta_description'] ?? $shortDescription
+                        'meta_description' => $data['meta_description'] ?? $shortDesc,
+                        'og_title' => $data['og_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
+                        'og_description' => $data['og_description'] ?? $shortDesc,
+                        'meta_keywords' => $data['meta_keywords'] ?? $serviceName . ', ' . $companyInfo['company_city'] . ', ' . $companyInfo['company_region']
                     ];
                 }
             }
