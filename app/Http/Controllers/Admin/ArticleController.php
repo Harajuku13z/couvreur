@@ -330,7 +330,7 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             $path = $image->storeAs('articles', $filename, 'public');
             
             // Générer l'URL complète
-            $imageUrl = request()->getSchemeAndHttpHost() . '/storage/' . $path;
+            $imageUrl = url('storage/' . $path);
             
             return response()->json([
                 'success' => true,
