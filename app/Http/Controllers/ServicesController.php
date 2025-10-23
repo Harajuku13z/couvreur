@@ -1024,96 +1024,43 @@ class ServicesController extends Controller
         }
         
         try {
-            // Prompt simple et direct
+            // Prompt ultra-simple avec liberté totale
             $prompt = "Tu es un expert en rédaction web pour le secteur de la rénovation.
 
-INFORMATIONS:
+CONTEXTE:
 - Entreprise: {$companyInfo['company_name']}
-- Ville: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+- Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
 - Service: {$serviceName}
 - Description: {$shortDescription}
 
 MISSION:
-Crée un contenu HTML professionnel pour ce service. Utilise EXACTEMENT cette structure:
+Crée un contenu HTML professionnel et attractif pour ce service. Tu as une liberté totale pour:
+- Structurer le contenu comme tu veux
+- Choisir les sections pertinentes
+- Adapter le style et le formatage
+- Personnaliser selon le type de service
+- Créer du contenu unique et engageant
 
-<div class=\"grid md:grid-cols-2 gap-8\">
-  <div class=\"space-y-6\">
-    <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName}]</p>
-      <p class=\"text-lg leading-relaxed\">[Expertise spécifique au service]</p>
-      <p class=\"text-lg leading-relaxed\">[Approche client]</p>
-    </div>
-    
-    <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
-      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale.</p>
-      <p class=\"leading-relaxed\">[Matériaux et techniques spécifiques à {$serviceName}]</p>
-    </div>
-    
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
-    <ul class=\"space-y-3\">
-      <li class=\"flex items-start\"><span><strong>[Prestation 1 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 2 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 3 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 4 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 5 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 6 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 7 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 8 spécifique à {$serviceName}]</strong></span></li>
-    </ul>
-    
-    <div class=\"bg-green-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
-      <p class=\"leading-relaxed\">[Réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
-    </div>
-  </div>
-  
-  <div class=\"space-y-6\">
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
-    <p class=\"leading-relaxed\">[Expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
-    
-    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName}.</p>
-      <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
-    </div>
-    
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
-      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
-      <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><span>[Info pratique 1 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 2 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 3 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 4 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 5 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 6 pour {$serviceName}]</span></li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-INSTRUCTIONS:
-1. ADAPTE complètement le contenu à {$serviceName}
-2. ÉCRIS du contenu UNIQUE et SPÉCIFIQUE
-3. ÉVITE les répétitions et le contenu générique
-4. PERSONNALISE selon le type de service
-5. UTILISE les informations de l'entreprise
-6. REMPLACE les placeholders [Prestation X] par des prestations réelles spécifiques au service
-7. REMPLACE les placeholders [Info pratique X] par des informations réelles spécifiques au service
-8. GARDE la structure HTML exacte avec les classes CSS
-9. ASSURE-TOI que les listes sont bien formatées avec <li> et <span>
+CONTRAINTES UNIQUES:
+- Utilise Tailwind CSS pour le styling
+- Inclus des prestations spécifiques au service
+- Ajoute des informations pratiques
+- Inclus un appel à l'action pour le devis
+- Adapte tout au service {$serviceName}
 
 FORMAT JSON:
 {
-  \"description\": \"[HTML complet avec la structure ci-dessus]\",
-  \"short_description\": \"[Description courte 140 caractères max]\",
-  \"icon\": \"fas fa-[icône appropriée]\",
-  \"meta_title\": \"[Titre SEO 60 caractères max]\",
-  \"meta_description\": \"[Description SEO 160 caractères max]\",
-  \"og_title\": \"[Titre réseaux sociaux]\",
-  \"og_description\": \"[Description réseaux sociaux]\",
-  \"meta_keywords\": \"[Mots-clés séparés par virgules]\"
+  \"description\": \"[HTML complet avec ton propre style et structure]\",
+  \"short_description\": \"[Description courte et accrocheuse]\",
+  \"icon\": \"fas fa-[icône appropriée au service]\",
+  \"meta_title\": \"[Titre SEO optimisé]\",
+  \"meta_description\": \"[Description SEO engageante]\",
+  \"og_title\": \"[Titre pour réseaux sociaux]\",
+  \"og_description\": \"[Description pour réseaux sociaux]\",
+  \"meta_keywords\": \"[Mots-clés pertinents]\"
 }
+
+Tu as carte blanche pour créer le meilleur contenu possible. Sois créatif et professionnel.
 
 Réponds UNIQUEMENT avec le JSON valide.";
 
