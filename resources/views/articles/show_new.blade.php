@@ -33,7 +33,7 @@
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     @if($article->featured_image)
                         <div class="aspect-w-16 aspect-h-9">
-                            <img src="{{ url($article->featured_image) }}" alt="{{ $article->title }}" 
+                            <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
                                  class="w-full h-64 object-cover">
                         </div>
                     @endif

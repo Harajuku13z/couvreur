@@ -74,7 +74,7 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
                     <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                         @if($article->featured_image)
                             <div class="aspect-w-16 aspect-h-9">
-                                <img src="{{ url($article->featured_image) }}" alt="{{ $article->title }}" 
+                                <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
                                      class="w-full h-48 object-cover">
                             </div>
                         @endif

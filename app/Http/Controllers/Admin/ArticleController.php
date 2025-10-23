@@ -326,11 +326,17 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             $image = $request->file('image');
             $filename = 'article_' . time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             
-            // Sauvegarder dans storage/app/public/articles/
-            $path = $image->storeAs('articles', $filename, 'public');
+            // Créer le dossier s'il n'existe pas
+            $uploadPath = public_path('uploads/articles');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            // Sauvegarder directement dans public/uploads/articles/
+            $image->move($uploadPath, $filename);
             
             // Générer l'URL complète
-            $imageUrl = url('storage/' . $path);
+            $imageUrl = url('uploads/articles/' . $filename);
             
             return response()->json([
                 'success' => true,

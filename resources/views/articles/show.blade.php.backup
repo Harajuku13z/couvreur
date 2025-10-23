@@ -31,7 +31,7 @@
     <meta property="og:site_name" content="{{ setting('company_name', 'Votre Entreprise') }}">
     <meta property="og:locale" content="fr_FR">
     @if($article->featured_image)
-        <meta property="og:image" content="{{ url($article->featured_image) }}">
+        <meta property="og:image" content="{{ asset($article->featured_image) }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta property="og:image:alt" content="{{ $article->title }}">
@@ -49,7 +49,7 @@
     <meta name="twitter:site" content="@{{ setting('company_name', 'Votre Entreprise') }}">
     <meta name="twitter:creator" content="@{{ setting('company_name', 'Votre Entreprise') }}">
     @if($article->featured_image)
-        <meta name="twitter:image" content="{{ url($article->featured_image) }}">
+        <meta name="twitter:image" content="{{ asset($article->featured_image) }}">
         <meta name="twitter:image:alt" content="{{ $article->title }}">
     @endif
 
@@ -60,7 +60,7 @@
         "@type": "Article",
         "headline": "{{ $article->title }}",
         "description": "{{ $article->meta_description }}",
-        "image": "{{ url($article->featured_image) }}",
+        "image": "{{ asset($article->featured_image) }}",
         "author": {
             "@type": "Organization",
             "name": "{{ setting('company_name', 'Votre Entreprise') }}",
@@ -95,7 +95,7 @@
     
     <!-- Balises pour les Images -->
     @if($article->featured_image)
-        <link rel="image_src" href="{{ url($article->featured_image) }}">
+        <link rel="image_src" href="{{ asset($article->featured_image) }}">
     @endif
 @endsection
 
@@ -105,7 +105,7 @@
     <section class="relative py-20 text-white overflow-hidden">
         @if($article->featured_image)
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ url($article->featured_image) }}'); filter: blur(2px); transform: scale(1.1);"></div>
+             style="background-image: url('{{ asset($article->featured_image) }}'); filter: blur(2px); transform: scale(1.1);"></div>
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         @else
         <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800"></div>

@@ -18,7 +18,7 @@
 <meta property="og:description" content="{{ $article->meta_description }}">
 <meta property="og:site_name" content="{{ setting('company_name') }}">
 @if($article->featured_image)
-<meta property="og:image" content="{{ url($article->featured_image) }}">
+<meta property="og:image" content="{{ asset($article->featured_image) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 @endif
@@ -30,7 +30,7 @@
 <meta name="twitter:title" content="{{ $article->meta_title ?: $article->title }}">
 <meta name="twitter:description" content="{{ $article->meta_description }}">
 @if($article->featured_image)
-<meta name="twitter:image" content="{{ url($article->featured_image) }}">
+<meta name="twitter:image" content="{{ asset($article->featured_image) }}">
 @endif
 
 <!-- Article specific meta -->
@@ -103,7 +103,7 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
   "@type": "Article",
   "headline": "{{ $article->title }}",
   "description": "{{ $article->meta_description }}",
-  "image": "{{ $article->featured_image ? url($article->featured_image) : asset('images/default-article.jpg') }}",
+  "image": "{{ $article->featured_image ? asset($article->featured_image) : asset('images/default-article.jpg') }}",
   "author": {
     "@type": "Organization",
     "name": "{{ setting('company_name') }}"
@@ -155,7 +155,7 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     @if($article->featured_image)
                         <div class="aspect-w-16 aspect-h-9">
-                            <img src="{{ url($article->featured_image) }}" alt="{{ $article->title }}" 
+                            <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
                                  class="w-full h-64 object-cover">
                         </div>
                     @endif
