@@ -136,7 +136,8 @@ class EmailService
         \Log::info('Email submission - work types debug', [
             'work_types_raw' => $submission->work_types,
             'work_types_decoded' => $workTypes,
-            'selected_types' => $selectedTypes
+            'selected_types' => $selectedTypes,
+            'submission_id' => $submission->id
         ]);
         
         // Traduction du type de bien
@@ -246,32 +247,20 @@ class EmailService
                         </div>
                     </div>";
         
-        // FORCER l'affichage des types de travaux
+        // AFFICHAGE SIMPLIFIÉ des types de travaux
+        $workTypesDisplay = '';
         if (!empty($selectedTypes)) {
-            $html .= "<p><strong>Types de travaux :</strong> " . implode(', ', $selectedTypes) . "</p>";
+            $workTypesDisplay = "<p><strong>Types de travaux :</strong> " . implode(', ', $selectedTypes) . "</p>";
         } else {
-            // Fallback: afficher les types de travaux même si la logique principale échoue
+            // Fallback simple: afficher les types de travaux bruts
             $workTypes = is_string($submission->work_types) ? json_decode($submission->work_types, true) : ($submission->work_types ?? []);
             if (!empty($workTypes)) {
-                $workTypeLabels = [
-                    'roof' => 'Toiture',
-                    'facade' => 'Façade', 
-                    'isolation' => 'Isolation'
-                ];
-                $fallbackTypes = [];
-                foreach($workTypes as $type) {
-                    if(isset($workTypeLabels[$type])) {
-                        $fallbackTypes[] = $workTypeLabels[$type];
-                    }
-                }
-                if (!empty($fallbackTypes)) {
-                    $html .= "<p><strong>Types de travaux :</strong> " . implode(', ', $fallbackTypes) . "</p>";
-                } else {
-                    // Dernier fallback: afficher les types bruts
-                    $html .= "<p><strong>Types de travaux :</strong> " . implode(', ', $workTypes) . "</p>";
-                }
+                $workTypesDisplay = "<p><strong>Types de travaux :</strong> " . implode(', ', $workTypes) . "</p>";
             }
         }
+        
+        // TOUJOURS afficher les types de travaux
+        $html .= $workTypesDisplay;
         
         $html .= $roofDetails . $facadeDetails . $isolationDetails;
         
@@ -324,6 +313,14 @@ class EmailService
                 $selectedTypes[] = $workTypeLabels[$type];
             }
         }
+        
+        // Debug: log les types de travaux pour l'email admin
+        \Log::info('Email admin - work types debug', [
+            'work_types_raw' => $submission->work_types,
+            'work_types_decoded' => $workTypes,
+            'selected_types' => $selectedTypes,
+            'submission_id' => $submission->id
+        ]);
 
         // Détails des travaux de toiture
         $roofDetails = '';
@@ -435,9 +432,20 @@ class EmailService
                             </div>
                             <div>";
         
+        // AFFICHAGE FORCÉ des types de travaux dans l'email admin
+        $workTypesDisplay = '';
         if (!empty($selectedTypes)) {
-            $html .= "<p style='margin: 8px 0;'><strong>Types de travaux :</strong><br>" . implode('<br>', $selectedTypes) . "</p>";
+            $workTypesDisplay = "<p style='margin: 8px 0;'><strong>Types de travaux :</strong><br>" . implode('<br>', $selectedTypes) . "</p>";
+        } else {
+            // Fallback: afficher les types de travaux même si la logique principale échoue
+            $workTypes = is_string($submission->work_types) ? json_decode($submission->work_types, true) : ($submission->work_types ?? []);
+            if (!empty($workTypes)) {
+                $workTypesDisplay = "<p style='margin: 8px 0;'><strong>Types de travaux :</strong><br>" . implode('<br>', $workTypes) . "</p>";
+            }
         }
+        
+        // TOUJOURS afficher les types de travaux
+        $html .= $workTypesDisplay;
         
         $html .= $roofDetails . $facadeDetails . $isolationDetails;
         
