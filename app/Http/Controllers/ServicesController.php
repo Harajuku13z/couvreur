@@ -1679,15 +1679,22 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $serviceType = $this->detectServiceType($text);
         $serviceContent = $this->getServiceSpecificContent($serviceType);
         
-        $html = '<div class="service-content">';
-        $html .= '<div class="grid md:grid-cols-2 gap-8">';
+        $html = '<div class="grid md:grid-cols-2 gap-8">';
         
-        // Colonne gauche
+        // Colonne gauche : description + engagement + prestations
         $html .= '<div class="space-y-6">';
         
         // Introduction générale
         $html .= '<div class="space-y-4">';
-        $html .= '<p class="text-lg leading-relaxed">' . $text . '</p>';
+        $html .= '<p class="text-lg leading-relaxed">';
+        $html .= 'Découvrez notre <strong class="text-blue-600">expertise professionnelle en ' . $serviceContent['title'] . '</strong> à ' . $companyCity . ', ' . $companyRegion . '. Nous assurons la protection et l\'étanchéité de votre toiture, de la réparation à la rénovation complète, avec des matériaux de qualité et des techniques éprouvées.';
+        $html .= '</p>';
+        $html .= '<p class="text-lg leading-relaxed">';
+        $html .= 'Experts en couverture, nous garantissons la durabilité de votre toiture et intervenons sur tous types de toitures : tuiles, ardoises, toitures plates, etc.';
+        $html .= '</p>';
+        $html .= '<p class="text-lg leading-relaxed">';
+        $html .= 'Chaque projet bénéficie d\'une attention personnalisée et d\'un accompagnement complet pour garantir la satisfaction de nos clients.';
+        $html .= '</p>';
         $html .= '</div>';
         
         // Engagement qualité
@@ -1701,7 +1708,7 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '</p>';
         $html .= '</div>';
         
-        // Prestations spécifiques au service
+        // Prestations
         $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceContent['title'] . '</h3>';
         $html .= '<ul class="space-y-3">';
         foreach ($serviceContent['prestations'] as $prestation) {
@@ -1713,13 +1720,13 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '<div class="bg-green-50 p-6 rounded-lg">';
         $html .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
         $html .= '<p class="leading-relaxed">';
-        $html .= 'Notre réputation à ' . $companyCity . ' et en ' . $companyRegion . ' repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer des projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.';
+        $html .= 'Notre réputation à ' . $companyCity . ' et en ' . $companyRegion . ' repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer les projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.';
         $html .= '</p>';
         $html .= '</div>';
         
         $html .= '</div>';
         
-        // Colonne droite
+        // Colonne droite : expertise locale + devis + infos pratiques
         $html .= '<div class="space-y-6">';
         
         // Expertise locale
@@ -1745,11 +1752,10 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '<ul class="space-y-2 text-sm">';
         $html .= '<li class="flex items-center"><span>Intervention rapide et efficace dans la région</span></li>';
         $html .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
-        $html .= '<li class="flex items-center"><span>Garantie de satisfaction pour un travail impeccable</span></li>';
+        $html .= '<li class="flex items-center"><span>Garantie de satisfaction pour une toiture impeccable</span></li>';
         $html .= '</ul>';
         $html .= '</div>';
         
-        $html .= '</div>';
         $html .= '</div>';
         $html .= '</div>';
         
