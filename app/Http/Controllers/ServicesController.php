@@ -497,7 +497,6 @@ class ServicesController extends Controller
                 \Log::info('Utilisation du contenu IA pour service: ' . $service['name'], [
                     'description_length' => strlen($aiContent['description'])
                 ]);
-                }
                 
                 $services[$index]['description'] = $this->cleanHtmlContent($aiContent['description']);
                 $services[$index]['short_description'] = $aiContent['short_description'];
