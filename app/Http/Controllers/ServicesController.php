@@ -1130,13 +1130,13 @@ STRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
     <!-- Introduction générale -->
     <div class=\"space-y-4\">
       <p class=\"text-lg leading-relaxed\">
-        Découvrez notre <strong class=\"text-blue-600\">expertise professionnelle en {$serviceName}</strong> à {$companyInfo['company_city']}, {$companyInfo['company_region']}. Nous assurons la protection et l'étanchéité de votre toiture, de la réparation à la rénovation complète, avec des matériaux de qualité et des techniques éprouvées.
+        [ÉCRIVEZ UNE INTRODUCTION PERSONNALISÉE pour le service {$serviceName} à {$companyInfo['company_city']}, {$companyInfo['company_region']}. Adaptez le contenu selon le type de service : toiture, façade, isolation, etc.]
       </p>
       <p class=\"text-lg leading-relaxed\">
-        Experts en couverture, nous garantissons la durabilité de votre toiture et intervenons sur tous types de toitures : tuiles, ardoises, toitures plates, etc.
+        [ÉCRIVEZ UN DEUXIÈME PARAGRAPHE sur l'expertise spécifique au service {$serviceName}]
       </p>
       <p class=\"text-lg leading-relaxed\">
-        Chaque projet bénéficie d'une attention personnalisée et d'un accompagnement complet pour garantir la satisfaction de nos clients.
+        [ÉCRIVEZ UN TROISIÈME PARAGRAPHE sur l'approche personnalisée et la satisfaction client]
       </p>
     </div>
 
@@ -1147,28 +1147,21 @@ STRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
         Chez <strong>{$companyInfo['company_name']}</strong>, nous mettons un point d'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.
       </p>
       <p class=\"leading-relaxed\">
-        Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité, respectueux des normes et de l'environnement.
+        [ÉCRIVEZ UN PARAGRAPHE sur la qualité des matériaux et techniques spécifiques au service {$serviceName}]
       </p>
     </div>
 
     <!-- Prestations -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
-      <li class=\"flex items-start\"><span><strong>Réparation de toiture en urgence</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Rénovation complète de couverture</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Pose de tuiles et ardoises</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Étanchéité de toiture plate</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Traitement anti-mousse</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Réparation de fuites</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Ventilation de toiture</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>Isolation sous toiture</strong></span></li>
+      [LISTEZ 6-8 PRESTATIONS SPÉCIFIQUES au service {$serviceName}. Adaptez selon le type : toiture, façade, isolation, gouttières, etc.]
     </ul>
 
     <!-- Pourquoi choisir notre entreprise -->
     <div class=\"bg-green-50 p-6 rounded-lg\">
       <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
       <p class=\"leading-relaxed\">
-        Notre réputation à {$companyInfo['company_city']} et en {$companyInfo['company_region']} repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer les projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.
+        [ÉCRIVEZ UN PARAGRAPHE sur la réputation et l'expertise locale pour le service {$serviceName} à {$companyInfo['company_city']}, {$companyInfo['company_region']}]
       </p>
     </div>
   </div>
@@ -1178,7 +1171,7 @@ STRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
     <!-- Expertise locale -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
     <p class=\"leading-relaxed\">
-      Forts de notre expérience, nous connaissons parfaitement les spécificités de la région pour un service adapté et de qualité.
+      [ÉCRIVEZ UN PARAGRAPHE sur l'expertise locale spécifique au service {$serviceName} dans la région {$companyInfo['company_region']}]
     </p>
 
     <!-- Devis -->
@@ -1196,22 +1189,23 @@ STRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><span>Intervention rapide et efficace dans la région</span></li>
-        <li class=\"flex items-center\"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>
-        <li class=\"flex items-center\"><span>Garantie de satisfaction pour une toiture impeccable</span></li>
+        [LISTEZ 4-6 INFORMATIONS PRATIQUES spécifiques au service {$serviceName} : délais, garanties, financement, etc.]
       </ul>
     </div>
   </div>
 </div>
 
 INSTRUCTIONS DÉTAILLÉES:
-1. ADAPTEZ le contenu au service spécifique: {$serviceName}
-2. PERSONNALISEZ les prestations selon le type de service
+1. ADAPTEZ COMPLÈTEMENT le contenu au service spécifique: {$serviceName}
+2. ÉCRIVEZ du contenu PERSONNALISÉ selon le type de service (toiture, façade, isolation, gouttières, etc.)
 3. UTILISEZ les informations de l'entreprise: {$companyInfo['company_name']}
 4. INTÉGREZ la localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
 5. GARDEZ la structure HTML exacte de l'exemple ci-dessus
-6. ADAPTEZ les prestations selon le service (toiture, façade, isolation, etc.)
-7. PERSONNALISEZ les textes selon le service tout en gardant la structure
+6. PERSONNALISEZ les prestations selon le service (pas de contenu générique)
+7. ÉCRIVEZ du contenu UNIQUE et SPÉCIFIQUE au service
+8. ADAPTEZ le vocabulaire et les formulations selon le service
+9. INCLUEZ des informations sur le financement, les garanties, les délais
+10. VARIEZ le contenu pour éviter les répétitions
 
 FORMAT DE RÉPONSE (JSON):
 {
@@ -1227,13 +1221,15 @@ FORMAT DE RÉPONSE (JSON):
 
 IMPORTANT:
 - SUIVEZ EXACTEMENT la structure HTML de l'exemple
-- ADAPTEZ le contenu au service spécifique ({$serviceName})
-- PERSONNALISEZ les prestations selon le type de service
+- ÉCRIVEZ du contenu PERSONNALISÉ pour le service {$serviceName}
+- ADAPTEZ les prestations selon le type de service (toiture, façade, isolation, etc.)
 - GARDEZ les classes CSS et la structure
 - UTILISEZ les informations de l'entreprise et de la localisation
 - Le contenu doit être professionnel et engageant
 - ÉVITEZ la répétition de phrases identiques
 - Variez le vocabulaire et les formulations
+- INCLUEZ des informations sur le financement et les garanties
+- ADAPTEZ le contenu selon le service spécifique
 
 Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     }
