@@ -539,6 +539,19 @@ class EmailService
             }
         }
         
+        // Debug: log les types de travaux pour les templates
+        \Log::info('Template work types debug', [
+            'work_types_raw' => $submission->work_types,
+            'work_types_decoded' => $workTypes,
+            'selected_types' => $selectedTypes,
+            'submission_id' => $submission->id
+        ]);
+        
+        // Si aucun type traduit trouvé, retourner les types bruts
+        if (empty($selectedTypes) && !empty($workTypes)) {
+            return implode(', ', $workTypes);
+        }
+        
         return implode(', ', $selectedTypes);
     }
 
