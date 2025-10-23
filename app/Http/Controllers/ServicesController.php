@@ -112,12 +112,12 @@ class ServicesController extends Controller
             $file = $request->file('featured_image');
             $filename = 'service_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $featuredImagePath = 'uploads/services/' . $filename;
+            $featuredImagePath = 'storage/uploads/services/' . $filename;
         }
         
         // Gérer l'upload de l'image Open Graph
@@ -126,12 +126,12 @@ class ServicesController extends Controller
             $file = $request->file('og_image');
             $filename = 'og_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $ogImagePath = 'uploads/services/' . $filename;
+            $ogImagePath = 'storage/uploads/services/' . $filename;
         }
         
         // Gérer l'upload de l'image Twitter
@@ -140,12 +140,12 @@ class ServicesController extends Controller
             $file = $request->file('twitter_image');
             $filename = 'twitter_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $twitterImagePath = 'uploads/services/' . $filename;
+            $twitterImagePath = 'storage/uploads/services/' . $filename;
         }
 
         // Récupérer les services existants
@@ -287,12 +287,12 @@ class ServicesController extends Controller
             $file = $request->file('featured_image');
             $filename = 'service_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $featuredImagePath = 'uploads/services/' . $filename;
+            $featuredImagePath = 'storage/uploads/services/' . $filename;
         }
         
         // Gérer l'upload de l'image Open Graph
@@ -301,12 +301,12 @@ class ServicesController extends Controller
             $file = $request->file('og_image');
             $filename = 'og_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $ogImagePath = 'uploads/services/' . $filename;
+            $ogImagePath = 'storage/uploads/services/' . $filename;
         }
         
         // Gérer l'upload de l'image Twitter
@@ -315,12 +315,12 @@ class ServicesController extends Controller
             $file = $request->file('twitter_image');
             $filename = 'twitter_' . time() . '_' . Str::slug($validated['name']) . '.' . $file->getClientOriginalExtension();
             // Créer le dossier s'il n'existe pas
-            $uploadPath = public_path('uploads/services');
+            $uploadPath = public_path('storage/uploads/services');
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
             $file->move($uploadPath, $filename);
-            $twitterImagePath = 'uploads/services/' . $filename;
+            $twitterImagePath = 'storage/uploads/services/' . $filename;
         }
 
         // Mettre à jour le service
