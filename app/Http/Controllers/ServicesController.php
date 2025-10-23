@@ -226,6 +226,66 @@ class ServicesController extends Controller
     }
 
     /**
+     * Régénérer le contenu d'un service avec l'IA
+     */
+    public function regenerate(Request $request, $id)
+    {
+        try {
+            $servicesData = Setting::get('services', '[]');
+            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+            
+            $service = collect($services)->firstWhere('id', $id);
+            
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service non trouvé'
+                ], 404);
+            }
+
+            // Récupérer les informations de l'entreprise
+            $companyInfo = $this->getCompanyInfo();
+            
+            // Générer automatiquement TOUT le contenu avec l'IA
+            $aiContent = $this->generateCompleteServiceContent(
+                $service['name'], 
+                $service['short_description'],
+                $companyInfo,
+                $request->input('ai_prompt')
+            );
+
+            // Mettre à jour le service avec le nouveau contenu
+            $this->updateService($id, [
+                'short_description' => $aiContent['short_description'],
+                'description' => $aiContent['description'],
+                'icon' => $aiContent['icon'],
+                'meta_title' => $aiContent['meta_title'],
+                'meta_description' => $aiContent['meta_description'],
+                'meta_keywords' => $aiContent['meta_keywords'],
+                'og_title' => $aiContent['og_title'],
+                'og_description' => $aiContent['og_description'],
+                'twitter_title' => $aiContent['twitter_title'],
+                'twitter_description' => $aiContent['twitter_description'],
+                'updated_at' => now()->toISOString(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contenu régénéré avec succès par l\'IA',
+                'content' => $aiContent
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur régénération service: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la régénération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Générer TOUT le contenu du service avec l'IA
      */
     private function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo, $customPrompt = null)
