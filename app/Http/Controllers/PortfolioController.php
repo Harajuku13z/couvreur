@@ -166,35 +166,71 @@ class PortfolioController extends Controller
         if (file_exists($testFile)) {
             $data = json_decode(file_get_contents($testFile), true);
             if ($data) {
+                \Log::info('Portfolio data loaded from file', ['count' => count($data)]);
                 return $data;
             }
         }
         
-        // Données de test par défaut
+        // Données de test par défaut avec toutes les images disponibles
         return [
             [
-                'id' => 'test_' . time() . '_1',
+                'id' => 'portfolio_' . time() . '_1',
                 'title' => 'Rénovation Toiture - Maison Familiale',
-                'description' => 'Rénovation complète d\'une toiture en tuiles avec remplacement de la charpente et pose d\'une nouvelle couverture.',
+                'description' => 'Rénovation complète d\'une toiture en tuiles avec remplacement de la charpente et pose d\'une nouvelle couverture. Travaux réalisés avec des matériaux de qualité supérieure.',
                 'work_type' => 'roof',
                 'images' => [
                     'uploads/portfolio/portfolio-1761026926-2964.jpeg',
                     'uploads/portfolio/portfolio-1761033014-5399.jpeg'
                 ],
                 'is_visible' => true,
-                'created_at' => date('c')
+                'created_at' => date('c'),
+                'meta_title' => 'Rénovation Toiture - Maison Familiale | Couvreur Professionnel',
+                'meta_description' => 'Découvrez notre réalisation de rénovation de toiture. Travaux professionnels avec matériaux de qualité.',
+                'meta_keywords' => 'rénovation, toiture, couverture, charpente, travaux'
             ],
             [
-                'id' => 'test_' . time() . '_2',
+                'id' => 'portfolio_' . time() . '_2',
                 'title' => 'Demoussage et Traitement Hydrofuge',
-                'description' => 'Demoussage professionnel suivi d\'un traitement hydrofuge pour protéger la toiture.',
+                'description' => 'Demoussage professionnel suivi d\'un traitement hydrofuge pour protéger la toiture contre les intempéries et les mousses.',
                 'work_type' => 'demoussage',
                 'images' => [
                     'uploads/portfolio/portfolio-1761034156-5402.jpeg',
                     'uploads/portfolio/portfolio-1761065197-2846.jpeg'
                 ],
                 'is_visible' => true,
-                'created_at' => date('c')
+                'created_at' => date('c'),
+                'meta_title' => 'Demoussage et Traitement Hydrofuge | Couvreur Professionnel',
+                'meta_description' => 'Service de demoussage et traitement hydrofuge pour protéger votre toiture.',
+                'meta_keywords' => 'demoussage, hydrofuge, traitement, toiture, protection'
+            ],
+            [
+                'id' => 'portfolio_' . time() . '_3',
+                'title' => 'Réparation de Toiture - Urgence',
+                'description' => 'Intervention d\'urgence pour réparer une toiture endommagée par une tempête. Remplacement des tuiles cassées et vérification de l\'étanchéité.',
+                'work_type' => 'roof',
+                'images' => [
+                    'uploads/portfolio/portfolio-1761065197-9694.jpeg',
+                    'uploads/portfolio/portfolio-1761169189-7693.jpg'
+                ],
+                'is_visible' => true,
+                'created_at' => date('c'),
+                'meta_title' => 'Réparation de Toiture - Urgence | Couvreur Professionnel',
+                'meta_description' => 'Réparation d\'urgence de toiture endommagée. Intervention rapide et professionnelle.',
+                'meta_keywords' => 'réparation, toiture, urgence, tempête, étanchéité'
+            ],
+            [
+                'id' => 'portfolio_' . time() . '_4',
+                'title' => 'Isolation Thermique Toiture',
+                'description' => 'Pose d\'une isolation thermique performante dans les combles pour améliorer l\'efficacité énergétique de la maison.',
+                'work_type' => 'isolation',
+                'images' => [
+                    'uploads/portfolio/portfolio-1761169429-8038.jpeg'
+                ],
+                'is_visible' => true,
+                'created_at' => date('c'),
+                'meta_title' => 'Isolation Thermique Toiture | Couvreur Professionnel',
+                'meta_description' => 'Isolation thermique performante pour améliorer l\'efficacité énergétique.',
+                'meta_keywords' => 'isolation, thermique, énergie, combles, efficacité'
             ]
         ];
     }

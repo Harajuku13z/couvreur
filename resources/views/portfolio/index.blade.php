@@ -41,7 +41,7 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="portfolio-grid">
                 @foreach($visiblePortfolio as $item)
                 <div class="portfolio-item bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" 
-                     data-category="{{ Str::slug($item['service_type'] ?? 'autre') }}"
+                     data-category="{{ Str::slug($item['work_type'] ?? 'autre') }}"
                      onclick="window.location.href='{{ route('portfolio.show', $item['id'] ?? 0) }}'">
                     <!-- Image principale -->
                     <div class="relative h-64 overflow-hidden">
