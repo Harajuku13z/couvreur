@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 class ServicesController extends Controller
 {
     /**
+     * 
      * Afficher la liste des services
      */
     public function index()
@@ -1019,8 +1020,11 @@ class ServicesController extends Controller
         $apiKey = setting('chatgpt_api_key');
         
         if (!$apiKey) {
-            // Fallback si pas d'API
-            return $this->generateFallbackContent($serviceName, $shortDescription, $companyInfo);
+            // Utiliser un contenu par défaut personnalisé au lieu du fallback générique
+            \Log::warning('Clé API manquante, utilisation du contenu par défaut personnalisé', [
+                'service_name' => $serviceName
+            ]);
+            return $this->generatePersonalizedDefaultContent($serviceName, $shortDescription, $companyInfo);
         }
         
         try {
@@ -1289,6 +1293,51 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         return $this->generateFallbackContent($serviceName, $shortDescription, $companyInfo);
     }
     
+    /**
+     * Contenu par défaut personnalisé selon le service
+     */
+    private function generatePersonalizedDefaultContent($serviceName, $shortDescription, $companyInfo)
+    {
+        $serviceType = $this->detectServiceType($serviceName);
+        $serviceContent = $this->getServiceSpecificContent($serviceType);
+        
+        // Générer du contenu personnalisé selon le service
+        $description = $this->buildCleanServiceContent($shortDescription);
+        
+        return [
+            'description' => $description,
+            'short_description' => $shortDescription,
+            'icon' => $this->getServiceIcon($serviceName),
+            'meta_title' => $serviceName . ' à ' . $companyInfo['company_city'] . ' - ' . $companyInfo['company_name'],
+            'meta_description' => "Service " . $serviceName . " professionnel à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ". Devis gratuit, équipe qualifiée.",
+            'og_title' => $serviceName . ' - ' . $companyInfo['company_name'],
+            'og_description' => "Service " . $serviceName . " professionnel à " . $companyInfo['company_city'] . ". Devis gratuit.",
+            'meta_keywords' => $serviceName . ', ' . $companyInfo['company_city'] . ', ' . $companyInfo['company_region'] . ', devis gratuit'
+        ];
+    }
+    
+    /**
+     * Obtenir l'icône appropriée pour un service
+     */
+    private function getServiceIcon($serviceName)
+    {
+        $serviceKey = strtolower($serviceName);
+        
+        if (strpos($serviceKey, 'toiture') !== false || strpos($serviceKey, 'couverture') !== false) {
+            return 'fas fa-home';
+        } elseif (strpos($serviceKey, 'façade') !== false || strpos($serviceKey, 'ravalement') !== false) {
+            return 'fas fa-building';
+        } elseif (strpos($serviceKey, 'isolation') !== false) {
+            return 'fas fa-thermometer-half';
+        } elseif (strpos($serviceKey, 'gouttière') !== false) {
+            return 'fas fa-tint';
+        } elseif (strpos($serviceKey, 'maçonnerie') !== false) {
+            return 'fas fa-hammer';
+        } else {
+            return 'fas fa-tools';
+        }
+    }
+
     /**
      * Contenu de fallback si IA indisponible
      */
