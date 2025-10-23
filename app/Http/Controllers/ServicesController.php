@@ -1052,7 +1052,14 @@ Crée un contenu HTML professionnel pour ce service. Utilise EXACTEMENT cette st
     
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
-      [6-8 prestations spécifiques à {$serviceName}]
+      <li class=\"flex items-start\"><span><strong>[Prestation 1 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 2 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 3 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 4 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 5 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 6 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 7 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 8 spécifique à {$serviceName}]</strong></span></li>
     </ul>
     
     <div class=\"bg-green-50 p-6 rounded-lg\">
@@ -1074,7 +1081,12 @@ Crée un contenu HTML professionnel pour ce service. Utilise EXACTEMENT cette st
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        [4-6 infos pratiques pour {$serviceName}]
+        <li class=\"flex items-center\"><span>[Info pratique 1 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 2 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 3 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 4 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 5 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 6 pour {$serviceName}]</span></li>
       </ul>
     </div>
   </div>
@@ -1086,6 +1098,10 @@ INSTRUCTIONS:
 3. ÉVITE les répétitions et le contenu générique
 4. PERSONNALISE selon le type de service
 5. UTILISE les informations de l'entreprise
+6. REMPLACE les placeholders [Prestation X] par des prestations réelles spécifiques au service
+7. REMPLACE les placeholders [Info pratique X] par des informations réelles spécifiques au service
+8. GARDE la structure HTML exacte avec les classes CSS
+9. ASSURE-TOI que les listes sont bien formatées avec <li> et <span>
 
 FORMAT JSON:
 {
