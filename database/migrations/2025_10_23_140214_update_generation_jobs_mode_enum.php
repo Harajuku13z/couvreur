@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('generation_jobs', function (Blueprint $table) {
             // Modifier l'enum pour inclure les nouvelles valeurs
-            $table->enum('mode', ['keyword', 'titles', 'keyword_cities', 'keyword_services', 'bulk_generation'])->change();
+            $table->enum('mode', ['keyword', 'titles', 'keyword_cities', 'keyword_services', 'service_cities', 'bulk_generation'])->change();
         });
     }
 
