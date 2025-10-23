@@ -57,8 +57,22 @@ class CityController extends Controller
 
     public function destroyAll()
     {
-        \DB::table('cities')->truncate();
-        return back()->with('success', 'Toutes les villes ont été supprimées.');
+        try {
+            // Désactiver temporairement les contraintes de clé étrangère
+            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            
+            // Supprimer toutes les villes
+            \DB::table('cities')->truncate();
+            
+            // Réactiver les contraintes de clé étrangère
+            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            
+            return back()->with('success', 'Toutes les villes ont été supprimées.');
+        } catch (\Exception $e) {
+            // En cas d'erreur, utiliser DELETE au lieu de TRUNCATE
+            \DB::table('cities')->delete();
+            return back()->with('success', 'Toutes les villes ont été supprimées.');
+        }
     }
 
     public function importFromJson(Request $request)
