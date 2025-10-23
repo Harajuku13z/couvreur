@@ -114,7 +114,7 @@ class ServicesController extends Controller
         // Sauvegarder dans les settings
         $this->saveService($service);
 
-        return redirect()->route('admin.services.index')
+        return redirect()->route('services.admin.index')
             ->with('success', 'Service créé avec succès avec contenu généré par l\'IA');
     }
 
@@ -129,7 +129,7 @@ class ServicesController extends Controller
         $service = collect($services)->firstWhere('id', $id);
         
         if (!$service) {
-            return redirect()->route('admin.services.index')
+            return redirect()->route('services.admin.index')
                 ->with('error', 'Service non trouvé');
         }
         
@@ -188,7 +188,7 @@ class ServicesController extends Controller
             'updated_at' => now()->toISOString(),
         ]);
 
-        return redirect()->route('admin.services.index')
+        return redirect()->route('services.admin.index')
             ->with('success', 'Service mis à jour avec succès avec contenu généré par l\'IA');
     }
 
@@ -221,7 +221,7 @@ class ServicesController extends Controller
     {
         $this->deleteService($id);
         
-        return redirect()->route('admin.services.index')
+        return redirect()->route('services.admin.index')
             ->with('success', 'Service supprimé avec succès');
     }
 
@@ -279,7 +279,7 @@ class ServicesController extends Controller
             }
             
             // Sinon, rediriger avec un message de succès
-            return redirect()->route('admin.services.index')
+            return redirect()->route('services.admin.index')
                 ->with('success', 'Contenu régénéré avec succès par l\'IA');
 
         } catch (\Exception $e) {
@@ -294,7 +294,7 @@ class ServicesController extends Controller
             }
             
             // Sinon, rediriger avec un message d'erreur
-            return redirect()->route('admin.services.index')
+            return redirect()->route('services.admin.index')
                 ->with('error', 'Erreur lors de la régénération: ' . $e->getMessage());
         }
     }
