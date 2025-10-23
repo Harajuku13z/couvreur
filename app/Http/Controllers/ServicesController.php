@@ -1024,29 +1024,24 @@ class ServicesController extends Controller
         }
         
         try {
-            // Prompt ultra-simple avec liberté totale
-            $prompt = "Tu es un expert en rédaction web pour le secteur de la rénovation.
+            // Prompt ultra-simple comme pour les articles - liberté totale
+            $prompt = "Crée un contenu HTML professionnel pour ce service de rénovation.
 
-CONTEXTE:
+INFORMATIONS:
 - Entreprise: {$companyInfo['company_name']}
 - Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
 - Service: {$serviceName}
 - Description: {$shortDescription}
 
-MISSION:
-Crée un contenu HTML professionnel et attractif pour ce service. Tu as une liberté totale pour:
-- Structurer le contenu comme tu veux
-- Choisir les sections pertinentes
-- Adapter le style et le formatage
-- Personnaliser selon le type de service
-- Créer du contenu unique et engageant
-
-CONTRAINTES UNIQUES:
+INSTRUCTIONS:
+- Format HTML uniquement
 - Utilise Tailwind CSS pour le styling
+- Crée une page complète et professionnelle
 - Inclus des prestations spécifiques au service
 - Ajoute des informations pratiques
 - Inclus un appel à l'action pour le devis
 - Adapte tout au service {$serviceName}
+- Sois créatif et professionnel
 
 FORMAT JSON:
 {
@@ -1060,9 +1055,7 @@ FORMAT JSON:
   \"meta_keywords\": \"[Mots-clés pertinents]\"
 }
 
-Tu as carte blanche pour créer le meilleur contenu possible. Sois créatif et professionnel.
-
-Réponds UNIQUEMENT avec le JSON valide.";
+Génère le contenu HTML complet pour ce service.";
 
             \Log::info('Génération IA pure pour service', [
                 'service_name' => $serviceName,
