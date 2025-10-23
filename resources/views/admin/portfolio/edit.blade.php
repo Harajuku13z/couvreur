@@ -77,7 +77,7 @@
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             @foreach($item['images'] as $index => $image)
                             <div class="relative group">
-                                <img src="{{ asset($image) }}" alt="Image {{ $index + 1 }}" 
+                                <img src="{{ url($image) }}" alt="Image {{ $index + 1 }}" 
                                      class="w-full h-32 object-cover rounded-lg border border-gray-200">
                                 <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                                     <button type="button" onclick="removeExistingImage({{ $index }})" 

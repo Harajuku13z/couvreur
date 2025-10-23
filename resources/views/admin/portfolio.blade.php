@@ -138,7 +138,7 @@
                         @foreach($portfolioItems as $index => $item)
                             <div class="portfolio-card bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                 @if(isset($item['images']) && count($item['images']) > 0)
-                                    <img src="{{ asset($item['images'][0]) }}" alt="{{ $item['title'] ?? 'Réalisation' }}" class="portfolio-image">
+                                    <img src="{{ url($item['images'][0]) }}" alt="{{ $item['title'] ?? 'Réalisation' }}" class="portfolio-image">
                                 @else
                                     <div class="portfolio-image bg-gray-200 flex items-center justify-center">
                                         <i class="fas fa-image text-4xl text-gray-400"></i>

@@ -49,7 +49,7 @@
                             @php 
                                 $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images'];
                             @endphp
-                            <img src="{{ asset($firstImage) }}" 
+                            <img src="{{ url($firstImage) }}" 
                                  alt="{{ $item['title'] }}" 
                                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
                         @else

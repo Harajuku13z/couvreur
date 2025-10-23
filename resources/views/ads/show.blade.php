@@ -107,7 +107,7 @@
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                         @if(isset($item['images']) && count($item['images']) > 0)
                         <div class="relative h-48 overflow-hidden">
-                            <img src="{{ asset($item['images'][0]) }}" 
+                            <img src="{{ url($item['images'][0]) }}" 
                                  alt="{{ $item['title'] }}" 
                                  class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">

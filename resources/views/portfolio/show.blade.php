@@ -13,7 +13,7 @@
 <meta property="og:description" content="{{ $portfolioItem['og_description'] ?? $portfolioItem['meta_description'] ?? $portfolioItem['description'] }}">
 <meta property="og:url" content="{{ request()->url() }}">
 @if($portfolioItem['og_image'] ?? !empty($portfolioItem['images']))
-<meta property="og:image" content="{{ asset($portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
+<meta property="og:image" content="{{ url($portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 @endif
@@ -24,7 +24,7 @@
 <meta name="twitter:title" content="{{ $portfolioItem['twitter_title'] ?? $portfolioItem['og_title'] ?? $portfolioItem['meta_title'] ?? $portfolioItem['title'] }}">
 <meta name="twitter:description" content="{{ $portfolioItem['twitter_description'] ?? $portfolioItem['og_description'] ?? $portfolioItem['meta_description'] ?? $portfolioItem['description'] }}">
 @if($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? !empty($portfolioItem['images']))
-<meta name="twitter:image" content="{{ asset($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
+<meta name="twitter:image" content="{{ url($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
 @endif
 
 @endpush
@@ -37,7 +37,7 @@
             @php 
                 $firstImage = is_array($portfolioItem['images']) ? $portfolioItem['images'][0] : $portfolioItem['images'];
             @endphp
-            <img src="{{ asset($firstImage) }}" 
+            <img src="{{ url($firstImage) }}" 
                  alt="{{ $portfolioItem['title'] }}" 
                  class="w-full h-full object-cover">
         @else
@@ -103,7 +103,7 @@
                         @php 
                             $singleImage = is_array($portfolioItem['images']) ? $portfolioItem['images'][0] : $portfolioItem['images'];
                         @endphp
-                        <img src="{{ asset($singleImage) }}" 
+                        <img src="{{ url($singleImage) }}" 
                              alt="{{ $portfolioItem['title'] }}" 
                              class="w-full h-[800px] object-cover rounded-2xl shadow-2xl">
                     </div>

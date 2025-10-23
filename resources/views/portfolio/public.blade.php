@@ -41,7 +41,7 @@
                         <div class="relative">
                             @if(isset($item['images']) && count($item['images']) > 0)
                                 <div class="aspect-w-16 aspect-h-9">
-                                    <img src="{{ asset($item['images'][0]) }}" 
+                                    <img src="{{ url($item['images'][0]) }}" 
                                          alt="{{ $item['title'] }}" 
                                          class="w-full h-64 object-cover">
                                 </div>
