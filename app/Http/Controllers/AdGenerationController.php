@@ -6,6 +6,7 @@ use App\Models\Ad;
 use App\Models\City;
 use App\Models\GenerationJob;
 use App\Models\Review;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -26,13 +27,34 @@ class AdGenerationController extends Controller
         ]);
 
         try {
-            $validated = $request->validate([
-                'service_slug' => 'required|string|exists:services,slug',
+            // Validation personnalisée pour service_slug
+            $request->validate([
+                'service_slug' => 'required|string',
                 'city_ids' => 'required|array|min:1',
                 'city_ids.*' => 'required|integer|exists:cities,id',
                 'ai_prompt' => 'nullable|string|max:5000',
                 'batch_size' => 'nullable|integer|min:1|max:50'
             ]);
+
+            // Vérifier que le service existe dans les settings
+            $servicesData = Setting::get('services', '[]');
+            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+            
+            if (!is_array($services)) {
+                $services = [];
+            }
+            
+            $serviceSlug = $request->input('service_slug');
+            $serviceExists = collect($services)->contains('slug', $serviceSlug);
+            
+            if (!$serviceExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le service sélectionné n\'existe pas'
+                ], 422);
+            }
+
+            $validated = $request->all();
 
             $serviceSlug = $validated['service_slug'];
             $cityIds = $validated['city_ids'];
