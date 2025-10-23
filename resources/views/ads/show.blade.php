@@ -12,7 +12,7 @@
 <meta property="og:description" content="{{ $ad->content_json['og_description'] }}">
 @endif
 @if($ad->content_json && isset($ad->content_json['service_featured_image']))
-<meta property="og:image" content="{{ asset($ad->content_json['service_featured_image']) }}">
+<meta property="og:image" content="{{ url($ad->content_json['service_featured_image']) }}">
 @endif
 @endpush
 

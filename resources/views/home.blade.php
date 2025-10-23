@@ -233,7 +233,7 @@
                 @foreach(collect($services)->take($homeConfig['sections']['services']['limit'] ?? 6) as $service)
                 <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
                     @if(!empty($service['featured_image']))
-                    <div class="h-48 bg-cover bg-center" style="background-image: url('{{ asset($service['featured_image']) }}')"></div>
+                    <div class="h-48 bg-cover bg-center" style="background-image: url('{{ url($service['featured_image']) }}')"></div>
                     @else
                     <div class="h-48 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                         <i class="{{ $service['icon'] ?? 'fas fa-tools' }} text-6xl text-white"></i>

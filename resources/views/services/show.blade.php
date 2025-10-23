@@ -13,7 +13,7 @@
 <meta property="og:description" content="{{ $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'] }}">
 <meta property="og:url" content="{{ request()->url() }}">
 @if($service['og_image'] ?? $service['featured_image'])
-<meta property="og:image" content="{{ asset($service['og_image'] ?? $service['featured_image']) }}">
+<meta property="og:image" content="{{ url($service['og_image'] ?? $service['featured_image']) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 @endif
@@ -24,7 +24,7 @@
 <meta name="twitter:title" content="{{ $service['og_title'] ?? $service['meta_title'] ?? $service['name'] }}">
 <meta name="twitter:description" content="{{ $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'] }}">
 @if($service['og_image'] ?? $service['featured_image'])
-<meta name="twitter:image" content="{{ asset($service['og_image'] ?? $service['featured_image']) }}">
+<meta name="twitter:image" content="{{ url($service['og_image'] ?? $service['featured_image']) }}">
 @endif
 @endpush
 
@@ -34,7 +34,7 @@
     <section class="relative py-20 text-white overflow-hidden">
         @if($service['featured_image'])
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ asset($service['featured_image']) }}'); filter: blur(2px); transform: scale(1.1);"></div>
+             style="background-image: url('{{ url($service['featured_image']) }}'); filter: blur(2px); transform: scale(1.1);"></div>
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         @else
         <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800"></div>
