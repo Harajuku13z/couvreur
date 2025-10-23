@@ -69,7 +69,7 @@ class AdGenerationController extends Controller
 
             // Créer un job de génération
             $job = GenerationJob::create([
-                'mode' => 'service_cities',
+                'mode' => 'keyword_cities',
                 'payload_json' => json_encode([
                     'service_slug' => $serviceSlug,
                     'city_ids' => $cityIds,
