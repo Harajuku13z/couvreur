@@ -1581,14 +1581,8 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
      */
     private function reconstructHtmlFromText($originalHtml, $cleanedText)
     {
-        // Pour l'instant, retourner le texte nettoyé avec une structure basique
-        // Dans une version plus avancée, on pourrait analyser la structure HTML originale
-        
-        $html = '<div class="service-content">';
-        $html .= '<p>' . $cleanedText . '</p>';
-        $html .= '</div>';
-        
-        return $html;
+        // Utiliser la méthode buildCleanServiceContent pour reconstruire avec la bonne structure
+        return $this->buildCleanServiceContent($cleanedText);
     }
     
     /**
@@ -1632,6 +1626,11 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             
             // Reconstruire avec une structure HTML propre
             return $this->buildCleanServiceContent($cleanedText);
+        }
+        
+        // Si le contenu semble déjà mal formaté, le reconstruire complètement
+        if (strpos($html, '<div class="service-content">') !== false && strpos($html, '<p>') !== false) {
+            return $this->buildCleanServiceContent($text);
         }
         
         return $html;
@@ -1753,6 +1752,21 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '<li class="flex items-center"><span>Intervention rapide et efficace dans la région</span></li>';
         $html .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
         $html .= '<li class="flex items-center"><span>Garantie de satisfaction pour une toiture impeccable</span></li>';
+        $html .= '<li class="flex items-center"><span>Devis gratuit et sans engagement</span></li>';
+        $html .= '<li class="flex items-center"><span>Paiement échelonné possible</span></li>';
+        $html .= '<li class="flex items-center"><span>Aides financières disponibles</span></li>';
+        $html .= '<li class="flex items-center"><span>Crédit d\'impôt éligible</span></li>';
+        $html .= '</ul>';
+        $html .= '</div>';
+        
+        // Garanties et assurances
+        $html .= '<div class="bg-yellow-50 p-6 rounded-lg">';
+        $html .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Nos Garanties</h4>';
+        $html .= '<ul class="space-y-2 text-sm">';
+        $html .= '<li class="flex items-center"><span>Garantie décennale sur les travaux</span></li>';
+        $html .= '<li class="flex items-center"><span>Assurance responsabilité civile</span></li>';
+        $html .= '<li class="flex items-center"><span>Garantie de satisfaction client</span></li>';
+        $html .= '<li class="flex items-center"><span>Suivi post-travaux inclus</span></li>';
         $html .= '</ul>';
         $html .= '</div>';
         
@@ -1769,21 +1783,32 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     {
         $text = strtolower($text);
         
-        if (strpos($text, 'toiture') !== false || strpos($text, 'couverture') !== false) {
-            return 'toiture';
-        } elseif (strpos($text, 'façade') !== false || strpos($text, 'ravalement') !== false) {
-            return 'facade';
-        } elseif (strpos($text, 'gouttière') !== false || strpos($text, 'évacuation') !== false) {
-            return 'gouttiere';
-        } elseif (strpos($text, 'maçonnerie') !== false || strpos($text, 'petit') !== false) {
-            return 'maconnerie';
-        } elseif (strpos($text, 'ramonage') !== false || strpos($text, 'cheminée') !== false) {
-            return 'ramonage';
-        } elseif (strpos($text, 'ouverture') !== false || strpos($text, 'confort') !== false) {
-            return 'ouverture';
+        // Mots-clés pour chaque type de service
+        $keywords = [
+            'toiture' => ['toiture', 'toit', 'couverture', 'tuile', 'ardoise', 'charpente', 'étanchéité', 'réparation toiture', 'rénovation toiture'],
+            'facade' => ['façade', 'facade', 'ravalement', 'enduit', 'crépi', 'peinture extérieure', 'nettoyage façade', 'rénovation façade'],
+            'gouttiere' => ['gouttière', 'gouttiere', 'évacuation', 'eau pluviale', 'descente', 'drainage', 'installation gouttière'],
+            'isolation' => ['isolation', 'isolant', 'thermique', 'phonique', 'combles', 'pont thermique', 'isolation toiture', 'isolation façade'],
+            'maconnerie' => ['maçonnerie', 'maconnerie', 'petit', 'enduit', 'joint', 'réparation mur'],
+            'ramonage' => ['ramonage', 'cheminée', 'cheminée', 'conduit', 'nettoyage cheminée'],
+            'ouverture' => ['ouverture', 'fenêtre', 'velux', 'puits de lumière', 'éclairage naturel']
+        ];
+        
+        $scores = [];
+        foreach ($keywords as $type => $words) {
+            $score = 0;
+            foreach ($words as $word) {
+                if (strpos($text, $word) !== false) {
+                    $score++;
+                }
+            }
+            $scores[$type] = $score;
         }
         
-        return 'general';
+        // Retourner le type avec le score le plus élevé
+        $bestType = array_keys($scores, max($scores))[0];
+        
+        return $scores[$bestType] > 0 ? $bestType : 'toiture';
     }
     
     /**
@@ -1808,14 +1833,14 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             'facade' => [
                 'title' => 'Ravalement & façades',
                 'prestations' => [
-                    'Diagnostic complet et gratuit',
-                    'Matériaux de qualité supérieure',
-                    'Équipe d\'artisans qualifiés',
-                    'Respect des délais et du budget',
-                    'Garantie décennale',
-                    'Suivi personnalisé',
-                    'Nettoyage et remise en état',
-                    'Conseils d\'entretien'
+                    'Ravalement de façade complet',
+                    'Nettoyage haute pression',
+                    'Traitement anti-mousse',
+                    'Réparation des enduits',
+                    'Peinture extérieure',
+                    'Isolation thermique par l\'extérieur',
+                    'Rénovation des joints',
+                    'Protection hydrofuge'
                 ]
             ],
             'gouttiere' => [
