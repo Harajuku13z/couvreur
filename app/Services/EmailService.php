@@ -119,6 +119,24 @@ class EmailService
             return $this->processCustomTemplate($customTemplate, $submission, 'client');
         }
         
+        // Utiliser le template par défaut avec types de travaux
+        return $this->generateDefaultTemplate($submission, 'client');
+    }
+
+    private function generateAdminEmailBody(Submission $submission): string
+    {
+        // Vérifier s'il y a un template personnalisé
+        $customTemplate = setting('email_admin_template', '');
+        if (!empty($customTemplate)) {
+            return $this->processCustomTemplate($customTemplate, $submission, 'admin');
+        }
+        
+        // Utiliser le template par défaut avec types de travaux
+        return $this->generateDefaultTemplate($submission, 'admin');
+    }
+
+    private function generateSubmissionEmailBodyOld(Submission $submission): string
+    {
         $workTypes = is_string($submission->work_types) ? json_decode($submission->work_types, true) : ($submission->work_types ?? []);
         $workTypeLabels = [
             'roof' => 'Toiture',
@@ -515,6 +533,14 @@ class EmailService
 
         // Remplacer les variables dans le template
         $processedTemplate = str_replace(array_keys($variables), array_values($variables), $template);
+        
+        // FORCER l'ajout des types de travaux si pas présents dans le template
+        $workTypesString = $this->getWorkTypesString($submission);
+        if (!empty($workTypesString) && strpos($template, '{work_types}') === false) {
+            // Ajouter les types de travaux à la fin du template si pas déjà présents
+            $workTypesHtml = "<p><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>";
+            $processedTemplate = str_replace('</body>', $workTypesHtml . '</body>', $processedTemplate);
+        }
 
         return $processedTemplate;
     }
@@ -553,6 +579,116 @@ class EmailService
         }
         
         return implode(', ', $selectedTypes);
+    }
+
+    /**
+     * Générer un template d'email par défaut avec types de travaux
+     */
+    private function generateDefaultTemplate($submission, $type)
+    {
+        $workTypesString = $this->getWorkTypesString($submission);
+        $companyName = setting('company_name', 'Rénovation Expert');
+        
+        if ($type === 'client') {
+            return "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <title>Demande de devis reçue</title>
+            </head>
+            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa;'>
+                <div style='max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;'>
+                        <h1 style='margin: 0; font-size: 28px;'>✅ Demande Reçue !</h1>
+                        <p style='margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;'>" . $companyName . "</p>
+                    </div>
+                    
+                    <div style='padding: 30px;'>
+                        <p style='font-size: 16px; margin-bottom: 20px;'>Bonjour <strong>{$submission->first_name} {$submission->last_name}</strong>,</p>
+                        
+                        <p style='font-size: 16px; margin-bottom: 25px;'>Nous vous remercions d'avoir choisi <strong>" . $companyName . "</strong> pour votre projet de rénovation.</p>
+                    
+                        <div style='background: #f8f9fa; padding: 25px; border-left: 5px solid #007bff; margin: 25px 0; border-radius: 0 8px 8px 0;'>
+                            <h3 style='color: #007bff; margin-top: 0; font-size: 20px;'>📋 Récapitulatif de votre demande</h3>
+                            <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 15px;'>
+                                <div>
+                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . ucfirst($submission->property_type) . "</p>
+                                    <p style='margin: 8px 0;'><strong>Surface :</strong> {$submission->surface} m²</p>
+                                    <p style='margin: 8px 0;'><strong>Code postal :</strong> {$submission->postal_code}</p>
+                                </div>
+                                <div>
+                                    <p style='margin: 8px 0;'><strong>Téléphone :</strong> {$submission->phone}</p>
+                                    <p style='margin: 8px 0;'><strong>Email :</strong> {$submission->email}</p>
+                                </div>
+                            </div>
+                            
+                            <p style='margin: 15px 0 0 0;'><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>
+                        </div>
+                        
+                        <div style='background: #e8f5e9; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #28a745;'>
+                            <h3 style='color: #28a745; margin-top: 0; font-size: 20px;'>📌 Prochaines étapes</h3>
+                            <p style='margin: 8px 0; font-size: 14px;'>1. Notre équipe analyse votre demande et votre projet</p>
+                            <p style='margin: 8px 0; font-size: 14px;'>2. Un conseiller vous contacte sous 24h pour affiner les détails</p>
+                            <p style='margin: 8px 0; font-size: 14px;'>3. Vous recevez votre devis personnalisé et détaillé</p>
+                            <p style='margin: 8px 0; font-size: 14px;'>4. Nous planifions ensemble la réalisation de vos travaux</p>
+                        </div>
+                        
+                        <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;'>
+                            <p style='margin: 0; font-size: 16px;'><strong>À très bientôt,</strong></p>
+                            <p style='margin: 5px 0 0 0; font-size: 14px; color: #666;'>L'équipe " . $companyName . "</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>";
+        } else {
+            return "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <title>Nouvelle demande de devis</title>
+            </head>
+            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa;'>
+                <div style='max-width: 800px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                    <div style='background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 30px; text-align: center;'>
+                        <h1 style='margin: 0; font-size: 28px;'>🔔 Nouvelle Demande</h1>
+                        <p style='margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;'>Demande de devis reçue</p>
+                    </div>
+                    
+                    <div style='padding: 30px;'>
+                        <div style='background: #f8f9fa; padding: 25px; border-left: 5px solid #007bff; margin: 25px 0; border-radius: 0 8px 8px 0;'>
+                            <h3 style='color: #007bff; margin-top: 0; font-size: 20px;'>👤 Informations Client</h3>
+                            <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 15px;'>
+                                <div>
+                                    <p style='margin: 8px 0;'><strong>Nom :</strong> {$submission->first_name} {$submission->last_name}</p>
+                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . ucfirst($submission->property_type) . "</p>
+                                    <p style='margin: 8px 0;'><strong>Surface :</strong> {$submission->surface} m²</p>
+                                </div>
+                                <div>
+                                    <p style='margin: 8px 0;'><strong>Téléphone :</strong> {$submission->phone}</p>
+                                    <p style='margin: 8px 0;'><strong>Email :</strong> {$submission->email}</p>
+                                    <p style='margin: 8px 0;'><strong>Code postal :</strong> {$submission->postal_code}</p>
+                                </div>
+                            </div>
+                            
+                            <p style='margin: 15px 0 0 0;'><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>
+                        </div>
+                        
+                        <div style='background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 5px solid #ffc107; margin-bottom: 25px;'>
+                            <h3 style='color: #856404; margin-top: 0;'>⚠️ Action Requise</h3>
+                            <p style='margin: 8px 0; font-size: 16px;'><strong>Contacter le client sous 24h</strong></p>
+                            <div style='margin-top: 15px;'>
+                                <a href='mailto:{$submission->email}?subject=Re: Votre demande de devis' style='background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-right: 10px; display: inline-block;'>📧 Répondre par email</a>
+                                <a href='tel:{$submission->phone}' style='background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>📞 Appeler</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>";
+        }
     }
 
     /**
