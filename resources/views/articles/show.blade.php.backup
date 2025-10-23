@@ -1,0 +1,301 @@
+@extends('layouts.app')
+
+@section('title', $article->meta_title ?? $article->title)
+
+@section('meta')
+    <!-- Meta Tags de Base -->
+    <meta name="description" content="{{ $article->meta_description }}">
+    <meta name="keywords" content="{{ $article->meta_keywords }}">
+    <meta name="author" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="fr">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Balises Bing -->
+    <meta name="msvalidate.01" content="{{ setting('bing_verification', '') }}">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- Balises Google -->
+    <meta name="google-site-verification" content="{{ setting('google_verification', '') }}">
+    <meta name="googlebot" content="index, follow">
+    
+    <!-- Balises Canonical -->
+    <link rel="canonical" href="{{ request()->url() }}">
+    
+    <!-- Balises Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ $article->title }}">
+    <meta property="og:description" content="{{ $article->meta_description }}">
+    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:site_name" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta property="og:locale" content="fr_FR">
+    @if($article->featured_image)
+        <meta property="og:image" content="{{ $article->featured_image }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ $article->title }}">
+    @endif
+    <meta property="article:published_time" content="{{ $article->published_at->toISOString() }}">
+    <meta property="article:modified_time" content="{{ $article->updated_at->toISOString() }}">
+    <meta property="article:author" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta property="article:section" content="Rénovation">
+    <meta property="article:tag" content="{{ $article->meta_keywords }}">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $article->title }}">
+    <meta name="twitter:description" content="{{ $article->meta_description }}">
+    <meta name="twitter:site" content="@{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta name="twitter:creator" content="@{{ setting('company_name', 'Votre Entreprise') }}">
+    @if($article->featured_image)
+        <meta name="twitter:image" content="{{ $article->featured_image }}">
+        <meta name="twitter:image:alt" content="{{ $article->title }}">
+    @endif
+
+    <!-- Balises Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "{{ $article->title }}",
+        "description": "{{ $article->meta_description }}",
+        "image": "{{ $article->featured_image }}",
+        "author": {
+            "@type": "Organization",
+            "name": "{{ setting('company_name', 'Votre Entreprise') }}",
+            "url": "{{ setting('company_website', request()->getSchemeAndHttpHost()) }}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "{{ setting('company_name', 'Votre Entreprise') }}",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "{{ setting('company_logo', '') }}"
+            }
+        },
+        "datePublished": "{{ $article->published_at->toISOString() }}",
+        "dateModified": "{{ $article->updated_at->toISOString() }}",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "{{ request()->url() }}"
+        },
+        "keywords": "{{ $article->meta_keywords }}",
+        "articleSection": "Rénovation",
+        "wordCount": "{{ str_word_count(strip_tags($article->content_html)) }}"
+    }
+    </script>
+
+    <!-- Balises pour les Moteurs de Recherche -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    
+    <!-- Balises pour les Images -->
+    @if($article->featured_image)
+        <link rel="image_src" href="{{ $article->featured_image }}">
+    @endif
+@endsection
+
+@section('content')
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <section class="relative py-20 text-white overflow-hidden">
+        @if($article->featured_image)
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
+             style="background-image: url('{{ $article->featured_image }}'); filter: blur(2px); transform: scale(1.1);"></div>
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        @else
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800"></div>
+        @endif
+        
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                    {{ $article->title }}
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 leading-relaxed">
+                    {{ $article->meta_description }}
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{{ route('form.step', 'propertyType') }}" 
+                       class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Devis Gratuit
+                    </a>
+                    <a href="tel:{{ setting('company_phone_raw') }}" 
+                       class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                       onclick="trackPhoneCall('{{ $article->slug }}', 'article')">
+                        <i class="fas fa-phone mr-2"></i>
+                        {{ setting('company_phone') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenu principal -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid lg:grid-cols-4 gap-8">
+                    <!-- Contenu de l'article -->
+                    <div class="lg:col-span-3">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                            <div class="prose prose-lg max-w-none">
+                                {!! $article->content_html !!}
+                            </div>
+                        </div>
+
+                        <!-- CTA Section -->
+                        <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white text-center">
+                            <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet ?</h3>
+                            <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a href="{{ route('form.step', 'propertyType') }}" 
+                                   class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                                    <i class="fas fa-calculator mr-2"></i>
+                                    Demander un Devis Gratuit
+                                </a>
+                                <a href="tel:{{ setting('company_phone_raw') }}" 
+                                   class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                                   onclick="trackPhoneCall('{{ $article->slug }}', 'article')">
+                                    <i class="fas fa-phone mr-2"></i>
+                                    Appeler Maintenant
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar à droite -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Contactez-nous</h3>
+                            <div class="space-y-4">
+                                <a href="tel:{{ setting('company_phone_raw') }}" 
+                                   class="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                                   onclick="trackPhoneCall('{{ $article->slug }}', 'article')">
+                                    <i class="fas fa-phone text-green-600 mr-3"></i>
+                                    <span class="text-green-800 font-medium">{{ setting('company_phone') }}</span>
+                                </a>
+                                
+                                <a href="{{ route('form.step', 'propertyType') }}" 
+                                   class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                    <i class="fas fa-calculator text-blue-600 mr-3"></i>
+                                    <span class="text-blue-800 font-medium">Devis Gratuit</span>
+                                </a>
+                                
+                                <a href="mailto:{{ setting('company_email') }}" 
+                                   class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-envelope text-gray-600 mr-3"></i>
+                                    <span class="text-gray-800 font-medium">Email</span>
+                                </a>
+                            </div>
+                            
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <h4 class="font-semibold text-gray-900 mb-3">Informations</h4>
+                                <div class="space-y-2 text-sm text-gray-600">
+                                    <p><i class="fas fa-clock mr-2"></i>Disponible 7j/7</p>
+                                    <p><i class="fas fa-shield-alt mr-2"></i>Garantie décennale</p>
+                                    <p><i class="fas fa-map-marker-alt mr-2"></i>{{ setting('company_address') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Réalisations -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Nos Réalisations</h2>
+                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
+                </div>
+
+                @php
+                    $portfolioItems = setting('portfolio_items', []);
+                    $displayedRealizations = array_slice($portfolioItems, 0, 3);
+                @endphp
+
+                @if(count($displayedRealizations) > 0)
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        @foreach($displayedRealizations as $realization)
+                            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                                @if(isset($realization['image']))
+                                    <div class="aspect-w-16 aspect-h-9">
+                                        <img src="{{ asset($realization['image']) }}" 
+                                             alt="{{ $realization['title'] ?? 'Réalisation' }}" 
+                                             class="w-full h-48 object-cover">
+                                    </div>
+                                @endif
+                                <div class="p-6">
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                        {{ $realization['title'] ?? 'Réalisation' }}
+                                    </h3>
+                                    <p class="text-gray-600 mb-4">
+                                        {{ $realization['description'] ?? 'Description de la réalisation' }}
+                                    </p>
+                                    @if(isset($realization['location']))
+                                        <div class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-map-marker-alt mr-2"></i>
+                                            {{ $realization['location'] }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-12">
+                        <p class="text-gray-600">Aucune réalisation disponible pour le moment.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Avis Clients -->
+    @if($reviews->count() > 0)
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Avis Clients</h2>
+                    <p class="text-lg text-gray-600">Ce que nos clients disent de nous</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    @foreach($reviews->take(3) as $review)
+                        <div class="bg-white p-6 rounded-2xl shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <div class="flex text-yellow-500">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star{{ $i <= $review->rating ? '' : '-o' }}"></i>
+                                    @endfor
+                                </div>
+                                <span class="ml-2 text-sm text-gray-600">{{ $review->rating }}/5</span>
+                            </div>
+                            <p class="text-gray-700 mb-4">"{{ $review->comment }}"</p>
+                            <div class="text-sm text-gray-600">
+                                <strong>{{ $review->customer_name }}</strong>
+                                @if($review->service)
+                                    - {{ $review->service }}
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+</div>
+
+@endsection

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', setting('meta_title', company('name', 'Simulateur de Travaux')))</title>
+    <meta name="description" content="@yield('description', setting('meta_description', 'Obtenez un devis gratuit pour vos travaux de rénovation'))">
+    <meta name="keywords" content="@yield('keywords', setting('meta_keywords', 'travaux, rénovation, devis gratuit'))">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: {{ setting('primary_color', '#3b82f6') }};
+            --secondary-color: {{ setting('secondary_color', '#10b981') }};
+            --accent-color: {{ setting('accent_color', '#f59e0b') }};
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+        
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+        
+        .floating-phone {
+            animation: pulse-phone 2s infinite;
+            background-color: var(--secondary-color) !important;
+        }
+        
+        @keyframes pulse-phone {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--secondary-color); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+    </style>
+    
+    @stack('head')
+</head>
+<body class="bg-gray-50">
+    @include('partials.header')
+    
+    @yield('content')
+    
+    @include('partials.footer')
+    
+    @if(company('phone_raw'))
+    <a href="tel:{{ company('phone_raw') }}" 
+       class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50">
+        <i class="fas fa-phone text-2xl"></i>
+    </a>
+    @endif
+    
+    <script>
+        window.Laravel = {
+            csrfToken: '{{ csrf_token() }}'
+        };
+        
+        function trackPhoneCall() {
+            fetch('{{ route("track.phone") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.Laravel.csrfToken
+                },
+                body: JSON.stringify({
+                    phone_number: '{{ company("phone_raw") }}',
+                    source_page: window.location.pathname
+                })
+            }).catch(err => console.log('Call tracking error:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    trackPhoneCall();
+                });
+            });
+        });
+    </script>
+    
+    @yield('scripts')
+</body>
+</html>
