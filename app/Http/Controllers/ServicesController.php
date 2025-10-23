@@ -269,19 +269,33 @@ class ServicesController extends Controller
                 'updated_at' => now()->toISOString(),
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Contenu régénéré avec succès par l\'IA',
-                'content' => $aiContent
-            ]);
+            // Si c'est une requête AJAX, retourner du JSON
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Contenu régénéré avec succès par l\'IA',
+                    'content' => $aiContent
+                ]);
+            }
+            
+            // Sinon, rediriger avec un message de succès
+            return redirect()->route('admin.services.index')
+                ->with('success', 'Contenu régénéré avec succès par l\'IA');
 
         } catch (\Exception $e) {
             Log::error('Erreur régénération service: ' . $e->getMessage());
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la régénération: ' . $e->getMessage()
-            ], 500);
+            // Si c'est une requête AJAX, retourner du JSON
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la régénération: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            // Sinon, rediriger avec un message d'erreur
+            return redirect()->route('admin.services.index')
+                ->with('error', 'Erreur lors de la régénération: ' . $e->getMessage());
         }
     }
 
@@ -298,7 +312,7 @@ class ServicesController extends Controller
         }
         
         try {
-            // Prompt ultra-simple - l'IA décide de tout
+            // Prompt avec structure spécifique demandée
             $prompt = "Crée un contenu HTML professionnel pour ce service de rénovation.
 
 INFORMATIONS:
@@ -311,18 +325,78 @@ INFORMATIONS:
                 $prompt .= "\n\nINSTRUCTIONS PERSONNALISÉES:\n{$customPrompt}";
             }
 
-            $prompt .= "\n\nINSTRUCTIONS:
-- Format HTML uniquement avec Tailwind CSS
-- Crée une page complète et professionnelle
-- Inclus des prestations spécifiques au service
-- Ajoute des informations pratiques
-- Inclus un appel à l'action pour le devis
-- Adapte tout au service {$serviceName}
-- Sois créatif et professionnel
+            $prompt .= "\n\nSTRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
+<div class=\"grid md:grid-cols-2 gap-8\">
+  <div class=\"space-y-6\">
+    <div class=\"space-y-4\">
+      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName} à {$companyInfo['company_city']}, {$companyInfo['company_region']}]</p>
+      <p class=\"text-lg leading-relaxed\">[Expertise spécifique au service {$serviceName}]</p>
+      <p class=\"text-lg leading-relaxed\">[Approche personnalisée et satisfaction client]</p>
+    </div>
+    
+    <div class=\"bg-blue-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
+      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale.</p>
+      <p class=\"leading-relaxed\">[Matériaux et techniques spécifiques à {$serviceName}]</p>
+    </div>
+    
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
+    <ul class=\"space-y-3\">
+      <li class=\"flex items-start\"><span><strong>[Prestation 1 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 2 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 3 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 4 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 5 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 6 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 7 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>[Prestation 8 spécifique à {$serviceName}]</strong></span></li>
+    </ul>
+    
+    <div class=\"bg-green-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
+      <p class=\"leading-relaxed\">[Réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
+    </div>
+  </div>
+  
+  <div class=\"space-y-6\">
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+    <p class=\"leading-relaxed\">[Expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
+    
+    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName}.</p>
+      <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
+    </div>
+    
+    <div class=\"bg-gray-50 p-6 rounded-lg\">
+      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
+      <ul class=\"space-y-2 text-sm\">
+        <li class=\"flex items-center\"><span>[Info pratique 1 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 2 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 3 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 4 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 5 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><span>[Info pratique 6 pour {$serviceName}]</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+INSTRUCTIONS DÉTAILLÉES:
+1. ADAPTE complètement le contenu au service spécifique: {$serviceName}
+2. ÉCRIS du contenu PERSONNALISÉ selon le type de service (toiture, façade, isolation, gouttières, etc.)
+3. UTILISE les informations de l'entreprise: {$companyInfo['company_name']}
+4. INTÉGRE la localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+5. GARDE la structure HTML exacte de l'exemple ci-dessus
+6. PERSONNALISE les prestations selon le service (pas de contenu générique)
+7. ÉCRIS du contenu UNIQUE et SPÉCIFIQUE au service
+8. ADAPTE le vocabulaire et les formulations selon le service
+9. INCLUE des informations sur le financement, les garanties, les délais
+10. VARIE le contenu pour éviter les répétitions
 
 FORMAT JSON:
 {
-  \"description\": \"[HTML complet avec ton propre style et structure]\",
+  \"description\": \"[HTML complet avec la structure exacte ci-dessus]\",
   \"short_description\": \"[Description courte et accrocheuse - 140 caractères max]\",
   \"icon\": \"fas fa-[icône appropriée au service]\",
   \"meta_title\": \"[Titre SEO optimisé - 60 caractères max]\",
@@ -334,7 +408,19 @@ FORMAT JSON:
   \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
 }
 
-Génère le contenu HTML complet pour ce service.";
+IMPORTANT:
+- SUIVEZ EXACTEMENT la structure HTML de l'exemple
+- ÉCRIVEZ du contenu PERSONNALISÉ pour le service {$serviceName}
+- ADAPTEZ les prestations selon le type de service (toiture, façade, isolation, etc.)
+- GARDEZ les classes CSS et la structure
+- UTILISEZ les informations de l'entreprise et de la localisation
+- Le contenu doit être professionnel et engageant
+- ÉVITEZ la répétition de phrases identiques
+- Variez le vocabulaire et les formulations
+- INCLUEZ des informations sur le financement et les garanties
+- ADAPTEZ le contenu selon le service spécifique
+
+Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
 
             Log::info('Génération IA complète pour service', [
                 'service_name' => $serviceName,
