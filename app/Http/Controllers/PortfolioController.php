@@ -12,9 +12,15 @@ class PortfolioController extends Controller
      */
     public function index()
     {
-        // Récupérer les éléments du portfolio depuis les settings
-        $portfolioData = Setting::get('portfolio_items', '[]');
-        $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        try {
+            // Récupérer les éléments du portfolio depuis les settings
+            $portfolioData = Setting::get('portfolio_items', '[]');
+            $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        } catch (\Exception $e) {
+            // Si la base de données n'est pas accessible, utiliser les données de test
+            \Log::warning('Base de données non accessible, utilisation des données de test', ['error' => $e->getMessage()]);
+            $portfolioItems = $this->getTestPortfolioData();
+        }
         
         // Filtrer les éléments visibles
         $visiblePortfolio = collect(array_filter($portfolioItems, function($item) {
@@ -22,7 +28,7 @@ class PortfolioController extends Controller
         }));
         
         // Récupérer les types de services uniques pour les filtres
-        $serviceTypes = $visiblePortfolio->pluck('service_type')->unique()->filter()->values()->toArray();
+        $serviceTypes = $visiblePortfolio->pluck('work_type')->unique()->filter()->values()->toArray();
         
         return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes'));
     }
@@ -32,9 +38,15 @@ class PortfolioController extends Controller
      */
     public function show($slug)
     {
-        // Récupérer les éléments du portfolio depuis les settings
-        $portfolioData = Setting::get('portfolio_items', '[]');
-        $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        try {
+            // Récupérer les éléments du portfolio depuis les settings
+            $portfolioData = Setting::get('portfolio_items', '[]');
+            $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        } catch (\Exception $e) {
+            // Si la base de données n'est pas accessible, utiliser les données de test
+            \Log::warning('Base de données non accessible, utilisation des données de test', ['error' => $e->getMessage()]);
+            $portfolioItems = $this->getTestPortfolioData();
+        }
         
         // Trouver l'élément par slug (titre slugifié) ou par ID (fallback)
         $portfolioItem = null;
@@ -142,6 +154,49 @@ class PortfolioController extends Controller
         }
         
         return $portfolioItem;
+    }
+    
+    /**
+     * Récupérer les données de test du portfolio
+     */
+    private function getTestPortfolioData()
+    {
+        $testFile = storage_path('app/portfolio-data.json');
+        
+        if (file_exists($testFile)) {
+            $data = json_decode(file_get_contents($testFile), true);
+            if ($data) {
+                return $data;
+            }
+        }
+        
+        // Données de test par défaut
+        return [
+            [
+                'id' => 'test_' . time() . '_1',
+                'title' => 'Rénovation Toiture - Maison Familiale',
+                'description' => 'Rénovation complète d\'une toiture en tuiles avec remplacement de la charpente et pose d\'une nouvelle couverture.',
+                'work_type' => 'roof',
+                'images' => [
+                    'uploads/portfolio/portfolio-1761026926-2964.jpeg',
+                    'uploads/portfolio/portfolio-1761033014-5399.jpeg'
+                ],
+                'is_visible' => true,
+                'created_at' => date('c')
+            ],
+            [
+                'id' => 'test_' . time() . '_2',
+                'title' => 'Demoussage et Traitement Hydrofuge',
+                'description' => 'Demoussage professionnel suivi d\'un traitement hydrofuge pour protéger la toiture.',
+                'work_type' => 'demoussage',
+                'images' => [
+                    'uploads/portfolio/portfolio-1761034156-5402.jpeg',
+                    'uploads/portfolio/portfolio-1761065197-2846.jpeg'
+                ],
+                'is_visible' => true,
+                'created_at' => date('c')
+            ]
+        ];
     }
 }
 
