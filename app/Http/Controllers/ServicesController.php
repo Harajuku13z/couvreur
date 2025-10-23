@@ -1120,65 +1120,95 @@ Description courte: {$shortDescription}
 MISSION:
 Créez un contenu HTML professionnel, attractif et optimisé SEO pour une page de service de rénovation.
 
-INSTRUCTIONS POUR LA DESCRIPTION HTML:
-1. Structure HTML OBLIGATOIRE en 2 COLONNES avec la classe: <div class=\"grid md:grid-cols-2 gap-8\">
-2. Organisez le contenu en sections claires et engageantes réparties entre les 2 colonnes:
-   COLONNE 1 (Gauche):
-   - Introduction captivante (3-4 paragraphes détaillés, 200-300 mots)
-   - Section \"Notre Engagement Qualité\" dans un encadré bg-blue-50 (150-200 mots)
-   - Section \"Nos Prestations\" avec liste à puces détaillée (8-10 items avec descriptions)
-   - Section \"Pourquoi Choisir Notre Entreprise\" (100-150 mots)
-   
-   COLONNE 2 (Droite) - CONTENU FIXE OBLIGATOIRE:
-   - Section \"Notre Expertise Locale\" avec texte fixe
-   - Encadré \"Besoin d'un Devis ?\" avec gradient bg-gradient-to-r from-blue-50 to-green-50
-   - Encadré \"Informations Pratiques\" (bg-gray-50) avec 3 points clés spécifiques
-
-3. Utilisez un ton professionnel mais accessible
-4. Intégrez des mots-clés SEO locaux pour {$companyInfo['company_region']}
-5. Mettez en avant l'expertise, la qualité, la proximité locale
-6. Longueur: 1000-1500 mots (contenu riche et détaillé) - OBLIGATOIRE
-7. Ajoutez des éléments visuels avec des classes Tailwind CSS pour le style:
-   - Utilisez des <div class=\"bg-blue-50 p-6 rounded-lg mb-6\"> pour mettre en avant des points clés
-   - Ajoutez des icônes Font Awesome dans les listes: <i class=\"fas fa-check-circle text-green-500 mr-3 mt-1\"></i>
-   - Utilisez des <strong class=\"text-blue-600\"> pour les mots-clés importants
-
-EXEMPLE DE STRUCTURE OBLIGATOIRE:
+STRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
 <div class=\"grid md:grid-cols-2 gap-8\">
-    <div class=\"space-y-6\">
-        <p class=\"text-lg leading-relaxed\">Introduction captivante sur {$serviceName}...</p>
-        
-        <div class=\"bg-blue-50 p-6 rounded-lg\">
-            <h3 class=\"text-xl font-bold text-gray-900 mb-3\"><i class=\"fas fa-star text-yellow-500 mr-2\"></i>Notre Engagement Qualité</h3>
-            <p class=\"leading-relaxed\">Texte sur la qualité...</p>
-        </div>
-        
-        <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
-        <ul class=\"space-y-3\">
-            <li class=\"flex items-start\"><i class=\"fas fa-check-circle text-green-500 mr-3 mt-1\"></i><span>Prestation 1...</span></li>
-            <li class=\"flex items-start\"><i class=\"fas fa-check-circle text-green-500 mr-3 mt-1\"></i><span>Prestation 2...</span></li>
-        </ul>
+  <!-- Colonne gauche : description + engagement + prestations -->
+  <div class=\"space-y-6\">
+    <!-- Introduction générale -->
+    <div class=\"space-y-4\">
+      <p class=\"text-lg leading-relaxed\">
+        Découvrez notre <strong class=\"text-blue-600\">expertise professionnelle en {$serviceName}</strong> à {$companyInfo['company_city']}, {$companyInfo['company_region']}. Nous assurons la protection et l'étanchéité de votre toiture, de la réparation à la rénovation complète, avec des matériaux de qualité et des techniques éprouvées.
+      </p>
+      <p class=\"text-lg leading-relaxed\">
+        Experts en couverture, nous garantissons la durabilité de votre toiture et intervenons sur tous types de toitures : tuiles, ardoises, toitures plates, etc.
+      </p>
+      <p class=\"text-lg leading-relaxed\">
+        Chaque projet bénéficie d'une attention personnalisée et d'un accompagnement complet pour garantir la satisfaction de nos clients.
+      </p>
     </div>
-    
-    <div class=\"space-y-6\">
-        <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
-        <p class=\"leading-relaxed\">Forts de notre expérience dans le domaine, nous connaissons parfaitement les spécificités de la région pour un service adapté et de qualité.</p>
-        
-        <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-            <h4 class=\"text-xl font-bold text-gray-900 mb-3\"><i class=\"fas fa-phone text-blue-600 mr-2\"></i>Besoin d'un Devis ?</h4>
-            <p class=\"mb-4\">Contactez-nous dès maintenant pour un devis personnalisé et gratuit pour votre {$serviceName}.</p>
-        </div>
-        
-        <div class=\"bg-gray-50 p-6 rounded-lg\">
-            <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
-            <ul class=\"space-y-2 text-sm\">
-                <li class=\"flex items-center\"><i class=\"fas fa-clock text-blue-600 mr-2\"></i><span>Intervention rapide et efficace dans la région</span></li>
-                <li class=\"flex items-center\"><i class=\"fas fa-calendar text-green-600 mr-2\"></i><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>
-                <li class=\"flex items-center\"><i class=\"fas fa-shield-alt text-purple-600 mr-2\"></i><span>Garantie de satisfaction pour une toiture impeccable</span></li>
-            </ul>
-        </div>
+
+    <!-- Engagement qualité -->
+    <div class=\"bg-blue-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
+      <p class=\"leading-relaxed mb-3\">
+        Chez <strong>{$companyInfo['company_name']}</strong>, nous mettons un point d'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.
+      </p>
+      <p class=\"leading-relaxed\">
+        Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité, respectueux des normes et de l'environnement.
+      </p>
     </div>
+
+    <!-- Prestations -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
+    <ul class=\"space-y-3\">
+      <li class=\"flex items-start\"><span><strong>Réparation de toiture en urgence</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Rénovation complète de couverture</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Pose de tuiles et ardoises</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Étanchéité de toiture plate</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Traitement anti-mousse</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Réparation de fuites</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Ventilation de toiture</strong></span></li>
+      <li class=\"flex items-start\"><span><strong>Isolation sous toiture</strong></span></li>
+    </ul>
+
+    <!-- Pourquoi choisir notre entreprise -->
+    <div class=\"bg-green-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
+      <p class=\"leading-relaxed\">
+        Notre réputation à {$companyInfo['company_city']} et en {$companyInfo['company_region']} repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer les projets dans les délais. Nous avons déjà satisfait de nombreuses familles et entreprises.
+      </p>
+    </div>
+  </div>
+
+  <!-- Colonne droite : expertise locale + devis + infos pratiques -->
+  <div class=\"space-y-6\">
+    <!-- Expertise locale -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+    <p class=\"leading-relaxed\">
+      Forts de notre expérience, nous connaissons parfaitement les spécificités de la région pour un service adapté et de qualité.
+    </p>
+
+    <!-- Devis -->
+    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
+      <p class=\"mb-4\">
+        Contactez-nous dès maintenant pour un devis personnalisé et gratuit pour vos {$serviceName}.
+      </p>
+      <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">
+        Demande de devis
+      </a>
+    </div>
+
+    <!-- Informations pratiques -->
+    <div class=\"bg-gray-50 p-6 rounded-lg\">
+      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
+      <ul class=\"space-y-2 text-sm\">
+        <li class=\"flex items-center\"><span>Intervention rapide et efficace dans la région</span></li>
+        <li class=\"flex items-center\"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>
+        <li class=\"flex items-center\"><span>Garantie de satisfaction pour une toiture impeccable</span></li>
+      </ul>
+    </div>
+  </div>
 </div>
+
+INSTRUCTIONS DÉTAILLÉES:
+1. ADAPTEZ le contenu au service spécifique: {$serviceName}
+2. PERSONNALISEZ les prestations selon le type de service
+3. UTILISEZ les informations de l'entreprise: {$companyInfo['company_name']}
+4. INTÉGREZ la localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+5. GARDEZ la structure HTML exacte de l'exemple ci-dessus
+6. ADAPTEZ les prestations selon le service (toiture, façade, isolation, etc.)
+7. PERSONNALISEZ les textes selon le service tout en gardant la structure
 
 FORMAT DE RÉPONSE (JSON):
 {
@@ -1193,18 +1223,14 @@ FORMAT DE RÉPONSE (JSON):
 }
 
 IMPORTANT:
-- La description DOIT être en HTML formaté avec les balises et classes CSS
-- N'incluez PAS de section \"Pourquoi Nous Choisir\" car elle est déjà présente dans le template
-- Concentrez-vous sur les prestations, les avantages du service, et la méthodologie
-- short_description doit être percutante et donner envie d'en savoir plus
-- Soyez créatif et détaillé
-- Adaptez le contenu au service spécifique ({$serviceName})
-- Utilisez des données locales pertinentes pour {$companyInfo['company_region']}
-- Le contenu doit donner envie de contacter l'entreprise
+- SUIVEZ EXACTEMENT la structure HTML de l'exemple
+- ADAPTEZ le contenu au service spécifique ({$serviceName})
+- PERSONNALISEZ les prestations selon le type de service
+- GARDEZ les classes CSS et la structure
+- UTILISEZ les informations de l'entreprise et de la localisation
+- Le contenu doit être professionnel et engageant
 - ÉVITEZ la répétition de phrases identiques
 - Variez le vocabulaire et les formulations
-- Développez chaque point avec des détails concrets
-- Utilisez des exemples spécifiques au service
 
 Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     }
