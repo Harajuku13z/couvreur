@@ -764,9 +764,12 @@ class ServicesController extends Controller
             'updated_at' => $service['updated_at'] ?? null
         ]);
         
-        // Nettoyer le contenu HTML pour éviter les erreurs d'affichage
+        // Nettoyer le contenu HTML pour éviter les erreurs d'affichage et les répétitions
         if (!empty($service['description'])) {
             $service['description'] = $this->cleanHtmlContent($service['description']);
+            
+            // Vérifier s'il y a encore des répétitions et les nettoyer
+            $service['description'] = $this->removeDuplicateContent($service['description']);
         }
         
         // Récupérer les images du portfolio liées à ce service
@@ -1526,10 +1529,146 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         // Nettoyer les espaces multiples
         $html = preg_replace('/\s+/', ' ', $html);
         
+        // Supprimer les répétitions de phrases
+        $html = $this->removeRepeatedPhrases($html);
+        
         // S'assurer que les balises sont bien fermées
         $html = $this->fixUnclosedTags($html);
         
         return trim($html);
+    }
+    
+    /**
+     * Supprimer les phrases répétées dans le contenu
+     */
+    private function removeRepeatedPhrases($html)
+    {
+        // Extraire le texte sans les balises HTML pour détecter les répétitions
+        $text = strip_tags($html);
+        
+        // Détecter les phrases répétées (plus de 3 mots identiques consécutifs)
+        $sentences = preg_split('/[.!?]+/', $text);
+        $cleanedSentences = [];
+        $seenSentences = [];
+        
+        foreach ($sentences as $sentence) {
+            $sentence = trim($sentence);
+            if (empty($sentence)) continue;
+            
+            // Normaliser la phrase (supprimer espaces multiples, minuscules)
+            $normalized = strtolower(preg_replace('/\s+/', ' ', $sentence));
+            
+            // Vérifier si cette phrase a déjà été vue
+            if (!in_array($normalized, $seenSentences)) {
+                $cleanedSentences[] = $sentence;
+                $seenSentences[] = $normalized;
+            }
+        }
+        
+        // Si on a nettoyé des répétitions, reconstruire le HTML
+        if (count($cleanedSentences) < count($sentences)) {
+            $cleanedText = implode('. ', $cleanedSentences);
+            
+            // Reconstruire le HTML en gardant la structure
+            $html = $this->reconstructHtmlFromText($html, $cleanedText);
+        }
+        
+        return $html;
+    }
+    
+    /**
+     * Reconstruire le HTML à partir du texte nettoyé
+     */
+    private function reconstructHtmlFromText($originalHtml, $cleanedText)
+    {
+        // Pour l'instant, retourner le texte nettoyé avec une structure basique
+        // Dans une version plus avancée, on pourrait analyser la structure HTML originale
+        
+        $html = '<div class="service-content">';
+        $html .= '<p>' . $cleanedText . '</p>';
+        $html .= '</div>';
+        
+        return $html;
+    }
+    
+    /**
+     * Supprimer le contenu dupliqué spécifiquement pour les répétitions de phrases
+     */
+    private function removeDuplicateContent($html)
+    {
+        // Extraire le texte sans HTML
+        $text = strip_tags($html);
+        
+        // Détecter les répétitions de phrases complètes
+        $sentences = preg_split('/[.!?]+/', $text);
+        $uniqueSentences = [];
+        $seenPhrases = [];
+        
+        foreach ($sentences as $sentence) {
+            $sentence = trim($sentence);
+            if (empty($sentence)) continue;
+            
+            // Normaliser la phrase
+            $normalized = strtolower(preg_replace('/\s+/', ' ', $sentence));
+            
+            // Vérifier si cette phrase est déjà apparue
+            if (!in_array($normalized, $seenPhrases)) {
+                $uniqueSentences[] = $sentence;
+                $seenPhrases[] = $normalized;
+            }
+        }
+        
+        // Si on a trouvé des doublons, reconstruire le contenu
+        if (count($uniqueSentences) < count($sentences)) {
+            $cleanedText = implode('. ', $uniqueSentences);
+            
+            // Reconstruire avec une structure HTML propre
+            return $this->buildCleanServiceContent($cleanedText);
+        }
+        
+        return $html;
+    }
+    
+    /**
+     * Construire un contenu de service propre sans répétitions
+     */
+    private function buildCleanServiceContent($text)
+    {
+        $companyName = setting('company_name', 'Notre Entreprise');
+        
+        $html = '<div class="service-content">';
+        $html .= '<div class="grid md:grid-cols-2 gap-8">';
+        
+        // Colonne gauche
+        $html .= '<div class="space-y-6">';
+        $html .= '<div class="space-y-4">';
+        $html .= '<p class="text-lg leading-relaxed">' . $text . '</p>';
+        $html .= '</div>';
+        
+        // Engagement qualité
+        $html .= '<div class="bg-blue-50 p-6 rounded-lg">';
+        $html .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>';
+        $html .= '<p class="leading-relaxed mb-3">';
+        $html .= 'Chez <strong>' . $companyName . '</strong>, nous mettons un point d\'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.';
+        $html .= '</p>';
+        $html .= '<p class="leading-relaxed">';
+        $html .= 'Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité.';
+        $html .= '</p>';
+        $html .= '</div>';
+        $html .= '</div>';
+        
+        // Colonne droite
+        $html .= '<div class="space-y-6">';
+        $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
+        $html .= '<p class="leading-relaxed">';
+        $html .= 'Forts de notre expérience, nous connaissons parfaitement les spécificités de la région pour un service adapté et de qualité.';
+        $html .= '</p>';
+        $html .= '</div>';
+        
+        $html .= '</div>';
+        $html .= '</div>';
+        
+        return $html;
     }
     
     /**
