@@ -38,19 +38,13 @@
                         Nos Services
                         <i class="fas fa-chevron-down ml-1 text-xs"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                         <div class="py-2">
                             @foreach($featuredServices as $service)
                                 @if(is_array($service) && isset($service['name']) && isset($service['slug']))
                                 <a href="{{ route('services.show', $service['slug']) }}" 
                                    class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary transition-colors">
-                                    <div class="flex items-center">
-                                        <i class="{{ $service['icon'] ?? 'fas fa-tools' }} mr-3 text-primary"></i>
-                                        <div>
-                                            <div class="font-medium">{{ $service['name'] }}</div>
-                                            <div class="text-sm text-gray-500">{{ Str::limit($service['short_description'] ?? '', 50) }}</div>
-                                        </div>
-                                    </div>
+                                    {{ $service['name'] }}
                                 </a>
                                 @endif
                             @endforeach
