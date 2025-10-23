@@ -1596,7 +1596,15 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
      */
     private function removeDuplicateContent($html)
     {
-        // Extraire le texte sans HTML
+        // D'abord, essayer de nettoyer les répétitions simples dans le HTML
+        $cleanedHtml = $this->removeSimpleDuplicates($html);
+        
+        // Si le HTML a été modifié, le retourner
+        if ($cleanedHtml !== $html) {
+            return $cleanedHtml;
+        }
+        
+        // Sinon, extraire le texte et nettoyer les répétitions
         $text = strip_tags($html);
         
         // Détecter les répétitions de phrases complètes
@@ -1630,6 +1638,33 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     }
     
     /**
+     * Supprimer les répétitions simples dans le HTML
+     */
+    private function removeSimpleDuplicates($html)
+    {
+        // Détecter les répétitions de phrases dans le HTML
+        $patterns = [
+            // Répétitions de "Service professionnel de..."
+            '/(Service professionnel de[^<]+)(\s*\1)+/i',
+            // Répétitions de phrases complètes
+            '/([^.!?]+[.!?])(\s*\1)+/',
+            // Répétitions de mots isolés
+            '/(\b\w+\b)(\s+\1){2,}/i'
+        ];
+        
+        $cleanedHtml = $html;
+        
+        foreach ($patterns as $pattern) {
+            $cleanedHtml = preg_replace($pattern, '$1', $cleanedHtml);
+        }
+        
+        // Nettoyer les espaces multiples
+        $cleanedHtml = preg_replace('/\s+/', ' ', $cleanedHtml);
+        
+        return $cleanedHtml;
+    }
+    
+    /**
      * Construire un contenu de service propre sans répétitions
      */
     private function buildCleanServiceContent($text)
@@ -1641,6 +1676,8 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         // Colonne gauche
         $html .= '<div class="space-y-6">';
+        
+        // Introduction générale
         $html .= '<div class="space-y-4">';
         $html .= '<p class="text-lg leading-relaxed">' . $text . '</p>';
         $html .= '</div>';
@@ -1652,19 +1689,64 @@ Répondez UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= 'Chez <strong>' . $companyName . '</strong>, nous mettons un point d\'honneur à garantir la satisfaction totale de nos clients. Chaque projet est unique et mérite une attention particulière.';
         $html .= '</p>';
         $html .= '<p class="leading-relaxed">';
-        $html .= 'Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité.';
+        $html .= 'Nous sélectionnons rigoureusement nos matériaux et appliquons les techniques les plus avancées pour vous offrir un service professionnel de qualité, respectueux des normes et de l\'environnement.';
         $html .= '</p>';
         $html .= '</div>';
+        
+        // Prestations
+        $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations</h3>';
+        $html .= '<ul class="space-y-3">';
+        $html .= '<li class="flex items-start"><span><strong>Diagnostic complet et gratuit</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Matériaux de qualité supérieure</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Équipe d\'artisans qualifiés</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Respect des délais et du budget</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Garantie décennale</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Suivi personnalisé</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Nettoyage et remise en état</strong></span></li>';
+        $html .= '<li class="flex items-start"><span><strong>Conseils d\'entretien</strong></span></li>';
+        $html .= '</ul>';
+        
+        // Pourquoi choisir notre entreprise
+        $html .= '<div class="bg-green-50 p-6 rounded-lg">';
+        $html .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
+        $html .= '<p class="leading-relaxed">';
+        $html .= 'Notre réputation dans la région repose sur notre engagement qualité, notre transparence tarifaire et notre capacité à livrer des projets dans les temps. Nous sommes fiers de compter parmi nos clients de nombreuses familles et entreprises satisfaites.';
+        $html .= '</p>';
+        $html .= '</div>';
+        
         $html .= '</div>';
         
         // Colonne droite
         $html .= '<div class="space-y-6">';
+        
+        // Expertise locale
         $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
         $html .= '<p class="leading-relaxed">';
         $html .= 'Forts de notre expérience, nous connaissons parfaitement les spécificités de la région pour un service adapté et de qualité.';
         $html .= '</p>';
+        
+        // Devis
+        $html .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
+        $html .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
+        $html .= '<p class="mb-4">';
+        $html .= 'Contactez-nous dès maintenant pour un devis personnalisé et gratuit.';
+        $html .= '</p>';
+        $html .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">';
+        $html .= 'Demande de devis';
+        $html .= '</a>';
         $html .= '</div>';
         
+        // Informations pratiques
+        $html .= '<div class="bg-gray-50 p-6 rounded-lg">';
+        $html .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>';
+        $html .= '<ul class="space-y-2 text-sm">';
+        $html .= '<li class="flex items-center"><span>Intervention rapide et efficace dans la région</span></li>';
+        $html .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
+        $html .= '<li class="flex items-center"><span>Garantie de satisfaction pour un travail impeccable</span></li>';
+        $html .= '</ul>';
+        $html .= '</div>';
+        
+        $html .= '</div>';
         $html .= '</div>';
         $html .= '</div>';
         
