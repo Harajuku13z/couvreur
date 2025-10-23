@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Upload Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { color: green; }
+        .info { color: blue; }
+        .path-info { background: #f0f0f0; padding: 10px; border-radius: 4px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Test du système d'upload des services</h1>
+    
+    <div class="test-section">
+        <h2>📁 Vérification des dossiers</h2>
+        <div class="path-info">
+            <strong>Dossier de destination:</strong> public/uploads/services/<br>
+            <strong>Chemin complet:</strong> /Users/elizochryst/Desktop/couvreur/public/uploads/services/
+        </div>
+        <p class="info">✅ Le dossier public/uploads/services/ existe et contient les images</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔧 Modifications apportées</h2>
+        <ul>
+            <li><strong>Contrôleur ServicesController:</strong> Modifié pour enregistrer directement dans public/uploads/services/</li>
+            <li><strong>Méthode store():</strong> Utilise file->move() au lieu de storeAs()</li>
+            <li><strong>Méthode update():</strong> Utilise file->move() au lieu de storeAs()</li>
+            <li><strong>Chemins:</strong> Tous les chemins pointent vers 'uploads/services/filename'</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 Images actuelles</h2>
+        <div class="path-info">
+            Les images suivantes sont disponibles dans public/uploads/services/:
+            <ul>
+                <li>service-1761199330-68f9c4e2eb4c4.jpg</li>
+                <li>service-1761199983-68f9c76fcb354.png</li>
+                <li>service-1761200169-68f9c829bfdd4.jpg</li>
+                <li>service-1761200362-68f9c8eaf2f2d.jpg</li>
+                <li>service-1761200591-68f9c9cf0bd9b.jpg</li>
+                <li>service-1761200775-68f9ca878105f.jpg</li>
+                <li>service-1761203142-68f9d3c6ea313.jpg</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Résultat attendu</h2>
+        <p class="success">Maintenant, quand vous uploadez une nouvelle image de service :</p>
+        <ul>
+            <li>✅ L'image sera enregistrée dans <code>public/uploads/services/</code></li>
+            <li>✅ Le chemin dans la base de données sera <code>uploads/services/filename</code></li>
+            <li>✅ Les vues utiliseront <code>url('uploads/services/filename')</code></li>
+            <li>✅ L'image sera accessible via <code>/uploads/services/filename</code></li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Test</h2>
+        <p>Pour tester le nouveau système :</p>
+        <ol>
+            <li>Allez dans l'administration des services</li>
+            <li>Créez ou modifiez un service</li>
+            <li>Uploadez une nouvelle image</li>
+            <li>Vérifiez que l'image apparaît dans <code>public/uploads/services/</code></li>
+            <li>Vérifiez que l'image s'affiche correctement sur le site</li>
+        </ol>
+    </div>
+</body>
+</html>
