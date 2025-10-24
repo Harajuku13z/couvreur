@@ -37,9 +37,6 @@
                 <a href="#email-preview" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-eye mr-2"></i>Prévisualisation Email
                 </a>
-                <a href="#email-templates" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-edit mr-2"></i>Templates Email
-                </a>
                 <a href="#ai-config" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-robot mr-2"></i>IA & ChatGPT
                 </a>
@@ -267,93 +264,6 @@
         </div>
     </div>
 
-    <!-- Email Templates Section -->
-    <div id="email-templates" class="config-section hidden">
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-xl font-semibold mb-4">✉️ Gestion des Templates Email</h2>
-            <p class="text-sm text-gray-600 mb-6">
-                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
-                Personnalisez le contenu et le design de vos emails clients et admin
-            </p>
-            
-            <div class="space-y-6">
-                <!-- Email Client Template -->
-                <div class="border border-gray-200 rounded-lg p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">📧 Template Email Client</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="previewEmailTemplate('client')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-                                <i class="fas fa-eye mr-1"></i>Prévisualiser
-                            </button>
-                            <button onclick="testEmailTemplate('client')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
-                                <i class="fas fa-paper-plane mr-1"></i>Tester
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <form method="POST" action="{{ route('config.update.email-template') }}" id="client-template-form">
-                        @csrf
-                        <input type="hidden" name="template_type" value="client">
-                        
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Configuration -->
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Sujet de l'email</label>
-                                    <input type="text" name="subject" value="{{ setting('email_client_subject', '✅ Demande de devis reçue - Rénovation Expert') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom de l'expéditeur</label>
-                                    <input type="text" name="from_name" value="{{ setting('email_client_from_name', 'Rénovation Expert') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email de l'expéditeur</label>
-                                    <input type="email" name="from_email" value="{{ setting('email_client_from_email', 'contact@entreprise.com') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Variables disponibles</label>
-                                    <div class="bg-gray-50 p-3 rounded-lg text-sm">
-                                        <code class="text-blue-600">{first_name}</code> <code class="text-blue-600">{last_name}</code> <code class="text-blue-600">{company_name}</code><br>
-                                        <code class="text-blue-600">{work_types}</code> <code class="text-blue-600">{property_type}</code> <code class="text-blue-600">{surface}</code><br>
-                                        <code class="text-blue-600">{phone}</code> <code class="text-blue-600">{email}</code> <code class="text-blue-600">{postal_code}</code>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Éditeur HTML -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Contenu HTML de l'email</label>
-                                <textarea name="html_content" rows="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-mono text-sm" placeholder="Entrez le HTML de votre email...">{{ setting('email_client_template', '') }}</textarea>
-                                <p class="text-xs text-gray-500 mt-1">Utilisez les variables ci-dessus pour personnaliser le contenu</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-save mr-2"></i>Enregistrer Template Client
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Template par défaut -->
-                <div class="border border-gray-200 rounded-lg p-6">
-                    <h3 class="text-lg font-semibold mb-4">📋 Templates par Défaut</h3>
-                    <p class="text-sm text-gray-600 mb-4">Utilisez ces templates comme base pour créer vos propres emails</p>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <button onclick="loadDefaultTemplate('client')" class="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-left">
-                            <h4 class="font-semibold">Template Client par défaut</h4>
-                            <p class="text-sm text-gray-600">Email de confirmation avec design professionnel</p>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- IA & ChatGPT Configuration -->
     <div id="ai-config" class="config-section hidden">

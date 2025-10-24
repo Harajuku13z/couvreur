@@ -110,15 +110,6 @@
         </div>
         <p class="text-xs text-gray-500 mt-2">Inclut villes, communes et villages.</p>
 
-        <div class="mt-6">
-            <h3 class="text-md font-semibold mb-2">Importer depuis un JSON</h3>
-            <p class="text-sm text-gray-600 mb-2">Collez ici un JSON respectant { cities: [{ name, postal_code, department, region }] } ou un tableau direct d'objets.</p>
-            <form method="POST" action="{{ route('admin.cities.import.json') }}" class="space-y-2">
-                @csrf
-                <textarea name="json" rows="6" class="border rounded px-3 py-2 w-full font-mono text-sm" placeholder='{"cities":[{"name":"Dijon","postal_code":"21000","department":"21 Côte-d’Or","region":"Bourgogne-Franche-Comté"}]}' required></textarea>
-                <button class="bg-green-600 text-white rounded px-4 py-2">Importer JSON</button>
-            </form>
-        </div>
     </div>
 
     <form method="POST" action="{{ route('admin.cities.store') }}" class="mb-8 grid grid-cols-1 md:grid-cols-5 gap-3">

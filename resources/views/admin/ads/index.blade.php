@@ -16,12 +16,6 @@
             <a href="{{ route('admin.ads.manual') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                 <i class="fas fa-edit mr-2"></i>Créer manuellement
             </a>
-            <form method="POST" action="{{ route('admin.ads.remove.duplicates') }}" class="inline" onsubmit="return confirm('Supprimer tous les doublons ? (garde le plus récent)')">
-                @csrf
-                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                    <i class="fas fa-trash-alt mr-2"></i>Supprimer doublons
-                </button>
-            </form>
         </div>
     </div>
 

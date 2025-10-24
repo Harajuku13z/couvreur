@@ -13,14 +13,14 @@ class MarkAbandonedSubmissions extends Command
      *
      * @var string
      */
-    protected $signature = 'submissions:mark-abandoned {--hours=12 : Number of hours after which to mark as abandoned}';
+    protected $signature = 'submissions:mark-abandoned {--hours=3 : Number of hours after which to mark as abandoned}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Mark form submissions as abandoned after a specified number of hours (default: 12 hours)';
+    protected $description = 'Mark form submissions as abandoned after a specified number of hours (default: 3 hours)';
 
     /**
      * Execute the console command.

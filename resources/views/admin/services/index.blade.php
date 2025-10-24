@@ -128,13 +128,6 @@
                     <a href="{{ route('services.admin.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                         <i class="fas fa-plus mr-2"></i>Nouveau Service
                     </a>
-                    <form action="{{ route('services.admin.regenerate.all') }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center" 
-                                onclick="return confirm('Êtes-vous sûr de vouloir régénérer le contenu de tous les services ? Cette action peut prendre quelques minutes.')">
-                            <i class="fas fa-magic mr-2"></i>Régénérer Tout
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>

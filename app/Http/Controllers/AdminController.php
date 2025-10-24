@@ -475,6 +475,10 @@ class AdminController extends Controller
         $publishedAds = \App\Models\Ad::where('status', 'published')->count();
         $draftAds = \App\Models\Ad::where('status', 'draft')->count();
 
+        // Statistiques des villes
+        $totalCities = \App\Models\City::count();
+        $favoriteCities = \App\Models\City::where('is_favorite', true)->count();
+
         // Tendance des appels (7 derniers jours)
         $callsTrend = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -522,6 +526,8 @@ class AdminController extends Controller
             'totalAds',
             'publishedAds',
             'draftAds',
+            'totalCities',
+            'favoriteCities',
             'stepStatistics',
             'completionRateByStep'
         ));

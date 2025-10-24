@@ -140,6 +140,25 @@
                 <p class="text-sm text-gray-500">{{ $totalAds > 0 ? round(($publishedAds / $totalAds) * 100, 1) : 0 }}% des annonces sont publiées</p>
             </div>
         </div>
+
+        <!-- Villes -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Villes</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total des villes</span>
+                    <span class="font-semibold text-2xl text-indigo-600">{{ $totalCities }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Villes favorites</span>
+                    <span class="font-semibold text-xl text-yellow-600">{{ $favoriteCities }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ $totalCities > 0 ? ($favoriteCities / $totalCities) * 100 : 0 }}%"></div>
+                </div>
+                <p class="text-sm text-gray-500">{{ $totalCities > 0 ? round(($favoriteCities / $totalCities) * 100, 1) : 0 }}% des villes sont favorites</p>
+            </div>
+        </div>
     </div>
 
     <!-- Avis et Appels -->
