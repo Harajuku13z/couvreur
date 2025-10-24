@@ -60,34 +60,54 @@
     @media (max-width: 768px) {
         /* Hero section mobile */
         .hero-mobile {
-            min-height: 100vh;
+            min-height: 100vh !important;
             background-attachment: scroll !important;
             background-size: cover !important;
-            background-position: center !important;
+            background-position: center center !important;
             background-repeat: no-repeat !important;
+            background-color: #3b82f6 !important; /* Fallback color */
+        }
+        
+        /* Force background image display on mobile */
+        .hero-mobile[style*="background-image"] {
+            background-image: var(--hero-bg) !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: scroll !important;
         }
         
         /* Images responsive */
         .mobile-responsive-img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            object-fit: cover !important;
         }
         
         /* About section mobile */
         .about-image-mobile {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-            object-fit: cover;
+            width: 100% !important;
+            height: auto !important;
+            max-height: 400px !important;
+            object-fit: cover !important;
+            display: block !important;
         }
         
         /* Portfolio images mobile */
         .portfolio-image-mobile {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
+            width: 100% !important;
+            height: 200px !important;
+            object-fit: cover !important;
+            display: block !important;
+        }
+        
+        /* Force image display */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block !important;
         }
     }
 </style>
@@ -98,7 +118,7 @@
     <!-- Hero Section -->
     <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile" 
              @if($homeConfig['hero']['background_image'] ?? null)
-             style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat;"
+             style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
              @else
              style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
              @endif>
@@ -234,8 +254,16 @@
                             <img src="{{ asset($homeConfig['about']['image']) }}" 
                                  alt="{{ $homeConfig['about']['title'] ?? 'Qui Sommes-Nous' }}" 
                                  class="w-full h-full object-cover object-center mobile-responsive-img about-image-mobile"
-                                 style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; max-width: 100%; height: auto; display: block;"
-                                 loading="lazy">
+                                 style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; max-width: 100%; height: auto; display: block; width: 100%;"
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="w-full h-full bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center" style="display: none;">
+                                <div class="text-center text-white p-8">
+                                    <i class="fas fa-building text-6xl mb-4"></i>
+                                    <h3 class="text-2xl font-bold mb-2">{{ setting('company_name', 'Votre Entreprise') }}</h3>
+                                    <p class="text-white/90">{{ setting('company_specialization', 'Travaux de Rénovation') }}</p>
+                                </div>
+                            </div>
                         </div>
                     @else
                         <div class="aspect-square bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center">
@@ -479,7 +507,7 @@
             
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach(collect($portfolioItems)->take($homeConfig['sections']['portfolio']['limit'] ?? 6) as $item)
-                <a href="{{ isset($item['slug']) ? route('portfolio.show', $item['slug']) : '#' }}" class="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <a href="{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}" class="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     @if(!empty($item['images']))
                         @php $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images']; @endphp
                         <div class="h-64 bg-cover bg-center portfolio-image-mobile" style="background-image: url('{{ asset($firstImage) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
@@ -703,6 +731,38 @@
                 })
             }).catch(error => console.log('Tracking error:', error));
         }
+
+        // Force image display on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if mobile
+            if (window.innerWidth <= 768) {
+                // Force hero background image
+                const heroSection = document.querySelector('.hero-mobile');
+                if (heroSection && heroSection.style.backgroundImage) {
+                    heroSection.style.backgroundSize = 'cover';
+                    heroSection.style.backgroundPosition = 'center center';
+                    heroSection.style.backgroundRepeat = 'no-repeat';
+                    heroSection.style.backgroundAttachment = 'scroll';
+                }
+                
+                // Force all images to display
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.display = 'block';
+                    img.style.width = '100%';
+                });
+                
+                // Force background images
+                const bgElements = document.querySelectorAll('[style*="background-image"]');
+                bgElements.forEach(el => {
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center center';
+                    el.style.backgroundRepeat = 'no-repeat';
+                });
+            }
+        });
     </script>
 @endsection
 

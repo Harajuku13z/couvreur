@@ -68,6 +68,13 @@ class HomeController extends Controller
             ];
         }
         
+        // S'assurer que tous les éléments du portfolio ont un slug
+        foreach ($portfolioItems as &$item) {
+            if (!isset($item['slug']) || empty($item['slug'])) {
+                $item['slug'] = \Illuminate\Support\Str::slug($item['title'] ?? 'realisation');
+            }
+        }
+        
         // Get reviews
         $reviews = Review::where('is_active', true)
             ->orderBy('review_date', 'desc')
