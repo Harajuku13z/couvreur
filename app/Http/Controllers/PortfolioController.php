@@ -80,9 +80,22 @@ class PortfolioController extends Controller
      */
     private function generateSlug($title)
     {
+        // Convertir les caractères accentués
         $slug = strtolower($title);
+        $slug = str_replace(['à', 'á', 'â', 'ã', 'ä', 'å', 'æ'], 'a', $slug);
+        $slug = str_replace(['è', 'é', 'ê', 'ë'], 'e', $slug);
+        $slug = str_replace(['ì', 'í', 'î', 'ï'], 'i', $slug);
+        $slug = str_replace(['ò', 'ó', 'ô', 'õ', 'ö', 'ø'], 'o', $slug);
+        $slug = str_replace(['ù', 'ú', 'û', 'ü'], 'u', $slug);
+        $slug = str_replace(['ý', 'ÿ'], 'y', $slug);
+        $slug = str_replace(['ñ'], 'n', $slug);
+        $slug = str_replace(['ç'], 'c', $slug);
+        
+        // Supprimer les caractères non alphanumériques sauf espaces et tirets
         $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
+        // Remplacer les espaces multiples et tirets par un seul tiret
         $slug = preg_replace('/[\s-]+/', '-', $slug);
+        // Supprimer les tirets en début et fin
         $slug = trim($slug, '-');
         return $slug;
     }
