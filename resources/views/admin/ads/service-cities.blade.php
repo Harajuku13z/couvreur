@@ -326,6 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion du formulaire
     document.querySelector('form').addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        
         // Mettre à jour les villes sélectionnées avant la soumission
         updateSelectedCities();
         
@@ -335,6 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        console.log('Selected cities:', selectedCities.length);
+        
         // Afficher le loading complet
         generateBtn.disabled = true;
         generateText.style.display = 'none';
@@ -342,10 +346,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Afficher un loader overlay
         showLoadingOverlay();
+        
+        console.log('Loader overlay should be displayed');
     });
     
     // Fonction pour afficher le loader overlay
     function showLoadingOverlay() {
+        console.log('Creating loading overlay...');
+        
+        // Supprimer l'overlay existant s'il y en a un
+        const existingOverlay = document.getElementById('loading-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
         const overlay = document.createElement('div');
         overlay.id = 'loading-overlay';
         overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
@@ -357,7 +371,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="text-sm text-gray-500 mt-2">Veuillez patienter, cela peut prendre quelques minutes.</p>
             </div>
         `;
+        
         document.body.appendChild(overlay);
+        console.log('Loading overlay created and added to DOM');
     }
     
     // Charger les villes favorites par défaut
