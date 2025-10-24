@@ -10,15 +10,15 @@
             <a href="{{ route('admin.ads.generation') }}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded hover:from-blue-700 hover:to-purple-700">
                 <i class="fas fa-magic mr-2"></i>Génération IA
             </a>
-            <button onclick="openAIModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <a href="{{ route('admin.ads.service-cities') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <i class="fas fa-robot mr-2"></i>Service + Villes
-            </button>
-            <button onclick="openKeywordModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+            </a>
+            <a href="{{ route('admin.ads.keyword-cities') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
                 <i class="fas fa-key mr-2"></i>Mot-clé + Villes
-            </button>
-            <button onclick="openManualModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            </a>
+            <a href="{{ route('admin.ads.manual') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                 <i class="fas fa-edit mr-2"></i>Créer manuellement
-            </button>
+            </a>
             <form method="POST" action="{{ route('admin.ads.remove.duplicates') }}" class="inline" onsubmit="return confirm('Supprimer tous les doublons ? (garde le plus récent)')">
                 @csrf
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
