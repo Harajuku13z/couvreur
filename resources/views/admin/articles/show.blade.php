@@ -83,7 +83,7 @@
             @if($article->featured_image)
             <div>
                 <label class="block text-sm font-medium text-gray-700">Image mise en avant</label>
-                <img src="{{ asset($article->featured_image) }}" alt="Image mise en avant" class="mt-2 w-32 h-20 object-cover rounded">
+                <img src="{{ Storage::url($article->featured_image) }}" alt="Image mise en avant" class="mt-2 w-32 h-20 object-cover rounded">
             </div>
             @endif
         </div>

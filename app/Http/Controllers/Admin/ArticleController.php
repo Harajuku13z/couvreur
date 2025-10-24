@@ -42,18 +42,23 @@ class ArticleController extends Controller
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:2000',
-            'featured_image' => 'nullable|string|max:1000',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'status' => 'required|in:draft,published'
         ]);
+
+        $featuredImagePath = null;
+        if ($request->hasFile('featured_image')) {
+            $featuredImagePath = $this->handleImageUpload($request->file('featured_image'));
+        }
 
         $article = Article::create([
             'title' => $validated['title'],
             'slug' => Str::slug($validated['title']),
-            'content_html' => $validated['content_html'], // HTML tel quel
+            'content_html' => $validated['content_html'],
             'meta_title' => $validated['meta_title'],
             'meta_description' => $validated['meta_description'],
             'meta_keywords' => $validated['meta_keywords'],
-            'featured_image' => $validated['featured_image'],
+            'featured_image' => $featuredImagePath,
             'status' => $validated['status'],
             'published_at' => $validated['status'] === 'published' ? now() : null,
         ]);
@@ -75,18 +80,27 @@ class ArticleController extends Controller
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:2000',
-            'featured_image' => 'nullable|string|max:1000',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'status' => 'required|in:draft,published'
         ]);
+
+        $featuredImagePath = $article->featured_image; // Garder l'image actuelle par défaut
+        if ($request->hasFile('featured_image')) {
+            // Supprimer l'ancienne image si elle existe
+            if ($article->featured_image && Storage::exists($article->featured_image)) {
+                Storage::delete($article->featured_image);
+            }
+            $featuredImagePath = $this->handleImageUpload($request->file('featured_image'));
+        }
 
         $article->update([
             'title' => $validated['title'],
             'slug' => Str::slug($validated['title']),
-            'content_html' => $validated['content_html'], // HTML tel quel
+            'content_html' => $validated['content_html'],
             'meta_title' => $validated['meta_title'],
             'meta_description' => $validated['meta_description'],
             'meta_keywords' => $validated['meta_keywords'],
-            'featured_image' => $validated['featured_image'],
+            'featured_image' => $featuredImagePath,
             'status' => $validated['status'],
             'published_at' => $validated['status'] === 'published' ? now() : null,
         ]);
@@ -851,5 +865,31 @@ GÉNÈRE LES MOTS-CLÉS:";
             return redirect()->route('admin.articles.index')
                 ->with('error', 'Erreur lors de la suppression des articles');
         }
+    }
+
+    /**
+     * Gérer l'upload d'image pour les articles
+     */
+    private function handleImageUpload($file)
+    {
+        $filename = 'article_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        
+        // Utiliser le chemin de stockage Laravel standard
+        $uploadPath = storage_path('app/public/uploads/articles');
+        
+        // Créer le répertoire s'il n'existe pas
+        if (!is_dir($uploadPath)) {
+            if (!mkdir($uploadPath, 0755, true)) {
+                throw new \Exception("Failed to create upload directory: {$uploadPath}");
+            }
+        }
+        
+        // Vérifier que le répertoire est accessible en écriture
+        if (!is_writable($uploadPath)) {
+            throw new \Exception("Upload directory is not writable: {$uploadPath}");
+        }
+        
+        $file->move($uploadPath, $filename);
+        return 'uploads/articles/' . $filename;
     }
 }

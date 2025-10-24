@@ -9,7 +9,7 @@
         <p class="text-gray-600 mt-2">Modifiez le contenu HTML de l'article</p>
     </div>
 
-    <form method="POST" action="{{ route('admin.articles.update', $article) }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.articles.update', $article) }}" class="space-y-6" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         
@@ -59,9 +59,15 @@
                 </div>
 
                 <div>
-                    <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">Image mise en avant (URL)</label>
-                    <input type="url" id="featured_image" name="featured_image" value="{{ old('featured_image', $article->featured_image) }}" 
+                    <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">Image mise en avant</label>
+                    <input type="file" id="featured_image" name="featured_image" accept="image/*"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @if($article->featured_image)
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
+                            <img src="{{ Storage::url($article->featured_image) }}" alt="Image actuelle" class="w-32 h-20 object-cover rounded">
+                        </div>
+                    @endif
                     @error('featured_image')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror

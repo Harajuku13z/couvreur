@@ -118,7 +118,7 @@
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     @if($article->featured_image)
                         <div class="w-full">
-                            <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
+                            <img src="{{ Storage::url($article->featured_image) }}" alt="{{ $article->title }}" 
                                  class="w-full aspect-video object-cover rounded-lg shadow-lg">
                         </div>
                     @endif
