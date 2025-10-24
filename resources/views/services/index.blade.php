@@ -80,7 +80,7 @@
                     <div class="group bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
                         @if(!empty($service['featured_image']))
                         <div class="relative h-48 overflow-hidden">
-                            <img src="{{ url($service['featured_image']) }}" 
+                            <img src="{{ Storage::url($service['featured_image']) }}" 
                                  alt="{{ $service['name'] }}" 
                                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>

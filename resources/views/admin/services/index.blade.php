@@ -196,9 +196,16 @@
                         @foreach($services as $service)
                             <div class="service-card bg-white border border-gray-200 rounded-lg p-6">
                                 <div class="text-center mb-4">
-                                    <div class="service-icon">
-                                        <i class="{{ $service['icon'] ?? 'fas fa-tools' }}"></i>
-                                    </div>
+                                    @if(!empty($service['featured_image']))
+                                        <div class="mb-4">
+                                            <img src="{{ Storage::url($service['featured_image']) }}" alt="{{ $service['name'] }}" 
+                                                 class="w-full h-32 object-cover rounded-lg mx-auto">
+                                        </div>
+                                    @else
+                                        <div class="service-icon">
+                                            <i class="{{ $service['icon'] ?? 'fas fa-tools' }}"></i>
+                                        </div>
+                                    @endif
                                     <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $service['name'] }}</h3>
                                     <p class="text-gray-600 text-sm mb-2">{{ Str::limit($service['short_description'], 100) }}</p>
                                     <p class="text-xs text-gray-400 mb-4">ID: {{ $service['id'] ?? 'N/A' }}</p>
