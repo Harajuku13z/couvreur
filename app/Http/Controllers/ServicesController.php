@@ -87,12 +87,18 @@ class ServicesController extends Controller
             $featuredImagePath = $this->handleImageUpload($request->file('featured_image'), 'featured');
         }
 
-        // Générer les prestations avec icônes et les intégrer dans la description HTML
-        $prestations = $this->generatePrestationsWithIcons($validated['name']);
-        $prestationsHtml = $this->generatePrestationsHtml($prestations);
+        // Vérifier si l'IA a déjà généré des prestations dans la description
+        $hasExistingPrestations = $this->hasExistingPrestations($aiContent['description']);
         
-        // Intégrer les prestations dans la description HTML
-        $enhancedDescription = $aiContent['description'] . $prestationsHtml;
+        if (!$hasExistingPrestations) {
+            // Générer les prestations avec icônes et les intégrer dans la description HTML
+            $prestations = $this->generatePrestationsWithIcons($validated['name']);
+            $prestationsHtml = $this->generatePrestationsHtml($prestations);
+            $enhancedDescription = $aiContent['description'] . $prestationsHtml;
+        } else {
+            // Améliorer les prestations existantes de l'IA en ajoutant des icônes
+            $enhancedDescription = $this->enhanceExistingPrestations($aiContent['description'], $validated['name']);
+        }
 
         // Créer le service avec TOUT le contenu généré par l'IA
         $service = [
@@ -793,5 +799,72 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $html .= '</div>';
         
         return $html;
+    }
+
+    /**
+     * Vérifier si la description contient déjà des prestations
+     */
+    private function hasExistingPrestations($description)
+    {
+        // Mots-clés qui indiquent la présence de prestations
+        $prestationKeywords = [
+            'Nos Prestations',
+            'prestations',
+            'services inclus',
+            'inclus dans',
+            'comprend',
+            'Diagnostic complet',
+            'Enlèvement des',
+            'Traitement anti-mousse',
+            'Application d\'un hydrofuge',
+            'Nettoyage des gouttières',
+            'Vérification des tuiles',
+            'Garantie de satisfaction'
+        ];
+        
+        $description = strtolower($description);
+        
+        foreach ($prestationKeywords as $keyword) {
+            if (strpos($description, strtolower($keyword)) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Améliorer les prestations existantes en ajoutant des icônes
+     */
+    private function enhanceExistingPrestations($description, $serviceName)
+    {
+        // Mapping des prestations vers leurs icônes
+        $prestationIcons = [
+            'Diagnostic complet' => 'fas fa-search',
+            'Enlèvement des mousses' => 'fas fa-hands',
+            'Enlèvement manuel' => 'fas fa-hands',
+            'Traitement anti-mousse' => 'fas fa-flask',
+            'Application d\'un hydrofuge' => 'fas fa-shield-alt',
+            'Traitement hydrofuge' => 'fas fa-shield-alt',
+            'Nettoyage des gouttières' => 'fas fa-water',
+            'Débouchage des gouttières' => 'fas fa-water',
+            'Vérification des tuiles' => 'fas fa-tools',
+            'Inspection et réparation' => 'fas fa-tools',
+            'Garantie de satisfaction' => 'fas fa-check-circle',
+            'Devis gratuit' => 'fas fa-calculator',
+            'Protection durable' => 'fas fa-sun',
+            'Conseils d\'entretien' => 'fas fa-lightbulb'
+        ];
+        
+        $enhancedDescription = $description;
+        
+        // Ajouter des icônes aux prestations existantes
+        foreach ($prestationIcons as $prestation => $icon) {
+            $pattern = '/\*\s*' . preg_quote($prestation, '/') . '/i';
+            $replacement = '* <i class="' . $icon . ' text-blue-600 mr-2"></i>' . $prestation;
+            $enhancedDescription = preg_replace($pattern, $replacement, $enhancedDescription);
+        }
+        
+        return $enhancedDescription;
     }
 }
