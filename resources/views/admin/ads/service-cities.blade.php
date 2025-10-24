@@ -201,9 +201,6 @@
 
             <!-- Boutons d'action -->
             <div class="mt-8 flex justify-end space-x-4">
-                <button type="button" id="preview-btn" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                    Prévisualiser
-                </button>
                 <button type="submit" id="generate-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span id="generate-text">Générer les annonces</span>
                     <span id="generate-loading" style="display: none;">Génération en cours...</span>
@@ -319,19 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('.city-checkbox:checked');
         selectedCities = Array.from(checkboxes).map(cb => cb.value);
         
-        // Créer des inputs cachés pour chaque ville sélectionnée
-        // D'abord, supprimer les anciens inputs
-        document.querySelectorAll('input[name="cities[]"]').forEach(input => input.remove());
-        
-        // Ajouter un nouvel input pour chaque ville
-        selectedCities.forEach(cityId => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'cities[]';
-            input.value = cityId;
-            document.querySelector('form').appendChild(input);
-        });
-        
         // Mettre à jour le bouton de génération
         generateBtn.disabled = selectedCities.length === 0;
     }
@@ -347,13 +331,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Vérifier que les inputs cachés sont bien créés
-        const hiddenInputs = document.querySelectorAll('input[name="cities[]"]');
-        if (hiddenInputs.length === 0) {
-            e.preventDefault();
-            alert('Erreur: Aucune ville sélectionnée. Veuillez réessayer.');
-            return;
-        }
+        // Créer les inputs cachés pour les villes sélectionnées
+        selectedCities.forEach(cityId => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cities[]';
+            input.value = cityId;
+            this.appendChild(input);
+        });
         
         // Afficher le loading
         generateBtn.disabled = true;
