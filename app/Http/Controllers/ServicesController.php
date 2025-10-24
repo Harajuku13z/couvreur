@@ -535,11 +535,26 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         // Créer le dossier s'il n'existe pas
         $uploadPath = public_path('storage/uploads/services');
         
-        // Ensure all parent directories exist
-        if (!is_dir($uploadPath)) {
-            if (!mkdir($uploadPath, 0755, true)) {
-                throw new \Exception('Failed to create upload directory: ' . $uploadPath);
+        // Create directory structure step by step with better error handling
+        $directories = [
+            public_path('storage'),
+            public_path('storage/uploads'),
+            public_path('storage/uploads/services')
+        ];
+        
+        foreach ($directories as $dir) {
+            if (!is_dir($dir)) {
+                if (!mkdir($dir, 0755, true)) {
+                    // Log the error for debugging
+                    \Log::error("Failed to create directory: {$dir}. Parent exists: " . (is_dir(dirname($dir)) ? 'yes' : 'no'));
+                    throw new \Exception("Failed to create upload directory: {$dir}. Please check server permissions.");
+                }
             }
+        }
+        
+        // Verify the final directory exists and is writable
+        if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+            throw new \Exception("Upload directory is not writable: {$uploadPath}");
         }
         
         $file->move($uploadPath, $filename);
