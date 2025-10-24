@@ -87,8 +87,12 @@ class ServicesController extends Controller
             $featuredImagePath = $this->handleImageUpload($request->file('featured_image'), 'featured');
         }
 
-        // Générer les prestations avec icônes selon le type de service
+        // Générer les prestations avec icônes et les intégrer dans la description HTML
         $prestations = $this->generatePrestationsWithIcons($validated['name']);
+        $prestationsHtml = $this->generatePrestationsHtml($prestations);
+        
+        // Intégrer les prestations dans la description HTML
+        $enhancedDescription = $aiContent['description'] . $prestationsHtml;
 
         // Créer le service avec TOUT le contenu généré par l'IA
         $service = [
@@ -96,9 +100,8 @@ class ServicesController extends Controller
             'name' => $validated['name'],
             'slug' => $slug,
             'short_description' => $aiContent['short_description'],
-            'description' => $aiContent['description'],
+            'description' => $enhancedDescription, // Description avec prestations intégrées
             'icon' => $aiContent['icon'],
-            'prestations' => $prestations, // Ajouter les prestations avec icônes
             'featured_image' => $featuredImagePath,
             'is_featured' => $validated['is_featured'] ?? false,
             'is_menu' => $validated['is_menu'] ?? true,
@@ -735,13 +738,25 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                 ['icon' => 'fas fa-check-circle', 'title' => 'Tests d\'étanchéité'],
                 ['icon' => 'fas fa-chart-line', 'title' => 'Rapport de réparation'],
                 ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils de prévention']
+            ],
+            'élagage' => [
+                ['icon' => 'fas fa-tree', 'title' => 'Élagage précis pour assurer la santé de vos arbres'],
+                ['icon' => 'fas fa-cut', 'title' => 'Étêtage professionnel pour contrôler la croissance'],
+                ['icon' => 'fas fa-exclamation-triangle', 'title' => 'Abattage sécurisé des arbres menaçants'],
+                ['icon' => 'fas fa-scissors', 'title' => 'Taille spécifique pour préserver l\'esthétique'],
+                ['icon' => 'fas fa-truck', 'title' => 'Évacuation des déchets verts après intervention'],
+                ['icon' => 'fas fa-leaf', 'title' => 'Conseils d\'entretien pour maintenir la santé'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Intervention sécurisée sur arbres dangereux'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Approche personnalisée pour vos besoins']
             ]
         ];
         
         // Déterminer le type de service basé sur les mots-clés
         $serviceType = 'nettoyage'; // Par défaut
         
-        if (strpos($serviceName, 'isolation') !== false || strpos($serviceName, 'isoler') !== false) {
+        if (strpos($serviceName, 'élagage') !== false || strpos($serviceName, 'étêtage') !== false || strpos($serviceName, 'abattage') !== false || strpos($serviceName, 'arbres') !== false) {
+            $serviceType = 'élagage';
+        } elseif (strpos($serviceName, 'isolation') !== false || strpos($serviceName, 'isoler') !== false) {
             $serviceType = 'isolation';
         } elseif (strpos($serviceName, 'façade') !== false || strpos($serviceName, 'peinture') !== false) {
             $serviceType = 'façade';
@@ -752,5 +767,31 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         }
         
         return $prestationsMap[$serviceType] ?? $prestationsMap['nettoyage'];
+    }
+
+    /**
+     * Générer le HTML des prestations avec icônes
+     */
+    private function generatePrestationsHtml($prestations)
+    {
+        $html = '<div class="prestations-section mt-8">';
+        $html .= '<h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">';
+        $html .= '<i class="fas fa-list-check text-blue-600 mr-3"></i>';
+        $html .= 'Nos Prestations</h3>';
+        $html .= '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+        
+        foreach ($prestations as $prestation) {
+            $html .= '<div class="flex items-center p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500 hover:bg-blue-50 transition-colors">';
+            $html .= '<div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white mr-4">';
+            $html .= '<i class="' . $prestation['icon'] . '"></i>';
+            $html .= '</div>';
+            $html .= '<span class="font-medium text-gray-900">' . $prestation['title'] . '</span>';
+            $html .= '</div>';
+        }
+        
+        $html .= '</div>';
+        $html .= '</div>';
+        
+        return $html;
     }
 }
