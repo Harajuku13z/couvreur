@@ -149,15 +149,75 @@ class KeywordCitiesController extends Controller
         Format de réponse JSON :
         {
             \"title\": \"Titre SEO optimisé (max 60 caractères)\",
-            \"content\": \"Contenu HTML complet de l'annonce\",
+            \"content\": \"Contenu HTML complet avec structure en 2 colonnes\",
             \"meta_title\": \"Titre meta SEO (max 60 caractères)\",
             \"meta_description\": \"Description meta SEO (max 160 caractères)\",
             \"meta_keywords\": \"Mots-clés SEO séparés par virgules\"
         }
         
-        Le contenu doit être en HTML avec des balises appropriées (h1, h2, p, ul, li, etc.).
-        Inclut des informations spécifiques à {$city->name} et {$city->region}.
-        Optimise pour les mots-clés : {$keywords}, {$city->name}, {$city->region}.
+        Le contenu HTML doit suivre EXACTEMENT cette structure :
+        <div class=\"grid md:grid-cols-2 gap-8\">
+          <div class=\"space-y-6\">
+            <div class=\"space-y-4\">
+              <p class=\"text-lg leading-relaxed\">Paragraphe d'introduction avec {$keywords} à {$city->name}</p>
+              <p class=\"text-lg leading-relaxed\">Paragraphe sur l'expertise et la qualité</p>
+              <p class=\"text-lg leading-relaxed\">Paragraphe sur l'approche personnalisée</p>
+            </div>
+            
+            <div class=\"bg-blue-50 p-6 rounded-lg\">
+              <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
+              <p class=\"leading-relaxed mb-3\">Chez JD RENOVATION SERVICE, nous garantissons la satisfaction totale.</p>
+              <p class=\"leading-relaxed\">Description des matériaux et techniques utilisés.</p>
+            </div>
+            
+            <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$keywords}</h3>
+            <ul class=\"space-y-3\">
+              <li class=\"flex items-start\"><span><strong>Prestation 1</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 2</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 3</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 4</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 5</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 6</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 7</strong></span></li>
+              <li class=\"flex items-start\"><span><strong>Prestation 8</strong></span></li>
+            </ul>
+            
+            <div class=\"bg-green-50 p-6 rounded-lg\">
+              <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
+              <p class=\"leading-relaxed\">Reconnus localement pour notre expertise en {$keywords} à {$city->name}.</p>
+            </div>
+          </div>
+          
+          <div class=\"space-y-6\">
+            <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+            <p class=\"leading-relaxed\">Avec une connaissance approfondie de {$city->name} et du {$city->region}, nous sommes votre partenaire de confiance.</p>
+            
+            <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
+              <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
+              <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$keywords}.</p>
+              <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
+            </div>
+            
+            <div class=\"bg-gray-50 p-6 rounded-lg\">
+              <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
+              <ul class=\"space-y-2 text-sm\">
+                <li class=\"flex items-center\"><span>Service disponible à {$city->name} et dans toute la région du {$city->region}</span></li>
+                <li class=\"flex items-center\"><span>Délais d'intervention rapides</span></li>
+                <li class=\"flex items-center\"><span>Équipe qualifiée et expérimentée</span></li>
+                <li class=\"flex items-center\"><span>Conseils personnalisés</span></li>
+                <li class=\"flex items-center\"><span>Respect des normes et réglementations</span></li>
+                <li class=\"flex items-center\"><span>Devis clair et détaillé</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        IMPORTANT : 
+        - Utilise les mots-clés {$keywords} naturellement dans le contenu
+        - Adapte le contenu à {$city->name} et {$city->region}
+        - Génère 8 prestations spécifiques au service {$keywords}
+        - Garde la structure HTML exacte avec les classes CSS
+        - Inclut des informations locales spécifiques à {$city->name}
         ";
         
         $response = Http::withHeaders([
