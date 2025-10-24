@@ -46,6 +46,34 @@
             background-position: center !important;
             background-repeat: no-repeat !important;
         }
+        
+        /* Galerie photo mobile - réduction des marges internes */
+        .gallery-mobile {
+            padding: 1rem !important;
+        }
+        
+        .gallery-mobile h2 {
+            font-size: 1.5rem !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .gallery-mobile .grid {
+            gap: 0.75rem !important;
+        }
+        
+        .gallery-mobile img {
+            height: 200px !important;
+        }
+        
+        /* Contenu principal mobile */
+        .content-mobile {
+            padding: 1rem !important;
+        }
+        
+        .content-mobile h2 {
+            font-size: 1.5rem !important;
+            margin-bottom: 1rem !important;
+        }
     }
 </style>
 @endpush
@@ -111,7 +139,7 @@
                 <div class="lg:col-span-2">
                     <!-- Description -->
                     @if(!empty($portfolioItem['description']))
-                    <div class="bg-white rounded-3xl p-10 shadow-2xl mb-12">
+                    <div class="bg-white rounded-3xl p-10 shadow-2xl mb-12 content-mobile">
                         <h2 class="text-4xl font-bold text-gray-800 mb-8">À propos de ce projet</h2>
                         <div class="prose prose-xl text-gray-600 leading-relaxed">
                             {!! nl2br(e($portfolioItem['description'])) !!}
@@ -121,7 +149,7 @@
 
                     <!-- Image unique mise en valeur -->
                     @if(!empty($portfolioItem['images']) && (!is_array($portfolioItem['images']) || count($portfolioItem['images']) == 1))
-                    <div class="bg-white rounded-3xl p-10 shadow-2xl mb-12">
+                    <div class="bg-white rounded-3xl p-10 shadow-2xl mb-12 content-mobile">
                         <h2 class="text-4xl font-bold text-gray-800 mb-8">Réalisation</h2>
                         @php 
                             $singleImage = is_array($portfolioItem['images']) ? $portfolioItem['images'][0] : $portfolioItem['images'];
@@ -136,7 +164,7 @@
 
                     <!-- Galerie de photos (plusieurs images) -->
                     @if(!empty($portfolioItem['images']) && is_array($portfolioItem['images']) && count($portfolioItem['images']) > 1)
-                    <div class="bg-white rounded-3xl p-10 shadow-2xl">
+                    <div class="bg-white rounded-3xl p-10 shadow-2xl gallery-mobile">
                         <h2 class="text-4xl font-bold text-gray-800 mb-8">Galerie photos</h2>
                         <div class="grid md:grid-cols-2 gap-8" id="photo-gallery">
                             @foreach($portfolioItem['images'] as $index => $image)
