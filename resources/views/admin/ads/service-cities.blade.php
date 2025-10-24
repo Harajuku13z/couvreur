@@ -338,9 +338,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion du formulaire
     document.querySelector('form').addEventListener('submit', function(e) {
+        // Mettre à jour les villes sélectionnées avant la soumission
+        updateSelectedCities();
+        
         if (selectedCities.length === 0) {
             e.preventDefault();
             alert('Veuillez sélectionner au moins une ville');
+            return;
+        }
+        
+        // Vérifier que les inputs cachés sont bien créés
+        const hiddenInputs = document.querySelectorAll('input[name="cities[]"]');
+        if (hiddenInputs.length === 0) {
+            e.preventDefault();
+            alert('Erreur: Aucune ville sélectionnée. Veuillez réessayer.');
             return;
         }
         
