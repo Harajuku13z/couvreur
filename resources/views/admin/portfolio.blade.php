@@ -98,7 +98,8 @@
                 </div>
             </div>
             @php
-                $services = setting('services', []);
+                $servicesData = setting('services', []);
+                $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
                 $serviceStats = [];
                 foreach($services as $service) {
                     $serviceStats[$service['slug']] = [
