@@ -20,7 +20,7 @@
                         </div>
                         
                         <h2 class="text-xl font-bold text-gray-900 mb-3">
-                            <a href="{{ route('ads.show', $ad) }}" class="hover:text-blue-600">
+                            <a href="{{ route('ads.show', $ad->slug) }}" class="hover:text-blue-600">
                                 {{ $ad->title }}
                             </a>
                         </h2>
@@ -31,7 +31,7 @@
                         
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500">{{ $ad->keyword }}</span>
-                            <a href="{{ route('ads.show', $ad) }}" class="text-blue-600 hover:text-blue-800 font-semibold">
+                            <a href="{{ route('ads.show', $ad->slug) }}" class="text-blue-600 hover:text-blue-800 font-semibold">
                                 Voir l'annonce →
                             </a>
                         </div>
