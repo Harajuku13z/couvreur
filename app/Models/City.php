@@ -11,7 +11,7 @@ class City extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'postal_code', 'department', 'region', 'active',
+        'name', 'postal_code', 'department', 'region', 'active', 'is_favorite',
     ];
 
     public function ads(): HasMany

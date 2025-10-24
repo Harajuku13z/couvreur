@@ -8,9 +8,31 @@ use Illuminate\Support\Str;
 
 class CityController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cities = City::orderBy('name')->paginate(50);
+        $query = City::query();
+        
+        // Filtrage par favoris
+        if ($request->has('favorites') && $request->favorites == '1') {
+            $query->where('is_favorite', true);
+        }
+        
+        // Filtrage par département
+        if ($request->has('department') && $request->department) {
+            $query->where('department', $request->department);
+        }
+        
+        // Filtrage par région
+        if ($request->has('region') && $request->region) {
+            $query->where('region', $request->region);
+        }
+        
+        // Recherche par nom
+        if ($request->has('search') && $request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $cities = $query->orderBy('name')->paginate(50);
 
         $departments = [
             'Ain','Aisne','Allier','Alpes-de-Haute-Provence','Hautes-Alpes','Alpes-Maritimes','Ardèche','Ardennes','Ariège','Aube','Aude','Aveyron','Bouches-du-Rhône','Calvados','Cantal','Charente','Charente-Maritime','Cher','Corrèze','Corse-du-Sud','Haute-Corse','Côte-d\'Or','Côtes-d\'Armor','Creuse','Dordogne','Doubs','Drôme','Eure','Eure-et-Loir','Finistère','Gard','Haute-Garonne','Gers','Gironde','Hérault','Ille-et-Vilaine','Indre','Indre-et-Loire','Isère','Jura','Landes','Loir-et-Cher','Loire','Haute-Loire','Loire-Atlantique','Loiret','Lot','Lot-et-Garonne','Lozère','Maine-et-Loire','Manche','Marne','Haute-Marne','Mayenne','Meurthe-et-Moselle','Meuse','Morbihan','Moselle','Nièvre','Nord','Oise','Orne','Pas-de-Calais','Puy-de-Dôme','Pyrénées-Atlantiques','Hautes-Pyrénées','Pyrénées-Orientales','Bas-Rhin','Haut-Rhin','Rhône','Haute-Saône','Saône-et-Loire','Sarthe','Savoie','Haute-Savoie','Paris','Seine-Maritime','Seine-et-Marne','Yvelines','Deux-Sèvres','Somme','Tarn','Tarn-et-Garonne','Var','Vaucluse','Vendée','Vienne','Haute-Vienne','Vosges','Yonne','Territoire de Belfort','Essonne','Hauts-de-Seine','Seine-Saint-Denis','Val-de-Marne','Val-d\'Oise','Guadeloupe','Martinique','Guyane','La Réunion','Mayotte'
@@ -20,7 +42,10 @@ class CityController extends Controller
             'Auvergne-Rhône-Alpes','Bourgogne-Franche-Comté','Bretagne','Centre-Val de Loire','Corse','Grand Est','Hauts-de-France','Île-de-France','Normandie','Nouvelle-Aquitaine','Occitanie','Pays de la Loire','Provence-Alpes-Côte d\'Azur','Guadeloupe','Martinique','Guyane','La Réunion','Mayotte'
         ];
 
-        return view('admin.cities.index', compact('cities','departments','regions'));
+        // Compter les favoris
+        $favoritesCount = City::where('is_favorite', true)->count();
+
+        return view('admin.cities.index', compact('cities','departments','regions','favoritesCount'));
     }
 
     public function store(Request $request)
@@ -44,6 +69,7 @@ class CityController extends Controller
             'department' => 'nullable|string|max:100',
             'region' => 'nullable|string|max:100',
             'active' => 'boolean',
+            'is_favorite' => 'boolean',
         ]);
         $city->update($data);
         return back()->with('success', 'Ville mise à jour');
@@ -202,6 +228,89 @@ class CityController extends Controller
             ['name' => 'Périphérie 1', 'postal_code' => '20002', 'department' => null, 'region' => null],
             ['name' => 'Périphérie 2', 'postal_code' => '20003', 'department' => null, 'region' => null],
         ];
+    }
+
+    /**
+     * Toggle favorite status for a city
+     */
+    public function toggleFavorite(City $city)
+    {
+        try {
+            $city->is_favorite = !$city->is_favorite;
+            $city->save();
+            
+            $favoritesCount = City::where('is_favorite', true)->count();
+            
+            return response()->json([
+                'success' => true,
+                'is_favorite' => $city->is_favorite,
+                'favorites_count' => $favoritesCount,
+                'message' => $city->is_favorite ? 'Ville ajoutée aux favoris' : 'Ville retirée des favoris'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get cities filtered by AJAX
+     */
+    public function getCities(Request $request)
+    {
+        $query = City::query();
+        
+        // Filtrage par favoris
+        if ($request->has('favorites') && $request->favorites == '1') {
+            $query->where('is_favorite', true);
+        }
+        
+        // Filtrage par département
+        if ($request->has('department') && $request->department) {
+            $query->where('department', $request->department);
+        }
+        
+        // Filtrage par région
+        if ($request->has('region') && $request->region) {
+            $query->where('region', $request->region);
+        }
+        
+        // Recherche par nom
+        if ($request->has('search') && $request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $cities = $query->orderBy('name')->limit(100)->get();
+        
+        return response()->json([
+            'success' => true,
+            'cities' => $cities,
+            'count' => $cities->count()
+        ]);
+    }
+
+    /**
+     * Get departments for a region
+     */
+    public function getDepartments(Request $request)
+    {
+        $region = $request->get('region');
+        
+        if (!$region) {
+            return response()->json(['departments' => []]);
+        }
+        
+        $departments = City::where('region', $region)
+            ->distinct()
+            ->pluck('department')
+            ->filter()
+            ->sort()
+            ->values();
+            
+        return response()->json(['departments' => $departments]);
     }
 }
 

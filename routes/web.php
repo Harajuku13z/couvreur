@@ -178,6 +178,11 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/cities/import/region', [App\Http\Controllers\CityController::class, 'importByRegion'])->name('cities.import.region');
             Route::post('/cities/import/radius', [App\Http\Controllers\CityController::class, 'importByRadius'])->name('cities.import.radius');
             Route::post('/cities/import/json', [App\Http\Controllers\CityController::class, 'importFromJson'])->name('cities.import.json');
+            
+            // ===== CITIES FAVORITES & AJAX =====
+            Route::post('/cities/{city}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('cities.toggle-favorite');
+            Route::get('/cities/ajax/get-cities', [App\Http\Controllers\CityController::class, 'getCities'])->name('cities.ajax.get-cities');
+            Route::get('/cities/departments', [App\Http\Controllers\CityController::class, 'getDepartments'])->name('cities.departments');
 
             // ===== GENERATION ENDPOINTS =====
             // Routes articles supprimées - système refait de zéro

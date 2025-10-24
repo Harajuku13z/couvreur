@@ -4,11 +4,71 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto py-10">
-    <h1 class="text-3xl font-bold mb-6">Gestion des villes</h1>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Gestion des villes</h1>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-600">
+                <span id="favorites-count">{{ $favoritesCount ?? 0 }}</span> favoris
+            </span>
+            <a href="{{ route('admin.cities.index', ['favorites' => '1']) }}" 
+               class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm">
+                Voir les favoris
+            </a>
+        </div>
+    </div>
 
     @if(session('success'))
         <div class="mb-4 p-3 bg-green-50 text-green-700 rounded">{{ session('success') }}</div>
     @endif
+
+    <!-- Filtres -->
+    <div class="bg-white rounded shadow p-4 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Filtres</h3>
+        <form method="GET" action="{{ route('admin.cities.index') }}" class="grid md:grid-cols-4 gap-4">
+            <div>
+                <label class="text-sm font-medium">Recherche</label>
+                <input name="search" value="{{ request('search') }}" 
+                       class="border rounded px-3 py-2 w-full" 
+                       placeholder="Nom de la ville">
+            </div>
+            <div>
+                <label class="text-sm font-medium">Région</label>
+                <select name="region" class="border rounded px-3 py-2 w-full" id="region-filter">
+                    <option value="">Toutes les régions</option>
+                    @foreach($regions as $region)
+                        <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>
+                            {{ $region }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="text-sm font-medium">Département</label>
+                <select name="department" class="border rounded px-3 py-2 w-full" id="department-filter">
+                    <option value="">Tous les départements</option>
+                    @if(request('region'))
+                        @php
+                            $departmentsInRegion = \App\Models\City::where('region', request('region'))
+                                ->distinct()
+                                ->pluck('department')
+                                ->filter()
+                                ->sort()
+                                ->values();
+                        @endphp
+                        @foreach($departmentsInRegion as $dept)
+                            <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>
+                                {{ $dept }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mr-2">Filtrer</button>
+                <a href="{{ route('admin.cities.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Reset</a>
+            </div>
+        </form>
+    </div>
 
     <div class="bg-white rounded shadow p-4 mb-8">
         <h2 class="text-lg font-semibold mb-4">Importer des villes (IA)</h2>
@@ -88,6 +148,7 @@
                     <th class="p-3">Département</th>
                     <th class="p-3">Région</th>
                     <th class="p-3">Actif</th>
+                    <th class="p-3">Favori</th>
                     <th class="p-3">Actions</th>
                 </tr>
             </thead>
@@ -109,6 +170,15 @@
                         </form>
                     </td>
                     <td class="p-3">
+                        <button onclick="toggleFavorite({{ $city->id }})" 
+                                class="favorite-btn px-3 py-1 rounded text-sm {{ $city->is_favorite ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600' }}"
+                                data-city-id="{{ $city->id }}"
+                                data-is-favorite="{{ $city->is_favorite ? '1' : '0' }}">
+                            <i class="fas fa-star mr-1"></i>
+                            {{ $city->is_favorite ? 'Favori' : 'Ajouter' }}
+                        </button>
+                    </td>
+                    <td class="p-3">
                         <form method="POST" action="{{ route('admin.cities.destroy', $city) }}" onsubmit="return confirm('Supprimer ?')">
                             @csrf
                             @method('DELETE')
@@ -123,6 +193,91 @@
 
     <div class="mt-4">{{ $cities->links() }}</div>
 </div>
+
+<script>
+// Fonction pour basculer le statut favori
+function toggleFavorite(cityId) {
+    const button = document.querySelector(`[data-city-id="${cityId}"]`);
+    const isFavorite = button.dataset.isFavorite === '1';
+    
+    fetch(`/admin/cities/${cityId}/toggle-favorite`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            is_favorite: !isFavorite
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour le bouton
+            if (data.is_favorite) {
+                button.className = 'favorite-btn px-3 py-1 rounded text-sm bg-yellow-100 text-yellow-700';
+                button.innerHTML = '<i class="fas fa-star mr-1"></i>Favori';
+                button.dataset.isFavorite = '1';
+            } else {
+                button.className = 'favorite-btn px-3 py-1 rounded text-sm bg-gray-100 text-gray-600';
+                button.innerHTML = '<i class="fas fa-star mr-1"></i>Ajouter';
+                button.dataset.isFavorite = '0';
+            }
+            
+            // Mettre à jour le compteur
+            document.getElementById('favorites-count').textContent = data.favorites_count;
+            
+            // Afficher une notification
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Erreur lors de la mise à jour', 'error');
+    });
+}
+
+// Fonction pour afficher les notifications
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Filtrage AJAX des départements par région
+document.getElementById('region-filter').addEventListener('change', function() {
+    const region = this.value;
+    const departmentSelect = document.getElementById('department-filter');
+    
+    if (region) {
+        fetch(`/admin/cities/departments?region=${encodeURIComponent(region)}`)
+            .then(response => response.json())
+            .then(data => {
+                departmentSelect.innerHTML = '<option value="">Tous les départements</option>';
+                data.departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    departmentSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading departments:', error);
+            });
+    } else {
+        departmentSelect.innerHTML = '<option value="">Tous les départements</option>';
+    }
+});
+</script>
 @endsection
 
 
