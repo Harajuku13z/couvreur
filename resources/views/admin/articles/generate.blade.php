@@ -146,18 +146,32 @@
                 <label for="contentPrompt" class="block text-sm font-medium text-gray-700 mb-2">Prompt pour le contenu</label>
                 <textarea id="contentPrompt" rows="6" 
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Instructions pour la génération du contenu...">Tu es un rédacteur web professionnel spécialisé dans la rénovation de bâtiments (toiture, isolation, électricité, façade, plomberie, etc.).
-À partir du titre reçu, rédige un article complet, structuré et optimisé SEO.
-Le ton doit être professionnel, clair, engageant et pédagogique, avec des emojis modérés pour illustrer certaines sections.
-L'article doit :
-Être original et informatif (environ 1 000 à 2 000 mots).
-Inclure des titres hiérarchisés (h1, h2, h3).
-Intégrer le titre reçu dans le <h1> et dans le contenu.
-Contenir une introduction, des sections explicatives, une FAQ et une conclusion avec appel à l'action.
-Utiliser des mots-clés liés à la rénovation, à l'énergie et à la maison pour maximiser le référencement naturel.
-💡 Important :
-Ne montre pas le code HTML dans ta réponse.
-Génère directement un fichier HTML propre et complet, prêt à être publié sur un site web.</textarea>
+                          placeholder="Instructions pour la génération du contenu...">Tu es un rédacteur web professionnel et expert en rénovation de bâtiments (toiture, isolation, plomberie, électricité, façade, etc.) et SEO.
+À partir du titre fourni, rédige un article complet, structuré et optimisé SEO, sous format HTML prêt à publier, en utilisant Tailwind CSS pour que l'article soit agréable à lire.
+Structure à respecter précisément :
+Container principal : max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+Titre principal (h1) : text-4xl font-bold text-gray-900 mb-6 text-center
+Sous-titres (h2) : text-2xl font-semibold text-gray-800 my-4
+Sections (div) : bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300
+Paragraphes (p) : text-gray-700 text-base leading-relaxed mb-4
+Listes à puces (ul > li) : list-disc list-inside text-gray-700 mb-2
+Icônes / emojis : ajouter avant le texte ou dans les titres pour illustrer certaines sections. Exemples : toiture 🏠, jardin 🌿, énergie ⚡, peinture 🎨, sécurité 🛡️
+FAQ : bg-green-50 p-4 rounded-lg mb-4, questions en gras et réponses normales
+Call-to-action : bouton bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300
+Contenu à générer :
+Article original, informatif, entre 1 000 et 2 000 mots
+Introduction engageante
+Sections explicatives détaillées avec sous-titres et paragraphes
+Conseils pratiques pour les propriétaires ou professionnels
+FAQ pertinente sur le sujet
+Conclusion avec appel à l'action pour contacter l'entreprise ou découvrir ses services
+SEO et mots-clés :
+Intégrer naturellement des mots-clés liés à la rénovation, toiture, façade, isolation, plomberie, électricité, énergie, maison, entretien, travaux…
+Optimiser les titres et sous-titres pour le référencement
+Important :
+Générer directement un fichier HTML complet et propre
+Ne pas afficher le code HTML comme texte brut, mais un HTML prêt à publier
+Ajouter des icônes et emojis pour rendre la lecture agréable et visuelle</textarea>
             </div>
 
             <button onclick="generateAllArticles()" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">

@@ -439,28 +439,40 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
                 return '<p>Contenu à générer...</p>';
             }
 
-            $prompt = "Crée un article HTML professionnel sur: {$title}
+            $prompt = "Tu es un rédacteur web professionnel et expert en rénovation de bâtiments (toiture, isolation, plomberie, électricité, façade, etc.) et SEO.
+À partir du titre fourni, rédige un article complet, structuré et optimisé SEO, sous format HTML prêt à publier, en utilisant Tailwind CSS pour que l'article soit agréable à lire.
 
-Instructions:
-- Format HTML uniquement
-- Commence par <article> et finit par </article>
-- 1000-1500 mots
-- Structure: introduction, 3 sections, FAQ, conclusion
-- Utilise des emojis appropriés
-- Inclut des listes
+Structure à respecter précisément :
+Container principal : max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+Titre principal (h1) : text-4xl font-bold text-gray-900 mb-6 text-center
+Sous-titres (h2) : text-2xl font-semibold text-gray-800 my-4
+Sections (div) : bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300
+Paragraphes (p) : text-gray-700 text-base leading-relaxed mb-4
+Listes à puces (ul > li) : list-disc list-inside text-gray-700 mb-2
+Icônes / emojis : ajouter avant le texte ou dans les titres pour illustrer certaines sections. Exemples : toiture 🏠, jardin 🌿, énergie ⚡, peinture 🎨, sécurité 🛡️
+FAQ : bg-green-50 p-4 rounded-lg mb-4, questions en gras et réponses normales
+Call-to-action : bouton bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300
 
-Format:
-<article>
-<header><h1>Titre</h1></header>
-<section class=\"introduction\"><h2>Introduction</h2><p>Texte...</p></section>
-<section class=\"contenu\"><h2>Section 1</h2><p>Texte...</p><ul><li>Point 1</li></ul></section>
-<section class=\"contenu\"><h2>Section 2</h2><p>Texte...</p></section>
-<section class=\"contenu\"><h2>Section 3</h2><p>Texte...</p></section>
-<section class=\"faq\"><h2>FAQ</h2><h3>Question?</h3><p>Réponse...</p></section>
-<footer class=\"conclusion\"><h2>Conclusion</h2><p>Texte...</p></footer>
-</article>
+Contenu à générer :
+Article original, informatif, entre 1 000 et 2 000 mots
+Introduction engageante
+Sections explicatives détaillées avec sous-titres et paragraphes
+Conseils pratiques pour les propriétaires ou professionnels
+FAQ pertinente sur le sujet
+Conclusion avec appel à l'action pour contacter l'entreprise ou découvrir ses services
 
-Génère l'article:";
+SEO et mots-clés :
+Intégrer naturellement des mots-clés liés à la rénovation, toiture, façade, isolation, plomberie, électricité, énergie, maison, entretien, travaux…
+Optimiser les titres et sous-titres pour le référencement
+
+Important :
+Générer directement un fichier HTML complet et propre
+Ne pas afficher le code HTML comme texte brut, mais un HTML prêt à publier
+Ajouter des icônes et emojis pour rendre la lecture agréable et visuelle
+
+Titre de l'article: {$title}
+
+Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
