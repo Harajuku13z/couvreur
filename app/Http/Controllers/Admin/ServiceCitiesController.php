@@ -56,14 +56,12 @@ class ServiceCitiesController extends Controller
         $request->validate([
             'service_slug' => 'required|string',
             'cities' => 'required|array|min:1',
-            'cities.*' => 'exists:cities,id',
-            'count_per_city' => 'integer|min:1|max:10'
+            'cities.*' => 'exists:cities,id'
         ]);
         
         try {
             $serviceSlug = $request->service_slug;
             $cityIds = $request->cities;
-            $countPerCity = $request->count_per_city ?? 1;
             
             // Récupérer les villes
             $cities = City::whereIn('id', $cityIds)->get();
@@ -84,64 +82,60 @@ class ServiceCitiesController extends Controller
             Log::info('Starting service cities generation', [
                 'service' => $serviceSlug,
                 'cities_count' => $cities->count(),
-                'count_per_city' => $countPerCity,
-                'total_expected' => $cities->count() * $countPerCity
+                'total_expected' => $cities->count()
             ]);
             
             foreach ($cities as $city) {
-                for ($i = 0; $i < $countPerCity; $i++) {
-                    try {
-                        Log::info('Generating ad for city', [
-                            'city' => $city->name,
-                            'iteration' => $i + 1,
-                            'service' => $serviceSlug
-                        ]);
-                        
-                        // Générer le contenu via IA
-                        $aiContent = $this->generateAIContent($service, $city);
-                        
-                        Log::info('AI content generated', [
-                            'city' => $city->name,
-                            'title' => $aiContent['title'] ?? 'N/A',
-                            'content_length' => strlen($aiContent['content'] ?? '')
-                        ]);
-                        
-                        // Créer l'annonce
-                        $ad = Ad::create([
-                            'title' => $aiContent['title'],
-                            'content' => $aiContent['content'],
-                            'meta_title' => $aiContent['meta_title'],
-                            'meta_description' => $aiContent['meta_description'],
-                            'meta_keywords' => $aiContent['meta_keywords'],
-                            'city_id' => $city->id,
-                            'service_slug' => $serviceSlug,
-                            'generation_type' => 'service_cities',
-                            'status' => 'draft',
-                            'featured_image' => $service['image'] ?? null,
-                        ]);
-                        
-                        $generatedCount++;
-                        
-                        Log::info('Ad created successfully', [
-                            'ad_id' => $ad->id,
-                            'city' => $city->name,
-                            'title' => $ad->title
-                        ]);
-                        
-                        // Pause pour éviter de surcharger l'API
-                        usleep(500000); // 0.5 seconde
-                        
-                    } catch (\Exception $e) {
-                        $errorMsg = "Erreur pour {$city->name}: " . $e->getMessage();
-                        $errors[] = $errorMsg;
-                        
-                        Log::error('Service cities generation error', [
-                            'city' => $city->name,
-                            'service' => $serviceSlug,
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString()
-                        ]);
-                    }
+                try {
+                    Log::info('Generating ad for city', [
+                        'city' => $city->name,
+                        'service' => $serviceSlug
+                    ]);
+                    
+                    // Générer le contenu via IA
+                    $aiContent = $this->generateAIContent($service, $city);
+                    
+                    Log::info('AI content generated', [
+                        'city' => $city->name,
+                        'title' => $aiContent['title'] ?? 'N/A',
+                        'content_length' => strlen($aiContent['content'] ?? '')
+                    ]);
+                    
+                    // Créer l'annonce
+                    $ad = Ad::create([
+                        'title' => $aiContent['title'],
+                        'content' => $aiContent['content'],
+                        'meta_title' => $aiContent['meta_title'],
+                        'meta_description' => $aiContent['meta_description'],
+                        'meta_keywords' => $aiContent['meta_keywords'],
+                        'city_id' => $city->id,
+                        'service_slug' => $serviceSlug,
+                        'generation_type' => 'service_cities',
+                        'status' => 'draft',
+                        'featured_image' => $service['image'] ?? null,
+                    ]);
+                    
+                    $generatedCount++;
+                    
+                    Log::info('Ad created successfully', [
+                        'ad_id' => $ad->id,
+                        'city' => $city->name,
+                        'title' => $ad->title
+                    ]);
+                    
+                    // Pause pour éviter de surcharger l'API
+                    usleep(500000); // 0.5 seconde
+                    
+                } catch (\Exception $e) {
+                    $errorMsg = "Erreur pour {$city->name}: " . $e->getMessage();
+                    $errors[] = $errorMsg;
+                    
+                    Log::error('Service cities generation error', [
+                        'city' => $city->name,
+                        'service' => $serviceSlug,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
                 }
             }
             

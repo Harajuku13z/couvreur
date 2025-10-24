@@ -147,12 +147,6 @@
                         </select>
                     </div>
 
-                    <!-- Nombre d'annonces par ville -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Annonces par ville</label>
-                        <input type="number" name="count_per_city" value="1" min="1" max="10" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="text-sm text-gray-500 mt-1">Nombre d'annonces à générer pour chaque ville sélectionnée</p>
-                    </div>
                 </div>
 
                 <!-- Colonne droite -->
