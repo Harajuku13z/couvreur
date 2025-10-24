@@ -492,6 +492,12 @@ INSTRUCTIONS DÉTAILLÉES:
 9. INCLUE des informations sur le financement, les garanties, les délais
 10. VARIE le contenu pour éviter les répétitions
 
+CRITIQUE: NE PAS UTILISER DE PLACEHOLDERS COMME [Introduction engageante sur...]
+- REMPLACE tous les [texte entre crochets] par du contenu réel et personnalisé
+- ÉCRIS du contenu complet et détaillé, pas des descriptions de ce qu'il faut écrire
+- GÉNÈRE du contenu professionnel et informatif
+- ADAPTE le contenu à l'article spécifique: {$title}
+
 IMPORTANT POUR LES TITRES DE SECTIONS:
 - NE PAS utiliser des titres techniques comme Section Technique, Section Conseils, Section Avantages
 - UTILISER des titres naturels et accrocheurs comme dans l'exemple:
@@ -599,54 +605,129 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     {
         $companyInfo = $this->getCompanyInfo();
         
+        // Détecter le type d'article pour un contenu plus spécifique
+        $titleLower = strtolower($title);
+        $isHydrofuge = strpos($titleLower, 'hydrofuge') !== false || strpos($titleLower, 'hydrofugation') !== false;
+        $isNettoyage = strpos($titleLower, 'nettoyage') !== false || strpos($titleLower, 'démoussage') !== false;
+        $isElagage = strpos($titleLower, 'élagage') !== false || strpos($titleLower, 'abattage') !== false;
+        $isRenovation = strpos($titleLower, 'rénovation') !== false || strpos($titleLower, 'renovation') !== false;
+        
+        // Contenu spécifique selon le type d'article
+        if ($isHydrofuge) {
+            $intro = "L'hydrofugation de toiture est une solution durable pour protéger votre couverture des intempéries et prolonger sa durée de vie. Chez " . $companyInfo['company_name'] . ", nous maîtrisons parfaitement cette technique essentielle pour maintenir l'intégrité de votre toit à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ".";
+            $section1Title = "Pourquoi hydrofuger sa toiture ?";
+            $section1Content = "L'hydrofugation apporte de nombreux avantages : protection contre l'humidité, limitation de la formation de mousses et lichens, amélioration de l'aspect esthétique, et prolongation de la durée de vie des matériaux.";
+            $section2Title = "Les facteurs influençant le coût d'un traitement hydrofuge";
+            $section2Content = "Le prix dépend de plusieurs éléments : la surface de la toiture, le type de produit utilisé, l'état initial de la couverture, l'accessibilité du chantier, et la région géographique.";
+            $section3Title = "Prix moyen pour hydrofuger une toiture";
+            $section3Content = "Le coût varie généralement entre 10€ et 30€ par m² pour l'hydrofuge seul, et entre 20€ et 50€ par m² si un nettoyage préalable est nécessaire.";
+        } elseif ($isNettoyage) {
+            $intro = "Le nettoyage de toiture est une étape essentielle pour maintenir l'intégrité de votre couverture. " . $companyInfo['company_name'] . " propose des services de nettoyage professionnel adaptés à tous types de toitures à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ".";
+            $section1Title = "Pourquoi nettoyer sa toiture ?";
+            $section1Content = "Le nettoyage régulier prévient l'accumulation de mousses, lichens et salissures qui peuvent endommager les matériaux et réduire l'efficacité de l'isolation.";
+            $section2Title = "Les techniques de nettoyage professionnel";
+            $section2Content = "Nous utilisons des méthodes adaptées à chaque type de toiture : nettoyage haute pression, traitement anti-mousse, et application de produits protecteurs.";
+            $section3Title = "Fréquence recommandée pour le nettoyage";
+            $section3Content = "Un nettoyage tous les 2 à 3 ans est généralement suffisant, mais cela peut varier selon l'exposition, l'orientation et l'environnement de votre toiture.";
+        } elseif ($isElagage) {
+            $intro = "L'élagage et l'abattage d'arbres nécessitent une expertise technique et des équipements spécialisés. " . $companyInfo['company_name'] . " intervient en toute sécurité pour tous vos travaux d'élagage à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ".";
+            $section1Title = "Pourquoi élaguer vos arbres ?";
+            $section1Content = "L'élagage améliore la santé des arbres, prévient les chutes de branches dangereuses, améliore l'éclairage naturel, et protège votre toiture des dommages.";
+            $section2Title = "Les techniques d'élagage professionnel";
+            $section2Content = "Nous pratiquons l'élagage raisonné, respectueux de la biologie de l'arbre, avec des techniques de grimpe sécurisées et un matériel professionnel.";
+            $section3Title = "Période idéale pour l'élagage";
+            $section3Content = "L'automne et l'hiver sont les saisons privilégiées pour l'élagage, lorsque les arbres sont en dormance et moins sensibles aux interventions.";
+        } elseif ($isRenovation) {
+            $intro = "La rénovation de toiture est un investissement important qui nécessite une expertise technique. " . $companyInfo['company_name'] . " accompagne vos projets de rénovation avec professionnalisme à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ".";
+            $section1Title = "Pourquoi rénover sa toiture ?";
+            $section1Content = "La rénovation améliore l'étanchéité, l'isolation thermique, l'esthétique, et la valeur de votre bien immobilier tout en prévenant les infiltrations d'eau.";
+            $section2Title = "Les étapes d'une rénovation réussie";
+            $section2Content = "Notre processus comprend : diagnostic complet, choix des matériaux, préparation du support, pose des nouveaux éléments, et finitions soignées.";
+            $section3Title = "Garanties et suivi post-rénovation";
+            $section3Content = "Nous offrons des garanties décennales sur nos travaux et assurons un suivi régulier pour maintenir la qualité de votre toiture dans le temps.";
+        } else {
+            $intro = "Découvrez tout ce que vous devez savoir sur " . $title . ". Chez " . $companyInfo['company_name'] . ", nous sommes spécialisés dans " . $companyInfo['company_specialization'] . " et nous vous accompagnons dans tous vos projets à " . $companyInfo['company_city'] . ", " . $companyInfo['company_region'] . ".";
+            $section1Title = "Les Points Clés à Retenir";
+            $section1Content = "Voici les éléments importants à considérer pour votre projet :";
+            $section2Title = "Notre Approche Professionnelle";
+            $section2Content = "Nous privilégions la qualité, la transparence et la satisfaction client dans tous nos projets.";
+            $section3Title = "Pourquoi Nous Choisir ?";
+            $section3Content = "Notre expertise, notre savoir-faire et notre engagement qualité font la différence.";
+        }
+        
         return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
-            
-            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
-                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
-                <p class="text-gray-700 text-base leading-relaxed mb-4">
-                    Découvrez tout ce que vous devez savoir sur ' . $title . '. 
-                    Chez ' . $companyInfo['company_name'] . ', nous sommes spécialisés dans ' . $companyInfo['company_specialization'] . ' 
-                    et nous vous accompagnons dans tous vos projets à ' . $companyInfo['company_city'] . ', ' . $companyInfo['company_region'] . '.
-                </p>
-            </div>
-            
-            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
-                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Les Points Clés à Retenir</h2>
-                <p class="text-gray-700 text-base leading-relaxed mb-4">Voici les éléments importants à considérer :</p>
-                <ul class="list-disc list-inside text-gray-700 mb-2">
-                    <li class="mb-2">🔍 Recherchez la qualité avant tout</li>
-                    <li class="mb-2">⭐ Vérifiez les certifications</li>
-                    <li class="mb-2">💡 Comparez plusieurs options</li>
-                    <li class="mb-2">✅ Demandez des références</li>
-                    <li class="mb-2">📞 Contactez des professionnels qualifiés</li>
-                </ul>
-            </div>
-            
-            <div class="bg-green-50 p-4 rounded-lg mb-4">
-                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
-                <div class="mb-4">
-                    <h3 class="font-bold text-gray-800">Comment bien choisir ?</h3>
-                    <p class="text-gray-700">La qualité et l\'expérience sont les critères les plus importants à considérer.</p>
+                <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+                
+                <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4">' . $intro . '</p>
                 </div>
-                <div class="mb-4">
-                    <h3 class="font-bold text-gray-800">Quels sont les délais ?</h3>
-                    <p class="text-gray-700">Les délais varient selon la complexité du projet et la disponibilité des professionnels.</p>
+                
+                <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">' . $section1Title . '</h2>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4">' . $section1Content . '</p>
+                    <ul class="list-disc list-inside text-gray-700 mb-2">
+                        <li class="mb-2">🔍 Expertise technique reconnue</li>
+                        <li class="mb-2">⭐ Matériaux de qualité</li>
+                        <li class="mb-2">💡 Solutions personnalisées</li>
+                        <li class="mb-2">✅ Garanties de satisfaction</li>
+                        <li class="mb-2">📞 Accompagnement personnalisé</li>
+                    </ul>
                 </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
-                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
-                <p class="text-gray-700 text-base leading-relaxed mb-4">
-                    En suivant ces conseils, vous serez en mesure de faire le bon choix pour votre projet.
-                </p>
-                <div class="text-center mt-6">
-                    <a href="tel:' . $companyInfo['company_phone'] . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
-                        📞 Appelez ' . $companyInfo['company_name'] . ' maintenant
-                    </a>
+                
+                <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">' . $section2Title . '</h2>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4">' . $section2Content . '</p>
+                    <ul class="list-disc list-inside text-gray-700 mb-2">
+                        <li class="mb-2">📋 Diagnostic complet et gratuit</li>
+                        <li class="mb-2">🛠️ Techniques professionnelles</li>
+                        <li class="mb-2">⏱️ Respect des délais</li>
+                        <li class="mb-2">🔒 Sécurité garantie</li>
+                        <li class="mb-2">📞 Suivi post-intervention</li>
+                    </ul>
                 </div>
-            </div>
-        </div>';
+                
+                <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">' . $section3Title . '</h2>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4">' . $section3Content . '</p>
+                    <ul class="list-disc list-inside text-gray-700 mb-2">
+                        <li class="mb-2">🏆 Entreprise certifiée et assurée</li>
+                        <li class="mb-2">💼 Équipe qualifiée et expérimentée</li>
+                        <li class="mb-2">💰 Devis gratuit et sans engagement</li>
+                        <li class="mb-2">🔄 Garanties décennales</li>
+                        <li class="mb-2">📱 Service client réactif</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                    <div class="mb-4">
+                        <h3 class="font-bold text-gray-800">Quels sont les délais d\'intervention ?</h3>
+                        <p class="text-gray-700">Les délais varient selon la complexité du projet, mais nous nous engageons à respecter les échéances convenues.</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-bold text-gray-800">Proposez-vous des garanties ?</h3>
+                        <p class="text-gray-700">Oui, nous offrons des garanties décennales sur nos travaux et assurons un suivi post-intervention.</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-bold text-gray-800">Comment obtenir un devis ?</h3>
+                        <p class="text-gray-700">Contactez-nous pour un diagnostic gratuit et sans engagement. Nous vous fournirons un devis détaillé et transparent.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                    <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4">
+                        Faire appel à ' . $companyInfo['company_name'] . ' pour vos projets, c\'est choisir l\'expertise, la qualité et la tranquillité. 
+                        Notre équipe de professionnels qualifiés vous accompagne de A à Z pour garantir votre satisfaction.
+                    </p>
+                    <div class="text-center mt-6">
+                        <a href="tel:' . $companyInfo['company_phone'] . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                            📞 Appelez ' . $companyInfo['company_name'] . ' maintenant
+                        </a>
+                    </div>
+                </div>
+            </div>';
     }
 
     /**
