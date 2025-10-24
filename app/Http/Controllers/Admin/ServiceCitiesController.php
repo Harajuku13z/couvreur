@@ -80,11 +80,31 @@ class ServiceCitiesController extends Controller
             $generatedCount = 0;
             $errors = [];
             
+            // Log des paramètres de génération
+            Log::info('Starting service cities generation', [
+                'service' => $serviceSlug,
+                'cities_count' => $cities->count(),
+                'count_per_city' => $countPerCity,
+                'total_expected' => $cities->count() * $countPerCity
+            ]);
+            
             foreach ($cities as $city) {
                 for ($i = 0; $i < $countPerCity; $i++) {
                     try {
+                        Log::info('Generating ad for city', [
+                            'city' => $city->name,
+                            'iteration' => $i + 1,
+                            'service' => $serviceSlug
+                        ]);
+                        
                         // Générer le contenu via IA
                         $aiContent = $this->generateAIContent($service, $city);
+                        
+                        Log::info('AI content generated', [
+                            'city' => $city->name,
+                            'title' => $aiContent['title'] ?? 'N/A',
+                            'content_length' => strlen($aiContent['content'] ?? '')
+                        ]);
                         
                         // Créer l'annonce
                         $ad = Ad::create([
@@ -102,15 +122,24 @@ class ServiceCitiesController extends Controller
                         
                         $generatedCount++;
                         
+                        Log::info('Ad created successfully', [
+                            'ad_id' => $ad->id,
+                            'city' => $city->name,
+                            'title' => $ad->title
+                        ]);
+                        
                         // Pause pour éviter de surcharger l'API
                         usleep(500000); // 0.5 seconde
                         
                     } catch (\Exception $e) {
-                        $errors[] = "Erreur pour {$city->name}: " . $e->getMessage();
+                        $errorMsg = "Erreur pour {$city->name}: " . $e->getMessage();
+                        $errors[] = $errorMsg;
+                        
                         Log::error('Service cities generation error', [
                             'city' => $city->name,
                             'service' => $serviceSlug,
-                            'error' => $e->getMessage()
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
                         ]);
                     }
                 }
@@ -142,8 +171,15 @@ class ServiceCitiesController extends Controller
         $apiKey = Setting::get('chatgpt_api_key');
         
         if (!$apiKey) {
+            Log::error('ChatGPT API key not configured');
             throw new \Exception('Clé API ChatGPT non configurée');
         }
+        
+        Log::info('Generating AI content', [
+            'service' => $service['name'] ?? 'N/A',
+            'city' => $city->name,
+            'api_key_length' => strlen($apiKey)
+        ]);
         
         $prompt = "Génère une annonce SEO optimisée pour {$service['name']} à {$city->name} ({$city->postal_code}). 
         
@@ -183,11 +219,24 @@ class ServiceCitiesController extends Controller
         ]);
         
         if (!$response->successful()) {
+            Log::error('ChatGPT API error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'service' => $service['name'] ?? 'N/A',
+                'city' => $city->name
+            ]);
             throw new \Exception('Erreur API ChatGPT : ' . $response->body());
         }
         
         $data = $response->json();
         $content = $data['choices'][0]['message']['content'] ?? '';
+        
+        Log::info('ChatGPT API response', [
+            'service' => $service['name'] ?? 'N/A',
+            'city' => $city->name,
+            'content_length' => strlen($content),
+            'response_status' => $response->status()
+        ]);
         
         // Parser le contenu généré
         return $this->parseGeneratedContent($content, $service, $city);
