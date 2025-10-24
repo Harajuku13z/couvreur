@@ -87,17 +87,17 @@ class ServicesController extends Controller
             $featuredImagePath = $this->handleImageUpload($request->file('featured_image'), 'featured');
         }
 
-        // Vérifier si l'IA a déjà généré des prestations dans la description
-        $hasExistingPrestations = $this->hasExistingPrestations($aiContent['description']);
+        // Option pour ajouter des prestations automatiques (désactivé par défaut pour éviter la duplication)
+        $addAutomaticPrestations = false; // Changez à true si vous voulez forcer l'ajout de prestations
         
-        if (!$hasExistingPrestations) {
+        if ($addAutomaticPrestations) {
             // Générer les prestations avec icônes et les intégrer dans la description HTML
             $prestations = $this->generatePrestationsWithIcons($validated['name']);
             $prestationsHtml = $this->generatePrestationsHtml($prestations);
             $enhancedDescription = $aiContent['description'] . $prestationsHtml;
         } else {
-            // Améliorer les prestations existantes de l'IA en ajoutant des icônes
-            $enhancedDescription = $this->enhanceExistingPrestations($aiContent['description'], $validated['name']);
+            // Utiliser uniquement la description de l'IA (recommandé)
+            $enhancedDescription = $aiContent['description'];
         }
 
         // Créer le service avec TOUT le contenu généré par l'IA
@@ -838,7 +838,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
      */
     private function enhanceExistingPrestations($description, $serviceName)
     {
-        // Mapping des prestations vers leurs icônes
+        // Mapping des prestations vers leurs icônes (plus flexible)
         $prestationIcons = [
             'Diagnostic complet' => 'fas fa-search',
             'Enlèvement des mousses' => 'fas fa-hands',
@@ -858,11 +858,21 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         $enhancedDescription = $description;
         
-        // Ajouter des icônes aux prestations existantes
+        // Ajouter des icônes aux prestations existantes (plus flexible)
         foreach ($prestationIcons as $prestation => $icon) {
-            $pattern = '/\*\s*' . preg_quote($prestation, '/') . '/i';
-            $replacement = '* <i class="' . $icon . ' text-blue-600 mr-2"></i>' . $prestation;
-            $enhancedDescription = preg_replace($pattern, $replacement, $enhancedDescription);
+            // Recherche plus flexible pour différents formats
+            $patterns = [
+                '/\*\s*' . preg_quote($prestation, '/') . '/i',
+                '/•\s*' . preg_quote($prestation, '/') . '/i',
+                '/-\s*' . preg_quote($prestation, '/') . '/i',
+                '/<li[^>]*>' . preg_quote($prestation, '/') . '/i'
+            ];
+            
+            $replacement = '<i class="' . $icon . ' text-blue-600 mr-2"></i>' . $prestation;
+            
+            foreach ($patterns as $pattern) {
+                $enhancedDescription = preg_replace($pattern, $replacement, $enhancedDescription);
+            }
         }
         
         return $enhancedDescription;
