@@ -6,12 +6,6 @@
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto text-center">
-        <!-- Logo/Image 404 -->
-        <div class="mb-8">
-            <div class="inline-flex items-center justify-center w-32 h-32 bg-white rounded-full shadow-lg mb-6">
-                <i class="fas fa-home text-6xl text-blue-600"></i>
-            </div>
-        </div>
 
         <!-- Titre principal -->
         <h1 class="text-6xl font-bold text-gray-900 mb-4">
@@ -37,32 +31,6 @@
             </a>
         </div>
 
-        <!-- Services populaires -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">
-                <i class="fas fa-tools text-blue-600 mr-3"></i>
-                Nos services principaux
-            </h3>
-            
-            <div class="grid md:grid-cols-2 gap-6">
-                <a href="{{ route('services.show', 'travaux-de-toiture') }}" 
-                   class="block p-6 bg-gray-50 hover:bg-blue-50 rounded-lg transition-all duration-300 transform hover:scale-105">
-                    <div class="text-center">
-                        <i class="fas fa-home text-4xl text-blue-600 mb-4"></i>
-                        <h4 class="text-lg font-semibold text-gray-800">Travaux de toiture</h4>
-                        <p class="text-gray-600 text-sm mt-2">Réparation, rénovation, isolation</p>
-                    </div>
-                </a>
-                <a href="{{ route('services.show', 'ravalement-facades') }}" 
-                   class="block p-6 bg-gray-50 hover:bg-blue-50 rounded-lg transition-all duration-300 transform hover:scale-105">
-                    <div class="text-center">
-                        <i class="fas fa-paint-brush text-4xl text-blue-600 mb-4"></i>
-                        <h4 class="text-lg font-semibold text-gray-800">Ravalement façades</h4>
-                        <p class="text-gray-600 text-sm mt-2">Nettoyage, peinture, rénovation</p>
-                    </div>
-                </a>
-            </div>
-        </div>
 
         <!-- Message rassurant -->
         <div class="mt-8 text-center">
