@@ -877,4 +877,71 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         return $enhancedDescription;
     }
+
+    /**
+     * Nettoyer les services existants en supprimant les prestations automatiques dupliquées
+     */
+    public function cleanExistingServices()
+    {
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        if (!is_array($services)) {
+            return response()->json(['success' => false, 'message' => 'Aucun service trouvé']);
+        }
+        
+        $cleanedServices = [];
+        $cleanedCount = 0;
+        
+        foreach ($services as $service) {
+            if (isset($service['description'])) {
+                // Supprimer les sections de prestations automatiques ajoutées
+                $cleanedDescription = $this->removeAutomaticPrestations($service['description']);
+                
+                if ($cleanedDescription !== $service['description']) {
+                    $service['description'] = $cleanedDescription;
+                    $cleanedCount++;
+                }
+            }
+            
+            $cleanedServices[] = $service;
+        }
+        
+        // Sauvegarder les services nettoyés
+        Setting::set('services', $cleanedServices, 'json');
+        
+        return response()->json([
+            'success' => true, 
+            'message' => "Services nettoyés avec succès. {$cleanedCount} services modifiés.",
+            'cleaned_count' => $cleanedCount
+        ]);
+    }
+
+    /**
+     * Supprimer les prestations automatiques de la description
+     */
+    private function removeAutomaticPrestations($description)
+    {
+        // Patterns pour détecter et supprimer les prestations automatiques
+        $patterns = [
+            // Supprimer les sections de prestations automatiques
+            '/<div class="prestations-section[^>]*>.*?<\/div>/s',
+            '/<h3[^>]*>.*?Nos Prestations.*?<\/h3>/i',
+            '/<div class="grid grid-cols-1 md:grid-cols-2 gap-4">.*?<\/div>/s',
+            // Supprimer les prestations avec icônes automatiques
+            '/<div class="flex items-center p-4 bg-gray-50[^>]*>.*?<\/div>/s',
+        ];
+        
+        $cleanedDescription = $description;
+        
+        foreach ($patterns as $pattern) {
+            $cleanedDescription = preg_replace($pattern, '', $cleanedDescription);
+        }
+        
+        // Nettoyer les espaces multiples
+        $cleanedDescription = preg_replace('/\s+/', ' ', $cleanedDescription);
+        $cleanedDescription = trim($cleanedDescription);
+        
+        return $cleanedDescription;
+    }
 }

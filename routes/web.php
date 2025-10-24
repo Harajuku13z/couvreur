@@ -368,6 +368,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::get('/debug/{slug}', [ServicesController::class, 'debug'])->name('debug');
         Route::post('/force-regenerate/{slug}', [ServicesController::class, 'forceRegenerate'])->name('force.regenerate');
         Route::post('/fix-images/{slug}', [ServicesController::class, 'fixImages'])->name('fix.images');
+        Route::post('/clean-duplicates', [ServicesController::class, 'cleanExistingServices'])->name('clean.duplicates');
     });
 });
 
