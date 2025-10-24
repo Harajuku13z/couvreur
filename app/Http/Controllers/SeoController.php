@@ -149,32 +149,25 @@ class SeoController extends Controller
         // Debug: Log the config before saving
         \Log::info('SEO Config to save:', ['config' => $config]);
         
-        // Sauvegarder en JSON (pour la compatibilité avec l'interface admin)
-        Setting::set('seo_config', json_encode($config), 'json', 'seo');
-        
-        // Sauvegarder aussi les paramètres individuels (pour la compatibilité avec le layout)
-        Setting::set('meta_title', $config['meta_title'], 'string', 'seo');
-        Setting::set('meta_description', $config['meta_description'], 'string', 'seo');
-        Setting::set('meta_keywords', $config['meta_keywords'], 'string', 'seo');
-        Setting::set('og_title', $config['og_title'], 'string', 'seo');
-        Setting::set('og_description', $config['og_description'], 'string', 'seo');
-        Setting::set('og_image', $config['og_image'] ?? '', 'string', 'seo');
-        Setting::set('site_favicon', $config['favicon'] ?? '', 'string', 'seo');
-        Setting::set('apple_touch_icon', $config['apple_touch_icon'] ?? '', 'string', 'seo');
-        Setting::set('google_analytics_id', $config['google_analytics'], 'string', 'seo');
-        Setting::set('facebook_pixel_id', $config['facebook_pixel'], 'string', 'seo');
-        Setting::set('google_tag_manager_id', $config['google_tag_manager'] ?? '', 'string', 'seo');
-        Setting::set('google_ads_conversion_id', $config['google_ads'], 'string', 'seo');
-        Setting::set('google_search_console', $config['google_search_console'], 'string', 'seo');
-        Setting::set('bing_webmaster_tools', $config['bing_webmaster'], 'string', 'seo');
-        
-        Setting::clearCache();
-        
-        // Debug: Verify the save
-        $savedConfig = Setting::get('seo_config', '[]');
-        \Log::info('SEO Config saved:', ['savedConfig' => $savedConfig]);
-
-        return redirect()->route('admin.seo.index')->with('success', 'Configuration SEO mise à jour avec succès !');
+        try {
+            // Sauvegarder en JSON (pour la compatibilité avec l'interface admin)
+            Setting::set('seo_config', json_encode($config), 'json', 'seo');
+            
+            // Sauvegarder aussi les paramètres individuels (pour la compatibilité avec le layout)
+            Setting::set('meta_title', $config['meta_title'], 'string', 'seo');
+            Setting::set('meta_description', $config['meta_description'], 'string', 'seo');
+            Setting::set('meta_keywords', $config['meta_keywords'], 'string', 'seo');
+            Setting::set('og_title', $config['og_title'], 'string', 'seo');
+            Setting::set('og_description', $config['og_description'], 'string', 'seo');
+            
+            \Log::info('SEO Config saved successfully');
+            
+            return redirect()->route('admin.seo.index')->with('success', 'Configuration SEO sauvegardée avec succès !');
+            
+        } catch (\Exception $e) {
+            \Log::error('SEO Config save error: ' . $e->getMessage());
+            return redirect()->route('admin.seo.index')->with('error', 'Erreur lors de la sauvegarde : ' . $e->getMessage());
+        }
     }
 
     /**
