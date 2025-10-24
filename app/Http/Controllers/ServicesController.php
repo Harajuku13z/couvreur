@@ -87,6 +87,9 @@ class ServicesController extends Controller
             $featuredImagePath = $this->handleImageUpload($request->file('featured_image'), 'featured');
         }
 
+        // Générer les prestations avec icônes selon le type de service
+        $prestations = $this->generatePrestationsWithIcons($validated['name']);
+
         // Créer le service avec TOUT le contenu généré par l'IA
         $service = [
             'id' => time() . '_' . rand(1000, 9999),
@@ -95,6 +98,7 @@ class ServicesController extends Controller
             'short_description' => $aiContent['short_description'],
             'description' => $aiContent['description'],
             'icon' => $aiContent['icon'],
+            'prestations' => $prestations, // Ajouter les prestations avec icônes
             'featured_image' => $featuredImagePath,
             'is_featured' => $validated['is_featured'] ?? false,
             'is_menu' => $validated['is_menu'] ?? true,
@@ -671,5 +675,82 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         $service = collect($services)->firstWhere('id', $id);
         return $service[$type] ?? null;
+    }
+
+    /**
+     * Générer automatiquement les prestations avec icônes selon le type de service
+     */
+    private function generatePrestationsWithIcons($serviceName)
+    {
+        $serviceName = strtolower($serviceName);
+        
+        // Mapping des types de services vers leurs prestations spécifiques
+        $prestationsMap = [
+            'nettoyage' => [
+                ['icon' => 'fas fa-hands', 'title' => 'Enlèvement manuel des mousses et débris'],
+                ['icon' => 'fas fa-spray-can', 'title' => 'Nettoyage haute pression contrôlé'],
+                ['icon' => 'fas fa-flask', 'title' => 'Application de traitement anti-mousse professionnel'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Traitement hydrofuge pour imperméabilisation'],
+                ['icon' => 'fas fa-tools', 'title' => 'Inspection et réparation de tuiles endommagées'],
+                ['icon' => 'fas fa-water', 'title' => 'Débouchage des gouttières'],
+                ['icon' => 'fas fa-sun', 'title' => 'Protection durable contre les UV'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils d\'entretien personnalisé']
+            ],
+            'toiture' => [
+                ['icon' => 'fas fa-hands', 'title' => 'Enlèvement manuel des mousses et débris'],
+                ['icon' => 'fas fa-spray-can', 'title' => 'Nettoyage haute pression contrôlé'],
+                ['icon' => 'fas fa-flask', 'title' => 'Application de traitement anti-mousse professionnel'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Traitement hydrofuge pour imperméabilisation'],
+                ['icon' => 'fas fa-tools', 'title' => 'Inspection et réparation de tuiles endommagées'],
+                ['icon' => 'fas fa-water', 'title' => 'Débouchage des gouttières'],
+                ['icon' => 'fas fa-sun', 'title' => 'Protection durable contre les UV'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils d\'entretien personnalisé']
+            ],
+            'isolation' => [
+                ['icon' => 'fas fa-home', 'title' => 'Diagnostic thermique complet'],
+                ['icon' => 'fas fa-thermometer-half', 'title' => 'Mesure de l\'efficacité énergétique'],
+                ['icon' => 'fas fa-layer-group', 'title' => 'Pose d\'isolants haute performance'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Étanchéité à l\'air'],
+                ['icon' => 'fas fa-tools', 'title' => 'Rénovation des combles'],
+                ['icon' => 'fas fa-leaf', 'title' => 'Isolants écologiques'],
+                ['icon' => 'fas fa-chart-line', 'title' => 'Certification énergétique'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils d\'économie d\'énergie']
+            ],
+            'façade' => [
+                ['icon' => 'fas fa-paint-brush', 'title' => 'Nettoyage et préparation des surfaces'],
+                ['icon' => 'fas fa-spray-can', 'title' => 'Application de peinture haute qualité'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Traitement anti-humidité'],
+                ['icon' => 'fas fa-tools', 'title' => 'Réparation des fissures'],
+                ['icon' => 'fas fa-palette', 'title' => 'Choix des couleurs personnalisées'],
+                ['icon' => 'fas fa-sun', 'title' => 'Protection contre les intempéries'],
+                ['icon' => 'fas fa-check-circle', 'title' => 'Contrôle qualité final'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils d\'entretien']
+            ],
+            'réparation' => [
+                ['icon' => 'fas fa-search', 'title' => 'Diagnostic des dommages'],
+                ['icon' => 'fas fa-tools', 'title' => 'Réparation des tuiles cassées'],
+                ['icon' => 'fas fa-hammer', 'title' => 'Remplacement des éléments défectueux'],
+                ['icon' => 'fas fa-shield-alt', 'title' => 'Renforcement de la structure'],
+                ['icon' => 'fas fa-water', 'title' => 'Étanchéité des fuites'],
+                ['icon' => 'fas fa-check-circle', 'title' => 'Tests d\'étanchéité'],
+                ['icon' => 'fas fa-chart-line', 'title' => 'Rapport de réparation'],
+                ['icon' => 'fas fa-lightbulb', 'title' => 'Conseils de prévention']
+            ]
+        ];
+        
+        // Déterminer le type de service basé sur les mots-clés
+        $serviceType = 'nettoyage'; // Par défaut
+        
+        if (strpos($serviceName, 'isolation') !== false || strpos($serviceName, 'isoler') !== false) {
+            $serviceType = 'isolation';
+        } elseif (strpos($serviceName, 'façade') !== false || strpos($serviceName, 'peinture') !== false) {
+            $serviceType = 'façade';
+        } elseif (strpos($serviceName, 'réparation') !== false || strpos($serviceName, 'réparer') !== false) {
+            $serviceType = 'réparation';
+        } elseif (strpos($serviceName, 'toiture') !== false || strpos($serviceName, 'nettoyage') !== false) {
+            $serviceType = 'toiture';
+        }
+        
+        return $prestationsMap[$serviceType] ?? $prestationsMap['nettoyage'];
     }
 }

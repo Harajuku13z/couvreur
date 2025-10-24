@@ -73,6 +73,13 @@
                     {!! $service['description'] !!}
                 </div>
 
+                <!-- Prestations avec icônes -->
+                @if(isset($service['prestations']) && !empty($service['prestations']))
+                <div class="mt-12">
+                    <x-service-prestations :service="$service" />
+                </div>
+                @endif
+
                 <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white text-center">
                     <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet {{ $service['name'] }} ?</h3>
                     <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
