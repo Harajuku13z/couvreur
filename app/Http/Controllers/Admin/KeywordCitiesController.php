@@ -72,8 +72,19 @@ class KeywordCitiesController extends Controller
             
             foreach ($cities as $city) {
                 try {
+                    Log::info('Starting generation for city', [
+                        'city' => $city->name,
+                        'keywords' => $keywords
+                    ]);
+                    
                     // Générer le contenu via IA
                     $aiContent = $this->generateAIContent($keywords, $city);
+                    
+                    Log::info('AI content generated', [
+                        'city' => $city->name,
+                        'title' => $aiContent['title'] ?? 'No title',
+                        'content_length' => strlen($aiContent['content'] ?? '')
+                    ]);
                     
                     // Créer l'annonce
                     $ad = Ad::create([
@@ -87,6 +98,11 @@ class KeywordCitiesController extends Controller
                         'content_html' => $aiContent['content'],
                     ]);
                     
+                    Log::info('Ad created successfully', [
+                        'ad_id' => $ad->id,
+                        'city' => $city->name
+                    ]);
+                    
                     $generatedCount++;
                     
                     // Pause pour éviter de surcharger l'API
@@ -97,7 +113,8 @@ class KeywordCitiesController extends Controller
                     Log::error('Keyword cities generation error', [
                         'city' => $city->name,
                         'keywords' => $keywords,
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                 }
             }
@@ -220,6 +237,12 @@ class KeywordCitiesController extends Controller
         - Inclut des informations locales spécifiques à {$city->name}
         ";
         
+        Log::info('Making ChatGPT API request', [
+            'city' => $city->name,
+            'keywords' => $keywords,
+            'api_key_length' => strlen($apiKey)
+        ]);
+        
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $apiKey,
             'Content-Type' => 'application/json'
@@ -239,15 +262,38 @@ class KeywordCitiesController extends Controller
             'temperature' => 0.7
         ]);
         
+        Log::info('ChatGPT API response', [
+            'status' => $response->status(),
+            'successful' => $response->successful(),
+            'body_preview' => substr($response->body(), 0, 200)
+        ]);
+        
         if (!$response->successful()) {
+            Log::error('ChatGPT API error', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
             throw new \Exception('Erreur API ChatGPT : ' . $response->body());
         }
         
         $data = $response->json();
         $content = $data['choices'][0]['message']['content'] ?? '';
         
+        Log::info('ChatGPT content received', [
+            'content_length' => strlen($content),
+            'content_preview' => substr($content, 0, 200)
+        ]);
+        
         // Parser le contenu généré
-        return $this->parseGeneratedContent($content, $keywords, $city);
+        $parsedContent = $this->parseGeneratedContent($content, $keywords, $city);
+        
+        Log::info('Content parsed', [
+            'title' => $parsedContent['title'] ?? 'No title',
+            'has_content' => !empty($parsedContent['content']),
+            'has_meta' => !empty($parsedContent['meta_title'])
+        ]);
+        
+        return $parsedContent;
     }
     
     /**
