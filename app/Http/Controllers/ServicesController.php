@@ -583,7 +583,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         }
         
         $services[] = $service;
-        Setting::set('services', json_encode($services));
+        Setting::set('services', $services, 'json');
     }
 
     /**
@@ -605,7 +605,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             }
         }
         
-        Setting::set('services', json_encode($services));
+        Setting::set('services', $services, 'json');
     }
 
     /**
@@ -629,9 +629,9 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         }
         
         // Sauvegarder la liste mise à jour
-        Setting::set('services', json_encode($filteredServices));
+        Setting::set('services', $filteredServices, 'json');
         
-        \Log::info("Service deleted with ID: {$id}");
+        \Log::info("Service deleted with ID: {$id}. Remaining services: " . count($filteredServices));
     }
 
     /**
