@@ -10,7 +10,7 @@
             <p class="text-gray-600 mt-2">Créez une annonce personnalisée avec votre propre contenu</p>
         </div>
         <div class="flex space-x-4">
-            <a href="{{ route('admin.ads.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+            <a href="/admin/ads" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
                 Retour aux annonces
             </a>
         </div>
