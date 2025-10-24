@@ -874,8 +874,8 @@ GÉNÈRE LES MOTS-CLÉS:";
     {
         $filename = 'article_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        // Utiliser le chemin de stockage Laravel standard
-        $uploadPath = storage_path('app/public/uploads/articles');
+        // Utiliser le même système que le portfolio - stockage direct dans public/uploads/articles
+        $uploadPath = public_path('uploads/articles');
         
         // Créer le répertoire s'il n'existe pas
         if (!is_dir($uploadPath)) {

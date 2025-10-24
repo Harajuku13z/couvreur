@@ -65,7 +65,7 @@
                     @if($article->featured_image)
                         <div class="mt-2">
                             <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
-                            <img src="{{ Storage::url($article->featured_image) }}" alt="Image actuelle" class="w-32 h-20 object-cover rounded">
+                            <img src="{{ asset($article->featured_image) }}" alt="Image actuelle" class="w-32 h-20 object-cover rounded">
                         </div>
                     @endif
                     @error('featured_image')
