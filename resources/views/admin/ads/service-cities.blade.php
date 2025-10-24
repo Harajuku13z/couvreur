@@ -213,6 +213,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Service Cities page loaded');
+    
     const serviceSelect = document.getElementById('service-select');
     const regionFilter = document.getElementById('region-filter');
     const citiesContainer = document.getElementById('cities-container');
@@ -222,6 +224,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const generateBtn = document.getElementById('generate-btn');
     const generateText = document.getElementById('generate-text');
     const generateLoading = document.getElementById('generate-loading');
+    
+    console.log('Elements found:', {
+        serviceSelect: !!serviceSelect,
+        regionFilter: !!regionFilter,
+        citiesContainer: !!citiesContainer,
+        generateBtn: !!generateBtn,
+        generateText: !!generateText,
+        generateLoading: !!generateLoading
+    });
     
     let allCities = [];
     let filteredCities = [];
@@ -324,31 +335,49 @@ document.addEventListener('DOMContentLoaded', function() {
         generateBtn.disabled = selectedCities.length === 0;
     }
     
+    // Test simple du bouton
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function(e) {
+            console.log('Generate button clicked');
+        });
+    }
+    
     // Gestion du formulaire
-    document.querySelector('form').addEventListener('submit', function(e) {
-        console.log('Form submitted');
-        
-        // Mettre à jour les villes sélectionnées avant la soumission
-        updateSelectedCities();
-        
-        if (selectedCities.length === 0) {
-            e.preventDefault();
-            alert('Veuillez sélectionner au moins une ville');
-            return;
-        }
-        
-        console.log('Selected cities:', selectedCities.length);
-        
-        // Afficher le loading complet
-        generateBtn.disabled = true;
-        generateText.style.display = 'none';
-        generateLoading.style.display = 'inline';
-        
-        // Afficher un loader overlay
-        showLoadingOverlay();
-        
-        console.log('Loader overlay should be displayed');
-    });
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            
+            // Mettre à jour les villes sélectionnées avant la soumission
+            updateSelectedCities();
+            
+            if (selectedCities.length === 0) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins une ville');
+                return;
+            }
+            
+            console.log('Selected cities:', selectedCities.length);
+            
+            // Afficher le loading complet
+            if (generateBtn) {
+                generateBtn.disabled = true;
+            }
+            if (generateText) {
+                generateText.style.display = 'none';
+            }
+            if (generateLoading) {
+                generateLoading.style.display = 'inline';
+            }
+            
+            // Afficher un loader overlay
+            showLoadingOverlay();
+            
+            console.log('Loader overlay should be displayed');
+        });
+    } else {
+        console.error('Form not found!');
+    }
     
     // Fonction pour afficher le loader overlay
     function showLoadingOverlay() {
