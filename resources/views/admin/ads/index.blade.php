@@ -7,9 +7,6 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Toutes les annonces</h1>
         <div class="space-x-3">
-            <a href="{{ route('admin.ads.generation') }}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded hover:from-blue-700 hover:to-purple-700">
-                <i class="fas fa-magic mr-2"></i>Génération IA
-            </a>
             <a href="{{ route('admin.ads.service-cities') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <i class="fas fa-robot mr-2"></i>Service + Villes
             </a>
