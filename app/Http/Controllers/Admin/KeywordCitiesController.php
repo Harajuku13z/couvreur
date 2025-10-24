@@ -71,29 +71,28 @@ class KeywordCitiesController extends Controller
             $errors = [];
             
             foreach ($cities as $city) {
-                for ($i = 0; $i < $countPerCity; $i++) {
-                    try {
-                        // Générer le contenu via IA
-                        $aiContent = $this->generateAIContent($keywords, $city);
-                        
-                        // Créer l'annonce
-                        $ad = Ad::create([
-                            'title' => $aiContent['title'],
-                            'keyword' => $keywords . ' ' . $city->name, // Mot-clé basé sur les mots-clés et la ville
-                            'city_id' => $city->id,
-                            'slug' => Str::slug($aiContent['title'] . '-' . $city->name),
-                            'status' => 'draft',
-                            'meta_title' => $aiContent['meta_title'],
-                            'meta_description' => $aiContent['meta_description'],
-                            'content_html' => $aiContent['content'],
-                        ]);
-                        
-                        $generatedCount++;
-                        
-                        // Pause pour éviter de surcharger l'API
-                        usleep(500000); // 0.5 seconde
-                        
-                    } catch (\Exception $e) {
+                try {
+                    // Générer le contenu via IA
+                    $aiContent = $this->generateAIContent($keywords, $city);
+                    
+                    // Créer l'annonce
+                    $ad = Ad::create([
+                        'title' => $aiContent['title'],
+                        'keyword' => $keywords . ' ' . $city->name, // Mot-clé basé sur les mots-clés et la ville
+                        'city_id' => $city->id,
+                        'slug' => Str::slug($aiContent['title'] . '-' . $city->name),
+                        'status' => 'draft',
+                        'meta_title' => $aiContent['meta_title'],
+                        'meta_description' => $aiContent['meta_description'],
+                        'content_html' => $aiContent['content'],
+                    ]);
+                    
+                    $generatedCount++;
+                    
+                    // Pause pour éviter de surcharger l'API
+                    usleep(500000); // 0.5 seconde
+                    
+                } catch (\Exception $e) {
                         $errors[] = "Erreur pour {$city->name}: " . $e->getMessage();
                         Log::error('Keyword cities generation error', [
                             'city' => $city->name,
