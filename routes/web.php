@@ -183,6 +183,12 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/cities/{city}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('cities.toggle-favorite');
             Route::get('/cities/ajax/get-cities', [App\Http\Controllers\CityController::class, 'getCities'])->name('cities.ajax.get-cities');
             Route::get('/cities/departments', [App\Http\Controllers\CityController::class, 'getDepartments'])->name('cities.departments');
+            
+            // ===== ADS GENERATION PAGE =====
+            Route::get('/ads/generation', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'index'])->name('ads.generation');
+            Route::post('/ads/generation', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'generate'])->name('ads.generation.generate');
+            Route::get('/ads/generation/favorite-cities', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'getFavoriteCities'])->name('ads.generation.favorite-cities');
+            Route::get('/ads/generation/cities-by-region', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'getCitiesByRegion'])->name('ads.generation.cities-by-region');
 
             // ===== GENERATION ENDPOINTS =====
             // Routes articles supprimées - système refait de zéro
