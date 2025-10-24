@@ -4,21 +4,21 @@
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
         .header-mobile {
-            padding: 0.5rem 0 !important;
+            padding: 0.75rem 0 !important;
         }
         
         .logo-mobile {
-            height: 2rem !important;
+            height: 2.5rem !important;
             width: auto !important;
         }
         
         .text-mobile {
-            font-size: 1.25rem !important;
+            font-size: 1.5rem !important;
         }
         
         .button-mobile {
-            padding: 0.5rem 1rem !important;
-            font-size: 0.875rem !important;
+            padding: 0.75rem 1.25rem !important;
+            font-size: 0.9rem !important;
         }
     }
 </style>
