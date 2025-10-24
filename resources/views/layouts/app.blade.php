@@ -42,9 +42,9 @@
     
     <style>
         :root {
-            --primary-color: #3b82f6;
-            --secondary-color: #10b981;
-            --accent-color: #f59e0b;
+            --primary-color: {{ setting('primary_color', '#3b82f6') }};
+            --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+            --accent-color: {{ setting('accent_color', '#f59e0b') }};
         }
         
         .btn-primary {
