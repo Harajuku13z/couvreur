@@ -532,36 +532,18 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     {
         $filename = 'service_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        // Créer le dossier s'il n'existe pas
-        $uploadPath = public_path('storage/uploads/services');
+        // Utiliser le chemin de stockage Laravel standard
+        $uploadPath = storage_path('app/public/uploads/services');
         
-        // Create directory structure step by step with better error handling
-        $directories = [
-            public_path('storage'),
-            public_path('storage/uploads'),
-            public_path('storage/uploads/services')
-        ];
-        
-        foreach ($directories as $dir) {
-            if (!is_dir($dir)) {
-                // Check if there's a file with the same name that conflicts
-                if (file_exists($dir)) {
-                    \Log::warning("File exists at directory path: {$dir}. Removing conflicting file.");
-                    if (!unlink($dir)) {
-                        throw new \Exception("Cannot remove conflicting file at: {$dir}. Please check server permissions.");
-                    }
-                }
-                
-                if (!mkdir($dir, 0755, true)) {
-                    // Log the error for debugging
-                    \Log::error("Failed to create directory: {$dir}. Parent exists: " . (is_dir(dirname($dir)) ? 'yes' : 'no'));
-                    throw new \Exception("Failed to create upload directory: {$dir}. Please check server permissions.");
-                }
+        // Créer le répertoire s'il n'existe pas
+        if (!is_dir($uploadPath)) {
+            if (!mkdir($uploadPath, 0755, true)) {
+                throw new \Exception("Failed to create upload directory: {$uploadPath}");
             }
         }
         
-        // Verify the final directory exists and is writable
-        if (!is_dir($uploadPath) || !is_writable($uploadPath)) {
+        // Vérifier que le répertoire est accessible en écriture
+        if (!is_writable($uploadPath)) {
             throw new \Exception("Upload directory is not writable: {$uploadPath}");
         }
         
