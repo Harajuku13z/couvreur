@@ -421,35 +421,35 @@ INFORMATIONS:
   </div>
   
   <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
-    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🛠️ [Section Technique - {$title}]</h2>
-    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu technique détaillé sur {$title}]</p>
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">[Titre naturel et accrocheur lié à {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu détaillé et informatif sur {$title}]</p>
     <ul class=\"list-disc list-inside text-gray-700 mb-2\">
-      <li class=\"mb-2\">[Point technique 1 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Point technique 2 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Point technique 3 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Point technique 4 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 4 spécifique à {$title}]</li>
     </ul>
   </div>
   
   <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
-    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">💡 [Section Conseils - {$title}]</h2>
-    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Conseils pratiques pour {$title}]</p>
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">[Titre naturel et accrocheur lié à {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu détaillé et informatif sur {$title}]</p>
     <ul class=\"list-disc list-inside text-gray-700 mb-2\">
-      <li class=\"mb-2\">[Conseil 1 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Conseil 2 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Conseil 3 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Conseil 4 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 4 spécifique à {$title}]</li>
     </ul>
   </div>
   
   <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
-    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">⚡ [Section Avantages - {$title}]</h2>
-    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Avantages et bénéfices de {$title}]</p>
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">[Titre naturel et accrocheur lié à {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu détaillé et informatif sur {$title}]</p>
     <ul class=\"list-disc list-inside text-gray-700 mb-2\">
-      <li class=\"mb-2\">[Avantage 1 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Avantage 2 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Avantage 3 spécifique à {$title}]</li>
-      <li class=\"mb-2\">[Avantage 4 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point important 4 spécifique à {$title}]</li>
     </ul>
   </div>
   
@@ -491,6 +491,18 @@ INSTRUCTIONS DÉTAILLÉES:
 8. ADAPTE le vocabulaire et les formulations selon le sujet
 9. INCLUE des informations sur le financement, les garanties, les délais
 10. VARIE le contenu pour éviter les répétitions
+
+IMPORTANT POUR LES TITRES DE SECTIONS:
+- NE PAS utiliser des titres techniques comme Section Technique, Section Conseils, Section Avantages
+- UTILISER des titres naturels et accrocheurs comme dans l'exemple:
+  * Pourquoi hydrofuger sa toiture ?
+  * Les facteurs influençant le coût d'un traitement hydrofuge
+  * Prix moyen pour hydrofuger une toiture
+  * Faire appel à un professionnel pour hydrofuger sa toiture
+  * Optimisez votre budget pour hydrofuger votre toiture
+- Les titres doivent être NATURELS et AGRÉABLES à lire
+- Éviter les emojis dans les titres de sections (sauf pour Introduction et Questions Fréquentes)
+- Créer des titres qui donnent envie de lire la suite
 
 FORMAT JSON:
 {
