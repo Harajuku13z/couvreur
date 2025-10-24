@@ -166,11 +166,18 @@ class ServiceCitiesController extends Controller
      */
     private function generateAIContent($service, $city)
     {
+        // Récupérer la clé API depuis la base de données
         $apiKey = Setting::get('chatgpt_api_key');
+        
+        // Si pas trouvée, essayer directement en base
+        if (!$apiKey) {
+            $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+            $apiKey = $setting ? $setting->value : null;
+        }
         
         if (!$apiKey) {
             Log::error('ChatGPT API key not configured');
-            throw new \Exception('Clé API ChatGPT non configurée');
+            throw new \Exception('Clé API ChatGPT non configurée. Veuillez la configurer dans /config');
         }
         
         Log::info('Generating AI content', [

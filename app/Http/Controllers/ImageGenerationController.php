@@ -18,10 +18,17 @@ class ImageGenerationController extends Controller
         try {
             // Configuration de l'API OpenAI
             $apiKey = setting('chatgpt_api_key');
+            
+            // Si pas trouvée, essayer directement en base
+            if (!$apiKey) {
+                $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+                $apiKey = $setting ? $setting->value : null;
+            }
+            
             if (!$apiKey) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Clé API OpenAI non configurée'
+                    'message' => 'Clé API OpenAI non configurée. Veuillez la configurer dans /config'
                 ], 400);
             }
 

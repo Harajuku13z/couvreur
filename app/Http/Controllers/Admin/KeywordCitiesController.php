@@ -127,10 +127,18 @@ class KeywordCitiesController extends Controller
      */
     private function generateAIContent($keywords, $city)
     {
+        // Récupérer la clé API depuis la base de données
         $apiKey = Setting::get('chatgpt_api_key');
         
+        // Si pas trouvée, essayer directement en base
         if (!$apiKey) {
-            throw new \Exception('Clé API ChatGPT non configurée');
+            $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+            $apiKey = $setting ? $setting->value : null;
+        }
+        
+        if (!$apiKey) {
+            Log::error('ChatGPT API key not configured');
+            throw new \Exception('Clé API ChatGPT non configurée. Veuillez la configurer dans /config');
         }
         
         $prompt = "Génère une annonce SEO optimisée pour les mots-clés : {$keywords} à {$city->name} ({$city->postal_code}). 

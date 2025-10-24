@@ -304,7 +304,14 @@ class ServicesController extends Controller
      */
     private function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo, $customPrompt = null)
     {
+        // Récupérer la clé API depuis la base de données
         $apiKey = setting('chatgpt_api_key');
+        
+        // Si pas trouvée, essayer directement en base
+        if (!$apiKey) {
+            $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+            $apiKey = $setting ? $setting->value : null;
+        }
         
         if (!$apiKey) {
             Log::error('Clé API manquante pour génération service');

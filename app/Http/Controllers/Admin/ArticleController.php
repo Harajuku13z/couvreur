@@ -114,12 +114,19 @@ class ArticleController extends Controller
                 'count' => 'nullable|integer|min:1|max:10'
             ]);
 
+            // Récupérer la clé API depuis la base de données
             $apiKey = setting('chatgpt_api_key');
+            
+            // Si pas trouvée, essayer directement en base
+            if (!$apiKey) {
+                $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+                $apiKey = $setting ? $setting->value : null;
+            }
             
             if (!$apiKey) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Clé API OpenAI non configurée'
+                    'message' => 'Clé API OpenAI non configurée. Veuillez la configurer dans /config'
                 ], 400);
             }
 
@@ -256,12 +263,19 @@ Génère maintenant {$count} titres pour: {$validated['keyword']}";
                 'instruction' => 'required|string|max:10000'
             ]);
 
+            // Récupérer la clé API depuis la base de données
             $apiKey = setting('chatgpt_api_key');
+            
+            // Si pas trouvée, essayer directement en base
+            if (!$apiKey) {
+                $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+                $apiKey = $setting ? $setting->value : null;
+            }
             
             if (!$apiKey) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Clé API OpenAI non configurée'
+                    'message' => 'Clé API OpenAI non configurée. Veuillez la configurer dans /config'
                 ], 400);
             }
 
