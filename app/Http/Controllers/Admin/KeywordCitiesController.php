@@ -160,7 +160,10 @@ class KeywordCitiesController extends Controller
         Optimise pour les mots-clés : {$keywords}, {$city->name}, {$city->region}.
         ";
         
-        $response = Http::timeout(60)->post('https://api.openai.com/v1/chat/completions', [
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json'
+        ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
             'model' => 'gpt-4',
             'messages' => [
                 [
@@ -174,9 +177,6 @@ class KeywordCitiesController extends Controller
             ],
             'max_tokens' => 2000,
             'temperature' => 0.7
-        ], [
-            'Authorization' => 'Bearer ' . $apiKey,
-            'Content-Type' => 'application/json'
         ]);
         
         if (!$response->successful()) {
