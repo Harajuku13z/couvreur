@@ -132,8 +132,8 @@ class ArticleController extends Controller
             - Inclure le mot-clé principal
             - Varier les formulations (guide, conseils, prix, comparatif, etc.)
             - Titres accrocheurs et informatifs
-            - Un titre par ligne
-            - Pas de numérotation
+- Un titre par ligne
+- Pas de numérotation
 
             GÉNÈRE LES TITRES :";
 
@@ -378,25 +378,145 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
     }
 
     /**
-     * Génération de contenu d'article avec IA
+     * Génération de contenu d'article avec IA (copié exactement des services)
      */
     private function generateArticleContent($title, $keyword)
     {
-        try {
+        // Récupérer la clé API depuis la base de données
             $apiKey = setting('chatgpt_api_key');
             
+        // Si pas trouvée, essayer directement en base
             if (!$apiKey) {
-                return '<p>Contenu à générer...</p>';
-            }
+            $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+            $apiKey = $setting ? $setting->value : null;
+        }
+        
+        if (!$apiKey) {
+            Log::error('Clé API manquante pour génération article');
+            return $this->generateFallbackContent($title, $keyword);
+        }
+        
+        try {
+            // Récupérer les informations de l'entreprise
+            $companyInfo = $this->getCompanyInfo();
+            
+            // Prompt avec structure spécifique demandée (copié des services)
+            $prompt = "Crée un contenu HTML professionnel pour cet article de blog.
 
-            $prompt = $this->buildAdvancedPrompt($title, $keyword);
+INFORMATIONS:
+- Entreprise: {$companyInfo['company_name']}
+- Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+- Article: {$title}
+- Mot-clé: {$keyword}";
 
-            // Log du prompt pour debug
-            Log::info('Prompt envoyé à OpenAI', [
+            $prompt .= "\n\nSTRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
+<div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
+  <h1 class=\"text-4xl font-bold text-gray-900 mb-6 text-center\">{$title}</h1>
+  
+  <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🏠 Introduction</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Introduction engageante sur {$title} à {$companyInfo['company_city']}, {$companyInfo['company_region']}]</p>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Expertise spécifique sur {$title} par {$companyInfo['company_name']}]</p>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Approche professionnelle et satisfaction client]</p>
+  </div>
+  
+  <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🛠️ [Section Technique - {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu technique détaillé sur {$title}]</p>
+    <ul class=\"list-disc list-inside text-gray-700 mb-2\">
+      <li class=\"mb-2\">[Point technique 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point technique 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point technique 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Point technique 4 spécifique à {$title}]</li>
+    </ul>
+  </div>
+  
+  <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">💡 [Section Conseils - {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Conseils pratiques pour {$title}]</p>
+    <ul class=\"list-disc list-inside text-gray-700 mb-2\">
+      <li class=\"mb-2\">[Conseil 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Conseil 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Conseil 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Conseil 4 spécifique à {$title}]</li>
+    </ul>
+  </div>
+  
+  <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">⚡ [Section Avantages - {$title}]</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Avantages et bénéfices de {$title}]</p>
+    <ul class=\"list-disc list-inside text-gray-700 mb-2\">
+      <li class=\"mb-2\">[Avantage 1 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Avantage 2 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Avantage 3 spécifique à {$title}]</li>
+      <li class=\"mb-2\">[Avantage 4 spécifique à {$title}]</li>
+    </ul>
+  </div>
+  
+  <div class=\"bg-green-50 p-4 rounded-lg mb-4\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">❓ Questions Fréquentes</h2>
+    <div class=\"mb-4\">
+      <h3 class=\"font-bold text-gray-800\">[Question 1 sur {$title}]</h3>
+      <p class=\"text-gray-700\">[Réponse détaillée sur {$title}]</p>
+    </div>
+    <div class=\"mb-4\">
+      <h3 class=\"font-bold text-gray-800\">[Question 2 sur {$title}]</h3>
+      <p class=\"text-gray-700\">[Réponse détaillée sur {$title}]</p>
+    </div>
+    <div class=\"mb-4\">
+      <h3 class=\"font-bold text-gray-800\">[Question 3 sur {$title}]</h3>
+      <p class=\"text-gray-700\">[Réponse détaillée sur {$title}]</p>
+    </div>
+  </div>
+  
+  <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+    <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🎯 Conclusion</h2>
+    <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Conclusion avec appel à l'action sur {$title}]</p>
+    <div class=\"text-center mt-6\">
+      <a href=\"tel:{$companyInfo['company_phone']}\" class=\"bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block\">
+        📞 Appelez {$companyInfo['company_name']} maintenant
+      </a>
+    </div>
+  </div>
+</div>
+
+INSTRUCTIONS DÉTAILLÉES:
+1. ADAPTE complètement le contenu à l'article spécifique: {$title}
+2. ÉCRIS du contenu PERSONNALISÉ selon le sujet de l'article
+3. UTILISE les informations de l'entreprise: {$companyInfo['company_name']}
+4. INTÉGRE la localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
+5. GARDE la structure HTML exacte de l'exemple ci-dessus
+6. PERSONNALISE le contenu selon l'article (pas de contenu générique)
+7. ÉCRIS du contenu UNIQUE et SPÉCIFIQUE à l'article
+8. ADAPTE le vocabulaire et les formulations selon le sujet
+9. INCLUE des informations sur le financement, les garanties, les délais
+10. VARIE le contenu pour éviter les répétitions
+
+FORMAT JSON:
+{
+  \"content_html\": \"[HTML complet avec la structure exacte ci-dessus]\",
+  \"meta_title\": \"[Titre SEO optimisé - 60 caractères max]\",
+  \"meta_description\": \"[Description SEO engageante - 160 caractères max]\",
+  \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
+}
+
+IMPORTANT:
+- SUIVEZ EXACTEMENT la structure HTML de l'exemple
+- ÉCRIVEZ du contenu PERSONNALISÉ pour l'article {$title}
+- ADAPTEZ le contenu selon le sujet spécifique
+- GARDEZ les classes CSS et la structure
+- UTILISEZ les informations de l'entreprise et de la localisation
+- Le contenu doit être professionnel et engageant
+- ÉVITEZ la répétition de phrases identiques
+- Variez le vocabulaire et les formulations
+- INCLUEZ des informations sur le financement et les garanties
+- ADAPTEZ le contenu selon l'article spécifique
+
+Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
+
+            Log::info('Génération IA complète pour article', [
                 'title' => $title,
-                'keyword' => $keyword,
-                'prompt_length' => strlen($prompt),
-                'prompt_preview' => substr($prompt, 0, 200)
+                'prompt_length' => strlen($prompt)
             ]);
 
             $response = Http::withHeaders([
@@ -405,47 +525,116 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             ])->post('https://api.openai.com/v1/chat/completions', [
                 'model' => setting('chatgpt_model', 'gpt-4o'),
                 'messages' => [
-                    ['role' => 'system', 'content' => 'Tu es un expert en rédaction web SEO spécialisé dans la rénovation de bâtiments.'],
-                    ['role' => 'user', 'content' => $prompt],
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
                 ],
-                'max_tokens' => 8000,
-                'temperature' => 0.7,
-                'top_p' => 0.9,
-                'frequency_penalty' => 0.1,
-                'presence_penalty' => 0.1,
+                'max_tokens' => 4000,
+                'temperature' => 0.8
             ]);
 
             if ($response->successful()) {
-                $responseData = $response->json();
-                $content = $responseData['choices'][0]['message']['content'] ?? '';
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '';
                 
-                Log::info('Réponse API OpenAI', [
-                    'status' => $response->status(),
-                    'has_content' => !empty($content),
+                Log::info('Réponse IA complète reçue', [
+                    'title' => $title,
                     'content_length' => strlen($content),
-                    'content_preview' => substr($content, 0, 100)
+                    'content_preview' => substr($content, 0, 300)
                 ]);
                 
-                if (!empty(trim($content))) {
-                    // Améliorer le contenu généré
-                    $content = $this->enhanceGeneratedContent($content, $title);
+                // Parser le JSON
+                $jsonStart = strpos($content, '{');
+                $jsonEnd = strrpos($content, '}');
+                
+                if ($jsonStart !== false && $jsonEnd !== false) {
+                    $jsonContent = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+                    $aiData = json_decode($jsonContent, true);
                     
-                    return $content;
-                } else {
-                    Log::warning('Contenu vide reçu de l\'API OpenAI');
+                    if ($aiData) {
+                        return $aiData['content_html'] ?? $this->generateFallbackContent($title, $keyword);
+                    }
                 }
-            } else {
-                Log::error('Erreur API OpenAI', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Erreur génération contenu article: ' . $e->getMessage());
+            Log::error('Erreur génération IA complète: ' . $e->getMessage());
         }
         
-        // Même si l'API échoue, créer un article HTML simple
-        return $this->generateGenericContent($title);
+        // Fallback en cas d'échec
+        return $this->generateFallbackContent($title, $keyword);
+    }
+
+    /**
+     * Récupérer les informations de l'entreprise (copié des services)
+     */
+    private function getCompanyInfo()
+    {
+        return [
+            'company_name' => setting('company_name', 'Artisan Elfrick'),
+            'company_phone' => setting('company_phone', '0777840495'),
+            'company_city' => setting('company_city', 'Avrainville'),
+            'company_region' => setting('company_region', 'Essonne'),
+            'company_address' => setting('company_address', '4 bis, Chemin des Postes, Avrainville (91)'),
+            'company_specialization' => setting('company_specialization', 'Travaux de Rénovation')
+        ];
+    }
+
+    /**
+     * Contenu de fallback en cas d'échec de l'IA (copié des services)
+     */
+    private function generateFallbackContent($title, $keyword)
+    {
+        $companyInfo = $this->getCompanyInfo();
+        
+        return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Découvrez tout ce que vous devez savoir sur ' . $title . '. 
+                    Chez ' . $companyInfo['company_name'] . ', nous sommes spécialisés dans ' . $companyInfo['company_specialization'] . ' 
+                    et nous vous accompagnons dans tous vos projets à ' . $companyInfo['company_city'] . ', ' . $companyInfo['company_region'] . '.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Les Points Clés à Retenir</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">Voici les éléments importants à considérer :</p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🔍 Recherchez la qualité avant tout</li>
+                    <li class="mb-2">⭐ Vérifiez les certifications</li>
+                    <li class="mb-2">💡 Comparez plusieurs options</li>
+                    <li class="mb-2">✅ Demandez des références</li>
+                    <li class="mb-2">📞 Contactez des professionnels qualifiés</li>
+                </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Comment bien choisir ?</h3>
+                    <p class="text-gray-700">La qualité et l\'expérience sont les critères les plus importants à considérer.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quels sont les délais ?</h3>
+                    <p class="text-gray-700">Les délais varient selon la complexité du projet et la disponibilité des professionnels.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    En suivant ces conseils, vous serez en mesure de faire le bon choix pour votre projet.
+                </p>
+                <div class="text-center mt-6">
+                    <a href="tel:' . $companyInfo['company_phone'] . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                        📞 Appelez ' . $companyInfo['company_name'] . ' maintenant
+                    </a>
+                </div>
+            </div>
+        </div>';
     }
 
     /**
@@ -672,7 +861,7 @@ Génère maintenant l'article HTML complet sur : {$title}";
         
         return 'Rénovation';
     }
-    
+
     /**
      * Générer des mots-clés SEO avec l'IA
      */
