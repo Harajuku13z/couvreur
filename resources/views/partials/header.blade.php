@@ -1,5 +1,5 @@
 <!-- Header -->
-<header class="bg-white shadow-sm sticky top-0 z-50">
+<header class="bg-white shadow-sm">
 <style>
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
