@@ -441,16 +441,28 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
 
             $prompt = $this->buildAdvancedPrompt($title, $keyword);
 
+            // Log du prompt pour debug
+            Log::info('Prompt envoyé à OpenAI', [
+                'title' => $title,
+                'keyword' => $keyword,
+                'prompt_length' => strlen($prompt),
+                'prompt_preview' => substr($prompt, 0, 200)
+            ]);
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
             ])->post('https://api.openai.com/v1/chat/completions', [
                 'model' => setting('chatgpt_model', 'gpt-4o'),
                 'messages' => [
+                    ['role' => 'system', 'content' => 'Tu es un expert en rédaction web SEO spécialisé dans la rénovation de bâtiments.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
-                'max_tokens' => 6000,
-                'temperature' => 0.8,
+                'max_tokens' => 8000,
+                'temperature' => 0.7,
+                'top_p' => 0.9,
+                'frequency_penalty' => 0.1,
+                'presence_penalty' => 0.1,
             ]);
 
             if ($response->successful()) {
@@ -878,55 +890,88 @@ GÉNÈRE LES MOTS-CLÉS:";
         
         return "Tu es un rédacteur web professionnel et expert en rénovation de bâtiments (toiture, isolation, plomberie, électricité, façade, etc.) et SEO.
 
-À partir du titre fourni, rédige un article complet, structuré et optimisé SEO, sous format HTML prêt à publier, en utilisant Tailwind CSS pour que l'article soit agréable à lire.
+MISSION : Rédiger un article complet, informatif et optimisé SEO sur le sujet : {$title}
 
-STRUCTURE HTML À RESPECTER PRÉCISÉMENT :
-• Container principal : <div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
-• Titre principal : <h1 class=\"text-4xl font-bold text-gray-900 mb-6 text-center\">
-• Sous-titres : <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">
-• Sections : <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
-• Paragraphes : <p class=\"text-gray-700 text-base leading-relaxed mb-4\">
-• Listes : <ul class=\"list-disc list-inside text-gray-700 mb-2\"><li class=\"mb-2\">
-• FAQ : <div class=\"bg-green-50 p-4 rounded-lg mb-4\">
-• Call-to-action : <a href=\"tel:{$companyPhone}\" class=\"bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block\">
+STRUCTURE HTML OBLIGATOIRE :
+<div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
+    <h1 class=\"text-4xl font-bold text-gray-900 mb-6 text-center\">{$title}</h1>
+    
+    <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🏠 Introduction</h2>
+        <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Introduction engageante avec statistiques]</p>
+    </div>
+    
+    <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🛠️ [Section 1 - Technique]</h2>
+        <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Contenu technique détaillé]</p>
+    </div>
+    
+    <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">💡 [Section 2 - Conseils]</h2>
+        <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Conseils pratiques]</p>
+        <ul class=\"list-disc list-inside text-gray-700 mb-2\">
+            <li class=\"mb-2\">[Point 1]</li>
+            <li class=\"mb-2\">[Point 2]</li>
+        </ul>
+    </div>
+    
+    <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">⚡ [Section 3 - Avantages]</h2>
+        <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Avantages et bénéfices]</p>
+    </div>
+    
+    <div class=\"bg-green-50 p-4 rounded-lg mb-4\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">❓ Questions Fréquentes</h2>
+        <div class=\"mb-4\">
+            <h3 class=\"font-bold text-gray-800\">[Question 1]</h3>
+            <p class=\"text-gray-700\">[Réponse détaillée]</p>
+        </div>
+        <div class=\"mb-4\">
+            <h3 class=\"font-bold text-gray-800\">[Question 2]</h3>
+            <p class=\"text-gray-700\">[Réponse détaillée]</p>
+        </div>
+    </div>
+    
+    <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+        <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">🎯 Conclusion</h2>
+        <p class=\"text-gray-700 text-base leading-relaxed mb-4\">[Conclusion avec appel à l'action]</p>
+        <div class=\"text-center mt-6\">
+            <a href=\"tel:{$companyPhone}\" class=\"bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block\">
+                📞 Appelez {$companyName} maintenant
+            </a>
+        </div>
+    </div>
+</div>
 
-CONTENU À GÉNÉRER (1500-2500 mots) :
-• Introduction engageante avec statistiques ou faits intéressants
-• 4-5 sections explicatives détaillées avec sous-titres
+CONTENU À GÉNÉRER (2000-3000 mots) :
+• Article original et informatif sur {$title}
+• Contenu technique détaillé et précis
 • Conseils pratiques pour les propriétaires
+• Statistiques et données concrètes
 • FAQ pertinente avec 5-7 questions
-• Conclusion avec appel à l'action pour {$companyName}
+• Ton professionnel mais accessible
 
-ÉLÉMENTS VISUELS OBLIGATOIRES :
-• Emojis appropriés : 🏠 🛠️ ⚡ 🎨 🛡️ 🌿 💡 ✅ ❌ 📞 🏆 💰
-• Utiliser des icônes Font Awesome dans les titres
-• Créer des listes à puces et numérotées
-• Ajouter des encadrés d'information avec bg-blue-50
+MOTS-CLÉS À INTÉGRER :
+• {$title} (mot-clé principal)
+• rénovation, toiture, façade, isolation, plomberie, électricité
+• énergie, maison, entretien, travaux, {$companySpecialization}
+• Essonne, 91, professionnel, expert
 
-SEO ET MOTS-CLÉS :
-• Intégrer naturellement : rénovation, toiture, façade, isolation, plomberie, électricité, énergie, maison, entretien, travaux, {$companySpecialization}
-• Optimiser les titres et sous-titres pour le référencement
-• Utiliser des mots-clés longue traîne
-
-INFORMATIONS ENTREPRISE À INTÉGRER :
+INFORMATIONS ENTREPRISE :
 • Nom : {$companyName}
 • Spécialisation : {$companySpecialization}
 • Téléphone : {$companyPhone}
 • Adresse : {$companyAddress}
-• Zone d'intervention : Essonne (91)
+• Zone : Essonne (91)
 
 IMPORTANT :
-• Générer directement un fichier HTML complet et propre
-• Ne pas afficher le code HTML comme texte brut
-• Ajouter des éléments visuels pour rendre la lecture agréable
-• Inclure des statistiques et données concrètes
-• Rendre le contenu actionnable et pratique
-• Utiliser un ton professionnel mais accessible
+• Générer UNIQUEMENT le HTML complet
+• Ne pas inclure de texte explicatif
+• Utiliser des emojis appropriés
+• Rendre le contenu actionnable
+• Optimiser pour le SEO
 
-TITRE DE L'ARTICLE : {$title}
-MOT-CLÉ PRINCIPAL : {$keyword}
-
-Génère l'article HTML complet selon ces consignes professionnelles.";
+Génère maintenant l'article HTML complet sur : {$title}";
     }
 
     /**
@@ -967,7 +1012,7 @@ Génère l'article HTML complet selon ces consignes professionnelles.";
     }
 
     /**
-     * Générer un contenu de fallback amélioré
+     * Générer un contenu de fallback amélioré et spécifique au sujet
      */
     private function generateEnhancedFallback($title)
     {
@@ -975,6 +1020,111 @@ Génère l'article HTML complet selon ces consignes professionnelles.";
         $companyPhone = setting('company_phone', '0777840495');
         $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
         
+        // Analyser le titre pour générer du contenu spécifique
+        $titleLower = strtolower($title);
+        $isHydrofuge = strpos($titleLower, 'hydrofuge') !== false;
+        $isToiture = strpos($titleLower, 'toiture') !== false;
+        $isNettoyage = strpos($titleLower, 'nettoyage') !== false;
+        $isElagage = strpos($titleLower, 'élagage') !== false || strpos($titleLower, 'elagage') !== false;
+        
+        // Contenu spécifique selon le sujet
+        if ($isHydrofuge && $isToiture) {
+            return $this->generateHydrofugeContent($title, $companyName, $companyPhone, $companySpecialization);
+        } elseif ($isNettoyage && $isToiture) {
+            return $this->generateNettoyageContent($title, $companyName, $companyPhone, $companySpecialization);
+        } elseif ($isElagage) {
+            return $this->generateElagageContent($title, $companyName, $companyPhone, $companySpecialization);
+        } else {
+            return $this->generateGenericContent($title, $companyName, $companyPhone, $companySpecialization);
+        }
+    }
+    
+    /**
+     * Contenu spécifique pour l'hydrofuge de toiture
+     */
+    private function generateHydrofugeContent($title, $companyName, $companyPhone, $companySpecialization)
+    {
+        return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofuge de toiture est une technique essentielle pour protéger votre toit contre les intempéries et prolonger sa durée de vie. 
+                    Cette solution imperméabilisante permet de créer une barrière protectrice qui repousse l\'eau tout en laissant respirer les matériaux.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Chez ' . $companyName . ', nous sommes spécialisés dans ' . $companySpecialization . ' et nous vous accompagnons dans tous vos projets d\'hydrofuge de toiture en Essonne.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🛠️ Techniques d\'hydrofuge</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofuge peut être appliqué selon différentes techniques selon le type de toiture :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🏠 <strong>Hydrofuge pour tuiles :</strong> Protection des tuiles en terre cuite ou béton</li>
+                    <li class="mb-2">🏠 <strong>Hydrofuge pour ardoises :</strong> Traitement spécifique pour l\'ardoise naturelle</li>
+                    <li class="mb-2">🏠 <strong>Hydrofuge pour zinc :</strong> Protection des toitures en zinc</li>
+                    <li class="mb-2">🏠 <strong>Hydrofuge pour bac acier :</strong> Traitement des toitures industrielles</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Avantages de l\'hydrofuge</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'application d\'un traitement hydrofuge sur votre toiture présente de nombreux avantages :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">✅ <strong>Protection contre l\'eau :</strong> Imperméabilisation efficace</li>
+                    <li class="mb-2">✅ <strong>Résistance aux UV :</strong> Protection contre le soleil</li>
+                    <li class="mb-2">✅ <strong>Anti-mousse :</strong> Prévention de la formation de mousse</li>
+                    <li class="mb-2">✅ <strong>Durée de vie :</strong> Prolongation de la longévité du toit</li>
+                    <li class="mb-2">✅ <strong>Économies :</strong> Réduction des coûts d\'entretien</li>
+                </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Qu\'est-ce que l\'hydrofuge de toiture ?</h3>
+                    <p class="text-gray-700">L\'hydrofuge est un traitement imperméabilisant qui protège votre toiture contre l\'eau tout en laissant respirer les matériaux.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Combien de temps dure un traitement hydrofuge ?</h3>
+                    <p class="text-gray-700">Un traitement hydrofuge de qualité peut durer entre 5 et 10 ans selon les conditions climatiques et l\'entretien.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quel est le prix d\'un hydrofuge de toiture ?</h3>
+                    <p class="text-gray-700">Le prix varie selon la surface, le type de toiture et la complexité du chantier. Contactez-nous pour un devis personnalisé.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofuge de toiture est un investissement judicieux pour protéger votre bien immobilier. 
+                    Cette technique professionnelle vous garantit une protection durable contre les intempéries.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    N\'hésitez pas à contacter ' . $companyName . ' pour tous vos besoins en hydrofuge de toiture en Essonne. 
+                    Notre équipe de professionnels vous accompagne dans votre projet avec expertise et qualité.
+                </p>
+                <div class="text-center mt-6">
+                    <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                        📞 Appelez ' . $companyName . ' maintenant
+                    </a>
+                </div>
+            </div>
+        </div>';
+    }
+    
+    /**
+     * Contenu générique de qualité
+     */
+    private function generateGenericContent($title, $companyName, $companyPhone, $companySpecialization)
+    {
         return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
             
@@ -1000,17 +1150,6 @@ Génère l'article HTML complet selon ces consignes professionnelles.";
                 </ul>
             </div>
             
-            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
-                <h2 class="text-2xl font-semibold text-gray-800 my-4">🛠️ Conseils Pratiques</h2>
-                <p class="text-gray-700 text-base leading-relaxed mb-4">Pour réussir votre projet, suivez ces étapes :</p>
-                <ol class="list-decimal list-inside text-gray-700 mb-2">
-                    <li class="mb-2">Évaluez vos besoins spécifiques</li>
-                    <li class="mb-2">Recherchez des professionnels qualifiés</li>
-                    <li class="mb-2">Comparez les devis détaillés</li>
-                    <li class="mb-2">Vérifiez les garanties offertes</li>
-                </ol>
-            </div>
-            
             <div class="bg-green-50 p-4 rounded-lg mb-4">
                 <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
                 <div class="mb-4">
@@ -1021,19 +1160,12 @@ Génère l'article HTML complet selon ces consignes professionnelles.";
                     <h3 class="font-bold text-gray-800">Quels sont les délais ?</h3>
                     <p class="text-gray-700">Les délais varient selon la complexité du projet et la disponibilité des professionnels.</p>
                 </div>
-                <div class="mb-4">
-                    <h3 class="font-bold text-gray-800">Quels sont les tarifs ?</h3>
-                    <p class="text-gray-700">Les tarifs dépendent de nombreux facteurs. Contactez-nous pour un devis personnalisé.</p>
-                </div>
             </div>
             
             <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
                 <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
                 <p class="text-gray-700 text-base leading-relaxed mb-4">
                     En suivant ces conseils, vous serez en mesure de faire le bon choix pour votre projet.
-                </p>
-                <p class="text-gray-700 text-base leading-relaxed mb-4">
-                    N\'hésitez pas à contacter ' . $companyName . ' pour tous vos besoins en ' . $companySpecialization . '.
                 </p>
                 <div class="text-center mt-6">
                     <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
