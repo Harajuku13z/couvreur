@@ -139,6 +139,7 @@
     <a href="tel:{{ setting('company_phone_raw') }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
+       style="background-color: var(--primary-color);"
        onclick="trackPhoneCall()">
         <i class="fas fa-phone text-2xl"></i>
     </a>

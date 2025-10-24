@@ -1,13 +1,35 @@
 <!-- Header -->
 <header class="bg-white shadow-sm sticky top-0 z-50">
+<style>
+    /* Styles spécifiques pour mobile */
+    @media (max-width: 768px) {
+        .header-mobile {
+            padding: 0.5rem 0 !important;
+        }
+        
+        .logo-mobile {
+            height: 2rem !important;
+            width: auto !important;
+        }
+        
+        .text-mobile {
+            font-size: 1.25rem !important;
+        }
+        
+        .button-mobile {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.875rem !important;
+        }
+    }
+</style>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
+        <div class="flex justify-between items-center py-2 header-mobile">
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
                     @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto">
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile">
                     @else
-                        <span class="text-2xl font-bold" style="color: var(--primary-color);">
+                        <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
                             {{ setting('company_name', 'Votre Entreprise') }}
                         </span>
                     @endif
@@ -62,7 +84,7 @@
             <!-- CTA Buttons -->
             <div class="hidden md:flex items-center space-x-4">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
                    style="background-color: var(--primary-color);"
                    onmouseover="this.style.backgroundColor='var(--secondary-color)'"
                    onmouseout="this.style.backgroundColor='var(--primary-color)'"
@@ -70,10 +92,10 @@
                     <i class="fas fa-calculator mr-2"></i>Devis Gratuit
                 </a>
                 <a href="tel:{{ setting('company_phone') }}" 
-                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium"
-                   style="background-color: var(--accent-color);"
-                   onmouseover="this.style.backgroundColor='var(--primary-color)'"
-                   onmouseout="this.style.backgroundColor='var(--accent-color)'">
+                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
+                   style="background-color: var(--primary-color);"
+                   onmouseover="this.style.backgroundColor='var(--secondary-color)'"
+                   onmouseout="this.style.backgroundColor='var(--primary-color)'">
                     <i class="fas fa-phone mr-2"></i>Appelez-nous
                 </a>
             </div>
@@ -108,7 +130,7 @@
                 
                 <div class="pt-4 border-t border-gray-200 space-y-2">
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium"
+                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium button-mobile"
                        style="background-color: var(--primary-color);"
                        onmouseover="this.style.backgroundColor='var(--secondary-color)'"
                        onmouseout="this.style.backgroundColor='var(--primary-color)'"
@@ -116,10 +138,10 @@
                         <i class="fas fa-calculator mr-2"></i>Devis Gratuit
                     </a>
                     <a href="tel:{{ setting('company_phone') }}" 
-                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium"
-                       style="background-color: var(--accent-color);"
-                       onmouseover="this.style.backgroundColor='var(--primary-color)'"
-                       onmouseout="this.style.backgroundColor='var(--accent-color)'">
+                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium button-mobile"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)'"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)'">
                         <i class="fas fa-phone mr-2"></i>Appelez-nous
                     </a>
                 </div>

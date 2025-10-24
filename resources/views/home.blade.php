@@ -181,7 +181,7 @@
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-accent text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg"
                    onclick="trackFormClick('{{ request()->url() }}')">
                     <i class="fas fa-calculator mr-2"></i>
                     {{ $homeConfig['hero']['cta_text'] ?? 'Demander un Devis Gratuit' }}
@@ -189,7 +189,7 @@
                 
                 @if($homeConfig['hero']['show_phone'] ?? true)
                 <a href="tel:{{ setting('company_phone') }}" 
-                   class="bg-white text-primary px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-phone mr-2"></i>
                     {{ setting('company_phone') }}
                 </a>
@@ -692,13 +692,13 @@
             <!-- Boutons d'action -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-white text-primary px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg"
                    onclick="trackFormClick('{{ request()->url() }}')">
                     <i class="fas fa-calculator mr-2"></i>
                     Demander un Devis Gratuit
                 </a>
                 <a href="tel:{{ setting('company_phone') }}" 
-                   class="bg-accent text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-phone mr-2"></i>
                     {{ setting('company_phone') }}
                 </a>
