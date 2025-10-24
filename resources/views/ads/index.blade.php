@@ -16,7 +16,7 @@
                     <div class="p-6">
                         <div class="flex items-center text-sm text-gray-500 mb-3">
                             <span class="mr-4">📍 {{ $ad->city->name }}</span>
-                            <span class="mr-4">📅 {{ $ad->published_at->format('d/m/Y') }}</span>
+                            <span class="mr-4">📅 {{ $ad->formatted_publication_date }}</span>
                         </div>
                         
                         <h2 class="text-xl font-bold text-gray-900 mb-3">

@@ -11,7 +11,7 @@ class AdPublicController extends Controller
     {
         $ads = Ad::where('status', 'published')
             ->with('city')
-            ->orderBy('published_at', 'desc')
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
             ->paginate(12);
         
         return view('ads.index', compact('ads'));
