@@ -108,7 +108,7 @@ class KeywordCitiesController extends Controller
                 $message .= " avec " . count($errors) . " erreurs";
             }
             
-            return redirect()->route('admin.ads.index')
+            return redirect()->route('admin.admin.ads.index')
                         ->with('success', $message)
                         ->with('errors', $errors);
                         
@@ -118,7 +118,7 @@ class KeywordCitiesController extends Controller
                 'request' => $request->all()
             ]);
             
-            return redirect()->route('admin.ads.index')
+            return redirect()->route('admin.admin.ads.index')
                         ->with('error', 'Erreur lors de la génération : ' . $e->getMessage());
         }
     }
