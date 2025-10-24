@@ -161,7 +161,6 @@ Route::middleware(['check.setup'])->group(function () {
             // ===== SETTINGS =====
             // Routes déplacées en dehors du groupe admin pour accès sans authentification
             // ===== ADS ADMIN =====
-            Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('ads.index');
             Route::post('/ads/create-manual', [App\Http\Controllers\AdAdminController::class, 'createManual'])->name('ads.create.manual');
             Route::post('/ads/remove-duplicates', [App\Http\Controllers\AdAdminController::class, 'removeDuplicates'])->name('ads.remove.duplicates');
             Route::post('/ads/{ad}/publish', [App\Http\Controllers\AdAdminController::class, 'publish'])->name('ads.publish');
