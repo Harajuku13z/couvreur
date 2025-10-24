@@ -218,14 +218,14 @@ class ServiceCitiesController extends Controller
             
             <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$service['name']}</h3>
             <ul class=\"space-y-3\">
-              <li class=\"flex items-start\"><span><strong>Prestation 1</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 2</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 3</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 4</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 5</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 6</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 7</strong></span></li>
-              <li class=\"flex items-start\"><span><strong>Prestation 8</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🔧</span><span><strong>Prestation 1</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🏠</span><span><strong>Prestation 2</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🛠️</span><span><strong>Prestation 3</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">⚡</span><span><strong>Prestation 4</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🎨</span><span><strong>Prestation 5</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🔒</span><span><strong>Prestation 6</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">✨</span><span><strong>Prestation 7</strong></span></li>
+              <li class=\"flex items-start\"><span class=\"text-blue-600 mr-3\">🛡️</span><span><strong>Prestation 8</strong></span></li>
             </ul>
             
             <div class=\"bg-green-50 p-6 rounded-lg\">
