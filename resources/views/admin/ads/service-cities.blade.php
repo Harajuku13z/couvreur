@@ -335,11 +335,30 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Afficher le loading
+        // Afficher le loading complet
         generateBtn.disabled = true;
         generateText.style.display = 'none';
         generateLoading.style.display = 'inline';
+        
+        // Afficher un loader overlay
+        showLoadingOverlay();
     });
+    
+    // Fonction pour afficher le loader overlay
+    function showLoadingOverlay() {
+        const overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.innerHTML = `
+            <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Génération en cours...</h3>
+                <p class="text-gray-600">Création des annonces pour ${selectedCities.length} ville(s)</p>
+                <p class="text-sm text-gray-500 mt-2">Veuillez patienter, cela peut prendre quelques minutes.</p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
     
     // Charger les villes favorites par défaut
     loadFavoriteCities();
