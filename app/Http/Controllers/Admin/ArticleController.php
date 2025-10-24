@@ -439,40 +439,7 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
                 return '<p>Contenu à générer...</p>';
             }
 
-            $prompt = "Tu es un rédacteur web professionnel et expert en rénovation de bâtiments (toiture, isolation, plomberie, électricité, façade, etc.) et SEO.
-À partir du titre fourni, rédige un article complet, structuré et optimisé SEO, sous format HTML prêt à publier, en utilisant Tailwind CSS pour que l'article soit agréable à lire.
-
-Structure à respecter précisément :
-Container principal : max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
-Titre principal (h1) : text-4xl font-bold text-gray-900 mb-6 text-center
-Sous-titres (h2) : text-2xl font-semibold text-gray-800 my-4
-Sections (div) : bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300
-Paragraphes (p) : text-gray-700 text-base leading-relaxed mb-4
-Listes à puces (ul > li) : list-disc list-inside text-gray-700 mb-2
-Icônes / emojis : ajouter avant le texte ou dans les titres pour illustrer certaines sections. Exemples : toiture 🏠, jardin 🌿, énergie ⚡, peinture 🎨, sécurité 🛡️
-FAQ : bg-green-50 p-4 rounded-lg mb-4, questions en gras et réponses normales
-Call-to-action : bouton bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300
-
-Contenu à générer :
-Article original, informatif, entre 1 000 et 2 000 mots
-Introduction engageante
-Sections explicatives détaillées avec sous-titres et paragraphes
-Conseils pratiques pour les propriétaires ou professionnels
-FAQ pertinente sur le sujet
-Conclusion avec appel à l'action pour contacter l'entreprise ou découvrir ses services
-
-SEO et mots-clés :
-Intégrer naturellement des mots-clés liés à la rénovation, toiture, façade, isolation, plomberie, électricité, énergie, maison, entretien, travaux…
-Optimiser les titres et sous-titres pour le référencement
-
-Important :
-Générer directement un fichier HTML complet et propre
-Ne pas afficher le code HTML comme texte brut, mais un HTML prêt à publier
-Ajouter des icônes et emojis pour rendre la lecture agréable et visuelle
-
-Titre de l'article: {$title}
-
-Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
+            $prompt = $this->buildAdvancedPrompt($title, $keyword);
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
@@ -498,14 +465,8 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
                 ]);
                 
                 if (!empty(trim($content))) {
-                    // Nettoyer le contenu HTML
-                    $content = $this->cleanHtmlContent($content);
-                    
-                    // TOUJOURS forcer la conversion en HTML
-                    if (!preg_match('/^<article>/', $content)) {
-                        Log::info('Conversion forcée en HTML', ['content_preview' => substr($content, 0, 100)]);
-                        $content = $this->forceHtmlConversion($content, $title);
-                    }
+                    // Améliorer le contenu généré
+                    $content = $this->enhanceGeneratedContent($content, $title);
                     
                     return $content;
                 } else {
@@ -521,8 +482,8 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             Log::error('Erreur génération contenu article: ' . $e->getMessage());
         }
         
-        // Même si l'API échoue, créer un article HTML basique
-        return $this->generateBasicArticle($title);
+        // Même si l'API échoue, créer un article HTML amélioré
+        return $this->generateEnhancedFallback($title);
     }
 
     /**
@@ -903,5 +864,183 @@ GÉNÈRE LES MOTS-CLÉS:";
         
         $file->move($uploadPath, $filename);
         return 'uploads/articles/' . $filename;
+    }
+
+    /**
+     * Construire un prompt avancé pour la génération d'articles
+     */
+    private function buildAdvancedPrompt($title, $keyword)
+    {
+        $companyName = setting('company_name', 'Artisan Elfrick');
+        $companyPhone = setting('company_phone', '0777840495');
+        $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+        $companyAddress = setting('company_address', '4 bis, Chemin des Postes, Avrainville (91)');
+        
+        return "Tu es un rédacteur web professionnel et expert en rénovation de bâtiments (toiture, isolation, plomberie, électricité, façade, etc.) et SEO.
+
+À partir du titre fourni, rédige un article complet, structuré et optimisé SEO, sous format HTML prêt à publier, en utilisant Tailwind CSS pour que l'article soit agréable à lire.
+
+STRUCTURE HTML À RESPECTER PRÉCISÉMENT :
+• Container principal : <div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
+• Titre principal : <h1 class=\"text-4xl font-bold text-gray-900 mb-6 text-center\">
+• Sous-titres : <h2 class=\"text-2xl font-semibold text-gray-800 my-4\">
+• Sections : <div class=\"bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300\">
+• Paragraphes : <p class=\"text-gray-700 text-base leading-relaxed mb-4\">
+• Listes : <ul class=\"list-disc list-inside text-gray-700 mb-2\"><li class=\"mb-2\">
+• FAQ : <div class=\"bg-green-50 p-4 rounded-lg mb-4\">
+• Call-to-action : <a href=\"tel:{$companyPhone}\" class=\"bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block\">
+
+CONTENU À GÉNÉRER (1500-2500 mots) :
+• Introduction engageante avec statistiques ou faits intéressants
+• 4-5 sections explicatives détaillées avec sous-titres
+• Conseils pratiques pour les propriétaires
+• FAQ pertinente avec 5-7 questions
+• Conclusion avec appel à l'action pour {$companyName}
+
+ÉLÉMENTS VISUELS OBLIGATOIRES :
+• Emojis appropriés : 🏠 🛠️ ⚡ 🎨 🛡️ 🌿 💡 ✅ ❌ 📞 🏆 💰
+• Utiliser des icônes Font Awesome dans les titres
+• Créer des listes à puces et numérotées
+• Ajouter des encadrés d'information avec bg-blue-50
+
+SEO ET MOTS-CLÉS :
+• Intégrer naturellement : rénovation, toiture, façade, isolation, plomberie, électricité, énergie, maison, entretien, travaux, {$companySpecialization}
+• Optimiser les titres et sous-titres pour le référencement
+• Utiliser des mots-clés longue traîne
+
+INFORMATIONS ENTREPRISE À INTÉGRER :
+• Nom : {$companyName}
+• Spécialisation : {$companySpecialization}
+• Téléphone : {$companyPhone}
+• Adresse : {$companyAddress}
+• Zone d'intervention : Essonne (91)
+
+IMPORTANT :
+• Générer directement un fichier HTML complet et propre
+• Ne pas afficher le code HTML comme texte brut
+• Ajouter des éléments visuels pour rendre la lecture agréable
+• Inclure des statistiques et données concrètes
+• Rendre le contenu actionnable et pratique
+• Utiliser un ton professionnel mais accessible
+
+TITRE DE L'ARTICLE : {$title}
+MOT-CLÉ PRINCIPAL : {$keyword}
+
+Génère l'article HTML complet selon ces consignes professionnelles.";
+    }
+
+    /**
+     * Améliorer la génération de contenu avec post-traitement
+     */
+    private function enhanceGeneratedContent($content, $title)
+    {
+        // Nettoyer le contenu
+        $content = trim($content);
+        
+        // S'assurer que le contenu commence par un container
+        if (!str_contains($content, 'max-w-7xl')) {
+            $content = '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">' . $content . '</div>';
+        }
+        
+        // Améliorer les titres
+        $content = preg_replace('/<h1[^>]*>/', '<h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">', $content);
+        $content = preg_replace('/<h2[^>]*>/', '<h2 class="text-2xl font-semibold text-gray-800 my-4">', $content);
+        $content = preg_replace('/<h3[^>]*>/', '<h3 class="text-xl font-semibold text-gray-800 my-3">', $content);
+        
+        // Améliorer les paragraphes
+        $content = preg_replace('/<p[^>]*>/', '<p class="text-gray-700 text-base leading-relaxed mb-4">', $content);
+        
+        // Améliorer les listes
+        $content = preg_replace('/<ul[^>]*>/', '<ul class="list-disc list-inside text-gray-700 mb-2">', $content);
+        $content = preg_replace('/<li[^>]*>/', '<li class="mb-2">', $content);
+        
+        // Améliorer les sections
+        $content = preg_replace('/<div class="bg-white[^>]*>/', '<div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">', $content);
+        
+        // Ajouter des emojis manquants
+        $content = str_replace('Introduction', '🏠 Introduction', $content);
+        $content = str_replace('Conseils', '💡 Conseils', $content);
+        $content = str_replace('FAQ', '❓ FAQ', $content);
+        $content = str_replace('Conclusion', '🎯 Conclusion', $content);
+        
+        return $content;
+    }
+
+    /**
+     * Générer un contenu de fallback amélioré
+     */
+    private function generateEnhancedFallback($title)
+    {
+        $companyName = setting('company_name', 'Artisan Elfrick');
+        $companyPhone = setting('company_phone', '0777840495');
+        $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+        
+        return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Découvrez tout ce que vous devez savoir sur ' . $title . '. Cet article vous guide à travers les aspects essentiels pour faire les bons choix.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Chez ' . $companyName . ', nous sommes spécialisés dans ' . $companySpecialization . ' et nous vous accompagnons dans tous vos projets de rénovation.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Les Points Clés à Retenir</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">Voici les éléments importants à considérer :</p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🔍 Recherchez la qualité avant tout</li>
+                    <li class="mb-2">⭐ Vérifiez les certifications</li>
+                    <li class="mb-2">💡 Comparez plusieurs options</li>
+                    <li class="mb-2">✅ Demandez des références</li>
+                    <li class="mb-2">📞 Contactez des professionnels qualifiés</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🛠️ Conseils Pratiques</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">Pour réussir votre projet, suivez ces étapes :</p>
+                <ol class="list-decimal list-inside text-gray-700 mb-2">
+                    <li class="mb-2">Évaluez vos besoins spécifiques</li>
+                    <li class="mb-2">Recherchez des professionnels qualifiés</li>
+                    <li class="mb-2">Comparez les devis détaillés</li>
+                    <li class="mb-2">Vérifiez les garanties offertes</li>
+                </ol>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Comment bien choisir ?</h3>
+                    <p class="text-gray-700">La qualité et l\'expérience sont les critères les plus importants à considérer.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quels sont les délais ?</h3>
+                    <p class="text-gray-700">Les délais varient selon la complexité du projet et la disponibilité des professionnels.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quels sont les tarifs ?</h3>
+                    <p class="text-gray-700">Les tarifs dépendent de nombreux facteurs. Contactez-nous pour un devis personnalisé.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    En suivant ces conseils, vous serez en mesure de faire le bon choix pour votre projet.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    N\'hésitez pas à contacter ' . $companyName . ' pour tous vos besoins en ' . $companySpecialization . '.
+                </p>
+                <div class="text-center mt-6">
+                    <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                        📞 Appelez ' . $companyName . ' maintenant
+                    </a>
+                </div>
+            </div>
+        </div>';
     }
 }
