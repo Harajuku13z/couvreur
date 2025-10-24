@@ -8,6 +8,7 @@ use App\Models\Ad;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ManualAdController extends Controller
 {
@@ -61,21 +62,20 @@ class ManualAdController extends Controller
             'city_id' => 'required|exists:cities,id',
             'service_slug' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
-            'featured_image' => 'nullable|string'
+            'featured_image' => 'nullable|string',
+            'keyword' => 'nullable|string|max:255'
         ]);
         
         try {
             $ad = Ad::create([
                 'title' => $request->title,
-                'content' => $request->content,
+                'keyword' => $request->keyword ?? $request->title, // Utiliser le mot-clé fourni ou le titre
+                'city_id' => $request->city_id,
+                'slug' => Str::slug($request->title . '-' . $request->city_id),
+                'status' => $request->status,
                 'meta_title' => $request->meta_title,
                 'meta_description' => $request->meta_description,
-                'meta_keywords' => $request->meta_keywords,
-                'city_id' => $request->city_id,
-                'service_slug' => $request->service_slug,
-                'generation_type' => 'manual',
-                'status' => $request->status,
-                'featured_image' => $request->featured_image,
+                'content_html' => $request->content,
             ]);
             
             return back()->with('success', 'Annonce créée avec succès !');

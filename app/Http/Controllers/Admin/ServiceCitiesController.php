@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ServiceCitiesController extends Controller
 {
@@ -104,15 +105,13 @@ class ServiceCitiesController extends Controller
                     // Créer l'annonce
                     $ad = Ad::create([
                         'title' => $aiContent['title'],
-                        'content' => $aiContent['content'],
+                        'keyword' => $service['name'] . ' ' . $city->name, // Mot-clé basé sur le service et la ville
+                        'city_id' => $city->id,
+                        'slug' => \Str::slug($aiContent['title'] . '-' . $city->name),
+                        'status' => 'draft',
                         'meta_title' => $aiContent['meta_title'],
                         'meta_description' => $aiContent['meta_description'],
-                        'meta_keywords' => $aiContent['meta_keywords'],
-                        'city_id' => $city->id,
-                        'service_slug' => $serviceSlug,
-                        'generation_type' => 'service_cities',
-                        'status' => 'draft',
-                        'featured_image' => $service['image'] ?? null,
+                        'content_html' => $aiContent['content'],
                     ]);
                     
                     $generatedCount++;

@@ -131,6 +131,13 @@
                         <input type="text" name="title" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Couvreur à Paris - Devis gratuit" required>
                     </div>
 
+                    <!-- Mot-clé -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé principal</label>
+                        <input type="text" name="keyword" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: couvreur paris" required>
+                        <p class="text-sm text-gray-500 mt-1">Mot-clé principal pour le référencement</p>
+                    </div>
+
                     <!-- Contenu -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Contenu (HTML)</label>
