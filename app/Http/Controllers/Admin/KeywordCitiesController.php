@@ -81,7 +81,7 @@ class KeywordCitiesController extends Controller
                         'keyword' => $keywords . ' ' . $city->name, // Mot-clé basé sur les mots-clés et la ville
                         'city_id' => $city->id,
                         'slug' => Str::slug($aiContent['title'] . '-' . $city->name),
-                        'status' => 'draft',
+                        'status' => 'published',
                         'meta_title' => $aiContent['meta_title'],
                         'meta_description' => $aiContent['meta_description'],
                         'content_html' => $aiContent['content'],
