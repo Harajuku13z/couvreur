@@ -1026,9 +1026,11 @@ Génère maintenant l'article HTML complet sur : {$title}";
         $isToiture = strpos($titleLower, 'toiture') !== false;
         $isNettoyage = strpos($titleLower, 'nettoyage') !== false;
         $isElagage = strpos($titleLower, 'élagage') !== false || strpos($titleLower, 'elagage') !== false;
+        $isProtection = strpos($titleLower, 'protéger') !== false || strpos($titleLower, 'protection') !== false;
+        $isEau = strpos($titleLower, 'eau') !== false || strpos($titleLower, 'humidité') !== false;
         
         // Contenu spécifique selon le sujet
-        if ($isHydrofuge && $isToiture) {
+        if ($isHydrofuge || ($isProtection && $isEau)) {
             // Analyser plus finement le titre pour différencier les articles
             if (strpos($titleLower, 'conseils') !== false || strpos($titleLower, 'réussie') !== false) {
                 return $this->generateHydrofugeConseilsContent($title, $companyName, $companyPhone, $companySpecialization);
