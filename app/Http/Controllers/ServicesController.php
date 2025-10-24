@@ -534,8 +534,12 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         // Créer le dossier s'il n'existe pas
         $uploadPath = public_path('storage/uploads/services');
+        
+        // Ensure all parent directories exist
         if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0755, true);
+            if (!mkdir($uploadPath, 0755, true)) {
+                throw new \Exception('Failed to create upload directory: ' . $uploadPath);
+            }
         }
         
         $file->move($uploadPath, $filename);
