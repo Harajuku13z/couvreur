@@ -7,6 +7,14 @@
 @section('keywords', $service['meta_keywords'] ?? '')
 
 @push('head')
+<style>
+    /* Variables de couleurs de branding */
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+</style>
 <!-- Open Graph pour les réseaux sociaux -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ $service['og_title'] ?? $service['meta_title'] ?? $service['name'] }}">
@@ -37,7 +45,7 @@
              style="background-image: url('{{ asset($service['featured_image']) }}'); filter: blur(2px); transform: scale(1.1);"></div>
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         @else
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800"></div>
+        <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
         @endif
         
         <div class="container mx-auto px-4 relative z-10">
@@ -51,12 +59,18 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                       style="background-color: var(--accent-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--accent-color)';">
                         <i class="fas fa-calculator mr-2"></i>
                         Devis Gratuit
                     </a>
                     <a href="tel:{{ setting('company_phone_raw') }}" 
-                       class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         <i class="fas fa-phone mr-2"></i>
                         {{ setting('company_phone') }}
                     </a>
@@ -73,18 +87,24 @@
                     {!! $service['description'] !!}
                 </div>
 
-                <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white text-center">
+                <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
                     <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet {{ $service['name'] }} ?</h3>
                     <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('form.step', 'propertyType') }}" 
-                           class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                           style="background-color: var(--accent-color);"
+                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                           onmouseout="this.style.backgroundColor='var(--accent-color)';">
                             <i class="fas fa-calculator mr-2"></i>
                             Demander un Devis Gratuit
                         </a>
                         <a href="tel:{{ setting('company_phone_raw') }}" 
-                           class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                           style="background-color: var(--primary-color);"
+                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                           onmouseout="this.style.backgroundColor='var(--primary-color)';">
                             <i class="fas fa-phone mr-2"></i>
                             Appeler Maintenant
                         </a>
@@ -127,7 +147,10 @@
                                      class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
                                     <a href="{{ route('portfolio.show', $item['id'] ?? $loop->index) }}" 
-                                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold opacity-0 hover:opacity-100 transition-all duration-300 transform hover:scale-105">
+                                       class="text-white px-4 py-2 rounded-lg font-semibold opacity-0 hover:opacity-100 transition-all duration-300 transform hover:scale-105"
+                                       style="background-color: var(--primary-color);"
+                                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                                         <i class="fas fa-eye mr-2"></i>
                                         Voir la réalisation
                                     </a>
@@ -148,7 +171,10 @@
                 
                 <div class="text-center mt-8">
                     <a href="{{ route('portfolio.index') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         Voir Toutes Nos Réalisations
                     </a>
                 </div>
@@ -204,7 +230,8 @@
                         <div class="flex items-center justify-between text-sm text-gray-500">
                             <span>{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->format('d/m/Y') : '' }}</span>
                             @if($review->source && $review->source !== 'manual')
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                            <span class="px-2 py-1 rounded-full text-xs"
+                                  style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
                                 {{ ucfirst($review->source) }}
                             </span>
                             @endif
@@ -220,7 +247,10 @@
                 
                 <div class="text-center mt-8">
                     <a href="{{ route('reviews.all') }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         Voir Tous les Avis
                     </a>
                 </div>

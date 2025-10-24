@@ -2,6 +2,17 @@
 
 @section('title', 'Nos Annonces')
 
+@push('head')
+<style>
+    /* Variables de couleurs de branding */
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-6xl mx-auto py-10">
     <div class="text-center mb-12">

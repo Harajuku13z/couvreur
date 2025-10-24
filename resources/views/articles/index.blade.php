@@ -2,6 +2,17 @@
 
 @section('title', 'Blog et Astuces')
 
+@push('head')
+<style>
+    /* Variables de couleurs de branding */
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+</style>
+@endpush
+
 @section('head')
 <!-- SEO Meta Tags -->
 <meta name="robots" content="index, follow">
@@ -55,7 +66,7 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
+    <div class="text-white py-16" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">Blog et Astuces</h1>
@@ -81,14 +92,18 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
                         
                         <div class="p-6">
                             <div class="flex items-center text-sm text-gray-500 mb-3">
-                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold mr-3">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold mr-3"
+                                      style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
                                     Article
                                 </span>
                                 <span>{{ $article->published_at->format('d/m/Y') }}</span>
                             </div>
                             
                             <h2 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                            <a href="{{ route('blog.show', $article) }}" class="hover:text-blue-600 transition-colors">
+                            <a href="{{ route('blog.show', $article) }}" class="transition-colors"
+                               style="--hover-color: var(--primary-color);"
+                               onmouseover="this.style.color='var(--primary-color)';"
+                               onmouseout="this.style.color='rgb(17 24 39)';">
                                 {{ $article->title }}
                             </a>
                             </h2>
@@ -98,7 +113,10 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
                             @endif
                             
                             <a href="{{ route('blog.show', $article) }}" 
-                               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold">
+                               class="inline-flex items-center font-semibold transition-colors"
+                               style="color: var(--primary-color);"
+                               onmouseover="this.style.color='var(--secondary-color)';"
+                               onmouseout="this.style.color='var(--primary-color)';">
                                 Lire la suite
                                 <i class="fas fa-arrow-right ml-2"></i>
                             </a>
