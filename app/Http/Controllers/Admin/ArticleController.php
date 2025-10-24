@@ -1022,14 +1022,21 @@ Génère maintenant l'article HTML complet sur : {$title}";
         
         // Analyser le titre pour générer du contenu spécifique
         $titleLower = strtolower($title);
-        $isHydrofuge = strpos($titleLower, 'hydrofuge') !== false;
+        $isHydrofuge = strpos($titleLower, 'hydrofuge') !== false || strpos($titleLower, 'hydrofugation') !== false;
         $isToiture = strpos($titleLower, 'toiture') !== false;
         $isNettoyage = strpos($titleLower, 'nettoyage') !== false;
         $isElagage = strpos($titleLower, 'élagage') !== false || strpos($titleLower, 'elagage') !== false;
         
         // Contenu spécifique selon le sujet
         if ($isHydrofuge && $isToiture) {
-            return $this->generateHydrofugeContent($title, $companyName, $companyPhone, $companySpecialization);
+            // Analyser plus finement le titre pour différencier les articles
+            if (strpos($titleLower, 'conseils') !== false || strpos($titleLower, 'réussie') !== false) {
+                return $this->generateHydrofugeConseilsContent($title, $companyName, $companyPhone, $companySpecialization);
+            } elseif (strpos($titleLower, 'avantages') !== false) {
+                return $this->generateHydrofugeAvantagesContent($title, $companyName, $companyPhone, $companySpecialization);
+            } else {
+                return $this->generateHydrofugeContent($title, $companyName, $companyPhone, $companySpecialization);
+            }
         } elseif ($isNettoyage && $isToiture) {
             return $this->generateNettoyageContent($title, $companyName, $companyPhone, $companySpecialization);
         } elseif ($isElagage) {
@@ -1110,6 +1117,203 @@ Génère maintenant l'article HTML complet sur : {$title}";
                 <p class="text-gray-700 text-base leading-relaxed mb-4">
                     N\'hésitez pas à contacter ' . $companyName . ' pour tous vos besoins en hydrofuge de toiture en Essonne. 
                     Notre équipe de professionnels vous accompagne dans votre projet avec expertise et qualité.
+                </p>
+                <div class="text-center mt-6">
+                    <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                        📞 Appelez ' . $companyName . ' maintenant
+                    </a>
+                </div>
+            </div>
+        </div>';
+    }
+    
+    /**
+     * Contenu spécifique pour les conseils d'hydrofugation
+     */
+    private function generateHydrofugeConseilsContent($title, $companyName, $companyPhone, $companySpecialization)
+    {
+        return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Une hydrofugation réussie de votre toiture nécessite une préparation minutieuse et l\'application de techniques professionnelles. 
+                    Ces conseils vous permettront d\'obtenir un résultat optimal et durable.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Chez ' . $companyName . ', nous appliquons ces méthodes depuis des années pour garantir la satisfaction de nos clients en Essonne.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🛠️ Préparation de la surface</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    La réussite de l\'hydrofugation dépend en grande partie de la qualité de la préparation :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🧹 <strong>Nettoyage complet :</strong> Élimination de toutes les salissures et mousses</li>
+                    <li class="mb-2">🔧 <strong>Réparation des défauts :</strong> Correction des fissures et dégradations</li>
+                    <li class="mb-2">🌡️ <strong>Conditions météo :</strong> Température entre 5°C et 25°C, temps sec</li>
+                    <li class="mb-2">⏰ <strong>Timing optimal :</strong> Application par temps stable</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Techniques d\'application</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Les techniques d\'application varient selon le type de matériau :
+                </p>
+                <ol class="list-decimal list-inside text-gray-700 mb-2">
+                    <li class="mb-2"><strong>Pulvérisation :</strong> Application uniforme avec pulvérisateur</li>
+                    <li class="mb-2"><strong>Rouleau :</strong> Pour les surfaces planes et accessibles</li>
+                    <li class="mb-2"><strong>Pinceau :</strong> Pour les zones délicates et les détails</li>
+                    <li class="mb-2"><strong>Épaisseur :</strong> Respecter la dose recommandée par le fabricant</li>
+                </ol>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">⚡ Erreurs à éviter</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Certaines erreurs peuvent compromettre la qualité de l\'hydrofugation :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">❌ <strong>Application par temps humide :</strong> Risque de non-adhérence</li>
+                    <li class="mb-2">❌ <strong>Surdosage :</strong> Peut créer des résidus visibles</li>
+                    <li class="mb-2">❌ <strong>Mélange de produits :</strong> Incompatibilité possible</li>
+                    <li class="mb-2">❌ <strong>Négliger la préparation :</strong> Résultat décevant garanti</li>
+                </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quand faire l\'hydrofugation ?</h3>
+                    <p class="text-gray-700">Le meilleur moment est au printemps ou en automne, par temps sec et stable.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Combien de temps dure le traitement ?</h3>
+                    <p class="text-gray-700">Un hydrofuge de qualité peut durer 5 à 10 ans selon les conditions climatiques.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Peut-on faire l\'hydrofugation soi-même ?</h3>
+                    <p class="text-gray-700">C\'est possible mais risqué. Un professionnel garantit un résultat optimal et durable.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Une hydrofugation réussie nécessite expertise et savoir-faire. Ces conseils vous aideront à comprendre l\'importance d\'un travail professionnel.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Contactez ' . $companyName . ' pour une hydrofugation professionnelle de votre toiture en Essonne. 
+                    Notre équipe maîtrise toutes ces techniques pour un résultat parfait.
+                </p>
+                <div class="text-center mt-6">
+                    <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
+                        📞 Appelez ' . $companyName . ' maintenant
+                    </a>
+                </div>
+            </div>
+        </div>';
+    }
+    
+    /**
+     * Contenu spécifique pour les avantages de l'hydrofugation
+     */
+    private function generateHydrofugeAvantagesContent($title, $companyName, $companyPhone, $companySpecialization)
+    {
+        return '<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-6 text-center">' . $title . '</h1>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🏠 Introduction</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofugation de votre toiture offre de nombreux avantages concrets et mesurables. 
+                    Cette technique de protection permet de préserver votre investissement immobilier tout en réduisant les coûts d\'entretien.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Découvrez pourquoi ' . $companyName . ' recommande cette solution à tous nos clients en Essonne.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🛡️ Protection contre l\'eau</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'avantage principal de l\'hydrofugation est la protection efficace contre l\'infiltration d\'eau :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">💧 <strong>Imperméabilisation :</strong> Barrière protectrice contre la pluie</li>
+                    <li class="mb-2">🌊 <strong>Résistance aux intempéries :</strong> Protection renforcée</li>
+                    <li class="mb-2">🏠 <strong>Préservation du bâti :</strong> Évite les dégradations</li>
+                    <li class="mb-2">💰 <strong>Économies :</strong> Réduction des réparations coûteuses</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">☀️ Résistance aux UV</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'exposition prolongée au soleil peut endommager votre toiture. L\'hydrofugation apporte une protection supplémentaire :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🌞 <strong>Protection UV :</strong> Filtre les rayons nocifs</li>
+                    <li class="mb-2">🎨 <strong>Conservation des couleurs :</strong> Évite le ternissement</li>
+                    <li class="mb-2">⏰ <strong>Longévité :</strong> Prolonge la durée de vie des matériaux</li>
+                    <li class="mb-2">🔧 <strong>Entretien réduit :</strong> Moins d\'interventions nécessaires</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🌿 Action anti-mousse</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofugation empêche la formation de mousse et de lichens :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">🚫 <strong>Prévention :</strong> Évite l\'apparition de mousse</li>
+                    <li class="mb-2">🧹 <strong>Nettoyage facilité :</strong> Moins de salissures</li>
+                    <li class="mb-2">💎 <strong>Esthétique :</strong> Toiture toujours propre</li>
+                    <li class="mb-2">🏆 <strong>Valeur :</strong> Améliore l\'apparence de votre maison</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">💡 Avantages économiques</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    L\'hydrofugation représente un investissement rentable à long terme :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-2">
+                    <li class="mb-2">💵 <strong>Coût réduit :</strong> Moins cher qu\'une réparation complète</li>
+                    <li class="mb-2">⏳ <strong>Durabilité :</strong> Protection de 5 à 10 ans</li>
+                    <li class="mb-2">📈 <strong>Plus-value :</strong> Améliore la valeur de votre bien</li>
+                    <li class="mb-2">🔧 <strong>Maintenance :</strong> Réduit les coûts d\'entretien</li>
+                </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">❓ Questions Fréquentes</h2>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">L\'hydrofugation est-elle vraiment efficace ?</h3>
+                    <p class="text-gray-700">Oui, avec un produit de qualité et une application professionnelle, l\'efficacité est garantie.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Quels sont les avantages par rapport à d\'autres solutions ?</h3>
+                    <p class="text-gray-700">L\'hydrofugation est plus économique et moins invasive qu\'une réparation complète.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800">Combien coûte une hydrofugation ?</h3>
+                    <p class="text-gray-700">Le prix varie selon la surface et le type de toiture. Contactez-nous pour un devis gratuit.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow mb-6 hover:shadow-lg transition duration-300">
+                <h2 class="text-2xl font-semibold text-gray-800 my-4">🎯 Conclusion</h2>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Les avantages de l\'hydrofugation sont nombreux et mesurables. Cette solution vous protège efficacement tout en préservant votre budget.
+                </p>
+                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                    Faites confiance à ' . $companyName . ' pour profiter de tous ces avantages. 
+                    Notre expertise garantit un résultat optimal pour votre toiture en Essonne.
                 </p>
                 <div class="text-center mt-6">
                     <a href="tel:' . $companyPhone . '" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 inline-block">
