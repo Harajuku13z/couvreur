@@ -100,6 +100,9 @@ class AdminController extends Controller
 
     public function dashboard()
     {
+        // Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
+        $this->markOldSubmissionsAsAbandoned();
+
         // Statistiques générales
         $totalSubmissions = Submission::count();
         $completedSubmissions = Submission::completed()->count();
@@ -205,6 +208,9 @@ class AdminController extends Controller
 
     public function submissions(Request $request)
     {
+        // Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
+        $this->markOldSubmissionsAsAbandoned();
+
         $query = Submission::query();
 
         // Filtres
@@ -237,6 +243,9 @@ class AdminController extends Controller
 
     public function abandonedSubmissions(Request $request)
     {
+        // Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
+        $this->markOldSubmissionsAsAbandoned();
+
         $query = Submission::abandoned();
 
         // Filtres
@@ -255,6 +264,30 @@ class AdminController extends Controller
         $abandonedSubmissions = $query->orderBy('created_at', 'desc')->paginate(20);
 
         return view('admin.abandoned-submissions', compact('abandonedSubmissions'));
+    }
+
+    /**
+     * Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
+     */
+    private function markOldSubmissionsAsAbandoned()
+    {
+        $cutoffTime = now()->subHours(3);
+        
+        // Trouver les soumissions en cours qui n'ont pas été mises à jour depuis 3h
+        $abandonedSubmissions = Submission::where('status', 'IN_PROGRESS')
+            ->where('updated_at', '<', $cutoffTime)
+            ->get();
+        
+        if ($abandonedSubmissions->isNotEmpty()) {
+            foreach ($abandonedSubmissions as $submission) {
+                $submission->markAsAbandoned();
+            }
+            
+            \Log::info('Auto-marked submissions as abandoned', [
+                'count' => $abandonedSubmissions->count(),
+                'cutoff_time' => $cutoffTime->format('Y-m-d H:i:s')
+            ]);
+        }
     }
 
     public function showSubmission($id)
