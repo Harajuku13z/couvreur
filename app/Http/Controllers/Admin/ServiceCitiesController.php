@@ -56,13 +56,18 @@ class ServiceCitiesController extends Controller
     {
         $request->validate([
             'service_slug' => 'required|string',
-            'cities' => 'required|array|min:1',
-            'cities.*' => 'exists:cities,id'
+            'selected_cities_json' => 'required|string'
         ]);
         
         try {
             $serviceSlug = $request->service_slug;
-            $cityIds = $request->cities;
+            
+            // Décoder le JSON des villes sélectionnées
+            $cityIds = json_decode($request->selected_cities_json, true);
+            
+            if (!is_array($cityIds) || empty($cityIds)) {
+                return back()->with('error', 'Aucune ville sélectionnée');
+            }
             
             // Récupérer les villes
             $cities = City::whereIn('id', $cityIds)->get();

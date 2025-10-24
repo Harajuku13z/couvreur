@@ -51,15 +51,18 @@ class KeywordCitiesController extends Controller
     {
         $request->validate([
             'keywords' => 'required|string|max:500',
-            'cities' => 'required|array|min:1',
-            'cities.*' => 'exists:cities,id',
-            'count_per_city' => 'integer|min:1|max:10'
+            'selected_cities_json' => 'required|string'
         ]);
         
         try {
             $keywords = $request->keywords;
-            $cityIds = $request->cities;
-            $countPerCity = $request->count_per_city ?? 1;
+            
+            // Décoder le JSON des villes sélectionnées
+            $cityIds = json_decode($request->selected_cities_json, true);
+            
+            if (!is_array($cityIds) || empty($cityIds)) {
+                return back()->with('error', 'Aucune ville sélectionnée');
+            }
             
             // Récupérer les villes
             $cities = City::whereIn('id', $cityIds)->get();

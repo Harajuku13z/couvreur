@@ -195,6 +195,7 @@
                         <div id="cities-container" class="border border-gray-300 rounded-md p-4 max-h-64 overflow-y-auto">
                             <p class="text-gray-500 text-center py-4">Sélectionnez des villes à droite</p>
                         </div>
+                        <input type="hidden" name="selected_cities_json" id="selected-cities-json" value="">
                     </div>
                 </div>
             </div>
@@ -316,6 +317,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('.city-checkbox:checked');
         selectedCities = Array.from(checkboxes).map(cb => cb.value);
         
+        // Mettre à jour l'input caché avec le JSON des villes sélectionnées
+        document.getElementById('selected-cities-json').value = JSON.stringify(selectedCities);
+        
         // Mettre à jour le bouton de génération
         generateBtn.disabled = selectedCities.length === 0;
     }
@@ -330,15 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Veuillez sélectionner au moins une ville');
             return;
         }
-        
-        // Créer les inputs cachés pour les villes sélectionnées
-        selectedCities.forEach(cityId => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'cities[]';
-            input.value = cityId;
-            this.appendChild(input);
-        });
         
         // Afficher le loading
         generateBtn.disabled = true;
