@@ -4,6 +4,13 @@
 
 @push('head')
 <style>
+    /* Variables de couleurs de branding */
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+    
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
         /* Images responsive */
@@ -26,7 +33,7 @@
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
-    <section class="py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+    <section class="py-20 text-white" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
         <div class="container mx-auto px-4">
             <div class="text-center">
                 <h1 class="text-5xl font-bold mb-6">Nos Réalisations</h1>
@@ -42,11 +49,16 @@
     <section class="py-8 bg-white border-b">
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap justify-center gap-4">
-                <button class="filter-btn active px-6 py-3 rounded-full bg-blue-600 text-white font-medium transition-all duration-300 shadow-lg" data-filter="all">
+                <button class="filter-btn active px-6 py-3 rounded-full text-white font-medium transition-all duration-300 shadow-lg" 
+                        style="background-color: var(--primary-color);" data-filter="all">
                     Tous les projets
                 </button>
                 @foreach($serviceTypes as $serviceType)
-                <button class="filter-btn px-6 py-3 rounded-full bg-gray-100 text-gray-700 hover:bg-blue-600 hover:text-white font-medium transition-all duration-300 shadow-sm" data-filter="{{ Str::slug($serviceType) }}">
+                <button class="filter-btn px-6 py-3 rounded-full bg-gray-100 text-gray-700 font-medium transition-all duration-300 shadow-sm" 
+                        style="--hover-bg: var(--primary-color);" 
+                        onmouseover="this.style.backgroundColor='var(--primary-color)'; this.style.color='white';"
+                        onmouseout="this.style.backgroundColor='rgb(243 244 246)'; this.style.color='rgb(55 65 81)';"
+                        data-filter="{{ Str::slug($serviceType) }}">
                     {{ $serviceType }}
                 </button>
                 @endforeach
@@ -103,7 +115,8 @@
                         <div class="flex items-center justify-between mb-4">
                             <!-- Type de service -->
                             @if(isset($item['service_type']))
-                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-medium">
+                            <span class="inline-block text-xs px-3 py-1 rounded-full font-medium"
+                                  style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
                                 {{ $item['service_type'] }}
                             </span>
                             @endif
@@ -120,7 +133,10 @@
                         <!-- Bouton voir la réalisation complète -->
                         <div class="mt-4">
                             <a href="{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}" 
-                               class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-center block">
+                               class="w-full text-white px-4 py-2 rounded-lg font-semibold transition-colors text-center block"
+                               style="background-color: var(--primary-color);"
+                               onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                               onmouseout="this.style.backgroundColor='var(--primary-color)';">
                                 <i class="fas fa-eye mr-2"></i>
                                 Voir la réalisation complète
                             </a>
@@ -136,7 +152,10 @@
                     <h3 class="text-2xl font-bold text-gray-700 mb-4">Aucune réalisation disponible</h3>
                     <p class="text-gray-500 mb-6">Nos réalisations seront bientôt disponibles.</p>
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                       class="text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         Demander un devis
                     </a>
                 </div>
@@ -146,7 +165,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+    <section class="py-20 text-white" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
         <div class="container mx-auto px-4 text-center">
             <h2 class="text-4xl font-bold mb-6">Vous avez un projet similaire ?</h2>
             <p class="text-xl mb-8 max-w-3xl mx-auto text-blue-100">
@@ -154,12 +173,18 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-6 justify-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                   class="text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                   style="background-color: var(--accent-color);"
+                   onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                   onmouseout="this.style.backgroundColor='var(--accent-color)';">
                     <i class="fas fa-calculator mr-2"></i>
                     Demander un devis gratuit
                 </a>
                 <a href="tel:{{ setting('company_phone_raw') }}" 
-                   class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                   class="text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                   style="background-color: var(--primary-color);"
+                   onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                   onmouseout="this.style.backgroundColor='var(--primary-color)';">
                     <i class="fas fa-phone mr-2"></i>
                     {{ setting('company_phone') }}
                 </a>
@@ -207,11 +232,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Mettre à jour les boutons actifs
             filterButtons.forEach(btn => {
-                btn.classList.remove('active', 'bg-blue-600', 'text-white');
-                btn.classList.add('bg-gray-100', 'text-gray-700');
+                btn.classList.remove('active');
+                btn.style.backgroundColor = 'rgb(243 244 246)';
+                btn.style.color = 'rgb(55 65 81)';
             });
-            this.classList.add('active', 'bg-blue-600', 'text-white');
-            this.classList.remove('bg-gray-100', 'text-gray-700');
+            this.classList.add('active');
+            this.style.backgroundColor = 'var(--primary-color)';
+            this.style.color = 'white';
             
             // Filtrer les éléments
             portfolioItems.forEach(item => {
