@@ -567,7 +567,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         }
         
         $file->move($uploadPath, $filename);
-        return 'storage/uploads/services/' . $filename;
+        return 'uploads/services/' . $filename;
     }
 
     /**
@@ -598,11 +598,18 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             $services = [];
         }
         
+        $found = false;
         foreach ($services as $index => $service) {
-            if ($service['id'] == $id) {
+            if (isset($service['id']) && $service['id'] == $id) {
                 $services[$index] = array_merge($service, $data);
+                $found = true;
+                \Log::info("Service updated: " . $service['name'] . " (ID: " . $service['id'] . ")");
                 break;
             }
+        }
+        
+        if (!$found) {
+            \Log::warning("Service with ID {$id} not found for update");
         }
         
         Setting::set('services', $services, 'json');
@@ -622,10 +629,19 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         // Filtrer les services pour supprimer celui avec l'ID correspondant
         $filteredServices = [];
+        $found = false;
         foreach ($services as $service) {
-            if (isset($service['id']) && $service['id'] != $id) {
+            if (isset($service['id']) && $service['id'] == $id) {
+                $found = true;
+                \Log::info("Service found for deletion: " . $service['name'] . " (ID: " . $service['id'] . ")");
+                // Ne pas ajouter ce service (le supprimer)
+            } else {
                 $filteredServices[] = $service;
             }
+        }
+        
+        if (!$found) {
+            \Log::warning("Service with ID {$id} not found for deletion");
         }
         
         // Sauvegarder la liste mise à jour
