@@ -544,6 +544,14 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         foreach ($directories as $dir) {
             if (!is_dir($dir)) {
+                // Check if there's a file with the same name that conflicts
+                if (file_exists($dir)) {
+                    \Log::warning("File exists at directory path: {$dir}. Removing conflicting file.");
+                    if (!unlink($dir)) {
+                        throw new \Exception("Cannot remove conflicting file at: {$dir}. Please check server permissions.");
+                    }
+                }
+                
                 if (!mkdir($dir, 0755, true)) {
                     // Log the error for debugging
                     \Log::error("Failed to create directory: {$dir}. Parent exists: " . (is_dir(dirname($dir)) ? 'yes' : 'no'));
