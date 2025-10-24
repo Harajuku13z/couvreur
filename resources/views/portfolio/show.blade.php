@@ -27,6 +27,27 @@
 <meta name="twitter:image" content="{{ url($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
 @endif
 
+<style>
+    /* Styles spécifiques pour mobile */
+    @media (max-width: 768px) {
+        /* Images responsive */
+        .mobile-responsive-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+        
+        /* Hero section mobile */
+        .hero-mobile {
+            min-height: 100vh;
+            background-attachment: scroll !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
@@ -39,7 +60,9 @@
             @endphp
             <img src="{{ url($firstImage) }}" 
                  alt="{{ $portfolioItem['title'] }}" 
-                 class="w-full h-full object-cover">
+                 class="w-full h-full object-cover mobile-responsive-img"
+                 style="max-width: 100%; height: auto; display: block;"
+                 loading="lazy">
         @else
             <div class="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
                 <i class="fas fa-image text-white text-8xl"></i>
@@ -105,7 +128,9 @@
                         @endphp
                         <img src="{{ url($singleImage) }}" 
                              alt="{{ $portfolioItem['title'] }}" 
-                             class="w-full h-[800px] object-cover rounded-2xl shadow-2xl">
+                             class="w-full h-[800px] object-cover rounded-2xl shadow-2xl mobile-responsive-img"
+                             style="max-width: 100%; height: auto; display: block;"
+                             loading="lazy">
                     </div>
                     @endif
 

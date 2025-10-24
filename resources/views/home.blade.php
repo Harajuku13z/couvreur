@@ -55,15 +55,50 @@
         transform: translateY(-5px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
+    
+    /* Styles spécifiques pour mobile */
+    @media (max-width: 768px) {
+        /* Hero section mobile */
+        .hero-mobile {
+            min-height: 100vh;
+            background-attachment: scroll !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
+        
+        /* Images responsive */
+        .mobile-responsive-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+        
+        /* About section mobile */
+        .about-image-mobile {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+        }
+        
+        /* Portfolio images mobile */
+        .portfolio-image-mobile {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden" 
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile" 
              @if($homeConfig['hero']['background_image'] ?? null)
-             style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover;"
+             style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat;"
              @else
              style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
              @endif>
@@ -198,8 +233,9 @@
                         <div class="aspect-square rounded-2xl overflow-hidden shadow-2xl">
                             <img src="{{ asset($homeConfig['about']['image']) }}" 
                                  alt="{{ $homeConfig['about']['title'] ?? 'Qui Sommes-Nous' }}" 
-                                 class="w-full h-full object-cover object-center"
-                                 style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+                                 class="w-full h-full object-cover object-center mobile-responsive-img about-image-mobile"
+                                 style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; max-width: 100%; height: auto; display: block;"
+                                 loading="lazy">
                         </div>
                     @else
                         <div class="aspect-square bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center">
@@ -233,7 +269,7 @@
                 @foreach(collect($services)->take($homeConfig['sections']['services']['limit'] ?? 6) as $service)
                 <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
                     @if(!empty($service['featured_image']))
-                    <div class="h-48 bg-cover bg-center" style="background-image: url('{{ url($service['featured_image']) }}')"></div>
+                    <div class="h-48 bg-cover bg-center mobile-responsive-img" style="background-image: url('{{ url($service['featured_image']) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
                     @else
                     <div class="h-48 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                         <i class="{{ $service['icon'] ?? 'fas fa-tools' }} text-6xl text-white"></i>
@@ -446,7 +482,7 @@
                 <a href="{{ isset($item['slug']) ? route('portfolio.show', $item['slug']) : '#' }}" class="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     @if(!empty($item['images']))
                         @php $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images']; @endphp
-                        <div class="h-64 bg-cover bg-center" style="background-image: url('{{ asset($firstImage) }}')"></div>
+                        <div class="h-64 bg-cover bg-center portfolio-image-mobile" style="background-image: url('{{ asset($firstImage) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
                     @else
                         <div class="h-64 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                             <i class="fas fa-image text-6xl text-white"></i>

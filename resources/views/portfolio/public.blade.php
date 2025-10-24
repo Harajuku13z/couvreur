@@ -17,6 +17,23 @@
             --secondary-color: {{ setting('secondary_color', '#10b981') }};
             --accent-color: {{ setting('accent_color', '#f59e0b') }};
         }
+        
+        /* Styles spécifiques pour mobile */
+        @media (max-width: 768px) {
+            /* Images responsive */
+            .mobile-responsive-img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                object-fit: cover;
+            }
+            
+            /* Portfolio grid mobile */
+            .portfolio-grid-mobile {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -34,7 +51,7 @@
 
         @if(count($visibleItems) > 0)
             <!-- Portfolio Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 portfolio-grid-mobile">
                 @foreach($visibleItems as $item)
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                         <!-- Images Carousel -->
@@ -43,7 +60,9 @@
                                 <div class="aspect-w-16 aspect-h-9">
                                     <img src="{{ url($item['images'][0]) }}" 
                                          alt="{{ $item['title'] }}" 
-                                         class="w-full h-64 object-cover">
+                                         class="w-full h-64 object-cover mobile-responsive-img"
+                                         style="max-width: 100%; height: auto; display: block;"
+                                         loading="lazy">
                                 </div>
                                 @if(count($item['images']) > 1)
                                     <div class="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-sm">

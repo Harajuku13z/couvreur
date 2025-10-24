@@ -2,6 +2,27 @@
 
 @section('title', 'Nos Réalisations - ' . setting('company_name', 'Votre Entreprise'))
 
+@push('head')
+<style>
+    /* Styles spécifiques pour mobile */
+    @media (max-width: 768px) {
+        /* Images responsive */
+        .mobile-responsive-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+        
+        /* Portfolio grid mobile */
+        .portfolio-grid-mobile {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
@@ -38,7 +59,7 @@
     <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4">
             @if($visiblePortfolio->count() > 0)
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="portfolio-grid">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 portfolio-grid-mobile" id="portfolio-grid">
                 @foreach($visiblePortfolio as $item)
                 <div class="portfolio-item bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" 
                      data-category="{{ Str::slug($item['work_type'] ?? 'autre') }}"
@@ -51,7 +72,9 @@
                             @endphp
                             <img src="{{ url($firstImage) }}" 
                                  alt="{{ $item['title'] }}" 
-                                 class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                                 class="w-full h-full object-cover transition-transform duration-300 hover:scale-105 mobile-responsive-img"
+                                 style="max-width: 100%; height: auto; display: block;"
+                                 loading="lazy">
                         @else
                             <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                 <i class="fas fa-image text-gray-400 text-4xl"></i>
