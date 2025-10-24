@@ -219,29 +219,40 @@ class ServicesController extends Controller
      */
     public function destroy($id)
     {
+        \Log::info("Attempting to delete service with ID: {$id}");
+        
         // Vérifier que le service existe avant de le supprimer
         $servicesData = Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
+        \Log::info("Current services count: " . count($services));
+        \Log::info("Services data: " . json_encode($services));
+        
         $serviceExists = false;
+        $serviceName = '';
         if (is_array($services)) {
             foreach ($services as $service) {
+                \Log::info("Checking service ID: " . ($service['id'] ?? 'NULL') . " against: {$id}");
                 if (isset($service['id']) && $service['id'] == $id) {
                     $serviceExists = true;
+                    $serviceName = $service['name'] ?? 'Unknown';
+                    \Log::info("Service found: {$serviceName}");
                     break;
                 }
             }
         }
         
         if (!$serviceExists) {
+            \Log::warning("Service with ID {$id} not found");
             return redirect()->route('services.admin.index')
-                ->with('error', 'Service non trouvé');
+                ->with('error', 'Service non trouvé (ID: ' . $id . ')');
         }
         
+        \Log::info("Deleting service: {$serviceName} (ID: {$id})");
         $this->deleteService($id);
         
         return redirect()->route('services.admin.index')
-            ->with('success', 'Service supprimé avec succès');
+            ->with('success', 'Service "' . $serviceName . '" supprimé avec succès');
     }
 
     /**

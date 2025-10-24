@@ -200,7 +200,8 @@
                                         <i class="{{ $service['icon'] ?? 'fas fa-tools' }}"></i>
                                     </div>
                                     <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $service['name'] }}</h3>
-                                    <p class="text-gray-600 text-sm mb-4">{{ Str::limit($service['short_description'], 100) }}</p>
+                                    <p class="text-gray-600 text-sm mb-2">{{ Str::limit($service['short_description'], 100) }}</p>
+                                    <p class="text-xs text-gray-400 mb-4">ID: {{ $service['id'] ?? 'N/A' }}</p>
                                     
                                     <!-- Statuts -->
                                     <div class="flex justify-center gap-2 mb-4">
@@ -229,7 +230,7 @@
                                         <button onclick="regenerateService({{ $service['id'] ?? $loop->index }}, '{{ $service['name'] }}')" class="btn-service btn-regenerate">
                                             <i class="fas fa-sync-alt"></i>Régénérer IA
                                         </button>
-                                        <button onclick="deleteService({{ $service['id'] ?? $loop->index }}, '{{ $service['name'] }}')" class="btn-service btn-delete">
+                                        <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ $service['name'] }}')" class="btn-service btn-delete">
                                             <i class="fas fa-trash"></i>Supprimer
                                         </button>
                                     </div>
