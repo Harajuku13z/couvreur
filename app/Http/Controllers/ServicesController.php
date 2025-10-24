@@ -219,6 +219,25 @@ class ServicesController extends Controller
      */
     public function destroy($id)
     {
+        // Vérifier que le service existe avant de le supprimer
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        $serviceExists = false;
+        if (is_array($services)) {
+            foreach ($services as $service) {
+                if (isset($service['id']) && $service['id'] == $id) {
+                    $serviceExists = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!$serviceExists) {
+            return redirect()->route('services.admin.index')
+                ->with('error', 'Service non trouvé');
+        }
+        
         $this->deleteService($id);
         
         return redirect()->route('services.admin.index')
@@ -601,11 +620,18 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             $services = [];
         }
         
-        $services = array_filter($services, function($service) use ($id) {
-            return $service['id'] != $id;
-        });
+        // Filtrer les services pour supprimer celui avec l'ID correspondant
+        $filteredServices = [];
+        foreach ($services as $service) {
+            if (isset($service['id']) && $service['id'] != $id) {
+                $filteredServices[] = $service;
+            }
+        }
         
-        Setting::set('services', json_encode(array_values($services)));
+        // Sauvegarder la liste mise à jour
+        Setting::set('services', json_encode($filteredServices));
+        
+        \Log::info("Service deleted with ID: {$id}");
     }
 
     /**
