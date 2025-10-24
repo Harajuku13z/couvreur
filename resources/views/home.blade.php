@@ -103,6 +103,24 @@
             display: block !important;
         }
         
+        /* Service images mobile */
+        .service-image-mobile {
+            width: 100% !important;
+            height: 200px !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            display: block !important;
+        }
+        
+        /* Force service images to show on mobile */
+        .service-image-mobile img {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        
         /* Force image display */
         img {
             max-width: 100% !important;
@@ -297,7 +315,13 @@
                 @foreach(collect($services)->take($homeConfig['sections']['services']['limit'] ?? 6) as $service)
                 <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
                     @if(!empty($service['featured_image']))
-                    <div class="h-48 bg-cover bg-center mobile-responsive-img" style="background-image: url('{{ url($service['featured_image']) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
+                    <div class="h-48 bg-cover bg-center mobile-responsive-img service-image-mobile" style="background-image: url('{{ url($service['featured_image']) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                        <img src="{{ url($service['featured_image']) }}" 
+                             alt="{{ $service['name'] }}" 
+                             class="w-full h-full object-cover mobile-responsive-img"
+                             style="display: none;"
+                             loading="lazy">
+                    </div>
                     @else
                     <div class="h-48 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                         <i class="{{ $service['icon'] ?? 'fas fa-tools' }} text-6xl text-white"></i>
@@ -752,6 +776,15 @@
                     img.style.height = 'auto';
                     img.style.display = 'block';
                     img.style.width = '100%';
+                });
+                
+                // Force service images to show on mobile
+                const serviceImages = document.querySelectorAll('.service-image-mobile img');
+                serviceImages.forEach(img => {
+                    img.style.display = 'block';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
                 });
                 
                 // Force background images

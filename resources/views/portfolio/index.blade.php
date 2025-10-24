@@ -63,7 +63,7 @@
                 @foreach($visiblePortfolio as $item)
                 <div class="portfolio-item bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" 
                      data-category="{{ Str::slug($item['work_type'] ?? 'autre') }}"
-                     onclick="window.location.href='{{ route('portfolio.show', $item['id'] ?? 0) }}'">
+                     onclick="window.location.href='{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}'">
                     <!-- Image principale -->
                     <div class="relative h-64 overflow-hidden">
                         @if(!empty($item['images']))
@@ -119,7 +119,7 @@
                         
                         <!-- Bouton voir la réalisation complète -->
                         <div class="mt-4">
-                            <a href="{{ route('portfolio.show', \Illuminate\Support\Str::slug($item['title'])) }}" 
+                            <a href="{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}" 
                                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-center block">
                                 <i class="fas fa-eye mr-2"></i>
                                 Voir la réalisation complète
