@@ -669,7 +669,7 @@
 
     <!-- CTA Section -->
     @if($homeConfig['sections']['cta']['enabled'] ?? true)
-    <section class="py-20 bg-gradient-to-br from-blue-900 via-primary to-blue-800 relative overflow-hidden">
+    <section class="py-20 relative overflow-hidden" style="background-color: var(--primary-color);">
         <!-- Overlay sombre pour améliorer la lisibilité -->
         <div class="absolute inset-0 bg-black/40"></div>
         
@@ -692,13 +692,19 @@
             <!-- Boutons d'action -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   class="text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   style="background-color: var(--secondary-color);"
+                   onmouseover="this.style.backgroundColor='var(--accent-color)';"
+                   onmouseout="this.style.backgroundColor='var(--secondary-color)';"
                    onclick="trackFormClick('{{ request()->url() }}')">
                     <i class="fas fa-calculator mr-2"></i>
                     Demander un Devis Gratuit
                 </a>
                 <a href="tel:{{ setting('company_phone') }}" 
-                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
+                   class="text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   style="background-color: var(--secondary-color);"
+                   onmouseover="this.style.backgroundColor='var(--accent-color)';"
+                   onmouseout="this.style.backgroundColor='var(--secondary-color)';">
                     <i class="fas fa-phone mr-2"></i>
                     {{ setting('company_phone') }}
                 </a>
