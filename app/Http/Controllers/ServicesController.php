@@ -562,8 +562,8 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     {
         $filename = 'service_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
-        // Utiliser le chemin de stockage Laravel standard
-        $uploadPath = storage_path('app/public/uploads/services');
+        // Utiliser la même logique que le portfolio : public_path
+        $uploadPath = public_path('uploads/services');
         
         // Créer le répertoire s'il n'existe pas
         if (!is_dir($uploadPath)) {

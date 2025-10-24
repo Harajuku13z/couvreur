@@ -198,7 +198,7 @@
                                 <div class="text-center mb-4">
                                     @if(!empty($service['featured_image']))
                                         <div class="mb-4">
-                                            <img src="{{ Storage::url($service['featured_image']) }}" alt="{{ $service['name'] }}" 
+                                            <img src="{{ asset($service['featured_image']) }}" alt="{{ $service['name'] }}" 
                                                  class="w-full h-32 object-cover rounded-lg mx-auto">
                                         </div>
                                     @else
