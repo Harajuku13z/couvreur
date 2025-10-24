@@ -183,7 +183,6 @@
                         <div id="cities-container" class="border border-gray-300 rounded-md p-4 max-h-64 overflow-y-auto">
                             <p class="text-gray-500 text-center py-4">Sélectionnez des villes à droite</p>
                         </div>
-                        <input type="hidden" name="cities" id="selected-cities" value="">
                     </div>
                 </div>
             </div>
@@ -307,7 +306,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSelectedCities() {
         const checkboxes = document.querySelectorAll('.city-checkbox:checked');
         selectedCities = Array.from(checkboxes).map(cb => cb.value);
-        selectedCitiesInput.value = selectedCities.join(',');
+        
+        // Créer des inputs cachés pour chaque ville sélectionnée
+        // D'abord, supprimer les anciens inputs
+        document.querySelectorAll('input[name="cities[]"]').forEach(input => input.remove());
+        
+        // Ajouter un nouvel input pour chaque ville
+        selectedCities.forEach(cityId => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cities[]';
+            input.value = cityId;
+            document.querySelector('form').appendChild(input);
+        });
         
         // Mettre à jour le bouton de génération
         generateBtn.disabled = selectedCities.length === 0;
