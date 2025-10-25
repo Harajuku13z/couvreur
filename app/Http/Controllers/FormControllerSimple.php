@@ -72,6 +72,14 @@ class FormControllerSimple extends Controller
     }
 
     /**
+     * Afficher le formulaire de création d'avis
+     */
+    public function createReview()
+    {
+        return view('form.create-review');
+    }
+
+    /**
      * Soumettre un nouvel avis public
      */
     public function storeReview(Request $request)
@@ -83,27 +91,41 @@ class FormControllerSimple extends Controller
                 'rating' => 'required|integer|min:1|max:5',
                 'review_text' => 'required|string|min:10|max:1000',
                 'review_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'recaptcha_response' => 'required|string'
+                'honeypot' => 'nullable|string|max:0', // Honeypot anti-spam
+                'timestamp' => 'required|integer'
             ]);
 
-            // Vérifier reCAPTCHA
-            $recaptchaResponse = $request->input('recaptcha_response');
-            $secretKey = setting('recaptcha_secret_key', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJv');
+            // Protection anti-spam personnalisée
+            $honeypot = $request->input('honeypot');
+            $timestamp = $request->input('timestamp');
+            $currentTime = time();
             
-            $recaptchaUrl = 'https://www.google.com/recaptcha/api/siteverify';
-            $recaptchaData = [
-                'secret' => $secretKey,
-                'response' => $recaptchaResponse,
-                'remoteip' => $request->ip()
-            ];
-            
-            $recaptchaResult = file_get_contents($recaptchaUrl . '?' . http_build_query($recaptchaData));
-            $recaptchaResult = json_decode($recaptchaResult, true);
-            
-            if (!$recaptchaResult['success']) {
+            // Vérifier honeypot (doit être vide)
+            if (!empty($honeypot)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'reCAPTCHA invalide'
+                    'message' => 'Soumission détectée comme spam'
+                ], 400);
+            }
+            
+            // Vérifier timestamp (doit être récent, max 1 heure)
+            if (($currentTime - $timestamp) > 3600) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expirée, veuillez réessayer'
+                ], 400);
+            }
+            
+            // Vérifier que le texte n'est pas trop répétitif (anti-spam)
+            $reviewText = $request->review_text;
+            $words = explode(' ', strtolower($reviewText));
+            $wordCounts = array_count_values($words);
+            $maxRepetition = max($wordCounts);
+            
+            if ($maxRepetition > 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Texte détecté comme spam'
                 ], 400);
             }
 
