@@ -100,7 +100,13 @@
     <!-- Liste des avis -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Liste des Avis</h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">Liste des Avis</h3>
+                <div class="flex items-center text-sm text-gray-500">
+                    <i class="fas fa-sort-amount-down mr-2"></i>
+                    <span>Triés par date (plus récent en premier)</span>
+                </div>
+            </div>
         </div>
 
         @if($reviews->count() > 0)
@@ -128,9 +134,15 @@
                                 
                                 <p class="text-gray-700 mb-3 mt-2">{{ $review->review_text }}</p>
                                 
-                                <div class="flex items-center space-x-4 text-sm text-gray-500">
-                                    <span><i class="fas fa-calendar mr-1"></i>{{ $review->review_date ? $review->review_date->format('d/m/Y') : 'Date inconnue' }}</span>
-                                    <span><i class="fas fa-tag mr-1"></i>{{ $review->source }}</span>
+                                <div class="flex items-center space-x-4 text-sm">
+                                    <div class="flex items-center text-blue-600 font-medium">
+                                        <i class="fas fa-calendar mr-2"></i>
+                                        <span>{{ $review->review_date ? $review->review_date->format('d/m/Y à H:i') : 'Date inconnue' }}</span>
+                                    </div>
+                                    <div class="flex items-center text-gray-500">
+                                        <i class="fas fa-tag mr-1"></i>
+                                        <span>{{ $review->source }}</span>
+                                    </div>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $review->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $review->is_active ? 'Actif' : 'Inactif' }}
                                     </span>

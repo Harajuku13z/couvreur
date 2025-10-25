@@ -14,7 +14,7 @@ class ReviewsController extends Controller
      */
     public function index()
     {
-        $reviews = Review::orderBy('created_at', 'desc')->paginate(20);
+        $reviews = Review::orderBy('review_date', 'desc')->paginate(20);
         
         // Statistiques
         $stats = [
