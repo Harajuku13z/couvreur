@@ -185,15 +185,24 @@ function testConnection() {
     // Afficher le modal de test
     document.getElementById('testModal').classList.remove('hidden');
     
+    // Créer un formulaire pour la requête
+    const formData = new FormData();
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    
     // Faire la requête AJAX
     fetch('{{ route("admin.reviews.google.test-outscraper") }}', {
         method: 'POST',
+        body: formData,
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json'
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
     .then(data => {
         // Cacher le modal de test
         document.getElementById('testModal').classList.add('hidden');
@@ -234,4 +243,5 @@ function closeResultModal() {
     document.getElementById('resultModal').classList.add('hidden');
 }
 </script>
+@endsection
 @endsection
