@@ -79,8 +79,7 @@ class ReviewsController extends Controller
             $response = Http::timeout(30)->get('https://serpapi.com/search', [
                 'engine' => 'google_maps_reviews',
                 'place_id' => $placeId,
-                'api_key' => $serpApiKey,
-                'num' => 5
+                'api_key' => $serpApiKey
             ]);
 
             if (!$response->successful()) {
@@ -114,7 +113,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis avec SerpAPI
+     * Importer les avis avec SerpAPI (avec pagination)
      */
     public function importSerpReviews()
     {
@@ -128,30 +127,55 @@ class ReviewsController extends Controller
         }
 
         try {
-            $response = Http::timeout(120)->get('https://serpapi.com/search', [
-                'engine' => 'google_maps_reviews',
-                'place_id' => $placeId,
-                'api_key' => $serpApiKey,
-                'num' => 100
-            ]);
+            $allReviews = [];
+            $nextPageToken = null;
+            $pageCount = 0;
+            $maxPages = 5; // Limite à 5 pages pour éviter les timeouts
 
-            if (!$response->successful()) {
-                return redirect()->route('admin.reviews.serp.config')
-                    ->with('error', 'Erreur SerpAPI : ' . $response->status() . ' - ' . $response->body());
-            }
+            do {
+                $params = [
+                    'engine' => 'google_maps_reviews',
+                    'place_id' => $placeId,
+                    'api_key' => $serpApiKey
+                ];
 
-            $data = $response->json();
-            
-            if (!isset($data['reviews']) || empty($data['reviews'])) {
+                if ($nextPageToken) {
+                    $params['next_page_token'] = $nextPageToken;
+                }
+
+                $response = Http::timeout(60)->get('https://serpapi.com/search', $params);
+
+                if (!$response->successful()) {
+                    return redirect()->route('admin.reviews.serp.config')
+                        ->with('error', 'Erreur SerpAPI : ' . $response->status() . ' - ' . $response->body());
+                }
+
+                $data = $response->json();
+                
+                if (isset($data['reviews']) && !empty($data['reviews'])) {
+                    $allReviews = array_merge($allReviews, $data['reviews']);
+                }
+
+                // Vérifier s'il y a une page suivante
+                $nextPageToken = $data['serpapi_pagination']['next_page_token'] ?? null;
+                $pageCount++;
+
+                // Pause entre les requêtes pour éviter les limites de taux
+                if ($nextPageToken && $pageCount < $maxPages) {
+                    sleep(2);
+                }
+
+            } while ($nextPageToken && $pageCount < $maxPages);
+
+            if (empty($allReviews)) {
                 return redirect()->route('admin.reviews.serp.config')
                     ->with('error', 'Aucun avis trouvé via SerpAPI. Vérifiez votre Place ID.');
             }
 
-            $reviews = $data['reviews'];
             $importedCount = 0;
             $updatedCount = 0;
 
-            foreach ($reviews as $review) {
+            foreach ($allReviews as $review) {
                 $googleReviewId = md5($review['user']['name'] . $review['date']);
                 
                 $existingReview = Review::where('google_review_id', $googleReviewId)->first();
@@ -178,7 +202,7 @@ class ReviewsController extends Controller
             }
 
             return redirect()->route('admin.reviews.index')
-                ->with('success', "Import SerpAPI terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Total: " . count($reviews) . " avis)");
+                ->with('success', "Import SerpAPI terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Total: " . count($allReviews) . " avis récupérés sur {$pageCount} pages)");
 
         } catch (\Exception $e) {
             return redirect()->route('admin.reviews.index')
