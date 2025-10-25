@@ -420,6 +420,65 @@ class ReviewsController extends Controller
     }
 
     /**
+     * Tester la connexion avec Outscraper API
+     */
+    public function testOutscraperConnection()
+    {
+        $placeId = setting('google_place_id');
+        $outscraperApiKey = setting('outscraper_api_key');
+
+        if (!$placeId || !$outscraperApiKey) {
+            return redirect()->route('admin.reviews.google.config')
+                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Outscraper.');
+        }
+
+        try {
+            Log::info('Test connexion Outscraper:', [
+                'place_id' => $placeId,
+                'api_key' => substr($outscraperApiKey, 0, 10) . '...'
+            ]);
+
+            // Test simple avec l'API Outscraper
+            $response = Http::timeout(30)->post('https://api.outscraper.com/maps/reviews-v3', [
+                'query' => $placeId,
+                'limit' => 5, // Juste 5 avis pour le test
+                'language' => 'fr',
+                'region' => 'fr'
+            ], [
+                'X-API-KEY' => $outscraperApiKey,
+                'Content-Type' => 'application/json'
+            ]);
+
+            Log::info('Test Outscraper Response:', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body' => $response->body()
+            ]);
+
+            if (!$response->successful()) {
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('error', '❌ Erreur de connexion Outscraper : ' . $response->status() . ' - ' . $response->body());
+            }
+
+            $data = $response->json();
+            
+            if (isset($data[0]['reviews']) && !empty($data[0]['reviews'])) {
+                $reviewCount = count($data[0]['reviews']);
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('success', "✅ Connexion Outscraper réussie ! {$reviewCount} avis trouvés. L'API fonctionne correctement.");
+            } else {
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('error', '⚠️ Connexion Outscraper réussie mais aucun avis trouvé. Vérifiez votre Place ID.');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Erreur test Outscraper: ' . $e->getMessage());
+            return redirect()->route('admin.reviews.google.config')
+                ->with('error', '❌ Erreur lors du test Outscraper : ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Afficher la page d'import manuel d'avis
      */
     public function showManualImport()

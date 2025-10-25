@@ -116,6 +116,13 @@
                         </div>
                         
                         <div class="space-y-3">
+                            <form action="{{ route('admin.reviews.google.test-outscraper') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
+                                    <i class="fas fa-wifi mr-2"></i>Test Connexion Outscraper
+                                </button>
+                            </form>
+                            
                             <form action="{{ route('admin.reviews.google.import-auto') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">

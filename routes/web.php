@@ -269,6 +269,7 @@ Route::middleware(['check.setup'])->group(function () {
                 })->name('google.my-business-help');
                 Route::post('/google/import', [ReviewsController::class, 'importGoogle'])->name('google.import');
                 Route::post('/google/import-auto', [ReviewsController::class, 'importGoogleAuto'])->name('google.import-auto');
+                Route::post('/google/test-outscraper', [ReviewsController::class, 'testOutscraperConnection'])->name('google.test-outscraper');
                 
                 // Import manuel d'avis
                 Route::get('/manual-import', [ReviewsController::class, 'showManualImport'])->name('manual-import');
