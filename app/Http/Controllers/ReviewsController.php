@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Setting;
-use App\Helpers\GoogleMyBusinessHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use AdnanHussainTurki\GoogleMyBusiness\GoogleMyBusiness;
 
 class ReviewsController extends Controller
 {
@@ -30,80 +28,80 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Afficher la configuration Google My Business
+     * Afficher la configuration SerpAPI
      */
-    public function googleConfig()
+    public function serpConfig()
     {
-        $googleApiKey = setting('google_api_key');
+        $serpApiKey = setting('serp_api_key', '1e60ebcc99eb3f99ad054a7710846558e3b12b3c71fdc56fec72c4e495e63370');
         $googlePlaceId = setting('google_place_id');
-        $googleAccountId = setting('google_account_id');
-        $googleLocationId = setting('google_location_id');
-        $googleAccessToken = setting('google_access_token');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        return view('admin.reviews.google-config', compact(
-            'googleApiKey', 'googlePlaceId', 'googleAccountId', 
-            'googleLocationId', 'googleAccessToken', 'autoApprove'
-        ));
+        return view('admin.reviews.serp-config', compact('serpApiKey', 'googlePlaceId', 'autoApprove'));
     }
 
     /**
-     * Sauvegarder la configuration Google My Business
+     * Sauvegarder la configuration SerpAPI
      */
-    public function saveGoogleConfig(Request $request)
+    public function saveSerpConfig(Request $request)
     {
         $request->validate([
-            'google_api_key' => 'required|string',
+            'serp_api_key' => 'required|string',
             'google_place_id' => 'required|string',
-            'google_account_id' => 'required|string',
-            'google_location_id' => 'required|string',
-            'google_access_token' => 'required|string',
             'auto_approve_google' => 'boolean',
         ]);
 
-        Setting::set('google_api_key', $request->google_api_key);
+        Setting::set('serp_api_key', $request->serp_api_key);
         Setting::set('google_place_id', $request->google_place_id);
-        Setting::set('google_account_id', $request->google_account_id);
-        Setting::set('google_location_id', $request->google_location_id);
-        Setting::set('google_access_token', $request->google_access_token);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
         
         Setting::clearCache();
 
-        return redirect()->route('admin.reviews.google.config')
-            ->with('success', 'Configuration Google My Business sauvegardée avec succès !');
+        return redirect()->route('admin.reviews.serp.config')
+            ->with('success', 'Configuration SerpAPI sauvegardée avec succès !');
     }
 
     /**
-     * Tester la connexion avec Google My Business API
+     * Tester la connexion avec SerpAPI
      */
-    public function testGoogleConnection()
+    public function testSerpConnection()
     {
-        $accountId = setting('google_account_id');
-        $locationId = setting('google_location_id');
-        $accessToken = setting('google_access_token');
+        $placeId = setting('google_place_id');
+        $serpApiKey = setting('serp_api_key');
 
-        if (!$accountId || !$locationId || !$accessToken) {
+        if (!$placeId || !$serpApiKey) {
             return response()->json([
                 'success' => false,
-                'message' => 'Configuration manquante ! Veuillez configurer Account ID, Location ID et Access Token.'
+                'message' => 'Configuration manquante ! Veuillez configurer Place ID et SerpAPI Key.'
             ]);
         }
 
         try {
-            $gmb = new GoogleMyBusiness($accessToken);
-            $reviews = $gmb->getReviews($accountId, $locationId);
+            $response = Http::timeout(30)->get('https://serpapi.com/search', [
+                'engine' => 'google_maps_reviews',
+                'place_id' => $placeId,
+                'api_key' => $serpApiKey,
+                'num' => 5
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur SerpAPI : ' . $response->status() . ' - ' . $response->body()
+                ]);
+            }
+
+            $data = $response->json();
             
-            if (isset($reviews['reviews']) && !empty($reviews['reviews'])) {
-                $reviewCount = count($reviews['reviews']);
+            if (isset($data['reviews']) && !empty($data['reviews'])) {
+                $reviewCount = count($data['reviews']);
                 return response()->json([
                     'success' => true,
-                    'message' => "Connexion Google My Business réussie ! {$reviewCount} avis trouvés."
+                    'message' => "Connexion SerpAPI réussie ! {$reviewCount} avis trouvés."
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Connexion Google My Business réussie mais aucun avis trouvé.'
+                    'message' => 'Connexion SerpAPI réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
                 ]);
             }
 
@@ -116,54 +114,56 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis avec Google Places API (5 avis max)
+     * Importer les avis avec SerpAPI
      */
-    public function importGoogleReviews()
+    public function importSerpReviews()
     {
         $placeId = setting('google_place_id');
-        $apiKey = setting('google_api_key');
+        $serpApiKey = setting('serp_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        if (!$placeId || !$apiKey) {
-            return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration manquante !');
+        if (!$placeId || !$serpApiKey) {
+            return redirect()->route('admin.reviews.serp.config')
+                ->with('error', 'Configuration SerpAPI manquante !');
         }
 
         try {
-            $response = Http::timeout(60)->get('https://maps.googleapis.com/maps/api/place/details/json', [
+            $response = Http::timeout(120)->get('https://serpapi.com/search', [
+                'engine' => 'google_maps_reviews',
                 'place_id' => $placeId,
-                'fields' => 'name,rating,reviews',
-                'key' => $apiKey
+                'api_key' => $serpApiKey,
+                'num' => 100
             ]);
 
             if (!$response->successful()) {
-                return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Erreur API Google : ' . $response->status() . ' - ' . $response->body());
+                return redirect()->route('admin.reviews.serp.config')
+                    ->with('error', 'Erreur SerpAPI : ' . $response->status() . ' - ' . $response->body());
             }
 
             $data = $response->json();
             
-            if (!isset($data['result']['reviews']) || empty($data['result']['reviews'])) {
-                return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Aucun avis trouvé. Vérifiez votre Place ID.');
+            if (!isset($data['reviews']) || empty($data['reviews'])) {
+                return redirect()->route('admin.reviews.serp.config')
+                    ->with('error', 'Aucun avis trouvé via SerpAPI. Vérifiez votre Place ID.');
             }
 
-            $reviews = $data['result']['reviews'];
+            $reviews = $data['reviews'];
             $importedCount = 0;
             $updatedCount = 0;
 
             foreach ($reviews as $review) {
-                $googleReviewId = $review['author_url'] ?? md5($review['author_name'] . $review['time']);
+                $googleReviewId = md5($review['user']['name'] . $review['date']);
                 
                 $existingReview = Review::where('google_review_id', $googleReviewId)->first();
 
                 $reviewData = [
                     'google_review_id' => $googleReviewId,
-                    'author_name' => $review['author_name'] ?? 'Auteur inconnu',
+                    'author_name' => $review['user']['name'] ?? 'Auteur inconnu',
                     'rating' => $review['rating'] ?? 5,
-                    'review_text' => $review['text'] ?? '',
-                    'review_date' => isset($review['time']) ? date('Y-m-d H:i:s', $review['time']) : now(),
-                    'source' => 'Google Places',
+                    'review_text' => $review['snippet'] ?? '',
+                    'review_date' => isset($review['iso_date']) ? 
+                        date('Y-m-d H:i:s', strtotime($review['iso_date'])) : now(),
+                    'source' => 'Google Maps (SerpAPI)',
                     'is_active' => $autoApprove ? 1 : 0,
                     'is_verified' => true
                 ];
@@ -178,75 +178,86 @@ class ReviewsController extends Controller
             }
 
             return redirect()->route('admin.reviews.index')
-                ->with('success', "Import terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Limite Google Places: 5 avis max)");
+                ->with('success', "Import SerpAPI terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Total: " . count($reviews) . " avis)");
 
         } catch (\Exception $e) {
             return redirect()->route('admin.reviews.index')
-                ->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
+                ->with('error', 'Erreur lors de l\'import SerpAPI : ' . $e->getMessage());
         }
     }
 
     /**
-     * Importer TOUS les avis avec Google My Business API
+     * Afficher le formulaire d'ajout manuel
      */
-    public function importAllGoogleReviews()
+    public function create()
     {
-        $accountId = setting('google_account_id');
-        $locationId = setting('google_location_id');
-        $accessToken = setting('google_access_token');
-        $autoApprove = setting('auto_approve_google_reviews', false);
+        return view('admin.reviews.create');
+    }
 
-        if (!$accountId || !$locationId || !$accessToken) {
-            return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration Google My Business manquante !');
-        }
+    /**
+     * Sauvegarder un avis manuel
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'author_name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'review_text' => 'required|string',
+            'review_date' => 'required|date',
+            'source' => 'required|string|max:255',
+            'is_active' => 'boolean'
+        ]);
 
-        try {
-            $gmb = new GoogleMyBusiness($accessToken);
-            $reviews = $gmb->getReviews($accountId, $locationId);
-            
-            if (!isset($reviews['reviews']) || empty($reviews['reviews'])) {
-                return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Aucun avis trouvé via Google My Business.');
-            }
+        Review::create([
+            'author_name' => $request->author_name,
+            'rating' => $request->rating,
+            'review_text' => $request->review_text,
+            'review_date' => $request->review_date,
+            'source' => $request->source,
+            'is_active' => $request->boolean('is_active', true),
+            'is_verified' => true
+        ]);
 
-            $reviewsData = $reviews['reviews'];
-            $importedCount = 0;
-            $updatedCount = 0;
+        return redirect()->route('admin.reviews.index')
+            ->with('success', 'Avis ajouté avec succès !');
+    }
 
-            foreach ($reviewsData as $review) {
-                $googleReviewId = $review['reviewId'] ?? md5($review['reviewer']['displayName'] . $review['createTime']);
-                
-                $existingReview = Review::where('google_review_id', $googleReviewId)->first();
+    /**
+     * Afficher le formulaire d'édition
+     */
+    public function edit($id)
+    {
+        $review = Review::findOrFail($id);
+        return view('admin.reviews.edit', compact('review'));
+    }
 
-                $reviewData = [
-                    'google_review_id' => $googleReviewId,
-                    'author_name' => $review['reviewer']['displayName'] ?? 'Auteur inconnu',
-                    'rating' => $review['starRating'] ?? 5,
-                    'review_text' => $review['comment'] ?? '',
-                    'review_date' => isset($review['createTime']) ? 
-                        date('Y-m-d H:i:s', strtotime($review['createTime'])) : now(),
-                    'source' => 'Google My Business',
-                    'is_active' => $autoApprove ? 1 : 0,
-                    'is_verified' => true
-                ];
+    /**
+     * Mettre à jour un avis
+     */
+    public function update(Request $request, $id)
+    {
+        $review = Review::findOrFail($id);
+        
+        $request->validate([
+            'author_name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'review_text' => 'required|string',
+            'review_date' => 'required|date',
+            'source' => 'required|string|max:255',
+            'is_active' => 'boolean'
+        ]);
 
-                if ($existingReview) {
-                    $existingReview->update($reviewData);
-                    $updatedCount++;
-                } else {
-                    Review::create($reviewData);
-                    $importedCount++;
-                }
-            }
+        $review->update([
+            'author_name' => $request->author_name,
+            'rating' => $request->rating,
+            'review_text' => $request->review_text,
+            'review_date' => $request->review_date,
+            'source' => $request->source,
+            'is_active' => $request->boolean('is_active', true)
+        ]);
 
-            return redirect()->route('admin.reviews.index')
-                ->with('success', "Import Google My Business terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Total: " . count($reviewsData) . " avis)");
-
-        } catch (\Exception $e) {
-            return redirect()->route('admin.reviews.index')
-                ->with('error', 'Erreur lors de l\'import Google My Business : ' . $e->getMessage());
-        }
+        return redirect()->route('admin.reviews.index')
+            ->with('success', 'Avis mis à jour avec succès !');
     }
 
     /**
@@ -282,77 +293,5 @@ class ReviewsController extends Controller
         
         return redirect()->route('admin.reviews.index')
             ->with('success', 'Avis supprimé avec succès.');
-    }
-
-    /**
-     * Initier le processus OAuth2 Google My Business
-     */
-    public function googleOAuth()
-    {
-        $helper = new GoogleMyBusinessHelper();
-        $authUrl = $helper->getAuthUrl();
-        
-        return redirect($authUrl);
-    }
-
-    /**
-     * Callback OAuth2 Google My Business
-     */
-    public function googleOAuthCallback(Request $request)
-    {
-        $code = $request->get('code');
-        $error = $request->get('error');
-
-        if ($error) {
-            return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Erreur d\'autorisation: ' . $error);
-        }
-
-        if (!$code) {
-            return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Code d\'autorisation manquant');
-        }
-
-        $helper = new GoogleMyBusinessHelper();
-        $tokenData = $helper->exchangeCodeForToken($code);
-
-        if (!$tokenData) {
-            return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Impossible d\'obtenir le token d\'accès');
-        }
-
-        // Sauvegarder le token d'accès
-        Setting::set('google_access_token', $tokenData['access_token']);
-        if (isset($tokenData['refresh_token'])) {
-            Setting::set('google_refresh_token', $tokenData['refresh_token']);
-        }
-        Setting::clearCache();
-
-        // Récupérer les comptes et établissements
-        $accounts = $helper->getAccounts($tokenData['access_token']);
-        
-        if ($accounts && isset($accounts['accounts']) && !empty($accounts['accounts'])) {
-            $account = $accounts['accounts'][0]; // Prendre le premier compte
-            $accountId = $account['name'];
-            
-            Setting::set('google_account_id', $accountId);
-            
-            // Récupérer les établissements
-            $locations = $helper->getLocations($tokenData['access_token'], $accountId);
-            
-            if ($locations && isset($locations['locations']) && !empty($locations['locations'])) {
-                $location = $locations['locations'][0]; // Prendre le premier établissement
-                $locationId = $location['name'];
-                
-                Setting::set('google_location_id', $locationId);
-                Setting::clearCache();
-                
-                return redirect()->route('admin.reviews.google.config')
-                    ->with('success', 'Connexion Google My Business réussie ! Account ID et Location ID configurés automatiquement.');
-            }
-        }
-
-        return redirect()->route('admin.reviews.google.config')
-            ->with('success', 'Token d\'accès sauvegardé. Veuillez configurer manuellement Account ID et Location ID.');
     }
 }

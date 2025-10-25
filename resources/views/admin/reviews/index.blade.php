@@ -11,8 +11,12 @@
             <p class="text-gray-600 mt-2">Gérez les avis clients de votre entreprise</p>
         </div>
         <div class="flex space-x-4">
-            <a href="{{ route('admin.reviews.google.config') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                <i class="fas fa-cog mr-2"></i>Configuration
+            <a href="{{ route('admin.reviews.serp.config') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-cog mr-2"></i>Configuration SerpAPI
+            </a>
+            
+            <a href="{{ route('admin.reviews.create') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                <i class="fas fa-plus mr-2"></i>Ajouter un Avis Manuel
             </a>
         </div>
     </div>
