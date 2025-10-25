@@ -152,11 +152,25 @@ class ReviewsController extends Controller
             'auto_approve_google' => 'boolean',
         ]);
 
+        // Debug: Vérifier les données reçues
+        Log::info('Données reçues dans saveGoogleConfig:', [
+            'google_place_id' => $request->google_place_id,
+            'outscraper_api_key' => $request->outscraper_api_key ? 'PRÉSENTE' : 'MANQUANTE',
+            'auto_approve_google' => $request->boolean('auto_approve_google')
+        ]);
+
         Setting::set('google_place_id', $request->google_place_id);
         Setting::set('outscraper_api_key', $request->outscraper_api_key);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
         
         Setting::clearCache();
+
+        // Debug: Vérifier que les données sont bien sauvegardées
+        Log::info('Données sauvegardées:', [
+            'google_place_id_saved' => setting('google_place_id'),
+            'outscraper_api_key_saved' => setting('outscraper_api_key') ? 'PRÉSENTE' : 'MANQUANTE',
+            'auto_approve_saved' => setting('auto_approve_google_reviews')
+        ]);
 
         return redirect()->route('admin.reviews.google.config')
             ->with('success', 'Configuration Google sauvegardée avec succès !');
@@ -271,9 +285,20 @@ class ReviewsController extends Controller
         $outscraperApiKey = setting('outscraper_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
+        // Debug: Vérifier les valeurs récupérées
+        Log::info('Configuration récupérée:', [
+            'place_id' => $placeId,
+            'outscraper_api_key' => $outscraperApiKey ? 'PRÉSENTE' : 'MANQUANTE',
+            'auto_approve' => $autoApprove
+        ]);
+
         if (!$placeId || !$outscraperApiKey) {
+            Log::error('Configuration manquante:', [
+                'place_id_present' => !empty($placeId),
+                'outscraper_key_present' => !empty($outscraperApiKey)
+            ]);
             return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Outscraper.');
+                ->with('error', 'Configuration manquante ! Place ID: ' . ($placeId ? 'OK' : 'MANQUANT') . ', Clé Outscraper: ' . ($outscraperApiKey ? 'OK' : 'MANQUANTE'));
         }
 
         try {
