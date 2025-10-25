@@ -7,6 +7,9 @@ use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\ReviewsController;
 
+// Inclure les routes des avis
+require __DIR__.'/reviews.php';
+
 /**
  * ROUTES ULTRA-SIMPLES
  * Navigation directe, pas de AJAX compliqué
@@ -251,38 +254,7 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/homepage/generate-all-ai', [ConfigController::class, 'generateAllHomepageContentAI'])->name('homepage.generate-all-ai');
             
             // ===== GESTION DES AVIS =====
-            Route::prefix('reviews')->name('reviews.')->group(function () {
-                Route::get('/', [ReviewsController::class, 'index'])->name('index');
-                Route::get('/create', [ReviewsController::class, 'create'])->name('create');
-                Route::post('/', [ReviewsController::class, 'store'])->name('store');
-                Route::get('/{review}', [ReviewsController::class, 'show'])->name('show');
-                Route::get('/{review}/edit', [ReviewsController::class, 'edit'])->name('edit');
-                Route::put('/{review}', [ReviewsController::class, 'update'])->name('update');
-                Route::delete('/{review}', [ReviewsController::class, 'destroy'])->name('destroy');
-                Route::patch('/{review}/toggle', [ReviewsController::class, 'toggle'])->name('toggle');
-                
-                // Configuration Google
-                Route::get('/google/config', [ReviewsController::class, 'googleConfig'])->name('google.config');
-                Route::post('/google/config', [ReviewsController::class, 'saveGoogleConfig'])->name('google.config.save');
-                Route::get('/google/my-business-help', function() {
-                    return view('admin.reviews.google-my-business-help');
-                })->name('google.my-business-help');
-                Route::post('/google/import', [ReviewsController::class, 'importGoogle'])->name('google.import');
-                Route::post('/google/import-auto', [ReviewsController::class, 'importGoogleAuto'])->name('google.import-auto');
-                Route::post('/google/test-outscraper', [ReviewsController::class, 'testOutscraperConnection'])->name('google.test-outscraper');
-                
-                // Import manuel d'avis
-                Route::get('/manual-import', [ReviewsController::class, 'showManualImport'])->name('manual-import');
-                Route::post('/manual-import', [ReviewsController::class, 'importManual'])->name('manual-import.save');
-                
-                // Suppression de tous les avis
-                Route::post('/delete-all', [ReviewsController::class, 'deleteAll'])->name('delete-all');
-                
-                // API AJAX
-                Route::get('/{review}/get', [ReviewsController::class, 'get'])->name('get');
-                Route::post('/{review}/update-ajax', [ReviewsController::class, 'updateAjax'])->name('update-ajax');
-                Route::delete('/{review}/delete-ajax', [ReviewsController::class, 'deleteAjax'])->name('delete-ajax');
-            });
+            // Les routes des avis sont maintenant dans routes/reviews.php
         });
     });
 

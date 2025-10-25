@@ -20,9 +20,9 @@ class ReviewsController extends Controller
         // Statistiques
         $stats = [
             'total' => Review::count(),
-            'approved' => Review::where('is_active', 1)->count(),
-            'pending' => Review::where('is_active', 0)->count(),
-            'average_rating' => Review::where('is_active', 1)->avg('rating') ?? 0
+            'active' => Review::where('is_active', true)->count(),
+            'inactive' => Review::where('is_active', false)->count(),
+            'average_rating' => Review::where('is_active', true)->avg('rating') ?? 0
         ];
         
         return view('admin.reviews.index', compact('reviews', 'stats'));
@@ -58,11 +58,11 @@ class ReviewsController extends Controller
         Setting::clearCache();
 
         return redirect()->route('admin.reviews.google.config')
-            ->with('success', 'Configuration Google sauvegardée avec succès !');
+            ->with('success', 'Configuration sauvegardée avec succès !');
     }
 
     /**
-     * Tester la connexion avec Outscraper API (AJAX)
+     * Tester la connexion avec Outscraper API
      */
     public function testOutscraperConnection()
     {
@@ -77,10 +77,9 @@ class ReviewsController extends Controller
         }
 
         try {
-            // Test simple avec l'API Outscraper
             $response = Http::timeout(30)->post('https://api.outscraper.com/maps/reviews-v3', [
                 'query' => $placeId,
-                'limit' => 5, // Juste 5 avis pour le test
+                'limit' => 5,
                 'language' => 'fr',
                 'region' => 'fr'
             ], [
@@ -91,7 +90,7 @@ class ReviewsController extends Controller
             if (!$response->successful()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur de connexion Outscraper : ' . $response->status() . ' - ' . $response->body()
+                    'message' => 'Erreur de connexion : ' . $response->status() . ' - ' . $response->body()
                 ]);
             }
 
@@ -101,25 +100,25 @@ class ReviewsController extends Controller
                 $reviewCount = count($data[0]['reviews']);
                 return response()->json([
                     'success' => true,
-                    'message' => "Connexion Outscraper réussie ! {$reviewCount} avis trouvés. L'API fonctionne correctement."
+                    'message' => "Connexion réussie ! {$reviewCount} avis trouvés."
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Connexion Outscraper réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
+                    'message' => 'Connexion réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
                 ]);
             }
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors du test Outscraper : ' . $e->getMessage()
+                'message' => 'Erreur : ' . $e->getMessage()
             ]);
         }
     }
 
     /**
-     * Récupérer et importer les avis avec Outscraper API
+     * Importer les avis avec Outscraper API
      */
     public function importGoogleAuto()
     {
@@ -129,11 +128,10 @@ class ReviewsController extends Controller
 
         if (!$placeId || !$outscraperApiKey) {
             return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Outscraper.');
+                ->with('error', 'Configuration manquante !');
         }
 
         try {
-            // Appel à l'API Outscraper
             $response = Http::timeout(60)->post('https://api.outscraper.com/maps/reviews-v3', [
                 'query' => $placeId,
                 'limit' => 100,
@@ -146,7 +144,7 @@ class ReviewsController extends Controller
 
             if (!$response->successful()) {
                 return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Erreur API Outscraper : ' . $response->status() . ' - ' . $response->body());
+                    ->with('error', 'Erreur API : ' . $response->status() . ' - ' . $response->body());
             }
 
             $data = $response->json();
@@ -161,40 +159,26 @@ class ReviewsController extends Controller
             $updatedCount = 0;
 
             foreach ($reviews as $review) {
-                // Créer un ID unique pour l'avis
                 $googleReviewId = $review['review_id'] ?? md5($review['author_name'] . $review['review_datetime']);
                 
-                // Extraire les données
-                $authorName = $review['author_name'] ?? 'Auteur inconnu';
-                $rating = $review['review_rating'] ?? 5;
-                $text = $review['review_text'] ?? '';
-                $date = $review['review_datetime'] ?? now();
-                
-                // Vérifier si l'avis existe déjà
                 $existingReview = Review::where('google_review_id', $googleReviewId)->first();
 
+                $reviewData = [
+                    'google_review_id' => $googleReviewId,
+                    'author_name' => $review['author_name'] ?? 'Auteur inconnu',
+                    'rating' => $review['review_rating'] ?? 5,
+                    'review_text' => $review['review_text'] ?? '',
+                    'review_date' => $review['review_datetime'] ?? now(),
+                    'source' => 'Google (Outscraper)',
+                    'is_active' => $autoApprove ? 1 : 0,
+                    'is_verified' => true
+                ];
+
                 if ($existingReview) {
-                    // Mettre à jour
-                    $existingReview->update([
-                        'author_name' => $authorName,
-                        'rating' => $rating,
-                        'review_text' => $text,
-                        'review_date' => $date,
-                        'source' => 'Google (Outscraper)',
-                        'is_active' => $autoApprove ? 1 : 0
-                    ]);
+                    $existingReview->update($reviewData);
                     $updatedCount++;
                 } else {
-                    // Créer nouveau
-                    Review::create([
-                        'google_review_id' => $googleReviewId,
-                        'author_name' => $authorName,
-                        'rating' => $rating,
-                        'review_text' => $text,
-                        'review_date' => $date,
-                        'source' => 'Google (Outscraper)',
-                        'is_active' => $autoApprove ? 1 : 0
-                    ]);
+                    Review::create($reviewData);
                     $importedCount++;
                 }
             }
@@ -216,5 +200,30 @@ class ReviewsController extends Controller
         Review::truncate();
         return redirect()->route('admin.reviews.index')
             ->with('success', 'Tous les avis ont été supprimés.');
+    }
+
+    /**
+     * Basculer le statut d'un avis
+     */
+    public function toggleStatus($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->update(['is_active' => !$review->is_active]);
+        
+        $status = $review->is_active ? 'activé' : 'désactivé';
+        return redirect()->route('admin.reviews.index')
+            ->with('success', "Avis {$status} avec succès.");
+    }
+
+    /**
+     * Supprimer un avis
+     */
+    public function delete($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->delete();
+        
+        return redirect()->route('admin.reviews.index')
+            ->with('success', 'Avis supprimé avec succès.');
     }
 }
