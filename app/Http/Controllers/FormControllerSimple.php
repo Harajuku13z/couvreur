@@ -85,7 +85,7 @@ class FormControllerSimple extends Controller
     public function storeReview(Request $request)
     {
         try {
-            // Validation
+            // Validation avec messages personnalisés en français
             $request->validate([
                 'author_name' => 'required|string|max:255',
                 'rating' => 'required|integer|min:1|max:5',
@@ -93,6 +93,21 @@ class FormControllerSimple extends Controller
                 'review_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'honeypot' => 'nullable|string|max:0', // Honeypot anti-spam
                 'timestamp' => 'required|integer'
+            ], [
+                'author_name.required' => 'Le nom est obligatoire.',
+                'author_name.max' => 'Le nom ne peut pas dépasser 255 caractères.',
+                'rating.required' => 'La note est obligatoire.',
+                'rating.integer' => 'La note doit être un nombre entier.',
+                'rating.min' => 'La note doit être au minimum 1.',
+                'rating.max' => 'La note doit être au maximum 5.',
+                'review_text.required' => 'Le texte de l\'avis est obligatoire.',
+                'review_text.min' => 'Le texte de l\'avis doit contenir au minimum 5 caractères.',
+                'review_text.max' => 'Le texte de l\'avis ne peut pas dépasser 1000 caractères.',
+                'review_photos.*.image' => 'Les fichiers doivent être des images.',
+                'review_photos.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
+                'review_photos.*.max' => 'Chaque image ne peut pas dépasser 2MB.',
+                'timestamp.required' => 'Erreur de session, veuillez réessayer.',
+                'timestamp.integer' => 'Erreur de session, veuillez réessayer.'
             ]);
 
             // Protection anti-spam personnalisée
@@ -162,6 +177,15 @@ class FormControllerSimple extends Controller
                 'message' => 'Votre avis a été soumis avec succès ! Il sera publié après validation.'
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Gestion spécifique des erreurs de validation
+            $errors = $e->errors();
+            $firstError = reset($errors)[0] ?? 'Erreur de validation';
+            
+            return response()->json([
+                'success' => false,
+                'message' => $firstError
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
