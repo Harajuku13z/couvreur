@@ -183,8 +183,6 @@ class ReviewsController extends Controller
                 $reviewData = [
                     'google_review_id' => $googleReviewId,
                     'author_name' => $review['user']['name'] ?? 'Auteur inconnu',
-                    'author_photo' => $review['user']['thumbnail'] ?? null,
-                    'author_link' => $review['user']['link'] ?? null,
                     'rating' => $review['rating'] ?? 5,
                     'review_text' => $review['snippet'] ?? '',
                     'review_date' => isset($review['iso_date']) ? 
@@ -193,6 +191,14 @@ class ReviewsController extends Controller
                     'is_active' => $autoApprove ? 1 : 0,
                     'is_verified' => true
                 ];
+                
+                // Ajouter les nouveaux champs seulement s'ils existent dans la réponse
+                if (isset($review['user']['thumbnail']) && $review['user']['thumbnail']) {
+                    $reviewData['author_photo'] = $review['user']['thumbnail'];
+                }
+                if (isset($review['user']['link']) && $review['user']['link']) {
+                    $reviewData['author_link'] = $review['user']['link'];
+                }
 
                 if ($existingReview) {
                     $existingReview->update($reviewData);
@@ -234,17 +240,25 @@ class ReviewsController extends Controller
             'is_active' => 'boolean'
         ]);
 
-        Review::create([
+        $reviewData = [
             'author_name' => $request->author_name,
-            'author_photo' => $request->author_photo,
-            'author_link' => $request->author_link,
             'rating' => $request->rating,
             'review_text' => $request->review_text,
             'review_date' => $request->review_date,
             'source' => $request->source,
             'is_active' => $request->boolean('is_active', true),
             'is_verified' => true
-        ]);
+        ];
+        
+        // Ajouter les nouveaux champs seulement s'ils existent
+        if ($request->has('author_photo') && $request->author_photo) {
+            $reviewData['author_photo'] = $request->author_photo;
+        }
+        if ($request->has('author_link') && $request->author_link) {
+            $reviewData['author_link'] = $request->author_link;
+        }
+        
+        Review::create($reviewData);
 
         return redirect()->route('admin.reviews.index')
             ->with('success', 'Avis ajouté avec succès !');
@@ -275,16 +289,24 @@ class ReviewsController extends Controller
             'is_active' => 'boolean'
         ]);
 
-        $review->update([
+        $reviewData = [
             'author_name' => $request->author_name,
-            'author_photo' => $request->author_photo,
-            'author_link' => $request->author_link,
             'rating' => $request->rating,
             'review_text' => $request->review_text,
             'review_date' => $request->review_date,
             'source' => $request->source,
             'is_active' => $request->boolean('is_active', true)
-        ]);
+        ];
+        
+        // Ajouter les nouveaux champs seulement s'ils existent
+        if ($request->has('author_photo')) {
+            $reviewData['author_photo'] = $request->author_photo;
+        }
+        if ($request->has('author_link')) {
+            $reviewData['author_link'] = $request->author_link;
+        }
+        
+        $review->update($reviewData);
 
         return redirect()->route('admin.reviews.index')
             ->with('success', 'Avis mis à jour avec succès !');
