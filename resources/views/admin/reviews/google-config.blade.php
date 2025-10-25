@@ -116,24 +116,14 @@
                         </div>
                         
                         <div class="space-y-3">
-                            <form action="{{ route('admin.reviews.google.test-outscraper') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
-                                    <i class="fas fa-wifi mr-2"></i>Test Connexion Outscraper
-                                </button>
-                            </form>
+                            <button onclick="testConnection()" class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
+                                <i class="fas fa-wifi mr-2"></i>Test Connexion Outscraper
+                            </button>
                             
                             <form action="{{ route('admin.reviews.google.import-auto') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
-                                    <i class="fas fa-magic mr-2"></i>Import Automatique (Tous les avis)
-                                </button>
-                            </form>
-                            
-                            <form action="{{ route('admin.reviews.google.import') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
-                                    <i class="fab fa-google mr-2"></i>Import Standard (5 avis)
+                                    <i class="fas fa-download mr-2"></i>Récupérer les Avis
                                 </button>
                             </form>
                         </div>
@@ -219,6 +209,94 @@
     </div>
 </div>
 @endsection
+
+<!-- Modal de Test -->
+<div id="testModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                </div>
+                <h3 class="text-lg font-semibold text-center mb-2">Test de Connexion</h3>
+                <p class="text-gray-600 text-center">Vérification de la connexion avec Outscraper...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Résultat -->
+<div id="resultModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div id="resultIcon" class="flex items-center justify-center mb-4">
+                    <!-- Icône sera ajoutée par JavaScript -->
+                </div>
+                <h3 id="resultTitle" class="text-lg font-semibold text-center mb-2"></h3>
+                <p id="resultMessage" class="text-gray-600 text-center mb-4"></p>
+                <button onclick="closeResultModal()" class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    // Afficher le modal de test
+    document.getElementById('testModal').classList.remove('hidden');
+    
+    // Faire la requête AJAX
+    fetch('{{ route("admin.reviews.google.test-outscraper") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Cacher le modal de test
+        document.getElementById('testModal').classList.add('hidden');
+        
+        // Afficher le résultat
+        showResult(data.success, data.message);
+    })
+    .catch(error => {
+        // Cacher le modal de test
+        document.getElementById('testModal').classList.add('hidden');
+        
+        // Afficher l'erreur
+        showResult(false, 'Erreur de connexion: ' + error.message);
+    });
+}
+
+function showResult(success, message) {
+    const modal = document.getElementById('resultModal');
+    const icon = document.getElementById('resultIcon');
+    const title = document.getElementById('resultTitle');
+    const messageEl = document.getElementById('resultMessage');
+    
+    if (success) {
+        icon.innerHTML = '<i class="fas fa-check-circle text-green-600 text-4xl"></i>';
+        title.textContent = 'Connexion Réussie';
+        title.className = 'text-lg font-semibold text-center mb-2 text-green-600';
+    } else {
+        icon.innerHTML = '<i class="fas fa-times-circle text-red-600 text-4xl"></i>';
+        title.textContent = 'Connexion Échouée';
+        title.className = 'text-lg font-semibold text-center mb-2 text-red-600';
+    }
+    
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+}
+
+function closeResultModal() {
+    document.getElementById('resultModal').classList.add('hidden');
+}
+</script>
 
 
 
