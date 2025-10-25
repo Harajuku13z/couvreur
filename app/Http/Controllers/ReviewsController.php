@@ -16,7 +16,16 @@ class ReviewsController extends Controller
     public function index()
     {
         $reviews = Review::orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.reviews.index', compact('reviews'));
+        
+        // Statistiques
+        $stats = [
+            'total' => Review::count(),
+            'approved' => Review::where('approved', 1)->count(),
+            'pending' => Review::where('approved', 0)->count(),
+            'average_rating' => Review::where('approved', 1)->avg('rating') ?? 0
+        ];
+        
+        return view('admin.reviews.index', compact('reviews', 'stats'));
     }
 
     /**
