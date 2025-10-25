@@ -6,7 +6,6 @@ use App\Models\Review;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ReviewsController extends Controller
 {
@@ -33,11 +32,11 @@ class ReviewsController extends Controller
      */
     public function googleConfig()
     {
+        $googleApiKey = setting('google_api_key');
         $googlePlaceId = setting('google_place_id');
-        $outscraperApiKey = setting('outscraper_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        return view('admin.reviews.google-config', compact('googlePlaceId', 'outscraperApiKey', 'autoApprove'));
+        return view('admin.reviews.google-config', compact('googleApiKey', 'googlePlaceId', 'autoApprove'));
     }
 
     /**
@@ -46,45 +45,41 @@ class ReviewsController extends Controller
     public function saveGoogleConfig(Request $request)
     {
         $request->validate([
+            'google_api_key' => 'required|string',
             'google_place_id' => 'required|string',
-            'outscraper_api_key' => 'required|string',
             'auto_approve_google' => 'boolean',
         ]);
 
+        Setting::set('google_api_key', $request->google_api_key);
         Setting::set('google_place_id', $request->google_place_id);
-        Setting::set('outscraper_api_key', $request->outscraper_api_key);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
         
         Setting::clearCache();
 
         return redirect()->route('admin.reviews.google.config')
-            ->with('success', 'Configuration sauvegardée avec succès !');
+            ->with('success', 'Configuration Google sauvegardée avec succès !');
     }
 
     /**
-     * Tester la connexion avec Outscraper API
+     * Tester la connexion avec Google Places API
      */
-    public function testOutscraperConnection()
+    public function testGoogleConnection()
     {
         $placeId = setting('google_place_id');
-        $outscraperApiKey = setting('outscraper_api_key');
+        $apiKey = setting('google_api_key');
 
-        if (!$placeId || !$outscraperApiKey) {
+        if (!$placeId || !$apiKey) {
             return response()->json([
                 'success' => false,
-                'message' => 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Outscraper.'
+                'message' => 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Google.'
             ]);
         }
 
         try {
-            $response = Http::timeout(30)->get('https://api.outscraper.cloud/google-maps-reviews', [
-                'query' => $placeId,
-                'reviewsLimit' => 5,
-                'language' => 'fr',
-                'region' => 'FR',
-                'async' => 'false'
-            ], [
-                'X-API-KEY' => $outscraperApiKey
+            $response = Http::timeout(30)->get('https://maps.googleapis.com/maps/api/place/details/json', [
+                'place_id' => $placeId,
+                'fields' => 'name,rating,reviews',
+                'key' => $apiKey
             ]);
 
             if (!$response->successful()) {
@@ -96,21 +91,18 @@ class ReviewsController extends Controller
 
             $data = $response->json();
             
-            if (isset($data['data']) && is_array($data['data']) && !empty($data['data'])) {
-                $place = $data['data'][0];
-                if (isset($place['reviews']) && !empty($place['reviews'])) {
-                    $reviewCount = count($place['reviews']);
-                    return response()->json([
-                        'success' => true,
-                        'message' => "Connexion réussie ! {$reviewCount} avis trouvés."
-                    ]);
-                }
+            if (isset($data['result']['reviews']) && !empty($data['result']['reviews'])) {
+                $reviewCount = count($data['result']['reviews']);
+                return response()->json([
+                    'success' => true,
+                    'message' => "Connexion Google réussie ! {$reviewCount} avis trouvés."
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Connexion Google réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
+                ]);
             }
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Connexion réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
-            ]);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -121,64 +113,54 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis avec Outscraper API
+     * Importer les avis avec Google Places API
      */
-    public function importGoogleAuto()
+    public function importGoogleReviews()
     {
         $placeId = setting('google_place_id');
-        $outscraperApiKey = setting('outscraper_api_key');
+        $apiKey = setting('google_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        if (!$placeId || !$outscraperApiKey) {
+        if (!$placeId || !$apiKey) {
             return redirect()->route('admin.reviews.google.config')
                 ->with('error', 'Configuration manquante !');
         }
 
         try {
-            $response = Http::timeout(60)->get('https://api.outscraper.cloud/google-maps-reviews', [
-                'query' => $placeId,
-                'reviewsLimit' => 100,
-                'language' => 'fr',
-                'region' => 'FR',
-                'async' => 'false'
-            ], [
-                'X-API-KEY' => $outscraperApiKey
+            $response = Http::timeout(60)->get('https://maps.googleapis.com/maps/api/place/details/json', [
+                'place_id' => $placeId,
+                'fields' => 'name,rating,reviews',
+                'key' => $apiKey
             ]);
 
             if (!$response->successful()) {
                 return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Erreur API : ' . $response->status() . ' - ' . $response->body());
+                    ->with('error', 'Erreur API Google : ' . $response->status() . ' - ' . $response->body());
             }
 
             $data = $response->json();
             
-            if (!isset($data['data']) || !is_array($data['data']) || empty($data['data'])) {
+            if (!isset($data['result']['reviews']) || empty($data['result']['reviews'])) {
                 return redirect()->route('admin.reviews.google.config')
                     ->with('error', 'Aucun avis trouvé. Vérifiez votre Place ID.');
             }
 
-            $place = $data['data'][0];
-            if (!isset($place['reviews']) || empty($place['reviews'])) {
-                return redirect()->route('admin.reviews.google.config')
-                    ->with('error', 'Aucun avis trouvé. Vérifiez votre Place ID.');
-            }
-
-            $reviews = $place['reviews'];
+            $reviews = $data['result']['reviews'];
             $importedCount = 0;
             $updatedCount = 0;
 
             foreach ($reviews as $review) {
-                $googleReviewId = $review['review_id'] ?? md5($review['author_name'] . $review['review_datetime']);
+                $googleReviewId = $review['author_url'] ?? md5($review['author_name'] . $review['time']);
                 
                 $existingReview = Review::where('google_review_id', $googleReviewId)->first();
 
                 $reviewData = [
                     'google_review_id' => $googleReviewId,
                     'author_name' => $review['author_name'] ?? 'Auteur inconnu',
-                    'rating' => $review['review_rating'] ?? 5,
-                    'review_text' => $review['review_text'] ?? '',
-                    'review_date' => $review['review_datetime'] ?? now(),
-                    'source' => 'Google (Outscraper)',
+                    'rating' => $review['rating'] ?? 5,
+                    'review_text' => $review['text'] ?? '',
+                    'review_date' => isset($review['time']) ? date('Y-m-d H:i:s', $review['time']) : now(),
+                    'source' => 'Google Places',
                     'is_active' => $autoApprove ? 1 : 0,
                     'is_verified' => true
                 ];

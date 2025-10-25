@@ -10,9 +10,9 @@ Route::prefix('admin/reviews')->name('admin.reviews.')->middleware(['admin.auth'
     Route::post('/{id}/toggle-status', [ReviewsController::class, 'toggleStatus'])->name('toggle-status');
     Route::delete('/{id}', [ReviewsController::class, 'delete'])->name('delete');
     
-    // Configuration Google
+    // Configuration Google Places
     Route::get('/google/config', [ReviewsController::class, 'googleConfig'])->name('google.config');
     Route::post('/google/config', [ReviewsController::class, 'saveGoogleConfig'])->name('google.config.save');
-    Route::post('/google/import-auto', [ReviewsController::class, 'importGoogleAuto'])->name('google.import-auto');
-    Route::post('/google/test-outscraper', [ReviewsController::class, 'testOutscraperConnection'])->name('google.test-outscraper');
+    Route::post('/google/test', [ReviewsController::class, 'testGoogleConnection'])->name('google.test');
+    Route::post('/google/import', [ReviewsController::class, 'importGoogleReviews'])->name('google.import');
 });

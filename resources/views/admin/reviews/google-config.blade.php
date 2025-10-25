@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Configuration Google Reviews</h1>
-            <p class="text-gray-600 mt-2">Configurez l'import automatique des avis Google</p>
+            <p class="text-gray-600 mt-2">Importez vos avis Google directement</p>
         </div>
         <a href="{{ route('admin.reviews.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
             <i class="fas fa-arrow-left mr-2"></i>Retour aux Avis
@@ -31,12 +31,28 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Configuration -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuration</h2>
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuration Google Places</h2>
             
             <form action="{{ route('admin.reviews.google.config.save') }}" method="POST">
                 @csrf
                 
                 <div class="space-y-6">
+                    <div>
+                        <label for="google_api_key" class="block text-sm font-medium text-gray-700 mb-2">
+                            Clé API Google Places
+                        </label>
+                        <input type="text" 
+                               id="google_api_key" 
+                               name="google_api_key" 
+                               value="{{ old('google_api_key', $googleApiKey) }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Votre clé API Google Places"
+                               required>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Obtenez votre clé sur <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 hover:underline">Google Cloud Console</a>
+                        </p>
+                    </div>
+
                     <div>
                         <label for="google_place_id" class="block text-sm font-medium text-gray-700 mb-2">
                             Google Place ID
@@ -50,22 +66,6 @@
                                required>
                         <p class="text-sm text-gray-500 mt-1">
                             Trouvez votre Place ID sur <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" class="text-blue-600 hover:underline">Google Places API</a>
-                        </p>
-                    </div>
-
-                    <div>
-                        <label for="outscraper_api_key" class="block text-sm font-medium text-gray-700 mb-2">
-                            Clé API Outscraper
-                        </label>
-                        <input type="text" 
-                               id="outscraper_api_key" 
-                               name="outscraper_api_key" 
-                               value="{{ old('outscraper_api_key', $outscraperApiKey) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Votre clé API Outscraper"
-                               required>
-                        <p class="text-sm text-gray-500 mt-1">
-                            Obtenez votre clé sur <a href="https://outscraper.com/" target="_blank" class="text-blue-600 hover:underline">Outscraper.com</a>
                         </p>
                     </div>
 
@@ -92,7 +92,7 @@
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-6">Actions</h2>
             
-            @if($googlePlaceId && $outscraperApiKey)
+            @if($googleApiKey && $googlePlaceId)
                 <div class="space-y-4">
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div class="flex items-center">
@@ -106,13 +106,13 @@
                     
                     <div class="space-y-3">
                         <button onclick="testConnection()" class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
-                            <i class="fas fa-wifi mr-2"></i>Test Connexion Outscraper
+                            <i class="fas fa-wifi mr-2"></i>Test Connexion Google
                         </button>
                         
-                        <form action="{{ route('admin.reviews.google.import-auto') }}" method="POST">
+                        <form action="{{ route('admin.reviews.google.import') }}" method="POST">
                             @csrf
                             <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
-                                <i class="fas fa-download mr-2"></i>Récupérer les Avis
+                                <i class="fas fa-download mr-2"></i>Importer les Avis Google
                             </button>
                         </form>
                     </div>
@@ -135,10 +135,10 @@
                     <div>
                         <h3 class="text-sm font-medium text-blue-800">Comment ça marche ?</h3>
                         <ul class="text-sm text-blue-700 mt-2 space-y-1">
-                            <li>• Configurez votre Place ID Google</li>
-                            <li>• Ajoutez votre clé API Outscraper</li>
+                            <li>• Configurez votre clé API Google Places</li>
+                            <li>• Ajoutez votre Place ID Google</li>
                             <li>• Testez la connexion</li>
-                            <li>• Importez tous vos avis</li>
+                            <li>• Importez vos avis (max 5 par requête)</li>
                         </ul>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
                 </div>
                 <h3 class="text-lg font-semibold text-center mb-2">Test de Connexion</h3>
-                <p class="text-gray-600 text-center">Vérification de la connexion avec Outscraper...</p>
+                <p class="text-gray-600 text-center">Vérification de la connexion avec Google Places...</p>
             </div>
         </div>
     </div>
@@ -190,7 +190,7 @@ function testConnection() {
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
     
     // Faire la requête AJAX
-    fetch('{{ route("admin.reviews.google.test-outscraper") }}', {
+    fetch('{{ route("admin.reviews.google.test") }}', {
         method: 'POST',
         body: formData,
         headers: {
