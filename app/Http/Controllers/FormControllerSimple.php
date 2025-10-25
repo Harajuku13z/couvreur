@@ -89,7 +89,7 @@ class FormControllerSimple extends Controller
             $request->validate([
                 'author_name' => 'required|string|max:255',
                 'rating' => 'required|integer|min:1|max:5',
-                'review_text' => 'required|string|min:10|max:1000',
+                'review_text' => 'required|string|min:5|max:1000',
                 'review_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'honeypot' => 'nullable|string|max:0', // Honeypot anti-spam
                 'timestamp' => 'required|integer'
@@ -146,11 +146,15 @@ class FormControllerSimple extends Controller
             if ($request->hasFile('review_photos')) {
                 $photos = [];
                 foreach ($request->file('review_photos') as $photo) {
-                    $filename = time() . '_' . $photo->getClientOriginalName();
-                    $path = $photo->storeAs('reviews', $filename, 'public');
-                    $photos[] = $path;
+                    if ($photo->isValid()) {
+                        $filename = time() . '_' . $photo->getClientOriginalName();
+                        $path = $photo->storeAs('reviews', $filename, 'public');
+                        $photos[] = $path;
+                    }
                 }
-                $review->update(['review_photos' => json_encode($photos)]);
+                if (!empty($photos)) {
+                    $review->update(['review_photos' => $photos]);
+                }
             }
 
             return response()->json([
