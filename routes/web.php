@@ -268,7 +268,7 @@ Route::middleware(['check.setup'])->group(function () {
                 Route::post('/google/import-advanced', [ReviewsController::class, 'importGoogleAdvanced'])->name('google.import-advanced');
                 
                 // Suppression de tous les avis
-                Route::delete('/delete-all', [ReviewsController::class, 'deleteAll'])->name('delete-all');
+                Route::post('/delete-all', [ReviewsController::class, 'deleteAll'])->name('delete-all');
                 
                 // API AJAX
                 Route::get('/{review}/get', [ReviewsController::class, 'get'])->name('get');
