@@ -72,6 +72,79 @@ class FormControllerSimple extends Controller
     }
 
     /**
+     * Soumettre un nouvel avis public
+     */
+    public function storeReview(Request $request)
+    {
+        try {
+            // Validation
+            $request->validate([
+                'author_name' => 'required|string|max:255',
+                'rating' => 'required|integer|min:1|max:5',
+                'review_text' => 'required|string|min:10|max:1000',
+                'review_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'recaptcha_response' => 'required|string'
+            ]);
+
+            // Vérifier reCAPTCHA
+            $recaptchaResponse = $request->input('recaptcha_response');
+            $secretKey = setting('recaptcha_secret_key', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJv');
+            
+            $recaptchaUrl = 'https://www.google.com/recaptcha/api/siteverify';
+            $recaptchaData = [
+                'secret' => $secretKey,
+                'response' => $recaptchaResponse,
+                'remoteip' => $request->ip()
+            ];
+            
+            $recaptchaResult = file_get_contents($recaptchaUrl . '?' . http_build_query($recaptchaData));
+            $recaptchaResult = json_decode($recaptchaResult, true);
+            
+            if (!$recaptchaResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'reCAPTCHA invalide'
+                ], 400);
+            }
+
+            // Créer l'avis
+            $reviewData = [
+                'author_name' => $request->author_name,
+                'rating' => $request->rating,
+                'review_text' => $request->review_text,
+                'review_date' => now(),
+                'source' => 'Site Web',
+                'is_active' => false, // En attente de validation
+                'is_verified' => false
+            ];
+
+            $review = Review::create($reviewData);
+
+            // Gérer les photos
+            if ($request->hasFile('review_photos')) {
+                $photos = [];
+                foreach ($request->file('review_photos') as $photo) {
+                    $filename = time() . '_' . $photo->getClientOriginalName();
+                    $path = $photo->storeAs('reviews', $filename, 'public');
+                    $photos[] = $path;
+                }
+                $review->update(['review_photos' => json_encode($photos)]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Votre avis a été soumis avec succès ! Il sera publié après validation.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Enregistrer un clic sur un lien téléphone
      */
     public function trackPhoneCall(Request $request)

@@ -16,6 +16,7 @@ class Review extends Model
         'author_location',
         'rating',
         'review_text',
+        'review_photos',
         'google_review_id',
         'author_photo_url',
         'review_date',
@@ -31,6 +32,7 @@ class Review extends Model
         'is_active' => 'boolean',
         'rating' => 'integer',
         'display_order' => 'integer',
+        'review_photos' => 'array',
     ];
 
     // Scopes

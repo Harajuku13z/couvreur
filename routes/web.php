@@ -130,6 +130,7 @@ Route::middleware(['check.setup'])->group(function () {
     Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
     // Route pour tous les avis
     Route::get('/avis', [FormControllerSimple::class, 'allReviews'])->name('reviews.all');
+    Route::post('/avis', [FormControllerSimple::class, 'storeReview'])->name('reviews.store');
     // Route pour nos réalisations
     Route::get('/nos-realisations', [App\Http\Controllers\PortfolioController::class, 'index'])->name('portfolio.index');
     Route::get('/nos-realisations/{slug}', [App\Http\Controllers\PortfolioController::class, 'show'])->name('portfolio.show');
