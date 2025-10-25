@@ -277,6 +277,13 @@ class ReviewsController extends Controller
         }
 
         try {
+            // Debug: Afficher les paramètres
+            Log::info('Outscraper API Debug:', [
+                'place_id' => $placeId,
+                'api_key' => substr($outscraperApiKey, 0, 10) . '...',
+                'url' => 'https://api.outscraper.com/maps/reviews-v3'
+            ]);
+
             // Utilisation de l'API Outscraper pour récupérer TOUS les avis
             $response = Http::timeout(60)->post('https://api.outscraper.com/maps/reviews-v3', [
                 'query' => $placeId,
@@ -290,6 +297,13 @@ class ReviewsController extends Controller
                 'Content-Type' => 'application/json'
             ]);
 
+            // Debug: Afficher la réponse complète
+            Log::info('Outscraper API Response:', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body' => $response->body()
+            ]);
+
             if (!$response->successful()) {
                 Log::error('Erreur Outscraper API: ' . $response->status() . ' - ' . $response->body());
                 return redirect()->route('admin.reviews.index')
@@ -298,16 +312,41 @@ class ReviewsController extends Controller
 
             $data = $response->json();
             
+            // Debug: Afficher la structure des données
+            Log::info('Outscraper API Data Structure:', [
+                'data_type' => gettype($data),
+                'data_count' => is_array($data) ? count($data) : 'not_array',
+                'data_content' => $data
+            ]);
+            
             if (!isset($data[0]['reviews']) || empty($data[0]['reviews'])) {
+                Log::warning('Aucun avis trouvé dans la réponse Outscraper');
                 return redirect()->route('admin.reviews.index')
-                    ->with('error', 'Aucun avis trouvé pour ce Place ID via Outscraper.');
+                    ->with('error', 'Aucun avis trouvé pour ce Place ID via Outscraper. Réponse: ' . json_encode($data));
             }
 
             $allReviews = $data[0]['reviews'];
+            
+            // Debug: Afficher le premier avis pour voir la structure
+            if (!empty($allReviews)) {
+                Log::info('Premier avis Outscraper:', [
+                    'review_structure' => $allReviews[0],
+                    'total_reviews' => count($allReviews)
+                ]);
+            }
+            
             $imported = 0;
             $skipped = 0;
 
             foreach ($allReviews as $index => $review) {
+                // Debug: Afficher les champs disponibles dans l'avis
+                if ($index === 0) {
+                    Log::info('Champs disponibles dans l\'avis:', [
+                        'available_fields' => array_keys($review),
+                        'review_data' => $review
+                    ]);
+                }
+                
                 // Adapter le format Outscraper
                 $reviewDate = isset($review['review_datetime_utc']) 
                     ? date('Y-m-d H:i:s', strtotime($review['review_datetime_utc']))
