@@ -77,14 +77,14 @@ class ReviewsController extends Controller
         }
 
         try {
-            $response = Http::timeout(30)->post('https://api.outscraper.com/maps/reviews-v3', [
+            $response = Http::timeout(30)->get('https://api.outscraper.cloud/google-maps-reviews', [
                 'query' => $placeId,
-                'limit' => 5,
+                'reviewsLimit' => 5,
                 'language' => 'fr',
-                'region' => 'fr'
+                'region' => 'FR',
+                'async' => 'false'
             ], [
-                'X-API-KEY' => $outscraperApiKey,
-                'Content-Type' => 'application/json'
+                'X-API-KEY' => $outscraperApiKey
             ]);
 
             if (!$response->successful()) {
@@ -96,18 +96,21 @@ class ReviewsController extends Controller
 
             $data = $response->json();
             
-            if (isset($data[0]['reviews']) && !empty($data[0]['reviews'])) {
-                $reviewCount = count($data[0]['reviews']);
-                return response()->json([
-                    'success' => true,
-                    'message' => "Connexion réussie ! {$reviewCount} avis trouvés."
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Connexion réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
-                ]);
+            if (isset($data['data']) && is_array($data['data']) && !empty($data['data'])) {
+                $place = $data['data'][0];
+                if (isset($place['reviews']) && !empty($place['reviews'])) {
+                    $reviewCount = count($place['reviews']);
+                    return response()->json([
+                        'success' => true,
+                        'message' => "Connexion réussie ! {$reviewCount} avis trouvés."
+                    ]);
+                }
             }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Connexion réussie mais aucun avis trouvé. Vérifiez votre Place ID.'
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -132,14 +135,14 @@ class ReviewsController extends Controller
         }
 
         try {
-            $response = Http::timeout(60)->post('https://api.outscraper.com/maps/reviews-v3', [
+            $response = Http::timeout(60)->get('https://api.outscraper.cloud/google-maps-reviews', [
                 'query' => $placeId,
-                'limit' => 100,
+                'reviewsLimit' => 100,
                 'language' => 'fr',
-                'region' => 'fr'
+                'region' => 'FR',
+                'async' => 'false'
             ], [
-                'X-API-KEY' => $outscraperApiKey,
-                'Content-Type' => 'application/json'
+                'X-API-KEY' => $outscraperApiKey
             ]);
 
             if (!$response->successful()) {
@@ -149,12 +152,18 @@ class ReviewsController extends Controller
 
             $data = $response->json();
             
-            if (!isset($data[0]['reviews']) || empty($data[0]['reviews'])) {
+            if (!isset($data['data']) || !is_array($data['data']) || empty($data['data'])) {
                 return redirect()->route('admin.reviews.google.config')
                     ->with('error', 'Aucun avis trouvé. Vérifiez votre Place ID.');
             }
 
-            $reviews = $data[0]['reviews'];
+            $place = $data['data'][0];
+            if (!isset($place['reviews']) || empty($place['reviews'])) {
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('error', 'Aucun avis trouvé. Vérifiez votre Place ID.');
+            }
+
+            $reviews = $place['reviews'];
             $importedCount = 0;
             $updatedCount = 0;
 
