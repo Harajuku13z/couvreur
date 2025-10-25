@@ -5,14 +5,33 @@
 
 @push('head')
 <link rel="canonical" href="{{ url()->current() }}" />
-@if($ad->content_json && isset($ad->content_json['og_title']))
-<meta property="og:title" content="{{ $ad->content_json['og_title'] }}">
-@endif
-@if($ad->content_json && isset($ad->content_json['og_description']))
-<meta property="og:description" content="{{ $ad->content_json['og_description'] }}">
-@endif
+
+<!-- Open Graph pour les réseaux sociaux -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ $ad->content_json['og_title'] ?? $ad->meta_title ?? $ad->title }}">
+<meta property="og:description" content="{{ $ad->content_json['og_description'] ?? $ad->meta_description ?? Str::limit(strip_tags($ad->content_html ?? ''), 150) }}">
+<meta property="og:url" content="{{ request()->url() }}">
 @if($ad->content_json && isset($ad->content_json['service_featured_image']))
-<meta property="og:image" content="{{ url($ad->content_json['service_featured_image']) }}">
+<meta property="og:image" content="{{ asset($ad->content_json['service_featured_image']) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ $ad->title }}">
+@else
+<meta property="og:image" content="{{ asset('images/og-services.jpg') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ $ad->title }}">
+@endif
+<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $ad->content_json['og_title'] ?? $ad->meta_title ?? $ad->title }}">
+<meta name="twitter:description" content="{{ $ad->content_json['og_description'] ?? $ad->meta_description ?? Str::limit(strip_tags($ad->content_html ?? ''), 150) }}">
+@if($ad->content_json && isset($ad->content_json['service_featured_image']))
+<meta name="twitter:image" content="{{ asset($ad->content_json['service_featured_image']) }}">
+@else
+<meta name="twitter:image" content="{{ asset('images/og-services.jpg') }}">
 @endif
 @endpush
 

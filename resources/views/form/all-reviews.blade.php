@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
 @section('title', 'Tous nos avis clients - ' . setting('company_name'))
+@section('description', 'Découvrez les avis de nos clients satisfaits. Plus de ' . $stats['total'] . ' avis avec une note moyenne de ' . $stats['average'] . '/5. Témoignages authentiques sur nos services de couverture et rénovation.')
+
+@push('head')
+<!-- Open Graph pour les réseaux sociaux -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Avis Clients - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="og:description" content="Découvrez les avis de nos clients satisfaits. Plus de {{ $stats['total'] }} avis avec une note moyenne de {{ $stats['average'] }}/5. Témoignages authentiques sur nos services de couverture et rénovation.">
+<meta property="og:url" content="{{ request()->url() }}">
+<meta property="og:image" content="{{ asset('images/og-avis-clients.jpg') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Avis clients - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Avis Clients - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta name="twitter:description" content="Découvrez les avis de nos clients satisfaits. Plus de {{ $stats['total'] }} avis avec une note moyenne de {{ $stats['average'] }}/5.">
+<meta name="twitter:image" content="{{ asset('images/og-avis-clients.jpg') }}">
+@endpush
 
 @php
 use Illuminate\Support\Facades\Storage;

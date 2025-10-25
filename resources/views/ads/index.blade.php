@@ -3,6 +3,23 @@
 @section('title', 'Nos Annonces')
 
 @push('head')
+<!-- Open Graph pour les réseaux sociaux -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Nos Annonces - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="og:description" content="Découvrez nos services par ville. Solutions professionnelles de couverture et rénovation dans toute la région.">
+<meta property="og:url" content="{{ request()->url() }}">
+<meta property="og:image" content="{{ asset('images/og-services.jpg') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nos Annonces - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nos Annonces - {{ setting('company_name', 'Sauser Couverture') }}">
+<meta name="twitter:description" content="Découvrez nos services par ville. Solutions professionnelles de couverture et rénovation dans toute la région.">
+<meta name="twitter:image" content="{{ asset('images/og-services.jpg') }}">
+
 <style>
     /* Variables de couleurs de branding */
     :root {

@@ -6,6 +6,23 @@
     <title>Nos Services - {{ setting('company_name', 'Votre Entreprise') }}</title>
     <meta name="description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
     
+    <!-- Open Graph pour les réseaux sociaux -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
+    <meta property="og:description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
+    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:image" content="{{ asset('images/og-services.jpg') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
+    <meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
+    <meta name="twitter:description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
+    <meta name="twitter:image" content="{{ asset('images/og-services.jpg') }}">
+    
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

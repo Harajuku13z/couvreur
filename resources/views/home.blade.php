@@ -4,6 +4,22 @@
 @section('description', setting('company_description', 'Expert en travaux de rénovation'))
 
 @push('head')
+<!-- Open Graph pour les réseaux sociaux -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ setting('company_name', 'Sauser Couverture') }} - {{ setting('company_specialization', 'Travaux de Rénovation') }}">
+<meta property="og:description" content="{{ setting('company_description', 'Expert en travaux de rénovation et couverture. Devis gratuit, intervention rapide, qualité garantie.') }}">
+<meta property="og:url" content="{{ request()->url() }}">
+<meta property="og:image" content="{{ asset('images/og-accueil.jpg') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ setting('company_name', 'Sauser Couverture') }} - {{ setting('company_specialization', 'Travaux de Rénovation') }}">
+<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ setting('company_name', 'Sauser Couverture') }} - {{ setting('company_specialization', 'Travaux de Rénovation') }}">
+<meta name="twitter:description" content="{{ setting('company_description', 'Expert en travaux de rénovation et couverture. Devis gratuit, intervention rapide, qualité garantie.') }}">
+<meta name="twitter:image" content="{{ asset('images/og-accueil.jpg') }}">
 <style>
     :root {
         --primary-color: {{ setting('primary_color', '#3b82f6') }};

@@ -4,7 +4,37 @@
 @section('description', $article->meta_description)
 @section('keywords', $article->meta_keywords)
 
-@section('head')
+@push('head')
+<!-- Open Graph pour les réseaux sociaux -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ $article->meta_title ?: $article->title }}">
+<meta property="og:description" content="{{ $article->meta_description }}">
+<meta property="og:url" content="{{ request()->url() }}">
+@if($article->featured_image)
+<meta property="og:image" content="{{ asset($article->featured_image) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ $article->title }}">
+@else
+<meta property="og:image" content="{{ asset('images/og-blog.jpg') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ $article->title }}">
+@endif
+<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="article:published_time" content="{{ $article->created_at->toISOString() }}">
+<meta property="article:author" content="{{ setting('company_name', 'Sauser Couverture') }}">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $article->meta_title ?: $article->title }}">
+<meta name="twitter:description" content="{{ $article->meta_description }}">
+@if($article->featured_image)
+<meta name="twitter:image" content="{{ asset($article->featured_image) }}">
+@else
+<meta name="twitter:image" content="{{ asset('images/og-blog.jpg') }}">
+@endif
+
 <style>
 /* Styles pour le contenu généré par ChatGPT avec Tailwind CSS */
 .article-content {
@@ -178,9 +208,9 @@
         font-size: 1.25rem;
         line-height: 1.75rem;
     }
-}
+    }
 </style>
-@endsection
+@endpush
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
