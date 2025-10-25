@@ -3,7 +3,7 @@
 use App\Http\Controllers\ReviewsController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin/reviews')->name('admin.reviews.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin/reviews')->name('admin.reviews.')->middleware(['admin.auth'])->group(function () {
     // Routes principales
     Route::get('/', [ReviewsController::class, 'index'])->name('index');
     Route::post('/delete-all', [ReviewsController::class, 'deleteAll'])->name('delete-all');
