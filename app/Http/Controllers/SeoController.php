@@ -90,12 +90,17 @@ class SeoController extends Controller
             'sitemap_changefreq' => 'nullable|string|in:always,hourly,daily,weekly,monthly,yearly,never'
         ]);
 
+        // Récupérer la configuration existante
+        $existingConfig = Setting::get('seo_config', '[]');
+        $existingConfig = is_string($existingConfig) ? json_decode($existingConfig, true) : ($existingConfig ?? []);
+        
         $config = [
             'meta_title' => $request->input('meta_title', ''),
             'meta_description' => $request->input('meta_description', ''),
             'meta_keywords' => $request->input('meta_keywords', ''),
             'og_title' => $request->input('og_title', ''),
             'og_description' => $request->input('og_description', ''),
+            'og_image' => $existingConfig['og_image'] ?? '', // Préserver l'image existante
             'twitter_card' => $request->input('twitter_card', 'summary_large_image'),
             'twitter_site' => $request->input('twitter_site', ''),
             'twitter_creator' => $request->input('twitter_creator', ''),
@@ -114,7 +119,10 @@ class SeoController extends Controller
             'google_ads' => $request->input('google_ads', ''),
             'bing_webmaster' => $request->input('bing_webmaster', ''),
             'schema_markup' => $request->input('schema_markup', ''),
-            'structured_data' => $request->input('structured_data', [])
+            'structured_data' => $request->input('structured_data', []),
+            'favicon' => $existingConfig['favicon'] ?? '', // Préserver l'image existante
+            'apple_touch_icon' => $existingConfig['apple_touch_icon'] ?? '', // Préserver l'image existante
+            'manifest' => $existingConfig['manifest'] ?? '' // Préserver le manifest existant
         ];
 
         // Gestion des uploads d'images
@@ -150,15 +158,15 @@ class SeoController extends Controller
         \Log::info('SEO Config to save:', ['config' => $config]);
         
         try {
-            // Sauvegarder en JSON (pour la compatibilité avec l'interface admin)
-            Setting::set('seo_config', json_encode($config), 'json', 'seo');
-            
-            // Sauvegarder aussi les paramètres individuels (pour la compatibilité avec le layout)
-            Setting::set('meta_title', $config['meta_title'], 'string', 'seo');
-            Setting::set('meta_description', $config['meta_description'], 'string', 'seo');
-            Setting::set('meta_keywords', $config['meta_keywords'], 'string', 'seo');
-            Setting::set('og_title', $config['og_title'], 'string', 'seo');
-            Setting::set('og_description', $config['og_description'], 'string', 'seo');
+        // Sauvegarder en JSON (pour la compatibilité avec l'interface admin)
+        Setting::set('seo_config', json_encode($config), 'json', 'seo');
+        
+        // Sauvegarder aussi les paramètres individuels (pour la compatibilité avec le layout)
+        Setting::set('meta_title', $config['meta_title'], 'string', 'seo');
+        Setting::set('meta_description', $config['meta_description'], 'string', 'seo');
+        Setting::set('meta_keywords', $config['meta_keywords'], 'string', 'seo');
+        Setting::set('og_title', $config['og_title'], 'string', 'seo');
+        Setting::set('og_description', $config['og_description'], 'string', 'seo');
             
             \Log::info('SEO Config saved successfully');
             
@@ -171,28 +179,60 @@ class SeoController extends Controller
     }
 
     /**
-     * Mettre à jour les métadonnées d'une page spécifique
+     * Afficher la configuration SEO par page
      */
-    public function updatePage(Request $request)
+    public function pages()
     {
-        $request->validate([
-            'page_key' => 'required|string',
-            'page_title' => 'required|string|max:60',
-            'page_description' => 'required|string|max:160'
-        ]);
+        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        $seoPages = [];
+        
+        foreach ($pages as $page) {
+            $seoPages[$page] = [
+                'meta_title' => Setting::get("seo_page_{$page}_meta_title", ''),
+                'meta_description' => Setting::get("seo_page_{$page}_meta_description", ''),
+                'og_title' => Setting::get("seo_page_{$page}_og_title", ''),
+                'og_description' => Setting::get("seo_page_{$page}_og_description", ''),
+                'og_image' => Setting::get("seo_page_{$page}_og_image", ''),
+            ];
+        }
+        
+        return view('admin.seo.pages', compact('seoPages'));
+    }
 
-        $pageKey = $request->input('page_key');
-        $pageTitle = $request->input('page_title');
-        $pageDescription = $request->input('page_description');
-
-        // Sauvegarder les métadonnées spécifiques à la page
-        $pageSeoKey = 'seo_page_' . $pageKey;
-        Setting::set($pageSeoKey, [
-            'title' => $pageTitle,
-            'description' => $pageDescription
-        ]);
-
-        return redirect()->route('admin.seo.index')->with('success', 'Métadonnées de la page mises à jour avec succès !');
+    /**
+     * Mettre à jour les métadonnées de toutes les pages
+     */
+    public function updatePages(Request $request)
+    {
+        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        
+        foreach ($pages as $page) {
+            // Sauvegarder les métadonnées de base
+            if ($request->has("{$page}_meta_title")) {
+                Setting::set("seo_page_{$page}_meta_title", $request->input("{$page}_meta_title", ''));
+            }
+            if ($request->has("{$page}_meta_description")) {
+                Setting::set("seo_page_{$page}_meta_description", $request->input("{$page}_meta_description", ''));
+            }
+            if ($request->has("{$page}_og_title")) {
+                Setting::set("seo_page_{$page}_og_title", $request->input("{$page}_og_title", ''));
+            }
+            if ($request->has("{$page}_og_description")) {
+                Setting::set("seo_page_{$page}_og_description", $request->input("{$page}_og_description", ''));
+            }
+            
+            // Gérer l'upload d'image Open Graph
+            if ($request->hasFile("{$page}_og_image")) {
+                $file = $request->file("{$page}_og_image");
+                $filename = "og-{$page}-" . time() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/seo'), $filename);
+                Setting::set("seo_page_{$page}_og_image", "uploads/seo/{$filename}");
+            }
+        }
+        
+        Setting::clearCache();
+        
+        return redirect()->route('admin.seo.pages')->with('success', 'Configuration SEO des pages sauvegardée avec succès !');
     }
 
     /**

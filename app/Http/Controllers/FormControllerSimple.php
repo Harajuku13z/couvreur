@@ -68,7 +68,10 @@ class FormControllerSimple extends Controller
             'average' => round(Review::active()->avg('rating'), 1),
         ];
         
-        return view('form.all-reviews', compact('reviews', 'stats'));
+        // Set current page for SEO
+        $currentPage = 'reviews';
+        
+        return view('form.all-reviews', compact('reviews', 'stats', 'currentPage'));
     }
 
     /**
@@ -86,29 +89,25 @@ class FormControllerSimple extends Controller
     {
         try {
             // Validation avec messages personnalisés en français
-            $request->validate([
-                'author_name' => 'required|string|max:255',
-                'rating' => 'required|integer|min:1|max:5',
-                'review_text' => 'required|string|min:5|max:1000',
-                'review_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'honeypot' => 'nullable|string|max:0', // Honeypot anti-spam
-                'timestamp' => 'required|integer'
-            ], [
-                'author_name.required' => 'Le nom est obligatoire.',
-                'author_name.max' => 'Le nom ne peut pas dépasser 255 caractères.',
-                'rating.required' => 'La note est obligatoire.',
-                'rating.integer' => 'La note doit être un nombre entier.',
-                'rating.min' => 'La note doit être au minimum 1.',
-                'rating.max' => 'La note doit être au maximum 5.',
-                'review_text.required' => 'Le texte de l\'avis est obligatoire.',
-                'review_text.min' => 'Le texte de l\'avis doit contenir au minimum 5 caractères.',
-                'review_text.max' => 'Le texte de l\'avis ne peut pas dépasser 1000 caractères.',
-                'review_photos.*.image' => 'Les fichiers doivent être des images.',
-                'review_photos.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
-                'review_photos.*.max' => 'Chaque image ne peut pas dépasser 2MB.',
-                'timestamp.required' => 'Erreur de session, veuillez réessayer.',
-                'timestamp.integer' => 'Erreur de session, veuillez réessayer.'
-            ]);
+                $request->validate([
+                    'author_name' => 'required|string|max:255',
+                    'rating' => 'required|integer|min:1|max:5',
+                    'review_text' => 'required|string|min:5|max:1000',
+                    'honeypot' => 'nullable|string|max:0', // Honeypot anti-spam
+                    'timestamp' => 'required|integer'
+                ], [
+                    'author_name.required' => 'Le nom est obligatoire.',
+                    'author_name.max' => 'Le nom ne peut pas dépasser 255 caractères.',
+                    'rating.required' => 'La note est obligatoire.',
+                    'rating.integer' => 'La note doit être un nombre entier.',
+                    'rating.min' => 'La note doit être au minimum 1.',
+                    'rating.max' => 'La note doit être au maximum 5.',
+                    'review_text.required' => 'Le texte de l\'avis est obligatoire.',
+                    'review_text.min' => 'Le texte de l\'avis doit contenir au minimum 5 caractères.',
+                    'review_text.max' => 'Le texte de l\'avis ne peut pas dépasser 1000 caractères.',
+                    'timestamp.required' => 'Erreur de session, veuillez réessayer.',
+                    'timestamp.integer' => 'Erreur de session, veuillez réessayer.'
+                ]);
 
             // Protection anti-spam personnalisée
             $honeypot = $request->input('honeypot');
@@ -157,26 +156,7 @@ class FormControllerSimple extends Controller
 
             $review = Review::create($reviewData);
 
-            // Gérer les photos (avec vérification de l'existence de la colonne)
-            if ($request->hasFile('review_photos')) {
-                try {
-                    $photos = [];
-                    foreach ($request->file('review_photos') as $photo) {
-                        if ($photo->isValid()) {
-                            $filename = time() . '_' . $photo->getClientOriginalName();
-                            $path = $photo->storeAs('reviews', $filename, 'public');
-                            $photos[] = $path;
-                        }
-                    }
-                    if (!empty($photos)) {
-                        // Vérifier si la colonne existe avant de l'utiliser
-                        $review->update(['review_photos' => $photos]);
-                    }
-                } catch (\Exception $e) {
-                    // Si la colonne n'existe pas, on ignore l'erreur et on continue
-                    \Log::info('Colonne review_photos non disponible: ' . $e->getMessage());
-                }
-            }
+            // Système de photos supprimé
 
             return response()->json([
                 'success' => true,

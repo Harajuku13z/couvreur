@@ -3,26 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', setting('meta_title', setting('company_name', 'Sausser Couverture')))</title>
-    <meta name="description" content="@yield('description', setting('meta_description', 'Expert en travaux de rénovation'))">
+    @php
+        $currentPage = $currentPage ?? 'home';
+        $seoData = \App\Helpers\SeoHelper::generateMetaTags($currentPage, [
+            'title' => $pageTitle ?? '',
+            'description' => $pageDescription ?? '',
+            'image' => $pageImage ?? '',
+            'type' => $pageType ?? 'website'
+        ]);
+    @endphp
+    
+    <title>{{ $seoData['title'] ?: setting('company_name', 'Sausser Couverture') }}</title>
+    <meta name="description" content="{{ $seoData['description'] ?: 'Expert en travaux de rénovation' }}">
     <meta name="keywords" content="@yield('keywords', setting('meta_keywords', 'travaux, rénovation, toiture, façade'))">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="@yield('og_title', setting('meta_title', setting('company_name')))">
-    <meta property="og:description" content="@yield('og_description', setting('meta_description', 'Expert en travaux de rénovation'))">
-    <meta property="og:image" content="@yield('og_image', setting('og_image') ? asset(setting('og_image')) : (setting('company_logo') ? asset(setting('company_logo')) : asset('logo/logo.png')))">
+    <meta property="og:title" content="{{ $seoData['og:title'] ?: setting('company_name') }}">
+    <meta property="og:description" content="{{ $seoData['og:description'] ?: 'Expert en travaux de rénovation' }}">
+    <meta property="og:image" content="{{ $seoData['og:image'] ?: asset('logo/logo.png') }}">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $seoData['og:type'] ?: 'website' }}">
     <meta property="og:site_name" content="{{ setting('company_name', 'Sausser Couverture') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('twitter_title', setting('meta_title', setting('company_name')))">
-    <meta name="twitter:description" content="@yield('twitter_description', setting('meta_description', 'Expert en travaux de rénovation'))">
-    <meta name="twitter:image" content="@yield('twitter_image', setting('og_image') ? asset(setting('og_image')) : (setting('company_logo') ? asset(setting('company_logo')) : asset('logo/logo.png')))">
+    <meta name="twitter:title" content="{{ $seoData['twitter:title'] ?: setting('company_name') }}">
+    <meta name="twitter:description" content="{{ $seoData['twitter:description'] ?: 'Expert en travaux de rénovation' }}">
+    <meta name="twitter:image" content="{{ $seoData['twitter:image'] ?: asset('logo/logo.png') }}">
     
     <!-- Favicon -->
     @if(setting('site_favicon'))

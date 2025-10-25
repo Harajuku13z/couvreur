@@ -299,8 +299,10 @@ Route::middleware(['check.setup'])->group(function () {
     // ===== SEO ROUTES =====
     Route::prefix('admin/seo')->name('admin.seo.')->middleware(['admin.auth'])->group(function () {
         Route::get('/', [App\Http\Controllers\SeoController::class, 'index'])->name('index');
+        Route::get('/pages', [App\Http\Controllers\SeoController::class, 'pages'])->name('pages');
         Route::get('/test', function() { return view('admin.seo.test'); })->name('test.page');
         Route::post('/update', [App\Http\Controllers\SeoController::class, 'update'])->name('update');
+        Route::post('/update-pages', [App\Http\Controllers\SeoController::class, 'updatePages'])->name('update-pages');
         Route::post('/update-page', [App\Http\Controllers\SeoController::class, 'updatePage'])->name('update-page');
         Route::get('/test-seo', [App\Http\Controllers\SeoController::class, 'testSeo'])->name('test');
     });

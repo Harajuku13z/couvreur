@@ -4,7 +4,14 @@
 
 @section('content')
 <div class="p-6">
-    <h1 class="text-2xl font-bold mb-6">Gestion SEO</h1>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Gestion SEO</h1>
+        <div class="space-x-4">
+            <a href="{{ route('admin.seo.pages') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                <i class="fas fa-cog mr-2"></i>Configuration par Page
+            </a>
+        </div>
+    </div>
     
     @if(session('success'))
     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">

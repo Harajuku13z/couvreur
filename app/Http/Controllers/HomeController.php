@@ -13,6 +13,9 @@ class HomeController extends Controller
         // Get homepage configuration
         $homeConfig = $this->getHomeConfig();
         
+        // Set current page for SEO
+        $currentPage = 'home';
+        
         // Get services
         $servicesData = Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
@@ -113,7 +116,8 @@ class HomeController extends Controller
             'averageRating',
             'totalReviews',
             'companySettings',
-            'branding'
+            'branding',
+            'currentPage'
         ));
     }
     

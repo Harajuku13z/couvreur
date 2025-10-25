@@ -42,7 +42,10 @@ class ServicesController extends Controller
             return isset($service['is_visible']) ? $service['is_visible'] : true;
         });
         
-        return view('services.index', compact('visibleServices'));
+        // Set current page for SEO
+        $currentPage = 'services';
+        
+        return view('services.index', compact('visibleServices', 'currentPage'));
     }
 
     /**

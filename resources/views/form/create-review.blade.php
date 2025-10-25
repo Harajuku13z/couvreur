@@ -78,24 +78,7 @@
                             <p class="text-sm text-gray-500 mt-2">Partagez les détails de votre expérience pour aider d'autres clients</p>
                         </div>
 
-                        <!-- Photos -->
-                        <div>
-                            <label for="review_photos" class="block text-lg font-semibold text-gray-700 mb-3">
-                                Photos de vos travaux (optionnel)
-                            </label>
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
-                                <input type="file" id="review_photos" name="review_photos[]" multiple accept="image/*"
-                                       class="hidden">
-                                <label for="review_photos" class="cursor-pointer">
-                                    <i class="fas fa-camera text-4xl text-gray-400 mb-4"></i>
-                                    <p class="text-lg text-gray-600 mb-2">Cliquez pour ajouter des photos</p>
-                                    <p class="text-sm text-gray-500">JPG, PNG, GIF - Max 2MB par photo</p>
-                                </label>
-                            </div>
-                            <div id="photo-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 hidden">
-                                <!-- Aperçus des photos -->
-                            </div>
-                        </div>
+                        <!-- Système de photos supprimé -->
 
                         <!-- Submit Button -->
                         <div class="text-center pt-6">

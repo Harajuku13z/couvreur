@@ -116,22 +116,7 @@ use Illuminate\Support\Facades\Storage;
                                 <!-- Review Text -->
                                 <p class="text-gray-700 mb-6 leading-relaxed">{{ $review->review_text }}</p>
 
-                                <!-- Review Photos -->
-                                @if(isset($review->review_photos) && is_array($review->review_photos) && count($review->review_photos) > 0)
-                                    <div class="mb-6">
-                                        <div class="grid grid-cols-2 gap-3">
-                                            @foreach(array_slice($review->review_photos, 0, 4) as $photo)
-                                                <img src="{{ Storage::url($photo) }}" 
-                                                     alt="Photo de l'avis" 
-                                                     class="w-full h-24 object-cover rounded-xl cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-105"
-                                                     onclick="openImageModal('{{ Storage::url($photo) }}')">
-                                            @endforeach
-                                        </div>
-                                        @if(count($review->review_photos) > 4)
-                                            <p class="text-sm text-gray-500 mt-2 text-center">+{{ count($review->review_photos) - 4 }} autres photos</p>
-                                        @endif
-                                    </div>
-                                @endif
+                                <!-- Système de photos supprimé -->
                             </div>
 
                             <!-- Author Section -->
@@ -211,45 +196,13 @@ use Illuminate\Support\Facades\Storage;
     </div>
 </div>
 
-<!-- Image Modal -->
-<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
-    <div class="relative max-w-4xl max-h-full">
-        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10">
-            <i class="fas fa-times"></i>
-        </button>
-        <img id="modalImage" src="" alt="Photo de l'avis" class="max-w-full max-h-full object-contain">
-    </div>
-</div>
+        <!-- Image Modal supprimé -->
 @endsection
 
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Fonctions pour la modal d'image
-    window.openImageModal = function(imageSrc) {
-        document.getElementById('modalImage').src = imageSrc;
-        document.getElementById('imageModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    };
-    
-    window.closeImageModal = function() {
-        document.getElementById('imageModal').classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    };
-    
-    // Fermer la modal en cliquant sur le fond
-    document.getElementById('imageModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeImageModal();
-        }
-    });
-    
-    // Fermer la modal avec Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeImageModal();
-        }
-    });
+    // Système de photos supprimé
 });
 </script>
 @endsection
