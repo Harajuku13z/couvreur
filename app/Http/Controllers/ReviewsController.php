@@ -183,6 +183,8 @@ class ReviewsController extends Controller
                 $reviewData = [
                     'google_review_id' => $googleReviewId,
                     'author_name' => $review['user']['name'] ?? 'Auteur inconnu',
+                    'author_photo' => $review['user']['thumbnail'] ?? null,
+                    'author_link' => $review['user']['link'] ?? null,
                     'rating' => $review['rating'] ?? 5,
                     'review_text' => $review['snippet'] ?? '',
                     'review_date' => isset($review['iso_date']) ? 
@@ -234,6 +236,8 @@ class ReviewsController extends Controller
 
         Review::create([
             'author_name' => $request->author_name,
+            'author_photo' => $request->author_photo,
+            'author_link' => $request->author_link,
             'rating' => $request->rating,
             'review_text' => $request->review_text,
             'review_date' => $request->review_date,
@@ -273,6 +277,8 @@ class ReviewsController extends Controller
 
         $review->update([
             'author_name' => $request->author_name,
+            'author_photo' => $request->author_photo,
+            'author_link' => $request->author_link,
             'rating' => $request->rating,
             'review_text' => $request->review_text,
             'review_date' => $request->review_date,

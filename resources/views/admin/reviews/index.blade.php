@@ -117,12 +117,32 @@
                             <div class="flex-1">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="flex-shrink-0">
-                                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                            {{ $review->author_initials }}
-                                        </div>
+                                        @if($review->author_photo)
+                                            <img src="{{ $review->author_photo }}" 
+                                                 alt="{{ $review->author_name }}" 
+                                                 class="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold" style="display: none;">
+                                                {{ $review->author_initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                                {{ $review->author_initials }}
+                                            </div>
+                                        @endif
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-semibold text-gray-900">{{ $review->author_name }}</h4>
+                                        @if($review->author_link)
+                                            <a href="{{ $review->author_link }}" 
+                                               target="_blank" 
+                                               rel="noopener noreferrer"
+                                               class="text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                                                {{ $review->author_name }}
+                                                <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                                            </a>
+                                        @else
+                                            <h4 class="text-lg font-semibold text-gray-900">{{ $review->author_name }}</h4>
+                                        @endif
                                         <div class="flex items-center space-x-2">
                                             <div class="flex text-yellow-400">
                                                 {!! $review->stars_html !!}

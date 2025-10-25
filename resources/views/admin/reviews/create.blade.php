@@ -52,6 +52,32 @@
                     </div>
 
                     <div>
+                        <label for="author_photo" class="block text-sm font-medium text-gray-700 mb-2">
+                            Photo de profil (URL)
+                        </label>
+                        <input type="url" 
+                               id="author_photo" 
+                               name="author_photo" 
+                               value="{{ old('author_photo') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="https://example.com/photo.jpg">
+                        <p class="text-sm text-gray-500 mt-1">URL de la photo de profil (optionnel)</p>
+                    </div>
+
+                    <div>
+                        <label for="author_link" class="block text-sm font-medium text-gray-700 mb-2">
+                            Lien du profil
+                        </label>
+                        <input type="url" 
+                               id="author_link" 
+                               name="author_link" 
+                               value="{{ old('author_link') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="https://google.com/maps/contrib/...">
+                        <p class="text-sm text-gray-500 mt-1">Lien vers le profil de l'auteur (optionnel)</p>
+                    </div>
+
+                    <div>
                         <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
                             Note (1-5 étoiles) *
                         </label>
