@@ -19,6 +19,9 @@
             <a href="{{ route('admin.reviews.create') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center">
                 <i class="fas fa-plus mr-2"></i>Ajouter un Avis
             </a>
+            <a href="{{ route('admin.reviews.manual-import') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center">
+                <i class="fas fa-file-import mr-2"></i>Import Manuel
+            </a>
             @if($reviews->count() > 0)
             <form action="{{ route('admin.reviews.delete-all') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ ATTENTION: Cette action supprimera TOUS les avis définitivement. Êtes-vous sûr de vouloir continuer ?')">
                 @csrf

@@ -262,7 +262,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis Google avec pagination (pour récupérer plus d'avis)
+     * Importer les avis Google avec plusieurs tentatives (pour récupérer plus d'avis)
      */
     public function importGoogleAdvanced()
     {
@@ -277,53 +277,71 @@ class ReviewsController extends Controller
 
         try {
             $allReviews = [];
-            $nextPageToken = null;
-            $maxPages = 3; // Limiter à 3 pages pour éviter les quotas
-            $page = 0;
+            $maxAttempts = 3; // Essayer plusieurs fois avec des paramètres différents
 
-            do {
+            // Essayer avec différents paramètres pour maximiser les chances de récupérer plus d'avis
+            for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
                 $params = [
                     'place_id' => $placeId,
-                    'fields' => 'reviews,rating,user_ratings_total,name,formatted_address',
+                    'fields' => 'reviews,rating,user_ratings_total,name,formatted_address,place_id',
                     'key' => $apiKey,
                     'language' => 'fr',
                 ];
 
-                if ($nextPageToken) {
-                    $params['pagetoken'] = $nextPageToken;
+                // Ajouter des paramètres différents à chaque tentative
+                switch ($attempt) {
+                    case 2:
+                        $params['language'] = 'en'; // Essayer en anglais
+                        break;
+                    case 3:
+                        $params['language'] = 'fr';
+                        $params['fields'] = 'reviews,rating,user_ratings_total'; // Moins de champs
+                        break;
                 }
 
-                $response = Http::get("https://maps.googleapis.com/maps/api/place/details/json", $params);
+                $response = Http::timeout(30)->get("https://maps.googleapis.com/maps/api/place/details/json", $params);
 
-                if (!$response->successful()) {
-                    return redirect()->route('admin.reviews.index')
-                        ->with('error', 'Erreur API Google : ' . $response->status());
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (isset($data['error_message'])) {
+                        Log::warning("Erreur Google API tentative {$attempt}: " . $data['error_message']);
+                        continue;
+                    }
+
+                    if (isset($data['result']['reviews'])) {
+                        $reviews = $data['result']['reviews'];
+                        
+                        // Fusionner les avis en évitant les doublons
+                        foreach ($reviews as $review) {
+                            $reviewId = md5($review['author_name'] . $review['time'] . $review['text']);
+                            $exists = false;
+                            
+                            foreach ($allReviews as $existingReview) {
+                                if (md5($existingReview['author_name'] . $existingReview['time'] . $existingReview['text']) === $reviewId) {
+                                    $exists = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!$exists) {
+                                $allReviews[] = $review;
+                            }
+                        }
+                    }
+                } else {
+                    Log::warning("Erreur HTTP tentative {$attempt}: " . $response->status());
                 }
 
-                $data = $response->json();
-
-                if (isset($data['error_message'])) {
-                    return redirect()->route('admin.reviews.index')
-                        ->with('error', 'Erreur Google API : ' . $data['error_message']);
+                // Attendre entre les tentatives
+                if ($attempt < $maxAttempts) {
+                    sleep(1);
                 }
-
-                if (isset($data['result']['reviews'])) {
-                    $allReviews = array_merge($allReviews, $data['result']['reviews']);
-                }
-
-                $nextPageToken = $data['next_page_token'] ?? null;
-                $page++;
-
-                // Attendre 2 secondes entre les requêtes (requis par Google)
-                if ($nextPageToken && $page < $maxPages) {
-                    sleep(2);
-                }
-
-            } while ($nextPageToken && $page < $maxPages);
+            }
 
             if (empty($allReviews)) {
                 return redirect()->route('admin.reviews.index')
-                    ->with('error', 'Aucun avis trouvé pour ce Place ID.');
+                    ->with('error', 'Aucun avis trouvé pour ce Place ID après ' . $maxAttempts . ' tentatives.');
             }
 
             $imported = 0;
@@ -358,7 +376,7 @@ class ReviewsController extends Controller
 
             $message = "Import avancé terminé : {$imported} nouveaux avis";
             if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
-            $message .= " (Total traité : " . count($allReviews) . " avis)";
+            $message .= " (Total trouvé : " . count($allReviews) . " avis uniques)";
 
             return redirect()->route('admin.reviews.index')
                 ->with('success', $message);
@@ -367,6 +385,82 @@ class ReviewsController extends Controller
             Log::error('Erreur import Google reviews avancé: ' . $e->getMessage());
             return redirect()->route('admin.reviews.index')
                 ->with('error', 'Erreur lors de l\'import avancé : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Afficher la page d'import manuel d'avis
+     */
+    public function showManualImport()
+    {
+        return view('admin.reviews.manual-import');
+    }
+
+    /**
+     * Importer des avis manuellement (format JSON)
+     */
+    public function importManual(Request $request)
+    {
+        $request->validate([
+            'reviews_json' => 'required|string',
+        ]);
+
+        try {
+            $reviewsData = json_decode($request->reviews_json, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return redirect()->route('admin.reviews.manual-import')
+                    ->with('error', 'Format JSON invalide : ' . json_last_error_msg());
+            }
+
+            if (!is_array($reviewsData)) {
+                return redirect()->route('admin.reviews.manual-import')
+                    ->with('error', 'Le JSON doit contenir un tableau d\'avis.');
+            }
+
+            $imported = 0;
+            $skipped = 0;
+
+            foreach ($reviewsData as $reviewData) {
+                // Vérifier les champs requis
+                if (!isset($reviewData['author_name']) || !isset($reviewData['rating']) || !isset($reviewData['review_text'])) {
+                    continue; // Ignorer les avis incomplets
+                }
+
+                $reviewId = md5($reviewData['author_name'] . ($reviewData['review_date'] ?? time()) . $reviewData['review_text']);
+                
+                $existingReview = Review::where('google_review_id', $reviewId)->first();
+                
+                if (!$existingReview) {
+                    Review::create([
+                        'google_review_id' => $reviewId,
+                        'author_name' => $reviewData['author_name'],
+                        'author_location' => $reviewData['author_location'] ?? 'Manuel',
+                        'author_photo_url' => $reviewData['author_photo_url'] ?? null,
+                        'rating' => $reviewData['rating'],
+                        'review_text' => $reviewData['review_text'],
+                        'is_active' => $reviewData['is_active'] ?? true,
+                        'is_verified' => $reviewData['is_verified'] ?? false,
+                        'source' => 'manual',
+                        'display_order' => $imported,
+                        'review_date' => $reviewData['review_date'] ?? date('Y-m-d H:i:s'),
+                    ]);
+                    $imported++;
+                } else {
+                    $skipped++;
+                }
+            }
+
+            $message = "Import manuel terminé : {$imported} nouveaux avis";
+            if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
+
+            return redirect()->route('admin.reviews.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur import manuel avis: ' . $e->getMessage());
+            return redirect()->route('admin.reviews.manual-import')
+                ->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
         }
     }
 

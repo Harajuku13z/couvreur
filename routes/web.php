@@ -267,6 +267,10 @@ Route::middleware(['check.setup'])->group(function () {
                 Route::post('/google/import', [ReviewsController::class, 'importGoogle'])->name('google.import');
                 Route::post('/google/import-advanced', [ReviewsController::class, 'importGoogleAdvanced'])->name('google.import-advanced');
                 
+                // Import manuel d'avis
+                Route::get('/manual-import', [ReviewsController::class, 'showManualImport'])->name('manual-import');
+                Route::post('/manual-import', [ReviewsController::class, 'importManual'])->name('manual-import.save');
+                
                 // Suppression de tous les avis
                 Route::post('/delete-all', [ReviewsController::class, 'deleteAll'])->name('delete-all');
                 

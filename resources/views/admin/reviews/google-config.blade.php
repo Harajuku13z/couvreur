@@ -130,16 +130,19 @@
                             </form>
                         </div>
                         
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                             <div class="flex items-start">
-                                <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mr-3 mt-1"></i>
                                 <div>
-                                    <h4 class="font-semibold text-blue-900 mb-1">Options d'import</h4>
-                                    <ul class="text-blue-800 text-sm space-y-1">
-                                        <li>• <strong>Import Standard :</strong> Récupère les 5 avis les plus récents</li>
-                                        <li>• <strong>Import Avancé :</strong> Tente de récupérer plus d'avis avec pagination</li>
-                                        <li>• L'import avancé peut prendre plus de temps (2-3 secondes par page)</li>
-                                    </ul>
+                                    <h4 class="font-semibold text-yellow-900 mb-1">Limitation de l'API Google</h4>
+                                    <p class="text-yellow-800 text-sm mb-2">
+                                        <strong>Important :</strong> L'API Google Places ne retourne que les 5 avis les plus récents maximum, 
+                                        même avec l'import avancé. C'est une limitation de Google, pas de notre système.
+                                    </p>
+                                    <p class="text-yellow-800 text-sm">
+                                        <strong>Solutions :</strong> Pour récupérer plus d'avis, vous devez utiliser l'API Google My Business 
+                                        ou importer manuellement les autres avis.
+                                    </p>
                                 </div>
                             </div>
                         </div>
