@@ -264,8 +264,11 @@ Route::middleware(['check.setup'])->group(function () {
                 // Configuration Google
                 Route::get('/google/config', [ReviewsController::class, 'googleConfig'])->name('google.config');
                 Route::post('/google/config', [ReviewsController::class, 'saveGoogleConfig'])->name('google.config.save');
+                Route::get('/google/my-business-help', function() {
+                    return view('admin.reviews.google-my-business-help');
+                })->name('google.my-business-help');
                 Route::post('/google/import', [ReviewsController::class, 'importGoogle'])->name('google.import');
-                Route::post('/google/import-advanced', [ReviewsController::class, 'importGoogleAdvanced'])->name('google.import-advanced');
+                Route::post('/google/import-my-business', [ReviewsController::class, 'importGoogleMyBusiness'])->name('google.import-my-business');
                 
                 // Import manuel d'avis
                 Route::get('/manual-import', [ReviewsController::class, 'showManualImport'])->name('manual-import');

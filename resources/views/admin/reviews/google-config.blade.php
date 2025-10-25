@@ -68,6 +68,45 @@
                             <p class="text-sm text-gray-500 mt-1">Clé API Google avec accès Places API activé</p>
                         </div>
 
+                        <!-- Configuration Google My Business -->
+                        <div class="border-t pt-6 mb-6">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                                <i class="fas fa-building mr-2 text-green-600"></i>Configuration Google My Business (Optionnel)
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">Pour récupérer TOUS les avis (pas seulement les 5 plus récents)</p>
+                            
+                            <div class="mb-4">
+                                <label for="google_my_business_account_id" class="block text-sm font-medium text-gray-700 mb-2">Account ID</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                                       id="google_my_business_account_id" name="google_my_business_account_id" 
+                                       value="{{ old('google_my_business_account_id', setting('google_my_business_account_id')) }}" 
+                                       placeholder="1234567890123456789">
+                                <p class="text-sm text-gray-500 mt-1">ID du compte Google My Business</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="google_my_business_location_id" class="block text-sm font-medium text-gray-700 mb-2">Location ID</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                                       id="google_my_business_location_id" name="google_my_business_location_id" 
+                                       value="{{ old('google_my_business_location_id', setting('google_my_business_location_id')) }}" 
+                                       placeholder="9876543210987654321">
+                                <p class="text-sm text-gray-500 mt-1">ID de l'établissement Google My Business</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="google_my_business_access_token" class="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
+                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                                          id="google_my_business_access_token" name="google_my_business_access_token" 
+                                          rows="3" placeholder="ya29.a0AfH6SMC...">{{ old('google_my_business_access_token', setting('google_my_business_access_token')) }}</textarea>
+                            <p class="text-sm text-gray-500 mt-1">Token d'accès OAuth2 pour Google My Business</p>
+                            <p class="text-sm text-blue-600 mt-1">
+                                <a href="{{ route('admin.reviews.google.my-business-help') }}" target="_blank" class="hover:text-blue-800">
+                                    <i class="fas fa-question-circle mr-1"></i>Guide complet pour obtenir ces paramètres
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
                         <div class="mb-6">
                             <div class="flex items-start">
                                 <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1" 
@@ -122,10 +161,10 @@
                                 </button>
                             </form>
                             
-                            <form action="{{ route('admin.reviews.google.import-advanced') }}" method="POST">
+                            <form action="{{ route('admin.reviews.google.import-my-business') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center justify-center">
-                                    <i class="fas fa-download mr-2"></i>Import Avancé (Plus d'avis)
+                                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                                    <i class="fas fa-building mr-2"></i>Import Google My Business (Tous les avis)
                                 </button>
                             </form>
                         </div>
