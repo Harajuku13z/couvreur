@@ -277,7 +277,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis Google My Business (tous les avis)
+     * Importer les avis Google My Business (version simplifiée avec package)
      */
     public function importGoogleMyBusiness()
     {
@@ -292,48 +292,29 @@ class ReviewsController extends Controller
         }
 
         try {
+            // Utilisation du package Google My Business PHP
+            $googleMyBusiness = new \AdnanHussainTurki\GoogleMyBusiness\GoogleMyBusiness($accessToken);
+            
+            // Récupérer tous les avis avec pagination
             $allReviews = [];
-            $pageSize = 50; // Maximum par page
             $pageToken = null;
             $maxPages = 10; // Limiter pour éviter les quotas
-            $page = 0;
-
+            
             do {
-                $url = "https://mybusiness.googleapis.com/v4/accounts/{$accountId}/locations/{$locationId}/reviews";
-                $params = [
-                    'pageSize' => $pageSize,
-                ];
-
+                $reviews = $googleMyBusiness->getReviews($accountId, $locationId, $pageToken);
+                
+                if (isset($reviews['reviews'])) {
+                    $allReviews = array_merge($allReviews, $reviews['reviews']);
+                }
+                
+                $pageToken = $reviews['nextPageToken'] ?? null;
+                
+                // Attendre entre les requêtes
                 if ($pageToken) {
-                    $params['pageToken'] = $pageToken;
+                    sleep(1);
                 }
-
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $accessToken,
-                    'Content-Type' => 'application/json',
-                ])->timeout(30)->get($url, $params);
-
-                if (!$response->successful()) {
-                    Log::error('Erreur Google My Business API: ' . $response->status() . ' - ' . $response->body());
-                    return redirect()->route('admin.reviews.index')
-                        ->with('error', 'Erreur API Google My Business : ' . $response->status() . ' - ' . $response->body());
-                }
-
-                $data = $response->json();
-
-                if (isset($data['reviews'])) {
-                    $allReviews = array_merge($allReviews, $data['reviews']);
-                }
-
-                $pageToken = $data['nextPageToken'] ?? null;
-                $page++;
-
-                // Attendre entre les requêtes pour respecter les quotas
-                if ($pageToken && $page < $maxPages) {
-                    sleep(2);
-                }
-
-            } while ($pageToken && $page < $maxPages);
+                
+            } while ($pageToken && count($allReviews) < 100); // Limiter à 100 avis max
 
             if (empty($allReviews)) {
                 return redirect()->route('admin.reviews.index')
@@ -341,7 +322,6 @@ class ReviewsController extends Controller
             }
 
             $imported = 0;
-            $updated = 0;
             $skipped = 0;
 
             foreach ($allReviews as $index => $googleReview) {

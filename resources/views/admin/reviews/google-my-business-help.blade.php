@@ -18,21 +18,35 @@
             </a>
         </div>
 
-        <!-- Étapes de configuration -->
+        <!-- Configuration simplifiée -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Étapes de Configuration</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Configuration Simplifiée</h2>
+            
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-green-900 mb-1">Package Laravel installé !</h4>
+                        <p class="text-green-800 text-sm">
+                            Le package <code>adnanhussainturki/google-my-business-php</code> est maintenant installé. 
+                            L'import est maintenant beaucoup plus simple !
+                        </p>
+                    </div>
+                </div>
+            </div>
             
             <div class="space-y-6">
                 <!-- Étape 1 -->
                 <div class="border-l-4 border-blue-500 pl-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">
                         <span class="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full mr-3">1</span>
-                        Créer un Projet Google Cloud
+                        Obtenir un Access Token
                     </h3>
                     <div class="text-gray-700 space-y-2">
                         <p>1. Allez sur <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 hover:text-blue-800">Google Cloud Console</a></p>
-                        <p>2. Créez un nouveau projet ou sélectionnez un projet existant</p>
-                        <p>3. Notez l'ID du projet (visible dans l'URL ou les paramètres)</p>
+                        <p>2. Activez l'API Google My Business</p>
+                        <p>3. Créez des credentials OAuth2</p>
+                        <p>4. Obtenez votre Access Token</p>
                     </div>
                 </div>
 
@@ -40,12 +54,17 @@
                 <div class="border-l-4 border-green-500 pl-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">
                         <span class="bg-green-100 text-green-800 text-sm font-semibold px-2 py-1 rounded-full mr-3">2</span>
-                        Activer Google My Business API
+                        Trouver vos IDs
                     </h3>
                     <div class="text-gray-700 space-y-2">
-                        <p>1. Dans la console, allez dans "APIs & Services" > "Library"</p>
-                        <p>2. Recherchez "Google My Business API"</p>
-                        <p>3. Cliquez sur "Enable" pour activer l'API</p>
+                        <p><strong>Account ID :</strong> Utilisez cette commande :</p>
+                        <div class="bg-gray-100 p-3 rounded-lg">
+                            <code class="text-sm">curl -H "Authorization: Bearer YOUR_TOKEN" "https://mybusiness.googleapis.com/v4/accounts"</code>
+                        </div>
+                        <p><strong>Location ID :</strong> Puis cette commande :</p>
+                        <div class="bg-gray-100 p-3 rounded-lg">
+                            <code class="text-sm">curl -H "Authorization: Bearer YOUR_TOKEN" "https://mybusiness.googleapis.com/v4/accounts/ACCOUNT_ID/locations"</code>
+                        </div>
                     </div>
                 </div>
 
@@ -53,37 +72,13 @@
                 <div class="border-l-4 border-purple-500 pl-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">
                         <span class="bg-purple-100 text-purple-800 text-sm font-semibold px-2 py-1 rounded-full mr-3">3</span>
-                        Configurer OAuth2
+                        Configurer dans Laravel
                     </h3>
                     <div class="text-gray-700 space-y-2">
-                        <p>1. Allez dans "APIs & Services" > "Credentials"</p>
-                        <p>2. Cliquez sur "Create Credentials" > "OAuth client ID"</p>
-                        <p>3. Sélectionnez "Web application"</p>
-                        <p>4. Ajoutez votre domaine dans "Authorized redirect URIs"</p>
-                        <p>5. Téléchargez le fichier JSON des credentials</p>
-                    </div>
-                </div>
-
-                <!-- Étape 4 -->
-                <div class="border-l-4 border-yellow-500 pl-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                        <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold px-2 py-1 rounded-full mr-3">4</span>
-                        Obtenir les IDs et Token
-                    </h3>
-                    <div class="text-gray-700 space-y-2">
-                        <p><strong>Account ID :</strong> Utilisez l'API pour lister vos comptes</p>
-                        <p><strong>Location ID :</strong> Utilisez l'API pour lister vos établissements</p>
-                        <br>
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <h4 class="font-semibold mb-2">Commandes utiles :</h4>
-                            <pre class="text-sm"><code># Lister les comptes
-curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  "https://mybusiness.googleapis.com/v4/accounts"
-
-# Lister les établissements
-curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  "https://mybusiness.googleapis.com/v4/accounts/ACCOUNT_ID/locations"</code></pre>
-                        </div>
+                        <p>1. Remplissez les 3 champs dans la configuration</p>
+                        <p>2. Cliquez sur "Sauvegarder"</p>
+                        <p>3. Utilisez le bouton "Import Google My Business"</p>
+                        <p>4. Tous vos avis seront importés automatiquement !</p>
                     </div>
                 </div>
             </div>

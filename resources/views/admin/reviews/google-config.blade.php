@@ -68,12 +68,30 @@
                             <p class="text-sm text-gray-500 mt-1">Clé API Google avec accès Places API activé</p>
                         </div>
 
-                        <!-- Configuration Google My Business -->
+                        <!-- Configuration Google My Business (Simplifiée) -->
                         <div class="border-t pt-6 mb-6">
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">
                                 <i class="fas fa-building mr-2 text-green-600"></i>Configuration Google My Business (Optionnel)
                             </h4>
                             <p class="text-sm text-gray-600 mb-4">Pour récupérer TOUS les avis (pas seulement les 5 plus récents)</p>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-blue-900 mb-1">Configuration simplifiée</h4>
+                                        <p class="text-blue-800 text-sm">
+                                            Utilisez le package Laravel pour simplifier l'import. 
+                                            Seuls 3 paramètres sont nécessaires :
+                                        </p>
+                                        <ul class="text-blue-800 text-sm mt-2 space-y-1">
+                                            <li>• <strong>Account ID</strong> : ID de votre compte Google My Business</li>
+                                            <li>• <strong>Location ID</strong> : ID de votre établissement</li>
+                                            <li>• <strong>Access Token</strong> : Token OAuth2</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="mb-4">
                                 <label for="google_my_business_account_id" class="block text-sm font-medium text-gray-700 mb-2">Account ID</label>
@@ -98,14 +116,14 @@
                                 <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
                                           id="google_my_business_access_token" name="google_my_business_access_token" 
                                           rows="3" placeholder="ya29.a0AfH6SMC...">{{ old('google_my_business_access_token', setting('google_my_business_access_token')) }}</textarea>
-                            <p class="text-sm text-gray-500 mt-1">Token d'accès OAuth2 pour Google My Business</p>
-                            <p class="text-sm text-blue-600 mt-1">
-                                <a href="{{ route('admin.reviews.google.my-business-help') }}" target="_blank" class="hover:text-blue-800">
-                                    <i class="fas fa-question-circle mr-1"></i>Guide complet pour obtenir ces paramètres
-                                </a>
-                            </p>
+                                <p class="text-sm text-gray-500 mt-1">Token d'accès OAuth2 pour Google My Business</p>
+                                <p class="text-sm text-blue-600 mt-1">
+                                    <a href="{{ route('admin.reviews.google.my-business-help') }}" target="_blank" class="hover:text-blue-800">
+                                        <i class="fas fa-question-circle mr-1"></i>Guide simplifié pour obtenir ces paramètres
+                                    </a>
+                                </p>
+                            </div>
                         </div>
-                    </div>
 
                         <div class="mb-6">
                             <div class="flex items-start">
