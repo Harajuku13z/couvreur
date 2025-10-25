@@ -57,15 +57,15 @@
                         </div>
 
                         <div class="mb-6">
-                            <label for="google_api_key" class="block text-sm font-medium text-gray-700 mb-2">Google API Key *</label>
-                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('google_api_key') border-red-500 @enderror" 
-                                   id="google_api_key" name="google_api_key" 
-                                   value="{{ old('google_api_key', $googleApiKey) }}" 
-                                   placeholder="AIza..." required>
-                            @error('google_api_key')
+                            <label for="outscraper_api_key" class="block text-sm font-medium text-gray-700 mb-2">Clé API Outscraper *</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('outscraper_api_key') border-red-500 @enderror" 
+                                   id="outscraper_api_key" name="outscraper_api_key" 
+                                   value="{{ old('outscraper_api_key', setting('outscraper_api_key')) }}" 
+                                   placeholder="OGFiYzU0ZTZjMTU4NGFhZjhlZGM5NzZlNTM2OWJhODF8NGE1OTUwYzZhOQ" required>
+                            @error('outscraper_api_key')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
-                            <p class="text-sm text-gray-500 mt-1">Clé API Google avec accès Places API activé</p>
+                            <p class="text-sm text-gray-500 mt-1">Clé API Outscraper pour récupérer TOUS les avis Google</p>
                         </div>
 
 
@@ -104,7 +104,7 @@
                     </h3>
                 </div>
                 <div class="p-6">
-                    @if($googlePlaceId && $googleApiKey)
+                    @if($googlePlaceId && setting('outscraper_api_key'))
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                             <div class="flex items-start">
                                 <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
@@ -135,13 +135,13 @@
                             <div class="flex items-start">
                                 <i class="fas fa-magic text-green-600 mr-3 mt-1"></i>
                                 <div>
-                                    <h4 class="font-semibold text-green-900 mb-1">Import Automatique Ultra-Simple</h4>
+                                    <h4 class="font-semibold text-green-900 mb-1">Import Outscraper Ultra-Simple</h4>
                                     <p class="text-green-800 text-sm mb-2">
-                                        <strong>Nouveau :</strong> L'import automatique essaie plusieurs méthodes pour récupérer le maximum d'avis possible.
-                                        Il teste différentes langues et paramètres pour optimiser les résultats.
+                                        <strong>Outscraper :</strong> Service spécialisé dans l'extraction de données Google. 
+                                        Récupère TOUS les avis (jusqu'à 100) sans limitation !
                                     </p>
                                     <p class="text-green-800 text-sm">
-                                        <strong>Simple :</strong> Juste le Place ID et l'API Key, et le système fait tout automatiquement !
+                                        <strong>Ultra-Simple :</strong> Juste le Place ID et la clé Outscraper, et le système fait tout automatiquement !
                                     </p>
                                 </div>
                             </div>

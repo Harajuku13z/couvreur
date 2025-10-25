@@ -135,10 +135,10 @@ class ReviewsController extends Controller
     public function googleConfig()
     {
         $googlePlaceId = setting('google_place_id');
-        $googleApiKey = setting('google_api_key');
+        $outscraperApiKey = setting('outscraper_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
         
-        return view('admin.reviews.google-config', compact('googlePlaceId', 'googleApiKey', 'autoApprove'));
+        return view('admin.reviews.google-config', compact('googlePlaceId', 'outscraperApiKey', 'autoApprove'));
     }
 
     /**
@@ -148,12 +148,12 @@ class ReviewsController extends Controller
     {
         $request->validate([
             'google_place_id' => 'required|string',
-            'google_api_key' => 'required|string',
+            'outscraper_api_key' => 'required|string',
             'auto_approve_google' => 'boolean',
         ]);
 
         Setting::set('google_place_id', $request->google_place_id);
-        Setting::set('google_api_key', $request->google_api_key);
+        Setting::set('outscraper_api_key', $request->outscraper_api_key);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
         
         Setting::clearCache();
@@ -263,99 +263,75 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer TOUS les avis Google automatiquement (ultra-simple)
+     * Importer TOUS les avis Google avec Outscraper API (ultra-simple)
      */
     public function importGoogleAuto()
     {
         $placeId = setting('google_place_id');
-        $apiKey = setting('google_api_key');
+        $outscraperApiKey = setting('outscraper_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        if (!$placeId || !$apiKey) {
+        if (!$placeId || !$outscraperApiKey) {
             return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et l\'API Key.');
+                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et la clé API Outscraper.');
         }
 
         try {
-            $allReviews = [];
-            
-            // Méthode 1: Récupérer les avis via l'API Places (5 avis max)
-            $response = Http::timeout(30)->get("https://maps.googleapis.com/maps/api/place/details/json", [
-                'place_id' => $placeId,
-                'fields' => 'reviews,rating,user_ratings_total,name,formatted_address',
-                'key' => $apiKey,
+            // Utilisation de l'API Outscraper pour récupérer TOUS les avis
+            $response = Http::timeout(60)->post('https://api.outscraper.com/maps/reviews-v3', [
+                'query' => $placeId,
+                'limit' => 100, // Maximum d'avis à récupérer
                 'language' => 'fr',
+                'region' => 'fr',
+                'sort' => 'newest',
+                'reviewsLimit' => 100
+            ], [
+                'X-API-KEY' => $outscraperApiKey,
+                'Content-Type' => 'application/json'
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                if (isset($data['result']['reviews'])) {
-                    $allReviews = array_merge($allReviews, $data['result']['reviews']);
-                }
-            }
-
-            // Méthode 2: Essayer avec différents paramètres pour maximiser les avis
-            $languages = ['fr', 'en', 'es']; // Essayer plusieurs langues
-            
-            foreach ($languages as $lang) {
-                $response = Http::timeout(30)->get("https://maps.googleapis.com/maps/api/place/details/json", [
-                    'place_id' => $placeId,
-                    'fields' => 'reviews,rating,user_ratings_total',
-                    'key' => $apiKey,
-                    'language' => $lang,
-                ]);
-
-                if ($response->successful()) {
-                    $data = $response->json();
-                    if (isset($data['result']['reviews'])) {
-                        // Fusionner en évitant les doublons
-                        foreach ($data['result']['reviews'] as $review) {
-                            $reviewId = md5($review['author_name'] . $review['time'] . $review['text']);
-                            $exists = false;
-                            
-                            foreach ($allReviews as $existingReview) {
-                                if (md5($existingReview['author_name'] . $existingReview['time'] . $existingReview['text']) === $reviewId) {
-                                    $exists = true;
-                                    break;
-                                }
-                            }
-                            
-                            if (!$exists) {
-                                $allReviews[] = $review;
-                            }
-                        }
-                    }
-                }
-                
-                // Attendre entre les requêtes
-                sleep(1);
-            }
-
-            if (empty($allReviews)) {
+            if (!$response->successful()) {
+                Log::error('Erreur Outscraper API: ' . $response->status() . ' - ' . $response->body());
                 return redirect()->route('admin.reviews.index')
-                    ->with('error', 'Aucun avis trouvé pour ce Place ID.');
+                    ->with('error', 'Erreur API Outscraper : ' . $response->status() . ' - ' . $response->body());
             }
 
+            $data = $response->json();
+            
+            if (!isset($data[0]['reviews']) || empty($data[0]['reviews'])) {
+                return redirect()->route('admin.reviews.index')
+                    ->with('error', 'Aucun avis trouvé pour ce Place ID via Outscraper.');
+            }
+
+            $allReviews = $data[0]['reviews'];
             $imported = 0;
             $skipped = 0;
 
-            foreach ($allReviews as $index => $googleReview) {
-                $reviewDate = date('Y-m-d H:i:s', $googleReview['time']);
-                $reviewId = md5($googleReview['author_name'] . $googleReview['time'] . $googleReview['text']);
+            foreach ($allReviews as $index => $review) {
+                // Adapter le format Outscraper
+                $reviewDate = isset($review['review_datetime_utc']) 
+                    ? date('Y-m-d H:i:s', strtotime($review['review_datetime_utc']))
+                    : date('Y-m-d H:i:s');
+                
+                $reviewId = md5(
+                    ($review['reviewer_name'] ?? 'Anonyme') . 
+                    $reviewDate . 
+                    ($review['review_text'] ?? '')
+                );
                 
                 $existingReview = Review::where('google_review_id', $reviewId)->first();
                 
                 if (!$existingReview) {
                     Review::create([
                         'google_review_id' => $reviewId,
-                        'author_name' => $googleReview['author_name'],
-                        'author_location' => 'Google',
-                        'author_photo_url' => $googleReview['profile_photo_url'] ?? null,
-                        'rating' => $googleReview['rating'],
-                        'review_text' => $googleReview['text'] ?? '',
+                        'author_name' => $review['reviewer_name'] ?? 'Anonyme',
+                        'author_location' => $review['reviewer_id'] ?? 'Google',
+                        'author_photo_url' => $review['reviewer_photo'] ?? null,
+                        'rating' => $review['review_rating'] ?? 5,
+                        'review_text' => $review['review_text'] ?? '',
                         'is_active' => $autoApprove,
                         'is_verified' => true,
-                        'source' => 'google_auto',
+                        'source' => 'outscraper',
                         'display_order' => $index,
                         'review_date' => $reviewDate,
                     ]);
@@ -365,17 +341,17 @@ class ReviewsController extends Controller
                 }
             }
 
-            $message = "Import automatique terminé : {$imported} nouveaux avis";
+            $message = "Import Outscraper terminé : {$imported} nouveaux avis";
             if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
-            $message .= " (Total trouvé : " . count($allReviews) . " avis uniques)";
+            $message .= " (Total trouvé : " . count($allReviews) . " avis)";
 
             return redirect()->route('admin.reviews.index')
                 ->with('success', $message);
 
         } catch (\Exception $e) {
-            Log::error('Erreur import automatique: ' . $e->getMessage());
+            Log::error('Erreur import Outscraper: ' . $e->getMessage());
             return redirect()->route('admin.reviews.index')
-                ->with('error', 'Erreur lors de l\'import automatique : ' . $e->getMessage());
+                ->with('error', 'Erreur lors de l\'import Outscraper : ' . $e->getMessage());
         }
     }
 
