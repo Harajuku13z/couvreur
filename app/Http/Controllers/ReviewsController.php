@@ -20,9 +20,9 @@ class ReviewsController extends Controller
         // Statistiques
         $stats = [
             'total' => Review::count(),
-            'approved' => Review::where('approved', 1)->count(),
-            'pending' => Review::where('approved', 0)->count(),
-            'average_rating' => Review::where('approved', 1)->avg('rating') ?? 0
+            'approved' => Review::where('is_active', 1)->count(),
+            'pending' => Review::where('is_active', 0)->count(),
+            'average_rating' => Review::where('is_active', 1)->avg('rating') ?? 0
         ];
         
         return view('admin.reviews.index', compact('reviews', 'stats'));
@@ -162,7 +162,7 @@ class ReviewsController extends Controller
 
             foreach ($reviews as $review) {
                 // Créer un ID unique pour l'avis
-                $reviewId = md5($review['review_id'] ?? $review['author_name'] . $review['review_datetime']);
+                $googleReviewId = $review['review_id'] ?? md5($review['author_name'] . $review['review_datetime']);
                 
                 // Extraire les données
                 $authorName = $review['author_name'] ?? 'Auteur inconnu';
@@ -171,29 +171,29 @@ class ReviewsController extends Controller
                 $date = $review['review_datetime'] ?? now();
                 
                 // Vérifier si l'avis existe déjà
-                $existingReview = Review::where('review_id', $reviewId)->first();
+                $existingReview = Review::where('google_review_id', $googleReviewId)->first();
 
                 if ($existingReview) {
                     // Mettre à jour
                     $existingReview->update([
                         'author_name' => $authorName,
                         'rating' => $rating,
-                        'text' => $text,
-                        'date' => $date,
+                        'review_text' => $text,
+                        'review_date' => $date,
                         'source' => 'Google (Outscraper)',
-                        'approved' => $autoApprove ? 1 : 0
+                        'is_active' => $autoApprove ? 1 : 0
                     ]);
                     $updatedCount++;
                 } else {
                     // Créer nouveau
                     Review::create([
-                        'review_id' => $reviewId,
+                        'google_review_id' => $googleReviewId,
                         'author_name' => $authorName,
                         'rating' => $rating,
-                        'text' => $text,
-                        'date' => $date,
+                        'review_text' => $text,
+                        'review_date' => $date,
                         'source' => 'Google (Outscraper)',
-                        'approved' => $autoApprove ? 1 : 0
+                        'is_active' => $autoApprove ? 1 : 0
                     ]);
                     $importedCount++;
                 }
