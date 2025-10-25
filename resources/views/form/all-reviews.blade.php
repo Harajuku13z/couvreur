@@ -97,7 +97,7 @@ use Illuminate\Support\Facades\Storage;
                                 <p class="text-gray-700 mb-6 leading-relaxed">{{ $review->review_text }}</p>
 
                                 <!-- Review Photos -->
-                                @if($review->review_photos && count($review->review_photos) > 0)
+                                @if(isset($review->review_photos) && is_array($review->review_photos) && count($review->review_photos) > 0)
                                     <div class="mb-6">
                                         <div class="grid grid-cols-2 gap-3">
                                             @foreach(array_slice($review->review_photos, 0, 4) as $photo)

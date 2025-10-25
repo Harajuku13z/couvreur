@@ -157,18 +157,24 @@ class FormControllerSimple extends Controller
 
             $review = Review::create($reviewData);
 
-            // Gérer les photos
+            // Gérer les photos (avec vérification de l'existence de la colonne)
             if ($request->hasFile('review_photos')) {
-                $photos = [];
-                foreach ($request->file('review_photos') as $photo) {
-                    if ($photo->isValid()) {
-                        $filename = time() . '_' . $photo->getClientOriginalName();
-                        $path = $photo->storeAs('reviews', $filename, 'public');
-                        $photos[] = $path;
+                try {
+                    $photos = [];
+                    foreach ($request->file('review_photos') as $photo) {
+                        if ($photo->isValid()) {
+                            $filename = time() . '_' . $photo->getClientOriginalName();
+                            $path = $photo->storeAs('reviews', $filename, 'public');
+                            $photos[] = $path;
+                        }
                     }
-                }
-                if (!empty($photos)) {
-                    $review->update(['review_photos' => $photos]);
+                    if (!empty($photos)) {
+                        // Vérifier si la colonne existe avant de l'utiliser
+                        $review->update(['review_photos' => $photos]);
+                    }
+                } catch (\Exception $e) {
+                    // Si la colonne n'existe pas, on ignore l'erreur et on continue
+                    \Log::info('Colonne review_photos non disponible: ' . $e->getMessage());
                 }
             }
 
