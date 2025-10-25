@@ -167,7 +167,7 @@
                 <i class="fas fa-comments text-6xl text-gray-300 mb-4"></i>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun avis trouvé</h3>
                 <p class="text-gray-500 mb-6">Commencez par importer des avis depuis Google.</p>
-                <a href="{{ route('admin.reviews.google.config') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <a href="{{ route('admin.reviews.serp.config') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
                     <i class="fas fa-download mr-2"></i>Importer des Avis
                 </a>
             </div>
