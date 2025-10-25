@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Configuration Google Reviews')
 
@@ -243,5 +243,4 @@ function closeResultModal() {
     document.getElementById('resultModal').classList.add('hidden');
 }
 </script>
-@endsection
 @endsection
