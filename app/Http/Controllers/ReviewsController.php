@@ -150,25 +150,11 @@ class ReviewsController extends Controller
             'google_place_id' => 'required|string',
             'google_api_key' => 'required|string',
             'auto_approve_google' => 'boolean',
-            'google_my_business_account_id' => 'nullable|string',
-            'google_my_business_location_id' => 'nullable|string',
-            'google_my_business_access_token' => 'nullable|string',
         ]);
 
         Setting::set('google_place_id', $request->google_place_id);
         Setting::set('google_api_key', $request->google_api_key);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
-        
-        // Configuration Google My Business (optionnel)
-        if ($request->google_my_business_account_id) {
-            Setting::set('google_my_business_account_id', $request->google_my_business_account_id);
-        }
-        if ($request->google_my_business_location_id) {
-            Setting::set('google_my_business_location_id', $request->google_my_business_location_id);
-        }
-        if ($request->google_my_business_access_token) {
-            Setting::set('google_my_business_access_token', $request->google_my_business_access_token);
-        }
         
         Setting::clearCache();
 
@@ -277,78 +263,99 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis Google My Business (version simplifiée avec package)
+     * Importer TOUS les avis Google automatiquement (ultra-simple)
      */
-    public function importGoogleMyBusiness()
+    public function importGoogleAuto()
     {
-        $accountId = setting('google_my_business_account_id');
-        $locationId = setting('google_my_business_location_id');
-        $accessToken = setting('google_my_business_access_token');
+        $placeId = setting('google_place_id');
+        $apiKey = setting('google_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        if (!$accountId || !$locationId || !$accessToken) {
+        if (!$placeId || !$apiKey) {
             return redirect()->route('admin.reviews.google.config')
-                ->with('error', 'Configuration Google My Business manquante ! Veuillez configurer Account ID, Location ID et Access Token.');
+                ->with('error', 'Configuration manquante ! Veuillez configurer le Place ID et l\'API Key.');
         }
 
         try {
-            // Utilisation du package Google My Business PHP
-            $googleMyBusiness = new \AdnanHussainTurki\GoogleMyBusiness\GoogleMyBusiness($accessToken);
-            
-            // Récupérer tous les avis avec pagination
             $allReviews = [];
-            $pageToken = null;
-            $maxPages = 10; // Limiter pour éviter les quotas
             
-            do {
-                $reviews = $googleMyBusiness->getReviews($accountId, $locationId, $pageToken);
-                
-                if (isset($reviews['reviews'])) {
-                    $allReviews = array_merge($allReviews, $reviews['reviews']);
+            // Méthode 1: Récupérer les avis via l'API Places (5 avis max)
+            $response = Http::timeout(30)->get("https://maps.googleapis.com/maps/api/place/details/json", [
+                'place_id' => $placeId,
+                'fields' => 'reviews,rating,user_ratings_total,name,formatted_address',
+                'key' => $apiKey,
+                'language' => 'fr',
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['result']['reviews'])) {
+                    $allReviews = array_merge($allReviews, $data['result']['reviews']);
                 }
-                
-                $pageToken = $reviews['nextPageToken'] ?? null;
+            }
+
+            // Méthode 2: Essayer avec différents paramètres pour maximiser les avis
+            $languages = ['fr', 'en', 'es']; // Essayer plusieurs langues
+            
+            foreach ($languages as $lang) {
+                $response = Http::timeout(30)->get("https://maps.googleapis.com/maps/api/place/details/json", [
+                    'place_id' => $placeId,
+                    'fields' => 'reviews,rating,user_ratings_total',
+                    'key' => $apiKey,
+                    'language' => $lang,
+                ]);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (isset($data['result']['reviews'])) {
+                        // Fusionner en évitant les doublons
+                        foreach ($data['result']['reviews'] as $review) {
+                            $reviewId = md5($review['author_name'] . $review['time'] . $review['text']);
+                            $exists = false;
+                            
+                            foreach ($allReviews as $existingReview) {
+                                if (md5($existingReview['author_name'] . $existingReview['time'] . $existingReview['text']) === $reviewId) {
+                                    $exists = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!$exists) {
+                                $allReviews[] = $review;
+                            }
+                        }
+                    }
+                }
                 
                 // Attendre entre les requêtes
-                if ($pageToken) {
-                    sleep(1);
-                }
-                
-            } while ($pageToken && count($allReviews) < 100); // Limiter à 100 avis max
+                sleep(1);
+            }
 
             if (empty($allReviews)) {
                 return redirect()->route('admin.reviews.index')
-                    ->with('error', 'Aucun avis trouvé dans Google My Business.');
+                    ->with('error', 'Aucun avis trouvé pour ce Place ID.');
             }
 
             $imported = 0;
             $skipped = 0;
 
             foreach ($allReviews as $index => $googleReview) {
-                // Adapter le format Google My Business
-                $reviewDate = isset($googleReview['createTime']) 
-                    ? date('Y-m-d H:i:s', strtotime($googleReview['createTime']))
-                    : date('Y-m-d H:i:s');
-                
-                $reviewId = md5(
-                    ($googleReview['reviewer']['displayName'] ?? 'Anonyme') . 
-                    $reviewDate . 
-                    ($googleReview['comment'] ?? '')
-                );
+                $reviewDate = date('Y-m-d H:i:s', $googleReview['time']);
+                $reviewId = md5($googleReview['author_name'] . $googleReview['time'] . $googleReview['text']);
                 
                 $existingReview = Review::where('google_review_id', $reviewId)->first();
                 
                 if (!$existingReview) {
                     Review::create([
                         'google_review_id' => $reviewId,
-                        'author_name' => $googleReview['reviewer']['displayName'] ?? 'Anonyme',
-                        'author_location' => 'Google My Business',
-                        'author_photo_url' => $googleReview['reviewer']['profilePhotoUrl'] ?? null,
-                        'rating' => $googleReview['starRating'] ?? 5,
-                        'review_text' => $googleReview['comment'] ?? '',
+                        'author_name' => $googleReview['author_name'],
+                        'author_location' => 'Google',
+                        'author_photo_url' => $googleReview['profile_photo_url'] ?? null,
+                        'rating' => $googleReview['rating'],
+                        'review_text' => $googleReview['text'] ?? '',
                         'is_active' => $autoApprove,
                         'is_verified' => true,
-                        'source' => 'google_my_business',
+                        'source' => 'google_auto',
                         'display_order' => $index,
                         'review_date' => $reviewDate,
                     ]);
@@ -358,17 +365,17 @@ class ReviewsController extends Controller
                 }
             }
 
-            $message = "Import Google My Business terminé : {$imported} nouveaux avis";
+            $message = "Import automatique terminé : {$imported} nouveaux avis";
             if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
-            $message .= " (Total trouvé : " . count($allReviews) . " avis)";
+            $message .= " (Total trouvé : " . count($allReviews) . " avis uniques)";
 
             return redirect()->route('admin.reviews.index')
                 ->with('success', $message);
 
         } catch (\Exception $e) {
-            Log::error('Erreur import Google My Business: ' . $e->getMessage());
+            Log::error('Erreur import automatique: ' . $e->getMessage());
             return redirect()->route('admin.reviews.index')
-                ->with('error', 'Erreur lors de l\'import Google My Business : ' . $e->getMessage());
+                ->with('error', 'Erreur lors de l\'import automatique : ' . $e->getMessage());
         }
     }
 
