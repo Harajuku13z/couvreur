@@ -16,4 +16,8 @@ Route::prefix('admin/reviews')->name('admin.reviews.')->middleware(['admin.auth'
     Route::post('/google/test', [ReviewsController::class, 'testGoogleConnection'])->name('google.test');
     Route::post('/google/import', [ReviewsController::class, 'importGoogleReviews'])->name('google.import');
     Route::post('/google/import-all', [ReviewsController::class, 'importAllGoogleReviews'])->name('google.import-all');
+    
+    // OAuth2 Google My Business
+    Route::get('/google/oauth', [ReviewsController::class, 'googleOAuth'])->name('google.oauth');
+    Route::get('/google/oauth/callback', [ReviewsController::class, 'googleOAuthCallback'])->name('google.oauth.callback');
 });

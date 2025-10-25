@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', 'Configuration Google Reviews')
+@section('title', 'Configuration Google My Business')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Configuration Google Reviews</h1>
-            <p class="text-gray-600 mt-2">Importez vos avis Google directement</p>
+            <h1 class="text-3xl font-bold text-gray-900">Configuration Google My Business</h1>
+            <p class="text-gray-600 mt-2">Importez TOUS vos avis Google directement depuis votre compte Business</p>
         </div>
         <a href="{{ route('admin.reviews.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
             <i class="fas fa-arrow-left mr-2"></i>Retour aux Avis
@@ -25,19 +25,19 @@
     @if(session('error'))
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {{ session('error') }}
-        </div>
+                </div>
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Configuration -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuration Google Places</h2>
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuration Google My Business</h2>
             
-            <form action="{{ route('admin.reviews.google.config.save') }}" method="POST">
-                @csrf
-                
+                    <form action="{{ route('admin.reviews.google.config.save') }}" method="POST">
+                        @csrf
+                        
                 <div class="space-y-6">
-                    <div>
+                                <div>
                         <label for="google_api_key" class="block text-sm font-medium text-gray-700 mb-2">
                             Clé API Google Places
                         </label>
@@ -51,7 +51,7 @@
                         <p class="text-sm text-gray-500 mt-1">
                             Obtenez votre clé sur <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 hover:underline">Google Cloud Console</a>
                         </p>
-                    </div>
+                        </div>
 
                     <div>
                         <label for="google_place_id" class="block text-sm font-medium text-gray-700 mb-2">
@@ -60,28 +60,66 @@
                         <input type="text" 
                                id="google_place_id" 
                                name="google_place_id" 
-                               value="{{ old('google_place_id', $googlePlaceId) }}"
+                                   value="{{ old('google_place_id', $googlePlaceId) }}" 
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                placeholder="Ex: ChIJN1t_tDeuEmsRUsoyG83frY4"
                                required>
-                        <p class="text-sm text-gray-500 mt-1">
+                            <p class="text-sm text-gray-500 mt-1">
                             Trouvez votre Place ID sur <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" class="text-blue-600 hover:underline">Google Places API</a>
-                        </p>
-                    </div>
+                            </p>
+                        </div>
 
-                    <div>
-                        <label for="outscraper_api_key" class="block text-sm font-medium text-gray-700 mb-2">
-                            Clé API Outscraper (Optionnel - pour import complet)
-                        </label>
-                        <input type="text" 
-                               id="outscraper_api_key" 
-                               name="outscraper_api_key" 
-                               value="{{ old('outscraper_api_key', $outscraperApiKey) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="Votre clé API Outscraper">
-                        <p class="text-sm text-gray-500 mt-1">
-                            Obtenez votre clé sur <a href="https://outscraper.com/" target="_blank" class="text-blue-600 hover:underline">Outscraper.com</a> pour importer plus de 5 avis
-                        </p>
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Configuration Google My Business</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="google_account_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Account ID Google My Business
+                                </label>
+                                <input type="text" 
+                                       id="google_account_id" 
+                                       name="google_account_id" 
+                                       value="{{ old('google_account_id', $googleAccountId) }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Ex: 1234567890123456789"
+                                       required>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    ID de votre compte Google My Business
+                                </p>
+                        </div>
+
+                            <div>
+                                <label for="google_location_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Location ID Google My Business
+                                    </label>
+                                <input type="text" 
+                                       id="google_location_id" 
+                                       name="google_location_id" 
+                                       value="{{ old('google_location_id', $googleLocationId) }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Ex: 9876543210987654321"
+                                       required>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    ID de votre établissement Google My Business
+                                </p>
+                                </div>
+
+                            <div>
+                                <label for="google_access_token" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Access Token Google My Business
+                                </label>
+                                <textarea id="google_access_token" 
+                                          name="google_access_token" 
+                                          rows="3"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          placeholder="Votre access token OAuth2"
+                                          required>{{ old('google_access_token', $googleAccessToken) }}</textarea>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    Token d'accès OAuth2 pour Google My Business API
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex items-center">
@@ -94,71 +132,69 @@
                         <label for="auto_approve_google" class="ml-2 block text-sm text-gray-700">
                             Approuver automatiquement les avis importés
                         </label>
-                    </div>
+                        </div>
 
                     <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-save mr-2"></i>Sauvegarder la Configuration
-                    </button>
+                                <i class="fas fa-save mr-2"></i>Sauvegarder la Configuration
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
 
         <!-- Actions -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-6">Actions</h2>
             
-            @if($googleApiKey && $googlePlaceId)
+            @if($googleApiKey && $googlePlaceId && $googleAccountId && $googleLocationId && $googleAccessToken)
                 <div class="space-y-4">
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                            <div>
+                                <div>
                                 <h3 class="text-sm font-medium text-green-800">Configuration Complète</h3>
-                                <p class="text-sm text-green-700">Vous pouvez importer les avis Google</p>
+                                <p class="text-sm text-green-700">Vous pouvez importer tous vos avis Google My Business</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="space-y-3">
+                        <a href="{{ route('admin.reviews.google.oauth') }}" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center justify-center">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Connexion Google My Business (OAuth2)
+                        </a>
+                        
                         <button onclick="testConnection()" class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
-                            <i class="fas fa-wifi mr-2"></i>Test Connexion Google
+                            <i class="fas fa-wifi mr-2"></i>Test Connexion Google My Business
                         </button>
                         
                         <div class="grid grid-cols-1 gap-3">
                             <form action="{{ route('admin.reviews.google.import') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            @csrf
+                            <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
                                     <i class="fas fa-download mr-2"></i>Import Standard (5 avis)
                                 </button>
                             </form>
                             
-                            @if($outscraperApiKey)
-                                <form action="{{ route('admin.reviews.google.import-all') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
-                                        <i class="fas fa-download mr-2"></i>Import Complet (Tous les avis)
-                                    </button>
-                                </form>
-                            @else
-                                <div class="w-full bg-gray-300 text-gray-600 px-4 py-2 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-lock mr-2"></i>Import Complet (Clé Outscraper requise)
-                                </div>
-                            @endif
+                            <form action="{{ route('admin.reviews.google.import-all') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                                    <i class="fas fa-download mr-2"></i>Import Google My Business (Tous les avis)
+                            </button>
+                        </form>
                         </div>
                     </div>
                 </div>
-            @else
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    @else
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle text-yellow-600 mr-3"></i>
-                        <div>
+                                <div>
                             <h3 class="text-sm font-medium text-yellow-800">Configuration Incomplète</h3>
                             <p class="text-sm text-yellow-700">Veuillez remplir tous les champs pour importer des avis</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            @endif
-
+                    @endif
+                    
             <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div class="flex items-start">
                     <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
@@ -166,11 +202,24 @@
                         <h3 class="text-sm font-medium text-blue-800">Options d'Import</h3>
                         <ul class="text-sm text-blue-700 mt-2 space-y-1">
                             <li><strong>Import Standard :</strong> 5 avis via Google Places API (rapide)</li>
-                            <li><strong>Import Complet :</strong> Tous les avis via scraping (plus lent)</li>
-                            <li>• Configurez votre clé API Google Places</li>
-                            <li>• Ajoutez votre Place ID Google</li>
-                            <li>• Testez la connexion</li>
+                            <li><strong>Import Google My Business :</strong> TOUS les avis depuis votre compte Business</li>
+                            <li>• Configuration OAuth2 requise pour Google My Business</li>
+                            <li>• Récupération complète de tous vos avis</li>
+                            <li>• Solution officielle et fiable</li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-orange-600 mr-3 mt-1"></i>
+                    <div>
+                        <h3 class="text-sm font-medium text-orange-800">Configuration OAuth2</h3>
+                        <p class="text-sm text-orange-700 mt-1">
+                            Pour obtenir votre Access Token, vous devez configurer OAuth2 avec Google My Business API.
+                            <br><strong>Note :</strong> Cette configuration nécessite des droits d'administrateur sur votre compte Google My Business.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -187,7 +236,7 @@
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
                 </div>
                 <h3 class="text-lg font-semibold text-center mb-2">Test de Connexion</h3>
-                <p class="text-gray-600 text-center">Vérification de la connexion avec Google Places...</p>
+                <p class="text-gray-600 text-center">Vérification de la connexion avec Google My Business...</p>
             </div>
         </div>
     </div>
