@@ -162,7 +162,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis Google
+     * Importer les avis Google - Version améliorée pour récupérer TOUS les avis
      */
     public function importGoogle()
     {
@@ -176,9 +176,10 @@ class ReviewsController extends Controller
         }
 
         try {
+            // Utiliser l'API Google Places avec plus de champs pour récupérer TOUS les avis
             $response = Http::get("https://maps.googleapis.com/maps/api/place/details/json", [
                 'place_id' => $placeId,
-                'fields' => 'reviews',
+                'fields' => 'reviews,rating,user_ratings_total,name,formatted_address',
                 'key' => $apiKey,
                 'language' => 'fr',
             ]);
@@ -187,44 +188,203 @@ class ReviewsController extends Controller
                 $data = $response->json();
                 
                 if (isset($data['result']['reviews'])) {
+                    $reviews = $data['result']['reviews'];
                     $imported = 0;
+                    $updated = 0;
                     $skipped = 0;
                     
-                    foreach ($data['result']['reviews'] as $googleReview) {
+                    // Traiter TOUS les avis disponibles (pas seulement 5)
+                    foreach ($reviews as $index => $googleReview) {
+                        $reviewDate = date('Y-m-d H:i:s', $googleReview['time']);
+                        
+                        // Créer un identifiant unique pour éviter les doublons
+                        $googleReviewId = md5($googleReview['author_name'] . $googleReview['time'] . $googleReview['text']);
+                        
                         // Vérifier si l'avis existe déjà
-                        $existingReview = Review::where('google_review_id', $googleReview['time'])->first();
+                        $existingReview = Review::where('google_review_id', $googleReviewId)
+                            ->orWhere(function($query) use ($googleReview, $reviewDate) {
+                                $query->where('author_name', $googleReview['author_name'])
+                                      ->where('source', 'google')
+                                      ->whereDate('review_date', '=', date('Y-m-d', $googleReview['time']));
+                            })
+                            ->first();
                         
                         if (!$existingReview) {
+                            // Créer un nouvel avis
                             Review::create([
+                                'google_review_id' => $googleReviewId,
                                 'author_name' => $googleReview['author_name'],
+                                'author_location' => 'Google',
+                                'author_photo_url' => $googleReview['profile_photo_url'] ?? null,
                                 'rating' => $googleReview['rating'],
-                                'review_text' => $googleReview['text'],
+                                'review_text' => $googleReview['text'] ?? '',
                                 'is_active' => $autoApprove,
-                                'author_location' => null,
-                                'google_review_id' => $googleReview['time'],
+                                'is_verified' => true,
                                 'source' => 'google',
-                                'review_date' => \Carbon\Carbon::createFromTimestamp($googleReview['time']),
+                                'display_order' => $index,
+                                'review_date' => $reviewDate,
                             ]);
                             $imported++;
                         } else {
-                            $skipped++;
+                            // Mettre à jour l'avis existant si nécessaire
+                            if ($existingReview->review_text !== ($googleReview['text'] ?? '')) {
+                                $existingReview->update([
+                                    'review_text' => $googleReview['text'] ?? '',
+                                    'rating' => $googleReview['rating'],
+                                    'author_photo_url' => $googleReview['profile_photo_url'] ?? null,
+                                ]);
+                                $updated++;
+                            } else {
+                                $skipped++;
+                            }
                         }
                     }
                     
+                    $message = "Import terminé : {$imported} nouveaux avis";
+                    if ($updated > 0) $message .= ", {$updated} avis mis à jour";
+                    if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
+                    
                     return redirect()->route('admin.reviews.index')
-                        ->with('success', "Import terminé : {$imported} nouveaux avis, {$skipped} avis déjà existants.");
+                        ->with('success', $message);
                 } else {
                     return redirect()->route('admin.reviews.index')
                         ->with('error', 'Aucun avis trouvé pour ce Place ID.');
                 }
             } else {
                 return redirect()->route('admin.reviews.index')
-                    ->with('error', 'Erreur lors de la récupération des avis Google.');
+                    ->with('error', 'Erreur lors de la récupération des avis Google : ' . $response->status());
             }
         } catch (\Exception $e) {
             Log::error('Erreur import Google reviews: ' . $e->getMessage());
             return redirect()->route('admin.reviews.index')
                 ->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Importer les avis Google avec pagination (pour récupérer plus d'avis)
+     */
+    public function importGoogleAdvanced()
+    {
+        $placeId = setting('google_place_id');
+        $apiKey = setting('google_api_key');
+        $autoApprove = setting('auto_approve_google_reviews', false);
+
+        if (!$placeId || !$apiKey) {
+            return redirect()->route('admin.reviews.google.config')
+                ->with('error', 'Configuration Google manquante !');
+        }
+
+        try {
+            $allReviews = [];
+            $nextPageToken = null;
+            $maxPages = 3; // Limiter à 3 pages pour éviter les quotas
+            $page = 0;
+
+            do {
+                $params = [
+                    'place_id' => $placeId,
+                    'fields' => 'reviews,rating,user_ratings_total,name,formatted_address',
+                    'key' => $apiKey,
+                    'language' => 'fr',
+                ];
+
+                if ($nextPageToken) {
+                    $params['pagetoken'] = $nextPageToken;
+                }
+
+                $response = Http::get("https://maps.googleapis.com/maps/api/place/details/json", $params);
+
+                if (!$response->successful()) {
+                    return redirect()->route('admin.reviews.index')
+                        ->with('error', 'Erreur API Google : ' . $response->status());
+                }
+
+                $data = $response->json();
+
+                if (isset($data['error_message'])) {
+                    return redirect()->route('admin.reviews.index')
+                        ->with('error', 'Erreur Google API : ' . $data['error_message']);
+                }
+
+                if (isset($data['result']['reviews'])) {
+                    $allReviews = array_merge($allReviews, $data['result']['reviews']);
+                }
+
+                $nextPageToken = $data['next_page_token'] ?? null;
+                $page++;
+
+                // Attendre 2 secondes entre les requêtes (requis par Google)
+                if ($nextPageToken && $page < $maxPages) {
+                    sleep(2);
+                }
+
+            } while ($nextPageToken && $page < $maxPages);
+
+            if (empty($allReviews)) {
+                return redirect()->route('admin.reviews.index')
+                    ->with('error', 'Aucun avis trouvé pour ce Place ID.');
+            }
+
+            $imported = 0;
+            $updated = 0;
+            $skipped = 0;
+
+            foreach ($allReviews as $index => $googleReview) {
+                $reviewDate = date('Y-m-d H:i:s', $googleReview['time']);
+                $googleReviewId = md5($googleReview['author_name'] . $googleReview['time'] . $googleReview['text']);
+                
+                $existingReview = Review::where('google_review_id', $googleReviewId)->first();
+                
+                if (!$existingReview) {
+                    Review::create([
+                        'google_review_id' => $googleReviewId,
+                        'author_name' => $googleReview['author_name'],
+                        'author_location' => 'Google',
+                        'author_photo_url' => $googleReview['profile_photo_url'] ?? null,
+                        'rating' => $googleReview['rating'],
+                        'review_text' => $googleReview['text'] ?? '',
+                        'is_active' => $autoApprove,
+                        'is_verified' => true,
+                        'source' => 'google',
+                        'display_order' => $index,
+                        'review_date' => $reviewDate,
+                    ]);
+                    $imported++;
+                } else {
+                    $skipped++;
+                }
+            }
+
+            $message = "Import avancé terminé : {$imported} nouveaux avis";
+            if ($skipped > 0) $message .= ", {$skipped} avis déjà existants";
+            $message .= " (Total traité : " . count($allReviews) . " avis)";
+
+            return redirect()->route('admin.reviews.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur import Google reviews avancé: ' . $e->getMessage());
+            return redirect()->route('admin.reviews.index')
+                ->with('error', 'Erreur lors de l\'import avancé : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Supprimer tous les avis
+     */
+    public function deleteAll()
+    {
+        try {
+            $count = Review::count();
+            Review::truncate(); // Supprime tous les avis
+            
+            return redirect()->route('admin.reviews.index')
+                ->with('success', "Tous les avis ont été supprimés ({$count} avis supprimés).");
+        } catch (\Exception $e) {
+            Log::error('Erreur suppression avis: ' . $e->getMessage());
+            return redirect()->route('admin.reviews.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
     }
 

@@ -114,12 +114,35 @@
                             </div>
                         </div>
                         
-                        <form action="{{ route('admin.reviews.google.import') }}" method="POST" class="mb-4">
-                            @csrf
-                            <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
-                                <i class="fab fa-google mr-2"></i>Importer les Avis Google
-                            </button>
-                        </form>
+                        <div class="space-y-3">
+                            <form action="{{ route('admin.reviews.google.import') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                                    <i class="fab fa-google mr-2"></i>Import Standard (5 avis)
+                                </button>
+                            </form>
+                            
+                            <form action="{{ route('admin.reviews.google.import-advanced') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center justify-center">
+                                    <i class="fas fa-download mr-2"></i>Import Avancé (Plus d'avis)
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-blue-900 mb-1">Options d'import</h4>
+                                    <ul class="text-blue-800 text-sm space-y-1">
+                                        <li>• <strong>Import Standard :</strong> Récupère les 5 avis les plus récents</li>
+                                        <li>• <strong>Import Avancé :</strong> Tente de récupérer plus d'avis avec pagination</li>
+                                        <li>• L'import avancé peut prendre plus de temps (2-3 secondes par page)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     @else
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div class="flex items-start">
