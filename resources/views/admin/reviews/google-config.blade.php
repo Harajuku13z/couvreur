@@ -69,6 +69,21 @@
                         </p>
                     </div>
 
+                    <div>
+                        <label for="outscraper_api_key" class="block text-sm font-medium text-gray-700 mb-2">
+                            Clé API Outscraper (Optionnel - pour import complet)
+                        </label>
+                        <input type="text" 
+                               id="outscraper_api_key" 
+                               name="outscraper_api_key" 
+                               value="{{ old('outscraper_api_key', $outscraperApiKey) }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Votre clé API Outscraper">
+                        <p class="text-sm text-gray-500 mt-1">
+                            Obtenez votre clé sur <a href="https://outscraper.com/" target="_blank" class="text-blue-600 hover:underline">Outscraper.com</a> pour importer plus de 5 avis
+                        </p>
+                    </div>
+
                     <div class="flex items-center">
                         <input type="checkbox" 
                                id="auto_approve_google" 
@@ -109,12 +124,27 @@
                             <i class="fas fa-wifi mr-2"></i>Test Connexion Google
                         </button>
                         
-                        <form action="{{ route('admin.reviews.google.import') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
-                                <i class="fas fa-download mr-2"></i>Importer les Avis Google
-                            </button>
-                        </form>
+                        <div class="grid grid-cols-1 gap-3">
+                            <form action="{{ route('admin.reviews.google.import') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                                    <i class="fas fa-download mr-2"></i>Import Standard (5 avis)
+                                </button>
+                            </form>
+                            
+                            @if($outscraperApiKey)
+                                <form action="{{ route('admin.reviews.google.import-all') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                                        <i class="fas fa-download mr-2"></i>Import Complet (Tous les avis)
+                                    </button>
+                                </form>
+                            @else
+                                <div class="w-full bg-gray-300 text-gray-600 px-4 py-2 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-lock mr-2"></i>Import Complet (Clé Outscraper requise)
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @else
@@ -133,12 +163,13 @@
                 <div class="flex items-start">
                     <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
                     <div>
-                        <h3 class="text-sm font-medium text-blue-800">Comment ça marche ?</h3>
+                        <h3 class="text-sm font-medium text-blue-800">Options d'Import</h3>
                         <ul class="text-sm text-blue-700 mt-2 space-y-1">
+                            <li><strong>Import Standard :</strong> 5 avis via Google Places API (rapide)</li>
+                            <li><strong>Import Complet :</strong> Tous les avis via scraping (plus lent)</li>
                             <li>• Configurez votre clé API Google Places</li>
                             <li>• Ajoutez votre Place ID Google</li>
                             <li>• Testez la connexion</li>
-                            <li>• Importez vos avis (max 5 par requête)</li>
                         </ul>
                     </div>
                 </div>

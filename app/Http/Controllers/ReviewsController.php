@@ -34,9 +34,10 @@ class ReviewsController extends Controller
     {
         $googleApiKey = setting('google_api_key');
         $googlePlaceId = setting('google_place_id');
+        $outscraperApiKey = setting('outscraper_api_key');
         $autoApprove = setting('auto_approve_google_reviews', false);
 
-        return view('admin.reviews.google-config', compact('googleApiKey', 'googlePlaceId', 'autoApprove'));
+        return view('admin.reviews.google-config', compact('googleApiKey', 'googlePlaceId', 'outscraperApiKey', 'autoApprove'));
     }
 
     /**
@@ -47,11 +48,13 @@ class ReviewsController extends Controller
         $request->validate([
             'google_api_key' => 'required|string',
             'google_place_id' => 'required|string',
+            'outscraper_api_key' => 'nullable|string',
             'auto_approve_google' => 'boolean',
         ]);
 
         Setting::set('google_api_key', $request->google_api_key);
         Setting::set('google_place_id', $request->google_place_id);
+        Setting::set('outscraper_api_key', $request->outscraper_api_key);
         Setting::set('auto_approve_google_reviews', $request->boolean('auto_approve_google'));
         
         Setting::clearCache();
@@ -113,7 +116,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Importer les avis avec Google Places API
+     * Importer les avis avec Google Places API (5 avis max)
      */
     public function importGoogleReviews()
     {
@@ -175,13 +178,96 @@ class ReviewsController extends Controller
             }
 
             return redirect()->route('admin.reviews.index')
-                ->with('success', "Import terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour.");
+                ->with('success', "Import terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Limite Google Places: 5 avis max)");
 
         } catch (\Exception $e) {
             return redirect()->route('admin.reviews.index')
                 ->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
         }
     }
+
+    /**
+     * Importer TOUS les avis avec Outscraper (plus de 5 avis)
+     */
+    public function importAllGoogleReviews()
+    {
+        $placeId = setting('google_place_id');
+        $outscraperApiKey = setting('outscraper_api_key');
+        $autoApprove = setting('auto_approve_google_reviews', false);
+
+        if (!$placeId) {
+            return redirect()->route('admin.reviews.google.config')
+                ->with('error', 'Place ID manquant !');
+        }
+
+        if (!$outscraperApiKey) {
+            return redirect()->route('admin.reviews.google.config')
+                ->with('error', 'Clé API Outscraper manquante ! Veuillez la configurer.');
+        }
+
+        try {
+            // Utiliser Outscraper pour récupérer tous les avis
+            $response = Http::timeout(120)->get('https://api.outscraper.cloud/google-maps-reviews', [
+                'query' => 'place_id:' . $placeId,
+                'reviewsLimit' => 100,
+                'language' => 'fr',
+                'region' => 'FR',
+                'async' => 'false'
+            ], [
+                'X-API-KEY' => $outscraperApiKey
+            ]);
+
+            if (!$response->successful()) {
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('error', 'Erreur Outscraper : ' . $response->status() . ' - ' . $response->body());
+            }
+
+            $data = $response->json();
+            
+            if (!isset($data['data'][0]['reviews']) || empty($data['data'][0]['reviews'])) {
+                return redirect()->route('admin.reviews.google.config')
+                    ->with('error', 'Aucun avis trouvé via Outscraper. Vérifiez votre Place ID.');
+            }
+
+            $reviews = $data['data'][0]['reviews'];
+            $importedCount = 0;
+            $updatedCount = 0;
+
+            foreach ($reviews as $review) {
+                $googleReviewId = md5($review['author_name'] . $review['review_datetime_utc']);
+                
+                $existingReview = Review::where('google_review_id', $googleReviewId)->first();
+
+                $reviewData = [
+                    'google_review_id' => $googleReviewId,
+                    'author_name' => $review['author_name'] ?? 'Auteur inconnu',
+                    'rating' => $review['review_rating'] ?? 5,
+                    'review_text' => $review['review_text'] ?? '',
+                    'review_date' => isset($review['review_datetime_utc']) ? 
+                        date('Y-m-d H:i:s', strtotime($review['review_datetime_utc'])) : now(),
+                    'source' => 'Google (Outscraper)',
+                    'is_active' => $autoApprove ? 1 : 0,
+                    'is_verified' => true
+                ];
+
+                if ($existingReview) {
+                    $existingReview->update($reviewData);
+                    $updatedCount++;
+                } else {
+                    Review::create($reviewData);
+                    $importedCount++;
+                }
+            }
+
+            return redirect()->route('admin.reviews.index')
+                ->with('success', "Import complet terminé ! {$importedCount} nouveaux avis, {$updatedCount} mis à jour. (Total: " . count($reviews) . " avis)");
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.reviews.index')
+                ->with('error', 'Erreur lors de l\'import complet : ' . $e->getMessage());
+        }
+    }
+
 
     /**
      * Supprimer tous les avis

@@ -15,4 +15,5 @@ Route::prefix('admin/reviews')->name('admin.reviews.')->middleware(['admin.auth'
     Route::post('/google/config', [ReviewsController::class, 'saveGoogleConfig'])->name('google.config.save');
     Route::post('/google/test', [ReviewsController::class, 'testGoogleConnection'])->name('google.test');
     Route::post('/google/import', [ReviewsController::class, 'importGoogleReviews'])->name('google.import');
+    Route::post('/google/import-all', [ReviewsController::class, 'importAllGoogleReviews'])->name('google.import-all');
 });
