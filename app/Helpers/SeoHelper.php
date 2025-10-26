@@ -65,10 +65,17 @@ class SeoHelper
         // Description finale
         $finalDescription = $seo['meta_description'] ?: $customData['description'] ?: $defaultDescription;
         
-        // Image finale (priorité: image personnalisée > image SEO > image par défaut)
-        $finalImage = self::getImageUrl($customData['image']) ?: 
-                     self::getImageUrl($seo['og_image']) ?: 
-                     $defaultImage;
+        // Image finale (logique selon le type de page)
+        if (self::shouldUseDefaultImage($pageName, $customData['image'] ?? null)) {
+            // Pages qui doivent utiliser le logo du site par défaut
+            $finalImage = $defaultImage;
+        } else {
+            // Pages qui peuvent utiliser des images spécifiques (services, articles, reviews)
+            $finalImage = self::getImageUrl($customData['image'] ?? null) ?: 
+                         self::getImageUrl($seo['og_image']) ?: 
+                         self::getDefaultOgImage($pageName) ?:
+                         $defaultImage;
+        }
         
         $meta = [
             'title' => $finalTitle,
@@ -152,6 +159,25 @@ class SeoHelper
         
         // Fallback: logo par défaut
         return url('logo/logo.png');
+    }
+    
+    /**
+     * Déterminer si une page doit utiliser l'image par défaut du site
+     */
+    private static function shouldUseDefaultImage($pageName, $customImage = null)
+    {
+        // Si une image personnalisée est fournie, l'utiliser
+        if ($customImage) {
+            return false;
+        }
+        
+        // Pages qui doivent utiliser l'image par défaut du site (logo)
+        $defaultImagePages = ['home', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        
+        // Pages qui peuvent utiliser des images spécifiques
+        $specificImagePages = ['services', 'articles'];
+        
+        return in_array($pageName, $defaultImagePages);
     }
     
     /**

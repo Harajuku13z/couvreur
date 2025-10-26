@@ -13,9 +13,15 @@
         <div class="max-w-md mx-auto">
             <!-- Logo -->
             <div class="text-center mb-8">
-                <img src="{{ asset('logoTop.png') }}" alt="Logo" class="h-16 mx-auto mb-4">
+                @if(setting('company_logo'))
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Logo') }}" class="h-16 mx-auto mb-4 object-contain">
+                @else
+                    <div class="h-16 w-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-building text-2xl" style="color: var(--primary-color, #3b82f6);"></i>
+                    </div>
+                @endif
                 <h1 class="text-3xl font-bold text-white mb-2">Administration</h1>
-                <p class="text-blue-200">{{ config('company.name') }}</p>
+                <p class="text-blue-200">{{ setting('company_name', config('company.name')) }}</p>
             </div>
 
             <!-- Login Card -->

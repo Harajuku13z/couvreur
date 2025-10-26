@@ -36,7 +36,7 @@
     
     <!-- Favicon -->
     @if(setting('site_favicon'))
-    <link rel="icon" type="image/x-icon" href="{{ asset(setting('site_favicon')) }}">
+    <link rel="icon" type="image/x-icon" href="{{ url(setting('site_favicon')) }}">
     @endif
     
     <!-- Apple Touch Icon -->

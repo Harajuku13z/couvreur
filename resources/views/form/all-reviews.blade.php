@@ -11,7 +11,7 @@
     $currentPage = 'reviews';
     $pageTitle = 'Avis Clients - ' . setting('company_name', 'Sauser Couverture');
     $pageDescription = 'Découvrez les avis de nos clients satisfaits. Plus de ' . $stats['total'] . ' avis avec une note moyenne de ' . $stats['average'] . '/5. Témoignages authentiques sur nos services de couverture et rénovation.';
-    $pageImage = 'images/og-avis-clients.jpg';
+    // $pageImage supprimé pour utiliser l'image par défaut du SeoHelper
     $pageType = 'website';
 @endphp
 
