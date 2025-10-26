@@ -92,6 +92,11 @@
                         <strong>Dernière mise à jour :</strong> {{ date('d/m/Y') }}
                     </p>
                 </div>
+                
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-8">8. Crédits</h2>
+                <p class="mb-6">
+                    Ce site web a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors font-medium">Osmose*</a> avec amour ❤️
+                </p>
             </div>
         </div>
     </div>

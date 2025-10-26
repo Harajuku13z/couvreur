@@ -91,6 +91,13 @@
                     <a href="{{ route('legal.cgv') }}" class="text-gray-400 hover:text-white transition-colors text-sm">CGV</a>
                 </div>
             </div>
+            <div class="mt-4 pt-4 border-t border-gray-800">
+                <div class="text-center">
+                    <p class="text-gray-500 text-xs">
+                        Ce site a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="text-gray-400 hover:text-white transition-colors font-medium">Osmose*</a> avec amour ❤️
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </footer>
