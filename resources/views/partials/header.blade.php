@@ -54,17 +54,18 @@
                     });
                 @endphp
                 
-                <!-- Lien direct vers la page Nos Services -->
-                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
-                
                 @if(count($featuredServices) > 0)
                 <div class="relative group">
-                    <button class="text-gray-700 hover:text-primary font-medium flex items-center">
-                        Services Populaires
+                    <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium flex items-center">
+                        Nos Services
                         <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                    </button>
+                    </a>
                     <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                         <div class="py-2">
+                            <a href="{{ route('services.index') }}" 
+                               class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary transition-colors font-semibold border-b border-gray-200">
+                                <i class="fas fa-list mr-2"></i>Tous nos services
+                            </a>
                             @foreach($featuredServices as $service)
                                 @if(is_array($service) && isset($service['name']) && isset($service['slug']))
                                 <a href="{{ route('services.show', $service['slug']) }}" 
@@ -76,6 +77,9 @@
                         </div>
                     </div>
                 </div>
+                @else
+                <!-- Lien direct vers la page Nos Services si pas de services mis en vedette -->
+                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
                 @endif
                 
                 <a href="{{ route('portfolio.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Réalisations</a>
@@ -146,19 +150,25 @@
             <nav class="flex flex-col space-y-4 px-4">
                 <a href="{{ route('home') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
                 
-                <!-- Lien direct vers la page Nos Services -->
-                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
-                
                 @if(count($featuredServices) > 0)
                 <div class="space-y-2">
-                    <div class="text-gray-700 font-medium">Services Populaires</div>
-                    @foreach($featuredServices as $service)
-                    <a href="{{ route('services.show', $service['slug']) }}" 
-                       class="block pl-4 text-gray-600 hover:text-primary">
-                        {{ $service['name'] }}
-                    </a>
-                    @endforeach
+                    <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
+                    <div class="pl-4 space-y-1">
+                        <a href="{{ route('services.index') }}" 
+                           class="block text-gray-600 hover:text-primary font-semibold">
+                            <i class="fas fa-list mr-2"></i>Tous nos services
+                        </a>
+                        @foreach($featuredServices as $service)
+                        <a href="{{ route('services.show', $service['slug']) }}" 
+                           class="block text-gray-600 hover:text-primary">
+                            {{ $service['name'] }}
+                        </a>
+                        @endforeach
+                    </div>
                 </div>
+                @else
+                <!-- Lien direct vers la page Nos Services si pas de services mis en vedette -->
+                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
                 @endif
                 
                 <a href="{{ route('portfolio.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Réalisations</a>
