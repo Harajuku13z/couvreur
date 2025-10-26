@@ -81,10 +81,10 @@ class SeoController extends Controller
             'apple_touch_icon' => 'nullable|image|max:512',
             'manifest' => 'nullable|file|mimes:json|max:1024',
             'google_analytics' => 'nullable|string|max:50',
-            'google_search_console' => 'nullable|string|max:100',
+            'google_search_console' => 'nullable|string|max:500',
             'facebook_pixel' => 'nullable|string|max:50',
             'google_ads' => 'nullable|string|max:50',
-            'bing_webmaster' => 'nullable|string|max:100',
+            'bing_webmaster' => 'nullable|string|max:500',
             'schema_markup' => 'nullable|string',
             'sitemap_priority' => 'nullable|numeric|min:0|max:1',
             'sitemap_changefreq' => 'nullable|string|in:always,hourly,daily,weekly,monthly,yearly,never'
