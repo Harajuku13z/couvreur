@@ -317,6 +317,7 @@ class ServicesController extends Controller
                 'meta_keywords' => $aiContent['meta_keywords'],
                 'og_title' => $aiContent['og_title'],
                 'og_description' => $aiContent['og_description'],
+                'og_image' => null, // Forcer l'utilisation de l'image par défaut
                 'twitter_title' => $aiContent['twitter_title'],
                 'twitter_description' => $aiContent['twitter_description'],
                 'updated_at' => now()->toISOString(),
@@ -402,14 +403,38 @@ INFORMATIONS:
     
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
-      <li class=\"flex items-start\"><span><strong>[Prestation 1 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 2 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 3 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 4 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 5 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 6 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 7 spécifique à {$serviceName}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 8 spécifique à {$serviceName}]</strong></span></li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 1 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 2 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 3 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 4 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 5 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 6 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 7 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 8 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+      </li>
     </ul>
     
     <div class=\"bg-green-50 p-6 rounded-lg\">
@@ -431,12 +456,30 @@ INFORMATIONS:
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><span>[Info pratique 1 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 2 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 3 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 4 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 5 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 6 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 1 pour {$serviceName}]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 2 pour {$serviceName}]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 3 pour {$serviceName}]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 4 pour {$serviceName}]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 5 pour {$serviceName}]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>[Info pratique 6 pour {$serviceName}]</span>
+        </li>
       </ul>
     </div>
   </div>
