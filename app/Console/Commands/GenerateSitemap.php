@@ -35,10 +35,13 @@ class GenerateSitemap extends Command
     {
         $this->info('🚀 Génération du sitemap en cours...');
         
+        // Forcer l'URL de production pour le sitemap
+        $baseUrl = 'https://sausercouverture.fr';
+        
         $sitemap = Sitemap::create();
         
         // Page d'accueil
-        $sitemap->add(Url::create('/')
+        $sitemap->add(Url::create($baseUrl)
             ->setLastModificationDate(Carbon::now())
             ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
             ->setPriority(1.0));
@@ -56,7 +59,7 @@ class GenerateSitemap extends Command
         ];
         
         foreach ($staticPages as $url => $config) {
-            $sitemap->add(Url::create($url)
+            $sitemap->add(Url::create($baseUrl . $url)
                 ->setLastModificationDate(Carbon::now())
                 ->setChangeFrequency($config['changefreq'])
                 ->setPriority($config['priority']));
@@ -79,7 +82,7 @@ class GenerateSitemap extends Command
         
         foreach ($visibleServices as $service) {
             if (isset($service['slug'])) {
-                $sitemap->add(Url::create('/services/' . $service['slug'])
+                $sitemap->add(Url::create($baseUrl . '/services/' . $service['slug'])
                     ->setLastModificationDate(Carbon::parse($service['updated_at'] ?? $service['created_at'] ?? now()))
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                     ->setPriority(0.8));
@@ -91,21 +94,20 @@ class GenerateSitemap extends Command
         $this->info("📰 Ajout de {$articles->count()} articles...");
         
         foreach ($articles as $article) {
-            $sitemap->add(Url::create('/blog/' . $article->slug)
+            $sitemap->add(Url::create($baseUrl . '/blog/' . $article->slug)
                 ->setLastModificationDate($article->updated_at)
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.7));
         }
         
         // Annonces (limitées pour éviter un sitemap trop volumineux)
-        $ads = Ad::whereIn('status', ['published', 'draft'])
-            ->orderBy('updated_at', 'desc')
+        $ads = Ad::orderBy('updated_at', 'desc')
             ->limit(5000)
             ->get();
         $this->info("📢 Ajout de {$ads->count()} annonces...");
         
         foreach ($ads as $ad) {
-            $sitemap->add(Url::create('/annonces/' . $ad->slug)
+            $sitemap->add(Url::create($baseUrl . '/annonces/' . $ad->slug)
                 ->setLastModificationDate($ad->updated_at)
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.6));
@@ -125,7 +127,7 @@ class GenerateSitemap extends Command
         
         foreach ($visiblePortfolioItems as $item) {
             if (isset($item['slug'])) {
-                $sitemap->add(Url::create('/nos-realisations/' . $item['slug'])
+                $sitemap->add(Url::create($baseUrl . '/nos-realisations/' . $item['slug'])
                     ->setLastModificationDate(Carbon::now())
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                     ->setPriority(0.5));
@@ -137,7 +139,7 @@ class GenerateSitemap extends Command
         $sitemap->writeToFile($sitemapPath);
         
         $this->info("✅ Sitemap généré avec succès : {$sitemapPath}");
-        $this->info("🌐 URL du sitemap : " . url('/sitemap.xml'));
+        $this->info("🌐 URL du sitemap : {$baseUrl}/sitemap.xml");
         
         return 0;
     }
