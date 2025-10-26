@@ -98,7 +98,7 @@ class GenerateSitemap extends Command
         }
         
         // Annonces (limitées pour éviter un sitemap trop volumineux)
-        $ads = Ad::where('status', 'published')
+        $ads = Ad::whereIn('status', ['published', 'draft'])
             ->orderBy('updated_at', 'desc')
             ->limit(5000)
             ->get();
