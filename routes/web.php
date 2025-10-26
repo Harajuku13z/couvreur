@@ -257,6 +257,11 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/articles/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('articles.upload-image');
             Route::post('/articles/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('articles.create-from-titles');
             
+            // Routes IA améliorées
+            Route::get('/articles/ai-generate', [App\Http\Controllers\Admin\ArticleAiController::class, 'form'])->name('articles.ai.form');
+            Route::post('/articles/ai-generate', [App\Http\Controllers\Admin\ArticleAiController::class, 'generate'])->name('articles.ai.generate');
+            Route::post('/articles/ai-test', [App\Http\Controllers\Admin\ArticleAiController::class, 'test'])->name('articles.ai.test');
+            
             // ===== IMAGE GENERATION =====
             Route::post('/generate-image', [App\Http\Controllers\ImageGenerationController::class, 'generateImage'])->name('generate.image');
 

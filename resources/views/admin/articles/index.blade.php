@@ -10,7 +10,7 @@
             <a href="{{ route('admin.articles.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <i class="fas fa-plus mr-2"></i>Nouvel Article
             </a>
-            <a href="{{ route('admin.articles.generate') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+            <a href="{{ route('admin.articles.ai.form') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
                 <i class="fas fa-robot mr-2"></i>Générer avec IA
             </a>
             <form method="POST" action="{{ route('admin.articles.destroy-all') }}" class="inline" onsubmit="return confirm('⚠️ ATTENTION: Cette action supprimera TOUS les articles définitivement. Êtes-vous sûr de vouloir continuer ?')">
