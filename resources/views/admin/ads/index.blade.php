@@ -24,7 +24,7 @@
         </div>
 
         <!-- Boutons d'action -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <a href="{{ route('admin.ads.bulk-ads') }}" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
                 <div class="flex items-center">
                     <div class="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -57,6 +57,18 @@
                     <div class="ml-4">
                         <h3 class="font-semibold text-lg">Mot-clé + Villes</h3>
                         <p class="text-purple-100 text-sm">Max 2 villes par mot-clé</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('admin.ads.bulk-ads') }}?tab=keyword" class="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                        <i class="fas fa-bullhorn text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="font-semibold text-lg">Masse par Mot-clé</h3>
+                        <p class="text-indigo-100 text-sm">Toutes les villes</p>
                     </div>
                 </div>
             </a>

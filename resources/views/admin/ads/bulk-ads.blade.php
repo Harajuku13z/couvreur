@@ -314,30 +314,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
     
+    // Vérifier si un onglet spécifique est demandé via l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTab = urlParams.get('tab');
+    
+    // Fonction pour activer un onglet
+    function activateTab(tabName) {
+        // Retirer la classe active de tous les boutons
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        });
+        
+        // Masquer tous les contenus
+        tabContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Activer l'onglet demandé
+        const targetButton = document.querySelector(`[data-tab="${tabName}"]`);
+        const targetContent = document.getElementById(tabName + '-content');
+        
+        if (targetButton && targetContent) {
+            targetButton.classList.add('active', 'border-blue-500', 'text-blue-600');
+            targetButton.classList.remove('border-transparent', 'text-gray-500');
+            targetContent.classList.remove('hidden');
+        }
+    }
+    
+    // Activer l'onglet demandé si spécifié dans l'URL
+    if (requestedTab && (requestedTab === 'services' || requestedTab === 'keywords')) {
+        activateTab(requestedTab);
+    }
+    
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const targetTab = this.getAttribute('data-tab');
-            
-            // Retirer la classe active de tous les boutons
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500');
-            });
-            
-            // Ajouter la classe active au bouton cliqué
-            this.classList.add('active', 'border-blue-500', 'text-blue-600');
-            this.classList.remove('border-transparent', 'text-gray-500');
-            
-            // Masquer tous les contenus
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Afficher le contenu correspondant
-            const targetContent = document.getElementById(targetTab + '-content');
-            if (targetContent) {
-                targetContent.classList.remove('hidden');
-            }
+            activateTab(targetTab);
         });
     });
 
