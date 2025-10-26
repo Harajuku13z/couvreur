@@ -11,6 +11,10 @@
             'image' => $pageImage ?? '',
             'type' => $pageType ?? 'website'
         ]);
+        
+        // Récupérer la configuration SEO pour les tags de tracking
+        $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
     @endphp
     
     <title>{{ $seoData['title'] }}</title>
@@ -99,13 +103,13 @@
     @stack('head')
     
     <!-- Google Analytics -->
-    @if(setting('google_analytics_id'))
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ setting('google_analytics_id') }}"></script>
+    @if(!empty($seoConfig['google_analytics']))
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $seoConfig['google_analytics'] }}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '{{ setting('google_analytics_id') }}');
+        gtag('config', '{{ $seoConfig['google_analytics'] }}');
     </script>
     @endif
     
@@ -119,7 +123,7 @@
     @endif
     
     <!-- Facebook Pixel -->
-    @if(setting('facebook_pixel_id'))
+    @if(!empty($seoConfig['facebook_pixel']))
     <script>
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -128,29 +132,29 @@
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '{{ setting('facebook_pixel_id') }}');
+        fbq('init', '{{ $seoConfig['facebook_pixel'] }}');
         fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageView&noscript=1"
+        src="https://www.facebook.com/tr?id={{ $seoConfig['facebook_pixel'] }}&ev=PageView&noscript=1"
     /></noscript>
     @endif
     
     <!-- Google Search Console -->
-    @if(setting('google_search_console'))
-    {!! setting('google_search_console') !!}
+    @if(!empty($seoConfig['google_search_console']))
+    {!! $seoConfig['google_search_console'] !!}
     @endif
     
     <!-- Bing Webmaster Tools -->
-    @if(setting('bing_webmaster_tools'))
-    {!! setting('bing_webmaster_tools') !!}
+    @if(!empty($seoConfig['bing_webmaster']))
+    {!! $seoConfig['bing_webmaster'] !!}
     @endif
     
     <!-- Google Ads Conversion Tracking -->
-    @if(setting('google_ads_conversion_id'))
+    @if(!empty($seoConfig['google_ads']))
     <script>
         gtag('event', 'conversion', {
-            'send_to': '{{ setting('google_ads_conversion_id') }}'
+            'send_to': '{{ $seoConfig['google_ads'] }}'
         });
     </script>
     @endif
