@@ -140,6 +140,25 @@
             </div>
         </form>
 
+        <!-- Modal de chargement -->
+        <div id="loadingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                        <i class="fas fa-spinner fa-spin text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mt-4">Génération en cours...</h3>
+                    <div class="mt-4">
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText" class="text-sm text-gray-600 mt-2">0%</p>
+                        <p id="progressDetails" class="text-sm text-gray-500 mt-1">Préparation de la génération...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Zone de résultats -->
         <div id="results" class="mt-8 hidden">
             <div class="bg-gray-50 rounded-lg p-6">
@@ -259,9 +278,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Afficher les résultats
-        results.classList.remove('hidden');
-        resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
+        // Afficher le modal de chargement
+        const loadingModal = document.getElementById('loadingModal');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressDetails = document.getElementById('progressDetails');
+        
+        loadingModal.classList.remove('hidden');
+        
+        // Simulation de progression
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            progressDetails.textContent = `Génération des annonces pour le service...`;
+        }, 500);
         
         // Envoyer la requête
         try {
@@ -273,34 +306,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Si la réponse est une redirection (status 302), suivre la redirection
-            if (response.redirected || response.status === 302) {
-                window.location.href = response.url || '{{ route("admin.ads.index") }}';
-                return;
-            }
+            // Terminer la progression
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            progressDetails.textContent = 'Génération terminée !';
             
-            // Si c'est une réponse JSON (erreur), l'afficher
-            const data = await response.json();
-            
-            if (data.success) {
-                resultsContent.innerHTML = `
-                    <div class="text-green-600">
-                        <i class="fas fa-check-circle text-2xl mb-2"></i>
-                        <p class="font-semibold">Annonces générées avec succès !</p>
-                        <p class="text-sm mt-1">${data.message}</p>
-                        <p class="text-sm">Annonces créées : ${data.created || 0}</p>
-                        <p class="text-sm">Annonces ignorées : ${data.skipped || 0}</p>
-                    </div>
-                `;
-            } else {
-                resultsContent.innerHTML = `
-                    <div class="text-red-600">
-                        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
-                        <p class="font-semibold">Erreur lors de la génération</p>
-                        <p class="text-sm mt-1">${data.message || 'Une erreur inattendue s\'est produite'}</p>
-                    </div>
-                `;
-            }
+            // Attendre un peu puis rediriger
+            setTimeout(() => {
+                loadingModal.classList.add('hidden');
+                // Si la réponse est une redirection (status 302), suivre la redirection
+                if (response.redirected || response.status === 302) {
+                    window.location.href = response.url || '{{ route("admin.ads.index") }}';
+                    return;
+                }
+                
+                // Si c'est une réponse JSON, afficher les résultats
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Afficher les résultats
+                    results.classList.remove('hidden');
+                    resultsContent.innerHTML = `
+                        <div class="text-green-600">
+                            <i class="fas fa-check-circle text-2xl mb-2"></i>
+                            <p class="font-semibold">Annonces générées avec succès !</p>
+                            <p class="text-sm mt-1">${data.message}</p>
+                            <p class="text-sm">Annonces créées : ${data.created || 0}</p>
+                            <p class="text-sm">Annonces ignorées : ${data.skipped || 0}</p>
+                        </div>
+                    `;
+                } else {
+                    // Afficher l'erreur
+                    results.classList.remove('hidden');
+                    resultsContent.innerHTML = `
+                        <div class="text-red-600">
+                            <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                            <p class="font-semibold">Erreur lors de la génération</p>
+                            <p class="text-sm mt-1">${data.message || 'Une erreur inattendue s\'est produite'}</p>
+                        </div>
+                    `;
+                }
+            }, 1000);
         } catch (error) {
             resultsContent.innerHTML = `
                 <div class="text-red-600">

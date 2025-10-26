@@ -219,6 +219,7 @@ Route::middleware(['check.setup'])->group(function () {
 
             // ===== ANNONCES =====
             Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('ads.index');
+            Route::post('/ads/delete-all', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('ads.delete-all');
             
             // Pages d'interface pour la génération d'annonces
             Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('ads.service-cities');
