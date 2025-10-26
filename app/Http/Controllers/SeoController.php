@@ -258,9 +258,9 @@ class SeoController extends Controller
             return response('Sitemap désactivé', 404);
         }
         
-        // Utiliser la commande simple pour générer le sitemap
+        // Utiliser la commande manuelle pour générer le sitemap
         try {
-            \Artisan::call('sitemap:generate-simple');
+            \Artisan::call('sitemap:generate-manual');
             
             // Lire le fichier généré
             $sitemapPath = public_path('sitemap.xml');

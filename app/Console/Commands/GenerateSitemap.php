@@ -5,37 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
-use App\Models\Service;
 use App\Models\Ad;
 use App\Models\Article;
-use App\Models\City;
 use App\Models\Setting;
 use Carbon\Carbon;
 
 class GenerateSitemap extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'sitemap:generate';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Generate the sitemap using Spatie Laravel Sitemap';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->info('🚀 Génération du sitemap en cours...');
         
-        // Forcer l'URL de production pour le sitemap
+        // URL de production
         $baseUrl = 'https://sausercouverture.fr';
         
         $sitemap = Sitemap::create();
@@ -73,7 +57,6 @@ class GenerateSitemap extends Command
             $services = [];
         }
         
-        // Filtrer les services visibles
         $visibleServices = collect($services)->filter(function($service) {
             return ($service['is_visible'] ?? true) && ($service['is_active'] ?? true);
         });
@@ -100,10 +83,8 @@ class GenerateSitemap extends Command
                 ->setPriority(0.7));
         }
         
-        // Annonces (limitées pour éviter un sitemap trop volumineux)
-        $ads = Ad::orderBy('updated_at', 'desc')
-            ->limit(5000)
-            ->get();
+        // Annonces (toutes)
+        $ads = Ad::orderBy('updated_at', 'desc')->limit(5000)->get();
         $this->info("📢 Ajout de {$ads->count()} annonces...");
         
         foreach ($ads as $ad) {
