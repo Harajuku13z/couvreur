@@ -104,9 +104,8 @@ class ArticleAiController extends Controller
                 Article::create([
                     'title' => $title,
                     'slug' => $slug,
-                    'category' => $category,
                     'excerpt' => $this->generateExcerpt($content),
-                    'content' => $content,
+                    'content_html' => $content,
                     'meta_description' => $this->generateMetaDescription($content),
                     'meta_keywords' => $this->generateKeywords($title, $category),
                     'status' => 'published',
