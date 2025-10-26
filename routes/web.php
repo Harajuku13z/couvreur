@@ -217,6 +217,12 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'store'])->name('ads.manual.store');
             Route::get('/ads/manual/favorite-cities', [App\Http\Controllers\Admin\ManualAdController::class, 'getFavoriteCities'])->name('ads.manual.favorite-cities');
             Route::get('/ads/manual/cities-by-region', [App\Http\Controllers\Admin\ManualAdController::class, 'getCitiesByRegion'])->name('ads.manual.cities-by-region');
+            
+            // Génération en masse (nouveau système)
+            Route::get('/ads/bulk-ads', [App\Http\Controllers\Admin\BulkAdsController::class, 'index'])->name('ads.bulk-ads');
+            Route::post('/ads/bulk-ads/generate', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAds'])->name('ads.bulk-ads.generate');
+            Route::get('/ads/bulk-ads/favorite-cities', [App\Http\Controllers\Admin\BulkAdsController::class, 'getFavoriteCities'])->name('ads.bulk-ads.favorite-cities');
+            Route::get('/ads/bulk-ads/cities-by-region', [App\Http\Controllers\Admin\BulkAdsController::class, 'getCitiesByRegion'])->name('ads.bulk-ads.cities-by-region');
 
             // ===== GENERATION ENDPOINTS =====
             // Routes articles supprimées - système refait de zéro
@@ -335,6 +341,10 @@ Route::middleware(['check.setup'])->group(function () {
     // Services publics
     Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
     Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
+    
+    // ===== ANNONCES PUBLIQUES =====
+    // Annonces avec format /nomduservice-nomdelaville
+    Route::get('/{service}-{city}', [App\Http\Controllers\AdController::class, 'show'])->name('ads.show');
     
     // ===== PAGES LÉGALES =====
     Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');

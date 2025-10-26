@@ -1,75 +1,49 @@
 @extends('layouts.app')
 
-@section('title', $ad->meta_title ?? $ad->title)
-@section('description', $ad->meta_description ?? Str::limit(strip_tags($ad->content_html ?? ''), 150))
+@section('title', $pageTitle)
+
+@section('description', $pageDescription)
 
 @push('head')
-<link rel="canonical" href="{{ url()->current() }}" />
-
-<!-- Open Graph pour les réseaux sociaux -->
-<meta property="og:type" content="article">
-<meta property="og:title" content="{{ $ad->content_json['og_title'] ?? $ad->meta_title ?? $ad->title }}">
-<meta property="og:description" content="{{ $ad->content_json['og_description'] ?? $ad->meta_description ?? Str::limit(strip_tags($ad->content_html ?? ''), 150) }}">
-<meta property="og:url" content="{{ request()->url() }}">
-@if($ad->content_json && isset($ad->content_json['service_featured_image']))
-<meta property="og:image" content="{{ asset($ad->content_json['service_featured_image']) }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{{ $ad->title }}">
-@else
-<meta property="og:image" content="{{ asset('images/og-services.jpg') }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{{ $ad->title }}">
-@endif
-<meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
-
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $ad->content_json['og_title'] ?? $ad->meta_title ?? $ad->title }}">
-<meta name="twitter:description" content="{{ $ad->content_json['og_description'] ?? $ad->meta_description ?? Str::limit(strip_tags($ad->content_html ?? ''), 150) }}">
-@if($ad->content_json && isset($ad->content_json['service_featured_image']))
-<meta name="twitter:image" content="{{ asset($ad->content_json['service_featured_image']) }}">
-@else
-<meta name="twitter:image" content="{{ asset('images/og-services.jpg') }}">
-@endif
+<style>
+    /* Variables de couleurs de branding */
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+</style>
 @endpush
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <section class="relative py-20 text-white overflow-hidden">
-        @php
-            $serviceImage = $ad->content_json['service_featured_image'] ?? null;
-        @endphp
-        
-        @if($serviceImage)
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ asset($serviceImage) }}'); filter: blur(2px); transform: scale(1.1);"></div>
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-        @else
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800"></div>
-        @endif
+        <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
         
         <div class="container mx-auto px-4 relative z-10">
             <div class="max-w-4xl mx-auto text-center">
                 <h1 class="text-4xl md:text-5xl font-bold mb-6">
-                    <i class="fas fa-map-marker-alt mr-4"></i>
+                    <i class="fas fa-tools mr-4"></i>
                     {{ $ad->title }}
                 </h1>
-                @if($city)
                 <p class="text-xl md:text-2xl mb-8 leading-relaxed">
-                    Intervention professionnelle à {{ $city->name }} ({{ $city->postal_code }})
+                    Service professionnel à {{ $cityModel->name }} - Devis gratuit et intervention rapide
                 </p>
-                @endif
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                       style="background-color: var(--accent-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--accent-color)';">
                         <i class="fas fa-calculator mr-2"></i>
                         Devis Gratuit
                     </a>
                     <a href="tel:{{ setting('company_phone_raw') }}" 
-                       class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         <i class="fas fa-phone mr-2"></i>
                         {{ setting('company_phone') }}
                     </a>
@@ -86,18 +60,24 @@
                     {!! $ad->content_html !!}
                 </div>
 
-                <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white text-center">
-                    <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet à {{ $city->name ?? 'Notre Région' }} ?</h3>
+                <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+                    <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet à {{ $cityModel->name }} ?</h3>
                     <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('form.step', 'propertyType') }}" 
-                           class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                           style="background-color: var(--accent-color);"
+                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                           onmouseout="this.style.backgroundColor='var(--accent-color)';">
                             <i class="fas fa-calculator mr-2"></i>
                             Demander un Devis Gratuit
                         </a>
                         <a href="tel:{{ setting('company_phone_raw') }}" 
-                           class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg">
+                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+                           style="background-color: var(--primary-color);"
+                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                           onmouseout="this.style.backgroundColor='var(--primary-color)';">
                             <i class="fas fa-phone mr-2"></i>
                             Appeler Maintenant
                         </a>
@@ -107,57 +87,37 @@
         </div>
     </section>
 
-    <!-- Section Réalisations -->
+    <!-- Section Annonces Similaires -->
+    @if($relatedAds->count() > 0)
     <section class="py-16 bg-gray-100">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Réalisations</h2>
-                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Autres Services à {{ $cityModel->name }}</h2>
+                    <p class="text-lg text-gray-600">Découvrez nos autres services disponibles dans votre ville</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @php
-                        $portfolioItems = \App\Models\Setting::get('portfolio_items', []);
-                        $relatedPortfolio = collect($portfolioItems)->take(3);
-                    @endphp
-                    
-                    @foreach($relatedPortfolio as $item)
+                    @foreach($relatedAds as $relatedAd)
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                        @if(isset($item['images']) && count($item['images']) > 0)
-                        <div class="relative h-48 overflow-hidden">
-                            <img src="{{ url($item['images'][0]) }}" 
-                                 alt="{{ $item['title'] }}" 
-                                 class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                                <a href="{{ route('portfolio.show', $item['id'] ?? $loop->index) }}" 
-                                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold opacity-0 hover:opacity-100 transition-all duration-300 transform hover:scale-105">
-                                    <i class="fas fa-eye mr-2"></i>
-                                    Voir la réalisation
-                                </a>
-                            </div>
-                        </div>
-                        @endif
-                        
                         <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $item['title'] }}</h3>
-                            @if(isset($item['description']) && $item['description'])
-                            <p class="text-gray-600 text-sm">{{ Str::limit($item['description'], 100) }}</p>
-                            @endif
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $relatedAd->title }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ Str::limit($relatedAd->meta_description, 100) }}</p>
+                            <a href="{{ route('ads.show', ['service' => explode('-', $relatedAd->slug)[0], 'city' => implode('-', array_slice(explode('-', $relatedAd->slug), 1))]) }}" 
+                               class="inline-block text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+                               style="background-color: var(--primary-color);"
+                               onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                               onmouseout="this.style.backgroundColor='var(--primary-color)';">
+                                Voir le service
+                            </a>
                         </div>
                     </div>
                     @endforeach
                 </div>
-                
-                <div class="text-center mt-8">
-                    <a href="{{ route('portfolio.index') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                        Voir Toutes Nos Réalisations
-                    </a>
-                </div>
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Section Avis Clients -->
     <section class="py-16 bg-white">
@@ -207,7 +167,8 @@
                         <div class="flex items-center justify-between text-sm text-gray-500">
                             <span>{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->format('d/m/Y') : '' }}</span>
                             @if($review->source && $review->source !== 'manual')
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                            <span class="px-2 py-1 rounded-full text-xs"
+                                  style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
                                 {{ ucfirst($review->source) }}
                             </span>
                             @endif
@@ -223,7 +184,10 @@
                 
                 <div class="text-center mt-8">
                     <a href="{{ route('reviews.all') }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
                         Voir Tous les Avis
                     </a>
                 </div>
@@ -232,9 +196,3 @@
     </section>
 </div>
 @endsection
-
-
-
-
-
-
