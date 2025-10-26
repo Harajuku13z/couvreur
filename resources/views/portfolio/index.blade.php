@@ -1,8 +1,24 @@
 @extends('layouts.app')
 
-@section('title', 'Nos Réalisations - ' . setting('company_name', 'Votre Entreprise'))
+@section('title', !empty($seoMeta['meta_title']) ? $seoMeta['meta_title'] : 'Nos Réalisations - ' . setting('company_name', 'Votre Entreprise'))
 
 @push('head')
+@if(!empty($seoMeta['meta_description']))
+<meta name="description" content="{{ $seoMeta['meta_description'] }}">
+@endif
+
+@if(!empty($seoMeta['og_title']))
+<meta property="og:title" content="{{ $seoMeta['og_title'] }}">
+@endif
+
+@if(!empty($seoMeta['og_description']))
+<meta property="og:description" content="{{ $seoMeta['og_description'] }}">
+@endif
+
+@if(!empty($seoMeta['og_image']))
+<meta property="og:image" content="{{ asset($seoMeta['og_image']) }}">
+@endif
+
 <style>
     /* Variables de couleurs de branding */
     :root {

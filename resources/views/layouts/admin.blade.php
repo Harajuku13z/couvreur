@@ -127,6 +127,12 @@
                             <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             Page d'Accueil
                         </a>
+                        
+                        <a href="{{ route('admin.reviews.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+                            <i class="fas fa-star mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Avis
+                        </a>
                     </div>
                 </div>
 

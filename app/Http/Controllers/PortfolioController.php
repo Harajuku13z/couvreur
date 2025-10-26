@@ -36,7 +36,16 @@ class PortfolioController extends Controller
         // Récupérer les types de services uniques pour les filtres
         $serviceTypes = $visiblePortfolio->pluck('work_type')->unique()->filter()->values()->toArray();
         
-        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes'));
+        // Récupérer les métadonnées SEO personnalisées pour la page portfolio
+        $seoMeta = [
+            'meta_title' => Setting::get('seo_page_portfolio_meta_title', ''),
+            'meta_description' => Setting::get('seo_page_portfolio_meta_description', ''),
+            'og_title' => Setting::get('seo_page_portfolio_og_title', ''),
+            'og_description' => Setting::get('seo_page_portfolio_og_description', ''),
+            'og_image' => Setting::get('seo_page_portfolio_og_image', ''),
+        ];
+        
+        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes', 'seoMeta'));
     }
     
     /**
