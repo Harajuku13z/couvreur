@@ -19,6 +19,9 @@
             <a href="{{ route('admin.ads.manual') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                 <i class="fas fa-edit mr-2"></i>Créer manuellement
             </a>
+            <button onclick="deleteAllAds()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                <i class="fas fa-trash mr-2"></i>Supprimer toutes les annonces
+            </button>
         </div>
     </div>
 
@@ -496,6 +499,42 @@ async function submitKeyword(e) {
     return false;
 }
 
+function deleteAllAds() {
+    if (confirm('Êtes-vous sûr de vouloir supprimer TOUTES les annonces ? Cette action est irréversible !')) {
+        if (confirm('ATTENTION : Cette action va supprimer définitivement toutes les annonces. Continuer ?')) {
+            // Afficher un indicateur de chargement
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Suppression...';
+            button.disabled = true;
+            
+            fetch('{{ route("admin.ads.delete-all") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Toutes les annonces ont été supprimées avec succès !');
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la suppression : ' + (data.message || 'Erreur inconnue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression des annonces');
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+    }
+}
 
 </script>
 

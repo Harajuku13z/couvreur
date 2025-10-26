@@ -14,7 +14,7 @@ class ServiceCitiesController extends Controller
      */
     public function index()
     {
-        $services = Service::where('status', 'published')->get();
+        $services = Service::where('is_active', true)->get();
         $cities = City::orderBy('name')->get();
         
         return view('admin.ads.service-cities', compact('services', 'cities'));

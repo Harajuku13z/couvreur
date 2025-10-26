@@ -173,6 +173,7 @@ Route::middleware(['check.setup'])->group(function () {
             // ===== ADS ADMIN =====
             Route::post('/ads/create-manual', [App\Http\Controllers\AdAdminController::class, 'createManual'])->name('ads.create.manual');
             Route::post('/ads/remove-duplicates', [App\Http\Controllers\AdAdminController::class, 'removeDuplicates'])->name('ads.remove.duplicates');
+            Route::post('/ads/delete-all', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('ads.delete-all');
             Route::post('/ads/{ad}/publish', [App\Http\Controllers\AdAdminController::class, 'publish'])->name('ads.publish');
             Route::post('/ads/{ad}/archive', [App\Http\Controllers\AdAdminController::class, 'archive'])->name('ads.archive');
             Route::delete('/ads/{ad}', [App\Http\Controllers\AdAdminController::class, 'destroy'])->name('ads.destroy');

@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-green-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
         
         // Envoyer la requête
-        fetch('{{ route("ads.generate.keyword-cities") }}', {
+        fetch('{{ route("admin.ads.keyword-cities.generate") }}', {
             method: 'POST',
             body: formData,
             headers: {

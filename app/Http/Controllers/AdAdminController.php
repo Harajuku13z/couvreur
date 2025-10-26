@@ -134,6 +134,39 @@ class AdAdminController extends Controller
 
         return back()->with('success', "Doublons supprimés: {$removed} annonces");
     }
+
+    /**
+     * Supprimer toutes les annonces
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $count = Ad::count();
+            
+            if ($count === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucune annonce à supprimer'
+                ]);
+            }
+
+            // Supprimer toutes les annonces
+            Ad::truncate();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Toutes les annonces ({$count}) ont été supprimées avec succès"
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression de toutes les annonces: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression des annonces: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
 
