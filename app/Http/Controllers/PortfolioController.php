@@ -37,15 +37,27 @@ class PortfolioController extends Controller
         $serviceTypes = $visiblePortfolio->pluck('work_type')->unique()->filter()->values()->toArray();
         
         // Récupérer les métadonnées SEO personnalisées pour la page portfolio
-        $seoMeta = [
-            'meta_title' => Setting::get('seo_page_portfolio_meta_title', ''),
-            'meta_description' => Setting::get('seo_page_portfolio_meta_description', ''),
-            'og_title' => Setting::get('seo_page_portfolio_og_title', ''),
-            'og_description' => Setting::get('seo_page_portfolio_og_description', ''),
-            'og_image' => Setting::get('seo_page_portfolio_og_image', ''),
-        ];
+        try {
+            $seoMeta = \App\Helpers\SeoHelper::getPageSeo('portfolio', [
+                'meta_title' => 'Nos Réalisations',
+                'meta_description' => 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet',
+                'og_title' => 'Nos Réalisations',
+                'og_description' => 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet',
+            ]);
+        } catch (\Exception $e) {
+            // Fallback si la base de données n'est pas accessible
+            $seoMeta = [
+                'meta_title' => 'Nos Réalisations',
+                'meta_description' => 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet',
+                'og_title' => 'Nos Réalisations',
+                'og_description' => 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet',
+            ];
+        }
         
-        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes', 'seoMeta'));
+        // Définir la page courante pour le SEO
+        $currentPage = 'portfolio';
+        
+        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes', 'seoMeta', 'currentPage'));
     }
     
     /**

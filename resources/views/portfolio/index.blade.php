@@ -2,23 +2,14 @@
 
 @section('title', !empty($seoMeta['meta_title']) ? $seoMeta['meta_title'] : 'Nos Réalisations - ' . setting('company_name', 'Votre Entreprise'))
 
+@php
+    // Passer les métadonnées personnalisées au layout principal
+    $pageTitle = !empty($seoMeta['meta_title']) ? $seoMeta['meta_title'] : 'Nos Réalisations';
+    $pageDescription = !empty($seoMeta['meta_description']) ? $seoMeta['meta_description'] : 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet';
+    $pageImage = !empty($seoMeta['og_image']) ? asset($seoMeta['og_image']) : '';
+@endphp
+
 @push('head')
-@if(!empty($seoMeta['meta_description']))
-<meta name="description" content="{{ $seoMeta['meta_description'] }}">
-@endif
-
-@if(!empty($seoMeta['og_title']))
-<meta property="og:title" content="{{ $seoMeta['og_title'] }}">
-@endif
-
-@if(!empty($seoMeta['og_description']))
-<meta property="og:description" content="{{ $seoMeta['og_description'] }}">
-@endif
-
-@if(!empty($seoMeta['og_image']))
-<meta property="og:image" content="{{ asset($seoMeta['og_image']) }}">
-@endif
-
 <style>
     /* Variables de couleurs de branding */
     :root {
