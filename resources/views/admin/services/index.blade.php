@@ -33,14 +33,6 @@
     margin: 0 auto 1rem;
 }
 
-.service-actions {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.service-card:hover .service-actions {
-    opacity: 1;
-}
 
 .btn-service {
     padding: 8px 16px;
@@ -59,36 +51,19 @@
     color: #2563eb;
 }
 
-.btn-edit:hover {
-    background-color: rgba(59, 130, 246, 0.2);
-}
 
 .btn-delete {
     background-color: rgba(239, 68, 68, 0.1);
     color: #dc2626;
 }
 
-.btn-delete:hover {
-    background-color: rgba(239, 68, 68, 0.2);
-}
 
 .btn-view {
     background-color: rgba(16, 185, 129, 0.1);
     color: #059669;
 }
 
-.btn-view:hover {
-    background-color: rgba(16, 185, 129, 0.2);
-}
 
-.btn-regenerate {
-    background-color: rgba(147, 51, 234, 0.1);
-    color: #7c3aed;
-}
-
-.btn-regenerate:hover {
-    background-color: rgba(147, 51, 234, 0.2);
-}
 
 .status-badge {
     padding: 4px 12px;
@@ -127,9 +102,6 @@
                 <div class="flex gap-3">
                     <a href="{{ route('services.admin.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                         <i class="fas fa-plus mr-2"></i>Nouveau Service
-                    </a>
-                    <a href="{{ route('services.admin.ai.form') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center">
-                        <i class="fas fa-magic mr-2"></i>Génération IA
                     </a>
                 </div>
             </div>
@@ -237,9 +209,6 @@
                                         </a>
                                     </div>
                                     <div class="flex justify-center gap-2">
-                                        <button onclick="regenerateService({{ $service['id'] ?? $loop->index }}, '{{ $service['name'] }}')" class="btn-service btn-regenerate">
-                                            <i class="fas fa-sync-alt"></i>Régénérer IA
-                                        </button>
                                         <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ $service['name'] }}')" class="btn-service btn-delete">
                                             <i class="fas fa-trash"></i>Supprimer
                                         </button>
@@ -264,32 +233,6 @@
 </div>
 
 <script>
-function regenerateService(id, name) {
-    if (confirm(`Voulez-vous régénérer le contenu du service "${name}" avec l'IA ?\n\nCela va :\n✅ Créer une nouvelle description courte\n✅ Créer une nouvelle description longue HTML\n✅ Générer de nouveaux meta tags SEO\n✅ Choisir une nouvelle icône\n\nLe brief actuel sera utilisé pour la régénération.`)) {
-        // Afficher un loader
-        const button = event.target.closest('button');
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
-        button.disabled = true;
-        
-        // Créer un formulaire pour la régénération
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/admin/services/${id}/regenerate`;
-        
-        // Ajouter le token CSRF
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        // Soumettre le formulaire
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
 
 function deleteService(id, name) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le service "${name}" ?`)) {
