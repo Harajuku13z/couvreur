@@ -246,10 +246,6 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/articles/create', [App\Http\Controllers\Admin\ArticleController::class, 'create'])->name('articles.create');
             Route::post('/articles', [App\Http\Controllers\Admin\ArticleController::class, 'store'])->name('articles.store');
             Route::delete('/articles', [App\Http\Controllers\Admin\ArticleController::class, 'destroyAll'])->name('articles.destroy-all');
-            Route::get('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('articles.show');
-            Route::get('/articles/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('articles.edit');
-            Route::put('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'update'])->name('articles.update');
-            Route::delete('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'destroy'])->name('articles.destroy');
             
             // Routes pour génération IA
             Route::post('/articles/generate-titles', [App\Http\Controllers\Admin\ArticleController::class, 'generateTitles'])->name('articles.generate-titles');
@@ -257,10 +253,16 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/articles/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('articles.upload-image');
             Route::post('/articles/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('articles.create-from-titles');
             
-            // Routes IA améliorées
+            // Routes IA améliorées (AVANT les routes avec paramètres)
             Route::get('/articles/ai-generate', [App\Http\Controllers\Admin\ArticleAiController::class, 'form'])->name('articles.ai.form');
             Route::post('/articles/ai-generate', [App\Http\Controllers\Admin\ArticleAiController::class, 'generate'])->name('articles.ai.generate');
             Route::post('/articles/ai-test', [App\Http\Controllers\Admin\ArticleAiController::class, 'test'])->name('articles.ai.test');
+            
+            // Routes avec paramètres (APRÈS les routes spécifiques)
+            Route::get('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('articles.show');
+            Route::get('/articles/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('articles.edit');
+            Route::put('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'update'])->name('articles.update');
+            Route::delete('/articles/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'destroy'])->name('articles.destroy');
             
             // ===== IMAGE GENERATION =====
             Route::post('/generate-image', [App\Http\Controllers\ImageGenerationController::class, 'generateImage'])->name('generate.image');
