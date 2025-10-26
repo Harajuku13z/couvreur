@@ -200,18 +200,6 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/ads/generation/cities-by-region', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'getCitiesByRegion'])->name('ads.generation.cities-by-region');
             
             // ===== ADS CREATION PAGES =====
-            // Service + Villes
-            Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('ads.service-cities');
-            Route::post('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'generate'])->name('ads.service-cities.generate');
-            Route::get('/ads/service-cities/favorite-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getFavoriteCities'])->name('ads.service-cities.favorite-cities');
-            Route::get('/ads/service-cities/cities-by-region', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getCitiesByRegion'])->name('ads.service-cities.cities-by-region');
-            
-            // Mot-clé + Villes
-            Route::get('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'index'])->name('ads.keyword-cities');
-            Route::post('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'generate'])->name('ads.keyword-cities.generate');
-            Route::get('/ads/keyword-cities/favorite-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getFavoriteCities'])->name('ads.keyword-cities.favorite-cities');
-            Route::get('/ads/keyword-cities/cities-by-region', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getCitiesByRegion'])->name('ads.keyword-cities.cities-by-region');
-            
             // Création manuelle
             Route::get('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'index'])->name('ads.manual');
             Route::post('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'store'])->name('ads.manual.store');
@@ -229,11 +217,18 @@ Route::middleware(['check.setup'])->group(function () {
             // Routes articles supprimées - système refait de zéro
 
             // ===== ANNONCES =====
-            Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('admin.ads.index');
+            Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('ads.index');
             
             // Pages d'interface pour la génération d'annonces
-            Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('admin.ads.service-cities');
-            Route::get('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'index'])->name('admin.ads.keyword-cities');
+            Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('ads.service-cities');
+            Route::post('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'generate'])->name('ads.service-cities.generate');
+            Route::get('/ads/service-cities/favorite-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getFavoriteCities'])->name('ads.service-cities.favorite-cities');
+            Route::get('/ads/service-cities/cities-by-region', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getCitiesByRegion'])->name('ads.service-cities.cities-by-region');
+            
+            Route::get('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'index'])->name('ads.keyword-cities');
+            Route::post('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'generate'])->name('ads.keyword-cities.generate');
+            Route::get('/ads/keyword-cities/favorite-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getFavoriteCities'])->name('ads.keyword-cities.favorite-cities');
+            Route::get('/ads/keyword-cities/cities-by-region', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getCitiesByRegion'])->name('ads.keyword-cities.cities-by-region');
             
             // Routes de génération
             Route::post('/ads/generate/service-cities', [App\Http\Controllers\AdGenerationController::class, 'generateByServiceCities'])->name('ads.generate.service-cities');
