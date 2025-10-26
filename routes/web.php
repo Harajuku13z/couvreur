@@ -10,6 +10,11 @@ use App\Http\Controllers\ReviewsController;
 // Inclure les routes des avis
 require __DIR__.'/reviews.php';
 
+// Route de test pour les icônes Font Awesome
+Route::get('/test-icons', function () {
+    return view('test-icons');
+})->name('test.icons');
+
 /**
  * ROUTES ULTRA-SIMPLES
  * Navigation directe, pas de AJAX compliqué
