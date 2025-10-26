@@ -134,7 +134,7 @@
 @section('content')
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile" 
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile pb-16" 
              @if($homeConfig['hero']['background_image'] ?? null)
              style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
              @else
@@ -179,7 +179,7 @@
                 {{ $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'Travaux de Rénovation') }}
             </p>
             
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4 mb-8">
                 <a href="{{ route('form.step', 'propertyType') }}" 
                    class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-calculator mr-2"></i>
