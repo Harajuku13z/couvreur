@@ -24,6 +24,8 @@ class LegalAdminController extends Controller
             'company_director' => setting('company_director', ''),
             'hosting_provider' => setting('hosting_provider', ''),
             'company_description' => setting('company_description', ''),
+            'payment_terms' => setting('payment_terms', ''),
+            'late_payment_penalties' => setting('late_payment_penalties', ''),
         ];
         
         return view('admin.legal-config', compact('legalData'));
@@ -46,6 +48,8 @@ class LegalAdminController extends Controller
             'company_director' => 'nullable|string|max:255',
             'hosting_provider' => 'nullable|string|max:255',
             'company_description' => 'nullable|string|max:1000',
+            'payment_terms' => 'nullable|string|max:2000',
+            'late_payment_penalties' => 'nullable|string|max:1000',
         ]);
         
         // Sauvegarder toutes les informations
@@ -60,6 +64,8 @@ class LegalAdminController extends Controller
         Setting::set('company_director', $request->company_director, 'string', 'company');
         Setting::set('hosting_provider', $request->hosting_provider, 'string', 'company');
         Setting::set('company_description', $request->company_description, 'string', 'company');
+        Setting::set('payment_terms', $request->payment_terms, 'string', 'company');
+        Setting::set('late_payment_penalties', $request->late_payment_penalties, 'string', 'company');
         
         return redirect()->route('admin.legal.config')->with('success', 'Informations légales mises à jour avec succès !');
     }

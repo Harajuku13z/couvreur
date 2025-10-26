@@ -34,13 +34,21 @@
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">3. Services proposés</h2>
                 <p class="mb-4">{{ $companyName }} propose les services suivants :</p>
                 <ul class="list-disc pl-6 mb-6">
-                    <li>Rénovation de toiture</li>
-                    <li>Pose de couverture</li>
-                    <li>Réparation de toiture</li>
-                    <li>Isolation de toiture</li>
-                    <li>Demoussage et hydrofuge</li>
-                    <li>Zinguerie</li>
-                    <li>Charpente</li>
+                    @if(count($activeServices) > 0)
+                        @foreach($activeServices as $service)
+                            @if(is_array($service) && isset($service['name']))
+                            <li>{{ $service['name'] }}</li>
+                            @endif
+                        @endforeach
+                    @else
+                        <li>Rénovation de toiture</li>
+                        <li>Pose de couverture</li>
+                        <li>Réparation de toiture</li>
+                        <li>Isolation de toiture</li>
+                        <li>Demoussage et hydrofuge</li>
+                        <li>Zinguerie</li>
+                        <li>Charpente</li>
+                    @endif
                 </ul>
                 
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">4. Devis et commande</h2>
@@ -58,15 +66,26 @@
                 </p>
                 
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">5. Prix et modalités de paiement</h2>
-                <p class="mb-4">Les prix sont indiqués en euros TTC. Les modalités de paiement sont les suivantes :</p>
-                <ul class="list-disc pl-6 mb-6">
-                    <li><strong>Acompte :</strong> 30% à la commande</li>
-                    <li><strong>Solde :</strong> 70% à la livraison des travaux</li>
-                    <li><strong>Moyens de paiement :</strong> chèque, virement bancaire, espèces (dans la limite légale)</li>
-                </ul>
-                <p class="mb-6">
-                    En cas de retard de paiement, des pénalités de 3 fois le taux d'intérêt légal seront appliquées, ainsi qu'une indemnité forfaitaire de 40€ pour frais de recouvrement.
-                </p>
+                <p class="mb-4">Les prix sont indiqués en euros TTC.</p>
+                
+                @if($paymentTerms)
+                    <div class="mb-6">
+                        {!! $paymentTerms !!}
+                    </div>
+                @else
+                    <p class="mb-4">Les modalités de paiement sont les suivantes :</p>
+                    <ul class="list-disc pl-6 mb-6">
+                        <li><strong>Acompte :</strong> 30% à la commande</li>
+                        <li><strong>Solde :</strong> 70% à la livraison des travaux</li>
+                        <li><strong>Moyens de paiement :</strong> chèque, virement bancaire, espèces (dans la limite légale)</li>
+                    </ul>
+                @endif
+                
+                @if($latePaymentPenalties)
+                    <div class="mb-6">
+                        {!! $latePaymentPenalties !!}
+                    </div>
+                @endif
                 
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">6. Délais d'exécution</h2>
                 <p class="mb-6">
@@ -121,6 +140,11 @@
                         <strong>Dernière mise à jour :</strong> {{ date('d/m/Y') }}
                     </p>
                 </div>
+                
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-8">13. Crédits</h2>
+                <p class="mb-6">
+                    Ce site web a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors font-medium">Osmose*</a> avec amour ❤️
+                </p>
             </div>
         </div>
     </div>

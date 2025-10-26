@@ -130,6 +130,29 @@
                     </div>
                 </div>
 
+                <!-- Modalités de paiement -->
+                <div class="border-t border-gray-200 pt-8 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Modalités de Paiement (CGV)</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Modalités de paiement</label>
+                            <textarea name="payment_terms" rows="6" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                      placeholder="Décrivez vos modalités de paiement (HTML autorisé)">{{ $legalData['payment_terms'] }}</textarea>
+                            <p class="text-xs text-gray-500 mt-1">Exemple: &lt;ul&gt;&lt;li&gt;&lt;strong&gt;Acompte:&lt;/strong&gt; 30% à la commande&lt;/li&gt;&lt;/ul&gt;</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pénalités de retard (optionnel)</label>
+                            <textarea name="late_payment_penalties" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                      placeholder="Décrivez les pénalités en cas de retard de paiement (HTML autorisé)">{{ $legalData['late_payment_penalties'] }}</textarea>
+                            <p class="text-xs text-gray-500 mt-1">Laissez vide pour ne pas afficher de pénalités</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="flex justify-end space-x-4">
                     <a href="{{ route('admin.dashboard') }}" 

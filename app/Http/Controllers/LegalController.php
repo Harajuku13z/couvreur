@@ -66,12 +66,28 @@ class LegalController extends Controller
         $companyAddress = setting('company_address', '');
         $companySiret = setting('company_siret', '');
         
+        // Récupérer la liste des services depuis les paramètres
+        $servicesData = setting('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        // Filtrer les services actifs
+        $activeServices = array_filter($services, function($service) {
+            return is_array($service) && ($service['is_active'] ?? true);
+        });
+        
+        // Récupérer les modalités de paiement depuis les paramètres
+        $paymentTerms = setting('payment_terms', '');
+        $latePaymentPenalties = setting('late_payment_penalties', '');
+        
         return view('legal.cgv', compact(
             'companyName',
             'companyEmail',
             'companyPhone',
             'companyAddress',
-            'companySiret'
+            'companySiret',
+            'activeServices',
+            'paymentTerms',
+            'latePaymentPenalties'
         ));
     }
 }
