@@ -25,10 +25,10 @@
             <div class="max-w-4xl mx-auto text-center">
                 <h1 class="text-4xl md:text-5xl font-bold mb-6">
                     <i class="fas fa-tools mr-4"></i>
-                    {{ $ad->title }}
+                    {{ $ad->title ?? 'Service professionnel' }}
                 </h1>
                 <p class="text-xl md:text-2xl mb-8 leading-relaxed">
-                    Service professionnel à {{ $cityModel->name }} - Devis gratuit et intervention rapide
+                    Service professionnel à {{ $cityModel->name ?? 'votre ville' }} - Devis gratuit et intervention rapide
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('form.step', 'propertyType') }}" 
@@ -57,11 +57,11 @@
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
-                    {!! $ad->content_html !!}
+                    {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
                 </div>
 
                 <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-                    <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet à {{ $cityModel->name }} ?</h3>
+                    <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet à {{ $cityModel->name ?? 'votre ville' }} ?</h3>
                     <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -88,12 +88,12 @@
     </section>
 
     <!-- Section Annonces Similaires -->
-    @if($relatedAds->count() > 0)
+    @if(isset($relatedAds) && $relatedAds->count() > 0)
     <section class="py-16 bg-gray-100">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Autres Services à {{ $cityModel->name }}</h2>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Autres Services à {{ $cityModel->name ?? 'votre ville' }}</h2>
                     <p class="text-lg text-gray-600">Découvrez nos autres services disponibles dans votre ville</p>
                 </div>
                 
