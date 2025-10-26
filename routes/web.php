@@ -341,6 +341,11 @@ Route::middleware(['check.setup'])->group(function () {
     Route::post('/config/update/ai', [ConfigController::class, 'updateAI'])->name('config.update.ai');
     Route::post('/config/test-chatgpt', [ConfigController::class, 'testChatGPT'])->name('config.test.chatgpt');
     
+    // ===== PAGES LÉGALES =====
+    Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');
+    Route::get('/politique-confidentialite', [App\Http\Controllers\LegalController::class, 'politiqueConfidentialite'])->name('legal.privacy');
+    Route::get('/cgv', [App\Http\Controllers\LegalController::class, 'cgv'])->name('legal.cgv');
+    
     // ===== SERVICES =====
     // Services publics
     Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
@@ -349,11 +354,6 @@ Route::middleware(['check.setup'])->group(function () {
     // ===== ANNONCES PUBLIQUES =====
     // Annonces avec format /nomduservice-nomdelaville
     Route::get('/{service}-{city}', [App\Http\Controllers\AdController::class, 'show'])->name('ads.show.slug');
-    
-    // ===== PAGES LÉGALES =====
-    Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');
-    Route::get('/politique-confidentialite', [App\Http\Controllers\LegalController::class, 'politiqueConfidentialite'])->name('legal.privacy');
-    Route::get('/cgv', [App\Http\Controllers\LegalController::class, 'cgv'])->name('legal.cgv');
     
     // ===== ADMIN PAGES LÉGALES =====
     Route::prefix('admin/legal')->name('admin.legal.')->middleware(['admin.auth'])->group(function () {
