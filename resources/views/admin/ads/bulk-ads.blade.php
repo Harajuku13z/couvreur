@@ -584,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
 
         // Envoyer la requête
-        fetch('{{ route("ads.bulk-ads.generate-keyword") }}', {
+        fetch('{{ route("admin.ads.bulk-ads.generate-keyword") }}', {
             method: 'POST',
             body: formData,
             headers: {
