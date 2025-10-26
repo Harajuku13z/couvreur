@@ -147,7 +147,7 @@ class ServiceAiController extends Controller
                     'meta_keywords' => 'devis gratuit, couvreur professionnel, ' . Str::slug($serviceName, ', ') . ', artisan couvreur, travaux de couverture, entreprise de couverture, spécialiste toiture, rénovation toiture, réparation urgence, devis personnalisé, garantie travaux, matériaux de qualité, expertise technique, intervention 24h/24, couvreur qualifié, travaux de rénovation, isolation toiture, étanchéité toiture',
                     'og_title' => $serviceName . ' - ' . setting('company_name', 'Sauser Couverture'),
                     'og_description' => $metaDescription,
-                    'og_image' => '',
+                    'og_image' => null, // null pour utiliser l'image par défaut du SeoHelper
                     'created_at' => now()->toISOString(),
                     'updated_at' => now()->toISOString(),
                 ];
