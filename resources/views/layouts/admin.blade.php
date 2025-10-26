@@ -58,7 +58,7 @@
         <!-- Sidebar -->
         <div id="sidebar" class="hidden md:flex md:flex-shrink-0">
             <div class="flex flex-col w-64">
-                <div class="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
+                <div class="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200 max-h-screen">
                     <!-- Logo / Company Name -->
                     <div class="flex items-center flex-shrink-0 px-4 mb-8">
                         @if(setting('company_logo'))
@@ -242,13 +242,13 @@
             if (mobileMenuButton && sidebar && overlay) {
                 mobileMenuButton.addEventListener('click', function() {
                     sidebar.classList.remove('hidden');
-                    sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-50', 'w-64');
+                    sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-50', 'w-64', 'overflow-y-auto');
                     overlay.classList.remove('hidden');
                 });
                 
                 overlay.addEventListener('click', function() {
                     sidebar.classList.add('hidden');
-                    sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-50', 'w-64');
+                    sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-50', 'w-64', 'overflow-y-auto');
                     overlay.classList.add('hidden');
                 });
             }

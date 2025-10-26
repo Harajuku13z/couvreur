@@ -107,8 +107,8 @@
         </div>
         
         <!-- Mobile Navigation -->
-        <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4">
-            <nav class="flex flex-col space-y-4">
+        <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4 max-h-screen overflow-y-auto">
+            <nav class="flex flex-col space-y-4 px-4">
                 <a href="{{ route('home') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
                 
                 @if(count($featuredServices) > 0)

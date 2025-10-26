@@ -15,26 +15,16 @@
         --accent-color: {{ setting('accent_color', '#f59e0b') }};
     }
 </style>
-<!-- Open Graph pour les réseaux sociaux -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="{{ $service['og_title'] ?? $service['meta_title'] ?? $service['name'] }}">
-<meta property="og:description" content="{{ $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'] }}">
-<meta property="og:url" content="{{ request()->url() }}">
-@if($service['og_image'] ?? $service['featured_image'])
-<meta property="og:image" content="{{ asset($service['og_image'] ?? $service['featured_image']) }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-@endif
-<meta property="og:site_name" content="{{ setting('company_name', 'Votre Entreprise') }}">
-
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $service['og_title'] ?? $service['meta_title'] ?? $service['name'] }}">
-<meta name="twitter:description" content="{{ $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'] }}">
-@if($service['og_image'] ?? $service['featured_image'])
-<meta name="twitter:image" content="{{ asset($service['og_image'] ?? $service['featured_image']) }}">
-@endif
 @endpush
+
+@php
+    // Définir les variables pour le SEO centralisé
+    $currentPage = 'services';
+    $pageTitle = $service['og_title'] ?? $service['meta_title'] ?? $service['name'];
+    $pageDescription = $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'];
+    $pageImage = $service['og_image'] ?? $service['featured_image'] ?? '';
+    $pageType = 'website';
+@endphp
 
 @section('content')
 <div class="min-h-screen bg-gray-50">

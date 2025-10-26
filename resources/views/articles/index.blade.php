@@ -13,30 +13,20 @@
 </style>
 @endpush
 
+@php
+    // Définir les variables pour le SEO centralisé
+    $currentPage = 'blog';
+    $pageTitle = 'Blog et Astuces - ' . setting('company_name');
+    $pageDescription = 'Découvrez nos articles et conseils d\'experts en rénovation et couverture';
+    $pageImage = 'images/og-blog.jpg';
+    $pageType = 'website';
+@endphp
+
 @section('head')
 <!-- SEO Meta Tags -->
 <meta name="robots" content="index, follow">
 <meta name="author" content="{{ setting('company_name') }}">
 <meta name="publisher" content="{{ setting('company_name') }}">
-
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="{{ request()->url() }}">
-<meta property="og:title" content="Blog et Astuces - {{ setting('company_name') }}">
-<meta property="og:description" content="Découvrez nos articles et conseils d'experts en rénovation et couverture">
-<meta property="og:image" content="{{ asset('images/og-blog.jpg') }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Blog et Astuces - {{ setting('company_name') }}">
-<meta property="og:site_name" content="{{ setting('company_name') }}">
-<meta property="og:locale" content="fr_FR">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="{{ request()->url() }}">
-<meta name="twitter:title" content="Blog et Astuces - {{ setting('company_name') }}">
-<meta name="twitter:description" content="Découvrez nos articles et conseils d'experts en rénovation et couverture">
-<meta name="twitter:image" content="{{ asset('images/og-blog.jpg') }}">
 
 <!-- Google Analytics -->
 @if(setting('google_analytics_id'))
