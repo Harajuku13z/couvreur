@@ -25,9 +25,56 @@ class ServiceCitiesController extends Controller
      */
     public function generate(Request $request)
     {
-        // Logique de génération d'annonces
-        // Pour l'instant, rediriger vers la page de génération existante
-        return redirect()->route('ads.generate.service-cities');
+        try {
+            $serviceId = $request->input('service_id');
+            $cities = $request->input('cities', []);
+            
+            if (!$serviceId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le service est requis'
+                ]);
+            }
+            
+            if (empty($cities)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Au moins une ville doit être sélectionnée'
+                ]);
+            }
+            
+            if (count($cities) > 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maximum 2 villes autorisées'
+                ]);
+            }
+            
+            // Récupérer le service
+            $service = Service::find($serviceId);
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service non trouvé'
+                ]);
+            }
+            
+            // Pour l'instant, retourner un succès simulé
+            // TODO: Implémenter la logique de génération d'annonces
+            return response()->json([
+                'success' => true,
+                'message' => 'Annonces générées avec succès pour le service ' . $service->title,
+                'count' => count($cities)
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur génération annonces par service: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

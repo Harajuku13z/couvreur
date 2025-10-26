@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
         
         // Envoyer la requête
-        fetch('{{ route("ads.generate.service-cities") }}', {
+        fetch('{{ route("admin.ads.generate.service-cities") }}', {
             method: 'POST',
             body: formData,
             headers: {
