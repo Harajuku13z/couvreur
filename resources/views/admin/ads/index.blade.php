@@ -3,12 +3,12 @@
 @section('title', 'Annonces')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-8">
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- En-tête avec statistiques -->
     <div class="mb-8">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Annonces</h1>
                 <p class="text-gray-600 mt-2">Gérez vos annonces locales et générez du contenu automatiquement</p>
             </div>
             <div class="flex items-center space-x-4">
@@ -201,6 +201,7 @@
         {{ $ads->links() }}
     </div>
     @endif
+    </div>
 </div>
 
 <script>
