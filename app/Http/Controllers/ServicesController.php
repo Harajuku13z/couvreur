@@ -231,7 +231,7 @@ class ServicesController extends Controller
         $currentPage = 'services';
         $pageTitle = $service['meta_title'] ?? $service['name'] . ' - ' . setting('company_name', 'Sauser Couverture');
         $pageDescription = $service['meta_description'] ?? $service['short_description'] ?? 'Découvrez nos services de ' . $service['name'] . '. Devis gratuit, intervention rapide, qualité garantie.';
-        $pageImage = $service['featured_image'] ?? $service['og_image'] ?? '';
+        $pageImage = $service['featured_image'] ?? $service['og_image'] ?? null; // null pour utiliser l'image par défaut du SeoHelper
         $pageType = 'website';
         
         return view('services.show', compact('service', 'relatedServices', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType'));
@@ -453,6 +453,11 @@ INSTRUCTIONS DÉTAILLÉES:
 8. ADAPTE le vocabulaire et les formulations selon le service
 9. INCLUE des informations sur le financement, les garanties, les délais
 10. VARIE le contenu pour éviter les répétitions
+11. AJOUTE des icônes de check (fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0) devant chaque élément de liste
+12. DÉVELOPPE chaque paragraphe pour qu'il fasse au moins 100-150 caractères
+13. AJOUTE des descriptions détaillées pour chaque prestation (pas juste le titre)
+14. INCLUE des informations techniques spécifiques au service
+15. MENTIONNE les avantages et bénéfices pour le client
 
 FORMAT JSON:
 {
