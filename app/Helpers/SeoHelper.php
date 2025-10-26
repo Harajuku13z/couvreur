@@ -172,10 +172,10 @@ class SeoHelper
         }
         
         // Pages qui doivent utiliser l'image par défaut du site (logo)
-        $defaultImagePages = ['home', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        $defaultImagePages = ['home', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about', 'services'];
         
         // Pages qui peuvent utiliser des images spécifiques
-        $specificImagePages = ['services', 'articles'];
+        $specificImagePages = ['articles'];
         
         return in_array($pageName, $defaultImagePages);
     }
@@ -187,12 +187,9 @@ class SeoHelper
     {
         $defaultImages = [
             'home' => 'images/og-accueil.jpg',
-            'services' => 'images/og-services.jpg',
             'portfolio' => 'images/og-realisations.jpg',
             'blog' => 'images/og-blog.jpg',
-            'ads' => 'images/og-services.jpg',
             'reviews' => 'images/og-avis-clients.jpg',
-            'contact' => 'images/og-services.jpg',
             'about' => 'images/og-accueil.jpg',
         ];
         
