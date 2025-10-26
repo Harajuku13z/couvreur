@@ -31,71 +31,108 @@
         <form id="keywordCitiesForm" class="space-y-6">
             @csrf
             
-            <!-- Sélection du mot-clé -->
+            <!-- Mot-clé -->
             <div>
-                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-key mr-1"></i>Mot-clé
-                </label>
-                <div class="flex space-x-2">
-                    <select id="keyword_select" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="">Sélectionner un mot-clé prédéfini</option>
-                        @foreach($keywords as $keyword)
-                            <option value="{{ $keyword }}">{{ ucfirst($keyword) }}</option>
-                        @endforeach
-                    </select>
-                    <span class="text-gray-500 self-center">ou</span>
-                    <input type="text" id="keyword_custom" name="keyword" placeholder="Saisir un mot-clé personnalisé" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                </div>
-            </div>
-
-            <!-- Sélection des villes (limité à 2) -->
-            <div>
-                <label for="cities" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-map-marker-alt mr-1"></i>Villes (Maximum 2)
-                </label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($cities as $city)
-                        <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input type="checkbox" name="cities[]" value="{{ $city->id }}" class="city-checkbox rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-city-name="{{ $city->name }}">
-                            <div class="flex-1">
-                                <div class="text-sm font-medium text-gray-900">{{ $city->name }}</div>
-                                <div class="text-xs text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
-                            </div>
-                        </label>
-                    @endforeach
-                </div>
-                <div class="mt-2 text-sm text-gray-600">
-                    <span id="selected-count">0</span> ville(s) sélectionnée(s) sur 2 maximum
-                </div>
-            </div>
-
-            <!-- Options de génération -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">
-                    <i class="fas fa-cog mr-2"></i>Options de génération
-                </h3>
-                
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé principal</label>
                 <div class="space-y-3">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="generate_meta" value="1" checked class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                        <span class="ml-2 text-sm text-gray-700">Générer les métadonnées SEO</span>
-                    </label>
+                    <!-- Mots-clés prédéfinis -->
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2">Mots-clés prédéfinis :</label>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                            @foreach($keywords as $keyword)
+                                <button type="button" class="keyword-btn bg-gray-100 hover:bg-purple-100 text-gray-700 hover:text-purple-700 px-3 py-2 rounded text-sm border border-gray-300 hover:border-purple-300 transition-colors" data-keyword="{{ $keyword }}">
+                                    {{ $keyword }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
                     
-                    <label class="flex items-center">
-                        <input type="checkbox" name="generate_content" value="1" checked class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                        <span class="ml-2 text-sm text-gray-700">Générer le contenu HTML</span>
-                    </label>
-                    
-                    <label class="flex items-center">
-                        <input type="checkbox" name="publish_immediately" value="1" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                        <span class="ml-2 text-sm text-gray-700">Publier immédiatement</span>
-                    </label>
+                    <!-- Champ mot-clé personnalisé -->
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2">Ou saisir un mot-clé personnalisé :</label>
+                        <input type="text" name="keyword" id="keywordInput" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: couvreur, toiture, façade..." required>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Sélection des villes -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Villes <span class="text-red-500">*</span>
+                    <span class="text-sm text-gray-500">(Maximum 2 villes)</span>
+                </label>
+                
+                <!-- Filtres -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Région</label>
+                        <select id="regionFilter" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                            <option value="">Toutes les régions</option>
+                            @foreach($cities->groupBy('region') as $region => $regionCities)
+                                @if($region)
+                                    <option value="{{ $region }}">{{ $region }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Département</label>
+                        <select id="departmentFilter" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                            <option value="">Tous les départements</option>
+                            @foreach($cities->groupBy('department') as $department => $deptCities)
+                                @if($department)
+                                    <option value="{{ $department }}">{{ $department }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Recherche</label>
+                        <input type="text" id="citySearch" class="w-full border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Rechercher une ville...">
+                    </div>
+                </div>
+
+                <!-- Liste des villes -->
+                <div class="border border-gray-300 rounded-md max-h-60 overflow-y-auto">
+                    <div class="p-3 bg-gray-50 border-b">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">
+                                Villes sélectionnées : <span id="selectedCount" class="text-purple-600 font-bold">0</span>/2
+                            </span>
+                            <button type="button" id="clearSelection" class="text-xs text-red-600 hover:text-red-800">Tout désélectionner</button>
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        @foreach($cities as $city)
+                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer city-option" data-region="{{ $city->region }}" data-department="{{ $city->department }}" data-name="{{ strtolower($city->name) }}">
+                                <input type="checkbox" name="city_ids[]" value="{{ $city->id }}" class="city-checkbox mr-3 text-purple-600 focus:ring-purple-500">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900">{{ $city->name }}</div>
+                                    <div class="text-sm text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt IA personnalisé -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Prompt IA personnalisé (optionnel)</label>
+                <textarea name="ai_prompt" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Instructions spécifiques pour l'IA..."></textarea>
+                <p class="text-sm text-gray-500 mt-1">Laissez vide pour utiliser le prompt par défaut</p>
+            </div>
+
+            <!-- Taille de lot -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Taille de lot</label>
+                <input type="number" name="batch_size" value="20" min="1" max="50" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <p class="text-sm text-gray-500 mt-1">Nombre d'annonces à traiter par lot (1-50)</p>
             </div>
 
             <!-- Bouton de génération -->
             <div class="flex justify-end">
-                <button type="submit" id="generateBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200 flex items-center">
                     <i class="fas fa-magic mr-2"></i>
                     Générer les annonces
                 </button>
@@ -104,148 +141,170 @@
 
         <!-- Zone de résultats -->
         <div id="results" class="mt-8 hidden">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                <i class="fas fa-check-circle mr-2 text-green-600"></i>Résultats
-            </h3>
-            <div id="results-content" class="bg-gray-50 p-4 rounded-lg"></div>
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Résultats de la génération</h3>
+                <div id="resultsContent" class="text-center">
+                    <!-- Le contenu sera rempli par JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const keywordInput = document.getElementById('keywordInput');
+    const keywordBtns = document.querySelectorAll('.keyword-btn');
     const cityCheckboxes = document.querySelectorAll('.city-checkbox');
-    const selectedCountSpan = document.getElementById('selected-count');
-    const generateBtn = document.getElementById('generateBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const clearSelection = document.getElementById('clearSelection');
+    const regionFilter = document.getElementById('regionFilter');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const citySearch = document.getElementById('citySearch');
+    const cityOptions = document.querySelectorAll('.city-option');
     const form = document.getElementById('keywordCitiesForm');
     const results = document.getElementById('results');
-    const resultsContent = document.getElementById('results-content');
-    const keywordSelect = document.getElementById('keyword_select');
-    const keywordCustom = document.getElementById('keyword_custom');
+    const resultsContent = document.getElementById('resultsContent');
 
-    // Synchroniser les champs de mot-clé
-    keywordSelect.addEventListener('change', function() {
-        if (this.value) {
-            keywordCustom.value = this.value;
-        }
-    });
-
-    keywordCustom.addEventListener('input', function() {
-        if (this.value) {
-            keywordSelect.value = '';
-        }
-    });
-
-    // Limiter la sélection à 2 villes maximum
-    cityCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+    // Gestion des mots-clés prédéfinis
+    keywordBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const keyword = this.dataset.keyword;
+            keywordInput.value = keyword;
             
-            if (checkedBoxes.length > 2) {
-                this.checked = false;
-                alert('Vous ne pouvez sélectionner que 2 villes maximum.');
-                return;
-            }
-            
-            updateSelectedCount();
+            // Mise à jour visuelle
+            keywordBtns.forEach(b => b.classList.remove('bg-purple-100', 'text-purple-700', 'border-purple-300'));
+            this.classList.add('bg-purple-100', 'text-purple-700', 'border-purple-300');
         });
     });
 
+    // Gestion de la sélection des villes
     function updateSelectedCount() {
-        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
-        selectedCountSpan.textContent = checkedBoxes.length;
+        const selected = document.querySelectorAll('.city-checkbox:checked').length;
+        selectedCount.textContent = selected;
         
-        // Activer/désactiver le bouton selon le nombre de sélections
-        generateBtn.disabled = checkedBoxes.length === 0 || (!keywordSelect.value && !keywordCustom.value);
+        // Désactiver les checkboxes si 2 villes sont sélectionnées
+        cityCheckboxes.forEach(checkbox => {
+            if (selected >= 2 && !checkbox.checked) {
+                checkbox.disabled = true;
+                checkbox.closest('.city-option').classList.add('opacity-50');
+            } else {
+                checkbox.disabled = false;
+                checkbox.closest('.city-option').classList.remove('opacity-50');
+            }
+        });
     }
 
-    // Vérifier la validité du formulaire
-    function checkFormValidity() {
-        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
-        const hasKeyword = keywordSelect.value || keywordCustom.value;
-        generateBtn.disabled = checkedBoxes.length === 0 || !hasKeyword;
+    cityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+
+    // Tout désélectionner
+    clearSelection.addEventListener('click', function() {
+        cityCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedCount();
+    });
+
+    // Filtres des villes
+    function filterCities() {
+        const region = regionFilter.value.toLowerCase();
+        const department = departmentFilter.value.toLowerCase();
+        const search = citySearch.value.toLowerCase();
+
+        cityOptions.forEach(option => {
+            const optionRegion = (option.dataset.region || '').toLowerCase();
+            const optionDepartment = (option.dataset.department || '').toLowerCase();
+            const optionName = option.dataset.name;
+
+            const matchesRegion = !region || optionRegion.includes(region);
+            const matchesDepartment = !department || optionDepartment.includes(department);
+            const matchesSearch = !search || optionName.includes(search);
+
+            if (matchesRegion && matchesDepartment && matchesSearch) {
+                option.style.display = 'flex';
+            } else {
+                option.style.display = 'none';
+            }
+        });
     }
 
-    keywordSelect.addEventListener('change', checkFormValidity);
-    keywordCustom.addEventListener('input', checkFormValidity);
+    regionFilter.addEventListener('change', filterCities);
+    departmentFilter.addEventListener('change', filterCities);
+    citySearch.addEventListener('input', filterCities);
 
-    // Gestion du formulaire
-    form.addEventListener('submit', function(e) {
+    // Soumission du formulaire
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(form);
-        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
-        const keyword = keywordSelect.value || keywordCustom.value;
+        const selectedCities = Array.from(cityCheckboxes).filter(cb => cb.checked);
         
-        if (!keyword) {
-            alert('Veuillez sélectionner ou saisir un mot-clé.');
+        // Validation
+        if (!keywordInput.value.trim()) {
+            alert('Veuillez saisir un mot-clé');
             return;
         }
         
-        if (checkedBoxes.length === 0) {
-            alert('Veuillez sélectionner au moins une ville.');
+        if (selectedCities.length === 0) {
+            alert('Veuillez sélectionner au moins une ville');
             return;
         }
         
-        if (checkedBoxes.length > 2) {
-            alert('Vous ne pouvez sélectionner que 2 villes maximum.');
+        if (selectedCities.length > 2) {
+            alert('Maximum 2 villes autorisées');
             return;
         }
-        
-        // Ajouter le mot-clé au FormData
-        formData.append('keyword', keyword);
-        
-        // Désactiver le bouton pendant la génération
-        generateBtn.disabled = true;
-        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
-        
+
         // Afficher les résultats
         results.classList.remove('hidden');
         resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-purple-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
         
         // Envoyer la requête
-        fetch('{{ route("admin.ads.keyword-cities.generate") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
+        try {
+            const response = await fetch('{{ route("ads.generate.keyword-cities") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            
+            const data = await response.json();
+            
             if (data.success) {
                 resultsContent.innerHTML = `
                     <div class="text-green-600">
                         <i class="fas fa-check-circle text-2xl mb-2"></i>
-                        <p class="font-medium">${data.message}</p>
-                        <p class="text-sm mt-1">${data.count} annonce(s) générée(s) avec succès.</p>
+                        <p class="font-semibold">Annonces générées avec succès !</p>
+                        <p class="text-sm mt-1">${data.message}</p>
+                        <p class="text-sm">Annonces créées : ${data.created || 0}</p>
+                        <p class="text-sm">Annonces ignorées : ${data.skipped || 0}</p>
                     </div>
                 `;
             } else {
                 resultsContent.innerHTML = `
                     <div class="text-red-600">
                         <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
-                        <p class="font-medium">Erreur lors de la génération</p>
-                        <p class="text-sm mt-1">${data.message}</p>
+                        <p class="font-semibold">Erreur lors de la génération</p>
+                        <p class="text-sm mt-1">${data.message || 'Une erreur inattendue s\'est produite'}</p>
                     </div>
                 `;
             }
-        })
-        .catch(error => {
+        } catch (error) {
             resultsContent.innerHTML = `
                 <div class="text-red-600">
                     <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
-                    <p class="font-medium">Erreur lors de la génération</p>
-                    <p class="text-sm mt-1">Une erreur est survenue. Veuillez réessayer.</p>
+                    <p class="font-semibold">Erreur de connexion</p>
+                    <p class="text-sm mt-1">${error.message}</p>
                 </div>
             `;
-        })
-        .finally(() => {
-            // Réactiver le bouton
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Générer les annonces';
-        });
+        }
     });
+
+    // Initialisation
+    updateSelectedCount();
 });
 </script>
 @endsection

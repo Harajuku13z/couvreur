@@ -112,7 +112,7 @@ class AdGenerationController extends Controller
         try {
             $validated = $request->validate([
                 'keyword' => 'required|string|max:255',
-                'city_ids' => 'required|array|min:1',
+                'city_ids' => 'required|array|min:1|max:2',
                 'city_ids.*' => 'required|integer|exists:cities,id',
                 'ai_prompt' => 'nullable|string|max:5000',
                 'batch_size' => 'nullable|integer|min:1|max:50'
