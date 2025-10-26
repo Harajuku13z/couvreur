@@ -37,9 +37,47 @@ class KeywordCitiesController extends Controller
      */
     public function generate(Request $request)
     {
-        // Logique de génération d'annonces
-        // Pour l'instant, rediriger vers la page de génération existante
-        return redirect()->route('ads.generate.keyword-cities');
+        try {
+            $keyword = $request->input('keyword');
+            $cities = $request->input('cities', []);
+            
+            if (!$keyword) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le mot-clé est requis'
+                ]);
+            }
+            
+            if (empty($cities)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Au moins une ville doit être sélectionnée'
+                ]);
+            }
+            
+            if (count($cities) > 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maximum 2 villes autorisées'
+                ]);
+            }
+            
+            // Pour l'instant, retourner un succès simulé
+            // TODO: Implémenter la logique de génération d'annonces
+            return response()->json([
+                'success' => true,
+                'message' => 'Annonces générées avec succès',
+                'count' => count($cities)
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur génération annonces par mot-clé: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

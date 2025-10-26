@@ -7,7 +7,7 @@
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold text-gray-900">
-                <i class="fas fa-key mr-2 text-green-600"></i>
+                <i class="fas fa-key mr-2 text-purple-600"></i>
                 Génération d'annonces par Mots-clés et Villes
             </h1>
             <a href="{{ route('admin.ads.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
@@ -37,14 +37,14 @@
                     <i class="fas fa-key mr-1"></i>Mot-clé
                 </label>
                 <div class="flex space-x-2">
-                    <select id="keyword_select" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <select id="keyword_select" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option value="">Sélectionner un mot-clé prédéfini</option>
                         @foreach($keywords as $keyword)
                             <option value="{{ $keyword }}">{{ ucfirst($keyword) }}</option>
                         @endforeach
                     </select>
                     <span class="text-gray-500 self-center">ou</span>
-                    <input type="text" id="keyword_custom" name="keyword" placeholder="Saisir un mot-clé personnalisé" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                    <input type="text" id="keyword_custom" name="keyword" placeholder="Saisir un mot-clé personnalisé" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @foreach($cities as $city)
                         <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input type="checkbox" name="cities[]" value="{{ $city->id }}" class="city-checkbox rounded border-gray-300 text-green-600 focus:ring-green-500" data-city-name="{{ $city->name }}">
+                            <input type="checkbox" name="cities[]" value="{{ $city->id }}" class="city-checkbox rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-city-name="{{ $city->name }}">
                             <div class="flex-1">
                                 <div class="text-sm font-medium text-gray-900">{{ $city->name }}</div>
                                 <div class="text-xs text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
@@ -77,17 +77,17 @@
                 
                 <div class="space-y-3">
                     <label class="flex items-center">
-                        <input type="checkbox" name="generate_meta" value="1" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <input type="checkbox" name="generate_meta" value="1" checked class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                         <span class="ml-2 text-sm text-gray-700">Générer les métadonnées SEO</span>
                     </label>
                     
                     <label class="flex items-center">
-                        <input type="checkbox" name="generate_content" value="1" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <input type="checkbox" name="generate_content" value="1" checked class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                         <span class="ml-2 text-sm text-gray-700">Générer le contenu HTML</span>
                     </label>
                     
                     <label class="flex items-center">
-                        <input type="checkbox" name="publish_immediately" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <input type="checkbox" name="publish_immediately" value="1" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                         <span class="ml-2 text-sm text-gray-700">Publier immédiatement</span>
                     </label>
                 </div>
@@ -95,7 +95,7 @@
 
             <!-- Bouton de génération -->
             <div class="flex justify-end">
-                <button type="submit" id="generateBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" id="generateBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-magic mr-2"></i>
                     Générer les annonces
                 </button>
@@ -156,11 +156,18 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedCountSpan.textContent = checkedBoxes.length;
         
         // Activer/désactiver le bouton selon le nombre de sélections
-        generateBtn.disabled = checkedBoxes.length === 0 || !keywordCustom.value.trim();
+        generateBtn.disabled = checkedBoxes.length === 0 || (!keywordSelect.value && !keywordCustom.value);
     }
 
     // Vérifier la validité du formulaire
-    keywordCustom.addEventListener('input', updateSelectedCount);
+    function checkFormValidity() {
+        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+        const hasKeyword = keywordSelect.value || keywordCustom.value;
+        generateBtn.disabled = checkedBoxes.length === 0 || !hasKeyword;
+    }
+
+    keywordSelect.addEventListener('change', checkFormValidity);
+    keywordCustom.addEventListener('input', checkFormValidity);
 
     // Gestion du formulaire
     form.addEventListener('submit', function(e) {
@@ -168,6 +175,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(form);
         const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+        const keyword = keywordSelect.value || keywordCustom.value;
+        
+        if (!keyword) {
+            alert('Veuillez sélectionner ou saisir un mot-clé.');
+            return;
+        }
         
         if (checkedBoxes.length === 0) {
             alert('Veuillez sélectionner au moins une ville.');
@@ -179,10 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        if (!keywordCustom.value.trim()) {
-            alert('Veuillez saisir un mot-clé.');
-            return;
-        }
+        // Ajouter le mot-clé au FormData
+        formData.append('keyword', keyword);
         
         // Désactiver le bouton pendant la génération
         generateBtn.disabled = true;
@@ -190,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Afficher les résultats
         results.classList.remove('hidden');
-        resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-green-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
+        resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-purple-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
         
         // Envoyer la requête
         fetch('{{ route("admin.ads.keyword-cities.generate") }}', {
