@@ -18,22 +18,22 @@ class AdController extends Controller
         $slug = $service . '-' . $city;
         
         // Chercher l'annonce par slug
-        $ad = Ad::where('slug', $slug)->first();
+        $ad = Ad::where('slug', $slug)->where('status', 'published')->first();
         
         if (!$ad) {
-            abort(404);
+            abort(404, 'Annonce non trouvée');
         }
         
         // Récupérer la ville
         $cityModel = City::find($ad->city_id);
         
         if (!$cityModel) {
-            abort(404);
+            abort(404, 'Ville non trouvée');
         }
         
-        // Variables pour le SEO
+        // Variables pour le SEO avec valeurs par défaut
         $currentPage = 'ads';
-        $pageTitle = $ad->meta_title ?? $ad->title;
+        $pageTitle = $ad->meta_title ?? $ad->title ?? 'Service professionnel';
         $pageDescription = $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
         $pageImage = null; // Utiliser l'image par défaut du SeoHelper
         $pageType = 'website';

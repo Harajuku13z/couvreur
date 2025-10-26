@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle)
+@section('title', $pageTitle ?? 'Service professionnel')
 
-@section('description', $pageDescription)
+@section('description', $pageDescription ?? 'Service professionnel de qualité. Devis gratuit et intervention rapide.')
 
 @push('head')
 <style>
