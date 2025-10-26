@@ -205,11 +205,17 @@
                 </div>
                 
                 <div class="mb-4">
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-4 flex-wrap">
                         <a href="{{ url('/sitemap.xml') }}" target="_blank" 
                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                             <i class="fas fa-external-link-alt mr-2"></i>Voir le sitemap
                         </a>
+                        
+                        <button type="button" onclick="updateSitemap()" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Mettre à jour le sitemap
+                        </button>
+                        
                         <span class="text-sm text-gray-500">
                             <i class="fas fa-info-circle mr-1"></i>
                             Le sitemap est actuellement 
@@ -329,6 +335,71 @@ function copyToClipboard(text) {
         console.error('Erreur lors de la copie: ', err);
         alert('Erreur lors de la copie. Veuillez copier manuellement: ' + text);
     });
+}
+
+// Fonction pour mettre à jour le sitemap
+function updateSitemap() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Afficher un indicateur de chargement
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mise à jour...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    // Faire la requête AJAX
+    fetch('{{ route("admin.seo.update-sitemap") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Afficher un message de succès
+            showNotification('Sitemap mis à jour avec succès !', 'success');
+            
+            // Mettre à jour le statut si fourni
+            if (data.status) {
+                const statusElement = document.querySelector('.sitemap-status');
+                if (statusElement) {
+                    statusElement.textContent = data.status;
+                }
+            }
+        } else {
+            showNotification('Erreur lors de la mise à jour du sitemap: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la mise à jour du sitemap', 'error');
+    })
+    .finally(() => {
+        // Restaurer le bouton
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+    });
+}
+
+// Fonction pour afficher les notifications
+function showNotification(message, type) {
+    // Créer l'élément de notification
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    notification.textContent = message;
+    
+    // Ajouter à la page
+    document.body.appendChild(notification);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 </script>
 @endpush

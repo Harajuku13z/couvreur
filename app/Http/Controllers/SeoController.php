@@ -279,6 +279,45 @@ class SeoController extends Controller
     }
 
     /**
+     * Mettre à jour le sitemap via AJAX
+     */
+    public function updateSitemap(Request $request)
+    {
+        try {
+            // Utiliser le service de sitemap pour générer le sitemap
+            $sitemapService = new SitemapService();
+            $sitemapService->generateSitemap();
+            
+            // Vérifier que le fichier a été créé
+            $sitemapPath = public_path('sitemap.xml');
+            if (file_exists($sitemapPath)) {
+                $fileSize = filesize($sitemapPath);
+                $lastModified = date('d/m/Y H:i:s', filemtime($sitemapPath));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sitemap mis à jour avec succès',
+                    'status' => "Mis à jour le {$lastModified} ({$fileSize} octets)",
+                    'file_size' => $fileSize,
+                    'last_modified' => $lastModified
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur: Le fichier sitemap n\'a pas été créé'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur mise à jour sitemap: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour du sitemap: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Générer le robots.txt
      */
     public function generateRobots()
