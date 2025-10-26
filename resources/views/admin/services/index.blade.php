@@ -128,6 +128,9 @@
                     <a href="{{ route('services.admin.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                         <i class="fas fa-plus mr-2"></i>Nouveau Service
                     </a>
+                    <a href="{{ route('services.admin.ai.form') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Génération IA
+                    </a>
                 </div>
             </div>
         </div>

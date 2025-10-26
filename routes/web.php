@@ -357,6 +357,11 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/force-regenerate/{slug}', [ServicesController::class, 'forceRegenerate'])->name('force.regenerate');
         Route::post('/fix-images/{slug}', [ServicesController::class, 'fixImages'])->name('fix.images');
         Route::post('/clean-duplicates', [ServicesController::class, 'cleanExistingServices'])->name('clean.duplicates');
+        
+        // Routes IA pour la génération de services
+        Route::get('/ai', [App\Http\Controllers\ServiceAiController::class, 'form'])->name('ai.form');
+        Route::post('/ai/generate', [App\Http\Controllers\ServiceAiController::class, 'generate'])->name('ai.generate');
+        Route::post('/ai/test', [App\Http\Controllers\ServiceAiController::class, 'test'])->name('ai.test');
     });
 });
 
