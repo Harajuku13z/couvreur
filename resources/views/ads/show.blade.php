@@ -169,7 +169,19 @@
                             @if($review->source && $review->source !== 'manual')
                             <span class="px-2 py-1 rounded-full text-xs"
                                   style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
-                                {{ ucfirst($review->source) }}
+                                @if(str_contains($review->source, 'Google'))
+                                    <i class="fab fa-google mr-1"></i>Google Maps
+                                @elseif(str_contains($review->source, 'Travaux'))
+                                    <i class="fas fa-tools mr-1"></i>Travaux.com
+                                @elseif(str_contains($review->source, 'LeBonCoin'))
+                                    <i class="fas fa-shopping-cart mr-1"></i>LeBonCoin
+                                @elseif(str_contains($review->source, 'Trustpilot'))
+                                    <i class="fas fa-shield-alt mr-1"></i>Trustpilot
+                                @elseif(str_contains($review->source, 'Facebook'))
+                                    <i class="fab fa-facebook mr-1"></i>Facebook
+                                @else
+                                    <i class="fas fa-star mr-1"></i>{{ ucfirst($review->source) }}
+                                @endif
                             </span>
                             @endif
                         </div>

@@ -369,28 +369,39 @@ class ServicesController extends Controller
         
         if (!$apiKey) {
             Log::error('Clé API manquante pour génération service');
-            return $this->generateFallbackContent($serviceName, $shortDescription, $companyInfo);
+            return $this->generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo);
         }
         
         try {
-            // Prompt avec structure spécifique demandée
-            $prompt = "Crée un contenu HTML professionnel pour ce service de rénovation.
+            // Prompt simplifié et plus efficace
+            $prompt = "Tu es un expert en rédaction web pour une entreprise de rénovation.
 
-INFORMATIONS:
-- Entreprise: {$companyInfo['company_name']}
+INFORMATIONS ENTREPRISE:
+- Nom: {$companyInfo['company_name']}
 - Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
 - Service: {$serviceName}
-- Description: {$shortDescription}";
+- Description actuelle: {$shortDescription}";
 
             if ($customPrompt) {
-                $prompt .= "\n\nINSTRUCTIONS PERSONNALISÉES:\n{$customPrompt}";
+                $prompt .= "\n\nINSTRUCTIONS SPÉCIFIQUES:\n{$customPrompt}";
             }
 
-            $prompt .= "\n\nSTRUCTURE HTML OBLIGATOIRE - EXACTEMENT COMME CET EXEMPLE:
+            $prompt .= "\n\nTÂCHE:
+Crée un contenu web professionnel et engageant pour ce service de rénovation.
+
+CONTENU REQUIS:
+1. Description courte (120-140 caractères) - accrocheuse et SEO
+2. Icône Font Awesome appropriée au service
+3. Titre SEO optimisé (50-60 caractères)
+4. Description SEO (150-160 caractères)
+5. Mots-clés pertinents (séparés par virgules)
+6. Contenu HTML complet avec structure professionnelle
+
+STRUCTURE HTML OBLIGATOIRE:
 <div class=\"grid md:grid-cols-2 gap-8\">
   <div class=\"space-y-6\">
     <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName} à {$companyInfo['company_city']}, {$companyInfo['company_region']}]</p>
+      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName} à {$companyInfo['company_city']}]</p>
       <p class=\"text-lg leading-relaxed\">[Expertise spécifique au service {$serviceName}]</p>
       <p class=\"text-lg leading-relaxed\">[Approche personnalisée et satisfaction client]</p>
     </div>
@@ -405,35 +416,27 @@ INFORMATIONS:
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 1 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 1 spécifique]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 2 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 2 spécifique]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 3 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 3 spécifique]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 4 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 4 spécifique]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 5 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 5 spécifique]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 6 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 7 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 8 spécifique à {$serviceName}]</strong> - [Description détaillée de la prestation]</span>
+        <span><strong>[Prestation 6 spécifique]</strong> - [Description détaillée]</span>
       </li>
     </ul>
     
@@ -485,52 +488,33 @@ INFORMATIONS:
   </div>
 </div>
 
-INSTRUCTIONS DÉTAILLÉES:
-1. ADAPTE complètement le contenu au service spécifique: {$serviceName}
-2. ÉCRIS du contenu PERSONNALISÉ selon le type de service (toiture, façade, isolation, gouttières, etc.)
-3. UTILISE les informations de l'entreprise: {$companyInfo['company_name']}
-4. INTÉGRE la localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
-5. GARDE la structure HTML exacte de l'exemple ci-dessus
-6. PERSONNALISE les prestations selon le service (pas de contenu générique)
-7. ÉCRIS du contenu UNIQUE et SPÉCIFIQUE au service
-8. ADAPTE le vocabulaire et les formulations selon le service
-9. INCLUE des informations sur le financement, les garanties, les délais
-10. VARIE le contenu pour éviter les répétitions
-11. AJOUTE des icônes de check (fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0) devant chaque élément de liste
-12. DÉVELOPPE chaque paragraphe pour qu'il fasse au moins 100-150 caractères
-13. AJOUTE des descriptions détaillées pour chaque prestation (pas juste le titre)
-14. INCLUE des informations techniques spécifiques au service
-15. MENTIONNE les avantages et bénéfices pour le client
+INSTRUCTIONS:
+- ADAPTE le contenu au service {$serviceName} (toiture, façade, isolation, etc.)
+- ÉCRIS du contenu UNIQUE et SPÉCIFIQUE
+- UTILISE les informations de l'entreprise et localisation
+- GARDE la structure HTML exacte
+- PERSONNALISE les prestations selon le service
+- INCLUE des informations sur financement, garanties, délais
+- VARIE le vocabulaire pour éviter les répétitions
+- CONTENU professionnel et engageant
 
-FORMAT JSON:
+RÉPONSE FORMAT JSON:
 {
-  \"description\": \"[HTML complet avec la structure exacte ci-dessus]\",
-  \"short_description\": \"[Description courte et accrocheuse - 140 caractères max]\",
-  \"icon\": \"fas fa-[icône appropriée au service]\",
-  \"meta_title\": \"[Titre SEO optimisé - 60 caractères max]\",
-  \"meta_description\": \"[Description SEO engageante - 160 caractères max]\",
-  \"og_title\": \"[Titre pour réseaux sociaux - 60 caractères max]\",
-  \"og_description\": \"[Description pour réseaux sociaux - 160 caractères max]\",
-  \"twitter_title\": \"[Titre Twitter - 60 caractères max]\",
-  \"twitter_description\": \"[Description Twitter - 160 caractères max]\",
+  \"description\": \"[HTML complet avec structure exacte]\",
+  \"short_description\": \"[Description courte 120-140 caractères]\",
+  \"icon\": \"fas fa-[icône appropriée]\",
+  \"meta_title\": \"[Titre SEO 50-60 caractères]\",
+  \"meta_description\": \"[Description SEO 150-160 caractères]\",
+  \"og_title\": \"[Titre réseaux sociaux 50-60 caractères]\",
+  \"og_description\": \"[Description réseaux sociaux 150-160 caractères]\",
+  \"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
+  \"twitter_description\": \"[Description Twitter 150-160 caractères]\",
   \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
 }
 
-IMPORTANT:
-- SUIVEZ EXACTEMENT la structure HTML de l'exemple
-- ÉCRIVEZ du contenu PERSONNALISÉ pour le service {$serviceName}
-- ADAPTEZ les prestations selon le type de service (toiture, façade, isolation, etc.)
-- GARDEZ les classes CSS et la structure
-- UTILISEZ les informations de l'entreprise et de la localisation
-- Le contenu doit être professionnel et engageant
-- ÉVITEZ la répétition de phrases identiques
-- Variez le vocabulaire et les formulations
-- INCLUEZ des informations sur le financement et les garanties
-- ADAPTEZ le contenu selon le service spécifique
-
 Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
 
-            Log::info('Génération IA complète pour service', [
+            Log::info('Génération IA service améliorée', [
                 'service_name' => $serviceName,
                 'prompt_length' => strlen($prompt)
             ]);
@@ -538,77 +522,285 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
+            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => setting('chatgpt_model', 'gpt-4o'),
                 'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO.'
+                    ],
                     [
                         'role' => 'user',
                         'content' => $prompt
                     ]
                 ],
                 'max_tokens' => 4000,
-                'temperature' => 0.8
+                'temperature' => 0.7
             ]);
             
             if ($response->successful()) {
                 $data = $response->json();
                 $content = $data['choices'][0]['message']['content'] ?? '';
                 
-                Log::info('Réponse IA complète reçue', [
+                Log::info('Réponse IA reçue', [
                     'service_name' => $serviceName,
                     'content_length' => strlen($content),
-                    'content_preview' => substr($content, 0, 300)
+                    'content_preview' => substr($content, 0, 200)
                 ]);
                 
-                // Parser le JSON
-                $jsonStart = strpos($content, '{');
-                $jsonEnd = strrpos($content, '}');
+                // Parser le JSON de manière plus robuste
+                $aiData = $this->parseAIResponse($content);
                 
-                if ($jsonStart !== false && $jsonEnd !== false) {
-                    $jsonContent = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
-                    $aiData = json_decode($jsonContent, true);
-                    
-                    if ($aiData) {
-                        return [
-                            'description' => $aiData['description'] ?? $shortDescription,
-                            'short_description' => $aiData['short_description'] ?? $shortDescription,
-                            'icon' => $aiData['icon'] ?? 'fas fa-tools',
-                            'meta_title' => $aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
-                            'meta_description' => $aiData['meta_description'] ?? $shortDescription,
-                            'og_title' => $aiData['og_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
-                            'og_description' => $aiData['og_description'] ?? $shortDescription,
-                            'twitter_title' => $aiData['twitter_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'],
-                            'twitter_description' => $aiData['twitter_description'] ?? $shortDescription,
-                            'meta_keywords' => $aiData['meta_keywords'] ?? $serviceName . ', ' . $companyInfo['company_city']
-                        ];
-                    }
+                if ($aiData && is_array($aiData)) {
+                    // Valider et nettoyer les données
+                    return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                 }
+            } else {
+                Log::error('Erreur API OpenAI', [
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Erreur génération IA complète: ' . $e->getMessage());
+            Log::error('Erreur génération IA: ' . $e->getMessage(), [
+                'service_name' => $serviceName,
+                'error' => $e->getTraceAsString()
+            ]);
         }
         
-        // Fallback en cas d'échec
-        return $this->generateFallbackContent($serviceName, $shortDescription, $companyInfo);
+        // Fallback amélioré en cas d'échec
+        return $this->generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo);
     }
 
     /**
-     * Contenu de fallback en cas d'échec de l'IA
+     * Parser la réponse IA de manière robuste
+     */
+    private function parseAIResponse($content)
+    {
+        // Nettoyer le contenu
+        $content = trim($content);
+        
+        // Chercher le JSON dans différentes positions
+        $jsonPatterns = [
+            '/\{.*\}/s',  // Pattern général
+            '/```json\s*(\{.*?\})\s*```/s',  // JSON dans code block
+            '/```\s*(\{.*?\})\s*```/s',  // JSON dans code block sans json
+        ];
+        
+        foreach ($jsonPatterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $jsonString = $matches[1] ?? $matches[0];
+                $data = json_decode($jsonString, true);
+                if ($data && is_array($data)) {
+                    return $data;
+                }
+            }
+        }
+        
+        // Essayer de parser directement
+        $data = json_decode($content, true);
+        if ($data && is_array($data)) {
+            return $data;
+        }
+        
+        Log::warning('Impossible de parser la réponse IA', [
+            'content_preview' => substr($content, 0, 500)
+        ]);
+        
+        return null;
+    }
+
+    /**
+     * Valider et nettoyer les données IA
+     */
+    private function validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo)
+    {
+        // Fonction pour nettoyer et limiter la longueur
+        $cleanText = function($text, $maxLength = null) {
+            $text = trim(strip_tags($text));
+            if ($maxLength && strlen($text) > $maxLength) {
+                $text = substr($text, 0, $maxLength - 3) . '...';
+            }
+            return $text;
+        };
+
+        // Fonction pour générer des mots-clés pertinents
+        $generateKeywords = function($serviceName, $companyInfo) {
+            $baseKeywords = [
+                strtolower($serviceName),
+                $companyInfo['company_city'],
+                $companyInfo['company_region'],
+                'devis gratuit',
+                'professionnel',
+                'qualité'
+            ];
+            
+            // Ajouter des mots-clés spécifiques selon le service
+            $serviceKeywords = [
+                'toiture' => ['couverture', 'réparation', 'rénovation', 'charpente'],
+                'façade' => ['ravalement', 'peinture', 'enduit', 'isolation'],
+                'isolation' => ['thermique', 'phonique', 'économies', 'énergie'],
+                'gouttières' => ['zinguerie', 'évacuation', 'eaux pluviales'],
+                'couvreur' => ['artisan', 'expert', 'intervention', 'urgence']
+            ];
+            
+            $serviceLower = strtolower($serviceName);
+            foreach ($serviceKeywords as $key => $keywords) {
+                if (str_contains($serviceLower, $key)) {
+                    $baseKeywords = array_merge($baseKeywords, $keywords);
+                }
+            }
+            
+            return implode(', ', array_unique($baseKeywords));
+        };
+
+        return [
+            'description' => $aiData['description'] ?? $this->generateDefaultDescription($serviceName, $companyInfo),
+            'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
+            'icon' => $aiData['icon'] ?? $this->getServiceIcon($serviceName),
+            'meta_title' => $cleanText($aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
+            'meta_description' => $cleanText($aiData['meta_description'] ?? $shortDescription, 160),
+            'og_title' => $cleanText($aiData['og_title'] ?? $aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
+            'og_description' => $cleanText($aiData['og_description'] ?? $aiData['meta_description'] ?? $shortDescription, 160),
+            'twitter_title' => $cleanText($aiData['twitter_title'] ?? $aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
+            'twitter_description' => $cleanText($aiData['twitter_description'] ?? $aiData['meta_description'] ?? $shortDescription, 160),
+            'meta_keywords' => $aiData['meta_keywords'] ?? $generateKeywords($serviceName, $companyInfo)
+        ];
+    }
+
+    /**
+     * Générer une description par défaut de qualité
+     */
+    private function generateDefaultDescription($serviceName, $companyInfo)
+    {
+        return '<div class="grid md:grid-cols-2 gap-8">
+  <div class="space-y-6">
+    <div class="space-y-4">
+      <p class="text-lg leading-relaxed">Service professionnel de ' . $serviceName . ' à ' . $companyInfo['company_city'] . ', une expertise reconnue dans ' . $companyInfo['company_region'] . '. Notre entreprise spécialisée intervient sur tous types de bâtiments pour des travaux de ' . $serviceName . ' durables et esthétiques.</p>
+      <p class="text-lg leading-relaxed">Spécialistes en travaux de ' . $serviceName . ' pour une rénovation de qualité supérieure. Nous maîtrisons les techniques modernes de pose, de réparation et de rénovation, garantissant des résultats durables et performants.</p>
+      <p class="text-lg leading-relaxed">Approche personnalisée pour chaque projet de ' . $serviceName . ', satisfaction garantie. De l\'audit initial à la finition, notre équipe d\'artisans qualifiés assure un suivi rigoureux.</p>
+    </div>
+    
+    <div class="bg-blue-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>
+      <p class="leading-relaxed mb-3">Chez ' . $companyInfo['company_name'] . ', nous garantissons la satisfaction totale de nos clients.</p>
+      <p class="leading-relaxed">Utilisation de matériaux durables et techniques modernes pour votre ' . $serviceName . '.</p>
+    </div>
+    
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceName . '</h3>
+    <ul class="space-y-3">
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>Réparation et maintenance</strong> - Diagnostic précis et traitement adapté</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>Rénovation complète</strong> - Remplacement intégral avec matériaux de qualité</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>Installation professionnelle</strong> - Pose selon les normes en vigueur</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>Conseils personnalisés</strong> - Accompagnement dans vos choix</span>
+      </li>
+    </ul>
+    
+    <div class="bg-green-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>
+      <p class="leading-relaxed">Réputation locale solide pour les travaux de ' . $serviceName . ' à ' . $companyInfo['company_city'] . '.</p>
+    </div>
+  </div>
+  
+  <div class="space-y-6">
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>
+    <p class="leading-relaxed">Une connaissance approfondie des exigences locales pour chaque projet de ' . $serviceName . ' à ' . $companyInfo['company_city'] . '.</p>
+    
+    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
+      <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>
+      <p class="mb-4">Contactez-nous pour un devis gratuit pour vos ' . $serviceName . '.</p>
+      <a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+    </div>
+    
+    <div class="bg-gray-50 p-6 rounded-lg">
+      <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
+      <ul class="space-y-2 text-sm">
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>Financement possible pour vos travaux</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>Garantie de qualité sur nos interventions</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>Délais d\'exécution respectés</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>Équipe qualifiée et professionnelle</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>';
+    }
+
+    /**
+     * Obtenir l'icône appropriée pour le service
+     */
+    private function getServiceIcon($serviceName)
+    {
+        $serviceIcons = [
+            'toiture' => 'fas fa-home',
+            'couverture' => 'fas fa-home',
+            'façade' => 'fas fa-building',
+            'facade' => 'fas fa-building',
+            'isolation' => 'fas fa-thermometer-half',
+            'gouttières' => 'fas fa-tint',
+            'gouttieres' => 'fas fa-tint',
+            'couvreur' => 'fas fa-tools',
+            'charpente' => 'fas fa-hammer',
+            'zinguerie' => 'fas fa-wrench'
+        ];
+        
+        $serviceLower = strtolower($serviceName);
+        foreach ($serviceIcons as $key => $icon) {
+            if (str_contains($serviceLower, $key)) {
+                return $icon;
+            }
+        }
+        
+        return 'fas fa-tools';
+    }
+
+    /**
+     * Contenu de fallback amélioré en cas d'échec de l'IA
+     */
+    private function generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo)
+    {
+        return [
+            'description' => $this->generateDefaultDescription($serviceName, $companyInfo),
+            'short_description' => $shortDescription ?: 'Service professionnel de ' . $serviceName . ' par ' . $companyInfo['company_name'],
+            'icon' => $this->getServiceIcon($serviceName),
+            'meta_title' => $serviceName . ' - ' . $companyInfo['company_name'],
+            'meta_description' => $shortDescription ?: 'Service professionnel de ' . $serviceName . ' à ' . $companyInfo['company_city'] . '. Devis gratuit et intervention rapide.',
+            'og_title' => $serviceName . ' - ' . $companyInfo['company_name'],
+            'og_description' => $shortDescription ?: 'Service professionnel de ' . $serviceName . ' à ' . $companyInfo['company_city'] . '. Devis gratuit et intervention rapide.',
+            'twitter_title' => $serviceName . ' - ' . $companyInfo['company_name'],
+            'twitter_description' => $shortDescription ?: 'Service professionnel de ' . $serviceName . ' à ' . $companyInfo['company_city'] . '. Devis gratuit et intervention rapide.',
+            'meta_keywords' => strtolower($serviceName) . ', ' . $companyInfo['company_city'] . ', ' . $companyInfo['company_region'] . ', devis gratuit, professionnel, qualité'
+        ];
+    }
+
+    /**
+     * Ancien contenu de fallback (gardé pour compatibilité)
      */
     private function generateFallbackContent($serviceName, $shortDescription, $companyInfo)
     {
-        return [
-            'description' => '<div class="space-y-6"><p class="text-lg">' . $shortDescription . '</p><p>Service professionnel de ' . $serviceName . ' par ' . $companyInfo['company_name'] . '.</p></div>',
-            'short_description' => $shortDescription,
-            'icon' => 'fas fa-tools',
-            'meta_title' => $serviceName . ' - ' . $companyInfo['company_name'],
-            'meta_description' => $shortDescription,
-            'og_title' => $serviceName . ' - ' . $companyInfo['company_name'],
-            'og_description' => $shortDescription,
-            'twitter_title' => $serviceName . ' - ' . $companyInfo['company_name'],
-            'twitter_description' => $shortDescription,
-            'meta_keywords' => $serviceName . ', ' . $companyInfo['company_city'] . ', rénovation'
-        ];
+        return $this->generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo);
     }
 
     /**
