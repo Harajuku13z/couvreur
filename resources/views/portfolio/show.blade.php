@@ -169,48 +169,13 @@
                     <div class="bg-white rounded-3xl p-10 shadow-2xl gallery-mobile">
                         <h2 class="text-4xl font-bold text-gray-800 mb-8">Galerie photos</h2>
                         
-                        <!-- Slider mobile -->
-                        <div class="md:hidden">
-                            <div class="relative">
-                                <div class="overflow-hidden rounded-2xl">
-                                    <div class="flex transition-transform duration-300 ease-in-out" id="mobile-slider">
-                                        @foreach($portfolioItem['images'] as $index => $image)
-                                        <div class="w-full flex-shrink-0">
-                                            <img src="{{ asset($image) }}" 
-                                                 alt="{{ $portfolioItem['title'] }} - Photo {{ $index + 1 }}" 
-                                                 class="w-full h-80 object-cover cursor-pointer"
-                                                 onclick="openMobileSlider({{ $index }})">
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                
-                                <!-- Navigation buttons -->
-                                @if(count($portfolioItem['images']) > 1)
-                                <button onclick="prevSlide()" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <button onclick="nextSlide()" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                                
-                                <!-- Dots indicator -->
-                                <div class="flex justify-center mt-4 space-x-2">
-                                    @foreach($portfolioItem['images'] as $index => $image)
-                                    <button onclick="goToSlide({{ $index }})" class="w-3 h-3 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors slider-dot {{ $index === 0 ? 'bg-blue-600' : '' }}"></button>
-                                    @endforeach
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <!-- Grid desktop -->
-                        <div class="hidden md:grid md:grid-cols-2 gap-8" id="photo-gallery">
+                        <!-- Grid responsive (mobile et desktop) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8" id="photo-gallery">
                             @foreach($portfolioItem['images'] as $index => $image)
                             <div class="relative">
                                 <img src="{{ asset($image) }}" 
                                      alt="{{ $portfolioItem['title'] }} - Photo {{ $index + 1 }}" 
-                                     class="w-full h-96 object-cover rounded-2xl shadow-xl cursor-pointer"
+                                     class="w-full h-64 sm:h-96 object-cover rounded-2xl shadow-xl cursor-pointer hover:shadow-2xl transition-shadow"
                                      onclick="openMobileSlider({{ $index }})">
                             </div>
                             @endforeach
@@ -342,51 +307,8 @@
 </div>
 
 <script>
-let currentSlide = 0;
 let currentFullscreenSlide = 0;
 const totalSlides = {{ !empty($portfolioItem['images']) && is_array($portfolioItem['images']) ? count($portfolioItem['images']) : 0 }};
-
-// Slider mobile normal
-function nextSlide() {
-    if (currentSlide < totalSlides - 1) {
-        currentSlide++;
-    } else {
-        currentSlide = 0;
-    }
-    updateSlider();
-    updateDots();
-}
-
-function prevSlide() {
-    if (currentSlide > 0) {
-        currentSlide--;
-    } else {
-        currentSlide = totalSlides - 1;
-    }
-    updateSlider();
-    updateDots();
-}
-
-function goToSlide(index) {
-    currentSlide = index;
-    updateSlider();
-    updateDots();
-}
-
-function updateSlider() {
-    const slider = document.getElementById('mobile-slider');
-    if (slider) {
-        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
-    }
-}
-
-function updateDots() {
-    const dots = document.querySelectorAll('.slider-dot');
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('bg-blue-600', index === currentSlide);
-        dot.classList.toggle('bg-gray-300', index !== currentSlide);
-    });
-}
 
 // Modal plein écran
 function openMobileSlider(index = 0) {
@@ -450,7 +372,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Swipe gestures pour mobile
+// Swipe gestures pour mobile (modal plein écran uniquement)
 let startX = 0;
 let startY = 0;
 
@@ -476,13 +398,6 @@ document.addEventListener('touchend', function(e) {
                 nextFullscreenSlide();
             } else {
                 prevFullscreenSlide();
-            }
-        } else {
-            // Swipe sur le slider normal
-            if (diffX > 0) {
-                nextSlide();
-            } else {
-                prevSlide();
             }
         }
     }
