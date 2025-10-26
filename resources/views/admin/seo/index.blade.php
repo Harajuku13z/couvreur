@@ -352,10 +352,24 @@ function updateSitemap() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        // Vérifier si la réponse est OK
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new Error('Non autorisé. Veuillez vous reconnecter.');
+            } else if (response.status === 404) {
+                throw new Error('Route non trouvée. Vérifiez la configuration.');
+            } else {
+                throw new Error('Erreur serveur: ' + response.status);
+            }
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Afficher un message de succès
@@ -373,8 +387,18 @@ function updateSitemap() {
         }
     })
     .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('Erreur lors de la mise à jour du sitemap', 'error');
+        console.error('Erreur détaillée:', error);
+        
+        // Vérifier si c'est une erreur d'authentification
+        if (error.message.includes('Non autorisé') || error.message.includes('401')) {
+            showNotification('Session expirée. Veuillez vous reconnecter.', 'error');
+            // Rediriger vers la page de connexion après 2 secondes
+            setTimeout(() => {
+                window.location.href = '{{ route("admin.login") }}';
+            }, 2000);
+        } else {
+            showNotification('Erreur: ' + error.message, 'error');
+        }
     })
     .finally(() => {
         // Restaurer le bouton
