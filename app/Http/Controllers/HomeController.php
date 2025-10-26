@@ -56,6 +56,15 @@ class HomeController extends Controller
         $portfolioData = Setting::get('portfolio_items', '[]');
         $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
         
+        // Trier les réalisations par date de création/modification décroissante (plus récentes en premier)
+        if (is_array($portfolioItems)) {
+            usort($portfolioItems, function($a, $b) {
+                $dateA = $a['created_at'] ?? $a['updated_at'] ?? '1970-01-01';
+                $dateB = $b['created_at'] ?? $b['updated_at'] ?? '1970-01-01';
+                return strtotime($dateB) - strtotime($dateA);
+            });
+        }
+        
         // Si pas de portfolio, créer des réalisations par défaut
         if (empty($portfolioItems)) {
             $portfolioItems = [

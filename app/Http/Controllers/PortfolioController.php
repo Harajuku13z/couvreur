@@ -27,6 +27,12 @@ class PortfolioController extends Controller
             return isset($item['is_visible']) ? $item['is_visible'] : true;
         }));
         
+        // Trier par date de création/modification décroissante (plus récentes en premier)
+        $visiblePortfolio = $visiblePortfolio->sortByDesc(function($item) {
+            $date = $item['created_at'] ?? $item['updated_at'] ?? '1970-01-01';
+            return strtotime($date);
+        });
+        
         // Récupérer les types de services uniques pour les filtres
         $serviceTypes = $visiblePortfolio->pluck('work_type')->unique()->filter()->values()->toArray();
         
