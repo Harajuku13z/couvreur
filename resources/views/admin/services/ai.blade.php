@@ -47,7 +47,7 @@ Couverture en tuiles
 Zinguerie et étanchéité"
                     required
                 >{{ old('service_names') }}</textarea>
-                <p class="text-sm text-gray-500 mt-1">Saisissez un nom de service par ligne. L'IA générera automatiquement le contenu complet.</p>
+                <p class="text-sm text-gray-500 mt-1">Saisissez un nom de service par ligne. L'IA générera automatiquement un contenu riche de 1500-2000 mots avec des listes à puces avec icônes de validation et une optimisation SEO avancée.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -170,7 +170,7 @@ Exemples:
             </p>
             <p class="text-blue-600 text-xs mt-2">
                 <i class="fas fa-lightbulb mr-1"></i>
-                L'IA générera automatiquement : titre SEO, description, contenu structuré, mots-clés, et CTA optimisés pour la conversion.
+                L'IA générera automatiquement : contenu riche (1500-2000 mots), titre SEO optimisé, description détaillée, listes avec icônes de validation, 15-20 mots-clés intégrés naturellement, et CTA multiples pour la conversion.
             </p>
         </div>
     </div>
