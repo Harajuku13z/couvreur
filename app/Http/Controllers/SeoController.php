@@ -335,15 +335,29 @@ class SeoController extends Controller
         
         $robots = "User-agent: *\n";
         
-        if (!($seoConfig['robots_index'] ?? true)) {
-            $robots .= "Disallow: /\n";
-        } else {
-            $robots .= "Allow: /\n";
-        }
+        // Par défaut, permettre l'indexation de tout le site
+        $robots .= "Allow: /\n";
         
-        if (!($seoConfig['robots_follow'] ?? true)) {
-            $robots .= "Disallow: /*\n";
-        }
+        // Bloquer seulement les dossiers sensibles
+        $robots .= "Disallow: /admin/\n";
+        $robots .= "Disallow: /storage/\n";
+        $robots .= "Disallow: /bootstrap/\n";
+        $robots .= "Disallow: /vendor/\n";
+        $robots .= "Disallow: /config/\n";
+        $robots .= "Disallow: /database/\n";
+        $robots .= "Disallow: /resources/\n";
+        $robots .= "Disallow: /routes/\n";
+        $robots .= "Disallow: /app/\n";
+        $robots .= "Disallow: /artisan\n";
+        $robots .= "Disallow: /composer.json\n";
+        $robots .= "Disallow: /composer.lock\n";
+        $robots .= "Disallow: /package.json\n";
+        $robots .= "Disallow: /phpunit.xml\n";
+        $robots .= "Disallow: /vite.config.js\n";
+        $robots .= "Disallow: /.env\n";
+        $robots .= "Disallow: /.git/\n";
+        $robots .= "Disallow: /.gitignore\n";
+        $robots .= "Disallow: /README.md\n";
         
         $robots .= "\nSitemap: " . url('/sitemap.xml') . "\n";
         
