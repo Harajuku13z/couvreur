@@ -13,12 +13,16 @@
             </div>
             <div class="flex items-center space-x-4">
                 <div class="text-right">
-                    <div class="text-2xl font-bold text-blue-600">{{ $ads->total() }}</div>
+                    <div class="text-2xl font-bold text-blue-600">{{ $totalAds }}</div>
                     <div class="text-sm text-gray-500">Annonces totales</div>
                 </div>
                 <div class="text-right">
-                    <div class="text-2xl font-bold text-green-600">{{ $ads->where('status', 'published')->count() }}</div>
+                    <div class="text-2xl font-bold text-green-600">{{ $publishedAds }}</div>
                     <div class="text-sm text-gray-500">Publiées</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-orange-600">{{ $draftAds }}</div>
+                    <div class="text-sm text-gray-500">Brouillons</div>
                 </div>
             </div>
         </div>

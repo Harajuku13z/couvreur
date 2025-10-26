@@ -14,6 +14,11 @@ class AdAdminController extends Controller
     {
         $ads = Ad::with('city')->orderByDesc('created_at')->paginate(25);
 
+        // Statistiques des annonces
+        $totalAds = Ad::count();
+        $publishedAds = Ad::where('status', 'published')->count();
+        $draftAds = Ad::where('status', 'draft')->count();
+
         // Données pour le générateur
         $servicesData = Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
@@ -23,7 +28,7 @@ class AdAdminController extends Controller
         $regions = City::whereNotNull('region')->distinct()->orderBy('region')->pluck('region');
         $departments = City::whereNotNull('department')->distinct()->orderBy('department')->pluck('department');
 
-        return view('admin.ads.index', compact('ads','services','cities','regions','departments'));
+        return view('admin.ads.index', compact('ads','services','cities','regions','departments','totalAds','publishedAds','draftAds'));
     }
 
     public function publish(Ad $ad)
