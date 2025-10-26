@@ -13,8 +13,27 @@
         <div class="max-w-md mx-auto">
             <!-- Logo -->
             <div class="text-center mb-8">
-                @if(setting('company_logo'))
-                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Logo') }}" class="h-16 mx-auto mb-4 object-contain">
+                @php
+                    $logoPath = setting('company_logo');
+                    $logoUrl = null;
+                    
+                    if ($logoPath) {
+                        // Vérifier si le logo existe au chemin spécifié
+                        if (file_exists(public_path('uploads/' . $logoPath))) {
+                            $logoUrl = asset('uploads/' . $logoPath);
+                        } else {
+                            // Chercher des fichiers logo dans uploads
+                            $uploadsDir = public_path('uploads/');
+                            $logoFiles = glob($uploadsDir . '*logo*');
+                            if (!empty($logoFiles)) {
+                                $logoUrl = asset('uploads/' . basename($logoFiles[0]));
+                            }
+                        }
+                    }
+                @endphp
+                
+                @if($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="{{ setting('company_name', 'Logo') }}" class="h-16 mx-auto mb-4 object-contain">
                 @else
                     <div class="h-16 w-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                         <i class="fas fa-building text-2xl" style="color: var(--primary-color, #3b82f6);"></i>
