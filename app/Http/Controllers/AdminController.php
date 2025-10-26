@@ -237,8 +237,11 @@ class AdminController extends Controller
         }
 
         $submissions = $query->orderBy('created_at', 'desc')->paginate(20);
+        
+        // Compter les leads abandonnés pour afficher dans la page
+        $abandonedCount = Submission::abandoned()->count();
 
-        return view('admin.submissions', compact('submissions'));
+        return view('admin.submissions', compact('submissions', 'abandonedCount'));
     }
 
     public function abandonedSubmissions(Request $request)
