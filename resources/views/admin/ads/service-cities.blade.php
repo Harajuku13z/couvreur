@@ -40,8 +40,8 @@
                         <label class="block text-xs text-gray-500 mb-2">Services disponibles :</label>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             @foreach($services as $service)
-                                <button type="button" class="service-btn bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 px-3 py-2 rounded text-sm border border-gray-300 hover:border-blue-300 transition-colors" data-service-id="{{ $service->id }}" data-service-title="{{ $service->title }}">
-                                    {{ $service->title }}
+                                <button type="button" class="service-btn bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 px-3 py-2 rounded text-sm border border-gray-300 hover:border-blue-300 transition-colors" data-service-id="{{ $service['id'] }}" data-service-title="{{ $service['name'] }}">
+                                    {{ $service['name'] }}
                                 </button>
                             @endforeach
                         </div>
@@ -53,8 +53,8 @@
                         <select name="service_id" id="serviceSelect" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             <option value="">Sélectionner un service</option>
                             @foreach($services as $service)
-                                <option value="{{ $service->id }}" data-slug="{{ $service->slug }}">
-                                    {{ $service->title }}
+                                <option value="{{ $service['id'] }}" data-slug="{{ $service['slug'] }}">
+                                    {{ $service['name'] }}
                                 </option>
                             @endforeach
                         </select>
@@ -130,12 +130,6 @@
                 <p class="text-sm text-gray-500 mt-1">Laissez vide pour utiliser le prompt par défaut</p>
             </div>
 
-            <!-- Taille de lot -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Taille de lot</label>
-                <input type="number" name="batch_size" value="20" min="1" max="50" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p class="text-sm text-gray-500 mt-1">Nombre d'annonces à traiter par lot (1-50)</p>
-            </div>
 
             <!-- Bouton de génération -->
             <div class="flex justify-end">

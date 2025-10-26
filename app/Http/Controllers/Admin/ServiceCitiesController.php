@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
+use App\Models\Setting;
 use App\Models\City;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,19 @@ class ServiceCitiesController extends Controller
      */
     public function index()
     {
-        $services = Service::where('is_active', true)->get();
+        // Récupérer les services depuis les settings
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        if (!is_array($services)) {
+            $services = [];
+        }
+        
+        // Filtrer les services visibles
+        $services = collect($services)->filter(function($service) {
+            return isset($service['is_visible']) ? $service['is_visible'] : true;
+        })->values()->toArray();
+        
         $cities = City::orderBy('name')->get();
         
         return view('admin.ads.service-cities', compact('services', 'cities'));
@@ -50,8 +62,15 @@ class ServiceCitiesController extends Controller
                 ]);
             }
             
-            // Récupérer le service
-            $service = Service::find($serviceId);
+            // Récupérer le service depuis les settings
+            $servicesData = Setting::get('services', '[]');
+            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+            
+            if (!is_array($services)) {
+                $services = [];
+            }
+            
+            $service = collect($services)->firstWhere('id', $serviceId);
             if (!$service) {
                 return response()->json([
                     'success' => false,
