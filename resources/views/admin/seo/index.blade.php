@@ -348,7 +348,18 @@ function updateSitemap() {
     button.classList.add('opacity-75');
     
     // Faire la requête AJAX
-    fetch('{{ route("admin.seo.update-sitemap") }}', {
+    const sitemapUrl = '{{ route("admin.seo.update-sitemap") }}';
+    
+    // Vérifier si la route existe (éviter l'erreur 500)
+    if (!sitemapUrl || sitemapUrl.includes('admin.seo.update-sitemap')) {
+        showNotification('Route non disponible. Veuillez vider le cache des routes sur le serveur.', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+        return;
+    }
+    
+    fetch(sitemapUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
