@@ -142,8 +142,8 @@
                         <!-- Annonces Menu -->
                         <div class="mt-4">
                             <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider">Annonces</div>
-                            <a href="{{ route('admin.admin.ads.index') }}" 
-                               class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.admin.ads.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.ads.index') }}" 
+                               class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.ads.*') ? 'active' : '' }}">
                                 <i class="fas fa-bullhorn mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Toutes les annonces
                             </a>
