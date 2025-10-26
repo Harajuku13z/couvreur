@@ -344,18 +344,18 @@
                     <!-- Google Settings -->
                     <div class="border-b border-gray-200 pb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Paramètres Google</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Place ID</label>
-                                <input type="text" name="google_place_id" value="{{ setting('google_place_id') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="ChIJ...">
-                                <p class="text-xs text-gray-500 mt-1">Pour importer automatiquement vos avis Google</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Google API Key</label>
-                                <input type="text" name="google_api_key" value="{{ setting('google_api_key') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                <p class="text-xs text-gray-500 mt-1">Clé API Google Places pour récupérer les avis</p>
-                            </div>
-                            <div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Google Place ID</label>
+                        <input type="text" name="google_place_id" value="{{ setting('google_place_id') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="ChIJ...">
+                        <p class="text-xs text-gray-500 mt-1">Pour importer automatiquement vos avis Google</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Google API Key</label>
+                        <input type="text" name="google_api_key" value="{{ setting('google_api_key') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Clé API Google Places pour récupérer les avis</p>
+                    </div>
+                    <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Google Business</label>
                                 <input type="url" name="google_business_url" value="{{ setting('google_business_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://business.google.com/...">
                             </div>

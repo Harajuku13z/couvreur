@@ -300,22 +300,6 @@
             <!-- Sidebar -->
             <div class="hidden lg:block lg:col-span-1">
                 <div class="space-y-6">
-                    <!-- Contact Card -->
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">Besoin d'aide ?</h3>
-                        <div class="space-y-4">
-                            <a href="tel:{{ setting('company_phone_raw') }}" 
-                               class="flex items-center text-green-600 hover:text-green-800 font-semibold">
-                                <i class="fas fa-phone mr-3"></i>
-                                {{ setting('company_phone') }}
-                            </a>
-                            <a href="{{ route('form.step', 'propertyType') }}" 
-                               class="flex items-center text-blue-600 hover:text-blue-800 font-semibold">
-                                <i class="fas fa-calculator mr-3"></i>
-                                Devis gratuit
-                            </a>
-                        </div>
-                    </div>
 
                     <!-- Company Info -->
                     <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
@@ -384,24 +368,7 @@
 
         <!-- Mobile Contact Section -->
         <div class="mt-8 lg:hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Contact Card -->
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Besoin d'aide ?</h3>
-                    <div class="space-y-4">
-                        <a href="tel:{{ setting('company_phone_raw') }}" 
-                           class="flex items-center text-green-600 hover:text-green-800 font-semibold">
-                            <i class="fas fa-phone mr-3"></i>
-                            {{ setting('company_phone') }}
-                        </a>
-                        <a href="{{ route('form.step', 'propertyType') }}" 
-                           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold">
-                            <i class="fas fa-calculator mr-3"></i>
-                            Devis gratuit
-                        </a>
-                    </div>
-                </div>
-                
+            <div class="grid grid-cols-1 gap-6">
                 <!-- Company Info -->
                 <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
                     <div class="text-center mb-6">

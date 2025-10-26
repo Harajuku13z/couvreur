@@ -65,16 +65,16 @@
                     
                     @if($logoUrl)
                         <img src="{{ $logoUrl }}" alt="{{ setting('company_name', 'Logo') }}" class="h-8 w-auto">
-                    @else
+                        @else
                         <div class="h-8 w-8 rounded-full flex items-center justify-center" style="background-color: var(--primary-color)">
                             <i class="fas fa-building text-white text-sm"></i>
                         </div>
-                    @endif
+                        @endif
                     <span class="ml-3 text-lg font-semibold text-gray-900">{{ setting('company_name', 'Sauser Couverture') }}</span>
                 </div>
-            </div>
-            
-            <!-- Navigation -->
+                    </div>
+                    
+                    <!-- Navigation -->
             <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 <!-- 1. Tableau de bord -->
                 <div class="mb-6">
@@ -180,20 +180,20 @@
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.legal.*') ? 'active' : '' }}">
                             <i class="fas fa-gavel mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             Informations Légales
-                        </a>
-                    </div>
-                </div>
-            </nav>
-            
-            <!-- User Info & Logout -->
-            <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
-                <div class="flex-1 flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: var(--primary-color)">
-                            <i class="fas fa-user text-white"></i>
+                            </a>
                         </div>
-                    </div>
-                    <div class="ml-3">
+                        </div>
+                    </nav>
+                    
+                    <!-- User Info & Logout -->
+                    <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
+                        <div class="flex-1 flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: var(--primary-color)">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-3">
                         <p class="text-sm font-medium text-gray-700">Administrateur</p>
                         <p class="text-xs text-gray-500">Connecté</p>
                     </div>

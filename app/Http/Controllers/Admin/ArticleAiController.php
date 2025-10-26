@@ -139,8 +139,8 @@ class ArticleAiController extends Controller
         // Récupérer les informations de l'entreprise
         $companyInfo = $this->getCompanyInfo();
         
-        // Prompt système inspiré d'Osmose Consulting avec Tailwind CSS et Font Awesome
-        $system = "Tu es un expert en marketing digital spécialisé pour couvreurs et entreprises de rénovation. Tu produis STRICTEMENT du HTML avec classes Tailwind CSS et icônes Font Awesome, sans balises <html> ni <body>, uniquement le contenu. Utilise des classes Tailwind pour le styling, des icônes Font Awesome dans les listes et sections, et des CTA avec classes Tailwind. Ton professionnel, persuasif, orienté SEO et conversion.";
+        // Prompt système optimisé pour contenu SEO de qualité
+        $system = "Tu es un expert en rédaction web SEO spécialisé pour couvreurs et entreprises de rénovation. Tu produis STRICTEMENT du HTML avec classes Tailwind CSS, sans balises <html> ni <body>, uniquement le contenu. Privilégie des paragraphes de qualité avec des phrases complètes plutôt que des listes. Utilise des classes Tailwind pour le styling et des icônes Font Awesome uniquement pour les titres de sections. Ton professionnel, informatif, orienté SEO avec du contenu textuel de qualité.";
 
         // Prompt utilisateur détaillé
         $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . 
@@ -153,48 +153,44 @@ class ArticleAiController extends Controller
                 "- Longueur: 1500 à 2000 mots minimum\n" .
                 "- Style: professionnel, engageant, orienté prospection/conversion\n" .
                 "- Inclure des mots-clés (ex: devis toiture, réparation urgence toiture, couvreur professionnel, rénovation toiture) naturellement dans les titres et le texte\n" .
-                "- Structure HTML avec Tailwind CSS et Font Awesome (exemple):\n" .
+                "- Structure HTML optimisée pour SEO (exemple):\n" .
                 "<h1 class=\"text-4xl font-bold text-gray-900 mb-6\">Titre principal optimisé SEO</h1>\n" .
-                "<p class=\"text-lg text-gray-700 mb-8 leading-relaxed\">Introduction accrocheuse… (ne répète pas de meta description séparée)</p>\n" .
-                "<div class=\"bg-blue-50 border-l-4 border-blue-500 p-6 mb-8\">\n" .
-                "  <div class=\"flex items-center mb-4\">\n" .
-                "    <i class=\"fas fa-lightbulb text-blue-600 text-xl mr-3\"></i>\n" .
-                "    <h2 class=\"text-2xl font-bold text-gray-900\">Section 1 (intention forte)</h2>\n" .
-                "  </div>\n" .
-                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section détaillée</h3>\n" .
-                "  <ul class=\"space-y-3\">\n" .
-                "    <li class=\"flex items-start\"><i class=\"fas fa-check-circle text-green-600 mr-3 mt-1\"></i><span>Conseil pratique</span></li>\n" .
-                "    <li class=\"flex items-start\"><i class=\"fas fa-exclamation-triangle text-red-600 mr-3 mt-1\"></i><span>Erreur à éviter</span></li>\n" .
-                "  </ul>\n" .
+                "<p class=\"text-lg text-gray-700 mb-8 leading-relaxed\">Introduction accrocheuse de 3-4 phrases qui présente le sujet et ses enjeux. Cette introduction doit captiver le lecteur et introduire naturellement les mots-clés principaux.</p>\n" .
+                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-lightbulb text-blue-600 mr-3\"></i>Section 1 - Titre descriptif</h2>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le premier point important. Utilise des phrases complètes et variées pour expliquer en détail les concepts. Intègre naturellement les mots-clés pertinents dans le texte.</p>\n" .
+                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section détaillée</h3>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe approfondi de 5-6 phrases qui détaille les aspects techniques ou pratiques. Fournis des informations précises et utiles pour le lecteur, en utilisant un vocabulaire professionnel mais accessible.</p>\n" .
+                "<div class=\"bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 rounded-r-lg\">\n" .
+                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-exclamation-triangle text-orange-600 mr-3\"></i>Point important à retenir</h3>\n" .
+                "  <p class=\"text-gray-700 leading-relaxed\">Paragraphe de 3-4 phrases dans une boîte colorée pour mettre en évidence un conseil important ou une erreur à éviter. Utilise un ton direct et informatif.</p>\n" .
                 "</div>\n" .
-                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-tools text-blue-600 mr-3\"></i>Section 2</h2>\n" .
-                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section</h3>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Exemples concrets…</p>\n" .
+                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-tools text-blue-600 mr-3\"></i>Section 2 - Titre descriptif</h2>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le deuxième point important. Varie les structures de phrases et utilise des connecteurs logiques pour une lecture fluide.</p>\n" .
+                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section technique</h3>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe technique de 5-6 phrases expliquant les aspects pratiques ou les procédures. Fournis des détails précis et des exemples concrets quand c'est pertinent.</p>\n" .
                 "<div class=\"bg-gray-50 rounded-lg p-6 mb-8\">\n" .
-                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-list-ol text-blue-600 mr-3\"></i>Étapes actionnables</h3>\n" .
-                "  <ul class=\"space-y-3\">\n" .
-                "    <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1\"></i><span>Étape 1</span></li>\n" .
-                "    <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1\"></i><span>Étape 2</span></li>\n" .
-                "  </ul>\n" .
+                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-info-circle text-blue-600 mr-3\"></i>Information complémentaire</h3>\n" .
+                "  <p class=\"text-gray-700 leading-relaxed\">Paragraphe de 3-4 phrases dans une boîte grise pour apporter des informations supplémentaires ou des précisions importantes.</p>\n" .
                 "</div>\n" .
-                "<div class=\"bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white text-center mb-8\">\n" .
-                "  <h2 class=\"text-2xl font-bold mb-4\">Conclusion</h2>\n" .
-                "  <p class=\"text-lg mb-6\">Résumé persuasif.</p>\n" .
-                "  <a href=\"#\" class=\"bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors inline-flex items-center\">\n" .
-                "    <i class=\"fas fa-calculator mr-2\"></i>Demander un devis gratuit\n" .
-                "  </a>\n" .
-                "</div>\n" .
-                "Contraintes supplémentaires:\n" .
-                "- 3 à 4 <h2>, 5 à 6 <h3> minimum\n" .
+                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-check-circle text-green-600 mr-3\"></i>Section 3 - Titre descriptif</h2>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le troisième point important. Utilise des exemples concrets et des cas d'usage pour illustrer tes propos.</p>\n" .
+                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section pratique</h3>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe pratique de 5-6 phrases donnant des conseils applicables et des recommandations professionnelles. Termine par une phrase qui résume l'importance du point abordé.</p>\n" .
+                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-flag-checkered text-blue-600 mr-3\"></i>Conclusion</h2>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de conclusion de 4-5 phrases qui synthétise les points principaux abordés dans l'article. Termine par une phrase qui encourage l'action ou qui résume la valeur ajoutée de l'article.</p>\n" .
+                "Contraintes importantes:\n" .
+                "- 3 à 4 <h2> et 5 à 6 <h3> minimum\n" .
+                "- PRIVILÉGIER les paragraphes de 4-6 phrases plutôt que les listes\n" .
                 "- Utiliser UNIQUEMENT des classes Tailwind CSS\n" .
-                "- Inclure des icônes Font Awesome dans les titres et listes\n" .
-                "- Utiliser des couleurs cohérentes (blue-600, green-600, red-600, gray-900, etc.)\n" .
-                "- Ajouter des espaces et padding appropriés (mb-4, mb-6, mb-8, p-6, etc.)\n" .
-                "- Utiliser des backgrounds colorés pour les sections importantes\n" .
-                "- Inclure des icônes check, exclamation-triangle, tools, lightbulb, etc.\n" .
-                "- Optimiser chaque section avec des mots-clés pertinents du secteur couverture/rénovation\n" .
-                "- Inclure des conseils pratiques et des erreurs à éviter\n" .
-                "- Terminer par un CTA fort avec gradient et icônes";
+                "- Icônes Font Awesome UNIQUEMENT dans les titres de sections (pas dans le contenu)\n" .
+                "- NE PAS inclure de boutons ou CTA 'Demander un devis gratuit' dans le contenu\n" .
+                "- Utiliser des couleurs cohérentes (blue-600, green-600, orange-600, gray-900, etc.)\n" .
+                "- Espacement approprié (mb-4, mb-6, mb-8, p-6, etc.)\n" .
+                "- Backgrounds colorés pour les encadrés importants\n" .
+                "- Optimiser chaque paragraphe avec des mots-clés pertinents du secteur couverture/rénovation\n" .
+                "- Contenu informatif et professionnel, orienté expertise technique\n" .
+                "- Phrases complètes et variées pour un bon SEO textuel\n" .
+                "- Éviter les listes à puces, privilégier le contenu narratif";
 
         try {
             $response = Http::withHeaders([
