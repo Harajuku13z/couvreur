@@ -340,24 +340,93 @@
             <h2 class="text-xl font-semibold mb-4">Réseaux Sociaux & Google</h2>
             <form method="POST" action="{{ route('config.update.social') }}">
                 @csrf
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Google Place ID</label>
-                        <input type="text" name="google_place_id" value="{{ setting('google_place_id') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="ChIJ...">
-                        <p class="text-xs text-gray-500 mt-1">Pour importer automatiquement vos avis Google</p>
+                <div class="space-y-6">
+                    <!-- Google Settings -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Paramètres Google</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Place ID</label>
+                                <input type="text" name="google_place_id" value="{{ setting('google_place_id') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="ChIJ...">
+                                <p class="text-xs text-gray-500 mt-1">Pour importer automatiquement vos avis Google</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google API Key</label>
+                                <input type="text" name="google_api_key" value="{{ setting('google_api_key') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">Clé API Google Places pour récupérer les avis</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Business</label>
+                                <input type="url" name="google_business_url" value="{{ setting('google_business_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://business.google.com/...">
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Social Media Networks -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Google API Key</label>
-                        <input type="text" name="google_api_key" value="{{ setting('google_api_key') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <p class="text-xs text-gray-500 mt-1">Clé API Google Places pour récupérer les avis</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
-                        <input type="url" name="facebook_url" value="{{ setting('facebook_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
-                        <input type="url" name="instagram_url" value="{{ setting('instagram_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Réseaux Sociaux</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-facebook text-blue-600 mr-2"></i>Facebook
+                                </label>
+                                <input type="url" name="facebook_url" value="{{ setting('facebook_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://facebook.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-instagram text-pink-600 mr-2"></i>Instagram
+                                </label>
+                                <input type="url" name="instagram_url" value="{{ setting('instagram_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://instagram.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-twitter text-blue-400 mr-2"></i>Twitter
+                                </label>
+                                <input type="url" name="twitter_url" value="{{ setting('twitter_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://twitter.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-linkedin text-blue-700 mr-2"></i>LinkedIn
+                                </label>
+                                <input type="url" name="linkedin_url" value="{{ setting('linkedin_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://linkedin.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-youtube text-red-600 mr-2"></i>YouTube
+                                </label>
+                                <input type="url" name="youtube_url" value="{{ setting('youtube_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://youtube.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-tiktok text-black mr-2"></i>TikTok
+                                </label>
+                                <input type="url" name="tiktok_url" value="{{ setting('tiktok_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://tiktok.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-pinterest text-red-700 mr-2"></i>Pinterest
+                                </label>
+                                <input type="url" name="pinterest_url" value="{{ setting('pinterest_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://pinterest.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-snapchat text-yellow-500 mr-2"></i>Snapchat
+                                </label>
+                                <input type="url" name="snapchat_url" value="{{ setting('snapchat_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://snapchat.com/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-whatsapp text-green-600 mr-2"></i>WhatsApp
+                                </label>
+                                <input type="url" name="whatsapp_url" value="{{ setting('whatsapp_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://wa.me/...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fab fa-telegram text-blue-500 mr-2"></i>Telegram
+                                </label>
+                                <input type="url" name="telegram_url" value="{{ setting('telegram_url') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://t.me/...">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-4">

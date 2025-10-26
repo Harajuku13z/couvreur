@@ -84,15 +84,47 @@
                 
             </nav>
             
-            <!-- CTA Buttons -->
+            <!-- Social Media Icons & CTA Buttons -->
             <div class="hidden md:flex items-center space-x-4">
+                <!-- Social Media Icons -->
+                @php
+                    $socialNetworks = [
+                        'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-600'],
+                        'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-600'],
+                        'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-400'],
+                        'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-700'],
+                        'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-600'],
+                        'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-800'],
+                        'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-700'],
+                        'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-500'],
+                        'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-600'],
+                        'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-500'],
+                    ];
+                    
+                    $activeSocialNetworks = array_filter($socialNetworks, function($key) {
+                        return !empty(setting($key));
+                    }, ARRAY_FILTER_USE_KEY);
+                @endphp
+                
+                @if(count($activeSocialNetworks) > 0)
+                <div class="flex space-x-3 mr-4">
+                    @foreach(array_slice($activeSocialNetworks, 0, 4) as $key => $network)
+                        <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
+                           class="text-gray-600 {{ $network['color'] }} transition-colors text-lg">
+                            <i class="{{ $network['icon'] }}"></i>
+                        </a>
+                    @endforeach
+                </div>
+                @endif
+                
+                <!-- CTA Buttons -->
                 <a href="{{ route('form.step', 'propertyType') }}" 
                    class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
                    style="background-color: var(--primary-color);"
                    onmouseover="this.style.backgroundColor='var(--secondary-color)'"
                    onmouseout="this.style.backgroundColor='var(--primary-color)'"
                    onclick="trackFormClick('{{ request()->url() }}')">
-                    <i class="fas fa-calculator mr-2"></i>Devis Gratuit
+                    <i class="fas fa-calculator mr-2"></i>Simulateur de Prix
                 </a>
                 <a href="tel:{{ setting('company_phone') }}" 
                    class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
@@ -133,6 +165,20 @@
                 
                 <a href="{{ route('blog.index') }}" class="text-gray-700 hover:text-primary font-medium">Blog et Astuces</a>
                 
+                <!-- Social Media Icons Mobile -->
+                @if(count($activeSocialNetworks) > 0)
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="text-gray-700 font-medium mb-3">Suivez-nous</div>
+                    <div class="flex space-x-4">
+                        @foreach($activeSocialNetworks as $key => $network)
+                            <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
+                               class="text-gray-600 {{ $network['color'] }} transition-colors text-xl">
+                                <i class="{{ $network['icon'] }}"></i>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
                 
                 <div class="pt-4 border-t border-gray-200 space-y-2">
                     <a href="{{ route('form.step', 'propertyType') }}" 
@@ -141,7 +187,7 @@
                        onmouseover="this.style.backgroundColor='var(--secondary-color)'"
                        onmouseout="this.style.backgroundColor='var(--primary-color)'"
                        onclick="trackFormClick('{{ request()->url() }}')">
-                        <i class="fas fa-calculator mr-2"></i>Devis Gratuit
+                        <i class="fas fa-calculator mr-2"></i>Simulateur de Prix
                     </a>
                     <a href="tel:{{ setting('company_phone') }}" 
                        class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium button-mobile"

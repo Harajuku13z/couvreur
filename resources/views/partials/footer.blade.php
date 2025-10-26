@@ -22,11 +22,44 @@
                     {{ $description }}
                 </p>
                 
-                <div class="flex space-x-4">
-                    <a href="tel:{{ setting('company_phone') }}" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fas fa-phone mr-2"></i>
-                        {{ setting('company_phone', '01 23 45 67 89') }}
-                    </a>
+                <div class="flex flex-col space-y-4">
+                    <div class="flex space-x-4">
+                        <a href="tel:{{ setting('company_phone') }}" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-phone mr-2"></i>
+                            {{ setting('company_phone', '01 23 45 67 89') }}
+                        </a>
+                    </div>
+                    
+                    <!-- Social Media Icons -->
+                    @php
+                        $socialNetworks = [
+                            'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-400'],
+                            'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-400'],
+                            'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-300'],
+                            'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-500'],
+                            'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-400'],
+                            'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-300'],
+                            'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-500'],
+                            'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-400'],
+                            'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-400'],
+                            'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-400'],
+                        ];
+                        
+                        $activeSocialNetworks = array_filter($socialNetworks, function($key) {
+                            return !empty(setting($key));
+                        }, ARRAY_FILTER_USE_KEY);
+                    @endphp
+                    
+                    @if(count($activeSocialNetworks) > 0)
+                    <div class="flex space-x-4">
+                        @foreach($activeSocialNetworks as $key => $network)
+                            <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
+                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl">
+                                <i class="{{ $network['icon'] }}"></i>
+                            </a>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
             </div>
             
