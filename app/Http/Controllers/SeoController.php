@@ -185,7 +185,7 @@ class SeoController extends Controller
      */
     public function pages()
     {
-        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'mentions-legales', 'politique-confidentialite', 'cgv'];
         $seoPages = [];
         
         foreach ($pages as $page) {
@@ -206,7 +206,7 @@ class SeoController extends Controller
      */
     public function updatePages(Request $request)
     {
-        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'about'];
+        $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'mentions-legales', 'politique-confidentialite', 'cgv'];
         
         foreach ($pages as $page) {
             // Sauvegarder les métadonnées de base

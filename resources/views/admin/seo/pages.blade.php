@@ -53,8 +53,14 @@
                 <button onclick="showPage('contact')" class="page-tab bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
                     📞 Contact
                 </button>
-                <button onclick="showPage('about')" class="page-tab bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
-                    ℹ️ À Propos
+                <button onclick="showPage('mentions-legales')" class="page-tab bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
+                    ⚖️ Mentions Légales
+                </button>
+                <button onclick="showPage('politique-confidentialite')" class="page-tab bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
+                    🔒 Politique de Confidentialité
+                </button>
+                <button onclick="showPage('cgv')" class="page-tab bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
+                    📋 CGV
                 </button>
             </div>
         </div>
@@ -372,44 +378,132 @@
             </div>
         </div>
 
-        <!-- Page À Propos -->
-        <div id="page-about" class="page-content hidden">
+        <!-- Page Mentions Légales -->
+        <div id="page-mentions-legales" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">ℹ️ Page À Propos</h2>
+                <h2 class="text-lg font-semibold mb-4">⚖️ Page Mentions Légales</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="about_meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
-                        <input type="text" id="about_meta_title" name="about_meta_title" 
-                               value="{{ $seoPages['about']['meta_title'] ?? '' }}"
+                        <label for="mentions-legales_meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
+                        <input type="text" id="mentions-legales_meta_title" name="mentions-legales_meta_title" 
+                               value="{{ $seoPages['mentions-legales']['meta_title'] ?? '' }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     
                     <div>
-                        <label for="about_meta_description" class="block text-sm font-medium mb-2">Description Meta</label>
-                        <textarea id="about_meta_description" name="about_meta_description" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['about']['meta_description'] ?? '' }}</textarea>
+                        <label for="mentions-legales_meta_description" class="block text-sm font-medium mb-2">Description Meta</label>
+                        <textarea id="mentions-legales_meta_description" name="mentions-legales_meta_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['mentions-legales']['meta_description'] ?? '' }}</textarea>
                     </div>
                     
                     <div>
-                        <label for="about_og_title" class="block text-sm font-medium mb-2">Titre Open Graph</label>
-                        <input type="text" id="about_og_title" name="about_og_title" 
-                               value="{{ $seoPages['about']['og_title'] ?? '' }}"
+                        <label for="mentions-legales_og_title" class="block text-sm font-medium mb-2">Titre Open Graph</label>
+                        <input type="text" id="mentions-legales_og_title" name="mentions-legales_og_title" 
+                               value="{{ $seoPages['mentions-legales']['og_title'] ?? '' }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     
                     <div>
-                        <label for="about_og_description" class="block text-sm font-medium mb-2">Description Open Graph</label>
-                        <textarea id="about_og_description" name="about_og_description" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['about']['og_description'] ?? '' }}</textarea>
+                        <label for="mentions-legales_og_description" class="block text-sm font-medium mb-2">Description Open Graph</label>
+                        <textarea id="mentions-legales_og_description" name="mentions-legales_og_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['mentions-legales']['og_description'] ?? '' }}</textarea>
                     </div>
                     
                     <div class="md:col-span-2">
-                        <label for="about_og_image" class="block text-sm font-medium mb-2">Image Open Graph</label>
-                        <input type="file" id="about_og_image" name="about_og_image" accept="image/*"
+                        <label for="mentions-legales_og_image" class="block text-sm font-medium mb-2">Image Open Graph</label>
+                        <input type="file" id="mentions-legales_og_image" name="mentions-legales_og_image" accept="image/*"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        @if(!empty($seoPages['about']['og_image']))
-                        <img src="{{ asset($seoPages['about']['og_image']) }}" alt="Image OG À Propos" class="mt-2 w-32 h-20 object-cover rounded">
+                        @if(!empty($seoPages['mentions-legales']['og_image']))
+                        <img src="{{ asset($seoPages['mentions-legales']['og_image']) }}" alt="Image OG Mentions Légales" class="mt-2 w-32 h-20 object-cover rounded">
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Politique de Confidentialité -->
+        <div id="page-politique-confidentialite" class="page-content hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">🔒 Page Politique de Confidentialité</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="politique-confidentialite_meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
+                        <input type="text" id="politique-confidentialite_meta_title" name="politique-confidentialite_meta_title" 
+                               value="{{ $seoPages['politique-confidentialite']['meta_title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label for="politique-confidentialite_meta_description" class="block text-sm font-medium mb-2">Description Meta</label>
+                        <textarea id="politique-confidentialite_meta_description" name="politique-confidentialite_meta_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['politique-confidentialite']['meta_description'] ?? '' }}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="politique-confidentialite_og_title" class="block text-sm font-medium mb-2">Titre Open Graph</label>
+                        <input type="text" id="politique-confidentialite_og_title" name="politique-confidentialite_og_title" 
+                               value="{{ $seoPages['politique-confidentialite']['og_title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label for="politique-confidentialite_og_description" class="block text-sm font-medium mb-2">Description Open Graph</label>
+                        <textarea id="politique-confidentialite_og_description" name="politique-confidentialite_og_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['politique-confidentialite']['og_description'] ?? '' }}</textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="politique-confidentialite_og_image" class="block text-sm font-medium mb-2">Image Open Graph</label>
+                        <input type="file" id="politique-confidentialite_og_image" name="politique-confidentialite_og_image" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        @if(!empty($seoPages['politique-confidentialite']['og_image']))
+                        <img src="{{ asset($seoPages['politique-confidentialite']['og_image']) }}" alt="Image OG Politique de Confidentialité" class="mt-2 w-32 h-20 object-cover rounded">
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page CGV -->
+        <div id="page-cgv" class="page-content hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">📋 Page CGV</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="cgv_meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
+                        <input type="text" id="cgv_meta_title" name="cgv_meta_title" 
+                               value="{{ $seoPages['cgv']['meta_title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label for="cgv_meta_description" class="block text-sm font-medium mb-2">Description Meta</label>
+                        <textarea id="cgv_meta_description" name="cgv_meta_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['cgv']['meta_description'] ?? '' }}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="cgv_og_title" class="block text-sm font-medium mb-2">Titre Open Graph</label>
+                        <input type="text" id="cgv_og_title" name="cgv_og_title" 
+                               value="{{ $seoPages['cgv']['og_title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label for="cgv_og_description" class="block text-sm font-medium mb-2">Description Open Graph</label>
+                        <textarea id="cgv_og_description" name="cgv_og_description" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoPages['cgv']['og_description'] ?? '' }}</textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="cgv_og_image" class="block text-sm font-medium mb-2">Image Open Graph</label>
+                        <input type="file" id="cgv_og_image" name="cgv_og_image" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        @if(!empty($seoPages['cgv']['og_image']))
+                        <img src="{{ asset($seoPages['cgv']['og_image']) }}" alt="Image OG CGV" class="mt-2 w-32 h-20 object-cover rounded">
                         @endif
                     </div>
                 </div>
