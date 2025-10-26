@@ -54,10 +54,13 @@
                     });
                 @endphp
                 
+                <!-- Lien direct vers la page Nos Services -->
+                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
+                
                 @if(count($featuredServices) > 0)
                 <div class="relative group">
                     <button class="text-gray-700 hover:text-primary font-medium flex items-center">
-                        Nos Services
+                        Services Populaires
                         <i class="fas fa-chevron-down ml-1 text-xs"></i>
                     </button>
                     <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
@@ -111,9 +114,12 @@
             <nav class="flex flex-col space-y-4 px-4">
                 <a href="{{ route('home') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
                 
+                <!-- Lien direct vers la page Nos Services -->
+                <a href="{{ route('services.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Services</a>
+                
                 @if(count($featuredServices) > 0)
                 <div class="space-y-2">
-                    <div class="text-gray-700 font-medium">Nos Services</div>
+                    <div class="text-gray-700 font-medium">Services Populaires</div>
                     @foreach($featuredServices as $service)
                     <a href="{{ route('services.show', $service['slug']) }}" 
                        class="block pl-4 text-gray-600 hover:text-primary">
