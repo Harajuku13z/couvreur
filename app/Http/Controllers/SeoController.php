@@ -257,73 +257,23 @@ class SeoController extends Controller
         if (!$seoConfig['sitemap_enabled']) {
             return response('Sitemap désactivé', 404);
         }
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-
-        // Page d'accueil
-        $xml .= '  <url>' . "\n";
-        $xml .= '    <loc>' . url('/') . '</loc>' . "\n";
-        $xml .= '    <lastmod>' . date('Y-m-d') . '</lastmod>' . "\n";
-        $xml .= '    <changefreq>' . ($seoConfig['sitemap_changefreq'] ?? 'weekly') . '</changefreq>' . "\n";
-        $xml .= '    <priority>' . ($seoConfig['sitemap_priority'] ?? 0.8) . '</priority>' . "\n";
-        $xml .= '  </url>' . "\n";
-
-        // Page nos réalisations
-        $xml .= '  <url>' . "\n";
-        $xml .= '    <loc>' . url('/nos-realisations') . '</loc>' . "\n";
-        $xml .= '    <lastmod>' . date('Y-m-d') . '</lastmod>' . "\n";
-        $xml .= '    <changefreq>weekly</changefreq>' . "\n";
-        $xml .= '    <priority>0.7</priority>' . "\n";
-        $xml .= '  </url>' . "\n";
-
-        // Services
-        $services = Setting::get('services', []);
-        if (is_string($services)) {
-            $services = json_decode($services, true) ?? [];
-        }
         
-        foreach ($services as $service) {
-            if (isset($service['slug']) && ($service['is_visible'] ?? true)) {
-                $xml .= '  <url>' . "\n";
-                $xml .= '    <loc>' . url('/services/' . $service['slug']) . '</loc>' . "\n";
-                $xml .= '    <lastmod>' . date('Y-m-d') . '</lastmod>' . "\n";
-                $xml .= '    <changefreq>monthly</changefreq>' . "\n";
-                $xml .= '    <priority>0.6</priority>' . "\n";
-                $xml .= '  </url>' . "\n";
+        // Utiliser Spatie Sitemap pour générer le sitemap
+        try {
+            \Artisan::call('sitemap:generate');
+            
+            // Lire le fichier généré
+            $sitemapPath = public_path('sitemap.xml');
+            if (file_exists($sitemapPath)) {
+                $content = file_get_contents($sitemapPath);
+                return response($content, 200)->header('Content-Type', 'application/xml');
+            } else {
+                return response('Erreur lors de la génération du sitemap', 500);
             }
+        } catch (\Exception $e) {
+            \Log::error('Erreur génération sitemap: ' . $e->getMessage());
+            return response('Erreur lors de la génération du sitemap', 500);
         }
-
-        // Portfolio items
-        $portfolioItems = Setting::get('portfolio_items', []);
-        if (is_string($portfolioItems)) {
-            $portfolioItems = json_decode($portfolioItems, true) ?? [];
-        }
-        foreach ($portfolioItems as $item) {
-            if (isset($item['slug']) && ($item['is_visible'] ?? true)) {
-                $xml .= '  <url>' . "\n";
-                $xml .= '    <loc>' . url('/nos-realisations/' . $item['slug']) . '</loc>' . "\n";
-                $xml .= '    <lastmod>' . date('Y-m-d') . '</lastmod>' . "\n";
-                $xml .= '    <changefreq>monthly</changefreq>' . "\n";
-                $xml .= '    <priority>0.5</priority>' . "\n";
-                $xml .= '  </url>' . "\n";
-            }
-        }
-
-        // Ads (published only)
-        $ads = \App\Models\Ad::where('status', 'published')->orderByDesc('updated_at')->limit(5000)->get(['slug','updated_at']);
-        foreach ($ads as $ad) {
-            $xml .= '  <url>' . "\n";
-            $xml .= '    <loc>' . url('/annonces/' . $ad->slug) . '</loc>' . "\n";
-            $xml .= '    <lastmod>' . optional($ad->updated_at)->format('Y-m-d') . '</lastmod>' . "\n";
-            $xml .= '    <changefreq>monthly</changefreq>' . "\n";
-            $xml .= '    <priority>0.6</priority>' . "\n";
-            $xml .= '  </url>' . "\n";
-        }
-
-        $xml .= '</urlset>';
-
-        return response($xml, 200)->header('Content-Type', 'application/xml');
     }
 
     /**
