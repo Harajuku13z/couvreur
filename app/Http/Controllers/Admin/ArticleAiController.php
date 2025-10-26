@@ -66,6 +66,7 @@ class ArticleAiController extends Controller
             'language' => 'nullable|string|max:10',
             'custom_prompt' => 'nullable|string|max:2000',
             'model' => 'nullable|string|max:255',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB max
         ]);
 
         $titles = collect(preg_split("/\r?\n/", trim($data['titles'])))->filter();
@@ -82,6 +83,15 @@ class ArticleAiController extends Controller
 
         $created = 0;
         $errors = [];
+        $featuredImagePath = null;
+
+        // Gérer l'upload de l'image de mise en avant
+        if ($request->hasFile('featured_image')) {
+            $image = $request->file('featured_image');
+            $filename = 'article-featured-' . time() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('uploads/articles'), $filename);
+            $featuredImagePath = 'uploads/articles/' . $filename;
+        }
 
         foreach ($titles as $title) {
             $slug = Str::slug($title);
@@ -108,6 +118,7 @@ class ArticleAiController extends Controller
                     'content_html' => $content,
                     'meta_description' => $this->generateMetaDescription($content),
                     'meta_keywords' => $this->generateKeywords($title, $category),
+                    'featured_image' => $featuredImagePath,
                     'status' => 'published',
                     'published_at' => now(),
                 ]);

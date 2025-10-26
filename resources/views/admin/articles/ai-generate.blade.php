@@ -39,7 +39,7 @@
 
         <!-- Formulaire -->
         <div class="bg-white rounded-xl shadow-lg p-8">
-            <form action="{{ route('admin.articles.ai.generate') }}" method="POST">
+            <form action="{{ route('admin.articles.ai.generate') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
                 <!-- Titres des articles -->
@@ -116,6 +116,29 @@ Exemple:
                     <p class="text-xs text-gray-500 mt-1">Ces instructions seront ajoutées au prompt de base pour personnaliser la génération.</p>
                 </div>
 
+                <!-- Image de mise en avant -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-image mr-2"></i>Image de mise en avant (optionnel)
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                        <input type="file" name="featured_image" id="featured_image" 
+                               class="hidden" accept="image/*" onchange="previewImage(this)">
+                        <label for="featured_image" class="cursor-pointer">
+                            <div id="upload-area" class="space-y-2">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                <p class="text-gray-600">Cliquez pour sélectionner une image</p>
+                                <p class="text-xs text-gray-500">JPG, PNG, WEBP (max 5MB)</p>
+                            </div>
+                            <div id="image-preview" class="hidden">
+                                <img id="preview-img" class="max-w-full h-48 mx-auto rounded-lg shadow-lg">
+                                <p class="text-sm text-gray-600 mt-2">Cliquez pour changer l'image</p>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Cette image sera utilisée comme image de mise en avant pour tous les articles générés.</p>
+                </div>
+
                 <!-- Boutons d'action -->
                 <div class="flex gap-4">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
@@ -145,4 +168,26 @@ Exemple:
         </div>
     </div>
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('upload-area').classList.add('hidden');
+            document.getElementById('image-preview').classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Reset preview when form is submitted
+document.querySelector('form').addEventListener('submit', function() {
+    document.getElementById('upload-area').classList.remove('hidden');
+    document.getElementById('image-preview').classList.add('hidden');
+});
+</script>
 @endsection
