@@ -35,8 +35,23 @@
     <meta name="twitter:image" content="{{ $seoData['twitter:image'] }}">
     
     <!-- Favicon -->
-    @if(setting('site_favicon'))
-    <link rel="icon" type="image/x-icon" href="{{ url(setting('site_favicon')) }}">
+    @php
+        $faviconPath = setting('site_favicon');
+        $faviconUrl = null;
+        
+        if ($faviconPath && file_exists(public_path($faviconPath))) {
+            $faviconUrl = asset($faviconPath);
+        } else {
+            // Fallback: chercher un favicon dans le dossier public
+            $faviconFiles = glob(public_path('favicon*'));
+            if (!empty($faviconFiles)) {
+                $faviconUrl = asset(basename($faviconFiles[0]));
+            }
+        }
+    @endphp
+    
+    @if($faviconUrl)
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
     @endif
     
     <!-- Apple Touch Icon -->
