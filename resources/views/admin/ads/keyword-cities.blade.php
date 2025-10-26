@@ -13,7 +13,7 @@
             <a href="{{ route('admin.ads.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                 <i class="fas fa-arrow-left mr-2"></i>Retour
             </a>
-        </div>
+    </div>
 
         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
             <div class="flex">
@@ -43,10 +43,10 @@
                                 <button type="button" class="keyword-btn bg-gray-100 hover:bg-purple-100 text-gray-700 hover:text-purple-700 px-3 py-2 rounded text-sm border border-gray-300 hover:border-purple-300 transition-colors" data-keyword="{{ $keyword }}">
                                     {{ $keyword }}
                                 </button>
-                            @endforeach
-                        </div>
-                    </div>
-                    
+                @endforeach
+            </div>
+        </div>
+
                     <!-- Champ mot-clé personnalisé -->
                     <div>
                         <label class="block text-xs text-gray-500 mb-2">Ou saisir un mot-clé personnalisé :</label>
@@ -109,7 +109,7 @@
                                 <div class="flex-1">
                                     <div class="font-medium text-gray-900">{{ $city->name }}</div>
                                     <div class="text-sm text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
-                                </div>
+                        </div>
                             </label>
                         @endforeach
                     </div>
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selected >= 2 && !checkbox.checked) {
                 checkbox.disabled = true;
                 checkbox.closest('.city-option').classList.add('opacity-50');
-            } else {
+        } else {
                 checkbox.disabled = false;
                 checkbox.closest('.city-option').classList.remove('opacity-50');
             }
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Maximum 2 villes autorisées');
             return;
         }
-
+        
         // Afficher les résultats
         results.classList.remove('hidden');
         resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-purple-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
@@ -305,11 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
                     <p class="font-semibold">Erreur de connexion</p>
                     <p class="text-sm mt-1">${error.message}</p>
-                </div>
-            `;
-        }
+            </div>
+        `;
+    }
     });
-
+    
     // Initialisation
     updateSelectedCount();
 });

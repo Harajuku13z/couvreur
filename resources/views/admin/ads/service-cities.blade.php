@@ -13,7 +13,7 @@
             <a href="{{ route('admin.ads.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                 <i class="fas fa-arrow-left mr-2"></i>Retour
             </a>
-        </div>
+    </div>
 
         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
             <div class="flex">
@@ -32,22 +32,22 @@
             @csrf
             
             <!-- Sélection du service -->
-            <div>
+                    <div>
                 <label for="service_id" class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-tools mr-1"></i>Service
                 </label>
                 <select id="service_id" name="service_id" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    <option value="">Sélectionner un service</option>
-                    @foreach($services as $service)
+                            <option value="">Sélectionner un service</option>
+                            @foreach($services as $service)
                         <option value="{{ $service->id }}" data-slug="{{ $service->slug }}">
                             {{ $service->title }}
                         </option>
-                    @endforeach
-                </select>
-            </div>
+                            @endforeach
+                        </select>
+                    </div>
 
             <!-- Sélection des villes (limité à 2) -->
-            <div>
+                    <div>
                 <label for="cities" class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-map-marker-alt mr-1"></i>Villes (Maximum 2)
                 </label>
@@ -60,12 +60,12 @@
                                 <div class="text-xs text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
                             </div>
                         </label>
-                    @endforeach
-                </div>
+                                    @endforeach
+                            </div>
                 <div class="mt-2 text-sm text-gray-600">
                     <span id="selected-count">0</span> ville(s) sélectionnée(s) sur 2 maximum
-                </div>
-            </div>
+                        </div>
+                    </div>
 
             <!-- Options de génération -->
             <div class="bg-gray-50 p-4 rounded-lg">
