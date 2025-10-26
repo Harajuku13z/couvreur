@@ -54,17 +54,33 @@ class SeoHelper
     {
         $seo = self::getPageSeo($pageName, $customData);
         
+        // Fallbacks par défaut
+        $defaultTitle = setting('company_name', 'Sauser Couverture') . ' - ' . setting('company_specialization', 'Expert en Couverture');
+        $defaultDescription = setting('company_description', 'Expert en travaux de couverture et rénovation. Devis gratuit, intervention rapide, qualité garantie.');
+        $defaultImage = self::getDefaultImage();
+        
+        // Titre final
+        $finalTitle = $seo['meta_title'] ?: $customData['title'] ?: $defaultTitle;
+        
+        // Description finale
+        $finalDescription = $seo['meta_description'] ?: $customData['description'] ?: $defaultDescription;
+        
+        // Image finale (priorité: image personnalisée > image SEO > image par défaut)
+        $finalImage = self::getImageUrl($customData['image']) ?: 
+                     self::getImageUrl($seo['og_image']) ?: 
+                     $defaultImage;
+        
         $meta = [
-            'title' => $seo['meta_title'] ?: ($customData['title'] ?? ''),
-            'description' => $seo['meta_description'] ?: ($customData['description'] ?? ''),
-            'og:title' => $seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? '')),
-            'og:description' => $seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? '')),
-            'og:image' => self::getImageUrl($seo['og_image']) ?: self::getImageUrl($customData['image'] ?? 'images/og-default.jpg'),
+            'title' => $finalTitle,
+            'description' => $finalDescription,
+            'og:title' => $seo['og_title'] ?: $finalTitle,
+            'og:description' => $seo['og_description'] ?: $finalDescription,
+            'og:image' => $finalImage,
             'og:url' => request()->url(),
             'og:type' => $customData['type'] ?? 'website',
-            'twitter:title' => $seo['twitter_title'] ?: ($seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? ''))),
-            'twitter:description' => $seo['twitter_description'] ?: ($seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? ''))),
-            'twitter:image' => self::getImageUrl($seo['twitter_image']) ?: self::getImageUrl($seo['og_image']) ?: self::getImageUrl($customData['image'] ?? 'images/og-default.jpg'),
+            'twitter:title' => $seo['twitter_title'] ?: $seo['og_title'] ?: $finalTitle,
+            'twitter:description' => $seo['twitter_description'] ?: $seo['og_description'] ?: $finalDescription,
+            'twitter:image' => $finalImage,
         ];
         
         return $meta;
@@ -124,6 +140,21 @@ class SeoHelper
     }
     
     /**
+     * Obtenir l'image par défaut (logo du site)
+     */
+    private static function getDefaultImage()
+    {
+        // Priorité: logo de l'entreprise > logo par défaut
+        $companyLogo = setting('company_logo');
+        if ($companyLogo) {
+            return url($companyLogo);
+        }
+        
+        // Fallback: logo par défaut
+        return url('logo/logo.png');
+    }
+    
+    /**
      * Obtenir l'image Open Graph par défaut pour une page
      */
     public static function getDefaultOgImage($pageName)
@@ -139,6 +170,12 @@ class SeoHelper
             'about' => 'images/og-accueil.jpg',
         ];
         
-        return $defaultImages[$pageName] ?? 'images/og-default.jpg';
+        $pageImage = $defaultImages[$pageName] ?? null;
+        if ($pageImage && file_exists(public_path($pageImage))) {
+            return url($pageImage);
+        }
+        
+        // Si l'image de page n'existe pas, utiliser le logo
+        return self::getDefaultImage();
     }
 }

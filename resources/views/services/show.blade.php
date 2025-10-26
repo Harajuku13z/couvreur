@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', $service['meta_title'] ?? $service['name'] . ' - ' . setting('company_name', 'Votre Entreprise'))
+@section('title', $pageTitle)
 
-@section('description', $service['meta_description'] ?? $service['short_description'])
+@section('description', $pageDescription)
 
 @section('keywords', $service['meta_keywords'] ?? '')
 
@@ -16,19 +16,6 @@
     }
 </style>
 @endpush
-
-@php
-    // Définir les variables pour le SEO centralisé
-    $currentPage = 'services';
-    $pageTitle = $service['og_title'] ?? $service['meta_title'] ?? $service['name'];
-    $pageDescription = $service['og_description'] ?? $service['meta_description'] ?? $service['short_description'];
-    $pageImage = $service['og_image'] ?? $service['featured_image'] ?? '';
-    // S'assurer que l'image est une URL complète
-    if ($pageImage && !str_starts_with($pageImage, 'http')) {
-        $pageImage = url($pageImage);
-    }
-    $pageType = 'website';
-@endphp
 
 @section('content')
 <div class="min-h-screen bg-gray-50">

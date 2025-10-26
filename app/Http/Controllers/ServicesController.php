@@ -227,7 +227,14 @@ class ServicesController extends Controller
             return $s['id'] !== $service['id'] && (isset($s['is_visible']) ? $s['is_visible'] : true);
         })->take(3);
         
-        return view('services.show', compact('service', 'relatedServices'));
+        // Variables pour le SEO centralisé
+        $currentPage = 'services';
+        $pageTitle = $service['meta_title'] ?? $service['name'] . ' - ' . setting('company_name', 'Sauser Couverture');
+        $pageDescription = $service['meta_description'] ?? $service['short_description'] ?? 'Découvrez nos services de ' . $service['name'] . '. Devis gratuit, intervention rapide, qualité garantie.';
+        $pageImage = $service['featured_image'] ?? $service['og_image'] ?? '';
+        $pageType = 'website';
+        
+        return view('services.show', compact('service', 'relatedServices', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType'));
     }
 
     /**

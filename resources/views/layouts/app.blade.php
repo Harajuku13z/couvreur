@@ -13,26 +13,26 @@
         ]);
     @endphp
     
-    <title>{{ $seoData['title'] ?: setting('company_name', 'Sausser Couverture') }}</title>
-    <meta name="description" content="{{ $seoData['description'] ?: 'Expert en travaux de rénovation' }}">
+    <title>{{ $seoData['title'] }}</title>
+    <meta name="description" content="{{ $seoData['description'] }}">
     <meta name="keywords" content="@yield('keywords', setting('meta_keywords', 'travaux, rénovation, toiture, façade'))">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{{ $seoData['og:title'] ?: setting('company_name') }}">
-    <meta property="og:description" content="{{ $seoData['og:description'] ?: 'Expert en travaux de rénovation' }}">
-    <meta property="og:image" content="{{ $seoData['og:image'] ?: asset('logo/logo.png') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:type" content="{{ $seoData['og:type'] ?: 'website' }}">
-    <meta property="og:site_name" content="{{ setting('company_name', 'Sausser Couverture') }}">
+    <meta property="og:title" content="{{ $seoData['og:title'] }}">
+    <meta property="og:description" content="{{ $seoData['og:description'] }}">
+    <meta property="og:image" content="{{ $seoData['og:image'] }}">
+    <meta property="og:url" content="{{ $seoData['og:url'] }}">
+    <meta property="og:type" content="{{ $seoData['og:type'] }}">
+    <meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoData['twitter:title'] ?: setting('company_name') }}">
-    <meta name="twitter:description" content="{{ $seoData['twitter:description'] ?: 'Expert en travaux de rénovation' }}">
-    <meta name="twitter:image" content="{{ $seoData['twitter:image'] ?: asset('logo/logo.png') }}">
+    <meta name="twitter:title" content="{{ $seoData['twitter:title'] }}">
+    <meta name="twitter:description" content="{{ $seoData['twitter:description'] }}">
+    <meta name="twitter:image" content="{{ $seoData['twitter:image'] }}">
     
     <!-- Favicon -->
     @if(setting('site_favicon'))
