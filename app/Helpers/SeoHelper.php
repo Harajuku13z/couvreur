@@ -40,14 +40,14 @@ class SeoHelper
         $meta = [
             'title' => $seo['meta_title'] ?: ($customData['title'] ?? ''),
             'description' => $seo['meta_description'] ?: ($customData['description'] ?? ''),
-            'og:title' => $seo['og_title'] ?: $seo['meta_title'] ?: ($customData['title'] ?? ''),
-            'og:description' => $seo['og_description'] ?: $seo['meta_description'] ?: ($customData['description'] ?? ''),
+            'og:title' => $seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? '')),
+            'og:description' => $seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? '')),
             'og:image' => $seo['og_image'] ? asset($seo['og_image']) : ($customData['image'] ?? asset('images/og-default.jpg')),
             'og:url' => request()->url(),
             'og:type' => $customData['type'] ?? 'website',
-            'twitter:title' => $seo['twitter_title'] ?: $seo['og_title'] ?: $seo['meta_title'] ?: ($customData['title'] ?? ''),
-            'twitter:description' => $seo['twitter_description'] ?: $seo['og_description'] ?: $seo['meta_description'] ?: ($customData['description'] ?? ''),
-            'twitter:image' => $seo['twitter_image'] ? asset($seo['twitter_image']) : $seo['og_image'] ? asset($seo['og_image']) : ($customData['image'] ?? asset('images/og-default.jpg')),
+            'twitter:title' => $seo['twitter_title'] ?: ($seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? ''))),
+            'twitter:description' => $seo['twitter_description'] ?: ($seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? ''))),
+            'twitter:image' => $seo['twitter_image'] ? asset($seo['twitter_image']) : ($seo['og_image'] ? asset($seo['og_image']) : ($customData['image'] ?? asset('images/og-default.jpg'))),
         ];
         
         return $meta;
