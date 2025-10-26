@@ -63,14 +63,27 @@ class GenerateSitemap extends Command
         }
         
         // Services
-        $services = Service::where('is_active', true)->get();
-        $this->info("📋 Ajout de {$services->count()} services...");
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
-        foreach ($services as $service) {
-            $sitemap->add(Url::create('/services/' . $service['slug'])
-                ->setLastModificationDate(Carbon::parse($service['updated_at'] ?? $service['created_at']))
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                ->setPriority(0.8));
+        if (!is_array($services)) {
+            $services = [];
+        }
+        
+        // Filtrer les services visibles
+        $visibleServices = collect($services)->filter(function($service) {
+            return ($service['is_visible'] ?? true) && ($service['is_active'] ?? true);
+        });
+        
+        $this->info("📋 Ajout de {$visibleServices->count()} services...");
+        
+        foreach ($visibleServices as $service) {
+            if (isset($service['slug'])) {
+                $sitemap->add(Url::create('/services/' . $service['slug'])
+                    ->setLastModificationDate(Carbon::parse($service['updated_at'] ?? $service['created_at'] ?? now()))
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                    ->setPriority(0.8));
+            }
         }
         
         // Articles
