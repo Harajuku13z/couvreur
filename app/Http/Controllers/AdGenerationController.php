@@ -7,6 +7,8 @@ use App\Models\City;
 use App\Models\GenerationJob;
 use App\Models\Review;
 use App\Models\Setting;
+use App\Events\AdCreated;
+use App\Events\AdUpdated;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -234,6 +236,9 @@ class AdGenerationController extends Controller
                         'city' => $city->name
                     ]);
 
+                    // Déclencher l'événement pour mettre à jour le sitemap
+                    event(new AdCreated($ad));
+
                 } catch (\Exception $e) {
                     $errors[] = [
                         'city' => $city->name,
@@ -319,6 +324,9 @@ class AdGenerationController extends Controller
                         'keyword' => $keyword,
                         'city' => $city->name
                     ]);
+
+                    // Déclencher l'événement pour mettre à jour le sitemap
+                    event(new AdCreated($ad));
 
                 } catch (\Exception $e) {
                     $errors[] = [

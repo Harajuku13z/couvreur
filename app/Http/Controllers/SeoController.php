@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Setting;
+use App\Services\SitemapService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -258,9 +259,10 @@ class SeoController extends Controller
             return response('Sitemap désactivé', 404);
         }
         
-        // Utiliser la commande complète pour générer le sitemap
+        // Utiliser le service de sitemap
         try {
-            \Artisan::call('sitemap:generate-complete');
+            $sitemapService = new SitemapService();
+            $sitemapService->generateSitemap();
             
             // Lire le fichier généré
             $sitemapPath = public_path('sitemap.xml');
