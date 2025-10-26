@@ -130,11 +130,13 @@ class AdGenerationController extends Controller
             ]);
 
             // Traitement immédiat au lieu d'utiliser les queues
-            $this->processKeywordCitiesGeneration($keyword, $cityIds, $aiPrompt, $batchSize);
+            $result = $this->processKeywordCitiesGeneration($keyword, $cityIds, $aiPrompt, $batchSize);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Génération terminée avec succès',
+                'created' => $result['created'],
+                'skipped' => $result['skipped'],
                 'cities_count' => count($cityIds),
                 'batch_size' => $batchSize
             ]);
@@ -273,6 +275,7 @@ class AdGenerationController extends Controller
             $cities = City::whereIn('id', $cityIds)->get();
             
             $createdAds = 0;
+            $skippedAds = 0;
             $errors = [];
 
             foreach ($cities as $city) {
@@ -283,6 +286,7 @@ class AdGenerationController extends Controller
                         ->first();
 
                     if ($existingAd) {
+                        $skippedAds++;
                         Log::info('Annonce déjà existante', [
                             'keyword' => $keyword,
                             'city' => $city->name
@@ -330,9 +334,16 @@ class AdGenerationController extends Controller
 
             Log::info('Traitement terminé', [
                 'created_ads' => $createdAds,
+                'skipped_ads' => $skippedAds,
                 'errors_count' => count($errors),
                 'errors' => $errors
             ]);
+
+            return [
+                'created' => $createdAds,
+                'skipped' => $skippedAds,
+                'errors' => $errors
+            ];
 
         } catch (\Exception $e) {
             Log::error('Erreur traitement mot-clé-villes: ' . $e->getMessage());
