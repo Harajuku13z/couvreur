@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Envoyer la requête
         try {
-            const response = await fetch('{{ route("ads.generate.keyword-cities") }}', {
+            const response = await fetch('{{ route("admin.ads.generate.keyword-cities") }}', {
                 method: 'POST',
                 body: formData,
                 headers: {

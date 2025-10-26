@@ -34,12 +34,13 @@ class KeywordCitiesController extends Controller
 
     /**
      * Générer des annonces pour un mot-clé et des villes
-     * Redirige vers le contrôleur AdGenerationController existant
+     * Utilise directement la logique d'AdGenerationController
      */
     public function generate(Request $request)
     {
-        // Rediriger vers la route existante qui fonctionne
-        return redirect()->route('ads.generate.keyword-cities');
+        // Déléguer à AdGenerationController
+        $adGenerationController = new \App\Http\Controllers\AdGenerationController();
+        return $adGenerationController->generateByKeywordCities($request);
     }
 
     /**
