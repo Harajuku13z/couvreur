@@ -143,7 +143,7 @@
         <div class="container mx-auto px-4 text-center text-white relative z-10">
             <!-- Trust Badges -->
             @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
-            <div class="flex justify-center items-center gap-6 mb-8 flex-wrap">
+            <div class="flex justify-center items-center gap-6 mb-8 flex-wrap px-4">
                 @if($homeConfig['trust_badges']['garantie_decennale'] ?? false)
                 <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                     <i class="fas fa-shield-alt text-yellow-400"></i>
@@ -179,10 +179,9 @@
                 {{ $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'Travaux de Rénovation') }}
             </p>
             
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg"
-                   onclick="trackFormClick('{{ request()->url() }}')">
+                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-calculator mr-2"></i>
                     {{ $homeConfig['hero']['cta_text'] ?? 'Demander un Devis Gratuit' }}
                 </a>

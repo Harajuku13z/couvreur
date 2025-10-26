@@ -50,7 +50,7 @@
                     }
                     
                     $featuredServices = array_filter($services, function($service) {
-                        return is_array($service) && (($service['is_featured'] ?? false) || ($service['is_menu'] ?? false));
+                        return is_array($service) && ($service['is_menu'] ?? false) && ($service['is_visible'] ?? true);
                     });
                 @endphp
                 

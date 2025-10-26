@@ -18,11 +18,11 @@ class HomeController extends Controller
         
         // Get services
         $servicesData = Setting::get('services', '[]');
-        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        $allServices = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
         // Si pas de services, créer des services par défaut
-        if (empty($services)) {
-            $services = [
+        if (empty($allServices)) {
+            $allServices = [
                 [
                     'name' => 'Demoussage de Toiture',
                     'description' => 'Service professionnel de demoussage pour redonner vie à votre toiture',
@@ -46,6 +46,11 @@ class HomeController extends Controller
                 ]
             ];
         }
+        
+        // Filtrer seulement les services mis en avant
+        $services = array_filter($allServices, function($service) {
+            return is_array($service) && ($service['is_featured'] ?? false) && ($service['is_visible'] ?? true);
+        });
         
         // Get portfolio items (réalisations)
         $portfolioData = Setting::get('portfolio_items', '[]');

@@ -58,7 +58,7 @@
                         }
                         
                         $visibleServices = array_filter($services, function($service) {
-                            return is_array($service) && (($service['is_active'] ?? true) && ($service['is_featured'] ?? false));
+                            return is_array($service) && ($service['is_visible'] ?? true) && ($service['is_featured'] ?? false);
                         });
                     @endphp
                     
