@@ -31,6 +31,11 @@ class BulkAdsController extends Controller
         // Récupérer les villes favorites
         $favoriteCities = Setting::get('favorite_cities', []);
         
+        // Si pas de villes favorites configurées, utiliser les 10 premières villes
+        if (empty($favoriteCities)) {
+            $favoriteCities = $cities->take(10)->pluck('id')->toArray();
+        }
+        
         return view('admin.ads.bulk-ads', compact('services', 'cities', 'favoriteCities'));
     }
 

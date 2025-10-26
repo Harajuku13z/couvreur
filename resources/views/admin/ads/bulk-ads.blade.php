@@ -344,7 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Activer l'onglet demandé si spécifié dans l'URL
     if (requestedTab && (requestedTab === 'services' || requestedTab === 'keywords')) {
+        console.log('Activating tab:', requestedTab);
         activateTab(requestedTab);
+    } else {
+        console.log('No tab requested, defaulting to services');
     }
     
     tabButtons.forEach(button => {
