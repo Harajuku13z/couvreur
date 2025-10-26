@@ -403,7 +403,7 @@ class BulkAdsController extends Controller
                         }
 
                         // Générer le contenu personnalisé pour cette ville
-                        $content = $this->customizeTemplateForCity($template, $keyword, $city);
+                        $content = $this->customizeTemplateForCityByKeyword($template, $keyword, $city);
                         
                         // Créer l'annonce
                         $ad = Ad::create([
@@ -596,7 +596,7 @@ class BulkAdsController extends Controller
     /**
      * Personnaliser le template pour une ville spécifique (version mot-clé)
      */
-    private function customizeTemplateForCity($template, $keyword, $city)
+    private function customizeTemplateForCityByKeyword($template, $keyword, $city)
     {
         // Remplacer les variables dans le template
         $content = str_replace([

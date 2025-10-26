@@ -100,8 +100,8 @@
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Réalisations {{ $service['name'] }}</h2>
-                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Réalisations</h2>
+                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes dans tous nos domaines d'expertise</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

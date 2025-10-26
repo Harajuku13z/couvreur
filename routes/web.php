@@ -351,7 +351,7 @@ Route::middleware(['check.setup'])->group(function () {
     
     // ===== ANNONCES PUBLIQUES =====
     // Annonces avec format /nomduservice-nomdelaville
-    Route::get('/{service}-{city}', [App\Http\Controllers\AdController::class, 'show'])->name('ads.show');
+    Route::get('/{service}-{city}', [App\Http\Controllers\AdController::class, 'show'])->name('ads.show.slug');
     
     // ===== PAGES LÉGALES =====
     Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');
