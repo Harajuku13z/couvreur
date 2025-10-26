@@ -243,7 +243,16 @@ class SeoController extends Controller
         $seoConfigData = Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
         
-        if (!($seoConfig['sitemap_enabled'] ?? true)) {
+        // Valeurs par défaut pour le sitemap
+        $defaults = [
+            'sitemap_enabled' => true,
+            'sitemap_priority' => 0.8,
+            'sitemap_changefreq' => 'weekly'
+        ];
+        
+        $seoConfig = array_merge($defaults, $seoConfig);
+        
+        if (!$seoConfig['sitemap_enabled']) {
             return response('Sitemap désactivé', 404);
         }
 
