@@ -67,6 +67,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- Articles CSS -->
+    <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
+    
     <style>
         :root {
             --primary-color: {{ setting('primary_color', '#3b82f6') }};

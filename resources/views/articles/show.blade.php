@@ -210,6 +210,25 @@
     }
     }
 </style>
+
+<!-- Google Analytics -->
+@if(setting('google_analytics_id'))
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ setting('google_analytics_id') }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ setting('google_analytics_id') }}');
+  
+  // Track article view
+  gtag('event', 'article_view', {
+    'article_title': '{{ $article->title }}',
+    'article_category': '{{ $article->category }}',
+    'page_location': '{{ request()->url() }}'
+  });
+</script>
+@endif
 @endpush
 
 @section('content')
@@ -299,13 +318,64 @@
                     </div>
 
                     <!-- Company Info -->
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">Notre Entreprise</h3>
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <p><strong>{{ setting('company_name') }}</strong></p>
-                            <p>{{ setting('company_address') }}</p>
-                            <p>{{ setting('company_phone') }}</p>
-                            <p>{{ setting('company_email') }}</p>
+                    <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-building text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">{{ setting('company_name') }}</h3>
+                            <p class="text-blue-100 text-sm">Votre partenaire rénovation</p>
+                        </div>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
+                                <span class="text-sm">{{ setting('company_address') }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-green-300 mr-3"></i>
+                                <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:text-green-200 transition-colors">
+                                    {{ setting('company_phone') }}
+                                </a>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-blue-200 mr-3"></i>
+                                <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:text-blue-200 transition-colors">
+                                    {{ setting('company_email') }}
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="space-y-3">
+                            <a href="{{ route('form.step', 'propertyType') }}" 
+                               class="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Devis Gratuit
+                            </a>
+                            <a href="tel:{{ setting('company_phone_raw') }}" 
+                               class="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 transition-colors flex items-center justify-center">
+                                <i class="fas fa-phone mr-2"></i>
+                                Appeler Maintenant
+                            </a>
+                        </div>
+                        
+                        <!-- Trust badges -->
+                        <div class="mt-6 pt-4 border-t border-white border-opacity-20">
+                            <div class="flex justify-center space-x-4 text-xs">
+                                <div class="flex items-center">
+                                    <i class="fas fa-shield-alt text-yellow-300 mr-1"></i>
+                                    <span class="text-blue-100">Garantie</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-certificate text-yellow-300 mr-1"></i>
+                                    <span class="text-blue-100">Certifié</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-star text-yellow-300 mr-1"></i>
+                                    <span class="text-blue-100">5★</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -314,19 +384,84 @@
 
         <!-- Mobile Contact Section -->
         <div class="mt-8 lg:hidden">
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Besoin d'aide ?</h3>
-                <div class="space-y-4">
-                    <a href="tel:{{ setting('company_phone_raw') }}" 
-                       class="flex items-center text-green-600 hover:text-green-800 font-semibold">
-                        <i class="fas fa-phone mr-3"></i>
-                        {{ setting('company_phone') }}
-                    </a>
-                    <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="flex items-center text-blue-600 hover:text-blue-800 font-semibold">
-                        <i class="fas fa-calculator mr-3"></i>
-                        Devis gratuit
-                    </a>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Contact Card -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Besoin d'aide ?</h3>
+                    <div class="space-y-4">
+                        <a href="tel:{{ setting('company_phone_raw') }}" 
+                           class="flex items-center text-green-600 hover:text-green-800 font-semibold">
+                            <i class="fas fa-phone mr-3"></i>
+                            {{ setting('company_phone') }}
+                        </a>
+                        <a href="{{ route('form.step', 'propertyType') }}" 
+                           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold">
+                            <i class="fas fa-calculator mr-3"></i>
+                            Devis gratuit
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Company Info -->
+                <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-building text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">{{ setting('company_name') }}</h3>
+                        <p class="text-blue-100 text-sm">Votre partenaire rénovation</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
+                            <span class="text-sm">{{ setting('company_address') }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone text-green-300 mr-3"></i>
+                            <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:text-green-200 transition-colors">
+                                {{ setting('company_phone') }}
+                            </a>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-blue-200 mr-3"></i>
+                            <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:text-blue-200 transition-colors">
+                                {{ setting('company_email') }}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="space-y-3">
+                        <a href="{{ route('form.step', 'propertyType') }}" 
+                           class="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Devis Gratuit
+                        </a>
+                        <a href="tel:{{ setting('company_phone_raw') }}" 
+                           class="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 transition-colors flex items-center justify-center">
+                            <i class="fas fa-phone mr-2"></i>
+                            Appeler Maintenant
+                        </a>
+                    </div>
+                    
+                    <!-- Trust badges -->
+                    <div class="mt-6 pt-4 border-t border-white border-opacity-20">
+                        <div class="flex justify-center space-x-4 text-xs">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt text-yellow-300 mr-1"></i>
+                                <span class="text-blue-100">Garantie</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-certificate text-yellow-300 mr-1"></i>
+                                <span class="text-blue-100">Certifié</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-star text-yellow-300 mr-1"></i>
+                                <span class="text-blue-100">5★</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

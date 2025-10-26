@@ -139,8 +139,8 @@ class ArticleAiController extends Controller
         // Récupérer les informations de l'entreprise
         $companyInfo = $this->getCompanyInfo();
         
-        // Prompt système inspiré d'Osmose Consulting
-        $system = "Tu es un expert en marketing digital spécialisé pour couvreurs et entreprises de rénovation. Tu produis STRICTEMENT du HTML (aucun Markdown), sans balises <html> ni <body>, uniquement le contenu. Utilise <h1> pour le titre principal, des <h2> pour les sections et des <h3> pour les sous-sections, des paragraphes <p>, et des listes <ul><li>. Inclure des CTA avec <a href=\"#\" class=\"cta-link\">Texte CTA</a>. Ton professionnel, persuasif, orienté SEO et conversion.";
+        // Prompt système inspiré d'Osmose Consulting avec Tailwind CSS et Font Awesome
+        $system = "Tu es un expert en marketing digital spécialisé pour couvreurs et entreprises de rénovation. Tu produis STRICTEMENT du HTML avec classes Tailwind CSS et icônes Font Awesome, sans balises <html> ni <body>, uniquement le contenu. Utilise des classes Tailwind pour le styling, des icônes Font Awesome dans les listes et sections, et des CTA avec classes Tailwind. Ton professionnel, persuasif, orienté SEO et conversion.";
 
         // Prompt utilisateur détaillé
         $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . 
@@ -153,29 +153,48 @@ class ArticleAiController extends Controller
                 "- Longueur: 1500 à 2000 mots minimum\n" .
                 "- Style: professionnel, engageant, orienté prospection/conversion\n" .
                 "- Inclure des mots-clés (ex: devis toiture, réparation urgence toiture, couvreur professionnel, rénovation toiture) naturellement dans les titres et le texte\n" .
-                "- Structure HTML attendue (exemple):\n" .
-                "<h1>Titre principal optimisé SEO</h1>\n" .
-                "<p>Introduction accrocheuse… (ne répète pas de meta description séparée)</p>\n" .
-                "<h2>Section 1 (intention forte)</h2>\n" .
-                "<h3>Sous-section détaillée</h3>\n" .
-                "<ul><li>Conseil pratique</li><li>Erreur à éviter</li></ul>\n" .
-                "<h2>Section 2</h2>\n" .
-                "<h3>Sous-section</h3>\n" .
-                "<p>Exemples concrets…</p>\n" .
-                "<h2>Section 3</h2>\n" .
-                "<h3>Sous-section</h3>\n" .
-                "<ul><li>Étapes actionnables</li></ul>\n" .
-                "<h2>Conclusion</h2>\n" .
-                "<p>Résumé persuasif.</p>\n" .
-                "<p><a href=\"#\" class=\"cta-link\">Demander un devis gratuit</a></p>\n" .
+                "- Structure HTML avec Tailwind CSS et Font Awesome (exemple):\n" .
+                "<h1 class=\"text-4xl font-bold text-gray-900 mb-6\">Titre principal optimisé SEO</h1>\n" .
+                "<p class=\"text-lg text-gray-700 mb-8 leading-relaxed\">Introduction accrocheuse… (ne répète pas de meta description séparée)</p>\n" .
+                "<div class=\"bg-blue-50 border-l-4 border-blue-500 p-6 mb-8\">\n" .
+                "  <div class=\"flex items-center mb-4\">\n" .
+                "    <i class=\"fas fa-lightbulb text-blue-600 text-xl mr-3\"></i>\n" .
+                "    <h2 class=\"text-2xl font-bold text-gray-900\">Section 1 (intention forte)</h2>\n" .
+                "  </div>\n" .
+                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section détaillée</h3>\n" .
+                "  <ul class=\"space-y-3\">\n" .
+                "    <li class=\"flex items-start\"><i class=\"fas fa-check-circle text-green-600 mr-3 mt-1\"></i><span>Conseil pratique</span></li>\n" .
+                "    <li class=\"flex items-start\"><i class=\"fas fa-exclamation-triangle text-red-600 mr-3 mt-1\"></i><span>Erreur à éviter</span></li>\n" .
+                "  </ul>\n" .
+                "</div>\n" .
+                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-tools text-blue-600 mr-3\"></i>Section 2</h2>\n" .
+                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section</h3>\n" .
+                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Exemples concrets…</p>\n" .
+                "<div class=\"bg-gray-50 rounded-lg p-6 mb-8\">\n" .
+                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-list-ol text-blue-600 mr-3\"></i>Étapes actionnables</h3>\n" .
+                "  <ul class=\"space-y-3\">\n" .
+                "    <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1\"></i><span>Étape 1</span></li>\n" .
+                "    <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1\"></i><span>Étape 2</span></li>\n" .
+                "  </ul>\n" .
+                "</div>\n" .
+                "<div class=\"bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white text-center mb-8\">\n" .
+                "  <h2 class=\"text-2xl font-bold mb-4\">Conclusion</h2>\n" .
+                "  <p class=\"text-lg mb-6\">Résumé persuasif.</p>\n" .
+                "  <a href=\"#\" class=\"bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors inline-flex items-center\">\n" .
+                "    <i class=\"fas fa-calculator mr-2\"></i>Demander un devis gratuit\n" .
+                "  </a>\n" .
+                "</div>\n" .
                 "Contraintes supplémentaires:\n" .
                 "- 3 à 4 <h2>, 5 à 6 <h3> minimum\n" .
-                "- HTML uniquement (pas de CSS/JS)\n" .
-                "- Commencer par <h1> puis <p> d'introduction\n" .
+                "- Utiliser UNIQUEMENT des classes Tailwind CSS\n" .
+                "- Inclure des icônes Font Awesome dans les titres et listes\n" .
+                "- Utiliser des couleurs cohérentes (blue-600, green-600, red-600, gray-900, etc.)\n" .
+                "- Ajouter des espaces et padding appropriés (mb-4, mb-6, mb-8, p-6, etc.)\n" .
+                "- Utiliser des backgrounds colorés pour les sections importantes\n" .
+                "- Inclure des icônes check, exclamation-triangle, tools, lightbulb, etc.\n" .
                 "- Optimiser chaque section avec des mots-clés pertinents du secteur couverture/rénovation\n" .
-                "- Pas de code ni d'assets, uniquement le HTML du contenu\n" .
                 "- Inclure des conseils pratiques et des erreurs à éviter\n" .
-                "- Terminer par un CTA fort pour demander un devis";
+                "- Terminer par un CTA fort avec gradient et icônes";
 
         try {
             $response = Http::withHeaders([

@@ -1,0 +1,167 @@
+/* Styles pour les articles générés par IA avec Tailwind CSS */
+
+.article-content {
+    /* Styles de base pour le contenu des articles */
+    line-height: 1.7;
+    color: #374151;
+}
+
+.article-content h1 {
+    @apply text-4xl font-bold text-gray-900 mb-6 leading-tight;
+}
+
+.article-content h2 {
+    @apply text-2xl font-bold text-gray-900 mb-6 leading-tight;
+}
+
+.article-content h3 {
+    @apply text-xl font-semibold text-gray-800 mb-4 leading-tight;
+}
+
+.article-content h4 {
+    @apply text-lg font-semibold text-gray-800 mb-3 leading-tight;
+}
+
+.article-content p {
+    @apply text-gray-700 mb-6 leading-relaxed;
+}
+
+.article-content ul {
+    @apply space-y-3 mb-6;
+}
+
+.article-content ol {
+    @apply space-y-3 mb-6;
+}
+
+.article-content li {
+    @apply text-gray-700 leading-relaxed;
+}
+
+.article-content a {
+    @apply text-blue-600 hover:text-blue-800 transition-colors font-medium;
+}
+
+.article-content strong {
+    @apply font-semibold text-gray-900;
+}
+
+.article-content em {
+    @apply italic text-gray-600;
+}
+
+/* Styles pour les sections spéciales */
+.article-content .bg-blue-50 {
+    @apply bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 rounded-r-lg;
+}
+
+.article-content .bg-gray-50 {
+    @apply bg-gray-50 rounded-lg p-6 mb-8;
+}
+
+.article-content .bg-gradient-to-r {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white text-center mb-8;
+}
+
+/* Styles pour les icônes Font Awesome */
+.article-content .fas,
+.article-content .far,
+.article-content .fab {
+    @apply text-current;
+}
+
+/* Styles pour les listes avec icônes */
+.article-content .flex.items-start {
+    @apply flex items-start;
+}
+
+.article-content .flex.items-center {
+    @apply flex items-center;
+}
+
+/* Styles pour les CTA */
+.article-content .cta-link {
+    @apply bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors inline-flex items-center;
+}
+
+/* Styles pour les tableaux */
+.article-content table {
+    @apply w-full border-collapse border border-gray-300 mb-6;
+}
+
+.article-content th {
+    @apply bg-gray-100 border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900;
+}
+
+.article-content td {
+    @apply border border-gray-300 px-4 py-2 text-gray-700;
+}
+
+/* Styles pour les citations */
+.article-content blockquote {
+    @apply border-l-4 border-blue-500 pl-6 py-2 mb-6 italic text-gray-600 bg-blue-50;
+}
+
+/* Styles pour le code */
+.article-content code {
+    @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800;
+}
+
+.article-content pre {
+    @apply bg-gray-100 p-4 rounded-lg mb-6 overflow-x-auto;
+}
+
+.article-content pre code {
+    @apply bg-transparent p-0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .article-content h1 {
+        @apply text-3xl;
+    }
+    
+    .article-content h2 {
+        @apply text-xl;
+    }
+    
+    .article-content h3 {
+        @apply text-lg;
+    }
+    
+    .article-content .bg-blue-50,
+    .article-content .bg-gray-50,
+    .article-content .bg-gradient-to-r {
+        @apply p-4;
+    }
+}
+
+/* Animations pour les éléments interactifs */
+.article-content .hover\:bg-gray-100:hover {
+    @apply bg-gray-100;
+}
+
+.article-content .transition-colors {
+    @apply transition-colors duration-200;
+}
+
+/* Styles pour les badges et étiquettes */
+.article-content .badge {
+    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+}
+
+.article-content .badge-blue {
+    @apply bg-blue-100 text-blue-800;
+}
+
+.article-content .badge-green {
+    @apply bg-green-100 text-green-800;
+}
+
+.article-content .badge-red {
+    @apply bg-red-100 text-red-800;
+}
+
+.article-content .badge-yellow {
+    @apply bg-yellow-100 text-yellow-800;
+}
