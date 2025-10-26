@@ -87,6 +87,87 @@
         </div>
     </section>
 
+    <!-- Section Nos Réalisations -->
+    @if(!empty($portfolioItems) && count($portfolioItems) > 0)
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Réalisations</h2>
+                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    @foreach(array_slice($portfolioItems, 0, 6) as $portfolioItem)
+                    @if(is_array($portfolioItem) && !empty($portfolioItem['images']) && is_array($portfolioItem['images']))
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                        <div class="relative">
+                            <img src="{{ asset($portfolioItem['images'][0]) }}" 
+                                 alt="{{ $portfolioItem['title'] ?? 'Réalisation' }}" 
+                                 class="w-full h-48 object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                <div class="opacity-0 hover:opacity-100 transition-opacity duration-300">
+                                    <i class="fas fa-search-plus text-white text-2xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                {{ $portfolioItem['title'] ?? 'Réalisation' }}
+                            </h3>
+                            @if(!empty($portfolioItem['description']))
+                            <p class="text-gray-600 text-sm mb-4">
+                                {{ Str::limit($portfolioItem['description'], 100) }}
+                            </p>
+                            @endif
+                            <div class="flex items-center justify-between">
+                                @if(!empty($portfolioItem['work_type']))
+                                <span class="px-3 py-1 rounded-full text-xs font-medium"
+                                      style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
+                                    @switch($portfolioItem['work_type'])
+                                        @case('roof')
+                                            <i class="fas fa-home mr-1"></i>Toiture
+                                            @break
+                                        @case('facade')
+                                            <i class="fas fa-building mr-1"></i>Façade
+                                            @break
+                                        @case('isolation')
+                                            <i class="fas fa-thermometer-half mr-1"></i>Isolation
+                                            @break
+                                        @default
+                                            <i class="fas fa-tools mr-1"></i>Mixte
+                                    @endswitch
+                                </span>
+                                @endif
+                                @if(count($portfolioItem['images']) > 1)
+                                <span class="text-gray-500 text-sm">
+                                    <i class="fas fa-images mr-1"></i>{{ count($portfolioItem['images']) }} photos
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+                
+                @if(count($portfolioItems) > 6)
+                <div class="text-center mt-8">
+                    <a href="{{ route('portfolio.index') }}" 
+                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                       style="background-color: var(--primary-color);"
+                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
+                        <i class="fas fa-images mr-2"></i>
+                        Voir Toutes nos Réalisations
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Section Annonces Similaires -->
     @if(isset($relatedAds) && $relatedAds->count() > 0)
     <section class="py-16 bg-gray-100">

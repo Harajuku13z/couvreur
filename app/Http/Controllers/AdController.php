@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ad;
 use App\Models\City;
+use App\Models\Setting;
 use App\Helpers\SeoHelper;
 use Illuminate\Http\Request;
 
@@ -45,6 +46,15 @@ class AdController extends Controller
             ->take(3)
             ->get();
         
-        return view('ads.show', compact('ad', 'cityModel', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType', 'relatedAds'));
+        // Récupérer les données de portfolio
+        $portfolioData = Setting::get('portfolio_items', '[]');
+        $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
+        
+        // Filtrer les éléments de portfolio visibles
+        $portfolioItems = array_filter($portfolioItems, function($item) {
+            return is_array($item) && ($item['is_visible'] ?? true);
+        });
+        
+        return view('ads.show', compact('ad', 'cityModel', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType', 'relatedAds', 'portfolioItems'));
     }
 }
