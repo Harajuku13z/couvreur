@@ -296,11 +296,23 @@ document.addEventListener('DOMContentLoaded', function() {
             progressDetails.textContent = `Génération des annonces pour le service...`;
         }, 500);
         
+        // Préparer les données avec le slug du service
+        const selectedServiceOption = serviceSelect.options[serviceSelect.selectedIndex];
+        const serviceSlug = selectedServiceOption.getAttribute('data-slug');
+        
+        // Créer un nouveau FormData avec service_slug au lieu de service_id
+        const requestData = new FormData();
+        requestData.append('service_slug', serviceSlug);
+        requestData.append('city_ids', JSON.stringify(selectedCities.map(cb => parseInt(cb.value))));
+        if (formData.get('ai_prompt')) {
+            requestData.append('ai_prompt', formData.get('ai_prompt'));
+        }
+        
         // Envoyer la requête
         try {
             const response = await fetch('{{ route("admin.ads.generate.service-cities") }}', {
                 method: 'POST',
-                body: formData,
+                body: requestData,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
