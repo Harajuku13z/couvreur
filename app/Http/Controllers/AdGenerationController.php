@@ -188,7 +188,7 @@ class AdGenerationController extends Controller
             }
 
             // Récupérer les villes
-            $cities = City::whereIn('id', $cityIds)->get();
+            $cities = City::whereIn('id', $cityIds)->orderBy('name', 'asc')->get();
             
             $createdAds = 0;
             $errors = [];
@@ -271,7 +271,7 @@ class AdGenerationController extends Controller
 
         try {
             // Récupérer les villes
-            $cities = City::whereIn('id', $cityIds)->get();
+            $cities = City::whereIn('id', $cityIds)->orderBy('name', 'asc')->get();
             
             $createdAds = 0;
             $skippedAds = 0;

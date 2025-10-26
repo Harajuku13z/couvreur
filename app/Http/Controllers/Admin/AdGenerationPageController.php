@@ -70,7 +70,7 @@ class AdGenerationPageController extends Controller
             $countPerCity = $request->count_per_city ?? 1;
             
             // Récupérer les villes
-            $cities = City::whereIn('id', $cityIds)->get();
+            $cities = City::whereIn('id', $cityIds)->orderBy('name', 'asc')->get();
             
             // Récupérer le service
             $servicesData = Setting::get('services', '[]');
