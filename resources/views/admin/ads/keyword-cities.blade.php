@@ -271,6 +271,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
+            // Si la réponse est une redirection (status 302), suivre la redirection
+            if (response.redirected || response.status === 302) {
+                window.location.href = response.url || '{{ route("admin.ads.index") }}';
+                return;
+            }
+            
+            // Si c'est une réponse JSON (erreur), l'afficher
             const data = await response.json();
             
             if (data.success) {

@@ -132,14 +132,13 @@ class AdGenerationController extends Controller
             // Traitement immédiat au lieu d'utiliser les queues
             $result = $this->processKeywordCitiesGeneration($keyword, $cityIds, $aiPrompt, $batchSize);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Génération terminée avec succès',
-                'created' => $result['created'],
-                'skipped' => $result['skipped'],
-                'cities_count' => count($cityIds),
-                'batch_size' => $batchSize
-            ]);
+            // Rediriger vers la page des annonces avec un message de succès
+            $message = "Annonces générées avec succès ! {$result['created']} annonce(s) créée(s)";
+            if ($result['skipped'] > 0) {
+                $message .= ", {$result['skipped']} annonce(s) ignorée(s) (déjà existantes)";
+            }
+            
+            return redirect()->route('admin.ads.index')->with('success', $message);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Erreur validation mot-clé-villes', [
@@ -300,7 +299,8 @@ class AdGenerationController extends Controller
                         'keyword' => $keyword,
                         'city_id' => $city->id,
                         'slug' => Str::slug($keyword . ' ' . $city->name),
-                        'status' => 'draft',
+                        'status' => 'published',
+                        'published_at' => now(),
                         'meta_title' => $keyword . ' à ' . $city->name . ' | Devis Gratuit',
                         'meta_description' => 'Service professionnel de ' . $keyword . ' à ' . $city->name . '. Devis gratuit et intervention rapide.',
                         'content_html' => $this->generateKeywordAdContent($keyword, $city, $aiPrompt),
@@ -597,9 +597,9 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
         $content .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>';
         $content .= '<ul class="space-y-2 text-sm">';
-        $content .= '<li class="flex items-center"><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
-        $content .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
-        $content .= '<li class="flex items-center"><span>Garantie de satisfaction pour un service impeccable</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Garantie de satisfaction pour un service impeccable</span></li>';
         $content .= '</ul>';
         $content .= '</div>';
         
@@ -665,14 +665,14 @@ INFORMATIONS:
     
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$keyword}</h3>
     <ul class=\"space-y-3\">
-      <li class=\"flex items-start\"><span><strong>[Prestation 1 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 2 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 3 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 4 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 5 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 6 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 7 spécifique à {$keyword}]</strong></span></li>
-      <li class=\"flex items-start\"><span><strong>[Prestation 8 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 1 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 2 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 3 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 4 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 5 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 6 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 7 spécifique à {$keyword}]</strong></span></li>
+      <li class=\"flex items-start\"><i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i><span><strong>[Prestation 8 spécifique à {$keyword}]</strong></span></li>
     </ul>
     
     <div class=\"bg-green-50 p-6 rounded-lg\">
@@ -694,12 +694,12 @@ INFORMATIONS:
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><span>[Info pratique 1 pour {$keyword} à {$city->name}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 2 pour {$keyword} à {$city->name}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 3 pour {$keyword} à {$city->name}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 4 pour {$keyword} à {$city->name}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 5 pour {$keyword} à {$city->name}]</span></li>
-        <li class=\"flex items-center\"><span>[Info pratique 6 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 1 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 2 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 3 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 4 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 5 pour {$keyword} à {$city->name}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-2 flex-shrink-0\"></i><span>[Info pratique 6 pour {$keyword} à {$city->name}]</span></li>
       </ul>
     </div>
   </div>
@@ -735,6 +735,7 @@ IMPORTANT:
 - Variez le vocabulaire et les formulations
 - INCLUEZ des informations sur le financement et les garanties
 - ADAPTEZ le contenu selon le mot-clé spécifique et la ville
+- OBLIGATOIRE: Incluez les icônes Font Awesome <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i> dans TOUS les <li>
 
 Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.";
 
@@ -808,10 +809,10 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         
         $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $keyword . '</h3>';
         $content .= '<ul class="space-y-3">';
-        $content .= '<li class="flex items-start"><span><strong>Service professionnel de qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Matériaux de haute qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Techniques éprouvées</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Garantie de satisfaction</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Service professionnel de qualité</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Matériaux de haute qualité</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Techniques éprouvées</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Garantie de satisfaction</strong></span></li>';
         $content .= '</ul>';
         
         $content .= '<div class="bg-green-50 p-6 rounded-lg">';
@@ -834,9 +835,9 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
         $content .= '<h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>';
         $content .= '<ul class="space-y-2 text-sm">';
-        $content .= '<li class="flex items-center"><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
-        $content .= '<li class="flex items-center"><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
-        $content .= '<li class="flex items-center"><span>Garantie de satisfaction pour un service impeccable</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Intervention rapide et efficace à ' . $city->name . '</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Disponibilité 7j/7 pour répondre à vos besoins</span></li>';
+        $content .= '<li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 flex-shrink-0"></i><span>Garantie de satisfaction pour un service impeccable</span></li>';
         $content .= '</ul>';
         $content .= '</div>';
         
