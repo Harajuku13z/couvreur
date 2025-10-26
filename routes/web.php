@@ -221,6 +221,7 @@ Route::middleware(['check.setup'])->group(function () {
             // Génération en masse (nouveau système)
             Route::get('/ads/bulk-ads', [App\Http\Controllers\Admin\BulkAdsController::class, 'index'])->name('ads.bulk-ads');
             Route::post('/ads/bulk-ads/generate', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAds'])->name('ads.bulk-ads.generate');
+            Route::post('/ads/bulk-ads/generate-keyword', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAdsByKeyword'])->name('ads.bulk-ads.generate-keyword');
             Route::get('/ads/bulk-ads/favorite-cities', [App\Http\Controllers\Admin\BulkAdsController::class, 'getFavoriteCities'])->name('ads.bulk-ads.favorite-cities');
             Route::get('/ads/bulk-ads/cities-by-region', [App\Http\Controllers\Admin\BulkAdsController::class, 'getCitiesByRegion'])->name('ads.bulk-ads.cities-by-region');
 
@@ -229,6 +230,12 @@ Route::middleware(['check.setup'])->group(function () {
 
             // ===== ANNONCES =====
             Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('admin.ads.index');
+            
+            // Pages d'interface pour la génération d'annonces
+            Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('admin.ads.service-cities');
+            Route::get('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'index'])->name('admin.ads.keyword-cities');
+            
+            // Routes de génération
             Route::post('/ads/generate/service-cities', [App\Http\Controllers\AdGenerationController::class, 'generateByServiceCities'])->name('ads.generate.service-cities');
             Route::post('/ads/generate/keyword-cities', [App\Http\Controllers\AdGenerationController::class, 'generateByKeywordCities'])->name('ads.generate.keyword-cities');
             Route::post('/ads/generate/seo-articles', [App\Http\Controllers\AdGenerationController::class, 'generateSeoArticles'])->name('ads.generate.seo-articles');

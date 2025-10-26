@@ -2,6 +2,33 @@
 
 @section('title', 'Génération d\'Annonces en Masse')
 
+@push('head')
+<style>
+.tab-button {
+    border-bottom: 2px solid transparent;
+    color: #6b7280;
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-button.active {
+    border-bottom-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.tab-button:hover {
+    color: #374151;
+}
+
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <!-- En-tête -->
@@ -49,56 +76,72 @@
         </div>
     </div>
 
-    <!-- Formulaire de génération -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Configuration de la Génération en Masse</h2>
-            <p class="text-sm text-gray-600 mt-1">Ce système crée automatiquement des annonces pour toutes les villes avec un template personnalisé</p>
+    <!-- Onglets -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button id="services-tab" class="tab-button active py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap" data-tab="services">
+                    <i class="fas fa-tools mr-2"></i>Par Services
+                </button>
+                <button id="keywords-tab" class="tab-button py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap" data-tab="keywords">
+                    <i class="fas fa-key mr-2"></i>Par Mots-clés
+                </button>
+            </nav>
         </div>
-        
-        <form id="bulk-ads-form" class="p-6">
-            @csrf
+    </div>
+
+    <!-- Contenu des onglets -->
+    <div class="bg-white rounded-lg shadow">
+        <!-- Onglet Services -->
+        <div id="services-content" class="tab-content">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Génération par Services</h2>
+                <p class="text-sm text-gray-600 mt-1">Créez automatiquement des annonces pour un service sur toutes les villes</p>
+            </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Colonne gauche -->
-                <div class="space-y-6">
-                    <!-- Service -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Service</label>
-                        <select name="service_slug" id="service-select" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Sélectionner un service</option>
-                            @foreach($services as $service)
-                                <option value="{{ $service['slug'] }}">{{ $service['name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Scope des villes -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Portée des Villes</label>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="radio" name="city_scope" value="favorites" checked class="mr-3 text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700">Villes favorites uniquement ({{ count($favoriteCities) }} villes)</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="city_scope" value="all" class="mr-3 text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700">Toutes les villes ({{ $cities->count() }} villes)</span>
-                            </label>
+            <form id="bulk-ads-form" class="p-6">
+                @csrf
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Colonne gauche -->
+                    <div class="space-y-6">
+                        <!-- Service -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Service</label>
+                            <select name="service_slug" id="service-select" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Sélectionner un service</option>
+                                @foreach($services as $service)
+                                    <option value="{{ $service['slug'] }}">{{ $service['name'] }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                    </div>
 
-                    <!-- Taille du batch -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Taille du Batch</label>
-                        <select name="batch_size" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="5">5 annonces par batch</option>
-                            <option value="10" selected>10 annonces par batch</option>
-                            <option value="20">20 annonces par batch</option>
-                            <option value="50">50 annonces par batch</option>
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Plus le batch est petit, plus la génération est stable</p>
-                    </div>
+                        <!-- Scope des villes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Portée des Villes</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="radio" name="city_scope" value="favorites" checked class="mr-3 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Villes favorites uniquement ({{ count($favoriteCities) }} villes)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="city_scope" value="all" class="mr-3 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Toutes les villes ({{ $cities->count() }} villes)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Taille du batch -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Taille du Batch</label>
+                            <select name="batch_size" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="5">5 annonces par batch</option>
+                                <option value="10" selected>10 annonces par batch</option>
+                                <option value="20">20 annonces par batch</option>
+                                <option value="50">50 annonces par batch</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Plus le batch est petit, plus la génération est stable</p>
+                        </div>
                 </div>
 
                 <!-- Colonne droite -->
@@ -142,6 +185,97 @@
                 </div>
             </div>
         </form>
+        </div>
+
+        <!-- Onglet Mots-clés -->
+        <div id="keywords-content" class="tab-content hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Génération par Mots-clés</h2>
+                <p class="text-sm text-gray-600 mt-1">Créez automatiquement des annonces pour un mot-clé sur toutes les villes</p>
+            </div>
+            
+            <form id="bulk-keywords-form" class="p-6">
+                @csrf
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Colonne gauche -->
+                    <div class="space-y-6">
+                        <!-- Mot-clé -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé</label>
+                            <div class="flex space-x-2">
+                                <select id="keyword-select" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Sélectionner un mot-clé prédéfini</option>
+                                    <option value="couverture">Couverture</option>
+                                    <option value="toiture">Toiture</option>
+                                    <option value="façade">Façade</option>
+                                    <option value="isolation">Isolation</option>
+                                    <option value="hydrofuge">Hydrofuge</option>
+                                    <option value="ravalement">Ravalement</option>
+                                    <option value="peinture">Peinture</option>
+                                    <option value="enduit">Enduit</option>
+                                    <option value="bardage">Bardage</option>
+                                    <option value="charpente">Charpente</option>
+                                </select>
+                                <span class="text-gray-500 self-center">ou</span>
+                                <input type="text" id="keyword-custom" name="keyword" placeholder="Saisir un mot-clé personnalisé" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                            </div>
+                        </div>
+
+                        <!-- Scope des villes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Portée des Villes</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="radio" name="keyword_city_scope" value="favorites" checked class="mr-3 text-green-600 focus:ring-green-500">
+                                    <span class="text-sm text-gray-700">Villes favorites uniquement ({{ count($favoriteCities) }} villes)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="keyword_city_scope" value="all" class="mr-3 text-green-600 focus:ring-green-500">
+                                    <span class="text-sm text-gray-700">Toutes les villes ({{ $cities->count() }} villes)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Taille du batch -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Taille du Batch</label>
+                            <select name="keyword_batch_size" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="5">5 annonces par batch</option>
+                                <option value="10" selected>10 annonces par batch</option>
+                                <option value="20">20 annonces par batch</option>
+                                <option value="50">50 annonces par batch</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Plus le batch est petit, plus la génération est stable</p>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="space-y-6">
+                        <!-- Prompt IA personnalisé -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Prompt IA Personnalisé (Optionnel)</label>
+                            <textarea name="keyword_ai_prompt" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Instructions spécifiques pour l'IA..."></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Laissez vide pour utiliser le prompt par défaut</p>
+                        </div>
+
+                        <!-- Estimation -->
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-green-800 mb-2">Estimation</h3>
+                            <p id="keyword-estimated-count" class="text-sm text-green-700">Saisissez un mot-clé pour voir le nombre d'annonces à créer</p>
+                        </div>
+
+                        <!-- Bouton de génération -->
+                        <div class="pt-4">
+                            <button type="submit" id="generate-keywords-btn" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-magic mr-2"></i>
+                                Générer les Annonces par Mots-clés
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Zone de progression -->
@@ -176,6 +310,38 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des onglets
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Retirer la classe active de tous les boutons
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Ajouter la classe active au bouton cliqué
+            this.classList.add('active', 'border-blue-500', 'text-blue-600');
+            this.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Masquer tous les contenus
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Afficher le contenu correspondant
+            const targetContent = document.getElementById(targetTab + '-content');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Formulaire Services
     const form = document.getElementById('bulk-ads-form');
     const serviceSelect = document.getElementById('service-select');
     const cityScopeRadios = document.querySelectorAll('input[name="city_scope"]');
@@ -340,6 +506,177 @@ document.addEventListener('DOMContentLoaded', function() {
         .finally(() => {
             generateBtn.disabled = false;
             generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
+        });
+    });
+
+    // Formulaire Mots-clés
+    const keywordsForm = document.getElementById('bulk-keywords-form');
+    const keywordSelect = document.getElementById('keyword-select');
+    const keywordCustom = document.getElementById('keyword-custom');
+    const keywordCityScopeRadios = document.querySelectorAll('input[name="keyword_city_scope"]');
+    const keywordEstimatedCount = document.getElementById('keyword-estimated-count');
+    const generateKeywordsBtn = document.getElementById('generate-keywords-btn');
+
+    // Synchroniser les champs de mot-clé
+    keywordSelect.addEventListener('change', function() {
+        if (this.value) {
+            keywordCustom.value = this.value;
+            updateKeywordEstimatedCount();
+        }
+    });
+
+    keywordCustom.addEventListener('input', function() {
+        if (this.value) {
+            keywordSelect.value = '';
+        }
+        updateKeywordEstimatedCount();
+    });
+
+    // Mettre à jour le nombre estimé d'annonces pour les mots-clés
+    function updateKeywordEstimatedCount() {
+        const keyword = keywordCustom.value.trim();
+        const cityScope = document.querySelector('input[name="keyword_city_scope"]:checked').value;
+        
+        if (!keyword) {
+            keywordEstimatedCount.textContent = 'Saisissez un mot-clé pour voir le nombre d\'annonces à créer';
+            return;
+        }
+
+        const cityCount = cityScope === 'all' ? {{ $cities->count() }} : {{ count($favoriteCities) }};
+        keywordEstimatedCount.textContent = `Environ ${cityCount} annonces seront créées pour le mot-clé "${keyword}"`;
+    }
+
+    // Événements pour les mots-clés
+    keywordCityScopeRadios.forEach(radio => {
+        radio.addEventListener('change', updateKeywordEstimatedCount);
+    });
+
+    // Soumission du formulaire mots-clés
+    keywordsForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(keywordsForm);
+        const keyword = formData.get('keyword');
+        const cityScope = formData.get('keyword_city_scope');
+        const batchSize = formData.get('keyword_batch_size');
+        const aiPrompt = formData.get('keyword_ai_prompt');
+
+        if (!keyword || !keyword.trim()) {
+            alert('Veuillez saisir un mot-clé');
+            return;
+        }
+
+        // Afficher la progression
+        progressSection.classList.remove('hidden');
+        resultsSection.classList.add('hidden');
+        generateKeywordsBtn.disabled = true;
+        generateKeywordsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+
+        // Simuler la progression
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            progressDetails.textContent = `Génération des annonces pour le mot-clé "${keyword}"...`;
+        }, 500);
+
+        // Envoyer la requête
+        fetch('{{ route("ads.bulk-ads.generate-keyword") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            
+            if (data.success) {
+                progressDetails.textContent = 'Génération terminée avec succès !';
+                
+                // Afficher les résultats
+                resultsSection.classList.remove('hidden');
+                resultsContent.innerHTML = `
+                    <div class="bg-green-50 border border-green-200 rounded-md p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-green-800">Génération réussie !</h4>
+                                <p class="text-sm text-green-700 mt-1">${data.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-plus-circle text-blue-600 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-blue-800">Annonces créées</p>
+                                    <p class="text-2xl font-bold text-blue-900">${data.data.created_ads}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-skip-forward text-yellow-600 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-yellow-800">Annonces ignorées</p>
+                                    <p class="text-2xl font-bold text-yellow-900">${data.data.skipped_ads}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-red-800">Erreurs</p>
+                                    <p class="text-2xl font-bold text-red-900">${data.data.errors_count}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                progressDetails.textContent = 'Erreur lors de la génération';
+                resultsSection.classList.remove('hidden');
+                resultsContent.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-red-800">Erreur</h4>
+                                <p class="text-sm text-red-700 mt-1">${data.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            progressDetails.textContent = 'Erreur lors de la génération';
+            resultsSection.classList.remove('hidden');
+            resultsContent.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-red-800">Erreur</h4>
+                            <p class="text-sm text-red-700 mt-1">Une erreur est survenue lors de la génération</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .finally(() => {
+            generateKeywordsBtn.disabled = false;
+            generateKeywordsBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Générer les Annonces par Mots-clés';
         });
     });
 });

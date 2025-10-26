@@ -1,355 +1,240 @@
 @extends('layouts.admin')
 
-@section('title', 'Mot-clé + Villes')
+@section('title', 'Génération d\'annonces par Mots-clés et Villes')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-10">
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Mot-clé + Villes</h1>
-            <p class="text-gray-600 mt-2">Générez des annonces basées sur des mots-clés spécifiques dans plusieurs villes</p>
-        </div>
-        <div class="flex space-x-4">
-            <a href="/admin/ads" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
-                Retour aux annonces
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">
+                <i class="fas fa-key mr-2 text-green-600"></i>
+                Génération d'annonces par Mots-clés et Villes
+            </h1>
+            <a href="{{ route('admin.ads.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                <i class="fas fa-arrow-left mr-2"></i>Retour
             </a>
         </div>
-    </div>
 
-    @if(session('success'))
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-green-800">{{ session('success') }}</h3>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-red-800">{{ session('error') }}</h3>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('errors'))
-        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 class="text-sm font-medium text-yellow-800 mb-2">Erreurs rencontrées :</h3>
-            <ul class="text-sm text-yellow-700 list-disc list-inside">
-                @foreach(session('errors') as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <!-- Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Total Villes</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $totalCities }}</p>
+                    <p class="text-sm text-yellow-700">
+                        <strong>Limitation :</strong> Vous pouvez sélectionner un maximum de <strong>2 villes</strong> pour la génération d'annonces.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Villes Favorites</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $favoriteCount }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Annonces</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $totalAds }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Mots-clés</p>
-                    <p class="text-2xl font-semibold text-gray-900">SEO</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Formulaire de génération -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Configuration Mot-clé + Villes</h2>
-        </div>
-        
-        <form method="POST" action="{{ route('admin.ads.keyword-cities.generate') }}" class="p-6">
+        <form id="keywordCitiesForm" class="space-y-6">
             @csrf
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Colonne gauche -->
-                <div class="space-y-6">
-                    <!-- Mots-clés -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mots-clés SEO</label>
-                        <input type="text" name="keywords" id="keywords-input" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: couvreur, toiture, réparation, devis" required>
-                        <p class="text-sm text-gray-500 mt-1">Séparez les mots-clés par des virgules</p>
-                    </div>
-
-                </div>
-
-                <!-- Colonne droite -->
-                <div class="space-y-6">
-                    <!-- Filtrage des villes -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrer les villes</label>
-                        <div class="space-y-3">
-                            <div class="flex space-x-4">
-                                <button type="button" id="show-favorites" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
-                                    Villes favorites
-                                </button>
-                                <button type="button" id="show-all" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
-                                    Toutes les villes
-                                </button>
-                            </div>
-                            
-                            <div>
-                                <select id="region-filter" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Toutes les régions</option>
-                                    @foreach($regions as $region)
-                                        <option value="{{ $region }}">{{ $region }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sélection des villes -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Villes sélectionnées</label>
-                        <div id="cities-container" class="border border-gray-300 rounded-md p-4 max-h-64 overflow-y-auto">
-                            <p class="text-gray-500 text-center py-4">Sélectionnez des villes à droite</p>
-                        </div>
-                        <input type="hidden" name="selected_cities_json" id="selected-cities-json" value="">
-                    </div>
+            <!-- Sélection du mot-clé -->
+            <div>
+                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-key mr-1"></i>Mot-clé
+                </label>
+                <div class="flex space-x-2">
+                    <select id="keyword_select" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="">Sélectionner un mot-clé prédéfini</option>
+                        @foreach($keywords as $keyword)
+                            <option value="{{ $keyword }}">{{ ucfirst($keyword) }}</option>
+                        @endforeach
+                    </select>
+                    <span class="text-gray-500 self-center">ou</span>
+                    <input type="text" id="keyword_custom" name="keyword" placeholder="Saisir un mot-clé personnalisé" class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
                 </div>
             </div>
 
-            <!-- Boutons d'action -->
-            <div class="mt-8 flex justify-end space-x-4">
-                <button type="submit" id="generate-btn" class="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span id="generate-text">Générer les annonces</span>
-                    <span id="generate-loading" style="display: none;">Génération en cours...</span>
+            <!-- Sélection des villes (limité à 2) -->
+            <div>
+                <label for="cities" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-map-marker-alt mr-1"></i>Villes (Maximum 2)
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($cities as $city)
+                        <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" name="cities[]" value="{{ $city->id }}" class="city-checkbox rounded border-gray-300 text-green-600 focus:ring-green-500" data-city-name="{{ $city->name }}">
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">{{ $city->name }}</div>
+                                <div class="text-xs text-gray-500">{{ $city->postal_code }} - {{ $city->department }}</div>
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                    <span id="selected-count">0</span> ville(s) sélectionnée(s) sur 2 maximum
+                </div>
+            </div>
+
+            <!-- Options de génération -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">
+                    <i class="fas fa-cog mr-2"></i>Options de génération
+                </h3>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="generate_meta" value="1" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Générer les métadonnées SEO</span>
+                    </label>
+                    
+                    <label class="flex items-center">
+                        <input type="checkbox" name="generate_content" value="1" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Générer le contenu HTML</span>
+                    </label>
+                    
+                    <label class="flex items-center">
+                        <input type="checkbox" name="publish_immediately" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Publier immédiatement</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Bouton de génération -->
+            <div class="flex justify-end">
+                <button type="submit" id="generateBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-magic mr-2"></i>
+                    Générer les annonces
                 </button>
             </div>
         </form>
+
+        <!-- Zone de résultats -->
+        <div id="results" class="mt-8 hidden">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+                <i class="fas fa-check-circle mr-2 text-green-600"></i>Résultats
+            </h3>
+            <div id="results-content" class="bg-gray-50 p-4 rounded-lg"></div>
+        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const keywordsInput = document.getElementById('keywords-input');
-    const regionFilter = document.getElementById('region-filter');
-    const citiesContainer = document.getElementById('cities-container');
-    const selectedCitiesInput = document.getElementById('selected-cities');
-    const showFavoritesBtn = document.getElementById('show-favorites');
-    const showAllBtn = document.getElementById('show-all');
-    const generateBtn = document.getElementById('generate-btn');
-    const generateText = document.getElementById('generate-text');
-    const generateLoading = document.getElementById('generate-loading');
-    
-    let allCities = [];
-    let filteredCities = [];
-    let selectedCities = [];
-    
-    // Charger les villes favorites
-    showFavoritesBtn.addEventListener('click', function() {
-        loadFavoriteCities();
-    });
-    
-    // Charger toutes les villes
-    showAllBtn.addEventListener('click', function() {
-        loadAllCities();
-    });
-    
-    // Filtrage par région
-    regionFilter.addEventListener('change', function() {
+    const cityCheckboxes = document.querySelectorAll('.city-checkbox');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const generateBtn = document.getElementById('generateBtn');
+    const form = document.getElementById('keywordCitiesForm');
+    const results = document.getElementById('results');
+    const resultsContent = document.getElementById('results-content');
+    const keywordSelect = document.getElementById('keyword_select');
+    const keywordCustom = document.getElementById('keyword_custom');
+
+    // Synchroniser les champs de mot-clé
+    keywordSelect.addEventListener('change', function() {
         if (this.value) {
-            loadCitiesByRegion(this.value);
-        } else {
-            displayCities(allCities);
+            keywordCustom.value = this.value;
         }
     });
-    
-    // Fonction pour charger les villes favorites
-    function loadFavoriteCities() {
-        fetch('/admin/ads/keyword-cities/favorite-cities')
-            .then(response => response.json())
-            .then(data => {
-                allCities = data.cities;
-                filteredCities = data.cities;
-                displayCities(data.cities);
-            })
-            .catch(error => {
-                console.error('Error loading favorite cities:', error);
-            });
-    }
-    
-    // Fonction pour charger toutes les villes
-    function loadAllCities() {
-        // Pour l'instant, on charge les favorites par défaut
-        // TODO: Implémenter le chargement de toutes les villes
-        loadFavoriteCities();
-    }
-    
-    // Fonction pour charger les villes par région
-    function loadCitiesByRegion(region) {
-        fetch(`/admin/ads/keyword-cities/cities-by-region?region=${encodeURIComponent(region)}`)
-            .then(response => response.json())
-            .then(data => {
-                filteredCities = data.cities;
-                displayCities(data.cities);
-            })
-            .catch(error => {
-                console.error('Error loading cities by region:', error);
-            });
-    }
-    
-    // Fonction pour afficher les villes
-    function displayCities(cities) {
-        citiesContainer.innerHTML = '';
+
+    keywordCustom.addEventListener('input', function() {
+        if (this.value) {
+            keywordSelect.value = '';
+        }
+    });
+
+    // Limiter la sélection à 2 villes maximum
+    cityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+            
+            if (checkedBoxes.length > 2) {
+                this.checked = false;
+                alert('Vous ne pouvez sélectionner que 2 villes maximum.');
+                return;
+            }
+            
+            updateSelectedCount();
+        });
+    });
+
+    function updateSelectedCount() {
+        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+        selectedCountSpan.textContent = checkedBoxes.length;
         
-        if (cities.length === 0) {
-            citiesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune ville trouvée</p>';
+        // Activer/désactiver le bouton selon le nombre de sélections
+        generateBtn.disabled = checkedBoxes.length === 0 || !keywordCustom.value.trim();
+    }
+
+    // Vérifier la validité du formulaire
+    keywordCustom.addEventListener('input', updateSelectedCount);
+
+    // Gestion du formulaire
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const checkedBoxes = document.querySelectorAll('.city-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+            alert('Veuillez sélectionner au moins une ville.');
             return;
         }
         
-        cities.forEach(city => {
-            const cityDiv = document.createElement('div');
-            cityDiv.className = 'flex items-center justify-between p-2 border border-gray-200 rounded mb-2';
-            cityDiv.innerHTML = `
-                <div class="flex items-center">
-                    <input type="checkbox" id="city-${city.id}" value="${city.id}" class="city-checkbox mr-2">
-                    <label for="city-${city.id}" class="text-sm">
-                        <span class="font-medium">${city.name}</span>
-                        <span class="text-gray-500">(${city.postal_code})</span>
-                        ${city.is_favorite ? '<span class="ml-2 text-yellow-500">⭐</span>' : ''}
-                    </label>
+        if (checkedBoxes.length > 2) {
+            alert('Vous ne pouvez sélectionner que 2 villes maximum.');
+            return;
+        }
+        
+        if (!keywordCustom.value.trim()) {
+            alert('Veuillez saisir un mot-clé.');
+            return;
+        }
+        
+        // Désactiver le bouton pendant la génération
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+        
+        // Afficher les résultats
+        results.classList.remove('hidden');
+        resultsContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-green-600"></i><p class="mt-2">Génération des annonces en cours...</p></div>';
+        
+        // Envoyer la requête
+        fetch('{{ route("ads.generate.keyword-cities") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultsContent.innerHTML = `
+                    <div class="text-green-600">
+                        <i class="fas fa-check-circle text-2xl mb-2"></i>
+                        <p class="font-medium">${data.message}</p>
+                        <p class="text-sm mt-1">${data.count} annonce(s) générée(s) avec succès.</p>
+                    </div>
+                `;
+            } else {
+                resultsContent.innerHTML = `
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                        <p class="font-medium">Erreur lors de la génération</p>
+                        <p class="text-sm mt-1">${data.message}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            resultsContent.innerHTML = `
+                <div class="text-red-600">
+                    <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                    <p class="font-medium">Erreur lors de la génération</p>
+                    <p class="text-sm mt-1">Une erreur est survenue. Veuillez réessayer.</p>
                 </div>
             `;
-            
-            citiesContainer.appendChild(cityDiv);
+        })
+        .finally(() => {
+            // Réactiver le bouton
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Générer les annonces';
         });
-        
-        // Ajouter les event listeners pour les checkboxes
-        document.querySelectorAll('.city-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', updateSelectedCities);
-        });
-    }
-    
-    // Fonction pour mettre à jour les villes sélectionnées
-    function updateSelectedCities() {
-        const checkboxes = document.querySelectorAll('.city-checkbox:checked');
-        selectedCities = Array.from(checkboxes).map(cb => cb.value);
-        
-        // Mettre à jour l'input caché avec le JSON des villes sélectionnées
-        document.getElementById('selected-cities-json').value = JSON.stringify(selectedCities);
-        
-        // Mettre à jour le bouton de génération
-        generateBtn.disabled = selectedCities.length === 0;
-    }
-    
-    // Gestion du formulaire
-    document.querySelector('form').addEventListener('submit', function(e) {
-        // Mettre à jour les villes sélectionnées avant la soumission
-        updateSelectedCities();
-        
-        if (selectedCities.length === 0) {
-            e.preventDefault();
-            alert('Veuillez sélectionner au moins une ville');
-            return;
-        }
-        
-        if (!keywordsInput.value.trim()) {
-            e.preventDefault();
-            alert('Veuillez saisir des mots-clés');
-            return;
-        }
-        
-        // Afficher le loading complet
-        generateBtn.disabled = true;
-        generateText.style.display = 'none';
-        generateLoading.style.display = 'inline';
-        
-        // Afficher un loader overlay
-        showLoadingOverlay();
     });
-    
-    // Fonction pour afficher le loader overlay
-    function showLoadingOverlay() {
-        const overlay = document.createElement('div');
-        overlay.id = 'loading-overlay';
-        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        overlay.innerHTML = `
-            <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Génération en cours...</h3>
-                <p class="text-gray-600">Création des annonces pour ${selectedCities.length} ville(s)</p>
-                <p class="text-sm text-gray-500 mt-2">Veuillez patienter, cela peut prendre quelques minutes.</p>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    }
-    
-    // Charger les villes favorites par défaut
-    loadFavoriteCities();
 });
 </script>
 @endsection
