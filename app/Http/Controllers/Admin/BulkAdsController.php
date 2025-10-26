@@ -356,8 +356,8 @@ class BulkAdsController extends Controller
     {
         $request->validate([
             'keyword' => 'required|string|max:100',
-            'ai_prompt' => 'nullable|string|max:5000',
-            'batch_size' => 'nullable|integer|min:1|max:100',
+            'keyword_ai_prompt' => 'nullable|string|max:5000',
+            'keyword_batch_size' => 'nullable|integer|min:1|max:100',
             'include_all_cities' => 'boolean'
         ]);
 
@@ -369,11 +369,18 @@ class BulkAdsController extends Controller
                 $cities = City::orderBy('name')->get();
             } else {
                 $favoriteCityIds = Setting::get('favorite_cities', []);
-                $cities = City::whereIn('id', $favoriteCityIds)->orderBy('name')->get();
+                
+                // Si pas de villes favorites configurées, utiliser les 10 premières villes
+                if (empty($favoriteCityIds)) {
+                    $cities = City::orderBy('name')->take(10)->get();
+                    Log::info('Aucune ville favorite configurée, utilisation des 10 premières villes');
+                } else {
+                    $cities = City::whereIn('id', $favoriteCityIds)->orderBy('name')->get();
+                }
             }
 
-            $batchSize = $request->input('batch_size', 10);
-            $aiPrompt = $request->input('ai_prompt');
+            $batchSize = $request->input('keyword_batch_size', 10);
+            $aiPrompt = $request->input('keyword_ai_prompt');
             
             Log::info('Début génération en masse par mot-clé', [
                 'keyword' => $keyword,

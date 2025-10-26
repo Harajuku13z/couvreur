@@ -599,10 +599,18 @@ document.addEventListener('DOMContentLoaded', function() {
             progressDetails.textContent = `Génération des annonces pour le mot-clé "${keyword}"...`;
         }, 500);
 
+        // Préparer les données pour l'envoi
+        const requestData = new FormData();
+        requestData.append('keyword', keyword);
+        requestData.append('keyword_batch_size', batchSize);
+        requestData.append('keyword_ai_prompt', aiPrompt);
+        requestData.append('include_all_cities', cityScope === 'all' ? '1' : '0');
+        requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
         // Envoyer la requête
         fetch('{{ route("admin.ads.bulk-ads.generate-keyword") }}', {
             method: 'POST',
-            body: formData,
+            body: requestData,
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
