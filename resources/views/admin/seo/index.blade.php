@@ -164,6 +164,65 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Sitemap XML</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="sitemap_enabled" value="1" 
+                               {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'checked' : '' }}
+                               class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <span class="text-sm font-medium text-gray-700">Activer le sitemap XML</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Le sitemap sera accessible à /sitemap.xml</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="sitemap_priority" class="block text-sm font-medium mb-2">Priorité par défaut</label>
+                    <select name="sitemap_priority" id="sitemap_priority" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="0.1" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.1 ? 'selected' : '' }}>0.1 (Très faible)</option>
+                        <option value="0.3" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.3 ? 'selected' : '' }}>0.3 (Faible)</option>
+                        <option value="0.5" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.5 ? 'selected' : '' }}>0.5 (Moyenne)</option>
+                        <option value="0.7" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.7 ? 'selected' : '' }}>0.7 (Élevée)</option>
+                        <option value="0.8" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.8 ? 'selected' : '' }}>0.8 (Très élevée)</option>
+                        <option value="1.0" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 1.0 ? 'selected' : '' }}>1.0 (Maximum)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="sitemap_changefreq" class="block text-sm font-medium mb-2">Fréquence de mise à jour</label>
+                    <select name="sitemap_changefreq" id="sitemap_changefreq" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="always" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'always' ? 'selected' : '' }}>Toujours</option>
+                        <option value="hourly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'hourly' ? 'selected' : '' }}>Horaire</option>
+                        <option value="daily" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'daily' ? 'selected' : '' }}>Quotidienne</option>
+                        <option value="weekly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'weekly' ? 'selected' : '' }}>Hebdomadaire</option>
+                        <option value="monthly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'monthly' ? 'selected' : '' }}>Mensuelle</option>
+                        <option value="yearly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'yearly' ? 'selected' : '' }}>Annuelle</option>
+                        <option value="never" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'never' ? 'selected' : '' }}>Jamais</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ url('/sitemap.xml') }}" target="_blank" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-external-link-alt mr-2"></i>Voir le sitemap
+                        </a>
+                        <span class="text-sm text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Le sitemap est actuellement 
+                            <span class="font-medium {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'text-green-600' : 'text-red-600' }}">
+                                {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'activé' : 'désactivé' }}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">Données Structurées</h2>
             
             <div class="mb-4">

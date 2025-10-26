@@ -86,6 +86,7 @@ class SeoController extends Controller
             'google_ads' => 'nullable|string|max:50',
             'bing_webmaster' => 'nullable|string|max:500',
             'schema_markup' => 'nullable|string',
+            'sitemap_enabled' => 'nullable|boolean',
             'sitemap_priority' => 'nullable|numeric|min:0|max:1',
             'sitemap_changefreq' => 'nullable|string|in:always,hourly,daily,weekly,monthly,yearly,never'
         ]);
@@ -243,7 +244,7 @@ class SeoController extends Controller
         $seoConfigData = Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
         
-        // Valeurs par défaut pour le sitemap
+        // Valeurs par défaut pour le sitemap - FORCER L'ACTIVATION
         $defaults = [
             'sitemap_enabled' => true,
             'sitemap_priority' => 0.8,
@@ -252,6 +253,7 @@ class SeoController extends Controller
         
         $seoConfig = array_merge($defaults, $seoConfig);
         
+        // Vérifier si le sitemap est activé
         if (!$seoConfig['sitemap_enabled']) {
             return response('Sitemap désactivé', 404);
         }
