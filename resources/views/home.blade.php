@@ -134,13 +134,13 @@
 @section('content')
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile pb-16" 
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile pt-16 pb-16" 
              @if($homeConfig['hero']['background_image'] ?? null)
              style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
              @else
              style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
              @endif>
-        <div class="container mx-auto px-4 text-center text-white relative z-10">
+        <div class="container mx-auto px-4 text-center text-white relative z-10 pt-8">
             <!-- Trust Badges -->
             @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
             <div class="flex justify-center items-center gap-6 mb-8 flex-wrap px-4">
