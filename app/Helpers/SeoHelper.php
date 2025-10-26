@@ -7,6 +7,23 @@ use App\Models\Setting;
 class SeoHelper
 {
     /**
+     * Convertir un chemin d'image en URL complète
+     */
+    private static function getImageUrl($imagePath)
+    {
+        if (empty($imagePath)) {
+            return null;
+        }
+        
+        // Si c'est déjà une URL complète, la retourner telle quelle
+        if (str_starts_with($imagePath, 'http')) {
+            return $imagePath;
+        }
+        
+        // Sinon, générer l'URL complète
+        return url($imagePath);
+    }
+    /**
      * Obtenir les métadonnées SEO pour une page spécifique
      */
     public static function getPageSeo($pageName, $fallback = [])
@@ -42,12 +59,12 @@ class SeoHelper
             'description' => $seo['meta_description'] ?: ($customData['description'] ?? ''),
             'og:title' => $seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? '')),
             'og:description' => $seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? '')),
-            'og:image' => $seo['og_image'] ? asset($seo['og_image']) : ($customData['image'] ?? asset('images/og-default.jpg')),
+            'og:image' => self::getImageUrl($seo['og_image']) ?: self::getImageUrl($customData['image'] ?? 'images/og-default.jpg'),
             'og:url' => request()->url(),
             'og:type' => $customData['type'] ?? 'website',
             'twitter:title' => $seo['twitter_title'] ?: ($seo['og_title'] ?: ($seo['meta_title'] ?: ($customData['title'] ?? ''))),
             'twitter:description' => $seo['twitter_description'] ?: ($seo['og_description'] ?: ($seo['meta_description'] ?: ($customData['description'] ?? ''))),
-            'twitter:image' => $seo['twitter_image'] ? asset($seo['twitter_image']) : ($seo['og_image'] ? asset($seo['og_image']) : ($customData['image'] ?? asset('images/og-default.jpg'))),
+            'twitter:image' => self::getImageUrl($seo['twitter_image']) ?: self::getImageUrl($seo['og_image']) ?: self::getImageUrl($customData['image'] ?? 'images/og-default.jpg'),
         ];
         
         return $meta;
