@@ -411,8 +411,7 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
     <!-- Champ 1 : Introduction / description courte + longue -->
     <div class=\"space-y-4\">
       <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} en 250 caractères maximum]</p>
-      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$serviceName}, bénéfices, explications, lien 'En savoir plus']</p>
-      <a href=\"[Lien détaillé]\" class=\"text-blue-600 hover:underline\">En savoir plus</a>
+      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$serviceName}, bénéfices, explications techniques, avantages, matériaux utilisés]</p>
     </div>
 
     <!-- Champ 2 : Engagement / garanties -->
@@ -522,28 +521,20 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 
     <!-- Champ 10 : Partage social -->
     <div class=\"mt-8 pt-6 border-t border-gray-200\">
-      <div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\">
-        <span class=\"text-sm font-medium text-gray-700 mr-3\"><i class=\"fas fa-share-alt mr-2\"></i>Partager cet article :</span>
-        <div class=\"flex items-center space-x-3\">
-          <a href=\"https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
-            <i class=\"fab fa-facebook-f\"></i>
-            <span class=\"hidden sm:inline\">Facebook</span>
+      <div class=\"text-center\">
+        <h4 class=\"text-lg font-semibold text-gray-800 mb-4\">Partager ce service</h4>
+        <div class=\"flex justify-center items-center space-x-4\">
+          <a href=\"https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
+            <i class=\"fab fa-facebook-f text-lg\"></i>
+            <span class=\"font-medium\">Facebook</span>
           </a>
-          <a href=\"https://twitter.com/intent/tweet?url=[URL]&text=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
-            <i class=\"fab fa-twitter\"></i>
-            <span class=\"hidden sm:inline\">Twitter</span>
+          <a href=\"https://wa.me/?text=[TITRE] - [URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
+            <i class=\"fab fa-whatsapp text-lg\"></i>
+            <span class=\"font-medium\">WhatsApp</span>
           </a>
-          <a href=\"https://www.linkedin.com/sharing/share-offsite/?url=[URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
-            <i class=\"fab fa-linkedin-in\"></i>
-            <span class=\"hidden sm:inline\">LinkedIn</span>
-          </a>
-          <a href=\"https://wa.me/?text=[TITRE] - [URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
-            <i class=\"fab fa-whatsapp\"></i>
-            <span class=\"hidden sm:inline\">WhatsApp</span>
-          </a>
-          <a href=\"mailto:?subject=[TITRE]&body=Je vous partage cet article intéressant : [URL]\" class=\"bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
-            <i class=\"fas fa-envelope\"></i>
-            <span class=\"hidden sm:inline\">Email</span>
+          <a href=\"mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]\" class=\"bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
+            <i class=\"fas fa-envelope text-lg\"></i>
+            <span class=\"font-medium\">Email</span>
           </a>
         </div>
       </div>
@@ -565,12 +556,15 @@ INSTRUCTIONS IMPORTANTES:
 - GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
 - PERSONNALISE chaque prestation selon le type de service
 - UTILISE un vocabulaire technique approprié au secteur
+- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
+- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service
+- NE PAS inclure de bouton "En savoir plus" ou lien externe dans le contenu
 
 RÉPONSE FORMAT JSON:
 {
   \"description\": \"[HTML complet avec structure exacte]\",
   \"short_description\": \"[Description courte 120-140 caractères]\",
-  \"long_description\": \"[Longue description générale avec lien]\",
+  \"long_description\": \"[Longue description détaillée du service, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
   \"icon\": \"fas fa-[icône appropriée]\",
   \"meta_title\": \"[Titre SEO 50-60 caractères]\",
   \"meta_description\": \"[Description SEO 150-160 caractères]\",
