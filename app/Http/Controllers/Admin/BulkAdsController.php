@@ -302,206 +302,29 @@ class BulkAdsController extends Controller
      */
     private function buildAdPrompt($serviceName, $city, $aiPrompt = null)
     {
-        $basePrompt = "Tu es un expert en rédaction web pour les services de rénovation.
+        $basePrompt = "Crée une page web pour le service {$serviceName} à {$city->name}.
 
-INFORMATIONS SUR LE SERVICE:
-- Type de service : {$serviceName}
-- Ville : {$city->name}
-- Département : " . ($city->region ?? '') . "
-- Objectif : créer un contenu web professionnel, engageant et optimisé pour le SEO, adapté à ce type de service dans cette ville spécifique.
+SERVICE: {$serviceName}
+VILLE: {$city->name}
+RÉGION: " . ($city->region ?? '') . "
 
-TÂCHE:
-Génère un contenu web complet comprenant :
-
-1. Une description courte (120-140 caractères) accrocheuse et SEO.
-2. Une longue description générale expliquant le service et les bénéfices pour le client.
-3. Une icône Font Awesome adaptée au service.
-4. Un titre SEO optimisé (50-60 caractères).
-5. Une description SEO (150-160 caractères).
-6. Des mots-clés pertinents séparés par des virgules.
-7. Un contenu HTML complet structuré professionnellement, avec exactement **10 champs** :
-   - **Champ 1 :** Introduction courte et longue
-   - **Champ 2 :** Engagement / garanties
-   - **Champ 3 :** Prestations / services (exactement 10 prestations spécifiques au service {$serviceName})
-   - **Champ 4 :** Pourquoi choisir ce service
-   - **Champ 5 :** Expertise / expérience
-   - **Champ 6 :** CTA : demande de devis
-   - **Champ 7 :** Informations pratiques
-   - **Champ 8 :** FAQ (3 questions-réponses minimum)
-   - **Champ 9 :** Financement / aides disponibles
-   - **Champ 10 :** Partage social
-
-STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
-<div class=\"grid md:grid-cols-2 gap-8\">
-
-  <!-- Colonne gauche : Contenu principal -->
-  <div class=\"space-y-6\">
-
-    <!-- Champ 1 : Introduction / description courte + longue -->
-    <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} à {$city->name} en 250 caractères maximum]</p>
-      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$serviceName}, bénéfices, explications techniques, avantages, matériaux utilisés, spécifique à {$city->name}]</p>
-    </div>
-
-    <!-- Champ 2 : Engagement / garanties -->
-    <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">[Titre de l'engagement ou garantie pour {$serviceName}]</h3>
-      <p class=\"leading-relaxed mb-3\">[Description de l'engagement]</p>
-      <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés]</p>
-    </div>
-
-    <!-- Champ 3 : Prestations / services -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
-    <ul class=\"space-y-3\">
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 1 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 2 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 3 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 4 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 5 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 6 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 7 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 8 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 9 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 10 spécifique à {$serviceName}]</strong> - [Description détaillée]</span>
-      </li>
-    </ul>
-
-    <!-- Champ 8 : FAQ -->
-    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">FAQ</h4>
-      <div class=\"space-y-2\">
-        <p><strong>Q1 : [Question fréquente sur {$serviceName}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-        <p><strong>Q2 : [Question fréquente sur {$serviceName}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-        <p><strong>Q3 : [Question fréquente sur {$serviceName}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Colonne droite : Informations complémentaires -->
-  <div class=\"space-y-6\">
-
-    <!-- Champ 4 : Pourquoi choisir ce service -->
-    <div class=\"bg-green-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi choisir ce service</h3>
-      <p class=\"leading-relaxed\">[Points forts et avantages du service {$serviceName} à {$city->name}]</p>
-    </div>
-
-    <!-- Champ 5 : Expertise / expérience -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
-    <p class=\"leading-relaxed\">[Description de l'expertise et expérience en {$serviceName} à {$city->name}]</p>
-
-    <!-- Champ 9 : Financement / aides disponibles -->
-    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et aides</h4>
-      <p>[Informations sur les aides financières et options de financement pour {$serviceName}]</p>
-    </div>
-
-    <!-- Champ 6 : CTA - demande de devis -->
-    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un devis ?</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour {$serviceName} à {$city->name}.</p>
-      <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
-    </div>
-
-    <!-- Champ 7 : Informations pratiques -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
-      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
-      <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 1 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 2 pour {$serviceName}]</span></li>
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 3 pour {$serviceName}]</span></li>
-      </ul>
-    </div>
-
-    <!-- Champ 10 : Partage social -->
-    <div class=\"mt-8 pt-6 border-t border-gray-200\">
-      <div class=\"text-center\">
-        <h4 class=\"text-lg font-semibold text-gray-800 mb-4\">Partager ce service</h4>
-        <div class=\"flex justify-center items-center space-x-4\">
-          <a href=\"https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fab fa-facebook-f text-lg\"></i>
-            <span class=\"font-medium\">Facebook</span>
-          </a>
-          <a href=\"https://wa.me/?text=[TITRE] - [URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fab fa-whatsapp text-lg\"></i>
-            <span class=\"font-medium\">WhatsApp</span>
-          </a>
-          <a href=\"mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]\" class=\"bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fas fa-envelope text-lg\"></i>
-            <span class=\"font-medium\">Email</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-
-INSTRUCTIONS IMPORTANTES:
-- Le contenu doit être UNIQUE, professionnel et engageant.
-- Utilise un vocabulaire technique adapté à {$serviceName}.
-- PERSONNALISE le contenu pour {$city->name} et sa région.
-- Inclue les aides financières et options de financement possibles.
-- Fournis les informations pratiques, conseils et suivi après travaux.
-- Ne mentionne jamais le nom de l'entreprise ni la localisation.
-- Garde la structure HTML exacte.
-- Génère des prestations détaillées avec descriptions explicites spécifiques à {$serviceName}.
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$serviceName}
-- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
-- REMPLACE [FORM_URL] par l'URL du formulaire de devis
-- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
-- PERSONNALISE chaque prestation selon le type de service
-- UTILISE un vocabulaire technique approprié au secteur
-- Fournis le résultat en **JSON** valide avec les champs suivants :
+GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-\"description\": \"[HTML complet avec structure exacte]\",
-\"short_description\": \"[Description courte 120-140 caractères]\",
-\"long_description\": \"[Longue description détaillée du service {$serviceName}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
-\"icon\": \"fas fa-[icône appropriée]\",
-\"meta_title\": \"[Titre SEO 50-60 caractères]\",
-\"meta_description\": \"[Description SEO 150-160 caractères]\",
-\"og_title\": \"[Titre Open Graph 50-60 caractères]\",
-\"og_description\": \"[Description Open Graph 150-160 caractères]\",
-\"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
-\"twitter_description\": \"[Description Twitter 150-160 caractères]\",
-\"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
-}";
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$serviceName} à {$city->name}, une expertise reconnue dans " . ($city->region ?? '') . ".</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$serviceName} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à {$city->name} et dans toute la région de " . ($city->region ?? '') . ".</p><p class='leading-relaxed'>Chaque intervention de {$serviceName} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$serviceName}</h3><ul class='space-y-3'><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en {$serviceName}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Intervention d'urgence</strong> - Service rapide 24h/7j pour {$serviceName}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li></ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$serviceName} à {$city->name}?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$serviceName}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$serviceName}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à {$city->name} nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur {$city->name} et sa région, développant une connaissance approfondie des besoins locaux en {$serviceName}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$serviceName} à {$city->name}.</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur {$city->name}</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"short_description\": \"Service professionnel de {$serviceName} à {$city->name} - Devis gratuit et intervention rapide\",
+  \"long_description\": \"Notre entreprise spécialisée en {$serviceName} intervient sur {$city->name} et dans toute la région de " . ($city->region ?? '') . ". Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
+  \"icon\": \"fas fa-tools\",
+  \"meta_title\": \"{$serviceName} à {$city->name} - Service professionnel\",
+  \"meta_description\": \"Service professionnel de {$serviceName} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"og_title\": \"{$serviceName} à {$city->name} - Service professionnel\",
+  \"og_description\": \"Service professionnel de {$serviceName} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"twitter_title\": \"{$serviceName} à {$city->name} - Service professionnel\",
+  \"twitter_description\": \"Service professionnel de {$serviceName} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"meta_keywords\": \"{$serviceName}, {$city->name}, " . ($city->region ?? '') . ", service professionnel, devis gratuit\"
+}
+
+IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentaire.";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
@@ -883,206 +706,29 @@ INSTRUCTIONS IMPORTANTES:
      */
     private function buildKeywordAdPrompt($keyword, $city, $aiPrompt = null)
     {
-        $basePrompt = "Tu es un expert en rédaction web pour les services de rénovation.
+        $basePrompt = "Crée une page web pour le service {$keyword} à {$city->name}.
 
-INFORMATIONS SUR LE SERVICE:
-- Type de service : {$keyword}
-- Ville : {$city->name}
-- Département : " . ($city->region ?? '') . "
-- Objectif : créer un contenu web professionnel, engageant et optimisé pour le SEO, adapté à ce type de service dans cette ville spécifique.
+SERVICE: {$keyword}
+VILLE: {$city->name}
+RÉGION: " . ($city->region ?? '') . "
 
-TÂCHE:
-Génère un contenu web complet comprenant :
-
-1. Une description courte (120-140 caractères) accrocheuse et SEO.
-2. Une longue description générale expliquant le service et les bénéfices pour le client.
-3. Une icône Font Awesome adaptée au service.
-4. Un titre SEO optimisé (50-60 caractères).
-5. Une description SEO (150-160 caractères).
-6. Des mots-clés pertinents séparés par des virgules.
-7. Un contenu HTML complet structuré professionnellement, avec exactement **10 champs** :
-   - **Champ 1 :** Introduction courte et longue
-   - **Champ 2 :** Engagement / garanties
-   - **Champ 3 :** Prestations / services (exactement 10 prestations spécifiques au service {$keyword})
-   - **Champ 4 :** Pourquoi choisir ce service
-   - **Champ 5 :** Expertise / expérience
-   - **Champ 6 :** CTA : demande de devis
-   - **Champ 7 :** Informations pratiques
-   - **Champ 8 :** FAQ (3 questions-réponses minimum)
-   - **Champ 9 :** Financement / aides disponibles
-   - **Champ 10 :** Partage social
-
-STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
-<div class=\"grid md:grid-cols-2 gap-8\">
-
-  <!-- Colonne gauche : Contenu principal -->
-  <div class=\"space-y-6\">
-
-    <!-- Champ 1 : Introduction / description courte + longue -->
-    <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Description courte du service {$keyword} à {$city->name} en 250 caractères maximum]</p>
-      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$keyword}, bénéfices, explications techniques, avantages, matériaux utilisés, spécifique à {$city->name}]</p>
-    </div>
-
-    <!-- Champ 2 : Engagement / garanties -->
-    <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">[Titre de l'engagement ou garantie pour {$keyword}]</h3>
-      <p class=\"leading-relaxed mb-3\">[Description de l'engagement]</p>
-      <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés]</p>
-    </div>
-
-    <!-- Champ 3 : Prestations / services -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$keyword}</h3>
-    <ul class=\"space-y-3\">
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 1 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 2 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 3 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 4 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 5 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 6 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 7 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 8 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 9 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-      <li class=\"flex items-start\">
-        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 10 spécifique à {$keyword}]</strong> - [Description détaillée]</span>
-      </li>
-    </ul>
-
-    <!-- Champ 8 : FAQ -->
-    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">FAQ</h4>
-      <div class=\"space-y-2\">
-        <p><strong>Q1 : [Question fréquente sur {$keyword}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-        <p><strong>Q2 : [Question fréquente sur {$keyword}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-        <p><strong>Q3 : [Question fréquente sur {$keyword}]</strong></p>
-        <p>A : [Réponse détaillée]</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Colonne droite : Informations complémentaires -->
-  <div class=\"space-y-6\">
-
-    <!-- Champ 4 : Pourquoi choisir ce service -->
-    <div class=\"bg-green-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi choisir ce service</h3>
-      <p class=\"leading-relaxed\">[Points forts et avantages du service {$keyword} à {$city->name}]</p>
-    </div>
-
-    <!-- Champ 5 : Expertise / expérience -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
-    <p class=\"leading-relaxed\">[Description de l'expertise et expérience en {$keyword} à {$city->name}]</p>
-
-    <!-- Champ 9 : Financement / aides disponibles -->
-    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et aides</h4>
-      <p>[Informations sur les aides financières et options de financement pour {$keyword}]</p>
-    </div>
-
-    <!-- Champ 6 : CTA - demande de devis -->
-    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un devis ?</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour {$keyword} à {$city->name}.</p>
-      <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
-    </div>
-
-    <!-- Champ 7 : Informations pratiques -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
-      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
-      <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 1 pour {$keyword}]</span></li>
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 2 pour {$keyword}]</span></li>
-        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 3 pour {$keyword}]</span></li>
-      </ul>
-    </div>
-
-    <!-- Champ 10 : Partage social -->
-    <div class=\"mt-8 pt-6 border-t border-gray-200\">
-      <div class=\"text-center\">
-        <h4 class=\"text-lg font-semibold text-gray-800 mb-4\">Partager ce service</h4>
-        <div class=\"flex justify-center items-center space-x-4\">
-          <a href=\"https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fab fa-facebook-f text-lg\"></i>
-            <span class=\"font-medium\">Facebook</span>
-          </a>
-          <a href=\"https://wa.me/?text=[TITRE] - [URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fab fa-whatsapp text-lg\"></i>
-            <span class=\"font-medium\">WhatsApp</span>
-          </a>
-          <a href=\"mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]\" class=\"bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1\">
-            <i class=\"fas fa-envelope text-lg\"></i>
-            <span class=\"font-medium\">Email</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-
-INSTRUCTIONS IMPORTANTES:
-- Le contenu doit être UNIQUE, professionnel et engageant.
-- Utilise un vocabulaire technique adapté à {$keyword}.
-- PERSONNALISE le contenu pour {$city->name} et sa région.
-- Inclue les aides financières et options de financement possibles.
-- Fournis les informations pratiques, conseils et suivi après travaux.
-- Ne mentionne jamais le nom de l'entreprise ni la localisation.
-- Garde la structure HTML exacte.
-- Génère des prestations détaillées avec descriptions explicites spécifiques à {$keyword}.
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$keyword}
-- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
-- REMPLACE [FORM_URL] par l'URL du formulaire de devis
-- GÉNÈRE exactement 10 prestations spécifiques au service {$keyword}
-- PERSONNALISE chaque prestation selon le type de service
-- UTILISE un vocabulaire technique approprié au secteur
-- Fournis le résultat en **JSON** valide avec les champs suivants :
+GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-\"description\": \"[HTML complet avec structure exacte]\",
-\"short_description\": \"[Description courte 120-140 caractères]\",
-\"long_description\": \"[Longue description détaillée du service {$keyword}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
-\"icon\": \"fas fa-[icône appropriée]\",
-\"meta_title\": \"[Titre SEO 50-60 caractères]\",
-\"meta_description\": \"[Description SEO 150-160 caractères]\",
-\"og_title\": \"[Titre Open Graph 50-60 caractères]\",
-\"og_description\": \"[Description Open Graph 150-160 caractères]\",
-\"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
-\"twitter_description\": \"[Description Twitter 150-160 caractères]\",
-\"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
-}";
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$keyword} à {$city->name}, une expertise reconnue dans " . ($city->region ?? '') . ".</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$keyword} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à {$city->name} et dans toute la région de " . ($city->region ?? '') . ".</p><p class='leading-relaxed'>Chaque intervention de {$keyword} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$keyword}</h3><ul class='space-y-3'><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en {$keyword}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Intervention d'urgence</strong> - Service rapide 24h/7j pour {$keyword}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li></ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$keyword} à {$city->name}?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$keyword}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$keyword}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à {$city->name} nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur {$city->name} et sa région, développant une connaissance approfondie des besoins locaux en {$keyword}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$keyword}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$keyword} à {$city->name}.</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur {$city->name}</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"short_description\": \"Service professionnel de {$keyword} à {$city->name} - Devis gratuit et intervention rapide\",
+  \"long_description\": \"Notre entreprise spécialisée en {$keyword} intervient sur {$city->name} et dans toute la région de " . ($city->region ?? '') . ". Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
+  \"icon\": \"fas fa-tools\",
+  \"meta_title\": \"{$keyword} à {$city->name} - Service professionnel\",
+  \"meta_description\": \"Service professionnel de {$keyword} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"og_title\": \"{$keyword} à {$city->name} - Service professionnel\",
+  \"og_description\": \"Service professionnel de {$keyword} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"twitter_title\": \"{$keyword} à {$city->name} - Service professionnel\",
+  \"twitter_description\": \"Service professionnel de {$keyword} à {$city->name}. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"meta_keywords\": \"{$keyword}, {$city->name}, " . ($city->region ?? '') . ", service professionnel, devis gratuit\"
+}
+
+IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentaire.";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
