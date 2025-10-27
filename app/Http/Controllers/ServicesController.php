@@ -558,7 +558,7 @@ INSTRUCTIONS IMPORTANTES:
 - UTILISE un vocabulaire technique approprié au secteur
 - OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
 - La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service
-- NE PAS inclure de bouton "En savoir plus" ou lien externe dans le contenu
+- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
 
 RÉPONSE FORMAT JSON:
 {
