@@ -373,49 +373,56 @@ class ServicesController extends Controller
         }
         
         try {
-            // Prompt simplifié et plus efficace
-            $prompt = "Tu es un expert en rédaction web pour une entreprise de rénovation.
+            // Prompt amélioré avec 10 champs selon vos spécifications
+            $prompt = "Tu es un expert en rédaction web pour les services de rénovation.
 
-INFORMATIONS ENTREPRISE:
-- Nom: {$companyInfo['company_name']}
-- Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}
-- Service: {$serviceName}
-- Description actuelle: {$shortDescription}";
+INFORMATIONS SUR LE SERVICE:
+- Type de service : {$serviceName}
+- Description actuelle : {$shortDescription}
+- Objectif : créer un contenu web professionnel, engageant et optimisé pour le SEO, adapté à ce type de service.
 
-            if ($customPrompt) {
-                $prompt .= "\n\nINSTRUCTIONS SPÉCIFIQUES:\n{$customPrompt}";
-            }
+TÂCHE:
+Génère un contenu web complet comprenant :
 
-            $prompt .= "\n\nTÂCHE:
-Crée un contenu web professionnel et engageant pour ce service de rénovation.
-
-CONTENU REQUIS:
-1. Description courte (120-140 caractères) - accrocheuse et SEO
-2. Icône Font Awesome appropriée au service
-3. Titre SEO optimisé (50-60 caractères)
-4. Description SEO (150-160 caractères)
-5. Mots-clés pertinents (séparés par virgules)
-6. Contenu HTML complet avec structure professionnelle
+1. Une description courte (120-140 caractères) accrocheuse et SEO.
+2. Une longue description générale expliquant le service et les bénéfices pour le client avec un lien 'En savoir plus'.
+3. Une icône Font Awesome adaptée au service.
+4. Un titre SEO optimisé (50-60 caractères).
+5. Une description SEO (150-160 caractères).
+6. Des mots-clés pertinents séparés par des virgules.
+7. Un contenu HTML complet structuré professionnellement, avec exactement **10 champs** :
+   - **Champ 1 :** Introduction courte et longue
+   - **Champ 2 :** Engagement / garanties
+   - **Champ 3 :** Prestations / services (exactement 10 prestations spécifiques au service)
+   - **Champ 4 :** Pourquoi choisir ce service
+   - **Champ 5 :** Expertise / expérience
+   - **Champ 6 :** CTA : demande de devis
+   - **Champ 7 :** Informations pratiques
+   - **Champ 8 :** FAQ (3 questions-réponses minimum)
+   - **Champ 9 :** Financement / aides disponibles
+   - **Champ 10 :** Partage social
 
 STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 <div class=\"grid md:grid-cols-2 gap-8\">
-  <!-- Colonne gauche -->
+
+  <!-- Colonne gauche : Contenu principal -->
   <div class=\"space-y-6\">
-    <!-- Introduction / texte descriptif -->
+
+    <!-- Champ 1 : Introduction / description courte + longue -->
     <div class=\"space-y-4\">
       <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} en 250 caractères maximum]</p>
-      <p class=\"text-lg leading-relaxed\">[Spécialisation ou prestations principales pour {$serviceName}]</p>
-      <p class=\"text-lg leading-relaxed\">[Valeurs ou promesses : qualité, expertise, satisfaction client]</p>
+      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$serviceName}, bénéfices, explications, lien 'En savoir plus']</p>
+      <a href=\"[Lien détaillé]\" class=\"text-blue-600 hover:underline\">En savoir plus</a>
     </div>
 
-    <!-- Engagement / garanties -->
+    <!-- Champ 2 : Engagement / garanties -->
     <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité {$serviceName}</h3>
-      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale de nos clients à {$companyInfo['company_city']}.</p>
-      <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés spécifiques à {$serviceName}]</p>
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">[Titre de l'engagement ou garantie pour {$serviceName}]</h3>
+      <p class=\"leading-relaxed mb-3\">[Description de l'engagement pour {$serviceName}]</p>
+      <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés pour {$serviceName}]</p>
     </div>
 
-    <!-- Prestations / services -->
+    <!-- Champ 3 : Prestations / services -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
@@ -459,82 +466,116 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
         <span><strong>[Prestation 10 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
     </ul>
-  </div>
 
-  <!-- Colonne droite -->
-  <div class=\"space-y-6\">
-    <!-- Pourquoi choisir l'entreprise -->
-    <div class=\"bg-green-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir {$companyInfo['company_name']}</h3>
-      <p class=\"leading-relaxed\">[Points forts ou réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
+    <!-- Champ 8 : FAQ -->
+    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">FAQ {$serviceName}</h4>
+      <div class=\"space-y-2\">
+        <p><strong>Q1 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q2 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q3 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+      </div>
     </div>
 
-    <!-- Expertise locale / description -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale à {$companyInfo['company_city']}</h3>
-    <p class=\"leading-relaxed\">[Description de l'expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
+  </div>
 
-    <!-- CTA : demande de devis -->
+  <!-- Colonne droite : Informations complémentaires -->
+  <div class=\"space-y-6\">
+
+    <!-- Champ 4 : Pourquoi choisir ce service -->
+    <div class=\"bg-green-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi choisir {$serviceName}</h3>
+      <p class=\"leading-relaxed\">[Points forts et avantages du service {$serviceName}]</p>
+    </div>
+
+    <!-- Champ 5 : Expertise / expérience -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise {$serviceName}</h3>
+    <p class=\"leading-relaxed\">[Description de l'expertise et expérience en {$serviceName}]</p>
+
+    <!-- Champ 9 : Financement / aides disponibles -->
+    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et aides</h4>
+      <p>[Informations sur les aides financières et options de financement pour {$serviceName}]</p>
+    </div>
+
+    <!-- Champ 6 : CTA - demande de devis -->
     <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName} à {$companyInfo['company_city']}.</p>
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un devis ?</h4>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour {$serviceName}.</p>
       <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
     </div>
 
-    <!-- Informations pratiques -->
+    <!-- Champ 7 : Informations pratiques -->
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Avantage ou service pratique 1 pour {$serviceName}]</span>
-        </li>
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Avantage ou service pratique 2 pour {$serviceName}]</span>
-        </li>
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Avantage ou service pratique 3 pour {$serviceName}]</span>
-        </li>
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Avantage ou service pratique 4 pour {$serviceName}]</span>
-        </li>
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Avantage ou service pratique 5 pour {$serviceName}]</span>
-        </li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 1 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 2 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 3 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 4 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 5 pour {$serviceName}]</span></li>
       </ul>
     </div>
+
+    <!-- Champ 10 : Partage social -->
+    <div class=\"mt-8 pt-6 border-t border-gray-200\">
+      <div class=\"flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4\">
+        <span class=\"text-sm font-medium text-gray-700 mr-3\"><i class=\"fas fa-share-alt mr-2\"></i>Partager cet article :</span>
+        <div class=\"flex items-center space-x-3\">
+          <a href=\"https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
+            <i class=\"fab fa-facebook-f\"></i>
+            <span class=\"hidden sm:inline\">Facebook</span>
+          </a>
+          <a href=\"https://twitter.com/intent/tweet?url=[URL]&text=[TITRE]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
+            <i class=\"fab fa-twitter\"></i>
+            <span class=\"hidden sm:inline\">Twitter</span>
+          </a>
+          <a href=\"https://www.linkedin.com/sharing/share-offsite/?url=[URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
+            <i class=\"fab fa-linkedin-in\"></i>
+            <span class=\"hidden sm:inline\">LinkedIn</span>
+          </a>
+          <a href=\"https://wa.me/?text=[TITRE] - [URL]\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
+            <i class=\"fab fa-whatsapp\"></i>
+            <span class=\"hidden sm:inline\">WhatsApp</span>
+          </a>
+          <a href=\"mailto:?subject=[TITRE]&body=Je vous partage cet article intéressant : [URL]\" class=\"bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group\">
+            <i class=\"fas fa-envelope\"></i>
+            <span class=\"hidden sm:inline\">Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
   </div>
+
 </div>
 
 INSTRUCTIONS IMPORTANTES:
+- Le contenu doit être UNIQUE, professionnel et engageant.
+- Utilise un vocabulaire technique adapté à chaque service.
+- Inclue les aides financières et options de financement possibles.
+- Fournis les informations pratiques, conseils et suivi après travaux.
+- Ne mentionne jamais le nom de l'entreprise ni la localisation.
+- Garde la structure HTML exacte.
+- Génère des prestations détaillées avec descriptions explicites.
 - REMPLACE [FORM_URL] par l'URL du formulaire de devis
 - GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
 - PERSONNALISE chaque prestation selon le type de service
 - UTILISE un vocabulaire technique approprié au secteur
-- ADAPTE le contenu à la localisation {$companyInfo['company_city']}, {$companyInfo['company_region']}
-
-INSTRUCTIONS:
-- ADAPTE le contenu au service {$serviceName} (toiture, façade, isolation, etc.)
-- ÉCRIS du contenu UNIQUE et SPÉCIFIQUE
-- UTILISE les informations de l'entreprise et localisation
-- GARDE la structure HTML exacte
-- PERSONNALISE les prestations selon le service
-- INCLUE des informations sur financement, garanties, délais
-- VARIE le vocabulaire pour éviter les répétitions
-- CONTENU professionnel et engageant
 
 RÉPONSE FORMAT JSON:
 {
   \"description\": \"[HTML complet avec structure exacte]\",
   \"short_description\": \"[Description courte 120-140 caractères]\",
+  \"long_description\": \"[Longue description générale avec lien]\",
   \"icon\": \"fas fa-[icône appropriée]\",
   \"meta_title\": \"[Titre SEO 50-60 caractères]\",
   \"meta_description\": \"[Description SEO 150-160 caractères]\",
-  \"og_title\": \"[Titre réseaux sociaux 50-60 caractères]\",
-  \"og_description\": \"[Description réseaux sociaux 150-160 caractères]\",
+  \"og_title\": \"[Titre Open Graph 50-60 caractères]\",
+  \"og_description\": \"[Description Open Graph 150-160 caractères]\",
   \"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
   \"twitter_description\": \"[Description Twitter 150-160 caractères]\",
   \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
@@ -694,6 +735,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         return [
             'description' => $description,
             'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
+            'long_description' => $cleanText($aiData['long_description'] ?? $shortDescription, 500),
             'icon' => $aiData['icon'] ?? $this->getServiceIcon($serviceName),
             'meta_title' => $cleanText($aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
             'meta_description' => $cleanText($aiData['meta_description'] ?? $shortDescription, 160),

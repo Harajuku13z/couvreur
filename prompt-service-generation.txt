@@ -1,0 +1,166 @@
+Tu es un expert en rédaction web pour une entreprise de rénovation.
+
+INFORMATIONS ENTREPRISE:
+- Nom: {{COMPANY_NAME}}
+- Localisation: {{COMPANY_CITY}}, {{COMPANY_REGION}}
+- Service: {{SERVICE_NAME}}
+- Description actuelle: {{SHORT_DESCRIPTION}}
+
+INSTRUCTIONS SPÉCIFIQUES:
+{{CUSTOM_PROMPT}}
+
+TÂCHE:
+Crée un contenu web professionnel et engageant pour ce service de rénovation.
+
+CONTENU REQUIS:
+1. Description courte (120-140 caractères) - accrocheuse et SEO
+2. Icône Font Awesome appropriée au service
+3. Titre SEO optimisé (50-60 caractères)
+4. Description SEO (150-160 caractères)
+5. Mots-clés pertinents (séparés par virgules)
+6. Contenu HTML complet avec structure professionnelle
+
+STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
+<div class="grid md:grid-cols-2 gap-8">
+  <!-- Colonne gauche -->
+  <div class="space-y-6">
+    <!-- Introduction / texte descriptif -->
+    <div class="space-y-4">
+      <p class="text-lg leading-relaxed">[Description courte du service {{SERVICE_NAME}} en 250 caractères maximum]</p>
+      <p class="text-lg leading-relaxed">[Spécialisation ou prestations principales pour {{SERVICE_NAME}}]</p>
+      <p class="text-lg leading-relaxed">[Valeurs ou promesses : qualité, expertise, satisfaction client]</p>
+    </div>
+
+    <!-- Engagement / garanties -->
+    <div class="bg-blue-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité {{SERVICE_NAME}}</h3>
+      <p class="leading-relaxed mb-3">Chez {{COMPANY_NAME}}, nous garantissons la satisfaction totale de nos clients à {{COMPANY_CITY}}.</p>
+      <p class="leading-relaxed">[Détails techniques ou matériaux utilisés spécifiques à {{SERVICE_NAME}}]</p>
+    </div>
+
+    <!-- Prestations / services -->
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations {{SERVICE_NAME}}</h3>
+    <ul class="space-y-3">
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 1 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 2 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 3 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 4 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 5 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 6 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 7 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 8 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 9 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class="flex items-start">
+        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+        <span><strong>[Prestation 10 spécifique {{SERVICE_NAME}}]</strong> - [Description détaillée]</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Colonne droite -->
+  <div class="space-y-6">
+    <!-- Pourquoi choisir l'entreprise -->
+    <div class="bg-green-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir {{COMPANY_NAME}}</h3>
+      <p class="leading-relaxed">[Points forts ou réputation locale pour {{SERVICE_NAME}} à {{COMPANY_CITY}}]</p>
+    </div>
+
+    <!-- Expertise locale / description -->
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale à {{COMPANY_CITY}}</h3>
+    <p class="leading-relaxed">[Description de l'expertise locale pour {{SERVICE_NAME}} en {{COMPANY_REGION}}]</p>
+
+    <!-- CTA : demande de devis -->
+    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
+      <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d'un Devis ?</h4>
+      <p class="mb-4">Contactez-nous pour un devis gratuit pour vos {{SERVICE_NAME}} à {{COMPANY_CITY}}.</p>
+      <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+    </div>
+
+    <!-- Informations pratiques -->
+    <div class="bg-gray-50 p-6 rounded-lg">
+      <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
+      <ul class="space-y-2 text-sm">
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>[Avantage ou service pratique 1 pour {{SERVICE_NAME}}]</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>[Avantage ou service pratique 2 pour {{SERVICE_NAME}}]</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>[Avantage ou service pratique 3 pour {{SERVICE_NAME}}]</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>[Avantage ou service pratique 4 pour {{SERVICE_NAME}}]</span>
+        </li>
+        <li class="flex items-center">
+          <i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>
+          <span>[Avantage ou service pratique 5 pour {{SERVICE_NAME}}]</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+INSTRUCTIONS IMPORTANTES:
+- REMPLACE [FORM_URL] par l'URL du formulaire de devis
+- GÉNÈRE exactement 10 prestations spécifiques au service {{SERVICE_NAME}}
+- PERSONNALISE chaque prestation selon le type de service
+- UTILISE un vocabulaire technique approprié au secteur
+- ADAPTE le contenu à la localisation {{COMPANY_CITY}}, {{COMPANY_REGION}}
+
+INSTRUCTIONS:
+- ADAPTE le contenu au service {{SERVICE_NAME}} (toiture, façade, isolation, etc.)
+- ÉCRIS du contenu UNIQUE et SPÉCIFIQUE
+- UTILISE les informations de l'entreprise et localisation
+- GARDE la structure HTML exacte
+- PERSONNALISE les prestations selon le service
+- INCLUE des informations sur financement, garanties, délais
+- VARIE le vocabulaire pour éviter les répétitions
+- CONTENU professionnel et engageant
+
+RÉPONSE FORMAT JSON:
+{
+  "description": "[HTML complet avec structure exacte]",
+  "short_description": "[Description courte 120-140 caractères]",
+  "icon": "fas fa-[icône appropriée]",
+  "meta_title": "[Titre SEO 50-60 caractères]",
+  "meta_description": "[Description SEO 150-160 caractères]",
+  "og_title": "[Titre Open Graph 50-60 caractères]",
+  "og_description": "[Description Open Graph 150-160 caractères]",
+  "twitter_title": "[Titre Twitter 50-60 caractères]",
+  "twitter_description": "[Description Twitter 150-160 caractères]",
+  "meta_keywords": "[Mots-clés pertinents séparés par virgules]"
+}
+
+Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.
