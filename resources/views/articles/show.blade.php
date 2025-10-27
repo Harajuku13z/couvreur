@@ -214,6 +214,111 @@
   });
 </script>
 @endif
+
+<!-- JavaScript pour les boutons de partage -->
+<script>
+function copyToClipboard(text) {
+    // Utiliser l'API moderne Clipboard si disponible
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopyMessage();
+        }).catch(function(err) {
+            console.error('Erreur lors de la copie: ', err);
+            fallbackCopyTextToClipboard(text);
+        });
+    } else {
+        // Fallback pour les navigateurs plus anciens
+        fallbackCopyTextToClipboard(text);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Éviter le défilement vers le bas sur iOS
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCopyMessage();
+        } else {
+            console.error('Fallback: Impossible de copier le texte');
+        }
+    } catch (err) {
+        console.error('Fallback: Erreur lors de la copie ', err);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopyMessage() {
+    var message = document.getElementById('copy-message');
+    message.classList.remove('hidden');
+    
+    // Masquer le message après 3 secondes
+    setTimeout(function() {
+        message.classList.add('hidden');
+    }, 3000);
+}
+
+// Fonction pour basculer l'affichage des boutons de partage flottants
+function toggleShareButtons() {
+    var shareButtons = document.getElementById('share-buttons');
+    var mainButton = document.querySelector('button[onclick="toggleShareButtons()"]');
+    
+    if (shareButtons.classList.contains('hidden')) {
+        shareButtons.classList.remove('hidden');
+        mainButton.style.transform = 'rotate(45deg)';
+        mainButton.style.backgroundColor = '#dc2626'; // Rouge pour indiquer la fermeture
+    } else {
+        shareButtons.classList.add('hidden');
+        mainButton.style.transform = 'rotate(0deg)';
+        mainButton.style.backgroundColor = '#2563eb'; // Bleu par défaut
+    }
+}
+
+// Améliorer l'expérience utilisateur sur mobile
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter des effets hover sur les boutons de partage
+    var shareButtons = document.querySelectorAll('.group');
+    shareButtons.forEach(function(button) {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Fermer les boutons flottants quand on clique ailleurs
+    document.addEventListener('click', function(event) {
+        var shareContainer = document.querySelector('.fixed.bottom-4.right-4');
+        var shareButtons = document.getElementById('share-buttons');
+        
+        if (shareContainer && !shareContainer.contains(event.target) && !shareButtons.classList.contains('hidden')) {
+            toggleShareButtons();
+        }
+    });
+    
+    // Ajouter une animation d'apparition progressive pour les boutons flottants
+    var floatingButtons = document.querySelectorAll('#share-buttons a, #share-buttons button');
+    floatingButtons.forEach(function(button, index) {
+        button.style.transitionDelay = (index * 0.1) + 's';
+    });
+});
+</script>
 @endpush
 
 @section('content')
@@ -254,6 +359,84 @@
                         <!-- Article Content - HTML généré par ChatGPT avec Tailwind CSS -->
                         <div class="article-content">
                             {!! $article->content_html !!}
+                        </div>
+                        
+                        <!-- Boutons de partage social -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-700 mr-3">
+                                        <i class="fas fa-share-alt mr-2"></i>Partager cet article :
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3">
+                                    <!-- Facebook -->
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fab fa-facebook-f"></i>
+                                        <span class="hidden sm:inline">Facebook</span>
+                                    </a>
+                                    
+                                    <!-- Twitter -->
+                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fab fa-twitter"></i>
+                                        <span class="hidden sm:inline">Twitter</span>
+                                    </a>
+                                    
+                                    <!-- LinkedIn -->
+                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fab fa-linkedin-in"></i>
+                                        <span class="hidden sm:inline">LinkedIn</span>
+                                    </a>
+                                    
+                                    <!-- WhatsApp -->
+                                    <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fab fa-whatsapp"></i>
+                                        <span class="hidden sm:inline">WhatsApp</span>
+                                    </a>
+                                    
+                                    <!-- Telegram -->
+                                    <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fab fa-telegram-plane"></i>
+                                        <span class="hidden sm:inline">Telegram</span>
+                                    </a>
+                                    
+                                    <!-- Email -->
+                                    <a href="mailto:?subject={{ urlencode($article->title) }}&body={{ urlencode('Je vous partage cet article intéressant : ' . request()->url()) }}" 
+                                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                        <i class="fas fa-envelope"></i>
+                                        <span class="hidden sm:inline">Email</span>
+                                    </a>
+                                    
+                                    <!-- Copier le lien -->
+                                    <button onclick="copyToClipboard('{{ request()->url() }}')" 
+                                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group"
+                                            title="Copier le lien">
+                                        <i class="fas fa-copy"></i>
+                                        <span class="hidden sm:inline">Copier</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Message de confirmation pour la copie -->
+                            <div id="copy-message" class="hidden mt-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                <i class="fas fa-check-circle mr-2"></i>Lien copié dans le presse-papiers !
+                            </div>
                         </div>
                         
                         <!-- Informations supplémentaires -->
@@ -418,6 +601,57 @@
             </div>
         </div>
 
+        <!-- Boutons de partage flottants pour mobile -->
+        <div class="fixed bottom-4 right-4 z-50 lg:hidden">
+            <div class="flex flex-col space-y-3">
+                <!-- Bouton principal de partage -->
+                <button onclick="toggleShareButtons()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                    <i class="fas fa-share-alt text-xl"></i>
+                </button>
+                
+                <!-- Boutons de partage individuels (masqués par défaut) -->
+                <div id="share-buttons" class="hidden flex flex-col space-y-2">
+                    <!-- Facebook -->
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    
+                    <!-- Twitter -->
+                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="bg-sky-500 hover:bg-sky-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    
+                    <!-- WhatsApp -->
+                    <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    
+                    <!-- Telegram -->
+                    <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fab fa-telegram-plane"></i>
+                    </a>
+                    
+                    <!-- Copier le lien -->
+                    <button onclick="copyToClipboard('{{ request()->url() }}')" 
+                            class="bg-gray-500 hover:bg-gray-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Reviews Section -->
         @if(isset($reviews) && count($reviews) > 0)
