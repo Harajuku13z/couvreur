@@ -44,32 +44,13 @@
             <!-- Logo -->
             <div class="p-6 border-b">
                 <div class="flex items-center">
-                    @php
-                        $logoPath = setting('company_logo');
-                        $logoUrl = null;
-                        
-                        if ($logoPath) {
-                            // Vérifier si le logo existe au chemin spécifié
-                            if (file_exists(public_path('uploads/' . $logoPath))) {
-                                $logoUrl = asset('uploads/' . $logoPath);
-                            } else {
-                                // Chercher des fichiers logo dans uploads
-                                $uploadsDir = public_path('uploads/');
-                                $logoFiles = glob($uploadsDir . '*logo*');
-                                if (!empty($logoFiles)) {
-                                    $logoUrl = asset('uploads/' . basename($logoFiles[0]));
-                                }
-                            }
-                        }
-                    @endphp
-                    
-                    @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ setting('company_name', 'Logo') }}" class="h-8 w-auto">
-                        @else
+                    @if(setting('company_logo'))
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Logo') }}" class="h-8 w-auto">
+                    @else
                         <div class="h-8 w-8 rounded-full flex items-center justify-center" style="background-color: var(--primary-color)">
                             <i class="fas fa-building text-white text-sm"></i>
                         </div>
-                        @endif
+                    @endif
                     <span class="ml-3 text-lg font-semibold text-gray-900">{{ setting('company_name', 'Sauser Couverture') }}</span>
                 </div>
                     </div>
