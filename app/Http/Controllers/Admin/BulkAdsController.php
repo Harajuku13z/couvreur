@@ -302,89 +302,55 @@ class BulkAdsController extends Controller
      */
     private function buildAdPrompt($serviceName, $city, $aiPrompt = null)
     {
-        $basePrompt = "Prompt Généralisé – Annonce locale pour services de rénovation
-Tu es un expert en rédaction web pour une entreprise de services locaux (rénovation, couverture, isolation, etc.).  
-Ton rôle est de créer un **template réutilisable pour des annonces locales**, qui pourra être personnalisé automatiquement pour chaque ville et département.
+        $basePrompt = "Tu es un expert en rédaction web pour les services de rénovation.
 
-INFORMATIONS DE BASE :
-- Service : {$serviceName}
-- Localisation dynamique : {$city->name} et " . ($city->region ?? '') . "
-- Description générale du service : Service professionnel pour améliorer le confort, la sécurité ou l'efficacité énergétique des habitations
+INFORMATIONS SUR LE SERVICE:
+- Type de service : {$serviceName}
+- Ville : {$city->name}
+- Département : " . ($city->region ?? '') . "
+- Objectif : créer un contenu web professionnel, engageant et optimisé pour le SEO, adapté à ce type de service dans cette ville spécifique.
 
-TÂCHE :
-Crée un contenu complet et structuré pour une **page annonce locale**, en utilisant un style similaire au template de service, mais en **intégrant des espaces dynamiques pour la ville et le département**. Le contenu doit être engageant, professionnel, SEO-friendly et adapté aux recherches locales.
+TÂCHE:
+Génère un contenu web complet comprenant :
 
-CONTENU REQUIS :
-1. Description courte (120-140 caractères) → accrocheuse et SEO, intégrant la ville et le département.
-2. Longue description détaillée → expliquer le service, bénéfices et avantages pour les habitants de la ville, avec un lien \"En savoir plus\".
-3. Engagement / garanties → rassurer le client local.
-4. Prestations principales → liste d'au moins 10 services ou interventions spécifiques.
-5. Points forts → pourquoi choisir ce service localement.
-6. Expertise locale → démontrer la connaissance du marché local.
-7. CTA → demander un devis.
-8. Financement / aides disponibles → si applicable.
-9. Informations pratiques → horaires, garanties, délais.
-10. FAQ → 3-5 questions fréquentes adaptées à la ville.
-11. Boutons de partage social → Facebook, Twitter, LinkedIn, WhatsApp, Email, Copier le lien.
-
-STRUCTURE HTML :
-- La structure doit être identique à celle du template service existant, mais tous les textes dynamiques doivent contenir {$city->name} et " . ($city->region ?? '') . " à l'endroit approprié.
-- Le contenu doit pouvoir être remplacé automatiquement par un script pour générer plusieurs pages d'annonces locales.
-
-INSTRUCTIONS :
-- Utilise un vocabulaire professionnel, clair et engageant.
-- Optimise le texte pour le SEO local en intégrant la ville et le département.
-- Crée exactement 10 prestations spécifiques au service {$serviceName}.
-- Ajoute des informations sur financement, aides ou subventions si possible.
-- Intègre un champ FAQ adapté à la ville.
-- Fournis un contenu complet en HTML prêt à copier.
-- PERSONNALISE chaque prestation selon le type de service {$serviceName}.
-- UTILISE un vocabulaire technique approprié au secteur.
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$serviceName}
-- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
-- REMPLACE [FORM_URL] par l'URL du formulaire de devis
-
-RÉPONSE FORMAT JSON :
-{
-  \"description\": \"[HTML complet avec structure exacte et placeholders pour {$city->name} et " . ($city->region ?? '') . "]\",
-  \"short_description\": \"[Description courte 120-140 caractères intégrant la ville et le département]\",
-  \"long_description\": \"[Longue description détaillée du service {$serviceName}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
-  \"icon\": \"fas fa-[icône appropriée]\",
-  \"meta_title\": \"[Titre SEO 50-60 caractères intégrant la ville et le département]\",
-  \"meta_description\": \"[Description SEO 150-160 caractères intégrant la ville et le département]\",
-  \"og_title\": \"[Titre Open Graph 50-60 caractères]\",
-  \"og_description\": \"[Description Open Graph 150-160 caractères]\",
-  \"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
-  \"twitter_description\": \"[Description Twitter 150-160 caractères]\",
-  \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules incluant la ville et le département]\"
-}
-
-REMARQUES :
-- Répond uniquement avec le JSON valide.  
-- Le contenu doit pouvoir servir de **template réutilisable pour n'importe quelle ville et département**.
-- Ne pas inclure de nom d'entreprise ni d'adresse exacte, tout doit être dynamique.
+1. Une description courte (120-140 caractères) accrocheuse et SEO.
+2. Une longue description générale expliquant le service et les bénéfices pour le client.
+3. Une icône Font Awesome adaptée au service.
+4. Un titre SEO optimisé (50-60 caractères).
+5. Une description SEO (150-160 caractères).
+6. Des mots-clés pertinents séparés par des virgules.
+7. Un contenu HTML complet structuré professionnellement, avec exactement **10 champs** :
+   - **Champ 1 :** Introduction courte et longue
+   - **Champ 2 :** Engagement / garanties
+   - **Champ 3 :** Prestations / services (exactement 10 prestations spécifiques au service {$serviceName})
+   - **Champ 4 :** Pourquoi choisir ce service
+   - **Champ 5 :** Expertise / expérience
+   - **Champ 6 :** CTA : demande de devis
+   - **Champ 7 :** Informations pratiques
+   - **Champ 8 :** FAQ (3 questions-réponses minimum)
+   - **Champ 9 :** Financement / aides disponibles
+   - **Champ 10 :** Partage social
 
 STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 <div class=\"grid md:grid-cols-2 gap-8\">
 
-  <!-- Colonne gauche : Présentation et services -->
+  <!-- Colonne gauche : Contenu principal -->
   <div class=\"space-y-6\">
 
-    <!-- Description courte et longue -->
+    <!-- Champ 1 : Introduction / description courte + longue -->
     <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} en 250 caractères maximum pour {$city->name}, " . ($city->region ?? '') . "]</p>
-      <p class=\"text-lg leading-relaxed\">[Longue description détaillée expliquant le service {$serviceName}, ses bénéfices et avantages pour les habitants de {$city->name}, avec un lien <a href='#'>En savoir plus</a>]</p>
+      <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} à {$city->name} en 250 caractères maximum]</p>
+      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$serviceName}, bénéfices, explications techniques, avantages, matériaux utilisés, spécifique à {$city->name}]</p>
     </div>
 
-    <!-- Engagement / garanties -->
+    <!-- Champ 2 : Engagement / garanties -->
     <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
-      <p class=\"leading-relaxed mb-3\">[Description de l'engagement et garanties pour les clients de {$city->name}, " . ($city->region ?? '') . "]</p>
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">[Titre de l'engagement ou garantie pour {$serviceName}]</h3>
+      <p class=\"leading-relaxed mb-3\">[Description de l'engagement]</p>
       <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés]</p>
     </div>
 
-    <!-- Prestations principales -->
+    <!-- Champ 3 : Prestations / services -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
@@ -429,57 +395,58 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
       </li>
     </ul>
 
-    <!-- FAQ -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
+    <!-- Champ 8 : FAQ -->
+    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">FAQ</h4>
-      <ul class=\"space-y-2 text-sm\">
-        <li><strong>Q1:</strong> [Question fréquente 1 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-        <li><strong>Q2:</strong> [Question fréquente 2 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-        <li><strong>Q3:</strong> [Question fréquente 3 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-      </ul>
+      <div class=\"space-y-2\">
+        <p><strong>Q1 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q2 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q3 : [Question fréquente sur {$serviceName}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+      </div>
     </div>
 
   </div>
 
-  <!-- Colonne droite : points forts, expertise et CTA -->
+  <!-- Colonne droite : Informations complémentaires -->
   <div class=\"space-y-6\">
 
-    <!-- Points forts -->
+    <!-- Champ 4 : Pourquoi choisir ce service -->
     <div class=\"bg-green-50 p-6 rounded-lg\">
       <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi choisir ce service</h3>
-      <p class=\"leading-relaxed\">[Points forts et bénéfices pour les clients de {$city->name}, " . ($city->region ?? '') . "]</p>
+      <p class=\"leading-relaxed\">[Points forts et avantages du service {$serviceName} à {$city->name}]</p>
     </div>
 
-    <!-- Expertise locale -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Expertise Locale à {$city->name}</h3>
-    <p class=\"leading-relaxed\">[Description de l'expertise locale et connaissance du marché à {$city->name}, " . ($city->region ?? '') . "]</p>
+    <!-- Champ 5 : Expertise / expérience -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+    <p class=\"leading-relaxed\">[Description de l'expertise et expérience en {$serviceName} à {$city->name}]</p>
 
-    <!-- CTA -->
+    <!-- Champ 9 : Financement / aides disponibles -->
+    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et aides</h4>
+      <p>[Informations sur les aides financières et options de financement pour {$serviceName}]</p>
+    </div>
+
+    <!-- Champ 6 : CTA - demande de devis -->
     <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Demandez un devis</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour votre service {$serviceName} à {$city->name}, " . ($city->region ?? '') . ".</p>
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un devis ?</h4>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour {$serviceName} à {$city->name}.</p>
       <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
     </div>
 
-    <!-- Financement et aides -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
-      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Financement & Aides</h4>
-      <p class=\"leading-relaxed\">[Informations sur les financements, aides et subventions disponibles pour les habitants de {$city->name}, " . ($city->region ?? '') . "]</p>
-    </div>
-
-    <!-- Informations pratiques -->
+    <!-- Champ 7 : Informations pratiques -->
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li>[Horaires]</li>
-        <li>[Garanties]</li>
-        <li>[Délais]</li>
-        <li>[Conseils et suivi]</li>
-        <li>[Service client]</li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 1 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 2 pour {$serviceName}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 3 pour {$serviceName}]</span></li>
       </ul>
     </div>
 
-    <!-- Boutons de partage social -->
+    <!-- Champ 10 : Partage social -->
     <div class=\"mt-8 pt-6 border-t border-gray-200\">
       <div class=\"text-center\">
         <h4 class=\"text-lg font-semibold text-gray-800 mb-4\">Partager ce service</h4>
@@ -502,7 +469,39 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 
   </div>
 
-</div>";
+</div>
+
+INSTRUCTIONS IMPORTANTES:
+- Le contenu doit être UNIQUE, professionnel et engageant.
+- Utilise un vocabulaire technique adapté à {$serviceName}.
+- PERSONNALISE le contenu pour {$city->name} et sa région.
+- Inclue les aides financières et options de financement possibles.
+- Fournis les informations pratiques, conseils et suivi après travaux.
+- Ne mentionne jamais le nom de l'entreprise ni la localisation.
+- Garde la structure HTML exacte.
+- Génère des prestations détaillées avec descriptions explicites spécifiques à {$serviceName}.
+- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
+- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$serviceName}
+- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
+- REMPLACE [FORM_URL] par l'URL du formulaire de devis
+- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
+- PERSONNALISE chaque prestation selon le type de service
+- UTILISE un vocabulaire technique approprié au secteur
+- Fournis le résultat en **JSON** valide avec les champs suivants :
+
+{
+\"description\": \"[HTML complet avec structure exacte]\",
+\"short_description\": \"[Description courte 120-140 caractères]\",
+\"long_description\": \"[Longue description détaillée du service {$serviceName}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
+\"icon\": \"fas fa-[icône appropriée]\",
+\"meta_title\": \"[Titre SEO 50-60 caractères]\",
+\"meta_description\": \"[Description SEO 150-160 caractères]\",
+\"og_title\": \"[Titre Open Graph 50-60 caractères]\",
+\"og_description\": \"[Description Open Graph 150-160 caractères]\",
+\"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
+\"twitter_description\": \"[Description Twitter 150-160 caractères]\",
+\"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
+}";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
@@ -884,89 +883,55 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
      */
     private function buildKeywordAdPrompt($keyword, $city, $aiPrompt = null)
     {
-        $basePrompt = "Prompt Généralisé – Annonce locale pour services de rénovation
-Tu es un expert en rédaction web pour une entreprise de services locaux (rénovation, couverture, isolation, etc.).  
-Ton rôle est de créer un **template réutilisable pour des annonces locales**, qui pourra être personnalisé automatiquement pour chaque ville et département.
+        $basePrompt = "Tu es un expert en rédaction web pour les services de rénovation.
 
-INFORMATIONS DE BASE :
-- Service : {$keyword}
-- Localisation dynamique : {$city->name} et " . ($city->region ?? '') . "
-- Description générale du service : Service professionnel pour améliorer le confort, la sécurité ou l'efficacité énergétique des habitations
+INFORMATIONS SUR LE SERVICE:
+- Type de service : {$keyword}
+- Ville : {$city->name}
+- Département : " . ($city->region ?? '') . "
+- Objectif : créer un contenu web professionnel, engageant et optimisé pour le SEO, adapté à ce type de service dans cette ville spécifique.
 
-TÂCHE :
-Crée un contenu complet et structuré pour une **page annonce locale**, en utilisant un style similaire au template de service, mais en **intégrant des espaces dynamiques pour la ville et le département**. Le contenu doit être engageant, professionnel, SEO-friendly et adapté aux recherches locales.
+TÂCHE:
+Génère un contenu web complet comprenant :
 
-CONTENU REQUIS :
-1. Description courte (120-140 caractères) → accrocheuse et SEO, intégrant la ville et le département.
-2. Longue description détaillée → expliquer le service, bénéfices et avantages pour les habitants de la ville, avec un lien \"En savoir plus\".
-3. Engagement / garanties → rassurer le client local.
-4. Prestations principales → liste d'au moins 10 services ou interventions spécifiques.
-5. Points forts → pourquoi choisir ce service localement.
-6. Expertise locale → démontrer la connaissance du marché local.
-7. CTA → demander un devis.
-8. Financement / aides disponibles → si applicable.
-9. Informations pratiques → horaires, garanties, délais.
-10. FAQ → 3-5 questions fréquentes adaptées à la ville.
-11. Boutons de partage social → Facebook, Twitter, LinkedIn, WhatsApp, Email, Copier le lien.
-
-STRUCTURE HTML :
-- La structure doit être identique à celle du template service existant, mais tous les textes dynamiques doivent contenir {$city->name} et " . ($city->region ?? '') . " à l'endroit approprié.
-- Le contenu doit pouvoir être remplacé automatiquement par un script pour générer plusieurs pages d'annonces locales.
-
-INSTRUCTIONS :
-- Utilise un vocabulaire professionnel, clair et engageant.
-- Optimise le texte pour le SEO local en intégrant la ville et le département.
-- Crée exactement 10 prestations spécifiques au service {$keyword}.
-- Ajoute des informations sur financement, aides ou subventions si possible.
-- Intègre un champ FAQ adapté à la ville.
-- Fournis un contenu complet en HTML prêt à copier.
-- PERSONNALISE chaque prestation selon le type de service {$keyword}.
-- UTILISE un vocabulaire technique approprié au secteur.
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$keyword}
-- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
-- REMPLACE [FORM_URL] par l'URL du formulaire de devis
-
-RÉPONSE FORMAT JSON :
-{
-  \"description\": \"[HTML complet avec structure exacte et placeholders pour {$city->name} et " . ($city->region ?? '') . "]\",
-  \"short_description\": \"[Description courte 120-140 caractères intégrant la ville et le département]\",
-  \"long_description\": \"[Longue description détaillée du service {$keyword}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
-  \"icon\": \"fas fa-[icône appropriée]\",
-  \"meta_title\": \"[Titre SEO 50-60 caractères intégrant la ville et le département]\",
-  \"meta_description\": \"[Description SEO 150-160 caractères intégrant la ville et le département]\",
-  \"og_title\": \"[Titre Open Graph 50-60 caractères]\",
-  \"og_description\": \"[Description Open Graph 150-160 caractères]\",
-  \"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
-  \"twitter_description\": \"[Description Twitter 150-160 caractères]\",
-  \"meta_keywords\": \"[Mots-clés pertinents séparés par virgules incluant la ville et le département]\"
-}
-
-REMARQUES :
-- Répond uniquement avec le JSON valide.  
-- Le contenu doit pouvoir servir de **template réutilisable pour n'importe quelle ville et département**.
-- Ne pas inclure de nom d'entreprise ni d'adresse exacte, tout doit être dynamique.
+1. Une description courte (120-140 caractères) accrocheuse et SEO.
+2. Une longue description générale expliquant le service et les bénéfices pour le client.
+3. Une icône Font Awesome adaptée au service.
+4. Un titre SEO optimisé (50-60 caractères).
+5. Une description SEO (150-160 caractères).
+6. Des mots-clés pertinents séparés par des virgules.
+7. Un contenu HTML complet structuré professionnellement, avec exactement **10 champs** :
+   - **Champ 1 :** Introduction courte et longue
+   - **Champ 2 :** Engagement / garanties
+   - **Champ 3 :** Prestations / services (exactement 10 prestations spécifiques au service {$keyword})
+   - **Champ 4 :** Pourquoi choisir ce service
+   - **Champ 5 :** Expertise / expérience
+   - **Champ 6 :** CTA : demande de devis
+   - **Champ 7 :** Informations pratiques
+   - **Champ 8 :** FAQ (3 questions-réponses minimum)
+   - **Champ 9 :** Financement / aides disponibles
+   - **Champ 10 :** Partage social
 
 STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 <div class=\"grid md:grid-cols-2 gap-8\">
 
-  <!-- Colonne gauche : Présentation et services -->
+  <!-- Colonne gauche : Contenu principal -->
   <div class=\"space-y-6\">
 
-    <!-- Description courte et longue -->
+    <!-- Champ 1 : Introduction / description courte + longue -->
     <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Description courte du service {$keyword} en 250 caractères maximum pour {$city->name}, " . ($city->region ?? '') . "]</p>
-      <p class=\"text-lg leading-relaxed\">[Longue description détaillée expliquant le service {$keyword}, ses bénéfices et avantages pour les habitants de {$city->name}, avec un lien <a href='#'>En savoir plus</a>]</p>
+      <p class=\"text-lg leading-relaxed\">[Description courte du service {$keyword} à {$city->name} en 250 caractères maximum]</p>
+      <p class=\"text-lg leading-relaxed\">[Longue description détaillée du service {$keyword}, bénéfices, explications techniques, avantages, matériaux utilisés, spécifique à {$city->name}]</p>
     </div>
 
-    <!-- Engagement / garanties -->
+    <!-- Champ 2 : Engagement / garanties -->
     <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
-      <p class=\"leading-relaxed mb-3\">[Description de l'engagement et garanties pour les clients de {$city->name}, " . ($city->region ?? '') . "]</p>
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">[Titre de l'engagement ou garantie pour {$keyword}]</h3>
+      <p class=\"leading-relaxed mb-3\">[Description de l'engagement]</p>
       <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés]</p>
     </div>
 
-    <!-- Prestations principales -->
+    <!-- Champ 3 : Prestations / services -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$keyword}</h3>
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
@@ -1011,57 +976,58 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
       </li>
     </ul>
 
-    <!-- FAQ -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
+    <!-- Champ 8 : FAQ -->
+    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">FAQ</h4>
-      <ul class=\"space-y-2 text-sm\">
-        <li><strong>Q1:</strong> [Question fréquente 1 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-        <li><strong>Q2:</strong> [Question fréquente 2 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-        <li><strong>Q3:</strong> [Question fréquente 3 pour {$city->name}]<br><strong>R:</strong> [Réponse détaillée]</li>
-      </ul>
+      <div class=\"space-y-2\">
+        <p><strong>Q1 : [Question fréquente sur {$keyword}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q2 : [Question fréquente sur {$keyword}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+        <p><strong>Q3 : [Question fréquente sur {$keyword}]</strong></p>
+        <p>A : [Réponse détaillée]</p>
+      </div>
     </div>
 
   </div>
 
-  <!-- Colonne droite : points forts, expertise et CTA -->
+  <!-- Colonne droite : Informations complémentaires -->
   <div class=\"space-y-6\">
 
-    <!-- Points forts -->
+    <!-- Champ 4 : Pourquoi choisir ce service -->
     <div class=\"bg-green-50 p-6 rounded-lg\">
       <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi choisir ce service</h3>
-      <p class=\"leading-relaxed\">[Points forts et bénéfices pour les clients de {$city->name}, " . ($city->region ?? '') . "]</p>
+      <p class=\"leading-relaxed\">[Points forts et avantages du service {$keyword} à {$city->name}]</p>
     </div>
 
-    <!-- Expertise locale -->
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Expertise Locale à {$city->name}</h3>
-    <p class=\"leading-relaxed\">[Description de l'expertise locale et connaissance du marché à {$city->name}, " . ($city->region ?? '') . "]</p>
+    <!-- Champ 5 : Expertise / expérience -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
+    <p class=\"leading-relaxed\">[Description de l'expertise et expérience en {$keyword} à {$city->name}]</p>
 
-    <!-- CTA -->
+    <!-- Champ 9 : Financement / aides disponibles -->
+    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et aides</h4>
+      <p>[Informations sur les aides financières et options de financement pour {$keyword}]</p>
+    </div>
+
+    <!-- Champ 6 : CTA - demande de devis -->
     <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Demandez un devis</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour votre service {$keyword} à {$city->name}, " . ($city->region ?? '') . ".</p>
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un devis ?</h4>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour {$keyword} à {$city->name}.</p>
       <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
     </div>
 
-    <!-- Financement et aides -->
-    <div class=\"bg-gray-50 p-6 rounded-lg\">
-      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Financement & Aides</h4>
-      <p class=\"leading-relaxed\">[Informations sur les financements, aides et subventions disponibles pour les habitants de {$city->name}, " . ($city->region ?? '') . "]</p>
-    </div>
-
-    <!-- Informations pratiques -->
+    <!-- Champ 7 : Informations pratiques -->
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
-        <li>[Horaires]</li>
-        <li>[Garanties]</li>
-        <li>[Délais]</li>
-        <li>[Conseils et suivi]</li>
-        <li>[Service client]</li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 1 pour {$keyword}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 2 pour {$keyword}]</span></li>
+        <li class=\"flex items-center\"><i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i><span>[Avantage 3 pour {$keyword}]</span></li>
       </ul>
     </div>
 
-    <!-- Boutons de partage social -->
+    <!-- Champ 10 : Partage social -->
     <div class=\"mt-8 pt-6 border-t border-gray-200\">
       <div class=\"text-center\">
         <h4 class=\"text-lg font-semibold text-gray-800 mb-4\">Partager ce service</h4>
@@ -1084,7 +1050,39 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 
   </div>
 
-</div>";
+</div>
+
+INSTRUCTIONS IMPORTANTES:
+- Le contenu doit être UNIQUE, professionnel et engageant.
+- Utilise un vocabulaire technique adapté à {$keyword}.
+- PERSONNALISE le contenu pour {$city->name} et sa région.
+- Inclue les aides financières et options de financement possibles.
+- Fournis les informations pratiques, conseils et suivi après travaux.
+- Ne mentionne jamais le nom de l'entreprise ni la localisation.
+- Garde la structure HTML exacte.
+- Génère des prestations détaillées avec descriptions explicites spécifiques à {$keyword}.
+- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
+- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$keyword}
+- NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
+- REMPLACE [FORM_URL] par l'URL du formulaire de devis
+- GÉNÈRE exactement 10 prestations spécifiques au service {$keyword}
+- PERSONNALISE chaque prestation selon le type de service
+- UTILISE un vocabulaire technique approprié au secteur
+- Fournis le résultat en **JSON** valide avec les champs suivants :
+
+{
+\"description\": \"[HTML complet avec structure exacte]\",
+\"short_description\": \"[Description courte 120-140 caractères]\",
+\"long_description\": \"[Longue description détaillée du service {$keyword}, bénéfices, techniques, matériaux, avantages - minimum 300 caractères]\",
+\"icon\": \"fas fa-[icône appropriée]\",
+\"meta_title\": \"[Titre SEO 50-60 caractères]\",
+\"meta_description\": \"[Description SEO 150-160 caractères]\",
+\"og_title\": \"[Titre Open Graph 50-60 caractères]\",
+\"og_description\": \"[Description Open Graph 150-160 caractères]\",
+\"twitter_title\": \"[Titre Twitter 50-60 caractères]\",
+\"twitter_description\": \"[Description Twitter 150-160 caractères]\",
+\"meta_keywords\": \"[Mots-clés pertinents séparés par virgules]\"
+}";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
