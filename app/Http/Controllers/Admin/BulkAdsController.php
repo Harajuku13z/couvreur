@@ -195,6 +195,22 @@ class BulkAdsController extends Controller
     private function generateAdContentWithAI($service, $city, $aiPrompt = null)
     {
         try {
+            // Vérifier la clé API
+            $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
+            if (!$apiKey) {
+                Log::error('Clé API OpenAI manquante', [
+                    'service' => $service['name'],
+                    'city' => $city->name
+                ]);
+                return $this->generateFallbackContent($service['name'], $city);
+            }
+            
+            Log::info('Début génération IA pour annonce', [
+                'service' => $service['name'],
+                'city' => $city->name,
+                'api_key_length' => strlen($apiKey)
+            ]);
+            
             // Récupérer l'URL du site et du formulaire
             $siteUrl = setting('site_url', config('app.url'));
             if (!str_starts_with($siteUrl, 'http')) {
@@ -207,9 +223,15 @@ class BulkAdsController extends Controller
             // Construire le prompt personnalisé
             $prompt = $this->buildAdPrompt($service['name'], $city, $aiPrompt);
             
+            Log::info('Prompt construit', [
+                'service' => $service['name'],
+                'city' => $city->name,
+                'prompt_length' => strlen($prompt)
+            ]);
+            
             // Appel à l'API OpenAI
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . setting('openai_api_key'),
+                'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
             ])->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4',
@@ -227,8 +249,22 @@ class BulkAdsController extends Controller
                 $data = $response->json();
                 $aiContent = $data['choices'][0]['message']['content'] ?? '';
                 
+                Log::info('Réponse IA reçue', [
+                    'service' => $service['name'],
+                    'city' => $city->name,
+                    'content_length' => strlen($aiContent),
+                    'content_preview' => substr($aiContent, 0, 200)
+                ]);
+                
                 // Nettoyer et valider le contenu
                 $content = $this->validateAndCleanAIData($aiContent, $service['name'], $city);
+                
+                Log::info('Contenu validé', [
+                    'service' => $service['name'],
+                    'city' => $city->name,
+                    'final_content_length' => strlen($content),
+                    'is_fallback' => strpos($content, 'Service professionnel de') !== false
+                ]);
                 
                 // Remplacer les variables dans le contenu
                 $content = str_replace([
@@ -246,6 +282,7 @@ class BulkAdsController extends Controller
                 Log::error('Erreur API OpenAI pour génération annonce', [
                     'service' => $service['name'],
                     'city' => $city->name,
+                    'status' => $response->status(),
                     'response' => $response->body()
                 ]);
                 return $this->generateFallbackContent($service['name'], $city);
@@ -445,17 +482,58 @@ INSTRUCTIONS IMPORTANTES:
     private function validateAndCleanAIData($aiContent, $serviceName, $city)
     {
         try {
+            Log::info('Début validation données IA', [
+                'service' => $serviceName,
+                'city' => $city->name,
+                'raw_content_length' => strlen($aiContent),
+                'raw_content_preview' => substr($aiContent, 0, 300)
+            ]);
+            
             // Nettoyer le contenu pour extraire le JSON
             $cleanContent = $this->cleanHtmlContent($aiContent);
+            
+            Log::info('Contenu nettoyé', [
+                'service' => $serviceName,
+                'city' => $city->name,
+                'clean_content_length' => strlen($cleanContent),
+                'clean_content_preview' => substr($cleanContent, 0, 300)
+            ]);
             
             // Parser le JSON
             $aiData = json_decode($cleanContent, true);
             
-            if (!$aiData || !isset($aiData['description'])) {
-                Log::warning('Données IA invalides, utilisation du contenu brut', [
+            if (!$aiData) {
+                Log::warning('JSON invalide dans la réponse IA, tentative de correction', [
                     'service' => $serviceName,
                     'city' => $city->name,
-                    'content' => substr($aiContent, 0, 200)
+                    'json_error' => json_last_error_msg(),
+                    'content' => substr($cleanContent, 0, 500)
+                ]);
+                
+                // Tentative de correction du JSON
+                $correctedContent = $this->attemptJsonCorrection($cleanContent);
+                $aiData = json_decode($correctedContent, true);
+                
+                if (!$aiData) {
+                    Log::error('JSON toujours invalide après correction', [
+                        'service' => $serviceName,
+                        'city' => $city->name,
+                        'json_error' => json_last_error_msg()
+                    ]);
+                    return $this->generateFallbackContent($serviceName, $city);
+                } else {
+                    Log::info('JSON corrigé avec succès', [
+                        'service' => $serviceName,
+                        'city' => $city->name
+                    ]);
+                }
+            }
+            
+            if (!isset($aiData['description'])) {
+                Log::warning('Champ description manquant dans les données IA', [
+                    'service' => $serviceName,
+                    'city' => $city->name,
+                    'available_fields' => array_keys($aiData)
                 ]);
                 return $this->generateFallbackContent($serviceName, $city);
             }
@@ -490,10 +568,18 @@ INSTRUCTIONS IMPORTANTES:
             if (empty($validatedData['description']) || strlen($validatedData['description']) < 100) {
                 Log::warning('Contenu HTML trop court, utilisation du fallback', [
                     'service' => $serviceName,
-                    'city' => $city->name
+                    'city' => $city->name,
+                    'description_length' => strlen($validatedData['description']),
+                    'description_preview' => substr($validatedData['description'], 0, 200)
                 ]);
                 return $this->generateFallbackContent($serviceName, $city);
             }
+            
+            Log::info('Contenu IA validé avec succès', [
+                'service' => $serviceName,
+                'city' => $city->name,
+                'description_length' => strlen($validatedData['description'])
+            ]);
             
             return $validatedData['description'];
             
@@ -520,7 +606,43 @@ INSTRUCTIONS IMPORTANTES:
         // Nettoyer les caractères d'échappement
         $content = str_replace(['\"', '\\n', '\\t'], ['"', "\n", "\t"], $content);
         
+        // Corriger les apostrophes non échappées dans le JSON
+        // Remplacer les apostrophes simples par des apostrophes échappées dans les chaînes JSON
+        $content = preg_replace_callback('/"([^"]*\'[^"]*)"/', function($matches) {
+            $string = $matches[1];
+            $string = str_replace("'", "\\'", $string);
+            return '"' . $string . '"';
+        }, $content);
+        
         return trim($content);
+    }
+    
+    /**
+     * Tenter de corriger un JSON malformé
+     */
+    private function attemptJsonCorrection($content)
+    {
+        // Supprimer les caractères de contrôle
+        $content = preg_replace('/[\x00-\x1F\x7F]/', '', $content);
+        
+        // Corriger les apostrophes non échappées dans les chaînes JSON
+        $content = preg_replace_callback('/"([^"]*\'[^"]*)"/', function($matches) {
+            $string = $matches[1];
+            $string = str_replace("'", "\\'", $string);
+            return '"' . $string . '"';
+        }, $content);
+        
+        // Corriger les guillemets non échappés dans les chaînes JSON
+        $content = preg_replace_callback('/"([^"]*"[^"]*)"/', function($matches) {
+            $string = $matches[1];
+            $string = str_replace('"', '\\"', $string);
+            return '"' . $string . '"';
+        }, $content);
+        
+        // Supprimer les virgules en trop avant les accolades fermantes
+        $content = preg_replace('/,(\s*[}\]])/', '$1', $content);
+        
+        return $content;
     }
     
     /**
@@ -619,6 +741,22 @@ INSTRUCTIONS IMPORTANTES:
     private function generateKeywordAdContentWithAI($keyword, $city, $aiPrompt = null)
     {
         try {
+            // Vérifier la clé API
+            $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
+            if (!$apiKey) {
+                Log::error('Clé API OpenAI manquante pour mot-clé', [
+                    'keyword' => $keyword,
+                    'city' => $city->name
+                ]);
+                return $this->generateKeywordFallbackContent($keyword, $city);
+            }
+            
+            Log::info('Début génération IA pour mot-clé', [
+                'keyword' => $keyword,
+                'city' => $city->name,
+                'api_key_length' => strlen($apiKey)
+            ]);
+            
             // Récupérer l'URL du site et du formulaire
             $siteUrl = setting('site_url', config('app.url'));
             if (!str_starts_with($siteUrl, 'http')) {
@@ -631,9 +769,15 @@ INSTRUCTIONS IMPORTANTES:
             // Construire le prompt personnalisé pour le mot-clé
             $prompt = $this->buildKeywordAdPrompt($keyword, $city, $aiPrompt);
             
+            Log::info('Prompt mot-clé construit', [
+                'keyword' => $keyword,
+                'city' => $city->name,
+                'prompt_length' => strlen($prompt)
+            ]);
+            
             // Appel à l'API OpenAI
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . setting('openai_api_key'),
+                'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
             ])->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4',
@@ -651,8 +795,22 @@ INSTRUCTIONS IMPORTANTES:
                 $data = $response->json();
                 $aiContent = $data['choices'][0]['message']['content'] ?? '';
                 
+                Log::info('Réponse IA mot-clé reçue', [
+                    'keyword' => $keyword,
+                    'city' => $city->name,
+                    'content_length' => strlen($aiContent),
+                    'content_preview' => substr($aiContent, 0, 200)
+                ]);
+                
                 // Nettoyer et valider le contenu
                 $content = $this->validateAndCleanAIData($aiContent, $keyword, $city);
+                
+                Log::info('Contenu mot-clé validé', [
+                    'keyword' => $keyword,
+                    'city' => $city->name,
+                    'final_content_length' => strlen($content),
+                    'is_fallback' => strpos($content, 'Service professionnel de') !== false
+                ]);
                 
                 // Remplacer les variables dans le contenu
                 $content = str_replace([
@@ -670,6 +828,7 @@ INSTRUCTIONS IMPORTANTES:
                 Log::error('Erreur API OpenAI pour génération annonce mot-clé', [
                     'keyword' => $keyword,
                     'city' => $city->name,
+                    'status' => $response->status(),
                     'response' => $response->body()
                 ]);
                 return $this->generateKeywordFallbackContent($keyword, $city);
