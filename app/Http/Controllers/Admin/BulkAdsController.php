@@ -99,7 +99,7 @@ class BulkAdsController extends Controller
             $errors = [];
 
             // Traiter les villes par batch
-            $cities->chunk($batchSize)->each(function ($cityBatch) use ($service, $template, &$createdAds, &$skippedAds, &$errors) {
+            $cities->chunk($batchSize)->each(function ($cityBatch) use ($service, $aiPrompt, &$createdAds, &$skippedAds, &$errors) {
                 foreach ($cityBatch as $city) {
                     try {
                         // Vérifier si une annonce existe déjà
@@ -1025,7 +1025,7 @@ INSTRUCTIONS IMPORTANTES:
             $errors = [];
 
             // Traiter les villes par batch
-            $cities->chunk($batchSize)->each(function ($cityBatch) use ($keyword, $template, &$createdAds, &$skippedAds, &$errors) {
+            $cities->chunk($batchSize)->each(function ($cityBatch) use ($keyword, $aiPrompt, &$createdAds, &$skippedAds, &$errors) {
                 foreach ($cityBatch as $city) {
                     try {
                         // Vérifier si une annonce existe déjà
