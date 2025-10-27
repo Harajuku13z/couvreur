@@ -28,12 +28,12 @@ class BulkAdsController extends Controller
         // Récupérer toutes les villes
         $cities = City::orderBy('name')->get();
         
-        // Récupérer les villes favorites
-        $favoriteCities = Setting::get('favorite_cities', []);
+        // Récupérer les villes favorites depuis la colonne is_favorite
+        $favoriteCities = City::where('is_favorite', true)->orderBy('name')->get();
         
         // Si pas de villes favorites configurées, utiliser les 10 premières villes
-        if (empty($favoriteCities)) {
-            $favoriteCities = $cities->take(10)->pluck('id')->toArray();
+        if ($favoriteCities->isEmpty()) {
+            $favoriteCities = $cities->take(10);
         }
         
         return view('admin.ads.bulk-ads', compact('services', 'cities', 'favoriteCities'));
@@ -73,8 +73,12 @@ class BulkAdsController extends Controller
             if ($request->boolean('include_all_cities')) {
                 $cities = City::orderBy('name')->get();
             } else {
-                $favoriteCityIds = Setting::get('favorite_cities', []);
-                $cities = City::whereIn('id', $favoriteCityIds)->orderBy('name')->get();
+                $cities = City::where('is_favorite', true)->orderBy('name')->get();
+                
+                // Si pas de villes favorites configurées, utiliser les 10 premières villes
+                if ($cities->isEmpty()) {
+                    $cities = City::orderBy('name')->take(10)->get();
+                }
             }
 
             $batchSize = $request->input('batch_size', 10);
@@ -199,7 +203,7 @@ class BulkAdsController extends Controller
             'company_email' => setting('company_email', ''),
         ];
 
-        // Template HTML de base avec variables
+        // Template HTML de base avec variables et boutons de partage social
         $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
     <div class="space-y-4">
@@ -263,7 +267,7 @@ class BulkAdsController extends Controller
     <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>
       <p class="mb-4">Contactez-nous pour un devis gratuit et personnalisé pour vos travaux de {{SERVICE_NAME}}. Notre expert se déplace à {{CITY_NAME}} pour évaluer votre projet et vous proposer la solution la plus adaptée à vos besoins et à votre budget, avec des conseils personnalisés.</p>
-      <a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+      <a href="{{FORM_URL}}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
     
     <div class="bg-gray-50 p-6 rounded-lg">
@@ -295,6 +299,27 @@ class BulkAdsController extends Controller
         </li>
       </ul>
     </div>
+    
+    <!-- Boutons de partage social -->
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <div class="text-center">
+        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
+        <div class="flex justify-center items-center space-x-4">
+          <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-facebook-f text-lg"></i>
+            <span class="font-medium">Facebook</span>
+          </a>
+          <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-whatsapp text-lg"></i>
+            <span class="font-medium">WhatsApp</span>
+          </a>
+          <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="font-medium">Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>';
 
@@ -306,17 +331,32 @@ class BulkAdsController extends Controller
      */
     private function customizeTemplateForCity($template, $service, $city)
     {
+        // Récupérer l'URL du site et du formulaire
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $formUrl = $siteUrl . '/form/propertyType';
+        $adUrl = $siteUrl . '/annonces/' . Str::slug($service['name'] . '-' . $city->name);
+        $adTitle = $service['name'] . ' à ' . $city->name;
+        
         // Remplacer les variables dans le template
         $content = str_replace([
             '{{SERVICE_NAME}}',
             '{{CITY_NAME}}',
             '{{REGION_NAME}}',
-            '{{COMPANY_NAME}}'
+            '{{COMPANY_NAME}}',
+            '{{FORM_URL}}',
+            '[URL]',
+            '[TITRE]'
         ], [
             $service['name'],
             $city->name,
             $city->region ?? setting('company_region', ''),
-            setting('company_name', 'Notre Entreprise')
+            setting('company_name', 'Notre Entreprise'),
+            $formUrl,
+            $adUrl,
+            $adTitle
         ], $template);
 
         return $content;
@@ -368,14 +408,12 @@ class BulkAdsController extends Controller
             if ($request->boolean('include_all_cities')) {
                 $cities = City::orderBy('name')->get();
             } else {
-                $favoriteCityIds = Setting::get('favorite_cities', []);
+                $cities = City::where('is_favorite', true)->orderBy('name')->get();
                 
                 // Si pas de villes favorites configurées, utiliser les 10 premières villes
-                if (empty($favoriteCityIds)) {
+                if ($cities->isEmpty()) {
                     $cities = City::orderBy('name')->take(10)->get();
                     Log::info('Aucune ville favorite configurée, utilisation des 10 premières villes');
-                } else {
-                    $cities = City::whereIn('id', $favoriteCityIds)->orderBy('name')->get();
                 }
             }
 
@@ -503,7 +541,7 @@ class BulkAdsController extends Controller
             'company_email' => setting('company_email', ''),
         ];
 
-        // Template HTML de base avec variables pour mot-clé
+        // Template HTML de base avec variables pour mot-clé et boutons de partage social
         $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
     <div class="space-y-4">
@@ -567,7 +605,7 @@ class BulkAdsController extends Controller
     <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>
       <p class="mb-4">Contactez-nous pour un devis gratuit et personnalisé pour vos travaux de {{KEYWORD}}. Notre expert se déplace à {{CITY_NAME}} pour évaluer votre projet et vous proposer la solution la plus adaptée à vos besoins et à votre budget, avec des conseils personnalisés.</p>
-      <a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+      <a href="{{FORM_URL}}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
     
     <div class="bg-gray-50 p-6 rounded-lg">
@@ -599,6 +637,27 @@ class BulkAdsController extends Controller
         </li>
       </ul>
     </div>
+    
+    <!-- Boutons de partage social -->
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <div class="text-center">
+        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
+        <div class="flex justify-center items-center space-x-4">
+          <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-facebook-f text-lg"></i>
+            <span class="font-medium">Facebook</span>
+          </a>
+          <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-whatsapp text-lg"></i>
+            <span class="font-medium">WhatsApp</span>
+          </a>
+          <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="font-medium">Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>';
 
@@ -610,17 +669,32 @@ class BulkAdsController extends Controller
      */
     private function customizeTemplateForCityByKeyword($template, $keyword, $city)
     {
+        // Récupérer l'URL du site et du formulaire
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $formUrl = $siteUrl . '/form/propertyType';
+        $adUrl = $siteUrl . '/annonces/' . Str::slug($keyword . '-' . $city->name);
+        $adTitle = ucfirst($keyword) . ' à ' . $city->name;
+        
         // Remplacer les variables dans le template
         $content = str_replace([
             '{{KEYWORD}}',
             '{{CITY_NAME}}',
             '{{REGION_NAME}}',
-            '{{COMPANY_NAME}}'
+            '{{COMPANY_NAME}}',
+            '{{FORM_URL}}',
+            '[URL]',
+            '[TITRE]'
         ], [
             ucfirst($keyword),
             $city->name,
             $city->region ?? setting('company_region', ''),
-            setting('company_name', 'Notre Entreprise')
+            setting('company_name', 'Notre Entreprise'),
+            $formUrl,
+            $adUrl,
+            $adTitle
         ], $template);
 
         return $content;

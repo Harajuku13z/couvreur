@@ -28,43 +28,18 @@
         </div>
 
         <!-- Boutons d'action -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <a href="{{ route('admin.ads.bulk-ads') }}" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
                 <div class="flex items-center">
                     <div class="bg-white bg-opacity-20 p-3 rounded-lg">
                         <i class="fas fa-magic text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="font-semibold text-lg">Génération en Masse</h3>
-                        <p class="text-orange-100 text-sm">Services ou mots-clés</p>
+                        <h3 class="font-semibold text-lg">IA</h3>
+                        <p class="text-orange-100 text-sm">Génération en masse par IA</p>
                     </div>
                 </div>
             </a>
-
-            <a href="{{ route('admin.ads.service-cities') }}" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-lg">
-                        <i class="fas fa-robot text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="font-semibold text-lg">Service + Villes</h3>
-                        <p class="text-blue-100 text-sm">Max 2 villes par service</p>
-                    </div>
-                </div>
-            </a>
-
-            <a href="{{ route('admin.ads.keyword-cities') }}" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
-                <div class="flex items-center">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-lg">
-                        <i class="fas fa-key text-2xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="font-semibold text-lg">Mot-clé + Villes</h3>
-                        <p class="text-purple-100 text-sm">Max 2 villes par mot-clé</p>
-                    </div>
-                </div>
-            </a>
-
 
             <a href="{{ route('admin.ads.manual') }}" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
                 <div class="flex items-center">

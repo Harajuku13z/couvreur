@@ -131,16 +131,23 @@
                             </div>
                         </div>
 
-                        <!-- Taille du batch -->
+                        <!-- Aperçu du template -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Taille du Batch</label>
-                            <select name="batch_size" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="5">5 annonces par batch</option>
-                                <option value="10" selected>10 annonces par batch</option>
-                                <option value="20">20 annonces par batch</option>
-                                <option value="50">50 annonces par batch</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Plus le batch est petit, plus la génération est stable</p>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Aperçu du Template</label>
+                            <div class="bg-gray-50 border border-gray-200 rounded-md p-4 text-sm">
+                                <p class="font-medium text-gray-700 mb-2">Structure du template :</p>
+                                <ul class="space-y-1 text-gray-600">
+                                    <li>• Introduction personnalisée par ville</li>
+                                    <li>• Section "Notre Engagement Qualité"</li>
+                                    <li>• 8 prestations avec icônes Font Awesome</li>
+                                    <li>• Section "Pourquoi Choisir Notre Entreprise"</li>
+                                    <li>• Section "Notre Expertise Locale"</li>
+                                    <li>• Bouton "Demande de devis" avec URL interne</li>
+                                    <li>• Section "Informations Pratiques"</li>
+                                    <li>• Boutons de partage social (Facebook, WhatsApp, Email)</li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-2">Le template s'adapte automatiquement à chaque ville</p>
+                            </div>
                         </div>
                 </div>
 
@@ -151,23 +158,6 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Instructions IA Personnalisées (Optionnel)</label>
                         <textarea name="ai_prompt" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ajoutez des instructions spécifiques pour personnaliser le contenu généré..."></textarea>
                         <p class="text-xs text-gray-500 mt-1">Ces instructions seront appliquées au template de base</p>
-                    </div>
-
-                    <!-- Aperçu du template -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Aperçu du Template</label>
-                        <div class="bg-gray-50 border border-gray-200 rounded-md p-4 text-sm">
-                            <p class="font-medium text-gray-700 mb-2">Structure du template :</p>
-                            <ul class="space-y-1 text-gray-600">
-                                <li>• Introduction personnalisée par ville</li>
-                                <li>• Section "Notre Engagement Qualité"</li>
-                                <li>• 8 prestations avec icônes Font Awesome</li>
-                                <li>• Section "Pourquoi Choisir Notre Entreprise"</li>
-                                <li>• Section "Notre Expertise Locale"</li>
-                                <li>• Section "Informations Pratiques"</li>
-                            </ul>
-                            <p class="text-xs text-gray-500 mt-2">Le template s'adapte automatiquement à chaque ville</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -237,16 +227,10 @@
                             </div>
                         </div>
 
-                        <!-- Taille du batch -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Taille du Batch</label>
-                            <select name="keyword_batch_size" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                <option value="5">5 annonces par batch</option>
-                                <option value="10" selected>10 annonces par batch</option>
-                                <option value="20">20 annonces par batch</option>
-                                <option value="50">50 annonces par batch</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Plus le batch est petit, plus la génération est stable</p>
+                        <!-- Estimation -->
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-green-800 mb-2">Estimation</h3>
+                            <p id="keyword-estimated-count" class="text-sm text-green-700">Saisissez un mot-clé pour voir le nombre d'annonces à créer</p>
                         </div>
                     </div>
 
@@ -397,7 +381,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(form);
         const serviceSlug = formData.get('service_slug');
         const cityScope = formData.get('city_scope');
-        const batchSize = formData.get('batch_size');
         const aiPrompt = formData.get('ai_prompt');
 
         if (!serviceSlug) {
@@ -432,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 service_slug: serviceSlug,
                 include_all_cities: cityScope === 'all',
-                batch_size: parseInt(batchSize),
+                batch_size: 10,
                 ai_prompt: aiPrompt
             })
         })
@@ -574,7 +557,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(keywordsForm);
         const keyword = formData.get('keyword');
         const cityScope = formData.get('keyword_city_scope');
-        const batchSize = formData.get('keyword_batch_size');
         const aiPrompt = formData.get('keyword_ai_prompt');
 
         if (!keyword || !keyword.trim()) {
@@ -602,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Préparer les données pour l'envoi
         const requestData = new FormData();
         requestData.append('keyword', keyword);
-        requestData.append('keyword_batch_size', batchSize);
+        requestData.append('keyword_batch_size', 10);
         requestData.append('keyword_ai_prompt', aiPrompt);
         requestData.append('include_all_cities', cityScope === 'all' ? '1' : '0');
         requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
