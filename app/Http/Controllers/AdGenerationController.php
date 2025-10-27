@@ -579,11 +579,30 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         
         $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $service['name'] . '</h3>';
         $content .= '<ul class="space-y-3">';
-        $content .= '<li class="flex items-start"><span><strong>Service professionnel de qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Matériaux de haute qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Techniques éprouvées</strong></span></li>';
-        $content .= '<li class="flex items-start"><span><strong>Garantie de satisfaction</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en ' . $service['name'] . '</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Intervention d\'urgence</strong> - Service rapide 24h/7j pour ' . $service['name'] . '</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li>';
         $content .= '</ul>';
+        
+        // Ajouter la FAQ
+        $content .= '<div class="bg-gray-50 p-6 rounded-lg mt-6">';
+        $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>';
+        $content .= '<div class="space-y-2">';
+        $content .= '<p><strong>Q1: Combien coûte un service de ' . $service['name'] . ' à ' . $city->name . '?</strong></p>';
+        $content .= '<p>A: Le prix dépend de la complexité et de l\'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p>';
+        $content .= '<p><strong>Q2: Quel est le délai d\'intervention pour ' . $service['name'] . '?</strong></p>';
+        $content .= '<p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l\'urgence de votre demande.</p>';
+        $content .= '<p><strong>Q3: Proposez-vous une garantie sur vos services de ' . $service['name'] . '?</strong></p>';
+        $content .= '<p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p>';
+        $content .= '</div>';
+        $content .= '</div>';
         
         $content .= '<div class="bg-green-50 p-6 rounded-lg">';
         $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
@@ -596,10 +615,16 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
         $content .= '<p class="leading-relaxed">Forts de notre expérience, nous connaissons parfaitement les spécificités de ' . $city->name . ' pour un service adapté et de qualité.</p>';
         
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $formUrl = $siteUrl . '/form/propertyType';
+        
         $content .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
         $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
         $content .= '<p class="mb-4">Contactez-nous pour un devis gratuit pour vos ' . $service['name'] . ' à ' . $city->name . '.</p>';
-        $content .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>';
+        $content .= '<a href="' . $formUrl . '" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>';
         $content .= '</div>';
         
         $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
@@ -817,11 +842,30 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         
         $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $keyword . '</h3>';
         $content .= '<ul class="space-y-3">';
-        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Service professionnel de qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Matériaux de haute qualité</strong></span></li>';
-        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Techniques éprouvées</strong></span></li>';
-        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Garantie de satisfaction</strong></span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en ' . $keyword . '</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Intervention d\'urgence</strong> - Service rapide 24h/7j pour ' . $keyword . '</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li>';
+        $content .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li>';
         $content .= '</ul>';
+        
+        // Ajouter la FAQ
+        $content .= '<div class="bg-gray-50 p-6 rounded-lg mt-6">';
+        $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>';
+        $content .= '<div class="space-y-2">';
+        $content .= '<p><strong>Q1: Combien coûte un service de ' . $keyword . ' à ' . $city->name . '?</strong></p>';
+        $content .= '<p>A: Le prix dépend de la complexité et de l\'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p>';
+        $content .= '<p><strong>Q2: Quel est le délai d\'intervention pour ' . $keyword . '?</strong></p>';
+        $content .= '<p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l\'urgence de votre demande.</p>';
+        $content .= '<p><strong>Q3: Proposez-vous une garantie sur vos services de ' . $keyword . '?</strong></p>';
+        $content .= '<p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p>';
+        $content .= '</div>';
+        $content .= '</div>';
         
         $content .= '<div class="bg-green-50 p-6 rounded-lg">';
         $content .= '<h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi Choisir Notre Entreprise</h3>';
@@ -834,10 +878,16 @@ Réponds UNIQUEMENT avec le HTML complet, sans JSON, sans texte avant ou après.
         $content .= '<h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>';
         $content .= '<p class="leading-relaxed">Forts de notre expérience, nous connaissons parfaitement les spécificités de ' . $city->name . ' pour un service adapté et de qualité.</p>';
         
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $formUrl = $siteUrl . '/form/propertyType';
+        
         $content .= '<div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">';
         $content .= '<h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un Devis ?</h4>';
         $content .= '<p class="mb-4">Contactez-nous pour un devis gratuit pour vos ' . $keyword . ' à ' . $city->name . '.</p>';
-        $content .= '<a href="https://www.jd-renovation-service.fr/form/propertyType" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>';
+        $content .= '<a href="' . $formUrl . '" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>';
         $content .= '</div>';
         
         $content .= '<div class="bg-gray-50 p-6 rounded-lg">';
