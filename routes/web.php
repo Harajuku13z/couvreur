@@ -194,50 +194,16 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/cities/ajax/get-cities', [App\Http\Controllers\CityController::class, 'getCities'])->name('cities.ajax.get-cities');
             Route::get('/cities/departments', [App\Http\Controllers\CityController::class, 'getDepartments'])->name('cities.departments');
             
-            // ===== ADS GENERATION PAGE =====
-            Route::get('/ads/generation', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'index'])->name('ads.generation');
-            Route::post('/ads/generation', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'generate'])->name('ads.generation.generate');
-            Route::get('/ads/generation/favorite-cities', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'getFavoriteCities'])->name('ads.generation.favorite-cities');
-            Route::get('/ads/generation/cities-by-region', [App\Http\Controllers\Admin\AdGenerationPageController::class, 'getCitiesByRegion'])->name('ads.generation.cities-by-region');
+            // ===== ANNONCES =====
+            Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('ads.index');
+            Route::post('/ads/delete-all', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('ads.delete-all');
             
-            // ===== ADS CREATION PAGES =====
-            // Création manuelle
-            Route::get('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'index'])->name('ads.manual');
-            Route::post('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'store'])->name('ads.manual.store');
-            Route::get('/ads/manual/favorite-cities', [App\Http\Controllers\Admin\ManualAdController::class, 'getFavoriteCities'])->name('ads.manual.favorite-cities');
-            Route::get('/ads/manual/cities-by-region', [App\Http\Controllers\Admin\ManualAdController::class, 'getCitiesByRegion'])->name('ads.manual.cities-by-region');
-            
-            // Génération en masse (nouveau système)
+            // ===== GÉNÉRATION EN MASSE (SYSTÈME PRINCIPAL) =====
             Route::get('/ads/bulk-ads', [App\Http\Controllers\Admin\BulkAdsController::class, 'index'])->name('ads.bulk-ads');
             Route::post('/ads/bulk-ads/generate', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAds'])->name('ads.bulk-ads.generate');
             Route::post('/ads/bulk-ads/generate-keyword', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAdsByKeyword'])->name('ads.bulk-ads.generate-keyword');
             Route::get('/ads/bulk-ads/favorite-cities', [App\Http\Controllers\Admin\BulkAdsController::class, 'getFavoriteCities'])->name('ads.bulk-ads.favorite-cities');
             Route::get('/ads/bulk-ads/cities-by-region', [App\Http\Controllers\Admin\BulkAdsController::class, 'getCitiesByRegion'])->name('ads.bulk-ads.cities-by-region');
-
-            // ===== GENERATION ENDPOINTS =====
-            // Routes articles supprimées - système refait de zéro
-
-            // ===== ANNONCES =====
-            Route::get('/ads', [App\Http\Controllers\AdAdminController::class, 'index'])->name('ads.index');
-            Route::post('/ads/delete-all', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('ads.delete-all');
-            
-            // Pages d'interface pour la génération d'annonces
-            Route::get('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'index'])->name('ads.service-cities');
-            Route::post('/ads/service-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'generate'])->name('ads.service-cities.generate');
-            Route::get('/ads/service-cities/favorite-cities', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getFavoriteCities'])->name('ads.service-cities.favorite-cities');
-            Route::get('/ads/service-cities/cities-by-region', [App\Http\Controllers\Admin\ServiceCitiesController::class, 'getCitiesByRegion'])->name('ads.service-cities.cities-by-region');
-            
-            Route::get('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'index'])->name('ads.keyword-cities');
-            Route::post('/ads/keyword-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'generate'])->name('ads.keyword-cities.generate');
-            Route::get('/ads/keyword-cities/favorite-cities', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getFavoriteCities'])->name('ads.keyword-cities.favorite-cities');
-            Route::get('/ads/keyword-cities/cities-by-region', [App\Http\Controllers\Admin\KeywordCitiesController::class, 'getCitiesByRegion'])->name('ads.keyword-cities.cities-by-region');
-            
-            // Routes de génération
-            Route::post('/ads/generate/service-cities', [App\Http\Controllers\AdGenerationController::class, 'generateByServiceCities'])->name('ads.generate.service-cities');
-            Route::post('/ads/generate/keyword-cities', [App\Http\Controllers\AdGenerationController::class, 'generateByKeywordCities'])->name('ads.generate.keyword-cities');
-            Route::post('/ads/generate/seo-articles', [App\Http\Controllers\AdGenerationController::class, 'generateSeoArticles'])->name('ads.generate.seo-articles');
-            Route::post('/ads/create/from-seo', [App\Http\Controllers\AdGenerationController::class, 'createPagesFromSeo'])->name('ads.create.from-seo');
-            Route::get('/ads/jobs/{job}', [App\Http\Controllers\AdGenerationController::class, 'jobStatus'])->name('ads.jobs.show');
 
             // ===== ARTICLES =====
             // ===== ARTICLES (NOUVEAU SYSTÈME) =====
