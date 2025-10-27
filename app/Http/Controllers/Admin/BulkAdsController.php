@@ -324,7 +324,12 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$serviceName}, {$city->name}, " . ($city->region ?? '') . ", service professionnel, devis gratuit\"
 }
 
-IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentaire.";
+IMPORTANT: 
+- Réponds UNIQUEMENT avec le JSON ci-dessus
+- Ne pas ajouter de texte avant ou après
+- Ne pas modifier la structure
+- Commence directement par { et termine par }
+- Copie exactement le JSON fourni";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
@@ -357,8 +362,27 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentair
                 'clean_content_preview' => substr($cleanContent, 0, 300)
             ]);
             
+            // Extraire le JSON même si l'IA a ajouté du texte avant/après
+            $jsonContent = $this->extractJsonFromContent($cleanContent);
+            
+            if (empty($jsonContent)) {
+                Log::warning('Aucun JSON valide trouvé dans le contenu', [
+                    'service' => $serviceName,
+                    'city' => $city->name,
+                    'content_preview' => substr($cleanContent, 0, 500)
+                ]);
+                return $this->generateFallbackContent($serviceName, $city);
+            }
+            
+            Log::info('JSON extrait', [
+                'service' => $serviceName,
+                'city' => $city->name,
+                'json_length' => strlen($jsonContent),
+                'json_preview' => substr($jsonContent, 0, 200)
+            ]);
+            
             // Parser le JSON
-            $aiData = json_decode($cleanContent, true);
+            $aiData = json_decode($jsonContent, true);
             
             if (!$aiData) {
                 Log::warning('JSON invalide dans la réponse IA, tentative de correction', [
@@ -369,7 +393,7 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentair
                 ]);
                 
                 // Tentative de correction du JSON
-                $correctedContent = $this->attemptJsonCorrection($cleanContent);
+                $correctedContent = $this->attemptJsonCorrection($jsonContent);
                 $aiData = json_decode($correctedContent, true);
                 
                 if (!$aiData) {
@@ -449,6 +473,29 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentair
             ]);
             return $this->generateFallbackContent($serviceName, $city);
         }
+    }
+    
+    /**
+     * Extraire le JSON du contenu même si l'IA a ajouté du texte avant/après
+     */
+    private function extractJsonFromContent($content)
+    {
+        // Chercher le premier { et le dernier }
+        $firstBrace = strpos($content, '{');
+        $lastBrace = strrpos($content, '}');
+        
+        if ($firstBrace === false || $lastBrace === false || $firstBrace >= $lastBrace) {
+            return '';
+        }
+        
+        $jsonContent = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
+        
+        // Vérifier que c'est bien du JSON valide
+        if (json_decode($jsonContent, true) !== null) {
+            return $jsonContent;
+        }
+        
+        return '';
     }
     
     /**
@@ -728,7 +775,12 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$keyword}, {$city->name}, " . ($city->region ?? '') . ", service professionnel, devis gratuit\"
 }
 
-IMPORTANT: Réponds UNIQUEMENT avec le JSON ci-dessus, sans texte supplémentaire.";
+IMPORTANT: 
+- Réponds UNIQUEMENT avec le JSON ci-dessus
+- Ne pas ajouter de texte avant ou après
+- Ne pas modifier la structure
+- Commence directement par { et termine par }
+- Copie exactement le JSON fourni";
 
         // Ajouter le prompt personnalisé si fourni
         if ($aiPrompt) {
