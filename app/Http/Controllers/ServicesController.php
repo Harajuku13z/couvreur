@@ -397,96 +397,124 @@ CONTENU REQUIS:
 5. Mots-clés pertinents (séparés par virgules)
 6. Contenu HTML complet avec structure professionnelle
 
-STRUCTURE HTML OBLIGATOIRE:
+STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 <div class=\"grid md:grid-cols-2 gap-8\">
+  <!-- Colonne gauche -->
   <div class=\"space-y-6\">
+    <!-- Introduction / texte descriptif -->
     <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Introduction personnalisée pour {$serviceName} à {$companyInfo['company_city']}]</p>
-      <p class=\"text-lg leading-relaxed\">[Expertise spécifique au service {$serviceName}]</p>
-      <p class=\"text-lg leading-relaxed\">[Approche personnalisée et satisfaction client]</p>
+      <p class=\"text-lg leading-relaxed\">[Description courte du service {$serviceName} en 250 caractères maximum]</p>
+      <p class=\"text-lg leading-relaxed\">[Spécialisation ou prestations principales pour {$serviceName}]</p>
+      <p class=\"text-lg leading-relaxed\">[Valeurs ou promesses : qualité, expertise, satisfaction client]</p>
     </div>
-    
+
+    <!-- Engagement / garanties -->
     <div class=\"bg-blue-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité</h3>
-      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale.</p>
-      <p class=\"leading-relaxed\">[Matériaux et techniques spécifiques à {$serviceName}]</p>
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité {$serviceName}</h3>
+      <p class=\"leading-relaxed mb-3\">Chez {$companyInfo['company_name']}, nous garantissons la satisfaction totale de nos clients à {$companyInfo['company_city']}.</p>
+      <p class=\"leading-relaxed\">[Détails techniques ou matériaux utilisés spécifiques à {$serviceName}]</p>
     </div>
-    
+
+    <!-- Prestations / services -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 1 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 1 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 2 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 2 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 3 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 3 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 4 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 4 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 5 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 5 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 6 spécifique]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 6 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 7 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 8 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 9 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <span><strong>[Prestation 10 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
       </li>
     </ul>
-    
-    <div class=\"bg-green-50 p-6 rounded-lg\">
-      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir Notre Entreprise</h3>
-      <p class=\"leading-relaxed\">[Réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
-    </div>
   </div>
-  
+
+  <!-- Colonne droite -->
   <div class=\"space-y-6\">
-    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale</h3>
-    <p class=\"leading-relaxed\">[Expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
-    
+    <!-- Pourquoi choisir l'entreprise -->
+    <div class=\"bg-green-50 p-6 rounded-lg\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir {$companyInfo['company_name']}</h3>
+      <p class=\"leading-relaxed\">[Points forts ou réputation locale pour {$serviceName} à {$companyInfo['company_city']}]</p>
+    </div>
+
+    <!-- Expertise locale / description -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale à {$companyInfo['company_city']}</h3>
+    <p class=\"leading-relaxed\">[Description de l'expertise locale pour {$serviceName} en {$companyInfo['company_region']}]</p>
+
+    <!-- CTA : demande de devis -->
     <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis ?</h4>
-      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName}.</p>
-      <a href=\"https://www.jd-renovation-service.fr/form/propertyType\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
+      <p class=\"mb-4\">Contactez-nous pour un devis gratuit pour vos {$serviceName} à {$companyInfo['company_city']}.</p>
+      <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">Demande de devis</a>
     </div>
-    
+
+    <!-- Informations pratiques -->
     <div class=\"bg-gray-50 p-6 rounded-lg\">
       <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
       <ul class=\"space-y-2 text-sm\">
         <li class=\"flex items-center\">
           <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 1 pour {$serviceName}]</span>
+          <span>[Avantage ou service pratique 1 pour {$serviceName}]</span>
         </li>
         <li class=\"flex items-center\">
           <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 2 pour {$serviceName}]</span>
+          <span>[Avantage ou service pratique 2 pour {$serviceName}]</span>
         </li>
         <li class=\"flex items-center\">
           <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 3 pour {$serviceName}]</span>
+          <span>[Avantage ou service pratique 3 pour {$serviceName}]</span>
         </li>
         <li class=\"flex items-center\">
           <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 4 pour {$serviceName}]</span>
+          <span>[Avantage ou service pratique 4 pour {$serviceName}]</span>
         </li>
         <li class=\"flex items-center\">
           <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 5 pour {$serviceName}]</span>
-        </li>
-        <li class=\"flex items-center\">
-          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
-          <span>[Info pratique 6 pour {$serviceName}]</span>
+          <span>[Avantage ou service pratique 5 pour {$serviceName}]</span>
         </li>
       </ul>
     </div>
   </div>
 </div>
+
+INSTRUCTIONS IMPORTANTES:
+- REMPLACE [FORM_URL] par l'URL du formulaire de devis
+- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
+- PERSONNALISE chaque prestation selon le type de service
+- UTILISE un vocabulaire technique approprié au secteur
+- ADAPTE le contenu à la localisation {$companyInfo['company_city']}, {$companyInfo['company_region']}
 
 INSTRUCTIONS:
 - ADAPTE le contenu au service {$serviceName} (toiture, façade, isolation, etc.)
@@ -654,8 +682,17 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             return implode(', ', array_unique($baseKeywords));
         };
 
+        // Remplacer [FORM_URL] par l'URL correcte du formulaire
+        $description = $aiData['description'] ?? $this->generateDefaultDescription($serviceName, $companyInfo);
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $formUrl = $siteUrl . '/form/propertyType';
+        $description = str_replace('[FORM_URL]', $formUrl, $description);
+
         return [
-            'description' => $aiData['description'] ?? $this->generateDefaultDescription($serviceName, $companyInfo),
+            'description' => $description,
             'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
             'icon' => $aiData['icon'] ?? $this->getServiceIcon($serviceName),
             'meta_title' => $cleanText($aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
