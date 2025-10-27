@@ -204,6 +204,12 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/ads/bulk-ads/generate-keyword', [App\Http\Controllers\Admin\BulkAdsController::class, 'generateBulkAdsByKeyword'])->name('ads.bulk-ads.generate-keyword');
             Route::get('/ads/bulk-ads/favorite-cities', [App\Http\Controllers\Admin\BulkAdsController::class, 'getFavoriteCities'])->name('ads.bulk-ads.favorite-cities');
             Route::get('/ads/bulk-ads/cities-by-region', [App\Http\Controllers\Admin\BulkAdsController::class, 'getCitiesByRegion'])->name('ads.bulk-ads.cities-by-region');
+            
+            // ===== CRÉATION MANUELLE =====
+            Route::get('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'index'])->name('ads.manual');
+            Route::post('/ads/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'store'])->name('ads.manual.store');
+            Route::get('/ads/manual/favorite-cities', [App\Http\Controllers\Admin\ManualAdController::class, 'getFavoriteCities'])->name('ads.manual.favorite-cities');
+            Route::get('/ads/manual/cities-by-region', [App\Http\Controllers\Admin\ManualAdController::class, 'getCitiesByRegion'])->name('ads.manual.cities-by-region');
 
             // ===== ARTICLES =====
             // ===== ARTICLES (NOUVEAU SYSTÈME) =====
