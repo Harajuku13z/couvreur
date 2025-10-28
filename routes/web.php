@@ -211,13 +211,14 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/ads/manual/favorite-cities', [App\Http\Controllers\Admin\ManualAdController::class, 'getFavoriteCities'])->name('ads.manual.favorite-cities');
             Route::get('/ads/manual/cities-by-region', [App\Http\Controllers\Admin\ManualAdController::class, 'getCitiesByRegion'])->name('ads.manual.cities-by-region');
 
-            // ===== TEMPLATES D'ANNONCES =====
-            Route::get('/ads/templates', [App\Http\Controllers\Admin\AdTemplateController::class, 'index'])->name('ads.templates.index');
-            Route::get('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('ads.templates.show');
-            Route::post('/ads/templates/create-from-service', [App\Http\Controllers\Admin\AdTemplateController::class, 'createFromService'])->name('ads.templates.create-from-service');
-            Route::post('/ads/templates/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('ads.templates.generate-ads');
-            Route::post('/ads/templates/{template}/toggle-status', [App\Http\Controllers\Admin\AdTemplateController::class, 'toggleStatus'])->name('ads.templates.toggle-status');
-            Route::get('/ads/templates/cities', [App\Http\Controllers\Admin\AdTemplateController::class, 'getCities'])->name('ads.templates.cities');
+        // ===== TEMPLATES D'ANNONCES =====
+        Route::get('/ads/templates', [App\Http\Controllers\Admin\AdTemplateController::class, 'index'])->name('ads.templates.index');
+        Route::get('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('ads.templates.show');
+        Route::post('/ads/templates/create-from-service', [App\Http\Controllers\Admin\AdTemplateController::class, 'createFromService'])->name('ads.templates.create-from-service');
+        Route::post('/ads/templates/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('ads.templates.generate-ads');
+        Route::post('/ads/templates/{template}/toggle-status', [App\Http\Controllers\Admin\AdTemplateController::class, 'toggleStatus'])->name('ads.templates.toggle-status');
+        Route::get('/ads/templates/cities', [App\Http\Controllers\Admin\AdTemplateController::class, 'getCities'])->name('ads.templates.cities');
+        Route::delete('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'destroy'])->name('ads.templates.destroy');
 
             // ===== ARTICLES =====
             // ===== ARTICLES (NOUVEAU SYSTÈME) =====

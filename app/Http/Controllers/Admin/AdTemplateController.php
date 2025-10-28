@@ -60,6 +60,25 @@ class AdTemplateController extends Controller
         }
 
         try {
+            // Vérifier si des templates existent déjà pour ce service
+            $existingTemplates = AdTemplate::where('service_slug', $serviceSlug)->get();
+            
+            if ($existingTemplates->count() > 0 && !$request->input('force_create', false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Des templates existent déjà pour ce service',
+                    'existing_templates' => $existingTemplates->map(function($template) {
+                        return [
+                            'id' => $template->id,
+                            'name' => $template->name,
+                            'is_active' => $template->is_active,
+                            'ads_count' => $template->ads()->count(),
+                            'created_at' => $template->created_at->format('d/m/Y H:i')
+                        ];
+                    })
+                ], 400);
+            }
+
             // Générer le contenu via IA
             $aiContent = $this->generateTemplateContent($service, $request->input('ai_prompt'));
             
@@ -180,7 +199,7 @@ class AdTemplateController extends Controller
                     'keyword' => $template->service_name,
                     'city_id' => $city->id,
                     'template_id' => $template->id,
-                    'slug' => Str::slug($template->service_name . '-' . $city->name),
+                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
                     'status' => 'published',
                     'published_at' => now(),
                     'meta_title' => $metaForCity['meta_title'],
@@ -613,6 +632,39 @@ IMPORTANT:
     }
 
     /**
+     * Générer un slug unique pour les annonces
+     */
+    private function generateUniqueSlug($baseSlug)
+    {
+        $slug = $baseSlug;
+        $counter = 1;
+        
+        // Vérifier si le slug existe déjà
+        while (\App\Models\Ad::where('slug', $slug)->exists()) {
+            $suffixes = [
+                'devis-gratuit',
+                'prix-competitif',
+                'service-professionnel',
+                'expert-local',
+                'qualite-garantie',
+                'intervention-rapide',
+                'devis-personnalise',
+                'travaux-sur-mesure'
+            ];
+            
+            if ($counter <= count($suffixes)) {
+                $slug = $baseSlug . '-' . $suffixes[$counter - 1];
+            } else {
+                $slug = $baseSlug . '-' . $counter;
+            }
+            
+            $counter++;
+        }
+        
+        return $slug;
+    }
+
+    /**
      * Obtenir la liste des villes pour la génération d'annonces
      */
     public function getCities()
@@ -625,6 +677,42 @@ IMPORTANT:
             'success' => true,
             'cities' => $cities
         ]);
+    }
+
+    /**
+     * Supprimer un template
+     */
+    public function destroy(AdTemplate $template)
+    {
+        try {
+            // Vérifier s'il y a des annonces associées
+            $adsCount = $template->ads()->count();
+            
+            if ($adsCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Impossible de supprimer ce template car {$adsCount} annonce(s) y sont associées."
+                ], 400);
+            }
+
+            $template->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Template supprimé avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur suppression template', [
+                'template_id' => $template->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du template'
+            ], 500);
+        }
     }
 
     /**

@@ -133,14 +133,17 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('admin.ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900">
+                                        <a href="{{ route('admin.ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900" title="Voir le template">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <button onclick="generateAdsFromTemplate({{ $template->id }})" class="text-green-600 hover:text-green-900">
+                                        <button onclick="generateAdsFromTemplate({{ $template->id }})" class="text-green-600 hover:text-green-900" title="Générer des annonces">
                                             <i class="fas fa-plus-circle"></i>
                                         </button>
-                                        <button onclick="toggleTemplateStatus({{ $template->id }}, {{ $template->is_active ? 'false' : 'true' }})" class="text-orange-600 hover:text-orange-900">
+                                        <button onclick="toggleTemplateStatus({{ $template->id }}, {{ $template->is_active ? 'false' : 'true' }})" class="text-orange-600 hover:text-orange-900" title="{{ $template->is_active ? 'Désactiver' : 'Activer' }}">
                                             <i class="fas fa-{{ $template->is_active ? 'pause' : 'play' }}"></i>
+                                        </button>
+                                        <button onclick="deleteTemplate({{ $template->id }})" class="text-red-600 hover:text-red-900" title="Supprimer le template">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -433,5 +436,31 @@ document.getElementById('createTemplateForm').addEventListener('submit', functio
         button.disabled = false;
     });
 });
+
+// Fonction pour supprimer un template
+function deleteTemplate(templateId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce template ? Cette action est irréversible.')) {
+        fetch(`/admin/ads/templates/${templateId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Template supprimé avec succès !');
+                location.reload();
+            } else {
+                alert('Erreur lors de la suppression : ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la suppression du template');
+        });
+    }
+}
 </script>
 @endpush
