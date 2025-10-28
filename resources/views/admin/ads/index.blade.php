@@ -28,7 +28,7 @@
         </div>
 
         <!-- Boutons d'action -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <a href="{{ route('admin.ads.bulk-ads') }}" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
                 <div class="flex items-center">
                     <div class="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -37,6 +37,18 @@
                     <div class="ml-4">
                         <h3 class="font-semibold text-lg">IA</h3>
                         <p class="text-orange-100 text-sm">Génération en masse par IA</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('admin.ads.templates.index') }}" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
+                <div class="flex items-center">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                        <i class="fas fa-file-alt text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="font-semibold text-lg">Templates</h3>
+                        <p class="text-purple-100 text-sm">Gérer les templates IA</p>
                     </div>
                 </div>
             </a>
