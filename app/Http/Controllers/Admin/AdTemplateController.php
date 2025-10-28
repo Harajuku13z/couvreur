@@ -268,14 +268,25 @@ class AdTemplateController extends Controller
      */
     private function buildTemplatePrompt($serviceName, $aiPrompt = null)
     {
-        $basePrompt = "Crée un template d'annonce pour le service {$serviceName}.
+        $basePrompt = "Tu es un expert en {$serviceName} avec une connaissance approfondie des prestations spécifiques à ce domaine. Crée un template d'annonce professionnel avec des prestations RÉELLES et SPÉCIFIQUES à {$serviceName}.
 
 SERVICE: {$serviceName}
+
+INSTRUCTIONS IMPORTANTES:
+- Génère 10 prestations VRAIMENT spécifiques à {$serviceName}
+- Utilise un vocabulaire technique et professionnel
+- Les prestations doivent être réalistes et détaillées
+- Évite les prestations génériques comme 'diagnostic' ou 'conseil'
+- Sois précis sur les techniques et matériaux utilisés
+
+EXEMPLES DE PRESTATIONS SPÉCIFIQUES:
+- Pour 'Rénovation de toiture': 'Diagnostic et inspection de toiture', 'Nettoyage et démoussage', 'Réparation partielle de toiture', 'Réfection complète de toiture', 'Isolation de toiture', 'Étanchéité et traitement hydrofuge', 'Réparation de zinguerie', 'Pose de charpente', 'Installation de fenêtres de toit', 'Entretien annuel et maintenance préventive'
+- Pour 'Plomberie': 'Installation de chauffe-eau', 'Réparation de fuites', 'Débouchage de canalisations', 'Pose de robinetterie', 'Installation de WC', 'Rénovation de salle de bain', 'Détection de fuites', 'Installation de radiateurs', 'Raccordement gaz', 'Maintenance préventive'
 
 GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$serviceName} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$serviceName} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$serviceName} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$serviceName}</h3><ul class='space-y-3'><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en {$serviceName}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Intervention d'urgence</strong> - Service rapide 24h/7j pour {$serviceName}</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li><li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li></ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$serviceName} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$serviceName}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$serviceName}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$serviceName}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$serviceName} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$serviceName} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$serviceName} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$serviceName} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$serviceName}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$serviceName} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$serviceName}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$serviceName}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$serviceName}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$serviceName} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
   \"short_description\": \"Service professionnel de {$serviceName} à [VILLE] - Devis gratuit et intervention rapide\",
   \"long_description\": \"Notre entreprise spécialisée en {$serviceName} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
   \"icon\": \"fas fa-tools\",
@@ -294,7 +305,8 @@ IMPORTANT:
 - Ne pas modifier la structure
 - Commence directement par { et termine par }
 - Copie exactement le JSON fourni
-- Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques";
+- Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
+- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName} AVEC DES DESCRIPTIONS DÉTAILLÉES] par 10 prestations réelles avec le format: <li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Nom de la prestation</strong> - Description détaillée</span></li>";
 
         if ($aiPrompt) {
             $basePrompt .= "\n\nINSTRUCTIONS PERSONNALISÉES SUPPLÉMENTAIRES:\n" . $aiPrompt;
@@ -426,18 +438,7 @@ IMPORTANT:
                     <p class="leading-relaxed">Chaque intervention de ' . $serviceName . ' est réalisée selon les normes professionnelles les plus strictes.</p>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceName . '</h3>
-                <ul class="space-y-3">
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Diagnostic et évaluation</strong> - Analyse complète de vos besoins en ' . $serviceName . '</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Intervention d\'urgence</strong> - Service rapide 24h/7j pour ' . $serviceName . '</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Maintenance préventive</strong> - Entretien régulier pour éviter les problèmes</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Réparation spécialisée</strong> - Correction des dysfonctionnements</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Installation complète</strong> - Pose selon les normes en vigueur</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Rénovation totale</strong> - Remplacement intégral avec matériaux de qualité</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Conseil personnalisé</strong> - Recommandations adaptées à votre situation</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Suivi post-intervention</strong> - Accompagnement après travaux</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Formation utilisateur</strong> - Apprentissage des bonnes pratiques</span></li>
-                    <li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Garantie étendue</strong> - Protection supplémentaire sur nos interventions</span></li>
-                </ul>
+                <ul class="space-y-3">' . $this->generateSpecificPrestations($serviceName) . '</ul>
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>
                     <div class="space-y-2">
@@ -509,6 +510,106 @@ IMPORTANT:
             'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
             'twitter_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
         ];
+    }
+
+    /**
+     * Générer des prestations spécifiques selon le type de service
+     */
+    private function generateSpecificPrestations($serviceName)
+    {
+        $prestations = [];
+        
+        // Détecter le type de service et générer des prestations spécifiques
+        $serviceLower = strtolower($serviceName);
+        
+        if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false || strpos($serviceLower, 'rénovation') !== false) {
+            $prestations = [
+                'Diagnostic et inspection de toiture - Évaluation complète de l\'état de la couverture et détection des fuites',
+                'Nettoyage et démoussage - Nettoyage haute pression et application d\'antimousse professionnel',
+                'Réparation partielle de toiture - Remplacement d\'ardoises, tuiles et réparation des joints',
+                'Réfection complète de toiture - Dépose et pose d\'une nouvelle couverture selon les normes',
+                'Isolation de toiture - Pose d\'isolants thermiques sous toiture ou par sarking',
+                'Étanchéité et traitement hydrofuge - Protection contre les infiltrations et l\'humidité',
+                'Réparation de zinguerie - Pose et entretien des gouttières, chéneaux et descentes d\'eau',
+                'Pose de charpente - Réparation ou installation de charpentes en bois traitées',
+                'Installation de fenêtres de toit - Pose de Velux et étanchéification des ouvertures',
+                'Entretien annuel et maintenance - Inspection périodique et nettoyage saisonnier'
+            ];
+        } elseif (strpos($serviceLower, 'plomberie') !== false) {
+            $prestations = [
+                'Installation de chauffe-eau - Pose de chauffe-eau électrique, gaz ou thermodynamique',
+                'Réparation de fuites - Détection et réparation de fuites sur canalisations et robinetterie',
+                'Débouchage de canalisations - Intervention rapide pour déboucher éviers, WC et canalisations',
+                'Pose de robinetterie - Installation de robinets, mitigeurs et accessoires de salle de bain',
+                'Installation de WC - Pose, remplacement et raccordement de toilettes et accessoires',
+                'Rénovation de salle de bain - Aménagement complet avec carrelage et sanitaires',
+                'Détection de fuites - Recherche de fuites cachées avec matériel professionnel',
+                'Installation de radiateurs - Pose et raccordement de radiateurs et planchers chauffants',
+                'Raccordement gaz - Installation et mise en conformité des installations gaz',
+                'Maintenance préventive - Entretien régulier des installations et prévention des pannes'
+            ];
+        } elseif (strpos($serviceLower, 'électricité') !== false || strpos($serviceLower, 'électrique') !== false) {
+            $prestations = [
+                'Installation électrique - Mise en conformité et installation de tableaux électriques',
+                'Rénovation de tableau électrique - Remplacement et mise aux normes NF C 15-100',
+                'Pose de prises et interrupteurs - Installation et remplacement de matériel électrique',
+                'Installation d\'éclairage - Pose de spots, lustres et éclairage LED',
+                'Installation de volets roulants - Motorisation et automatisation des volets',
+                'Installation de climatisation - Pose de climatiseurs et pompes à chaleur',
+                'Mise en sécurité - Installation de disjoncteurs différentiels et parafoudres',
+                'Installation de domotique - Automatisation et contrôle à distance',
+                'Dépannage électrique - Intervention d\'urgence pour pannes et dysfonctionnements',
+                'Vérification d\'installation - Contrôle et mise en conformité des installations existantes'
+            ];
+        } elseif (strpos($serviceLower, 'peinture') !== false) {
+            $prestations = [
+                'Préparation des surfaces - Ponçage, rebouchage et traitement des murs',
+                'Peinture intérieure - Rénovation complète des pièces avec peintures écologiques',
+                'Peinture extérieure - Ravalement de façade et protection contre les intempéries',
+                'Pose de papier peint - Installation et pose de revêtements muraux',
+                'Peinture de plafond - Rénovation et traitement des plafonds',
+                'Peinture de menuiseries - Rénovation des portes, fenêtres et volets',
+                'Traitement des murs humides - Diagnostic et traitement de l\'humidité',
+                'Peinture de cuisine et salle de bain - Revêtements adaptés aux pièces humides',
+                'Finitions décoratives - Effets spéciaux, patines et techniques artistiques',
+                'Nettoyage et protection - Entretien et protection des surfaces peintes'
+            ];
+        } elseif (strpos($serviceLower, 'isolation') !== false) {
+            $prestations = [
+                'Isolation des combles - Pose d\'isolants thermiques sous toiture',
+                'Isolation des murs - Isolation intérieure ou extérieure des parois',
+                'Isolation des sols - Pose d\'isolants sous plancher et dalle',
+                'Isolation phonique - Réduction des bruits et amélioration acoustique',
+                'Isolation des fenêtres - Pose de double vitrage et calfeutrage',
+                'Isolation des portes - Pose de joints et amélioration de l\'étanchéité',
+                'Isolation des tuyaux - Protection des canalisations contre le gel',
+                'Isolation des toitures terrasses - Pose de membranes isolantes',
+                'Isolation des caves - Traitement de l\'humidité et isolation thermique',
+                'Audit énergétique - Diagnostic et recommandations d\'amélioration'
+            ];
+        } else {
+            // Prestations génériques pour les autres services
+            $prestations = [
+                'Diagnostic et évaluation - Analyse complète de vos besoins en ' . $serviceName,
+                'Intervention d\'urgence - Service rapide 24h/7j pour ' . $serviceName,
+                'Maintenance préventive - Entretien régulier pour éviter les problèmes',
+                'Réparation spécialisée - Correction des dysfonctionnements',
+                'Installation complète - Pose selon les normes en vigueur',
+                'Rénovation totale - Remplacement intégral avec matériaux de qualité',
+                'Conseil personnalisé - Recommandations adaptées à votre situation',
+                'Suivi post-intervention - Accompagnement après travaux',
+                'Formation utilisateur - Apprentissage des bonnes pratiques',
+                'Garantie étendue - Protection supplémentaire sur nos interventions'
+            ];
+        }
+        
+        // Générer le HTML des prestations
+        $html = '';
+        foreach ($prestations as $prestation) {
+            $html .= '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>' . $prestation . '</strong></span></li>';
+        }
+        
+        return $html;
     }
 
     /**
