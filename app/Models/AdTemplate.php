@@ -43,7 +43,7 @@ class AdTemplate extends Model
      */
     public function ads(): HasMany
     {
-        return $this->hasMany(Ad::class);
+        return $this->hasMany(Ad::class, 'template_id');
     }
 
     /**
