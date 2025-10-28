@@ -632,6 +632,187 @@ IMPORTANT:
     }
 
     /**
+     * Générer du contenu de template pour un mot-clé via IA
+     */
+    private function generateKeywordTemplateContent($keyword, $aiPrompt = null)
+    {
+        $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
+        
+        if (!$apiKey) {
+            throw new \Exception('Clé API OpenAI non configurée');
+        }
+
+        // Construire le prompt pour le mot-clé
+        $prompt = $this->buildKeywordTemplatePrompt($keyword, $aiPrompt);
+        
+        $response = \Illuminate\Support\Facades\Http::timeout(120)
+            ->retry(3, 2000)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ],
+                'max_tokens' => 3000,
+                'temperature' => 0.7
+            ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('Erreur API OpenAI: ' . $response->status());
+        }
+
+        $aiData = $response->json();
+        $aiContent = $aiData['choices'][0]['message']['content'] ?? '';
+
+        return $this->validateAndCleanAIData($aiContent, $keyword);
+    }
+
+    /**
+     * Construire le prompt pour un template de mot-clé
+     */
+    private function buildKeywordTemplatePrompt($keyword, $aiPrompt = null)
+    {
+        $basePrompt = "Tu es un expert en {$keyword} avec une connaissance approfondie des prestations spécifiques à ce domaine. Crée un template d'annonce professionnel avec des prestations RÉELLES et SPÉCIFIQUES à {$keyword}.
+
+MOT-CLÉ: {$keyword}
+
+INSTRUCTIONS IMPORTANTES:
+- Génère 10 prestations VRAIMENT spécifiques à {$keyword}
+- Utilise un vocabulaire technique et professionnel
+- Les prestations doivent être réalistes et détaillées
+- Évite les prestations génériques comme 'diagnostic' ou 'conseil'
+- Sois précis sur les techniques et matériaux utilisés
+
+GÉNÈRE UN JSON AVEC CES CHAMPS:
+
+{
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$keyword} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$keyword} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$keyword} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$keyword}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$keyword} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$keyword}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$keyword}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$keyword}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$keyword}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$keyword} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"short_description\": \"Service professionnel de {$keyword} à [VILLE] - Devis gratuit et intervention rapide\",
+  \"long_description\": \"Notre entreprise spécialisée en {$keyword} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
+  \"icon\": \"fas fa-tools\",
+  \"meta_title\": \"{$keyword} à [VILLE] - Service professionnel\",
+  \"meta_description\": \"Service professionnel de {$keyword} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"og_title\": \"{$keyword} à [VILLE] - Service professionnel\",
+  \"og_description\": \"Service professionnel de {$keyword} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"twitter_title\": \"{$keyword} à [VILLE] - Service professionnel\",
+  \"twitter_description\": \"Service professionnel de {$keyword} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"meta_keywords\": \"{$keyword}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
+}
+
+IMPORTANT: 
+- Réponds UNIQUEMENT avec le JSON ci-dessus
+- Ne pas ajouter de texte avant ou après
+- Ne pas modifier la structure
+- Commence directement par { et termine par }
+- Copie exactement le JSON fourni
+- Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
+- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword} AVEC DES DESCRIPTIONS DÉTAILLÉES] par 10 prestations réelles avec le format: <li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Nom de la prestation</strong> - Description détaillée</span></li>";
+
+        if ($aiPrompt) {
+            $basePrompt .= "\n\nINSTRUCTIONS PERSONNALISÉES SUPPLÉMENTAIRES:\n" . $aiPrompt;
+        }
+
+        return $basePrompt;
+    }
+
+    /**
+     * Générer un contenu de fallback pour un template de mot-clé
+     */
+    private function generateFallbackKeywordTemplateContent($keyword)
+    {
+        // Contenu HTML de fallback avec la même structure que l'IA
+        $contentHtml = '<div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <div class="space-y-4">
+                    <p class="text-lg leading-relaxed">Service professionnel de ' . $keyword . ' à [VILLE], une expertise reconnue dans [RÉGION].</p>
+                    <p class="text-lg leading-relaxed">Spécialistes en travaux de ' . $keyword . ' pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>
+                    <p class="leading-relaxed mb-3">Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p>
+                    <p class="leading-relaxed">Chaque intervention de ' . $keyword . ' est réalisée selon les normes professionnelles les plus strictes.</p>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $keyword . '</h3>
+                <ul class="space-y-3">' . $this->generateSpecificPrestations($keyword) . '</ul>
+                <div class="bg-gray-50 p-6 rounded-lg mt-6">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>
+                    <div class="space-y-2">
+                        <p><strong>Q1: Combien coûte un service de ' . $keyword . ' à [VILLE]?</strong></p>
+                        <p>A: Le prix dépend de la complexité et de l\'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p>
+                        <p><strong>Q2: Quel est le délai d\'intervention pour ' . $keyword . '?</strong></p>
+                        <p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l\'urgence de votre demande.</p>
+                        <p><strong>Q3: Proposez-vous une garantie sur vos services de ' . $keyword . '?</strong></p>
+                        <p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir ce service</h3>
+                    <p class="leading-relaxed">Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d\'adapter nos services en conséquence.</p>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>
+                <p class="leading-relaxed">Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en ' . $keyword . '.</p>
+                <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
+                    <p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de ' . $keyword . '.</p>
+                </div>
+                <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis?</h4>
+                    <p class="mb-4">Contactez-nous pour un devis gratuit pour ' . $keyword . ' à [VILLE].</p>
+                    <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Devis gratuit et sans engagement</span></li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Intervention rapide sur [VILLE]</span></li>
+                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Garantie sur tous nos travaux</span></li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
+                        <div class="flex justify-center items-center space-x-4">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                <i class="fab fa-facebook-f text-lg"></i>
+                                <span class="font-medium">Facebook</span>
+                            </a>
+                            <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                                <span class="font-medium">WhatsApp</span>
+                            </a>
+                            <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                <i class="fas fa-envelope text-lg"></i>
+                                <span class="font-medium">Email</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>';
+
+        return [
+            'description' => $contentHtml,
+            'short_description' => 'Service professionnel de ' . $keyword . ' à [VILLE] - Devis gratuit et intervention rapide',
+            'long_description' => 'Notre entreprise spécialisée en ' . $keyword . ' intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d\'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.',
+            'icon' => 'fas fa-tools',
+            'meta_title' => $keyword . ' à [VILLE] - Service professionnel',
+            'meta_description' => 'Service professionnel de ' . $keyword . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
+            'meta_keywords' => $keyword . ', [VILLE], [RÉGION], service professionnel, devis gratuit',
+            'og_title' => $keyword . ' à [VILLE] - Service professionnel',
+            'og_description' => 'Service professionnel de ' . $keyword . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
+            'twitter_title' => $keyword . ' à [VILLE] - Service professionnel',
+            'twitter_description' => 'Service professionnel de ' . $keyword . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
+        ];
+    }
+
+    /**
      * Générer un slug unique pour les annonces
      */
     private function generateUniqueSlug($baseSlug)
@@ -677,6 +858,117 @@ IMPORTANT:
             'success' => true,
             'cities' => $cities
         ]);
+    }
+
+    /**
+     * Créer un template à partir d'un mot-clé
+     */
+    public function createFromKeyword(Request $request)
+    {
+        $request->validate([
+            'keyword' => 'required|string|max:255',
+            'ai_prompt' => 'nullable|string|max:5000',
+        ]);
+
+        $keyword = $request->input('keyword');
+        
+        try {
+            // Vérifier si des templates existent déjà pour ce mot-clé
+            $existingTemplates = AdTemplate::where('service_slug', Str::slug($keyword))->get();
+            
+            if ($existingTemplates->count() > 0 && !$request->input('force_create', false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Des templates existent déjà pour ce mot-clé',
+                    'existing_templates' => $existingTemplates->map(function($template) {
+                        return [
+                            'id' => $template->id,
+                            'name' => $template->name,
+                            'is_active' => $template->is_active,
+                            'ads_count' => $template->ads()->count(),
+                            'created_at' => $template->created_at->format('d/m/Y H:i')
+                        ];
+                    })
+                ], 400);
+            }
+
+            // Générer le contenu via IA pour le mot-clé
+            $aiContent = $this->generateKeywordTemplateContent($keyword, $request->input('ai_prompt'));
+            
+            // Créer le template
+            $template = AdTemplate::create([
+                'name' => $keyword,
+                'service_name' => $keyword,
+                'service_slug' => Str::slug($keyword),
+                'content_html' => $aiContent['description'],
+                'short_description' => $aiContent['short_description'],
+                'long_description' => $aiContent['long_description'],
+                'icon' => $aiContent['icon'],
+                'meta_title' => $aiContent['meta_title'],
+                'meta_description' => $aiContent['meta_description'],
+                'meta_keywords' => $aiContent['meta_keywords'],
+                'og_title' => $aiContent['og_title'],
+                'og_description' => $aiContent['og_description'],
+                'twitter_title' => $aiContent['twitter_title'],
+                'twitter_description' => $aiContent['twitter_description'],
+                'ai_prompt_used' => $request->input('ai_prompt'),
+                'ai_response_data' => $aiContent
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'template_id' => $template->id,
+                'message' => 'Template créé avec succès pour le mot-clé: ' . $keyword
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur création template mot-clé', [
+                'keyword' => $keyword,
+                'error' => $e->getMessage()
+            ]);
+
+            // Essayer de créer un template avec du contenu de fallback
+            try {
+                $fallbackContent = $this->generateFallbackKeywordTemplateContent($keyword);
+                
+                $template = AdTemplate::create([
+                    'name' => $keyword,
+                    'service_name' => $keyword,
+                    'service_slug' => Str::slug($keyword),
+                    'content_html' => $fallbackContent['description'],
+                    'short_description' => $fallbackContent['short_description'],
+                    'long_description' => $fallbackContent['long_description'],
+                    'icon' => $fallbackContent['icon'],
+                    'meta_title' => $fallbackContent['meta_title'],
+                    'meta_description' => $fallbackContent['meta_description'],
+                    'meta_keywords' => $fallbackContent['meta_keywords'],
+                    'og_title' => $fallbackContent['og_title'],
+                    'og_description' => $fallbackContent['og_description'],
+                    'twitter_title' => $fallbackContent['twitter_title'],
+                    'twitter_description' => $fallbackContent['twitter_description'],
+                    'ai_prompt_used' => $request->input('ai_prompt'),
+                    'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'template_id' => $template->id,
+                    'message' => 'Template créé avec du contenu de fallback (API indisponible)',
+                    'warning' => 'L\'API OpenAI n\'était pas disponible. Le template a été créé avec du contenu par défaut.'
+                ]);
+                
+            } catch (\Exception $fallbackError) {
+                Log::error('Erreur création template mot-clé fallback', [
+                    'keyword' => $keyword,
+                    'error' => $fallbackError->getMessage()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
+                ], 500);
+            }
+        }
     }
 
     /**
