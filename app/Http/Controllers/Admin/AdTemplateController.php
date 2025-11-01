@@ -36,6 +36,40 @@ class AdTemplateController extends Controller
     }
 
     /**
+     * Afficher le formulaire d'édition pour personnaliser le template
+     */
+    public function edit(AdTemplate $template)
+    {
+        return view('admin.ads.templates.edit', compact('template'));
+    }
+
+    /**
+     * Mettre à jour le template personnalisé
+     */
+    public function update(Request $request, AdTemplate $template)
+    {
+        $validated = $request->validate([
+            'content_html' => 'required|string',
+            'short_description' => 'required|string|max:500',
+            'long_description' => 'required|string|max:2000',
+            'meta_title' => 'required|string|max:160',
+            'meta_description' => 'required|string|max:500',
+            'meta_keywords' => 'nullable|string|max:500',
+            'og_title' => 'nullable|string|max:160',
+            'og_description' => 'nullable|string|max:500',
+            'twitter_title' => 'nullable|string|max:160',
+            'twitter_description' => 'nullable|string|max:500',
+            'icon' => 'nullable|string|max:50',
+        ]);
+
+        $template->update($validated);
+
+        return redirect()
+            ->route('admin.ads.templates.show', $template->id)
+            ->with('success', 'Template personnalisé avec succès ! Vous pouvez maintenant générer des annonces.');
+    }
+
+    /**
      * Créer un template à partir d'un service
      */
     public function createFromService(Request $request)
@@ -103,11 +137,10 @@ class AdTemplateController extends Controller
                 'ai_response_data' => $aiContent,
             ]);
 
-            return response()->json([
-                'success' => true,
-                'template_id' => $template->id,
-                'message' => 'Template créé avec succès'
-            ]);
+            // Rediriger vers la page d'édition pour personnaliser le template
+            return redirect()
+                ->route('admin.ads.templates.edit', $template->id)
+                ->with('success', 'Template créé avec succès. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
 
         } catch (\Exception $e) {
             Log::error('Erreur création template', [
@@ -138,12 +171,10 @@ class AdTemplateController extends Controller
                     'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                 ]);
 
-                return response()->json([
-                    'success' => true,
-                    'template_id' => $template->id,
-                    'message' => 'Template créé avec du contenu de fallback (API indisponible)',
-                    'warning' => 'L\'API OpenAI n\'était pas disponible. Le template a été créé avec du contenu par défaut.'
-                ]);
+                // Rediriger vers la page d'édition même avec fallback
+                return redirect()
+                    ->route('admin.ads.templates.edit', $template->id)
+                    ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
                 
             } catch (\Exception $fallbackError) {
                 Log::error('Erreur création template fallback', [
@@ -898,11 +929,10 @@ IMPORTANT:
                 'ai_response_data' => $aiContent
             ]);
 
-            return response()->json([
-                'success' => true,
-                'template_id' => $template->id,
-                'message' => 'Template créé avec succès pour le mot-clé: ' . $keyword
-            ]);
+            // Rediriger vers la page d'édition pour personnaliser le template
+            return redirect()
+                ->route('admin.ads.templates.edit', $template->id)
+                ->with('success', 'Template créé avec succès pour le mot-clé: ' . $keyword . '. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
 
         } catch (\Exception $e) {
             Log::error('Erreur création template mot-clé', [
@@ -933,12 +963,10 @@ IMPORTANT:
                     'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                 ]);
 
-                return response()->json([
-                    'success' => true,
-                    'template_id' => $template->id,
-                    'message' => 'Template créé avec du contenu de fallback (API indisponible)',
-                    'warning' => 'L\'API OpenAI n\'était pas disponible. Le template a été créé avec du contenu par défaut.'
-                ]);
+                // Rediriger vers la page d'édition même avec fallback
+                return redirect()
+                    ->route('admin.ads.templates.edit', $template->id)
+                    ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
                 
             } catch (\Exception $fallbackError) {
                 Log::error('Erreur création template mot-clé fallback', [

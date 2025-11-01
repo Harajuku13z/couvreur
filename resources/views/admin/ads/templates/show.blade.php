@@ -16,6 +16,10 @@
             <p class="text-gray-600 mt-2">{{ $template->short_description }}</p>
         </div>
         <div class="flex space-x-4">
+            <a href="{{ route('admin.ads.templates.edit', $template->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-edit"></i>
+                <span>Personnaliser</span>
+            </a>
             <button onclick="generateAdsFromTemplate({{ $template->id }})" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
                 <i class="fas fa-plus-circle"></i>
                 <span>Générer des Annonces</span>
