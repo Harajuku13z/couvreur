@@ -187,6 +187,7 @@ Crée un JSON avec les données suivantes pour remplir ce template HTML:
 }
 
 IMPORTANT:
+- ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus. Chaque prestation doit avoir un \"titre\" et une \"description\".
 - Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
 - Utilise le vocabulaire professionnel du métier
 - Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents, incluant:
@@ -196,7 +197,8 @@ IMPORTANT:
   * Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
   * Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
   * Des matériaux ou techniques spécifiques au service
-- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
+- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.
+- VÉRIFIE avant d'envoyer: le tableau \"prestations\" contient exactement 10 éléments.";
 
             try {
                 if (empty(env('GROQ_API_KEY'))) {
@@ -231,6 +233,22 @@ IMPORTANT:
                 if (!$jsonData) {
                     \Log::warning('Impossible de parser le JSON pour le service: ' . $serviceName);
                     continue;
+                }
+
+                // Vérifier que les prestations sont présentes et complètes
+                if (!isset($jsonData['prestations']) || !is_array($jsonData['prestations'])) {
+                    \Log::warning('Prestations manquantes ou invalides pour le service: ' . $serviceName);
+                    $jsonData['prestations'] = [];
+                }
+                
+                // Valider et logger le nombre de prestations
+                $prestationsCount = count($jsonData['prestations']);
+                if ($prestationsCount < 10) {
+                    \Log::warning('Nombre insuffisant de prestations pour le service', [
+                        'service' => $serviceName,
+                        'count' => $prestationsCount,
+                        'expected' => 10
+                    ]);
                 }
 
                 // Remplir le template HTML avec les données JSON
