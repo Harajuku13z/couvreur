@@ -1477,8 +1477,8 @@ EXEMPLES CONCRETS POUR {$keyword}:
             Log::info('=== DÉBUT GÉNÉRATION IA TEMPLATE ===', [
                 'service_name' => $serviceName,
                 'short_description' => $shortDescription,
-                'chatgpt_enabled' => $chatgptEnabled,
-                'chatgpt_enabled_type' => gettype($chatgptEnabled),
+                'chatgpt_enabled' => $chatgptEnabledValue,
+                'chatgpt_enabled_type' => gettype($chatgptEnabledValue),
                 'chatgpt_api_key_exists' => !empty($chatgptApiKey),
                 'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
                 'chatgpt_api_key_preview' => $chatgptApiKey ? substr($chatgptApiKey, 0, 10) . '...' : 'NULL',
@@ -1594,14 +1594,14 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     // Utiliser les valeurs du diagnostic initial
                     
                     Log::info('Tentative directe ChatGPT', [
-                        'chatgpt_enabled' => $chatgptEnabled,
+                        'chatgpt_enabled' => $chatgptEnabledValue,
                         'chatgpt_api_key_exists' => !empty($chatgptApiKey),
                         'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
                         'chatgpt_model' => $chatgptModel,
                         'service_name' => $serviceName
                     ]);
                     
-                    if ($chatgptEnabled && $chatgptApiKey) {
+                    if ($chatgptEnabledValue && $chatgptApiKey) {
                         Log::warning('Groq échoué, tentative directe avec ChatGPT', ['service_name' => $serviceName]);
                         try {
                             $chatgptResponse = \Illuminate\Support\Facades\Http::withHeaders([
@@ -1659,31 +1659,27 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
             
             // FORCER l'utilisation de l'IA - NE JAMAIS retourner de fallback ici
             if (!$result || !isset($result['content'])) {
-                // Diagnostic final détaillé
-                $finalChatgptEnabled = setting('chatgpt_enabled', true);
-                $finalChatgptApiKey = setting('chatgpt_api_key');
-                $finalGroqApiKey = setting('groq_api_key', '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');
-                
+                // Diagnostic final détaillé - utiliser les valeurs déjà récupérées
                 Log::error('IMPOSSIBLE de générer du contenu via IA (ni AiService, ni Groq direct, ni ChatGPT direct)', [
                     'service_name' => $serviceName,
                     'result_is_null' => is_null($result),
                     'result_type' => gettype($result),
                     'result' => $result,
-                    'chatgpt_enabled' => $finalChatgptEnabled,
-                    'chatgpt_enabled_type' => gettype($finalChatgptEnabled),
-                    'chatgpt_api_key_exists' => !empty($finalChatgptApiKey),
-                    'chatgpt_api_key_length' => $finalChatgptApiKey ? strlen($finalChatgptApiKey) : 0,
-                    'chatgpt_api_key_preview' => $finalChatgptApiKey ? substr($finalChatgptApiKey, 0, 10) . '...' : 'NULL',
-                    'groq_api_key_exists' => !empty($finalGroqApiKey),
-                    'groq_api_key_length' => $finalGroqApiKey ? strlen($finalGroqApiKey) : 0,
-                    'groq_api_key_preview' => $finalGroqApiKey ? substr($finalGroqApiKey, 0, 10) . '...' : 'NULL'
+                    'chatgpt_enabled' => $chatgptEnabledValue,
+                    'chatgpt_enabled_type' => gettype($chatgptEnabledValue),
+                    'chatgpt_api_key_exists' => !empty($chatgptApiKey),
+                    'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
+                    'chatgpt_api_key_preview' => $chatgptApiKey ? substr($chatgptApiKey, 0, 10) . '...' : 'NULL',
+                    'groq_api_key_exists' => !empty($groqApiKey),
+                    'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
+                    'groq_api_key_preview' => $groqApiKey ? substr($groqApiKey, 0, 10) . '...' : 'NULL'
                 ]);
                 
                 $errorMessage = "ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives.\n";
-                $errorMessage .= "ChatGPT activé: " . ($finalChatgptEnabled ? 'OUI' : 'NON') . "\n";
-                $errorMessage .= "Clé ChatGPT: " . (!empty($finalChatgptApiKey) ? 'PRÉSENTE (' . strlen($finalChatgptApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
-                $errorMessage .= "Clé Groq: " . (!empty($finalGroqApiKey) ? 'PRÉSENTE (' . strlen($finalGroqApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
-                $errorMessage .= "Vérifiez vos clés API dans /config et consultez les logs Laravel pour plus de détails.";
+                $errorMessage .= "ChatGPT activé: " . ($chatgptEnabledValue ? 'OUI' : 'NON') . "\n";
+                $errorMessage .= "Clé ChatGPT: " . (!empty($chatgptApiKey) ? 'PRÉSENTE (' . strlen($chatgptApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
+                $errorMessage .= "Clé Groq: " . (!empty($groqApiKey) ? 'PRÉSENTE (' . strlen($groqApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
+                $errorMessage .= "Vérifiez vos clés API dans /config et consultez les logs Laravel (storage/logs/laravel.log) pour plus de détails.";
                 
                 throw new \Exception($errorMessage);
             }

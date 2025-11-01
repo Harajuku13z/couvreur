@@ -18,14 +18,38 @@ class AiService
      */
     public static function callAI($prompt, $systemMessage = null, $options = [])
     {
-        $chatgptEnabled = setting('chatgpt_enabled', true);
-        $chatgptApiKey = setting('chatgpt_api_key');
-        $groqApiKey = setting('groq_api_key', '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');
+        // VIDER LE CACHE pour s'assurer de lire les dernières valeurs
+        \Cache::forget('setting_chatgpt_enabled');
+        \Cache::forget('setting_chatgpt_api_key');
+        \Cache::forget('setting_groq_api_key');
+        \Cache::forget('setting_groq_model');
+        \Cache::forget('setting_chatgpt_model');
         
-        $model = $options['model'] ?? setting('chatgpt_model', 'gpt-4o');
+        // Lire directement depuis DB pour éviter le cache
+        $chatgptEnabledSetting = \App\Models\Setting::where('key', 'chatgpt_enabled')->first();
+        $chatgptEnabled = $chatgptEnabledSetting ? ($chatgptEnabledSetting->type === 'boolean' ? filter_var($chatgptEnabledSetting->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabledSetting->value) : true;
+        
+        $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+        $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
+        
+        $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
+        $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : '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';
+        
+        $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
+        $model = $options['model'] ?? ($chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4o');
+        
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
         $timeout = $options['timeout'] ?? 60;
+        
+        Log::info('AiService::callAI - Clés API récupérées', [
+            'chatgpt_enabled' => $chatgptEnabled,
+            'chatgpt_api_key_exists' => !empty($chatgptApiKey),
+            'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
+            'groq_api_key_exists' => !empty($groqApiKey),
+            'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
+            'model' => $model
+        ]);
         
         $messages = [];
         if ($systemMessage) {
@@ -75,7 +99,8 @@ class AiService
         // Fallback sur Groq si ChatGPT a échoué ou est désactivé
         if ($groqApiKey) {
             try {
-                $groqModel = $options['groq_model'] ?? setting('groq_model', 'llama-3.1-8b-instant');
+                $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
+                $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');
                 
                 Log::info('Tentative avec Groq', ['model' => $groqModel]);
                 
