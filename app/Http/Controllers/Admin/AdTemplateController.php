@@ -366,14 +366,23 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
 }
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - FORMAT JSON ⚠️⚠️⚠️:
+- TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
+- COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
+- TERMINE DIRECTEMENT PAR } (accolade fermante)
+- PAS de texte avant le JSON
+- PAS de texte après le JSON
+- PAS de ```json ou ``` autour du JSON
+- PAS de commentaires ou explications
+- JUSTE le JSON brut
+
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU ⚠️⚠️⚠️:
 - REMPLACE TOUT le contenu par du contenu VRAIMENT spécifique à {$serviceName}
 - REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName}] par 10 prestations TECHNIQUES RÉELLES pour {$serviceName}
 - Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$serviceName}
 - PERSONNALISE les descriptions, FAQ, et tous les textes pour {$serviceName} spécifiquement
 - Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
 - Le contenu HTML doit être COMPLET et PERSONNALISÉ, pas un template copié-collé
-- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après
 
 EXEMPLES CONCRETS POUR {$serviceName}:
 - Si {$serviceName} = 'Désamiantage' → prestations: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
@@ -397,23 +406,76 @@ EXEMPLES CONCRETS POUR {$serviceName}:
             // Nettoyer le contenu
             $cleanContent = $this->cleanHtmlContent($aiContent);
             
+            Log::info('Contenu nettoyé pour validation', [
+                'service' => $serviceName,
+                'content_length' => strlen($cleanContent),
+                'content_preview' => substr($cleanContent, 0, 300)
+            ]);
+            
             // Extraire le JSON
             $jsonContent = $this->extractJsonFromContent($cleanContent);
             
+            // Si jsonContent est null, c'est que c'est du HTML direct
+            if ($jsonContent === null) {
+                Log::info('Contenu HTML direct détecté, création structure JSON');
+                $plainText = strip_tags($cleanContent);
+                return [
+                    'description' => $cleanContent,
+                    'short_description' => Str::limit($plainText, 140),
+                    'long_description' => Str::limit($plainText, 500),
+                    'icon' => 'fas fa-tools',
+                    'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                    'meta_description' => Str::limit($plainText, 160),
+                    'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                    'og_description' => Str::limit($plainText, 160),
+                    'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                    'twitter_description' => Str::limit($plainText, 160),
+                    'meta_keywords' => $serviceName . ', [VILLE], [RÉGION], service professionnel'
+                ];
+            }
+            
             if (empty($jsonContent)) {
-                throw new \Exception('Aucun JSON valide trouvé dans le contenu');
+                // Dernière tentative : chercher du JSON malformé mais récupérable
+                Log::warning('Aucun JSON valide trouvé, tentative extraction manuelle');
+                
+                // Si le contenu contient du HTML avec des balises, essayer d'extraire
+                if (preg_match('/"description"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s', $cleanContent, $matches)) {
+                    Log::info('Extraction description HTML depuis JSON malformé');
+                    $htmlContent = str_replace(['\\"', '\\n'], ['"', "\n"], $matches[1]);
+                    $plainText = strip_tags($htmlContent);
+                    
+                    return [
+                        'description' => $htmlContent,
+                        'short_description' => Str::limit($plainText, 140),
+                        'long_description' => Str::limit($plainText, 500),
+                        'icon' => 'fas fa-tools',
+                        'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                        'meta_description' => Str::limit($plainText, 160),
+                        'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                        'og_description' => Str::limit($plainText, 160),
+                        'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
+                        'twitter_description' => Str::limit($plainText, 160),
+                        'meta_keywords' => $serviceName . ', [VILLE], [RÉGION], service professionnel'
+                    ];
+                }
+                
+                throw new \Exception('Aucun JSON valide trouvé dans le contenu. Contenu reçu: ' . substr($cleanContent, 0, 500));
             }
             
             // Parser le JSON
             $aiData = json_decode($jsonContent, true);
             
-            if (!$aiData) {
+            if (!$aiData || !is_array($aiData)) {
                 // Tentative de correction
                 $correctedContent = $this->attemptJsonCorrection($jsonContent);
                 $aiData = json_decode($correctedContent, true);
                 
-                if (!$aiData) {
-                    throw new \Exception('JSON invalide après correction');
+                if (!$aiData || !is_array($aiData)) {
+                    Log::error('JSON invalide même après correction', [
+                        'json_error' => json_last_error_msg(),
+                        'json_preview' => substr($jsonContent, 0, 500)
+                    ]);
+                    throw new \Exception('JSON invalide après correction: ' . json_last_error_msg());
                 }
             }
             
@@ -433,12 +495,19 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                 // On laisse passer mais on log pour information
             }
             
+            Log::info('Données IA template validées avec succès', [
+                'service' => $serviceName,
+                'has_description' => isset($aiData['description']),
+                'description_length' => strlen($aiData['description'] ?? '')
+            ]);
+            
             return $aiData;
             
         } catch (\Exception $e) {
             Log::error('Erreur validation données IA template', [
                 'service' => $serviceName,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'content_preview' => substr($aiContent ?? '', 0, 500)
             ]);
             throw $e;
         }
@@ -461,22 +530,65 @@ EXEMPLES CONCRETS POUR {$serviceName}:
     }
 
     /**
-     * Extraire le JSON du contenu
+     * Extraire le JSON du contenu (amélioré pour gérer différents formats)
      */
     private function extractJsonFromContent($content)
     {
+        $content = trim($content);
+        
+        // Si le contenu semble être directement du HTML (pas de JSON)
+        if (strpos($content, '<div') !== false && strpos($content, '{') === false) {
+            Log::info('Contenu HTML direct détecté dans template, pas de JSON');
+            return null; // Retourner null pour indiquer qu'on doit créer une structure JSON
+        }
+        
+        // Pattern 1: JSON dans code block markdown
+        $patterns = [
+            '/```json\s*(\{[\s\S]*?\})\s*```/s',
+            '/```\s*(\{[\s\S]*?\})\s*```/s',
+            '/\{[\s\S]*"description"[\s\S]*\}/s',  // JSON avec description
+        ];
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $jsonString = $matches[1] ?? $matches[0];
+                $jsonString = trim($jsonString);
+                
+                // Essayer de parser
+                $data = json_decode($jsonString, true);
+                if ($data && is_array($data)) {
+                    Log::info('JSON extrait avec succès via pattern');
+                    return $jsonString;
+                }
+            }
+        }
+        
+        // Pattern 2: Chercher directement le JSON brut
         $firstBrace = strpos($content, '{');
         $lastBrace = strrpos($content, '}');
         
-        if ($firstBrace === false || $lastBrace === false || $firstBrace >= $lastBrace) {
-            return '';
+        if ($firstBrace !== false && $lastBrace !== false && $firstBrace < $lastBrace) {
+            $jsonContent = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
+            
+            // Essayer de parser directement
+            $data = json_decode($jsonContent, true);
+            if ($data && is_array($data)) {
+                Log::info('JSON extrait directement');
+                return $jsonContent;
+            }
+            
+            // Essayer après correction
+            $corrected = $this->attemptJsonCorrection($jsonContent);
+            $data = json_decode($corrected, true);
+            if ($data && is_array($data)) {
+                Log::info('JSON extrait après correction');
+                return $corrected;
+            }
         }
         
-        $jsonContent = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
-        
-        if (json_decode($jsonContent, true) !== null) {
-            return $jsonContent;
-        }
+        Log::warning('Impossible d\'extraire JSON du contenu', [
+            'content_preview' => substr($content, 0, 500)
+        ]);
         
         return '';
     }
@@ -821,14 +933,23 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$keyword}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
 }
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - FORMAT JSON ⚠️⚠️⚠️:
+- TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
+- COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
+- TERMINE DIRECTEMENT PAR } (accolade fermante)
+- PAS de texte avant le JSON
+- PAS de texte après le JSON
+- PAS de ```json ou ``` autour du JSON
+- PAS de commentaires ou explications
+- JUSTE le JSON brut
+
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU ⚠️⚠️⚠️:
 - REMPLACE TOUT le contenu par du contenu VRAIMENT spécifique à {$keyword}
 - REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword}] par 10 prestations TECHNIQUES RÉELLES pour {$keyword}
 - Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$keyword}
 - PERSONNALISE les descriptions, FAQ, et tous les textes pour {$keyword} spécifiquement
 - Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
 - Le contenu HTML doit être COMPLET et PERSONNALISÉ, pas un template copié-collé
-- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après
 
 EXEMPLES CONCRETS POUR {$keyword}:
 - Si {$keyword} = 'Désamiantage' → prestations: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
