@@ -164,56 +164,56 @@ class BulkAdsController extends Controller
             $errors = [];
 
             foreach ($cities as $city) {
-                try {
+                    try {
                     // Vérifier si une annonce existe déjà pour cette combinaison
                     $existingAd = Ad::where('template_id', $template->id)
-                        ->where('city_id', $city->id)
-                        ->first();
+                            ->where('city_id', $city->id)
+                            ->first();
 
-                    if ($existingAd) {
-                        $skippedAds++;
-                        continue;
-                    }
+                        if ($existingAd) {
+                            $skippedAds++;
+                            continue;
+                        }
 
                     // Obtenir le contenu et les métadonnées personnalisées pour cette ville
                     $contentForCity = $template->getContentForCity($city);
                     $metaForCity = $template->getMetaForCity($city);
-
-                    // Créer l'annonce
-                    $ad = Ad::create([
+                        
+                        // Créer l'annonce
+                        $ad = Ad::create([
                         'title' => $template->service_name . ' à ' . $city->name,
                         'keyword' => $template->service_name,
-                        'city_id' => $city->id,
+                            'city_id' => $city->id,
                         'template_id' => $template->id,
                         'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
-                        'status' => 'published',
+                            'status' => 'published',
                         'published_at' => now(),
                         'meta_title' => $metaForCity['meta_title'],
                         'meta_description' => $metaForCity['meta_description'],
                         'meta_keywords' => $metaForCity['meta_keywords'],
                         'content_html' => $contentForCity,
-                        'content_json' => json_encode([
+                            'content_json' => json_encode([
                             'template_id' => $template->id,
-                            'city' => $city->toArray(),
+                                'city' => $city->toArray(),
                             'generated_at' => now()->toISOString(),
                             'bulk_generated' => true
-                        ])
-                    ]);
+                            ])
+                        ]);
 
-                    $createdAds++;
+                        $createdAds++;
                     $template->incrementUsage();
 
-                } catch (\Exception $e) {
-                    $errors[] = [
-                        'city' => $city->name,
-                        'error' => $e->getMessage()
-                    ];
-                    Log::error('Erreur création annonce', [
-                        'city' => $city->name,
-                        'error' => $e->getMessage()
-                    ]);
+                    } catch (\Exception $e) {
+                        $errors[] = [
+                            'city' => $city->name,
+                            'error' => $e->getMessage()
+                        ];
+                        Log::error('Erreur création annonce', [
+                            'city' => $city->name,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
-            }
 
             return response()->json([
                 'success' => true,
@@ -261,8 +261,8 @@ class BulkAdsController extends Controller
     {
         try {
             Log::info('Début génération IA pour annonce', [
-                'service' => $service['name'],
-                'city' => $city->name
+                    'service' => $service['name'],
+                    'city' => $city->name
             ]);
             
             // Récupérer l'URL du site et du formulaire
@@ -979,7 +979,7 @@ IMPORTANT:
                     '/admin/ads/templates/create-from-keyword',
                     'POST',
                     [
-                        'keyword' => $keyword,
+                'keyword' => $keyword,
                         'ai_prompt' => $request->input('keyword_ai_prompt'),
                         'force_create' => false
                     ],
@@ -1011,56 +1011,56 @@ IMPORTANT:
             $errors = [];
 
             foreach ($cities as $city) {
-                try {
+                    try {
                     // Vérifier si une annonce existe déjà pour cette combinaison
                     $existingAd = Ad::where('template_id', $template->id)
-                        ->where('city_id', $city->id)
-                        ->first();
+                            ->where('city_id', $city->id)
+                            ->first();
 
-                    if ($existingAd) {
-                        $skippedAds++;
-                        continue;
-                    }
+                        if ($existingAd) {
+                            $skippedAds++;
+                            continue;
+                        }
 
                     // Obtenir le contenu et les métadonnées personnalisées pour cette ville
                     $contentForCity = $template->getContentForCity($city);
                     $metaForCity = $template->getMetaForCity($city);
-
-                    // Créer l'annonce
-                    $ad = Ad::create([
+                        
+                        // Créer l'annonce
+                        $ad = Ad::create([
                         'title' => $template->service_name . ' à ' . $city->name,
                         'keyword' => $template->service_name,
-                        'city_id' => $city->id,
+                            'city_id' => $city->id,
                         'template_id' => $template->id,
                         'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
-                        'status' => 'published',
+                            'status' => 'published',
                         'published_at' => now(),
                         'meta_title' => $metaForCity['meta_title'],
                         'meta_description' => $metaForCity['meta_description'],
                         'meta_keywords' => $metaForCity['meta_keywords'],
                         'content_html' => $contentForCity,
-                        'content_json' => json_encode([
+                            'content_json' => json_encode([
                             'template_id' => $template->id,
-                            'city' => $city->toArray(),
+                                'city' => $city->toArray(),
                             'generated_at' => now()->toISOString(),
                             'bulk_generated' => true
-                        ])
-                    ]);
+                            ])
+                        ]);
 
-                    $createdAds++;
+                        $createdAds++;
                     $template->incrementUsage();
 
-                } catch (\Exception $e) {
-                    $errors[] = [
-                        'city' => $city->name,
-                        'error' => $e->getMessage()
-                    ];
-                    Log::error('Erreur création annonce par mot-clé', [
-                        'city' => $city->name,
-                        'error' => $e->getMessage()
-                    ]);
+                    } catch (\Exception $e) {
+                        $errors[] = [
+                            'city' => $city->name,
+                            'error' => $e->getMessage()
+                        ];
+                        Log::error('Erreur création annonce par mot-clé', [
+                            'city' => $city->name,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
-            }
 
             return response()->json([
                 'success' => true,

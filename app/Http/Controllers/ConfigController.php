@@ -1038,13 +1038,13 @@ class ConfigController extends Controller
         Setting::set('default_ai_provider', $validated['default_ai_provider'] ?? 'chatgpt', 'string', 'ai');
         
         if (isset($validated['ai_temperature'])) {
-            Setting::set('ai_temperature', $validated['ai_temperature'], 'float', 'ai');
+        Setting::set('ai_temperature', $validated['ai_temperature'], 'float', 'ai');
         }
         if (isset($validated['ai_max_tokens'])) {
-            Setting::set('ai_max_tokens', $validated['ai_max_tokens'], 'integer', 'ai');
+        Setting::set('ai_max_tokens', $validated['ai_max_tokens'], 'integer', 'ai');
         }
         if (isset($validated['ai_prompt_template'])) {
-            Setting::set('ai_prompt_template', $validated['ai_prompt_template'], 'string', 'ai');
+        Setting::set('ai_prompt_template', $validated['ai_prompt_template'], 'string', 'ai');
         }
         
         Setting::clearCache();
