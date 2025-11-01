@@ -534,22 +534,22 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU 100% PERSONNALISÉ OBLIGATOIRE ⚠️⚠️⚠️:
 
 🚫 INTERDICTIONS ABSOLUES:
-- INTERDIT d'utiliser des prestations génériques comme "Réparation et maintenance", "Rénovation complète", "Installation professionnelle", "Conseils personnalisés"
+- INTERDIT d'utiliser des prestations génériques comme \\\"Réparation et maintenance\\\", \\\"Rénovation complète\\\", \\\"Installation professionnelle\\\", \\\"Conseils personnalisés\\\"
 - INTERDIT de copier/coller du contenu d'autres services
 - INTERDIT d'utiliser des templates pré-faits
 - INTERDIT de générer du contenu vague ou général
 
 ✅ OBLIGATIONS ABSOLUES:
 - Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$serviceName}
-- Pour {$serviceName}, génère des prestations VRAIMENT adaptées (ex: si c'est "Désamiantage" → "Dépollution amiante", "Retrait sécurisé amiante", "Confinement amiante", etc.)
+- Pour {$serviceName}, génère des prestations VRAIMENT adaptées (ex: si c'est \\\"Désamiantage\\\" → \\\"Dépollution amiante\\\", \\\"Retrait sécurisé amiante\\\", \\\"Confinement amiante\\\", etc.)
 - Pour {$serviceName}, utilise le vocabulaire TECHNIQUE du domaine
 - Chaque description de prestation doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
 - Les 10 prestations doivent être DIFFÉRENTES et COMPLÉMENTAIRES pour {$serviceName}
 
 EXEMPLES DE PRESTATIONS SPÉCIFIQUES (à adapter à {$serviceName}):
-- Si {$serviceName} = "Désamiantage" → "Dépollution amiante", "Diagnostic amiante avant travaux", "Retrait amiante sous confinement", "Gestion déchets amiante", etc.
-- Si {$serviceName} = "Traitement humidité" → "Diagnostic humidité par imagerie thermique", "Injection résine anti-humidité", "Installation VMC double flux", "Traitement remontées capillaires", etc.
-- Si {$serviceName} = "Élagage" → "Élagage raisonné", "Taille de formation", "Haubanage", "Abattage sécurisé", etc.
+- Si {$serviceName} = \\\"Désamiantage\\\" → \\\"Dépollution amiante\\\", \\\"Diagnostic amiante avant travaux\\\", \\\"Retrait amiante sous confinement\\\", \\\"Gestion déchets amiante\\\", etc.
+- Si {$serviceName} = \\\"Traitement humidité\\\" → \\\"Diagnostic humidité par imagerie thermique\\\", \\\"Injection résine anti-humidité\\\", \\\"Installation VMC double flux\\\", \\\"Traitement remontées capillaires\\\", etc.
+- Si {$serviceName} = \\\"Élagage\\\" → \\\"Élagage raisonné\\\", \\\"Taille de formation\\\", \\\"Haubanage\\\", \\\"Abattage sécurisé\\\", etc.
 
 INSTRUCTIONS TECHNIQUES:
 - Le contenu doit être UNIQUE, professionnel et engageant.
@@ -619,18 +619,11 @@ EXEMPLES CONCRETS POUR {$serviceName}:
             // Ajouter des exemples selon le type de service
             $serviceNameLower = mb_strtolower($serviceName);
             if (strpos($serviceNameLower, 'désamiantage') !== false || strpos($serviceNameLower, 'amiante') !== false) {
-                $specificityInstructions .= "- Bon: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
-- Mauvais: 'Réparation et maintenance', 'Installation professionnelle'
-";
+                $specificityInstructions .= "- Bon: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'\n- Mauvais: 'Réparation et maintenance', 'Installation professionnelle'\n";
             } elseif (strpos($serviceNameLower, 'humidité') !== false || strpos($serviceNameLower, 'ventilation') !== false) {
-                $specificityInstructions .= "- Bon: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'
-- Mauvais: 'Réparation et maintenance', 'Conseils personnalisés'
-";
+                $specificityInstructions .= "- Bon: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'\n- Mauvais: 'Réparation et maintenance', 'Conseils personnalisés'\n";
             } else {
-                $specificityInstructions .= "- Pour {$serviceName}, utilise le vocabulaire TECHNIQUE et les prestations RÉELLES du métier
-- Recherche les termes techniques professionnels spécifiques à {$serviceName}
-- Évite TOUT ce qui pourrait s'appliquer à n'importe quel autre service
-";
+                $specificityInstructions .= "- Pour {$serviceName}, utilise le vocabulaire TECHNIQUE et les prestations RÉELLES du métier\n- Recherche les termes techniques professionnels spécifiques à {$serviceName}\n- Évite TOUT ce qui pourrait s'appliquer à n'importe quel autre service\n";
             }
             
             $specificityInstructions .= "\nID unique: {$uniqueId} | Timestamp: {$timestamp}
