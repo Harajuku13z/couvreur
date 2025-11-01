@@ -427,6 +427,29 @@ EXEMPLE DE CE QUI EST OBLIGATOIRE:
                     throw new \Exception("L'IA n'a pas retourné un JSON valide. Veuillez réessayer avec 'Forcer la régénération'.");
                 }
                 
+                // Vérifier que les champs JSON attendus sont présents et pas de HTML
+                $expectedKeys = ['description_courte', 'description_longue', 'prestations', 'faq'];
+                $hasUnwantedHtmlField = isset($jsonData['description']) && preg_match('/<[^>]+>/', $jsonData['description']);
+                
+                if ($hasUnwantedHtmlField) {
+                    \Log::error('Le JSON contient un champ "description" avec du HTML au lieu des champs attendus', [
+                        'service' => $serviceName,
+                        'json_keys' => array_keys($jsonData),
+                        'has_html_in_description' => true
+                    ]);
+                    throw new \Exception("L'IA a généré du HTML dans le champ 'description' au lieu de fournir les champs JSON attendus (description_courte, description_longue, prestations, etc.). Veuillez réessayer.");
+                }
+                
+                if (!isset($jsonData['description_courte']) || !isset($jsonData['prestations'])) {
+                    \Log::error('Le JSON ne contient pas les champs attendus', [
+                        'service' => $serviceName,
+                        'json_keys' => array_keys($jsonData),
+                        'has_description_courte' => isset($jsonData['description_courte']),
+                        'has_prestations' => isset($jsonData['prestations'])
+                    ]);
+                    throw new \Exception("Le JSON généré ne contient pas les champs requis (description_courte, prestations, etc.). Champs trouvés: " . implode(', ', array_keys($jsonData)));
+                }
+                
                 \Log::info('JSON parsé avec succès pour service', [
                     'service' => $serviceName,
                     'keys' => array_keys($jsonData),
