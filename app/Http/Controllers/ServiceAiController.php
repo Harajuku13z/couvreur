@@ -112,7 +112,7 @@ class ServiceAiController extends Controller
     <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
       <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
-      <a href="/devis-gratuit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+      <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
     <div class="bg-gray-50 p-6 rounded-lg">
       <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
@@ -270,10 +270,10 @@ IMPORTANT:
                     'benefits' => [],
                     'process' => [],
                     'faq' => $jsonData['faq'] ?? [],
-                    'meta_title' => $jsonData['meta_title'] ?? $serviceName . ' - ' . setting('company_name', 'Sauser Couverture'),
+                    'meta_title' => $jsonData['meta_title'] ?? $serviceName . ' - ' . $companyName,
                     'meta_description' => $jsonData['meta_description'] ?? Str::limit(strip_tags($htmlContent), 155),
                     'meta_keywords' => $jsonData['meta_keywords'] ?? 'devis gratuit, couvreur professionnel, ' . Str::slug($serviceName, ', ') . ', artisan couvreur, travaux de couverture, entreprise de couverture, spécialiste toiture, rénovation toiture, réparation urgence, devis personnalisé, garantie travaux, matériaux de qualité, expertise technique, intervention 24h/24, couvreur qualifié, travaux de rénovation, isolation toiture, étanchéité toiture',
-                    'og_title' => $jsonData['meta_title'] ?? $serviceName . ' - ' . setting('company_name', 'Sauser Couverture'),
+                    'og_title' => $jsonData['meta_title'] ?? $serviceName . ' - ' . $companyName,
                     'og_description' => $jsonData['meta_description'] ?? Str::limit(strip_tags($htmlContent), 155),
                     'og_image' => null, // null pour utiliser l'image par défaut du SeoHelper
                     'created_at' => now()->toISOString(),
@@ -339,6 +339,7 @@ IMPORTANT:
             $siteUrl = 'https://' . $siteUrl;
         }
         $serviceUrl = $siteUrl . '/services/' . Str::slug($serviceName);
+        $formUrl = $siteUrl . '/form/propertyType';
         
         // Générer la liste des prestations
         $prestationsHtml = '';
@@ -390,6 +391,9 @@ IMPORTANT:
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
         $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
         $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
+        // Remplacer les liens hardcodés vers le formulaire
+        $html = str_replace('/devis-gratuit', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('href="/form', 'href="' . htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
         
         return $html;
     }
