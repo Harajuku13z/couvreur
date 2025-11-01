@@ -184,49 +184,6 @@
     </div>
 </div>
 
-<!-- Modal Création Template -->
-<div id="createTemplateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Créer un Template</h3>
-                <button onclick="hideCreateTemplateModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="createTemplateForm">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Service</label>
-                    <select id="serviceSelect" name="service_slug" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="">Sélectionner un service</option>
-                        @php
-                            $servicesData = setting('services', '[]');
-                            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
-                        @endphp
-                        @foreach($services as $service)
-                            <option value="{{ $service['slug'] }}">{{ $service['name'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Instructions personnalisées (optionnel)</label>
-                    <textarea id="aiPrompt" name="ai_prompt" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ajoutez des instructions spécifiques pour personnaliser le template..."></textarea>
-                </div>
-                
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="hideCreateTemplateModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200">
-                        Annuler
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
-                        Créer le Template
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- Modal Génération Annonces -->
 <div id="generateAdsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
@@ -251,13 +208,13 @@
 <script>
 let currentTemplateId = null;
 
+// Fonction pour afficher le modal de création - redirige vers page dédiée
 function showCreateTemplateModal() {
-    document.getElementById('createTemplateModal').classList.remove('hidden');
+    window.location.href = '{{ route("admin.ads.templates.create") }}';
 }
 
 function hideCreateTemplateModal() {
-    document.getElementById('createTemplateModal').classList.add('hidden');
-    document.getElementById('createTemplateForm').reset();
+    // Non utilisé - redirection vers page dédiée
 }
 
 function showGenerateAdsModal(templateId) {
@@ -414,66 +371,7 @@ function toggleTemplateStatus(templateId, newStatus) {
     }
 }
 
-// Gestion du formulaire de création de template
-document.getElementById('createTemplateForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    const button = this.querySelector('button[type="submit"]');
-    const originalText = button.textContent;
-    button.textContent = 'Création en cours...';
-    button.disabled = true;
-    
-    fetch('/admin/ads/templates/create-from-service', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => {
-        // Vérifier si la réponse est JSON
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            return response.json();
-        } else {
-            // Si ce n'est pas du JSON, essayer de parser quand même
-            return response.text().then(text => {
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    throw new Error('Réponse invalide du serveur');
-                }
-            });
-        }
-    })
-    .then(data => {
-        if (data.success) {
-            if (data.warning) {
-                alert('⚠️ ' + data.message);
-            } else {
-                alert('✅ ' + data.message);
-            }
-            // Rediriger vers la page d'édition si l'URL est fournie
-            if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-            } else {
-                location.reload();
-            }
-        } else {
-            alert('Erreur lors de la création : ' + (data.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        alert('Erreur lors de la création du template : ' + error.message);
-    })
-    .finally(() => {
-        button.textContent = originalText;
-        button.disabled = false;
-    });
-});
+// Les formulaires de création via IA ont été supprimés - utiliser la création manuelle
 
 // Fonction pour supprimer un template
 function deleteTemplate(templateId) {
