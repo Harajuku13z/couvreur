@@ -421,6 +421,18 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                 throw new \Exception('Champ description manquant dans les données IA');
             }
             
+            // Vérifier que le contenu est personnalisé et non générique
+            $description = $aiData['description'] ?? '';
+            $isGeneric = $this->isContentGeneric($description, $serviceName);
+            
+            if ($isGeneric) {
+                Log::warning('Contenu template détecté comme générique', [
+                    'service' => $serviceName,
+                    'description_preview' => substr(strip_tags($description), 0, 200)
+                ]);
+                // On laisse passer mais on log pour information
+            }
+            
             return $aiData;
             
         } catch (\Exception $e) {
@@ -488,6 +500,47 @@ EXEMPLES CONCRETS POUR {$serviceName}:
         $content = preg_replace('/,(\s*[}\]])/', '$1', $content);
         
         return $content;
+    }
+
+    /**
+     * Vérifier si le contenu est générique
+     */
+    private function isContentGeneric($description, $serviceName)
+    {
+        $descriptionLower = mb_strtolower($description);
+        $serviceNameLower = mb_strtolower($serviceName);
+        
+        // Prestations génériques interdites
+        $genericTerms = [
+            'réparation et maintenance',
+            'installation professionnelle',
+            'conseils personnalisés',
+            'diagnostic précis et traitement adapté',
+            'remplacement intégral avec matériaux de qualité',
+            'pose selon les normes en vigueur',
+            'accompagnement dans vos choix'
+        ];
+        
+        // Vérifier la présence de termes génériques
+        $hasGenericTerms = false;
+        foreach ($genericTerms as $term) {
+            if (stripos($descriptionLower, $term) !== false) {
+                $hasGenericTerms = true;
+                break;
+            }
+        }
+        
+        // Vérifier si le nom du service est présent dans le contenu
+        $containsServiceName = stripos($descriptionLower, $serviceNameLower) !== false;
+        
+        // Vérifier si le contenu est trop court (probablement générique)
+        $plainText = strip_tags($description);
+        $isTooShort = strlen($plainText) < 1000;
+        
+        // Le contenu est générique si :
+        // - Il contient des termes génériques OU
+        // - Le nom du service n'est pas présent ET le contenu est trop court
+        return $hasGenericTerms || (!$containsServiceName && $isTooShort);
     }
 
     /**
