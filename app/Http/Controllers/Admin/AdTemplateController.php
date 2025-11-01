@@ -1644,6 +1644,69 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                 $aiData = $this->parseAIResponseForTemplate($result['content']);
                 
                 if ($aiData && is_array($aiData)) {
+                    // Vérifier que le contenu n'est pas générique AVANT validation
+                    $description = $aiData['description'] ?? '';
+                    
+                    // Détecter les phrases génériques interdites
+                    $genericPhrases = [
+                        'Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de',
+                        'Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION]',
+                        'Chaque intervention de',
+                        'est réalisée selon les normes professionnelles les plus strictes',
+                        'Spécialistes en travaux de',
+                        'pour une qualité supérieure',
+                        'Nous maîtrisons les techniques modernes garantissant des résultats durables',
+                        'Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région',
+                        'une expertise reconnue dans [RÉGION]',
+                        'Pourquoi choisir ce service'
+                    ];
+                    
+                    $hasGenericContent = false;
+                    $genericPhraseFound = '';
+                    foreach ($genericPhrases as $phrase) {
+                        if (stripos($description, $phrase) !== false) {
+                            $hasGenericContent = true;
+                            $genericPhraseFound = $phrase;
+                            break;
+                        }
+                    }
+                    
+                    // Vérifier si le contenu contient encore des placeholders "ÉCRIRE ICI"
+                    $hasPlaceholders = stripos($description, 'ÉCRIRE ICI') !== false || 
+                                      stripos($description, '[Paragraphe') !== false ||
+                                      stripos($description, '[MENTIONNER') !== false;
+                    
+                    // Vérifier si le contenu est trop court ou trop générique
+                    $plainText = strip_tags($description);
+                    $isTooShort = strlen($plainText) < 1500; // Minimum 1500 caractères de texte réel
+                    
+                    // Vérifier si le nom du service est présent de manière significative
+                    $serviceNameCount = substr_count(strtolower($plainText), strtolower($serviceName));
+                    $serviceNamePresent = $serviceNameCount >= 5; // Le service doit être mentionné au moins 5 fois
+                    
+                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent) {
+                        Log::error('Contenu template REJETÉ - générique ou incomplet', [
+                            'service_name' => $serviceName,
+                            'has_generic_content' => $hasGenericContent,
+                            'generic_phrase' => $genericPhraseFound,
+                            'has_placeholders' => $hasPlaceholders,
+                            'is_too_short' => $isTooShort,
+                            'text_length' => strlen($plainText),
+                            'service_name_present' => $serviceNamePresent,
+                            'service_name_count' => $serviceNameCount,
+                            'description_preview' => substr($plainText, 0, 300)
+                        ]);
+                        
+                        // Essayer une deuxième génération avec un prompt encore plus strict
+                        throw new \Exception("Le contenu généré est trop générique. Tentative de re-génération nécessaire.");
+                    }
+                    
+                    Log::info('Contenu template validé - personnalisé et complet', [
+                        'service_name' => $serviceName,
+                        'text_length' => strlen($plainText),
+                        'service_name_count' => $serviceNameCount
+                    ]);
+                    
                     // Valider et nettoyer les données
                     return $this->validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription);
                 } else {
@@ -1659,13 +1722,50 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('Erreur génération IA template: ' . $e->getMessage(), [
+            $errorMessage = $e->getMessage();
+            Log::error('Erreur génération IA template: ' . $errorMessage, [
                 'service_name' => $serviceName,
                 'error' => $e->getTraceAsString()
             ]);
+            
+            // Si l'erreur indique un contenu générique, essayer une deuxième tentative
+            if (stripos($errorMessage, 'générique') !== false && !isset($retryAttempt)) {
+                Log::info('Tentative de re-génération avec prompt renforcé', ['service_name' => $serviceName]);
+                
+                try {
+                    // Re-générer avec un prompt encore plus strict
+                    $retryPrompt = $prompt . "\n\n🚨🚨🚨 DEUXIÈME TENTATIVE - CONTENU GÉNÉRIQUE DÉTECTÉ 🚨🚨🚨\n\nL'IA a généré du contenu générique lors de la première tentative. TU DOIS ABSOLUMENT:\n- NE PAS utiliser les phrases suivantes qui ont été détectées comme génériques:\n  * \"Nous vous accompagnons dans vos démarches pour bénéficier des aides financières\"\n  * \"Nous garantissons la satisfaction totale de nos clients\"\n  * \"Chaque intervention est réalisée selon les normes professionnelles les plus strictes\"\n  * \"Spécialistes en travaux de {$serviceName} pour une qualité supérieure\"\n  * \"Notre expertise locale nous permet de comprendre les spécificités de votre région\"\n\n- UTILISER À LA PLACE:\n  * Des phrases UNIQUES et SPÉCIFIQUES à {$serviceName}\n  * Des détails techniques précis (normes, certifications, matériaux)\n  * Des chiffres concrets (performances, économies, délais)\n  * Des processus spécifiques au domaine de {$serviceName}\n\n- REMPLACER TOUS les \"ÉCRIRE ICI\" par du VRAI texte technique et détaillé\n- Le contenu DOIT faire minimum 2000 caractères de texte réel (sans HTML)\n- Le nom du service \"{$serviceName}\" DOIT apparaître au moins 10 fois dans le texte\n\nCRÉE DU CONTENU VRAIMENT ORIGINAL ET TECHNIQUE, PAS DE COPIÉ-COLLÉ GÉNÉRIQUE!";
+                    
+                    $result = AiService::callAI($retryPrompt, $systemMessage, [
+                        'max_tokens' => 8000, // Encore plus pour forcer du contenu détaillé
+                        'temperature' => 1.0 // Maximum créativité
+                    ]);
+                    
+                    if ($result && isset($result['content'])) {
+                        $aiData = $this->parseAIResponseForTemplate($result['content']);
+                        
+                        if ($aiData && is_array($aiData)) {
+                            $description = $aiData['description'] ?? '';
+                            $plainText = strip_tags($description);
+                            
+                            // Validation encore plus stricte pour la deuxième tentative
+                            if (strlen($plainText) >= 2000 && substr_count(strtolower($plainText), strtolower($serviceName)) >= 10) {
+                                Log::info('Re-génération réussie avec contenu personnalisé', ['service_name' => $serviceName]);
+                                return $this->validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription);
+                            }
+                        }
+                    }
+                } catch (\Exception $retryException) {
+                    Log::error('Échec re-génération template', [
+                        'service_name' => $serviceName,
+                        'error' => $retryException->getMessage()
+                    ]);
+                }
+            }
         }
         
         // Fallback amélioré en cas d'échec
+        Log::warning('Utilisation du contenu fallback pour template', ['service_name' => $serviceName]);
         return $this->generateFallbackTemplateContent([
             'name' => $serviceName,
             'slug' => Str::slug($serviceName),
