@@ -519,19 +519,44 @@ RÈGLES STRICTES:
                 ];
             }
             
+            // S'assurer qu'il n'y a plus de champ "description" dans jsonData (nettoyage final)
+            if (isset($jsonData['description'])) {
+                unset($jsonData['description']);
+                Log::info('Nettoyage final: champ "description" supprimé du JSON avant remplissage template');
+            }
+            
             // Remplir le template HTML avec les données JSON
             $htmlContent = $this->fillTemplateForService($template, $jsonData, $serviceName, $companyName, $companyInfo);
             
-            if (!$htmlContent) {
+            if (!$htmlContent || empty(trim($htmlContent))) {
+                Log::error('Template HTML vide après remplissage', [
+                    'service_name' => $serviceName,
+                    'template_length' => strlen($template),
+                    'json_keys' => array_keys($jsonData)
+                ]);
                 return [
                     'error' => true,
                     'error_message' => 'Erreur: Impossible de remplir le template HTML.'
                 ];
             }
             
-            // Retourner les données formatées
+            // Vérifier que le HTML généré contient bien les éléments attendus
+            if (strpos($htmlContent, '[description_courte]') !== false || 
+                strpos($htmlContent, '[description_longue]') !== false ||
+                strpos($htmlContent, '[prestations_liste]') !== false) {
+                Log::error('Template HTML contient encore des placeholders non remplacés', [
+                    'service_name' => $serviceName,
+                    'html_preview' => substr($htmlContent, 0, 500)
+                ]);
+                return [
+                    'error' => true,
+                    'error_message' => 'Erreur: Le template HTML contient encore des placeholders non remplacés. Vérifiez que tous les champs JSON sont présents.'
+                ];
+            }
+            
+            // Retourner les données formatées (description = HTML généré depuis template, PAS depuis JSON)
             return [
-                'description' => $htmlContent,
+                'description' => $htmlContent, // HTML généré depuis le template, PAS depuis JSON
                 'short_description' => $jsonData['description_courte'] ?? $shortDescription,
                 'icon' => 'fas fa-tools',
                 'meta_title' => $jsonData['meta_title'] ?? ($serviceName . ' à ' . $companyCity . ' - Expert professionnel | Devis gratuit'),
