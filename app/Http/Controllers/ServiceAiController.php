@@ -281,17 +281,24 @@ class ServiceAiController extends Controller
             }
             
             $userPrompt = "Service: {$serviceName}
-Description: {$shortDescription}
 Entreprise: {$companyName}
 Ville: {$companyCity}
 Département: {$companyDept}
 
 {$infosPratiquesPrompt}
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
-Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
+🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
+- INTERDIT de créer un champ \"description\" contenant du HTML
+- INTERDIT de générer du HTML dans n'importe quel champ JSON
+- INTERDIT de retourner du texte formaté ou du markdown
+- TU DOIS générer uniquement un JSON avec les champs EXACTS demandés ci-dessous
 
-Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL :
+⚠️⚠️⚠️ ATTENTION CRITIQUE ⚠️⚠️⚠️:
+Le template HTML est DÉJÀ créé sur le serveur. Tu dois UNIQUEMENT fournir les DONNÉES en JSON.
+Les champs JSON doivent être: description_courte, description_longue, prestations, faq, etc.
+PAS de champ \"description\" avec du HTML !
+
+Génère un JSON avec cette structure EXACTE (remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL) :
 
 {
   \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, mentionnant les bénéfices principaux.]\",
@@ -386,6 +393,19 @@ RÈGLES STRICTES:
                 'content_preview' => substr($result['content'], 0, 300)
             ]);
             
+            // Vérifier si l'IA a retourné du HTML ou un champ "description" avec HTML
+            $content = $result['content'];
+            if (preg_match('/"description"\s*:\s*["\']<[^>]+>/', $content) || preg_match('/"description"\s*:\s*["\']\\n\s*<div/', $content)) {
+                Log::error('L\'IA a généré un champ "description" avec du HTML', [
+                    'service_name' => $serviceName,
+                    'content_preview' => substr($content, 0, 500)
+                ]);
+                return [
+                    'error' => true,
+                    'error_message' => 'L\'IA a généré un champ "description" contenant du HTML au lieu des champs JSON attendus (description_courte, description_longue, prestations). Veuillez réessayer.'
+                ];
+            }
+            
             // Parser le JSON de la réponse IA (même méthode que AdTemplateController)
             $jsonData = $this->parseJsonResponseForService($result['content']);
             
@@ -422,6 +442,35 @@ RÈGLES STRICTES:
                 return [
                     'error' => true,
                     'error_message' => $errorMessage
+                ];
+            }
+            
+            // Vérifier qu'il n'y a PAS de champ "description" avec HTML (c'est une erreur)
+            if (isset($jsonData['description']) && (preg_match('/<[^>]+>/', $jsonData['description']) || strlen($jsonData['description']) > 5000)) {
+                Log::error('Le JSON contient un champ "description" avec du HTML - FORMAT INCORRECT', [
+                    'service_name' => $serviceName,
+                    'json_keys' => array_keys($jsonData),
+                    'description_preview' => substr($jsonData['description'], 0, 200),
+                    'description_length' => strlen($jsonData['description'])
+                ]);
+                return [
+                    'error' => true,
+                    'error_message' => 'Le JSON généré contient un champ "description" avec du HTML. Le système attend les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer.'
+                ];
+            }
+            
+            // Vérifier que les champs attendus sont présents
+            if (!isset($jsonData['description_courte']) || !isset($jsonData['prestations'])) {
+                Log::error('Champs JSON attendus manquants', [
+                    'service_name' => $serviceName,
+                    'json_keys' => array_keys($jsonData),
+                    'has_description_courte' => isset($jsonData['description_courte']),
+                    'has_prestations' => isset($jsonData['prestations']),
+                    'has_description_instead' => isset($jsonData['description'])
+                ]);
+                return [
+                    'error' => true,
+                    'error_message' => 'Le JSON généré ne contient pas les champs requis (description_courte, prestations). Champs trouvés: ' . implode(', ', array_keys($jsonData))
                 ];
             }
             
