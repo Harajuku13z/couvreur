@@ -183,12 +183,19 @@ Crée un JSON avec les données suivantes pour remplir ce template HTML:
   \"short_description\": \"Description courte SEO 120-140 caractères\",
   \"meta_title\": \"Titre SEO 50-60 caractères\",
   \"meta_description\": \"Description SEO 150-160 caractères\",
-  \"meta_keywords\": \"mots-clés séparés par virgules\"
+  \"meta_keywords\": \"service, service professionnel, expert service, entreprise service, artisan service, service certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, techniques modernes, normes professionnelles\"
 }
 
 IMPORTANT:
 - Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
 - Utilise le vocabulaire professionnel du métier
+- Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents, incluant:
+  * Le nom du service et ses variations
+  * Des termes techniques spécifiques au métier
+  * Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
+  * Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
+  * Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
+  * Des matériaux ou techniques spécifiques au service
 - Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
 
             try {

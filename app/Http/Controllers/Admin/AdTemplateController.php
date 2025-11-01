@@ -526,7 +526,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                     'og_description' => Str::limit($plainText, 160),
                     'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
                     'twitter_description' => Str::limit($plainText, 160),
-                    'meta_keywords' => $serviceName . ', [VILLE], [RÉGION], service professionnel'
+                    'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'
                 ];
             }
             
@@ -551,7 +551,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                         'og_description' => Str::limit($plainText, 160),
                         'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
                         'twitter_description' => Str::limit($plainText, 160),
-                        'meta_keywords' => $serviceName . ', [VILLE], [RÉGION], service professionnel'
+                        'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'
                     ];
                 }
                 
@@ -838,7 +838,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
             'icon' => 'fas fa-tools',
             'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
             'meta_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
-            'meta_keywords' => $serviceName . ', [VILLE], [RÉGION], service professionnel, devis gratuit',
+            'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]',
             'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
             'og_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
             'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
@@ -1146,7 +1146,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
             'icon' => 'fas fa-tools',
             'meta_title' => $keyword . ' à [VILLE] - Service professionnel',
             'meta_description' => 'Service professionnel de ' . $keyword . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
-            'meta_keywords' => $keyword . ', [VILLE], [RÉGION], service professionnel, devis gratuit',
+            'meta_keywords' => $keyword . ', ' . $keyword . ' [VILLE], ' . $keyword . ' [RÉGION], expert ' . $keyword . ', ' . $keyword . ' professionnel, entreprise ' . $keyword . ', artisan ' . $keyword . ', ' . $keyword . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]',
             'og_title' => $keyword . ' à [VILLE] - Service professionnel',
             'og_description' => 'Service professionnel de ' . $keyword . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
             'twitter_title' => $keyword . ' à [VILLE] - Service professionnel',
@@ -1594,7 +1594,7 @@ Génère un JSON avec exactement cette structure (remplace les exemples par du c
   ],
   \"meta_title\": \"{$serviceName} à [VILLE] - Expert professionnel | Devis gratuit\",
   \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.\",
-  \"meta_keywords\": \"{$serviceName}, [VILLE], [DÉPARTEMENT], expert {$serviceName}, devis gratuit\",
+  \"meta_keywords\": \"{$serviceName}, {$serviceName} [VILLE], {$serviceName} [DÉPARTEMENT], expert {$serviceName}, {$serviceName} professionnel, entreprise {$serviceName}, artisan {$serviceName}, {$serviceName} certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, matériaux performants, techniques modernes, normes professionnelles, intervention [VILLE], service [VILLE], professionnel [VILLE]\",
   \"og_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
   \"og_description\": \"Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.\",
   \"twitter_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
@@ -1614,7 +1614,15 @@ RÈGLES STRICTES:
 10. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
 11. Les guillemets dans les valeurs doivent être échappés avec \\
 12. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-13. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel";
+13. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
+    - Le nom du service et ses variations (avec et sans [VILLE])
+    - Des termes techniques spécifiques au métier (ex: pour toiture: zinguerie, charpente, étanchéité, isolation, etc.)
+    - Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
+    - Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
+    - Des termes géographiques avec [VILLE] et [DÉPARTEMENT]
+    - Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
+    - Des matériaux ou techniques spécifiques au service
+14. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
@@ -1650,7 +1658,7 @@ RÈGLES STRICTES:
             if (!$jsonData) {
                 // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
-                    'service_name' => $serviceName,
+                                'service_name' => $serviceName,
                     'provider' => $result['provider'] ?? 'unknown',
                     'content_length' => strlen($result['content']),
                     'content_full' => $result['content'], // Contenu complet pour diagnostic
@@ -1748,11 +1756,11 @@ RÈGLES STRICTES:
                 'og_description' => $jsonData['og_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
                 'twitter_title' => $jsonData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel'),
                 'twitter_description' => $jsonData['twitter_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
-                'meta_keywords' => $jsonData['meta_keywords'] ?? ($serviceName . ', [VILLE], [DÉPARTEMENT], expert ' . $serviceName . ', devis gratuit')
+                'meta_keywords' => $jsonData['meta_keywords'] ?? ($serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [DÉPARTEMENT], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]')
             ];
         } catch (\Exception $e) {
             Log::error('Erreur génération template: ' . $e->getMessage(), [
-                                    'service_name' => $serviceName,
+                    'service_name' => $serviceName,
                 'error' => $e->getTraceAsString()
             ]);
             throw $e;
@@ -2280,7 +2288,7 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
             'icon' => $aiData['icon'] ?? 'fas fa-tools',
             'meta_title' => $cleanText($aiData['meta_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
             'meta_description' => $cleanText($aiData['meta_description'] ?? 'Service professionnel à [VILLE]', 500),
-            'meta_keywords' => $aiData['meta_keywords'] ?? ($serviceName . ', [VILLE], [RÉGION], service professionnel'),
+            'meta_keywords' => $aiData['meta_keywords'] ?? ($serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'),
             'og_title' => $cleanText($aiData['og_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
             'og_description' => $cleanText($aiData['og_description'] ?? 'Service professionnel à [VILLE]', 500),
             'twitter_title' => $cleanText($aiData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
