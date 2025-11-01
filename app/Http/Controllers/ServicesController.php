@@ -531,21 +531,31 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 
 </div>
 
-INSTRUCTIONS IMPORTANTES:
+INSTRUCTIONS CRITIQUES POUR UN CONTENU UNIQUE:
+⚠️ OBLIGATOIRE - CONTENU 100% PERSONNALISÉ:
+- Le contenu DOIT être COMPLÈTEMENT différent pour chaque service
+- Personnalise TOUT spécifiquement pour le service: {$serviceName}
+- Utilise des techniques, matériaux et exemples UNIQUES à {$serviceName}
+- GÉNÈRE du contenu ORIGINAL, pas de copier-coller
+- Chaque prestation doit être SPÉCIFIQUE à {$serviceName}
+- Les exemples et cas d'usage doivent être adaptés à {$serviceName}
+
+INSTRUCTIONS TECHNIQUES:
 - Le contenu doit être UNIQUE, professionnel et engageant.
-- Utilise un vocabulaire technique adapté à chaque service.
+- Utilise un vocabulaire technique adapté à {$serviceName} spécifiquement.
 - Inclue les aides financières et options de financement possibles.
 - Fournis les informations pratiques, conseils et suivi après travaux.
 - Ne mentionne jamais le nom de l'entreprise ni la localisation.
 - Garde la structure HTML exacte.
 - Génère des prestations détaillées avec descriptions explicites.
 - REMPLACE [FORM_URL] par l'URL du formulaire de devis
-- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName}
-- PERSONNALISE chaque prestation selon le type de service
-- UTILISE un vocabulaire technique approprié au secteur
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 300 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service
+- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName} (DIFFÉRENTES à chaque fois)
+- PERSONNALISE chaque prestation selon le type de service {$serviceName}
+- UTILISE un vocabulaire technique approprié au secteur de {$serviceName}
+- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 500 caractères) dans le champ long_description
+- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$serviceName}
 - NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
+- Le contenu dans 'description' doit être COMPLET (minimum 1500 mots) et UNIQUE pour {$serviceName}
 
 RÉPONSE FORMAT JSON:
 {
@@ -569,11 +579,15 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                 'prompt_length' => strlen($prompt)
             ]);
             
+            // Ajouter un identifiant unique pour forcer la génération unique
+            $uniqueId = uniqid();
+            $promptWithUniqueness = $prompt . "\n\nIMPORTANT - GÉNÉRATION UNIQUE REQUISE:\n- Cette génération a l'ID unique: {$uniqueId}\n- Le contenu DOIT être différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour: {$serviceName}\n- Utilise des exemples, techniques et matériaux UNIQUES à ce service précis\n- Ne copie JAMAIS du contenu générique, crée du contenu ORIGINAL et SPÉCIFIQUE";
+            
             // Utiliser le service AI avec fallback automatique
-            $systemMessage = 'Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO.';
-            $result = AiService::callAI($prompt, $systemMessage, [
+            $systemMessage = "Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO. IMPORTANT: Chaque service doit avoir un contenu UNIQUE et PERSONNALISÉ. Ne génère JAMAIS de contenu générique ou répétitif.";
+            $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
                 'max_tokens' => 4000,
-                'temperature' => 0.7
+                'temperature' => 0.9  // Augmenté pour plus de créativité et variété
             ]);
             
             if ($result && isset($result['content'])) {
@@ -581,16 +595,42 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                     'service_name' => $serviceName,
                     'provider' => $result['provider'],
                     'content_length' => strlen($result['content']),
-                    'content_preview' => substr($result['content'], 0, 200)
+                    'content_preview' => substr($result['content'], 0, 500)
                 ]);
                 
                 // Parser le JSON de manière plus robuste
                 $aiData = $this->parseAIResponse($result['content']);
                 
                 if ($aiData && is_array($aiData)) {
-                    // Valider et nettoyer les données
-                    return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
+                    // Vérifier que le contenu contient bien le nom du service
+                    $descriptionContainsService = isset($aiData['description']) && stripos($aiData['description'], $serviceName) !== false;
+                    $isGeneric = isset($aiData['description']) && (
+                        stripos($aiData['description'], 'Service professionnel') !== false && 
+                        strlen($aiData['description']) < 500
+                    );
+                    
+                    if ($descriptionContainsService && !$isGeneric) {
+                        Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
+                        // Valider et nettoyer les données
+                        return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
+                    } else {
+                        Log::warning('Contenu IA semble générique ou ne contient pas le service', [
+                            'service_name' => $serviceName,
+                            'contains_service' => $descriptionContainsService,
+                            'is_generic' => $isGeneric
+                        ]);
+                    }
+                } else {
+                    Log::warning('Échec parsing JSON de la réponse IA', [
+                        'service_name' => $serviceName,
+                        'content_preview' => substr($result['content'], 0, 300)
+                    ]);
                 }
+            } else {
+                Log::error('Aucune réponse de l\'IA', [
+                    'service_name' => $serviceName,
+                    'result' => $result
+                ]);
             }
         } catch (\Exception $e) {
             Log::error('Erreur génération IA: ' . $e->getMessage(), [
@@ -611,31 +651,90 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         // Nettoyer le contenu
         $content = trim($content);
         
-        // Chercher le JSON dans différentes positions
+        // Si le contenu semble être directement du HTML (pas de JSON), créer un JSON avec
+        if (strpos($content, '<div') !== false && strpos($content, '{') === false) {
+            Log::info('Contenu HTML direct détecté, création de structure JSON');
+            // Extraire une description courte du HTML
+            $plainText = strip_tags($content);
+            $shortDesc = Str::limit($plainText, 140);
+            $metaDesc = Str::limit($plainText, 160);
+            
+            return [
+                'description' => $content,
+                'short_description' => $shortDesc,
+                'long_description' => Str::limit($plainText, 500),
+                'icon' => 'fas fa-tools',
+                'meta_title' => '',
+                'meta_description' => $metaDesc,
+                'og_title' => '',
+                'og_description' => $metaDesc,
+                'twitter_title' => '',
+                'twitter_description' => $metaDesc,
+                'meta_keywords' => ''
+            ];
+        }
+        
+        // Chercher le JSON dans différentes positions (amélioré pour capturer plus de cas)
         $jsonPatterns = [
-            '/\{.*\}/s',  // Pattern général
-            '/```json\s*(\{.*?\})\s*```/s',  // JSON dans code block
-            '/```\s*(\{.*?\})\s*```/s',  // JSON dans code block sans json
+            '/```json\s*(\{[\s\S]*?\})\s*```/s',  // JSON dans code block avec json
+            '/```\s*(\{[\s\S]*?\})\s*```/s',  // JSON dans code block sans json
+            '/\{[\s\S]*\"description\"[\s\S]*\}/s',  // JSON avec description
+            '/\{.*\}/s',  // Pattern général (en dernier)
         ];
         
         foreach ($jsonPatterns as $pattern) {
             if (preg_match($pattern, $content, $matches)) {
                 $jsonString = $matches[1] ?? $matches[0];
+                // Nettoyer le JSON
+                $jsonString = trim($jsonString);
                 $data = json_decode($jsonString, true);
-                if ($data && is_array($data)) {
+                
+                if ($data && is_array($data) && !empty($data)) {
+                    Log::info('JSON parsé avec succès', [
+                        'keys' => array_keys($data)
+                    ]);
                     return $data;
+                } else {
+                    Log::warning('Échec décodage JSON', [
+                        'json_error' => json_last_error_msg(),
+                        'json_preview' => substr($jsonString, 0, 300)
+                    ]);
                 }
             }
         }
         
         // Essayer de parser directement
         $data = json_decode($content, true);
-        if ($data && is_array($data)) {
+        if ($data && is_array($data) && !empty($data)) {
+            Log::info('JSON parsé directement');
             return $data;
         }
         
+        // Dernière tentative : chercher juste le HTML dans la description
+        if (preg_match('/"description"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s', $content, $matches)) {
+            Log::info('Extraction description HTML depuis JSON malformé');
+            $htmlContent = str_replace('\\"', '"', $matches[1]);
+            $htmlContent = str_replace('\\n', "\n", $htmlContent);
+            
+            $plainText = strip_tags($htmlContent);
+            return [
+                'description' => $htmlContent,
+                'short_description' => Str::limit($plainText, 140),
+                'long_description' => Str::limit($plainText, 500),
+                'icon' => 'fas fa-tools',
+                'meta_title' => '',
+                'meta_description' => Str::limit($plainText, 160),
+                'og_title' => '',
+                'og_description' => Str::limit($plainText, 160),
+                'twitter_title' => '',
+                'twitter_description' => Str::limit($plainText, 160),
+                'meta_keywords' => ''
+            ];
+        }
+        
         Log::warning('Impossible de parser la réponse IA', [
-            'content_preview' => substr($content, 0, 500)
+            'content_preview' => substr($content, 0, 500),
+            'json_error' => json_last_error_msg()
         ]);
         
         return null;
@@ -694,10 +793,19 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $formUrl = $siteUrl . '/form/propertyType';
         $description = str_replace('[FORM_URL]', $formUrl, $description);
 
+        // S'assurer que short_description est bien générée par l'IA, pas juste le fallback
+        $aiShortDescription = $aiData['short_description'] ?? null;
+        if (!$aiShortDescription || strlen(trim($aiShortDescription)) < 20) {
+            // Si l'IA n'a pas fourni de description courte, générer une depuis le HTML
+            $plainFromHtml = strip_tags($description);
+            $aiShortDescription = Str::limit($plainFromHtml, 140);
+            Log::info('Description courte générée depuis HTML', ['service_name' => $serviceName]);
+        }
+        
         return [
             'description' => $description,
-            'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
-            'long_description' => $cleanText($aiData['long_description'] ?? $shortDescription, 500),
+            'short_description' => $cleanText($aiShortDescription, 140),
+            'long_description' => $cleanText($aiData['long_description'] ?? strip_tags($description), 500),
             'icon' => $aiData['icon'] ?? $this->getServiceIcon($serviceName),
             'meta_title' => $cleanText($aiData['meta_title'] ?? $serviceName . ' - ' . $companyInfo['company_name'], 60),
             'meta_description' => $cleanText($aiData['meta_description'] ?? $shortDescription, 160),
