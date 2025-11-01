@@ -2259,10 +2259,11 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
         if (strpos($serviceLower, 'isolation') !== false || 
             strpos($serviceLower, 'thermique') !== false ||
             strpos($serviceLower, 'isoler') !== false) {
-            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Pour vos travaux d'isolation, bénéficiez de MaPrimeRénov, une aide de l'État qui peut couvrir jusqu'à 90% du montant de vos travaux selon vos revenus. Cette aide est cumulable avec d'autres dispositifs.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE peuvent vous faire économiser jusqu'à plusieurs centaines d'euros sur vos travaux d'isolation. Nous vous accompagnons dans vos démarches pour bénéficier de ces aides.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ :</strong> L'éco-prêt à taux zéro permet de financer vos travaux d'isolation sans intérêts, jusqu'à 30 000€ sur 20 ans.</p>
-      <p class=\"leading-relaxed\"><strong>TVA réduite :</strong> Les travaux d'isolation bénéficient de la TVA réduite à 5,5% pour les logements de plus de 2 ans.</p>";
+            return "
+      <p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Pour vos travaux d'isolation thermique, MaPrimeRénov est l'aide principale de l'État. Elle peut couvrir jusqu'à 90% du montant de vos travaux selon vos revenus (jusqu'à 75€/m² pour l'isolation des combles perdus, 100€/m² pour l'isolation des murs, 120€/m² pour l'isolation des planchers bas). Cette aide est versée directement à l'entreprise RGE et est cumulable avec les primes CEE et l'éco-PTZ.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Primes CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE pour l'isolation peuvent atteindre 50€/m² pour les combles, 25€/m² pour les murs, selon le niveau d'isolation et votre fournisseur d'énergie (EDF, Engie, Total Direct Énergie, etc.). Ces primes sont versées directement par les fournisseurs et sont cumulables avec MaPrimeRénov, permettant de réduire significativement le coût de vos travaux d'isolation.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ (Éco-prêt à taux zéro) :</strong> L'éco-prêt à taux zéro permet de financer jusqu'à 30 000€ de travaux d'isolation sans intérêts, sur 20 ans maximum. Accessible sans conditions de ressources, il finance jusqu'à 75€/m² d'isolation de combles ou 100€/m² d'isolation de murs. Il est cumulable avec MaPrimeRénov et les primes CEE.</p>
+      <p class=\"leading-relaxed\"><strong>TVA réduite à 5,5% :</strong> Tous les travaux d'isolation thermique bénéficient de la TVA réduite à 5,5% au lieu de 20% pour les logements de plus de 2 ans. Cette réduction s'applique à la fois sur la main d'œuvre et les matériaux, représentant une économie importante sur votre facture globale d'isolation.</p>";
         }
         
         // Rénovation énergétique
