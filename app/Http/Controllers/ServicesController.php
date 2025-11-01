@@ -84,6 +84,17 @@ class ServicesController extends Controller
             $companyInfo,
             $validated['ai_prompt'] ?? null
         );
+        
+        // Vérifier si l'IA a retourné une erreur
+        if (isset($aiContent['error']) && $aiContent['error']) {
+            Log::error('Erreur génération IA lors de la création', [
+                'service_name' => $validated['name'],
+                'error_message' => $aiContent['error_message'],
+                'debug_info' => $aiContent['debug_info'] ?? []
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la génération du contenu par l\'IA: ' . $aiContent['error_message'] . '. Consultez les logs Laravel pour plus de détails.')->withInput();
+        }
 
         // Gérer l'upload d'image de mise en avant
         $featuredImagePath = null;
