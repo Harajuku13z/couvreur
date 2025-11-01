@@ -1870,8 +1870,34 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     $serviceNameCount = substr_count(strtolower($plainText), strtolower($serviceName));
                     $serviceNamePresent = $serviceNameCount >= 5; // Le service doit être mentionné au moins 5 fois
                     
-                    // Vérifier si le contenu de financement est présent (MaPrimeRénov, CEE, etc.)
+                    // Vérifier si les prestations sont spécifiques au service (pas de toiture dans façade, etc.)
                     $serviceLower = strtolower($serviceName);
+                    $hasWrongPrestations = false;
+                    if (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
+                        // Si c'est façade, vérifier qu'il n'y a pas de prestations de toiture
+                        $wrongKeywords = ['toiture', 'charpente', 'couverture', 'ardoise', 'tuile', 'velux', 'combles', 'zinguerie'];
+                        foreach ($wrongKeywords as $keyword) {
+                            // Vérifier si le mot-clé est présent mais pas dans un contexte de façade
+                            if (stripos($description, $keyword) !== false) {
+                                // Vérifier si le contexte parle vraiment de façade, pas de toiture
+                                $context = substr($description, max(0, stripos($description, $keyword) - 100), 200);
+                                if (stripos($context, 'façade') === false && stripos($context, 'ravalement') === false) {
+                                    $hasWrongPrestations = true;
+                                    Log::warning('Prestation incorrecte détectée', [
+                                        'service' => $serviceName,
+                                        'wrong_keyword' => $keyword,
+                                        'context' => $context
+                                    ]);
+                                    break;
+                                }
+                            }
+                        }
+                    } elseif (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
+                        // Si c'est toiture, vérifier qu'il n'y a pas de prestations de façade (mais c'est moins critique)
+                        // On peut garder cette validation plus légère
+                    }
+                    
+                    // Vérifier si le contenu de financement est présent (MaPrimeRénov, CEE, etc.)
                     $financementInfo = $this->getFinancementInfoForService($serviceName);
                     $hasFinancementContent = false;
                     if (strpos($serviceLower, 'isolation') !== false || 
