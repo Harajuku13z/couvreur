@@ -475,16 +475,48 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
 
-        // Préparer les données - Essayer deux approches : FormData puis JSON en fallback
-        // Approche 1: FormData (préféré pour les fichiers et compatibilité Laravel)
+        // Préparer les données avec FormData
         const requestData = new FormData();
-        requestData.append('service_slug', serviceSlug || '');
-        if (aiPrompt) {
-            requestData.append('ai_prompt', aiPrompt);
+        // S'assurer que service_slug n'est jamais vide
+        if (!serviceSlug || serviceSlug.trim() === '') {
+            console.error('ERREUR CRITIQUE: service_slug est vide ou invalide:', serviceSlug);
+            alert('ERREUR: service_slug est vide! Vérifiez que vous avez sélectionné un service.');
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
+            return;
         }
-        requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        requestData.append('service_slug', serviceSlug.trim());
+        
+        if (aiPrompt && aiPrompt.trim() !== '') {
+            requestData.append('ai_prompt', aiPrompt.trim());
+        }
+        
+        // Ajouter le token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            requestData.append('_token', csrfToken.getAttribute('content'));
+        } else {
+            console.error('Token CSRF introuvable!');
+            alert('Erreur de sécurité: token CSRF introuvable. Rechargez la page.');
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
+            return;
+        }
+        
+        // Ajouter les city_ids
+        if (selectedCityIds.length === 0) {
+            console.error('ERREUR: Aucune ville sélectionnée');
+            alert('ERREUR: Vous devez sélectionner au moins une ville.');
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
+            return;
+        }
+        
         selectedCityIds.forEach(cityId => {
-            requestData.append('city_ids[]', cityId);
+            if (cityId && cityId.trim() !== '') {
+                requestData.append('city_ids[]', cityId.trim());
+            }
         });
 
         // Debug: afficher ce qui sera envoyé
@@ -497,14 +529,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('  ' + pair[0] + ': ' + pair[1]);
         }
         console.log('=== FIN DEBUG ===');
-        
-        // Vérification finale avant envoi
-        if (!serviceSlug || serviceSlug.trim() === '') {
-            alert('ERREUR: service_slug est vide! Vérifiez que vous avez sélectionné un service.');
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
-            return;
-        }
 
         // Appel AJAX
         // IMPORTANT: Ne pas définir Content-Type manuellement avec FormData
