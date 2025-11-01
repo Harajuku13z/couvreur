@@ -278,7 +278,7 @@ class ServiceAiController extends Controller
             $infosPratiquesJsonString = implode(",\n    ", $infosPratiquesJson);
             
             // Prompt utilisateur EXACTEMENT comme AdTemplateController (sans [VILLE] et [DÉPARTEMENT] car c'est pour les services)
-            $userPrompt = "Service: {$serviceName}
+            $userPrompt = ($aiPrompt ? ($aiPrompt . "\n\n") : '') . "Service: {$serviceName}
 Description: {$shortDescription}
 Entreprise: {$companyName}
 Ville: {$companyCity}
