@@ -353,7 +353,7 @@
                                 <input type="password" 
                                        id="groq_api_key" 
                                        name="groq_api_key" 
-                                       value="{{ setting('groq_api_key', '') }}"
+                                       value="{{ setting('groq_api_key', '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') }}"
                                        class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                        placeholder="gsk-...">
                                 <button type="button" 

@@ -20,7 +20,7 @@ class AiService
     {
         $chatgptEnabled = setting('chatgpt_enabled', true);
         $chatgptApiKey = setting('chatgpt_api_key');
-        $groqApiKey = setting('groq_api_key', env('GROQ_API_KEY'));
+        $groqApiKey = setting('groq_api_key', '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');
         
         $model = $options['model'] ?? setting('chatgpt_model', 'gpt-4o');
         $temperature = $options['temperature'] ?? 0.7;

@@ -1032,7 +1032,7 @@ class ConfigController extends Controller
         Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
         Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'] ?? null, 'string', 'ai');
         Setting::set('chatgpt_model', $validated['chatgpt_model'], 'string', 'ai');
-        Setting::set('groq_api_key', $validated['groq_api_key'] ?? env('GROQ_API_KEY'), 'string', 'ai');
+        Setting::set('groq_api_key', $validated['groq_api_key'] ?? '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', 'string', 'ai');
         Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
         
         if (isset($validated['ai_temperature'])) {
