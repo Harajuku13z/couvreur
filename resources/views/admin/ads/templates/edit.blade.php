@@ -30,7 +30,7 @@
     @endif
 
     <!-- Formulaire d'édition -->
-    <form action="{{ route('admin.ads.templates.update', $template->id) }}" method="POST" id="templateEditForm">
+    <form action="{{ route('ads.templates.update', $template->id) }}" method="POST" id="templateEditForm">
         @csrf
         @method('PUT')
 
@@ -238,7 +238,7 @@
 
         <!-- Actions -->
         <div class="flex justify-between items-center">
-            <a href="{{ route('admin.ads.templates.index') }}" class="text-gray-600 hover:text-gray-800">
+            <a href="{{ route('ads.templates.index') }}" class="text-gray-600 hover:text-gray-800">
                 <i class="fas fa-times mr-2"></i>Annuler
             </a>
             
