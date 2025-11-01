@@ -1650,7 +1650,7 @@ RÈGLES STRICTES:
             if (!$jsonData) {
                 // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
-                                'service_name' => $serviceName,
+                    'service_name' => $serviceName,
                     'provider' => $result['provider'] ?? 'unknown',
                     'content_length' => strlen($result['content']),
                     'content_full' => $result['content'], // Contenu complet pour diagnostic
@@ -1660,6 +1660,74 @@ RÈGLES STRICTES:
                 
                 throw new \Exception('Erreur: L\'IA n\'a pas retourné un JSON valide. Contenu reçu: ' . substr($result['content'], 0, 200) . '... Consultez les logs pour plus de détails.');
             }
+            
+            // Remplacer toute mention de vraie ville par [VILLE] dans tous les champs texte
+            $textFields = ['description_courte', 'description_longue', 'pourquoi_choisir', 'financement_aides', 
+                          'meta_title', 'meta_description', 'meta_keywords', 'og_title', 'og_description', 
+                          'twitter_title', 'twitter_description', 'texte_garantie', 'titre_garantie'];
+            
+            foreach ($textFields as $field) {
+                if (isset($jsonData[$field]) && is_string($jsonData[$field])) {
+                    // Liste des villes françaises courantes à remplacer
+                    $villes = ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers', 'Villeurbanne', 'Saint-Denis', 'Le Mans', 'Aix-en-Provence', 'Clermont-Ferrand', 'Brest', 'Limoges', 'Tours', 'Amiens', 'Perpignan', 'Metz', 'Besançon', 'Boulogne-Billancourt', 'Orléans', 'Mulhouse', 'Caen', 'Rouen', 'Nancy', 'Argenteuil', 'Saint-Denis', 'Montreuil', 'Roubaix', 'Tourcoing', 'Nanterre', 'Avignon', 'Créteil', 'Dunkirk', 'Poitiers', 'Asnières-sur-Seine', 'Versailles', 'Courbevoie', 'Vitry-sur-Seine', 'Colombes', 'Aulnay-sous-Bois', 'La Rochelle', 'Champigny-sur-Marne', 'Rueil-Malmaison', 'Antibes', 'Saint-Maur-des-Fossés', 'Cannes', 'Calais', 'Béziers', 'Drancy', 'Mérignac', 'Saint-Nazaire', 'Colmar', 'Issy-les-Moulineaux', 'Noisy-le-Grand', 'Évry', 'Villeneuve-d\'Ascq', 'Pau', 'Hyères', 'Cergy', 'La Seyne-sur-Mer', 'Pantin', 'Troyes', 'Clichy', 'Antony', 'Montauban', 'Neuilly-sur-Seine', 'Niort', 'Villejuif', 'Lorient', 'Sarcelles', 'Le Blanc-Mesnil', 'Thionville', 'Chambéry', 'Sète', 'Bayonne', 'Bobigny', 'Grasse', 'Châteauroux', 'Vincennes', 'Alès', 'Wattrelos', 'Laval', 'Valence', 'Meaux', 'Brive-la-Gaillarde', 'Épinay-sur-Seine', 'Montrouge', 'Sevran', 'Tarbes', 'Bourges', 'Massy', 'Sainte-Geneviève-des-Bois', 'Saint-Ouen', 'Bègles', 'Garges-lès-Gonesse', 'La Courneuve', 'Martigues', 'Lens', 'Évreux', 'Wittenheim', 'Charleville-Mézières', 'Blois', 'Douai', 'Mantes-la-Jolie', 'Gap', 'L\'Hay-les-Roses', 'Montbéliard', 'Bastia', 'Châteaubriant', 'Mamers', 'Angoulême', 'Thiers', 'Moulins', 'Aubagne', 'Annemasse', 'Annecy', 'Chalon-sur-Saône', 'Châlons-en-Champagne', 'Chaumont', 'Épinal', 'Mâcon', 'Nevers', 'Paray-le-Monial', 'Roanne', 'Sens', 'Tonnerre', 'Vesoul', 'Belfort', 'Montbéliard', 'Mulhouse', 'Altkirch', 'Colmar', 'Haguenau', 'Saverne', 'Sélestat', 'Strasbourg', 'Thann', 'Wissembourg', 'Bar-le-Duc', 'Commercy', 'Ligny-en-Barrois', 'Verdun', 'Bourges', 'Châteauroux', 'Issoudun', 'La Châtre', 'Le Blanc', 'Saint-Amand-Montrond', 'Vierzon', 'Guéret', 'Aubusson', 'Boussac', 'Dinan', 'Guingamp', 'Lannion', 'Loudéac', 'Paimpol', 'Saint-Brieuc', 'Tréguier', 'Ajaccio', 'Bastia', 'Calvi', 'Corte', 'Porto-Vecchio', 'Propriano', 'Sartène', 'Aurillac', 'Mauriac', 'Mauriac', 'Saint-Flour', 'Rodez', 'Espalion', 'Millau', 'Villefranche-de-Rouergue', 'Foix', 'Pamiers', 'Saint-Girons', 'Tarascon-sur-Ariège', 'Privas', 'La Voulte-sur-Rhône', 'Le Cheylard', 'Nyons', 'Aubenas', 'Largentière', 'Tournon-sur-Rhône', 'Valence', 'Montélimar', 'Romans-sur-Isère', 'Die', 'Gap', 'Embrun', 'Briançon', 'Sisteron', 'La Roche-sur-Yon', 'Fontenay-le-Comte', 'Les Sables-d\'Olonne', 'Luçon', 'Roche-sur-Yon', 'Challans', 'Les Herbiers', 'Noirmoutier-en-l\'Île', 'Château-d\'Olonne', 'Olonne-sur-Mer', 'Pouzauges', 'Saint-Gilles-Croix-de-Vie', 'Aix-en-Provence', 'Arles', 'Avignon', 'Carpentras', 'Cavaillon', 'Orange', 'Pertuis', 'Sault', 'Valréas', 'Béziers', 'Cahors', 'Figeac', 'Gourdon', 'Martel', 'Rocamadour', 'Saint-Céré', 'Souillac', 'Villefranche-de-Rouergue', 'Agen', 'Fumel', 'Marmande', 'Nérac', 'Tonneins', 'Villeneuve-sur-Lot', 'Auch', 'Condom', 'Lectoure', 'Mirande', 'Nogaro', 'Valence-sur-Baïse', 'Vic-Fezensac', 'Castelsarrasin', 'Lavardac', 'Moissac', 'Montauban', 'Villefranche-de-Rouergue', 'Albi', 'Castres', 'Gaillac', 'Lavaur', 'Mazamet', 'Puylaurens', 'Revel', 'Saint-Sulpice', 'Bourg-en-Bresse', 'Belley', 'Bourg-Saint-Christophe', 'Châtillon-sur-Chalaronne', 'Gex', 'Nantua', 'Oyonnax', 'Péronnas', 'Pont-d\'Ain', 'Saint-Genis-Pouilly', 'Thoissey', 'Trévoux', 'Dijon', 'Arnay-le-Duc', 'Auxonne', 'Beaune', 'Châtillon-sur-Seine', 'Châtillon-sur-Seine', 'Is-sur-Tille', 'Montbard', 'Nuits-Saint-Georges', 'Semur-en-Auxois', 'Seurre', 'La Roche-sur-Yon', 'Fontenay-le-Comte', 'Les Sables-d\'Olonne', 'Luçon', 'Challans', 'Les Herbiers', 'Noirmoutier-en-l\'Île', 'Château-d\'Olonne', 'Olonne-sur-Mer', 'Pouzauges', 'Saint-Gilles-Croix-de-Vie'];
+                    
+                    // Remplacer toute ville trouvée par [VILLE]
+                    foreach ($villes as $ville) {
+                        $jsonData[$field] = preg_replace('/\b' . preg_quote($ville, '/') . '\b/i', '[VILLE]', $jsonData[$field]);
+                    }
+                    
+                    // Remplacer aussi les patterns comme "ville de X" ou "à X"
+                    $jsonData[$field] = preg_replace('/\b(ville de|à|dans|sur) [A-Z][a-zéèêëàâäïîôöùûüç]+/', '$1 [VILLE]', $jsonData[$field]);
+                    $jsonData[$field] = preg_replace('/\b(ville de|à|dans|sur) [A-Z][a-zéèêëàâäïîôöùûüç]+(-[A-Z][a-zéèêëàâäïîôöùûüç]+)?/', '$1 [VILLE]', $jsonData[$field]);
+                    
+                    // Remplacer les départements courants
+                    $departements = ['Paris', 'Seine-et-Marne', 'Yvelines', 'Essonne', 'Hauts-de-Seine', 'Seine-Saint-Denis', 'Val-de-Marne', 'Val-d\'Oise', 'Loire-Atlantique', 'Maine-et-Loire', 'Mayenne', 'Sarthe', 'Vendée', 'Côtes-d\'Armor', 'Finistère', 'Ille-et-Vilaine', 'Morbihan', 'Calvados', 'Eure', 'Manche', 'Orne', 'Seine-Maritime', 'Ain', 'Aisne', 'Allier', 'Alpes-de-Haute-Provence', 'Hautes-Alpes', 'Alpes-Maritimes', 'Ardèche', 'Ardennes', 'Ariège', 'Aube', 'Aude', 'Aveyron', 'Bouches-du-Rhône', 'Calvados', 'Cantal', 'Charente', 'Charente-Maritime', 'Cher', 'Corrèze', 'Corse-du-Sud', 'Haute-Corse', 'Côte-d\'Or', 'Côtes-d\'Armor', 'Creuse', 'Dordogne', 'Doubs', 'Drôme', 'Eure', 'Eure-et-Loir', 'Finistère', 'Gard', 'Haute-Garonne', 'Gers', 'Gironde', 'Hérault', 'Ille-et-Vilaine', 'Indre', 'Indre-et-Loire', 'Isère', 'Jura', 'Landes', 'Loir-et-Cher', 'Loire', 'Haute-Loire', 'Loire-Atlantique', 'Loiret', 'Lot', 'Lot-et-Garonne', 'Lozère', 'Maine-et-Loire', 'Manche', 'Marne', 'Haute-Marne', 'Mayenne', 'Meurthe-et-Moselle', 'Meuse', 'Morbihan', 'Moselle', 'Nièvre', 'Nord', 'Oise', 'Orne', 'Pas-de-Calais', 'Puy-de-Dôme', 'Pyrénées-Atlantiques', 'Hautes-Pyrénées', 'Pyrénées-Orientales', 'Bas-Rhin', 'Haut-Rhin', 'Rhône', 'Haute-Saône', 'Saône-et-Loire', 'Sarthe', 'Savoie', 'Haute-Savoie', 'Paris', 'Seine-Maritime', 'Seine-et-Marne', 'Yvelines', 'Deux-Sèvres', 'Somme', 'Tarn', 'Tarn-et-Garonne', 'Var', 'Vaucluse', 'Vendée', 'Vienne', 'Haute-Vienne', 'Vosges', 'Yonne', 'Territoire de Belfort', 'Essonne', 'Hauts-de-Seine', 'Seine-Saint-Denis', 'Val-de-Marne', 'Val-d\'Oise'];
+                    
+                    foreach ($departements as $dept) {
+                        $jsonData[$field] = preg_replace('/\b(département|département de|dans le département|du département) ' . preg_quote($dept, '/') . '\b/i', '$1 [DÉPARTEMENT]', $jsonData[$field]);
+                        $jsonData[$field] = preg_replace('/\b' . preg_quote($dept, '/') . '\b/i', '[DÉPARTEMENT]', $jsonData[$field]);
+                    }
+                }
+            }
+            
+            // Vérifier aussi dans les prestations et FAQ
+            if (isset($jsonData['prestations']) && is_array($jsonData['prestations'])) {
+                foreach ($jsonData['prestations'] as $key => $prestation) {
+                    foreach (['titre', 'description'] as $subField) {
+                        if (isset($prestation[$subField])) {
+                            foreach ($villes as $ville) {
+                                $jsonData['prestations'][$key][$subField] = preg_replace('/\b' . preg_quote($ville, '/') . '\b/i', '[VILLE]', $jsonData['prestations'][$key][$subField]);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (isset($jsonData['faq']) && is_array($jsonData['faq'])) {
+                foreach ($jsonData['faq'] as $key => $faq) {
+                    foreach (['question', 'reponse'] as $subField) {
+                        if (isset($faq[$subField])) {
+                            foreach ($villes as $ville) {
+                                $jsonData['faq'][$key][$subField] = preg_replace('/\b' . preg_quote($ville, '/') . '\b/i', '[VILLE]', $jsonData['faq'][$key][$subField]);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (isset($jsonData['infos_pratiques']) && is_array($jsonData['infos_pratiques'])) {
+                foreach ($jsonData['infos_pratiques'] as $key => $info) {
+                    if (is_string($info)) {
+                        foreach ($villes as $ville) {
+                            $jsonData['infos_pratiques'][$key] = preg_replace('/\b' . preg_quote($ville, '/') . '\b/i', '[VILLE]', $jsonData['infos_pratiques'][$key]);
+                        }
+                    }
+                }
+            }
+            
+            Log::info('Placeholders [VILLE] et [DÉPARTEMENT] vérifiés et corrigés dans le JSON', [
+                'service_name' => $serviceName
+            ]);
             
             // Remplir le template HTML avec les données JSON
             $htmlContent = $this->fillTemplateForAds($template, $jsonData, $serviceName, $companyName, $companyInfo);
