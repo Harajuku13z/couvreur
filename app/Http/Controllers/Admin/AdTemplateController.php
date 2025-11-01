@@ -1556,7 +1556,7 @@ Département: {$companyDept}
 
 {$infosPratiquesPrompt}
 
-Génère un JSON avec exactement cette structure:
+Génère un JSON avec exactement cette structure (remplace les exemples par du contenu réel):
 
 {
   \"description_courte\": \"Description courte du {$serviceName} dans la ville de {$companyCity} et le département {$companyDept}\",
@@ -1584,15 +1584,7 @@ Génère un JSON avec exactement cette structure:
   \"pourquoi_choisir\": \"Avantages de travailler avec {$companyName} pour ce service et parler de notre expertise\",
   \"financement_aides\": \"Parler des aides disponibles en France selon le service (MaPrimeRénov, CEE, etc.)\",
   \"infos_pratiques\": [
-    " . implode(",\n    ", array_map(function($item) {
-      return "\"" . addslashes($item) . "\"";
-    }, array_filter([
-      $companyAddress ? "Adresse : {$companyAddress}" : null,
-      $companyPhone ? "Téléphone : {$companyPhone}" : null,
-      $companyEmail ? "Email : {$companyEmail}" : null,
-      $companyHours ? "Horaires de travail : {$companyHours}" : null,
-      $companyName ? "Société : {$companyName}" : null
-    ]))) . "
+    \"Utilise EXACTEMENT les informations pratiques fournies ci-dessus dans cette section\"
   ]
 }
 
