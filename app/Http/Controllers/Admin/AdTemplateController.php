@@ -1441,567 +1441,285 @@ EXEMPLES CONCRETS POUR {$keyword}:
     }
 
     /**
-     * Générer un contenu complet de template via IA (inspiré de generateCompleteServiceContent)
+     * Générer un contenu complet de template via IA avec JSON simplifié
      */
     private function generateCompleteTemplateContent($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
     {
         try {
-            // VIDER LE CACHE DES SETTINGS pour s'assurer qu'on lit les dernières valeurs
-            \App\Models\Setting::clearCache();
+            $companyName = $companyInfo['company_name'] ?? setting('company_name', 'Notre Entreprise');
+            $companyCity = $companyInfo['company_city'] ?? setting('company_city', '');
+            $companyDept = $companyInfo['company_region'] ?? setting('company_region', '');
             
-            // Construire le prompt pour le template avec placeholders [VILLE], [RÉGION]
-            $basePrompt = $this->buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt);
+            // Template HTML exact fourni par l'utilisateur
+            $template = '<div class="grid md:grid-cols-2 gap-8">
+  <div class="space-y-6">
+    <div class="space-y-4">
+      <p class="text-lg leading-relaxed">[description_courte]</p>
+      <p class="text-lg leading-relaxed">[description_longue]</p>
+    </div>
+    <div class="bg-blue-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
+      <p class="leading-relaxed mb-3">[texte_garantie]</p>
+    </div>
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
+    <ul class="space-y-3">[prestations_liste]</ul>
+    <div class="bg-gray-50 p-6 rounded-lg mt-6">
+      <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ [service]</h4>
+      <div class="space-y-2">[faq_liste]</div>
+    </div>
+  </div>
+  <div class="space-y-6">
+    <div class="bg-green-50 p-6 rounded-lg">
+      <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
+      <p class="leading-relaxed">[pourquoi_choisir]</p>
+    </div>
+    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
+      <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
+      <p>[financement_aides]</p>
+    </div>
+    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
+      <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
+      <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
+      <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+    </div>
+    <div class="bg-gray-50 p-6 rounded-lg">
+      <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
+      <ul class="space-y-2 text-sm">[infos_pratiques_liste]</ul>
+    </div>
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <div class="text-center">
+        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
+        <div class="flex justify-center items-center space-x-4">
+          <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-facebook-f text-lg"></i>
+            <span class="font-medium">Facebook</span>
+          </a>
+          <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fab fa-whatsapp text-lg"></i>
+            <span class="font-medium">WhatsApp</span>
+          </a>
+          <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="font-medium">Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>';
             
-            // Diagnostic détaillé des clés API - FORCER lecture depuis DB sans cache
-            \Cache::forget('setting_chatgpt_enabled');
-            \Cache::forget('setting_chatgpt_api_key');
-            \Cache::forget('setting_groq_api_key');
-            \Cache::forget('setting_groq_model');
-            \Cache::forget('setting_chatgpt_model');
+            // Prompt simplifié pour générer un JSON structuré
+            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide, sans texte avant ou après.";
             
-            $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->first();
-            $chatgptEnabledValue = $chatgptEnabled ? ($chatgptEnabled->type === 'boolean' ? filter_var($chatgptEnabled->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabled->value) : true;
+            $userPrompt = ($aiPrompt ? ($aiPrompt . "\n\n") : '') . "Service: {$serviceName}
+Description: {$shortDescription}
+Entreprise: {$companyName}
+Ville: {$companyCity}
+Département: {$companyDept}
+
+Crée un JSON avec les données suivantes pour remplir un template HTML:
+
+{
+  \"description_courte\": \"Description courte du {$serviceName} incluant {$companyCity} et le département {$companyDept} (150-200 caractères)\",
+  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux (minimum 300 caractères)\",
+  \"titre_garantie\": \"Titre de l'engagement ou garantie (ex: Garantie de satisfaction)\",
+  \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
+  \"prestations\": [
+    {\"titre\": \"Prestation 1 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 2 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 3 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 4 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 5 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 6 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 7 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 8 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 9 technique spécifique\", \"description\": \"Description en une phrase\"},
+    {\"titre\": \"Prestation 10 technique spécifique\", \"description\": \"Description en une phrase\"}
+  ],
+  \"faq\": [
+    {\"question\": \"Question fréquente 1\", \"reponse\": \"Réponse détaillée\"},
+    {\"question\": \"Question fréquente 2\", \"reponse\": \"Réponse détaillée\"},
+    {\"question\": \"Question fréquente 3\", \"reponse\": \"Réponse détaillée\"},
+    {\"question\": \"Question fréquente 4\", \"reponse\": \"Réponse détaillée\"}
+  ],
+  \"pourquoi_choisir\": \"Avantages de travailler avec nous pour ce service et parler de notre expertise\",
+  \"financement_aides\": \"Parler des aides disponibles en France selon le service (MaPrimeRénov, CEE, etc.)\",
+  \"infos_pratiques\": [
+    \"Info pratique 1\",
+    \"Info pratique 2\",
+    \"Info pratique 3\",
+    \"Info pratique 4\",
+    \"Info pratique 5\"
+  ]
+}
+
+IMPORTANT:
+- Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
+- Utilise le vocabulaire professionnel du métier
+- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             
-            $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
-            $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
-            
-            $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
-            $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : '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';
-            
-            $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
-            $groqModel = $groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant';
-            
-            $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
-            $chatgptModel = $chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4o';
-            
-            Log::info('=== DÉBUT GÉNÉRATION IA TEMPLATE ===', [
+            Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
-                'short_description' => $shortDescription,
-                'chatgpt_enabled' => $chatgptEnabledValue,
-                'chatgpt_enabled_type' => gettype($chatgptEnabledValue),
-                'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
-                'chatgpt_api_key_preview' => $chatgptApiKey ? substr($chatgptApiKey, 0, 10) . '...' : 'NULL',
-                'groq_api_key_exists' => !empty($groqApiKey),
-                'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
-                'groq_api_key_preview' => $groqApiKey ? substr($groqApiKey, 0, 10) . '...' : 'NULL'
+                'prompt_length' => strlen($userPrompt),
+                'system_message_length' => strlen($systemMessage)
             ]);
             
-            // Ajouter un identifiant unique pour forcer la génération unique
-            $uniqueId = uniqid();
-            $timestamp = now()->toIso8601String();
-            
-            $prompt = $basePrompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}";
-            
-            // Utiliser le service AI avec fallback automatique
-            $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE et SPÉCIFIQUE de ce domaine. Tu crées du contenu professionnel, engageant, technique et optimisé SEO pour des templates d'annonces.
-
-🚨 CRITIQUE ABSOLUE - PERSONNALISATION OBLIGATOIRE:
-- Chaque section DOIT contenir du contenu VRAIMENT écrit, pas de placeholders [Paragraphe X] ou [ÉCRIRE ICI]
-- Utilise un vocabulaire TECHNIQUE et SPÉCIFIQUE à {$serviceName}: normes (RT 2012, DTU), certifications (RGE, Qualit'ENR, NF), matériaux précis (ex: laine de verre ISOVER, polyuréthane, fibre de bois), techniques professionnelles
-- Mentionne des CHIFFRES CONCRETS: résistances thermiques (R en m².K/W), épaisseurs, performances, économies d'énergie, délais d'intervention
-- Donne des EXEMPLES CONCRETS de réalisations, processus, garanties spécifiques à {$serviceName}
-- INTERDIT absolu: phrases génériques comme \"Nous garantissons la satisfaction\", \"Notre expertise locale\", \"Intervention rapide\" sans détails techniques
-
-✅ ACCEPTE seulement: contenu technique, spécifique, avec chiffres, normes, matériaux, processus précis pour {$serviceName}.
-
-Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_URL], [URL], [TITRE] pour personnalisation par ville.";
-            
-            // TEST PRÉALABLE des APIs avant la génération
-            Log::info('TEST PRÉALABLE des APIs', [
-                'chatgpt_enabled' => $chatgptEnabledValue,
-                'chatgpt_api_key_present' => !empty($chatgptApiKey),
-                'groq_api_key_present' => !empty($groqApiKey)
-            ]);
-            
-            // Test rapide de Groq d'abord (plus rapide) si disponible
-            $groqTestOk = false;
-            if ($groqApiKey) {
-                try {
-                    $testResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
-                        ->timeout(10)
-                        ->post('https://api.groq.com/openai/v1/chat/completions', [
-                            'model' => $groqModel,
-                            'messages' => [
-                                ['role' => 'user', 'content' => 'Test']
-                            ],
-                            'max_tokens' => 5
-                        ]);
-                    $groqTestOk = $testResponse->successful();
-                    Log::info('Test Groq', ['success' => $groqTestOk, 'status' => $testResponse->status()]);
-                } catch (\Exception $e) {
-                    Log::warning('Test Groq échoué', ['error' => $e->getMessage()]);
-                }
-            }
-            
-            // Test rapide de ChatGPT si disponible
-            $chatgptTestOk = false;
-            if ($chatgptEnabledValue && $chatgptApiKey) {
-                try {
-                    $testResponse = \Illuminate\Support\Facades\Http::withHeaders([
-                        'Authorization' => 'Bearer ' . $chatgptApiKey,
-                        'Content-Type' => 'application/json',
-                    ])->timeout(10)->post('https://api.openai.com/v1/chat/completions', [
-                        'model' => $chatgptModel,
-                        'messages' => [
-                            ['role' => 'user', 'content' => 'Test']
-                        ],
-                        'max_tokens' => 5
-                    ]);
-                    $chatgptTestOk = $testResponse->successful();
-                    Log::info('Test ChatGPT', ['success' => $chatgptTestOk, 'status' => $testResponse->status()]);
-                } catch (\Exception $e) {
-                    Log::warning('Test ChatGPT échoué', ['error' => $e->getMessage()]);
-                }
-            }
-            
-            // Appel à AiService avec timeout augmenté
-            Log::info('Appel à AiService::callAI', [
-                'prompt_length' => strlen($prompt),
-                'system_message_length' => strlen($systemMessage),
-                'max_tokens' => 6000,
-                'temperature' => 0.95,
+            // Utiliser AiService directement (gère automatiquement ChatGPT et Groq)
+            $result = \App\Services\AiService::callAI($userPrompt, $systemMessage, [
+                'max_tokens' => 3000, // Limité pour respecter TPM Groq
+                'temperature' => 0.7,
                 'timeout' => 120
             ]);
             
-            $result = AiService::callAI($prompt, $systemMessage, [
-                'max_tokens' => 6000, // Augmenté pour permettre plus de contenu personnalisé
-                'temperature' => 0.95, // Augmenté pour plus de créativité et personnalisation
-                'timeout' => 120 // Timeout augmenté à 120 secondes
-            ]);
-            
-            Log::info('Résultat AiService::callAI', [
-                'has_result' => !is_null($result),
-                'result_type' => gettype($result),
-                'has_content' => isset($result['content']),
-                'provider' => $result['provider'] ?? 'NONE',
-                'content_length' => isset($result['content']) ? strlen($result['content']) : 0,
-                'groq_test_ok' => $groqTestOk,
-                'chatgpt_test_ok' => $chatgptTestOk
-            ]);
-            
-            // Si l'IA n'a pas répondu, FORCER une nouvelle tentative avec Groq directement
             if (!$result || !isset($result['content'])) {
-                Log::warning('Première tentative IA échouée, tentative directe avec Groq', [
+                Log::error('Échec génération template via AiService', [
                     'service_name' => $serviceName,
-                    'result_is_null' => is_null($result),
                     'result' => $result
                 ]);
-                
-                // Essayer directement avec Groq - utiliser les valeurs déjà récupérées
-                // Les valeurs sont déjà dans $groqApiKey et $groqModel du diagnostic initial
-                
-                Log::info('Tentative directe Groq', [
-                    'groq_api_key_exists' => !empty($groqApiKey),
-                    'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
-                    'groq_model' => $groqModel
-                ]);
-                
-                if ($groqApiKey) {
-                    try {
-                        // Ajuster max_tokens pour respecter la limite TPM de Groq (6000 tokens totaux)
-                        $totalMessageLength = strlen($systemMessage) + strlen($prompt);
-                        $estimatedInputTokens = (int)($totalMessageLength / 4);
-                        $groqMaxTokens = max(1000, min(4000, 5500 - $estimatedInputTokens)); // Laisser marge de sécurité
-                        
-                        $groqResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
-                            ->timeout(120)
-                            ->post('https://api.groq.com/openai/v1/chat/completions', [
-                                'model' => $groqModel,
-                                'messages' => [
-                                    ['role' => 'system', 'content' => $systemMessage],
-                                    ['role' => 'user', 'content' => $prompt]
-                                ],
-                                'max_tokens' => $groqMaxTokens,
-                                'temperature' => 0.95
-                            ]);
-                        
-                        Log::info('Réponse Groq directe', [
-                            'status_code' => $groqResponse->status(),
-                            'successful' => $groqResponse->successful(),
-                            'response_body_preview' => substr($groqResponse->body(), 0, 500)
-                        ]);
-                        
-                        if ($groqResponse->successful() && isset($groqResponse->json()['choices'][0]['message']['content'])) {
-                            $result = [
-                                'content' => $groqResponse->json()['choices'][0]['message']['content'],
-                                'provider' => 'groq-direct'
-                            ];
-                            Log::info('Génération réussie avec Groq direct', [
-                                'service_name' => $serviceName,
-                                'content_length' => strlen($result['content'])
-                            ]);
-                        } else {
-                            $errorBody = $groqResponse->json();
-                            $status = $groqResponse->status();
-                            $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
-                            $errorType = $errorBody['error']['type'] ?? 'unknown';
-                            
-                            Log::error('Échec Groq direct', [
-                                'status' => $status,
-                                'error_message' => $errorMessage,
-                                'error_type' => $errorType,
-                                'response_preview' => substr($groqResponse->body(), 0, 500),
-                                'full_response' => config('app.debug') ? $groqResponse->body() : null
-                            ]);
-                            
-                            // Gérer spécifiquement l'erreur 413 (Request too large / TPM limit)
-                            if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {
-                                Log::warning('Limite TPM Groq dépassée, tentative avec prompt réduit', [
-                                    'service_name' => $serviceName,
-                                    'original_input_length' => $totalMessageLength,
-                                    'estimated_tokens' => $estimatedInputTokens
-                                ]);
-                                
-                                // Essayer avec un prompt réduit (tronquer de 30%)
-                                $reducedPrompt = substr($prompt, 0, (int)(strlen($prompt) * 0.7));
-                                $reducedLength = strlen($systemMessage) + strlen($reducedPrompt);
-                                $reducedInputTokens = (int)($reducedLength / 4);
-                                $reducedMaxTokens = max(1000, min(4000, 5500 - $reducedInputTokens));
-                                
-                                try {
-                                    $retryResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
-                                        ->timeout(120)
-                                        ->post('https://api.groq.com/openai/v1/chat/completions', [
-                                            'model' => $groqModel,
-                                            'messages' => [
-                                                ['role' => 'system', 'content' => $systemMessage],
-                                                ['role' => 'user', 'content' => $reducedPrompt]
-                                            ],
-                                            'max_tokens' => $reducedMaxTokens,
-                                            'temperature' => 0.95
-                                        ]);
-                                    
-                                    if ($retryResponse->successful() && isset($retryResponse->json()['choices'][0]['message']['content'])) {
-                                        $result = [
-                                            'content' => $retryResponse->json()['choices'][0]['message']['content'],
-                                            'provider' => 'groq-direct'
-                                        ];
-                                        Log::info('Génération réussie avec Groq direct après réduction du prompt', [
-                                            'service_name' => $serviceName,
-                                            'content_length' => strlen($result['content'])
-                                        ]);
-                                    }
-                                } catch (\Exception $retryException) {
-                                    Log::error('Échec retry Groq avec prompt réduit', [
-                                        'service_name' => $serviceName,
-                                        'error' => $retryException->getMessage()
-                                    ]);
-                                }
-                            }
-                        }
-                    } catch (\Exception $groqException) {
-                        Log::error('Échec appel Groq direct', [
-                            'service_name' => $serviceName,
-                            'error' => $groqException->getMessage()
-                        ]);
-                    }
-                }
-                
-                // Si toujours pas de résultat, essayer ChatGPT directement - utiliser les valeurs déjà récupérées
-                if (!$result || !isset($result['content'])) {
-                    // Utiliser les valeurs du diagnostic initial
-                    
-                    Log::info('Tentative directe ChatGPT', [
-                        'chatgpt_enabled' => $chatgptEnabledValue,
-                        'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                        'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
-                        'chatgpt_model' => $chatgptModel,
-                        'service_name' => $serviceName
-                    ]);
-                    
-                    if ($chatgptEnabledValue && $chatgptApiKey) {
-                        Log::warning('Groq échoué, tentative directe avec ChatGPT', ['service_name' => $serviceName]);
-                        try {
-                            $chatgptResponse = \Illuminate\Support\Facades\Http::withHeaders([
-                                'Authorization' => 'Bearer ' . $chatgptApiKey,
-                                'Content-Type' => 'application/json',
-                            ])->timeout(120)->post('https://api.openai.com/v1/chat/completions', [
-                                'model' => $chatgptModel,
-                                'messages' => [
-                                    ['role' => 'system', 'content' => $systemMessage],
-                                    ['role' => 'user', 'content' => $prompt]
-                                ],
-                                'max_tokens' => 6000,
-                                'temperature' => 0.95
-                            ]);
-                            
-                            Log::info('Réponse ChatGPT directe', [
-                                'status_code' => $chatgptResponse->status(),
-                                'successful' => $chatgptResponse->successful(),
-                                'response_body_preview' => substr($chatgptResponse->body(), 0, 500)
-                            ]);
-                            
-                            if ($chatgptResponse->successful() && isset($chatgptResponse->json()['choices'][0]['message']['content'])) {
-                                $result = [
-                                    'content' => $chatgptResponse->json()['choices'][0]['message']['content'],
-                                    'provider' => 'chatgpt-direct'
-                                ];
-                                Log::info('Génération réussie avec ChatGPT direct', [
-                                    'service_name' => $serviceName,
-                                    'content_length' => strlen($result['content'])
-                                ]);
-                            } else {
-                                $errorBody = $chatgptResponse->json();
-                                Log::error('Échec ChatGPT direct', [
-                                    'status' => $chatgptResponse->status(),
-                                    'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
-                                    'error_type' => $errorBody['error']['type'] ?? 'unknown',
-                                    'response_preview' => substr($chatgptResponse->body(), 0, 500),
-                                    'full_response' => config('app.debug') ? $chatgptResponse->body() : null
-                                ]);
-                            }
-                        } catch (\Exception $chatgptException) {
-                            Log::error('Échec appel ChatGPT direct', [
-                                'service_name' => $serviceName,
-                                'error' => $chatgptException->getMessage()
-                            ]);
-                        }
-                    }
-                }
+                throw new \Exception('Erreur API IA: Impossible de générer le contenu. Vérifiez vos clés API ChatGPT ou Groq.');
             }
             
-            Log::info('Résultat appel AiService pour template', [
+            Log::info('Réponse IA reçue pour template', [
                 'service_name' => $serviceName,
-                'has_result' => !is_null($result),
-                'has_content' => isset($result['content']),
-                'provider' => $result['provider'] ?? 'none',
-                'content_length' => isset($result['content']) ? strlen($result['content']) : 0
+                'provider' => $result['provider'] ?? 'unknown',
+                'content_length' => strlen($result['content']),
+                'content_preview' => substr($result['content'], 0, 300)
             ]);
             
-            // FORCER l'utilisation de l'IA - NE JAMAIS retourner de fallback ici
-            if (!$result || !isset($result['content'])) {
-                // Diagnostic final détaillé - utiliser les valeurs déjà récupérées
-                Log::error('IMPOSSIBLE de générer du contenu via IA (ni AiService, ni Groq direct, ni ChatGPT direct)', [
-                    'service_name' => $serviceName,
-                    'result_is_null' => is_null($result),
-                    'result_type' => gettype($result),
-                    'result' => $result,
-                    'chatgpt_enabled' => $chatgptEnabledValue,
-                    'chatgpt_enabled_type' => gettype($chatgptEnabledValue),
-                    'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                    'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
-                    'chatgpt_api_key_preview' => $chatgptApiKey ? substr($chatgptApiKey, 0, 10) . '...' : 'NULL',
-                    'groq_api_key_exists' => !empty($groqApiKey),
-                    'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
-                    'groq_api_key_preview' => $groqApiKey ? substr($groqApiKey, 0, 10) . '...' : 'NULL'
-                ]);
-                
-                $errorMessage = "ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives.\n\n";
-                $errorMessage .= "DIAGNOSTIC:\n";
-                $errorMessage .= "- ChatGPT activé: " . ($chatgptEnabledValue ? 'OUI' : 'NON') . "\n";
-                $errorMessage .= "- Clé ChatGPT: " . (!empty($chatgptApiKey) ? 'PRÉSENTE (' . strlen($chatgptApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
-                $errorMessage .= "- Clé Groq: " . (!empty($groqApiKey) ? 'PRÉSENTE (' . strlen($groqApiKey) . ' caractères)' : 'MANQUANTE') . "\n\n";
-                $errorMessage .= "SOLUTIONS POSSIBLES:\n";
-                $errorMessage .= "1. Vérifiez que vos clés API sont valides dans /config\n";
-                $errorMessage .= "2. Si vous utilisez Groq, vérifiez que vous n'avez pas atteint la limite TPM (6000 tokens/min)\n";
-                $errorMessage .= "3. Consultez les logs détaillés: tail -f storage/logs/laravel.log | grep -i 'AiService\\|Groq\\|ChatGPT'\n";
-                $errorMessage .= "4. Réessayez dans quelques instants si la limite de taux a été atteinte\n";
-                
-                if (empty($chatgptApiKey) && empty($groqApiKey)) {
-                    $errorMessage .= "\n⚠️ AUCUNE CLÉ API CONFIGURÉE - Vous devez configurer au moins ChatGPT OU Groq dans /config";
-                }
-                
-                throw new \Exception($errorMessage);
-            }
+            // Parser le JSON de la réponse IA
+            $jsonData = $this->parseJsonResponseForTemplate($result['content']);
             
-            if ($result && isset($result['content'])) {
-                Log::info('Réponse IA reçue pour template', [
+            if (!$jsonData) {
+                Log::error('Impossible de parser le JSON pour le template', [
                     'service_name' => $serviceName,
-                    'provider' => $result['provider'],
-                    'content_length' => strlen($result['content']),
                     'content_preview' => substr($result['content'], 0, 500)
                 ]);
-                
-                // Parser le JSON de manière robuste (réutiliser la méthode de ServicesController)
-                $aiData = $this->parseAIResponseForTemplate($result['content']);
-                
-                if ($aiData && is_array($aiData)) {
-                    // Vérifier que le contenu n'est pas générique AVANT validation
-                    $description = $aiData['description'] ?? '';
-                    
-                    // Détecter les phrases génériques interdites
-                    $genericPhrases = [
-                        'Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de',
-                        'Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION]',
-                        'Chaque intervention de',
-                        'est réalisée selon les normes professionnelles les plus strictes',
-                        'Spécialistes en travaux de',
-                        'pour une qualité supérieure',
-                        'Nous maîtrisons les techniques modernes garantissant des résultats durables',
-                        'Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région',
-                        'une expertise reconnue dans [RÉGION]',
-                        'Pourquoi choisir ce service',
-                        // Prestations génériques interdites - VÉRIFICATION STRICTE
-                        'Diagnostic et évaluation',
-                        'Diagnostic et inspection de toiture', // Prestation générique
-                        'Intervention d\'urgence',
-                        'Maintenance préventive',
-                        'Réparation spécialisée',
-                        'Réparation partielle de toiture', // Prestation générique
-                        'Installation complète',
-                        'Rénovation totale',
-                        'Réfection complète de toiture', // Prestation générique
-                        'Conseil personnalisé',
-                        'Suivi post-intervention',
-                        'Formation utilisateur',
-                        'Garantie étendue',
-                        'Nettoyage et démoussage', // Peut être générique si pas spécifique au service
-                        // Phrases génériques financement interdites
-                        'Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de',
-                        'Nous vous accompagnons dans vos démarches',
-                        'pour bénéficier des aides financières disponibles'
-                    ];
-                    
-                    $hasGenericContent = false;
-                    $genericPhraseFound = '';
-                    foreach ($genericPhrases as $phrase) {
-                        if (stripos($description, $phrase) !== false) {
-                            $hasGenericContent = true;
-                            $genericPhraseFound = $phrase;
-                            break;
-                        }
-                    }
-                    
-                    // Vérifier si le contenu contient encore des placeholders "ÉCRIRE ICI"
-                    $hasPlaceholders = stripos($description, 'ÉCRIRE ICI') !== false || 
-                                      stripos($description, '[Paragraphe') !== false ||
-                                      stripos($description, '[MENTIONNER') !== false;
-                    
-                    // Vérifier si le contenu est trop court ou trop générique
-                    $plainText = strip_tags($description);
-                    $isTooShort = strlen($plainText) < 1500; // Minimum 1500 caractères de texte réel
-                    
-                    // Vérifier si le nom du service est présent de manière significative
-                    $serviceNameCount = substr_count(strtolower($plainText), strtolower($serviceName));
-                    $serviceNamePresent = $serviceNameCount >= 5; // Le service doit être mentionné au moins 5 fois
-                    
-                    // Vérifier si les prestations sont spécifiques au service (pas de toiture dans façade, etc.)
-                    $serviceLower = strtolower($serviceName);
-                    $hasWrongPrestations = false;
-                    if (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
-                        // Si c'est façade, vérifier qu'il n'y a pas de prestations de toiture
-                        $wrongKeywords = ['toiture', 'charpente', 'couverture', 'ardoise', 'tuile', 'velux', 'combles', 'zinguerie'];
-                        foreach ($wrongKeywords as $keyword) {
-                            // Vérifier si le mot-clé est présent mais pas dans un contexte de façade
-                            if (stripos($description, $keyword) !== false) {
-                                // Vérifier si le contexte parle vraiment de façade, pas de toiture
-                                $context = substr($description, max(0, stripos($description, $keyword) - 100), 200);
-                                if (stripos($context, 'façade') === false && stripos($context, 'ravalement') === false) {
-                                    $hasWrongPrestations = true;
-                                    Log::warning('Prestation incorrecte détectée', [
-                                        'service' => $serviceName,
-                                        'wrong_keyword' => $keyword,
-                                        'context' => $context
-                                    ]);
-                                    break;
-                                }
-                            }
-                        }
-                    } elseif (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
-                        // Si c'est toiture, vérifier qu'il n'y a pas de prestations de façade (mais c'est moins critique)
-                        // On peut garder cette validation plus légère
-                    }
-                    
-                    // Vérifier si le contenu de financement est présent (MaPrimeRénov, CEE, etc.)
-                    $financementInfo = $this->getFinancementInfoForService($serviceName);
-                    $hasFinancementContent = false;
-                    if (strpos($serviceLower, 'isolation') !== false || 
-                        strpos($serviceLower, 'thermique') !== false ||
-                        strpos($serviceLower, 'isoler') !== false) {
-                        // Pour l'isolation, vérifier la présence de MaPrimeRénov et CEE
-                        $hasFinancementContent = (stripos($description, 'MaPrimeRénov') !== false || stripos($description, 'ma prime renov') !== false) &&
-                                                  (stripos($description, 'CEE') !== false || stripos($description, 'Certificats d\'Économies') !== false);
-                    } else {
-                        // Pour les autres services, vérifier au moins MaPrimeRénov ou CEE
-                        $hasFinancementContent = (stripos($description, 'MaPrimeRénov') !== false || stripos($description, 'ma prime renov') !== false || 
-                                                  stripos($description, 'CEE') !== false || stripos($description, 'Certificats d\'Économies') !== false);
-                    }
-                    
-                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent || !$hasFinancementContent || $hasWrongPrestations) {
-                        Log::error('Contenu template REJETÉ - générique ou incomplet', [
-                            'service_name' => $serviceName,
-                            'has_generic_content' => $hasGenericContent,
-                            'generic_phrase' => $genericPhraseFound,
-                            'has_placeholders' => $hasPlaceholders,
-                            'is_too_short' => $isTooShort,
-                            'text_length' => strlen($plainText),
-                            'service_name_present' => $serviceNamePresent,
-                            'service_name_count' => $serviceNameCount,
-                            'has_financement_content' => $hasFinancementContent,
-                            'has_wrong_prestations' => $hasWrongPrestations,
-                            'description_preview' => substr($plainText, 0, 300)
-                        ]);
-                        
-                        // Essayer une deuxième génération avec un prompt encore plus strict
-                        throw new \Exception("Le contenu généré est trop générique. Tentative de re-génération nécessaire.");
-                    }
-                    
-                    Log::info('Contenu template validé - personnalisé et complet', [
-                        'service_name' => $serviceName,
-                        'text_length' => strlen($plainText),
-                        'service_name_count' => $serviceNameCount
-                    ]);
-                    
-                    // Valider et nettoyer les données
-                    return $this->validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription);
-                } else {
-                    Log::warning('Échec parsing JSON de la réponse IA pour template', [
-                        'service_name' => $serviceName,
-                        'content_preview' => substr($result['content'], 0, 300)
-                    ]);
-                }
-            } else {
-                Log::error('Aucune réponse de l\'IA pour template', [
-                    'service_name' => $serviceName,
-                    'result' => $result
-                ]);
+                throw new \Exception('Erreur: L\'IA n\'a pas retourné un JSON valide.');
             }
+            
+            // Remplir le template HTML avec les données JSON
+            $htmlContent = $this->fillTemplateForAds($template, $jsonData, $serviceName, $companyName, $companyInfo);
+            
+            if (!$htmlContent) {
+                throw new \Exception('Erreur: Impossible de remplir le template HTML.');
+            }
+            
+            // Retourner les données formatées pour le template
+            return [
+                'description' => $htmlContent,
+                'short_description' => $jsonData['description_courte'] ?? $shortDescription,
+                'long_description' => $jsonData['description_longue'] ?? '',
+                'icon' => 'fas fa-tools',
+                'meta_title' => $serviceName . ' - Expert professionnel | Devis gratuit',
+                'meta_description' => ($jsonData['description_courte'] ?? $shortDescription) . ' Devis gratuit, intervention rapide.',
+                'og_title' => $serviceName . ' - Expert professionnel',
+                'og_description' => $jsonData['description_courte'] ?? $shortDescription,
+                'twitter_title' => $serviceName . ' - Expert professionnel',
+                'twitter_description' => $jsonData['description_courte'] ?? $shortDescription,
+                'meta_keywords' => $serviceName . ', expert ' . $serviceName . ', devis gratuit, professionnel'
+            ];
         } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
-            Log::error('Erreur génération IA template: ' . $errorMessage, [
+            Log::error('Erreur génération template: ' . $e->getMessage(), [
                 'service_name' => $serviceName,
                 'error' => $e->getTraceAsString()
             ]);
-            
-            // Si l'erreur indique un contenu générique, essayer une deuxième tentative
-            if (stripos($errorMessage, 'générique') !== false && !isset($retryAttempt)) {
-                Log::info('Tentative de re-génération avec prompt renforcé', ['service_name' => $serviceName]);
-                
-                try {
-                    // Re-générer avec un prompt encore plus strict (utiliser basePrompt qui est dans le scope)
-                    $retryPrompt = $basePrompt . "\n\n🚨🚨🚨 DEUXIÈME TENTATIVE - CONTENU GÉNÉRIQUE DÉTECTÉ 🚨🚨🚨\n\nL'IA a généré du contenu générique lors de la première tentative. TU DOIS ABSOLUMENT:\n- NE PAS utiliser les phrases suivantes qui ont été détectées comme génériques:\n  * \"Nous vous accompagnons dans vos démarches pour bénéficier des aides financières\"\n  * \"Nous garantissons la satisfaction totale de nos clients\"\n  * \"Chaque intervention est réalisée selon les normes professionnelles les plus strictes\"\n  * \"Spécialistes en travaux de {$serviceName} pour une qualité supérieure\"\n  * \"Notre expertise locale nous permet de comprendre les spécificités de votre région\"\n\n- UTILISER À LA PLACE:\n  * Des phrases UNIQUES et SPÉCIFIQUES à {$serviceName}\n  * Des détails techniques précis (normes, certifications, matériaux)\n  * Des chiffres concrets (performances, économies, délais)\n  * Des processus spécifiques au domaine de {$serviceName}\n\n- REMPLACER TOUS les \"ÉCRIRE ICI\" par du VRAI texte technique et détaillé\n- Le contenu DOIT faire minimum 2000 caractères de texte réel (sans HTML)\n- Le nom du service \"{$serviceName}\" DOIT apparaître au moins 10 fois dans le texte\n\nCRÉE DU CONTENU VRAIMENT ORIGINAL ET TECHNIQUE, PAS DE COPIÉ-COLLÉ GÉNÉRIQUE!";
-                    
-                    $result = AiService::callAI($retryPrompt, $systemMessage, [
-                        'max_tokens' => 8000, // Encore plus pour forcer du contenu détaillé
-                        'temperature' => 1.0 // Maximum créativité
-                    ]);
-                    
-                    if ($result && isset($result['content'])) {
-                        $aiData = $this->parseAIResponseForTemplate($result['content']);
-                        
-                        if ($aiData && is_array($aiData)) {
-                            $description = $aiData['description'] ?? '';
-                            $plainText = strip_tags($description);
-                            
-                            // Validation encore plus stricte pour la deuxième tentative
-                            if (strlen($plainText) >= 2000 && substr_count(strtolower($plainText), strtolower($serviceName)) >= 10) {
-                                Log::info('Re-génération réussie avec contenu personnalisé', ['service_name' => $serviceName]);
-                                return $this->validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription);
-                            }
-                        }
-                    }
-                } catch (\Exception $retryException) {
-                    Log::error('Échec re-génération template', [
-                        'service_name' => $serviceName,
-                        'error' => $retryException->getMessage()
-                    ]);
-                }
+            throw $e;
+        }
+    }
+    
+    /**
+     * Parser le JSON de la réponse IA (simplifié)
+     */
+    private function parseJsonResponseForTemplate($content)
+    {
+        $content = trim($content);
+        $jsonStart = strpos($content, '{');
+        $jsonEnd = strrpos($content, '}');
+        
+        if ($jsonStart === false || $jsonEnd === false) {
+            Log::warning('JSON non trouvé dans la réponse IA pour template', ['content_preview' => substr($content, 0, 500)]);
+            return null;
+        }
+        
+        $jsonString = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+        $data = json_decode($jsonString, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::error('Erreur parsing JSON pour template', [
+                'error' => json_last_error_msg(),
+                'json_preview' => substr($jsonString, 0, 500)
+            ]);
+            return null;
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Remplir le template HTML avec les données JSON
+     */
+    private function fillTemplateForAds($template, $data, $serviceName, $companyName, $companyInfo)
+    {
+        $siteUrl = setting('site_url', config('app.url'));
+        if (!str_starts_with($siteUrl, 'http')) {
+            $siteUrl = 'https://' . $siteUrl;
+        }
+        $serviceUrl = $siteUrl . '/services/' . \Illuminate\Support\Str::slug($serviceName);
+        $formUrl = setting('contact_form_url', '/contact');
+        
+        // Générer la liste des prestations
+        $prestationsHtml = '';
+        if (isset($data['prestations']) && is_array($data['prestations'])) {
+            foreach ($data['prestations'] as $prestation) {
+                $titre = htmlspecialchars($prestation['titre'] ?? '', ENT_QUOTES, 'UTF-8');
+                $description = htmlspecialchars($prestation['description'] ?? '', ENT_QUOTES, 'UTF-8');
+                $prestationsHtml .= '<li class="flex items-start">' .
+                    '<i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>' .
+                    '<span><strong>' . $titre . '</strong> - ' . $description . '</span>' .
+                    '</li>';
             }
         }
         
-        // Si on arrive ici, c'est qu'aucune tentative n'a fonctionné
-        throw new \Exception("ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives. Vérifiez vos clés API ChatGPT ou Groq.");
+        // Générer la liste FAQ
+        $faqHtml = '';
+        if (isset($data['faq']) && is_array($data['faq'])) {
+            foreach ($data['faq'] as $faq) {
+                $question = htmlspecialchars($faq['question'] ?? '', ENT_QUOTES, 'UTF-8');
+                $reponse = htmlspecialchars($faq['reponse'] ?? '', ENT_QUOTES, 'UTF-8');
+                $faqHtml .= '<p><strong>' . $question . '</strong></p>' .
+                    '<p>' . $reponse . '</p>';
+            }
+        }
+        
+        // Générer la liste des infos pratiques
+        $infosPratiquesHtml = '';
+        if (isset($data['infos_pratiques']) && is_array($data['infos_pratiques'])) {
+            foreach ($data['infos_pratiques'] as $info) {
+                $infoEscaped = htmlspecialchars($info, ENT_QUOTES, 'UTF-8');
+                $infosPratiquesHtml .= '<li class="flex items-center">' .
+                    '<i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>' .
+                    '<span>' . $infoEscaped . '</span>' .
+                    '</li>';
+            }
+        }
+        
+        // Remplacer tous les placeholders dans le template
+        $html = str_replace('[description_courte]', htmlspecialchars($data['description_courte'] ?? '', ENT_QUOTES, 'UTF-8'), $template);
+        $html = str_replace('[description_longue]', htmlspecialchars($data['description_longue'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[titre_garantie]', htmlspecialchars($data['titre_garantie'] ?? 'Garantie de satisfaction', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[texte_garantie]', htmlspecialchars($data['texte_garantie'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[prestations_liste]', $prestationsHtml, $html);
+        $html = str_replace('[faq_liste]', $faqHtml, $html);
+        $html = str_replace('[service]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[entreprise]', htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[pourquoi_choisir]', htmlspecialchars($data['pourquoi_choisir'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[financement_aides]', htmlspecialchars($data['financement_aides'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
+        $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[FORM_URL]', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        
+        return $html;
     }
 
     /**
