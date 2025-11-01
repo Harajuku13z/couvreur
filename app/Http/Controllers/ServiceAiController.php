@@ -391,7 +391,8 @@ IMPORTANT:
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
         $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
         $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
-        // Remplacer les liens hardcodés vers le formulaire
+        $html = str_replace('[FORM_URL]', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        // Remplacer les liens hardcodés vers le formulaire (fallback pour anciens templates)
         $html = str_replace('/devis-gratuit', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
         $html = str_replace('href="/form', 'href="' . htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
         
