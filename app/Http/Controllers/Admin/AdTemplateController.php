@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdTemplate;
 use App\Models\City;
+use App\Models\Ad;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -1192,11 +1193,78 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 'ai_response_data' => $aiContent
             ]);
 
+            // Générer automatiquement une annonce pour une ville aléatoire
+            $randomCity = null;
+            $adCreated = false;
+            
+            try {
+                // Récupérer une ville au hasard
+                $randomCity = City::inRandomOrder()->first();
+                
+                if ($randomCity) {
+                    // Vérifier qu'il n'existe pas déjà une annonce pour cette combinaison
+                    $existingAd = Ad::where('template_id', $template->id)
+                        ->where('city_id', $randomCity->id)
+                        ->first();
+
+                    if (!$existingAd) {
+                        // Obtenir le contenu et les métadonnées personnalisées pour cette ville
+                        $contentForCity = $template->getContentForCity($randomCity);
+                        $metaForCity = $template->getMetaForCity($randomCity);
+
+                        // Créer l'annonce avec personnalisation complète
+                        Ad::create([
+                            'title' => $template->service_name . ' à ' . $randomCity->name,
+                            'keyword' => $template->service_name,
+                            'city_id' => $randomCity->id,
+                            'template_id' => $template->id,
+                            'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
+                            'status' => 'published',
+                            'published_at' => now(),
+                            'meta_title' => $metaForCity['meta_title'],
+                            'meta_description' => $metaForCity['meta_description'],
+                            'meta_keywords' => $metaForCity['meta_keywords'],
+                            'content_html' => $contentForCity,
+                            'content_json' => json_encode([
+                                'template_id' => $template->id,
+                                'city' => $randomCity->toArray(),
+                                'generated_at' => now()->toISOString(),
+                                'auto_generated' => true
+                            ])
+                        ]);
+
+                        // Incrémenter le compteur d'utilisation du template
+                        $template->incrementUsage();
+                        $adCreated = true;
+                        
+                        Log::info('Annonce auto-générée pour template mot-clé', [
+                            'template_id' => $template->id,
+                            'city' => $randomCity->name,
+                            'keyword' => $keyword
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Impossible de créer automatiquement une annonce pour le template', [
+                    'template_id' => $template->id,
+                    'error' => $e->getMessage()
+                ]);
+                // On continue même si l'annonce n'a pas pu être créée
+            }
+
+            // Message de succès avec information sur la ville
+            $message = 'Template créé avec succès pour le mot-clé: ' . $keyword;
+            if ($adCreated && $randomCity) {
+                $message .= '. Une annonce a été automatiquement générée pour ' . $randomCity->name . '.';
+            }
+
             // Retourner une réponse JSON pour les appels AJAX
             return response()->json([
                 'success' => true,
-                'message' => 'Template créé avec succès pour le mot-clé: ' . $keyword . '. Vous pouvez maintenant le personnaliser avant de générer les annonces.',
+                'message' => $message,
                 'template_id' => $template->id,
+                'ad_created' => $adCreated,
+                'city_name' => $randomCity ? $randomCity->name : null,
                 'redirect_url' => route('admin.ads.templates.edit', $template->id)
             ]);
 
@@ -1230,11 +1298,67 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                 ]);
 
+                // Générer aussi une annonce en fallback pour respecter la personnalisation
+                $randomCity = null;
+                $adCreated = false;
+                
+                try {
+                    $randomCity = City::inRandomOrder()->first();
+                    
+                    if ($randomCity) {
+                        $existingAd = Ad::where('template_id', $template->id)
+                            ->where('city_id', $randomCity->id)
+                            ->first();
+
+                        if (!$existingAd) {
+                            $contentForCity = $template->getContentForCity($randomCity);
+                            $metaForCity = $template->getMetaForCity($randomCity);
+
+                            Ad::create([
+                                'title' => $template->service_name . ' à ' . $randomCity->name,
+                                'keyword' => $template->service_name,
+                                'city_id' => $randomCity->id,
+                                'template_id' => $template->id,
+                                'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
+                                'status' => 'published',
+                                'published_at' => now(),
+                                'meta_title' => $metaForCity['meta_title'],
+                                'meta_description' => $metaForCity['meta_description'],
+                                'meta_keywords' => $metaForCity['meta_keywords'],
+                                'content_html' => $contentForCity,
+                                'content_json' => json_encode([
+                                    'template_id' => $template->id,
+                                    'city' => $randomCity->toArray(),
+                                    'generated_at' => now()->toISOString(),
+                                    'auto_generated' => true,
+                                    'fallback' => true
+                                ])
+                            ]);
+
+                            $template->incrementUsage();
+                            $adCreated = true;
+                        }
+                    }
+                } catch (\Exception $adError) {
+                    Log::warning('Impossible de créer automatiquement une annonce en fallback', [
+                        'template_id' => $template->id,
+                        'error' => $adError->getMessage()
+                    ]);
+                }
+
+                // Message avec information sur la ville
+                $message = 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.';
+                if ($adCreated && $randomCity) {
+                    $message .= ' Une annonce a été automatiquement générée pour ' . $randomCity->name . '.';
+                }
+
                 // Retourner une réponse JSON même avec fallback
                 return response()->json([
                     'success' => true,
-                    'message' => 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.',
+                    'message' => $message,
                     'template_id' => $template->id,
+                    'ad_created' => $adCreated,
+                    'city_name' => $randomCity ? $randomCity->name : null,
                     'redirect_url' => route('admin.ads.templates.edit', $template->id),
                     'warning' => true
                 ]);
