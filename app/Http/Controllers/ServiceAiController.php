@@ -352,7 +352,8 @@ RÈGLES STRICTES:
             // Calculer max_tokens dynamiquement pour respecter la limite TPM Groq (6000)
             $totalMessageLength = strlen($systemMessage) + strlen($userPrompt);
             $estimatedInputTokens = (int)($totalMessageLength / 4);
-            $maxTokens = min(4000, max(2000, 5500 - $estimatedInputTokens));
+            // Augmenter max_tokens pour éviter les troncatures (on a besoin de beaucoup de tokens pour 10 prestations + FAQ + descriptions)
+            $maxTokens = min(4500, max(3000, 5500 - $estimatedInputTokens));
             
             Log::info('Calcul tokens pour génération service', [
                 'estimated_input_tokens' => $estimatedInputTokens,
@@ -483,18 +484,41 @@ RÈGLES STRICTES:
             'last_chars' => substr($content, -50)
         ]);
         
+        // Vérifier si le JSON semble tronqué (ne se termine pas par })
+        $jsonStart = strpos($content, '{');
+        if ($jsonStart !== false) {
+            $potentialJson = substr($content, $jsonStart);
+            $openBraces = substr_count($potentialJson, '{');
+            $closeBraces = substr_count($potentialJson, '}');
+            
+            if ($openBraces > $closeBraces) {
+                Log::warning('JSON potentiellement tronqué (accolades non fermées)', [
+                    'open_braces' => $openBraces,
+                    'close_braces' => $closeBraces,
+                    'last_200_chars' => substr($content, -200)
+                ]);
+            }
+        }
+        
         // Essayer plusieurs patterns pour extraire le JSON
         $jsonPatterns = [
-            '/```json\s*(\{[\s\S]*?\})\s*```/s',
-            '/```\s*(\{[\s\S]*?\})\s*```/s',
-            '/\{[\s\S]*\"description_courte\"[\s\S]*\}/s',
-            '/\{[\s\S]*\}/s',
+            '/```json\s*(\{[\s\S]*?\})\s*```/s',  // JSON dans code block avec json
+            '/```\s*(\{[\s\S]*?\})\s*```/s',      // JSON dans code block sans json
+            '/\{[\s\S]*\"description_courte\"[\s\S]*\}/s',  // JSON contenant description_courte
+            '/\{[\s\S]*\}/s',                      // N'importe quel JSON
         ];
         
         foreach ($jsonPatterns as $pattern) {
             if (preg_match($pattern, $content, $matches)) {
                 $jsonString = $matches[1] ?? $matches[0];
                 $jsonString = trim($jsonString);
+                
+                Log::info('Pattern JSON trouvé', [
+                    'pattern_matched' => true,
+                    'json_length' => strlen($jsonString),
+                    'json_preview' => substr($jsonString, 0, 200),
+                    'json_end' => substr($jsonString, -100)
+                ]);
                 
                 $data = json_decode($jsonString, true);
                 
@@ -503,16 +527,54 @@ RÈGLES STRICTES:
                     return $data;
                 } else {
                     $jsonError = json_last_error();
+                    Log::warning('JSON invalide après pattern match', [
+                        'error' => json_last_error_msg(),
+                        'error_code' => $jsonError,
+                        'json_preview' => substr($jsonString, 0, 500),
+                        'json_end' => substr($jsonString, -200),
+                        'is_truncated' => $jsonError === JSON_ERROR_SYNTAX && !str_ends_with($jsonString, '}')
+                    ]);
+                    
+                    // Si le JSON est tronqué, essayer de le compléter
                     if ($jsonError === JSON_ERROR_SYNTAX && !str_ends_with($jsonString, '}')) {
+                        // Compter les accolades ouvertes/fermées
                         $openCount = substr_count($jsonString, '{');
                         $closeCount = substr_count($jsonString, '}');
                         $missingBraces = $openCount - $closeCount;
                         
+                        // Essayer de fermer les accolades manquantes
                         if ($missingBraces > 0) {
-                            $attemptedFix = $jsonString . str_repeat('}', $missingBraces);
+                            // Essayer de fermer proprement les tableaux et objets
+                            $attemptedFix = $jsonString;
+                            
+                            // Fermer les chaînes JSON non fermées
+                            $quotesOpen = substr_count($jsonString, '"') % 2;
+                            if ($quotesOpen % 2 == 1) {
+                                // Si une chaîne est ouverte, la fermer
+                                $lastQuote = strrpos($jsonString, '"');
+                                if ($lastQuote !== false && $lastQuote > strlen($jsonString) - 10) {
+                                    // La dernière quote est proche de la fin, probablement une chaîne non fermée
+                                    $attemptedFix = rtrim($attemptedFix, ',') . '"';
+                                }
+                            }
+                            
+                            // Fermer les tableaux non fermés
+                            $openBrackets = substr_count($attemptedFix, '[');
+                            $closeBrackets = substr_count($attemptedFix, ']');
+                            $missingBrackets = $openBrackets - $closeBrackets;
+                            if ($missingBrackets > 0) {
+                                $attemptedFix .= str_repeat(']', $missingBrackets);
+                            }
+                            
+                            // Fermer les objets non fermés
+                            $attemptedFix .= str_repeat('}', $missingBraces);
+                            
                             $fixedData = json_decode($attemptedFix, true);
                             if ($fixedData && is_array($fixedData)) {
-                                Log::info('JSON réparé en fermant les accolades manquantes', ['missing_braces' => $missingBraces]);
+                                Log::info('JSON réparé en fermant les accolades manquantes', [
+                                    'missing_braces' => $missingBraces,
+                                    'missing_brackets' => $missingBrackets
+                                ]);
                                 return $fixedData;
                             }
                         }
@@ -532,6 +594,20 @@ RÈGLES STRICTES:
             if ($data && is_array($data) && !empty($data)) {
                 Log::info('JSON parsé avec extraction manuelle');
                 return $data;
+            } else {
+                // Essayer de réparer si tronqué
+                $openCount = substr_count($jsonString, '{');
+                $closeCount = substr_count($jsonString, '}');
+                $missingBraces = $openCount - $closeCount;
+                
+                if ($missingBraces > 0) {
+                    $attemptedFix = $jsonString . str_repeat('}', $missingBraces);
+                    $fixedData = json_decode($attemptedFix, true);
+                    if ($fixedData && is_array($fixedData)) {
+                        Log::info('JSON réparé après extraction manuelle', ['missing_braces' => $missingBraces]);
+                        return $fixedData;
+                    }
+                }
             }
         }
         
@@ -541,6 +617,62 @@ RÈGLES STRICTES:
             Log::info('JSON parsé directement');
             return $data;
         }
+        
+        // Dernière tentative : trouver le JSON même s'il est tronqué et essayer de le réparer
+        if ($jsonStart !== false) {
+            $potentialJson = substr($content, $jsonStart);
+            
+            // Essayer de compléter le JSON tronqué
+            $openCount = substr_count($potentialJson, '{');
+            $closeCount = substr_count($potentialJson, '}');
+            $missingBraces = $openCount - $closeCount;
+            
+            $openBrackets = substr_count($potentialJson, '[');
+            $closeBrackets = substr_count($potentialJson, ']');
+            $missingBrackets = $openBrackets - $closeBrackets;
+            
+            // Vérifier si une chaîne JSON est ouverte
+            $lastChar = substr(trim($potentialJson), -1);
+            if ($lastChar !== '"' && $lastChar !== '}' && $lastChar !== ']') {
+                // Probablement une chaîne non fermée
+                $potentialJson = rtrim($potentialJson, ',') . '"';
+            }
+            
+            if ($missingBrackets > 0) {
+                $potentialJson .= str_repeat(']', $missingBrackets);
+            }
+            
+            if ($missingBraces > 0) {
+                $potentialJson .= str_repeat('}', $missingBraces);
+            }
+            
+            $repairedData = json_decode($potentialJson, true);
+            if ($repairedData && is_array($repairedData)) {
+                Log::info('JSON réparé avec succès (tronqué détecté)', [
+                    'missing_braces' => $missingBraces,
+                    'missing_brackets' => $missingBrackets
+                ]);
+                return $repairedData;
+            }
+        }
+        
+        // Détecter si le problème est un JSON tronqué
+        $isTruncated = false;
+        if ($jsonStart !== false) {
+            $potentialJson = substr($content, $jsonStart);
+            $openBraces = substr_count($potentialJson, '{');
+            $closeBraces = substr_count($potentialJson, '}');
+            $isTruncated = $openBraces > $closeBraces;
+        }
+        
+        Log::error('Impossible de parser le JSON pour service', [
+            'content_preview' => substr($content, 0, 1000),
+            'content_end' => substr($content, -500),
+            'json_error' => json_last_error_msg(),
+            'is_truncated' => $isTruncated,
+            'open_braces' => $openBraces ?? 0,
+            'close_braces' => $closeBraces ?? 0
+        ]);
         
         return null;
     }
