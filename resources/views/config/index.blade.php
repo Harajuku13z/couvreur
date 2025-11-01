@@ -387,8 +387,95 @@
                         </div>
                     </div>
                     
+                    <!-- Test des APIs avec génération de contenu -->
+                    <div class="border border-yellow-200 rounded-lg p-6 bg-yellow-50 mt-6">
+                        <h3 class="text-lg font-semibold mb-4">🧪 Test des APIs avec Génération de Contenu</h3>
+                        <p class="text-xs text-gray-600 mb-4">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Testez les APIs avec un vrai exemple de génération de contenu pour vérifier qu'elles fonctionnent correctement.
+                        </p>
+                        
+                        <div class="mb-4">
+                            <label for="test_prompt" class="block text-sm font-medium text-gray-700 mb-2">
+                                Exemple de prompt à tester
+                            </label>
+                            <textarea id="test_prompt" 
+                                      rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                      placeholder="Ex: Créez un contenu pour un service de 'Rénovation de façade'">Créez un contenu web complet pour un service de "Rénovation de façade". Le contenu doit inclure une description détaillée, 3 prestations spécifiques, et une section FAQ avec 2 questions.</textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <button type="button" 
+                                        id="test-chatgpt-generate-btn"
+                                        onclick="testChatGPTGenerate()" 
+                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-magic mr-2"></i>Tester ChatGPT avec Génération
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" 
+                                        id="test-groq-generate-btn"
+                                        onclick="testGroqGenerate()" 
+                                        class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <i class="fas fa-magic mr-2"></i>Tester Groq avec Génération
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Résultats des tests -->
+                        <div id="test-results" class="hidden mt-4">
+                            <h4 class="text-md font-semibold mb-2">Résultats du test :</h4>
+                            <div id="test-results-content" class="bg-white border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                <!-- Les résultats seront affichés ici -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Configuration par défaut -->
+                    <div class="border border-green-200 rounded-lg p-6 bg-green-50 mt-6">
+                        <h3 class="text-lg font-semibold mb-4">⚙️ Configuration par Défaut</h3>
+                        <p class="text-xs text-gray-600 mb-4">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Choisissez quelle API utiliser par défaut si les deux sont disponibles.
+                        </p>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                API par défaut
+                            </label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" 
+                                           name="default_ai_provider" 
+                                           value="chatgpt"
+                                           {{ setting('default_ai_provider', 'chatgpt') == 'chatgpt' ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm font-medium text-gray-700">
+                                        ChatGPT (recommandé)
+                                    </span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" 
+                                           name="default_ai_provider" 
+                                           value="groq"
+                                           {{ setting('default_ai_provider', 'chatgpt') == 'groq' ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2 text-sm font-medium text-gray-700">
+                                        Groq (plus rapide)
+                                    </span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Si l'API par défaut n'est pas disponible, l'autre sera utilisée automatiquement.
+                            </p>
+                        </div>
+                    </div>
+                    
                     <!-- Save Button -->
-                    <div class="flex justify-end">
+                    <div class="flex justify-end mt-6">
                         <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <i class="fas fa-save mr-2"></i>Sauvegarder la Configuration IA
                         </button>

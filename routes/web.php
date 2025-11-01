@@ -335,6 +335,8 @@ Route::middleware(['check.setup'])->group(function () {
     Route::post('/config/update/ai', [ConfigController::class, 'updateAI'])->name('config.update.ai');
     Route::post('/config/test-chatgpt', [ConfigController::class, 'testChatGPT'])->name('config.test.chatgpt');
     Route::post('/config/test-groq', [ConfigController::class, 'testGroq'])->name('config.test.groq');
+    Route::post('/config/test-chatgpt-generate', [ConfigController::class, 'testChatGPTGenerate'])->name('config.test.chatgpt.generate');
+    Route::post('/config/test-groq-generate', [ConfigController::class, 'testGroqGenerate'])->name('config.test.groq.generate');
     
     // ===== PAGES LÉGALES =====
     Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');

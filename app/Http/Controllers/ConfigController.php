@@ -1023,6 +1023,7 @@ class ConfigController extends Controller
             'chatgpt_model' => 'required|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4o',
             'groq_api_key' => 'nullable|string',
             'groq_model' => 'nullable|string|in:llama-3.1-8b-instant,llama-3.1-70b-versatile,mixtral-8x7b-32768',
+            'default_ai_provider' => 'nullable|string|in:chatgpt,groq',
             'ai_temperature' => 'nullable|numeric|min:0|max:1',
             'ai_max_tokens' => 'nullable|integer|min:100|max:4000',
             'ai_prompt_template' => 'nullable|string|max:2000',
@@ -1034,6 +1035,7 @@ class ConfigController extends Controller
         Setting::set('chatgpt_model', $validated['chatgpt_model'], 'string', 'ai');
         Setting::set('groq_api_key', $validated['groq_api_key'] ?? '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', 'string', 'ai');
         Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
+        Setting::set('default_ai_provider', $validated['default_ai_provider'] ?? 'chatgpt', 'string', 'ai');
         
         if (isset($validated['ai_temperature'])) {
             Setting::set('ai_temperature', $validated['ai_temperature'], 'float', 'ai');
@@ -1151,13 +1153,150 @@ class ConfigController extends Controller
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur API: ' . ($response->json()['error']['message'] ?? 'Clé API invalide')
+                    'message' => 'Erreur API: ' . ($response->json()['error']['message'] ?? 'Clé API invalide'),
+                    'status' => $response->status(),
+                    'body' => $response->body()
                 ]);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de connexion: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Test ChatGPT avec génération de contenu complet
+     */
+    public function testChatGPTGenerate(Request $request)
+    {
+        $apiKey = $request->input('api_key') ?: setting('chatgpt_api_key');
+        $prompt = $request->input('prompt', 'Créez un contenu web complet pour un service de "Rénovation de façade". Le contenu doit inclure une description détaillée, 3 prestations spécifiques, et une section FAQ avec 2 questions.');
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clé API ChatGPT manquante. Veuillez la configurer d\'abord.'
+            ]);
+        }
+
+        try {
+            $model = setting('chatgpt_model', 'gpt-4o');
+            
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => $model,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'Tu es un expert en rédaction web pour les services de rénovation. Crée du contenu professionnel, engageant et optimisé SEO.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ],
+                'max_tokens' => 2000,
+                'temperature' => 0.8
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '';
+                $usage = $data['usage'] ?? null;
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Génération ChatGPT réussie !',
+                    'content' => $content,
+                    'usage' => $usage,
+                    'model' => $model,
+                    'prompt' => $prompt
+                ]);
+            } else {
+                $errorBody = $response->json();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur API: ' . ($errorBody['error']['message'] ?? 'Clé API invalide'),
+                    'status' => $response->status(),
+                    'error_details' => $errorBody['error'] ?? null
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion: ' . $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+            ]);
+        }
+    }
+
+    /**
+     * Test Groq avec génération de contenu complet
+     */
+    public function testGroqGenerate(Request $request)
+    {
+        $apiKey = $request->input('api_key') ?: setting('groq_api_key', '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');
+        $prompt = $request->input('prompt', 'Créez un contenu web complet pour un service de "Rénovation de façade". Le contenu doit inclure une description détaillée, 3 prestations spécifiques, et une section FAQ avec 2 questions.');
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clé API Groq manquante. Veuillez la configurer d\'abord.'
+            ]);
+        }
+
+        try {
+            $model = setting('groq_model', 'llama-3.1-8b-instant');
+            
+            $response = Http::withToken($apiKey)
+                ->timeout(60)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'Tu es un expert en rédaction web pour les services de rénovation. Crée du contenu professionnel, engageant et optimisé SEO.'
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
+                        ]
+                    ],
+                    'max_tokens' => 2000,
+                    'temperature' => 0.8
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '';
+                $usage = $data['usage'] ?? null;
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Génération Groq réussie !',
+                    'content' => $content,
+                    'usage' => $usage,
+                    'model' => $model,
+                    'prompt' => $prompt
+                ]);
+            } else {
+                $errorBody = $response->json();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur API: ' . ($errorBody['error']['message'] ?? 'Clé API invalide'),
+                    'status' => $response->status(),
+                    'error_details' => $errorBody['error'] ?? null
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion: ' . $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
             ]);
         }
     }
