@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Services\AiService;
 
 class ArticleAiController extends Controller
 {
@@ -75,12 +76,6 @@ class ArticleAiController extends Controller
         $customPrompt = trim($data['custom_prompt'] ?? '');
         $model = $data['model'] ?? setting('chatgpt_model', 'gpt-4o');
 
-        $apiKey = setting('chatgpt_api_key');
-        
-        if (!$apiKey) {
-            return back()->with('error', 'Clé API OpenAI manquante. Veuillez la configurer dans /config');
-        }
-
         $created = 0;
         $errors = [];
         $featuredImagePath = null;
@@ -103,7 +98,7 @@ class ArticleAiController extends Controller
             }
 
             try {
-                $content = $this->generateArticleContent($title, $category, $language, $customPrompt, $model, $apiKey);
+                $content = $this->generateArticleContent($title, $category, $language, $customPrompt, $model);
                 
                 if (!$content) {
                     $errors[] = "Échec de génération pour '$title'";
@@ -145,7 +140,7 @@ class ArticleAiController extends Controller
     /**
      * Générer le contenu d'un article avec IA
      */
-    private function generateArticleContent($title, $category, $language, $customPrompt, $model, $apiKey)
+    private function generateArticleContent($title, $category, $language, $customPrompt, $model)
     {
         // Récupérer les informations de l'entreprise
         $companyInfo = $this->getCompanyInfo();
@@ -204,28 +199,17 @@ class ArticleAiController extends Controller
                 "- Éviter les listes à puces, privilégier le contenu narratif";
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
+            $result = AiService::callAI($user, $system, [
                 'model' => $model,
-                'messages' => [
-                    ['role' => 'system', 'content' => $system],
-                    ['role' => 'user', 'content' => $user],
-                ],
                 'temperature' => 0.7,
                 'max_tokens' => 4000,
             ]);
-
-            if ($response->ok()) {
-                $data = $response->json();
-                return $data['choices'][0]['message']['content'] ?? null;
+            
+            if ($result && isset($result['content'])) {
+                return $result['content'];
             }
-
-            Log::error('Erreur API OpenAI', [
-                'status' => $response->status(),
-                'body' => $response->body()
-            ]);
+            
+            return null;
 
         } catch (\Throwable $e) {
             Log::error('Erreur génération contenu article', [

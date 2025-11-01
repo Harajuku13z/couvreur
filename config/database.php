@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => 'mysql', // Force toujours MySQL
 
     /*
     |--------------------------------------------------------------------------
@@ -58,9 +58,21 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+            'options' => extension_loaded('pdo_mysql') ? array_merge(
+                array_filter([
+                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                ]),
+                [
+                    // Reconnexion automatique en cas de perte de connexion
+                    PDO::ATTR_TIMEOUT => 10,
+                    // Gestion d'erreurs
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    // Éviter les requêtes préparées multiples
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                    // Keep-alive pour maintenir la connexion
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'",
+                ]
+            ) : [],
         ],
 
         'mariadb' => [

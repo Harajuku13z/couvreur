@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use App\Services\AiService;
 
 class BulkAdsController extends Controller
 {
@@ -195,20 +196,9 @@ class BulkAdsController extends Controller
     private function generateAdContentWithAI($service, $city, $aiPrompt = null)
     {
         try {
-            // Vérifier la clé API
-            $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
-            if (!$apiKey) {
-                Log::error('Clé API OpenAI manquante', [
-                    'service' => $service['name'],
-                    'city' => $city->name
-                ]);
-                return $this->generateFallbackContent($service['name'], $city);
-            }
-            
             Log::info('Début génération IA pour annonce', [
                 'service' => $service['name'],
-                'city' => $city->name,
-                'api_key_length' => strlen($apiKey)
+                'city' => $city->name
             ]);
             
             // Récupérer l'URL du site et du formulaire
@@ -229,25 +219,14 @@ class BulkAdsController extends Controller
                 'prompt_length' => strlen($prompt)
             ]);
             
-            // Appel à l'API OpenAI
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4',
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
+            // Appel à l'API IA avec fallback
+            $result = AiService::callAI($prompt, null, [
                 'max_tokens' => 4000,
                 'temperature' => 0.7
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $aiContent = $data['choices'][0]['message']['content'] ?? '';
+            if ($result && isset($result['content'])) {
+                $aiContent = $result['content'];
                 
                 Log::info('Réponse IA reçue', [
                     'service' => $service['name'],

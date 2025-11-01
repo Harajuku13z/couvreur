@@ -330,6 +330,7 @@ Route::middleware(['check.setup'])->group(function () {
     // ===== CONFIGURATION IA =====
     Route::post('/config/update/ai', [ConfigController::class, 'updateAI'])->name('config.update.ai');
     Route::post('/config/test-chatgpt', [ConfigController::class, 'testChatGPT'])->name('config.test.chatgpt');
+    Route::post('/config/test-groq', [ConfigController::class, 'testGroq'])->name('config.test.groq');
     
     // ===== PAGES LÉGALES =====
     Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('legal.mentions');

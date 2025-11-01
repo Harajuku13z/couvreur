@@ -7,6 +7,7 @@ use App\Models\Setting;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\AiService;
 
 class ServicesController extends Controller
 {
@@ -358,20 +359,6 @@ class ServicesController extends Controller
      */
     private function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo, $customPrompt = null)
     {
-        // Récupérer la clé API depuis la base de données
-        $apiKey = setting('chatgpt_api_key');
-        
-        // Si pas trouvée, essayer directement en base
-        if (!$apiKey) {
-            $setting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
-            $apiKey = $setting ? $setting->value : null;
-        }
-        
-        if (!$apiKey) {
-            Log::error('Clé API manquante pour génération service');
-            return $this->generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo);
-        }
-        
         try {
             // Prompt amélioré avec 10 champs selon vos spécifications
             $prompt = "Tu es un expert en rédaction web pour les services de rénovation.
@@ -582,47 +569,28 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                 'prompt_length' => strlen($prompt)
             ]);
             
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
+            // Utiliser le service AI avec fallback automatique
+            $systemMessage = 'Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO.';
+            $result = AiService::callAI($prompt, $systemMessage, [
                 'max_tokens' => 4000,
                 'temperature' => 0.7
             ]);
             
-            if ($response->successful()) {
-                $data = $response->json();
-                $content = $data['choices'][0]['message']['content'] ?? '';
-                
+            if ($result && isset($result['content'])) {
                 Log::info('Réponse IA reçue', [
                     'service_name' => $serviceName,
-                    'content_length' => strlen($content),
-                    'content_preview' => substr($content, 0, 200)
+                    'provider' => $result['provider'],
+                    'content_length' => strlen($result['content']),
+                    'content_preview' => substr($result['content'], 0, 200)
                 ]);
                 
                 // Parser le JSON de manière plus robuste
-                $aiData = $this->parseAIResponse($content);
+                $aiData = $this->parseAIResponse($result['content']);
                 
                 if ($aiData && is_array($aiData)) {
                     // Valider et nettoyer les données
                     return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                 }
-            } else {
-                Log::error('Erreur API OpenAI', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
             }
         } catch (\Exception $e) {
             Log::error('Erreur génération IA: ' . $e->getMessage(), [

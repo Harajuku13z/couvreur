@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\AiService;
 
 class ArticleController extends Controller
 {
@@ -114,15 +115,6 @@ class ArticleController extends Controller
                 'count' => 'required|integer|min:1|max:10'
             ]);
 
-            $apiKey = setting('chatgpt_api_key');
-            
-            if (!$apiKey) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Clé API OpenAI non configurée'
-                ], 400);
-            }
-
             $prompt = "Génère {$validated['count']} titres d'articles SEO optimisés pour le mot-clé : {$validated['keyword']}
 
             {$validated['instruction']}
@@ -137,20 +129,13 @@ class ArticleController extends Controller
 
             GÉNÈRE LES TITRES :";
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
+            $result = AiService::callAI($prompt, null, [
                 'max_tokens' => 2000,
-                'temperature' => 0.8,
+                'temperature' => 0.8
             ]);
 
-            if ($response->successful()) {
-                $content = $response->json()['choices'][0]['message']['content'] ?? '';
+            if ($result && isset($result['content'])) {
+                $content = $result['content'];
                 
                 // Parser les titres
                 $titles = array_filter(array_map('trim', explode("\n", $content)));
@@ -227,16 +212,6 @@ class ArticleController extends Controller
                 'instruction' => 'required|string|max:10000'
             ]);
 
-            // Récupérer la clé API depuis la base de données
-            $apiKey = setting('chatgpt_api_key');
-            
-            if (!$apiKey) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Clé API OpenAI non configurée. Veuillez la configurer dans /config'
-                ], 400);
-            }
-
             $prompt = "{$validated['instruction']}
 
 Titre de l'article: {$validated['title']}
@@ -244,20 +219,13 @@ Mot-clé principal: {$validated['keyword']}
 
 Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
+            $result = AiService::callAI($prompt, null, [
                 'max_tokens' => 6000,
-                'temperature' => 0.8,
+                'temperature' => 0.8
             ]);
 
-            if ($response->successful()) {
-                $content = $response->json()['choices'][0]['message']['content'] ?? '';
+            if ($result && isset($result['content'])) {
+                $content = $result['content'];
                 
                 if (empty(trim($content))) {
                     return response()->json([
@@ -537,27 +505,17 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                 'prompt_length' => strlen($prompt)
             ]);
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
+            $result = AiService::callAI($prompt, null, [
                 'max_tokens' => 4000,
                 'temperature' => 0.8
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $content = $data['choices'][0]['message']['content'] ?? '';
+            if ($result && isset($result['content'])) {
+                $content = $result['content'];
                 
                 Log::info('Réponse IA complète reçue', [
                     'title' => $title,
+                    'provider' => $result['provider'],
                     'content_length' => strlen($content),
                     'content_preview' => substr($content, 0, 300)
                 ]);
@@ -961,13 +919,6 @@ Génère maintenant l'article HTML complet sur : {$title}";
     private function generateMetaKeywords($title)
     {
         try {
-            $apiKey = setting('chatgpt_api_key');
-            
-            if (!$apiKey) {
-                // Fallback : mots-clés basiques
-                return $this->generateBasicKeywords($title);
-            }
-
             $prompt = "Génère 10 mots-clés SEO pertinents pour l'article: {$title}
 
 RÈGLES:
@@ -979,20 +930,13 @@ RÈGLES:
 
 GÉNÈRE LES MOTS-CLÉS:";
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
+            $result = AiService::callAI($prompt, null, [
                 'max_tokens' => 500,
-                'temperature' => 0.8,
+                'temperature' => 0.8
             ]);
 
-            if ($response->successful()) {
-                $content = $response->json()['choices'][0]['message']['content'] ?? '';
+            if ($result && isset($result['content'])) {
+                $content = $result['content'];
                 
                 if (!empty(trim($content))) {
                     // Nettoyer la réponse

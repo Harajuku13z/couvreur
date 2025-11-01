@@ -282,6 +282,20 @@
                         <h3 class="text-lg font-semibold mb-4">🔑 Configuration API ChatGPT</h3>
                         
                         <div class="mb-4">
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" 
+                                       name="chatgpt_enabled" 
+                                       id="chatgpt_enabled"
+                                       value="1"
+                                       {{ setting('chatgpt_enabled', true) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm font-medium text-gray-700">
+                                    Activer ChatGPT (si désactivé, Groq sera utilisé directement)
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="mb-4">
                             <label for="chatgpt_api_key" class="block text-sm font-medium text-gray-700 mb-2">
                                 Clé API OpenAI/ChatGPT
                             </label>
@@ -319,6 +333,56 @@
                             <p class="text-xs text-gray-500 mt-1">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 GPT-3.5 Turbo est plus économique, GPT-4 est plus créatif
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Groq IA Configuration (Fallback) -->
+                    <div class="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                        <h3 class="text-lg font-semibold mb-4">🔄 Configuration API Groq (Alternative)</h3>
+                        <p class="text-xs text-gray-600 mb-4">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Groq sera utilisé automatiquement si ChatGPT ne fonctionne pas
+                        </p>
+                        
+                        <div class="mb-4">
+                            <label for="groq_api_key" class="block text-sm font-medium text-gray-700 mb-2">
+                                Clé API Groq
+                            </label>
+                            <div class="flex">
+                                <input type="password" 
+                                       id="groq_api_key" 
+                                       name="groq_api_key" 
+                                       value="{{ setting('groq_api_key', '') }}"
+                                       class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                       placeholder="gsk-...">
+                                <button type="button" 
+                                        id="test-groq-btn"
+                                        onclick="testGroq()" 
+                                        class="bg-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <i class="fas fa-check mr-1"></i>Tester
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Obtenez votre clé API sur <a href="https://console.groq.com/" target="_blank" class="text-purple-600 hover:underline">console.groq.com</a>
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="groq_model" class="block text-sm font-medium text-gray-700 mb-2">
+                                Modèle Groq
+                            </label>
+                            <select name="groq_model" 
+                                    id="groq_model"
+                                    class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="llama-3.1-8b-instant" {{ setting('groq_model', 'llama-3.1-8b-instant') == 'llama-3.1-8b-instant' ? 'selected' : '' }}>llama-3.1-8b-instant (Recommandé)</option>
+                                <option value="llama-3.1-70b-versatile" {{ setting('groq_model', 'llama-3.1-8b-instant') == 'llama-3.1-70b-versatile' ? 'selected' : '' }}>llama-3.1-70b-versatile (Plus puissant)</option>
+                                <option value="mixtral-8x7b-32768" {{ setting('groq_model', 'llama-3.1-8b-instant') == 'mixtral-8x7b-32768' ? 'selected' : '' }}>mixtral-8x7b-32768 (Très rapide)</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Groq sera utilisé automatiquement en cas d'échec de ChatGPT
                             </p>
                         </div>
                     </div>
@@ -754,6 +818,44 @@ async function testChatGPT() {
         
         if (result.success) {
             alert('✅ Connexion à ChatGPT réussie ! Votre clé API est valide.');
+        } else {
+            alert('❌ Erreur de connexion : ' + (result.message || 'Clé API invalide'));
+        }
+    } catch (error) {
+        alert('❌ Erreur de connexion : ' + error.message);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Test de l'API Groq
+async function testGroq() {
+    const apiKey = document.getElementById('groq_api_key').value;
+    if (!apiKey) {
+        alert('Veuillez d\'abord saisir votre clé API Groq');
+        return;
+    }
+    
+    const button = document.getElementById('test-groq-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+    button.disabled = true;
+    
+    try {
+        const response = await fetch('/config/test-groq', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ api_key: apiKey })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Connexion à Groq réussie ! Votre clé API est valide.');
         } else {
             alert('❌ Erreur de connexion : ' + (result.message || 'Clé API invalide'));
         }

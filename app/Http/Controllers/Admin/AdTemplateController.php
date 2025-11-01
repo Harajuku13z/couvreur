@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\AiService;
 
 class AdTemplateController extends Controller
 {
@@ -245,38 +246,20 @@ class AdTemplateController extends Controller
      */
     private function generateTemplateContent($service, $aiPrompt = null)
     {
-        $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
-        
-        if (!$apiKey) {
-            throw new \Exception('Clé API OpenAI manquante');
-        }
-
         // Construire le prompt pour le template (sans ville spécifique)
         $prompt = $this->buildTemplatePrompt($service['name'], $aiPrompt);
         
-        $response = \Illuminate\Support\Facades\Http::timeout(120) // 2 minutes timeout
-            ->retry(3, 2000) // 3 tentatives avec 2 secondes d'attente
-            ->withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4',
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
-                'max_tokens' => 3000, // Réduit pour éviter les timeouts
-                'temperature' => 0.7
-            ]);
+        $result = AiService::callAI($prompt, null, [
+            'max_tokens' => 3000,
+            'temperature' => 0.7,
+            'timeout' => 120
+        ]);
 
-        if (!$response->successful()) {
-            throw new \Exception('Erreur API OpenAI: ' . $response->status());
+        if (!$result || !isset($result['content'])) {
+            throw new \Exception('Erreur API IA: Impossible de générer le contenu');
         }
 
-        $data = $response->json();
-        $aiContent = $data['choices'][0]['message']['content'] ?? '';
+        $aiContent = $result['content'];
         
         // Valider et nettoyer le contenu
         return $this->validateAndCleanAIData($aiContent, $service['name']);

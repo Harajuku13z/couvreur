@@ -1018,19 +1018,32 @@ class ConfigController extends Controller
     public function updateAI(Request $request)
     {
         $validated = $request->validate([
+            'chatgpt_enabled' => 'nullable|boolean',
             'chatgpt_api_key' => 'nullable|string',
-            'chatgpt_model' => 'required|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo',
-            'ai_temperature' => 'required|numeric|min:0|max:1',
-            'ai_max_tokens' => 'required|integer|min:100|max:4000',
+            'chatgpt_model' => 'required|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4o',
+            'groq_api_key' => 'nullable|string',
+            'groq_model' => 'nullable|string|in:llama-3.1-8b-instant,llama-3.1-70b-versatile,mixtral-8x7b-32768',
+            'ai_temperature' => 'nullable|numeric|min:0|max:1',
+            'ai_max_tokens' => 'nullable|integer|min:100|max:4000',
             'ai_prompt_template' => 'nullable|string|max:2000',
         ]);
 
         // Sauvegarder les paramètres IA
-        Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'], 'string', 'ai');
+        Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
+        Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'] ?? null, 'string', 'ai');
         Setting::set('chatgpt_model', $validated['chatgpt_model'], 'string', 'ai');
-        Setting::set('ai_temperature', $validated['ai_temperature'], 'float', 'ai');
-        Setting::set('ai_max_tokens', $validated['ai_max_tokens'], 'integer', 'ai');
-        Setting::set('ai_prompt_template', $validated['ai_prompt_template'], 'string', 'ai');
+        Setting::set('groq_api_key', $validated['groq_api_key'] ?? env('GROQ_API_KEY'), 'string', 'ai');
+        Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
+        
+        if (isset($validated['ai_temperature'])) {
+            Setting::set('ai_temperature', $validated['ai_temperature'], 'float', 'ai');
+        }
+        if (isset($validated['ai_max_tokens'])) {
+            Setting::set('ai_max_tokens', $validated['ai_max_tokens'], 'integer', 'ai');
+        }
+        if (isset($validated['ai_prompt_template'])) {
+            Setting::set('ai_prompt_template', $validated['ai_prompt_template'], 'string', 'ai');
+        }
         
         Setting::clearCache();
 
@@ -1078,6 +1091,61 @@ class ConfigController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Connexion ChatGPT réussie !',
+                    'usage' => $data['usage'] ?? null
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur API: ' . ($response->json()['error']['message'] ?? 'Clé API invalide')
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Test Groq API connection
+     */
+    public function testGroq(Request $request)
+    {
+        $apiKey = $request->input('api_key');
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clé API manquante'
+            ]);
+        }
+
+        try {
+            // Test simple avec l'API Groq
+            $response = Http::withToken($apiKey)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model' => 'llama-3.1-8b-instant',
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => 'Test de connexion - répondez simplement "OK"'
+                        ]
+                    ],
+                    'max_tokens' => 10,
+                    'temperature' => 0.1
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                // Sauvegarder la clé API si le test réussit
+                Setting::set('groq_api_key', $apiKey, 'string', 'ai');
+                Setting::clearCache();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connexion Groq réussie !',
                     'usage' => $data['usage'] ?? null
                 ]);
             } else {
