@@ -1495,102 +1495,103 @@ EXEMPLES CONCRETS POUR {$keyword}:
                         'slug' => Str::slug($keyword),
                         'short_description' => "Service professionnel de {$keyword}"
                     ]);
-                
-                $template = AdTemplate::create([
-                    'name' => $keyword,
-                    'service_name' => $keyword,
-                    'service_slug' => Str::slug($keyword),
-                    'content_html' => $fallbackContent['description'],
-                    'short_description' => $fallbackContent['short_description'],
-                    'long_description' => $fallbackContent['long_description'],
-                    'icon' => $fallbackContent['icon'],
-                    'featured_image' => $featuredImagePath, // Conserver l'image même en fallback
-                    'meta_title' => $fallbackContent['meta_title'],
-                    'meta_description' => $fallbackContent['meta_description'],
-                    'meta_keywords' => $fallbackContent['meta_keywords'],
-                    'og_title' => $fallbackContent['og_title'],
-                    'og_description' => $fallbackContent['og_description'],
-                    'twitter_title' => $fallbackContent['twitter_title'],
-                    'twitter_description' => $fallbackContent['twitter_description'],
-                    'ai_prompt_used' => $request->input('ai_prompt'),
-                    'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
-                ]);
-
-                // Générer aussi une annonce en fallback pour respecter la personnalisation
-                $randomCity = null;
-                $adCreated = false;
-                
-                try {
-                    $randomCity = City::inRandomOrder()->first();
                     
-                    if ($randomCity) {
-                        $existingAd = Ad::where('template_id', $template->id)
-                            ->where('city_id', $randomCity->id)
-                            ->first();
-
-                        if (!$existingAd) {
-                            $contentForCity = $template->getContentForCity($randomCity);
-                            $metaForCity = $template->getMetaForCity($randomCity);
-
-                            Ad::create([
-                                'title' => $template->service_name . ' à ' . $randomCity->name,
-                                'keyword' => $template->service_name,
-                                'city_id' => $randomCity->id,
-                                'template_id' => $template->id,
-                                'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
-                                'status' => 'published',
-                                'published_at' => now(),
-                                'meta_title' => $metaForCity['meta_title'],
-                                'meta_description' => $metaForCity['meta_description'],
-                                'meta_keywords' => $metaForCity['meta_keywords'],
-                                'content_html' => $contentForCity,
-                                'content_json' => json_encode([
-                                    'template_id' => $template->id,
-                                    'city' => $randomCity->toArray(),
-                                    'generated_at' => now()->toISOString(),
-                                    'auto_generated' => true,
-                                    'fallback' => true
-                                ])
-                            ]);
-
-                            $template->incrementUsage();
-                            $adCreated = true;
-                        }
-                    }
-                } catch (\Exception $adError) {
-                    Log::warning('Impossible de créer automatiquement une annonce en fallback', [
-                        'template_id' => $template->id,
-                        'error' => $adError->getMessage()
+                    $template = AdTemplate::create([
+                        'name' => $keyword,
+                        'service_name' => $keyword,
+                        'service_slug' => Str::slug($keyword),
+                        'content_html' => $fallbackContent['description'],
+                        'short_description' => $fallbackContent['short_description'],
+                        'long_description' => $fallbackContent['long_description'],
+                        'icon' => $fallbackContent['icon'],
+                        'featured_image' => $featuredImagePath, // Conserver l'image même en fallback
+                        'meta_title' => $fallbackContent['meta_title'],
+                        'meta_description' => $fallbackContent['meta_description'],
+                        'meta_keywords' => $fallbackContent['meta_keywords'],
+                        'og_title' => $fallbackContent['og_title'],
+                        'og_description' => $fallbackContent['og_description'],
+                        'twitter_title' => $fallbackContent['twitter_title'],
+                        'twitter_description' => $fallbackContent['twitter_description'],
+                        'ai_prompt_used' => $request->input('ai_prompt'),
+                        'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                     ]);
+
+                    // Générer aussi une annonce en fallback pour respecter la personnalisation
+                    $randomCity = null;
+                    $adCreated = false;
+                    
+                    try {
+                        $randomCity = City::inRandomOrder()->first();
+                        
+                        if ($randomCity) {
+                            $existingAd = Ad::where('template_id', $template->id)
+                                ->where('city_id', $randomCity->id)
+                                ->first();
+
+                            if (!$existingAd) {
+                                $contentForCity = $template->getContentForCity($randomCity);
+                                $metaForCity = $template->getMetaForCity($randomCity);
+
+                                Ad::create([
+                                    'title' => $template->service_name . ' à ' . $randomCity->name,
+                                    'keyword' => $template->service_name,
+                                    'city_id' => $randomCity->id,
+                                    'template_id' => $template->id,
+                                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
+                                    'status' => 'published',
+                                    'published_at' => now(),
+                                    'meta_title' => $metaForCity['meta_title'],
+                                    'meta_description' => $metaForCity['meta_description'],
+                                    'meta_keywords' => $metaForCity['meta_keywords'],
+                                    'content_html' => $contentForCity,
+                                    'content_json' => json_encode([
+                                        'template_id' => $template->id,
+                                        'city' => $randomCity->toArray(),
+                                        'generated_at' => now()->toISOString(),
+                                        'auto_generated' => true,
+                                        'fallback' => true
+                                    ])
+                                ]);
+
+                                $template->incrementUsage();
+                                $adCreated = true;
+                            }
+                        }
+                    } catch (\Exception $adError) {
+                        Log::warning('Impossible de créer automatiquement une annonce en fallback', [
+                            'template_id' => $template->id,
+                            'error' => $adError->getMessage()
+                        ]);
+                    }
+
+                    // Message avec information sur la ville
+                    $message = 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.';
+                    if ($adCreated && $randomCity) {
+                        $message .= ' Une annonce a été automatiquement générée pour ' . $randomCity->name . '.';
+                    }
+
+                    // Retourner une réponse JSON même avec fallback
+                    return response()->json([
+                        'success' => true,
+                        'message' => $message,
+                        'template_id' => $template->id,
+                        'ad_created' => $adCreated,
+                        'city_name' => $randomCity ? $randomCity->name : null,
+                        'redirect_url' => route('admin.ads.templates.edit', $template->id),
+                        'warning' => true
+                    ]);
+                    
+                } catch (\Exception $finalError) {
+                    Log::error('Erreur création template mot-clé fallback final', [
+                        'keyword' => $keyword,
+                        'error' => $finalError->getMessage()
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
+                    ], 500);
                 }
-
-                // Message avec information sur la ville
-                $message = 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.';
-                if ($adCreated && $randomCity) {
-                    $message .= ' Une annonce a été automatiquement générée pour ' . $randomCity->name . '.';
-                }
-
-                // Retourner une réponse JSON même avec fallback
-                return response()->json([
-                    'success' => true,
-                    'message' => $message,
-                    'template_id' => $template->id,
-                    'ad_created' => $adCreated,
-                    'city_name' => $randomCity ? $randomCity->name : null,
-                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
-                    'warning' => true
-                ]);
-                
-            } catch (\Exception $fallbackError) {
-                Log::error('Erreur création template mot-clé fallback', [
-                    'keyword' => $keyword,
-                    'error' => $fallbackError->getMessage()
-                ]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
-                ], 500);
             }
         }
     }
