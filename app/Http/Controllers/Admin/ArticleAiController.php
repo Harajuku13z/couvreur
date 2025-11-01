@@ -241,7 +241,7 @@ class ArticleAiController extends Controller
     private function getCompanyInfo()
     {
         return [
-            'company_name' => setting('company_name', 'Sauser Couverture'),
+            'company_name' => setting('company_name', 'Notre Entreprise'),
             'company_city' => setting('company_city', 'Paris'),
             'company_region' => setting('company_region', 'Île-de-France'),
             'company_phone' => setting('company_phone', ''),

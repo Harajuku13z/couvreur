@@ -692,8 +692,8 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     
                     if ($descriptionContainsService && !$isGeneric && !$containsGenericPrestations) {
                         Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
-                        // Valider et nettoyer les données
-                        return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
+                    // Valider et nettoyer les données
+                    return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                     } else {
                         Log::warning('Contenu IA rejeté - générique ou contient prestations interdites', [
                             'service_name' => $serviceName,
@@ -701,8 +701,8 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                             'is_generic' => $isGeneric,
                             'contains_generic_prestations' => $containsGenericPrestations
                         ]);
-                    }
-                } else {
+                }
+            } else {
                     Log::warning('Échec parsing JSON de la réponse IA', [
                         'service_name' => $serviceName,
                         'content_preview' => substr($result['content'], 0, 300)
@@ -883,7 +883,7 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
             $aiShortDescription = Str::limit($plainFromHtml, 140);
             Log::info('Description courte générée depuis HTML', ['service_name' => $serviceName]);
         }
-        
+
         return [
             'description' => $description,
             'short_description' => $cleanText($aiShortDescription, 140),
