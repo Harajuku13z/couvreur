@@ -844,13 +844,20 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                         return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                     }
                     
-                    $shouldAccept = $descriptionContainsService && 
-                                   (($isRichContent && !$containsGenericPrestations) || 
-                                    ($isRichContent && $plainTextLength > 2000)); // Contenu riche > 2000, on accepte
+                    // Accepter si contenu riche (>2000) même avec prestations génériques
+                    // Accepter si contenu très riche (>5000) toujours, même sans détection nom
+                    $shouldAccept = ($plainTextLength > 5000) || // Très riche, accepté toujours
+                                   ($descriptionContainsService && $plainTextLength > 2000) || // Riche avec nom service
+                                   ($descriptionContainsService && $isRichContent && !$containsGenericPrestations) || // Riche sans générique
+                                   ($isRichContent && $plainTextLength > 3000); // Riche > 3000 même avec générique
                     
-                    $shouldReject = (!$descriptionContainsService && $plainTextLength < 500) || 
-                                   ($isGeneric && strlen($plainText) < 500) ||
-                                   ($containsGenericPrestations && $plainTextLength < 800); // Rejeter seulement si court + générique
+                    // Rejeter seulement si :
+                    // - Contenu très court (<500) ET pas de nom service
+                    // - Contenu générique ET très court (<500)
+                    // - Contenu court (<800) ET prestations génériques
+                    $shouldReject = ($plainTextLength < 500 && !$descriptionContainsService) || 
+                                   ($isGeneric && $plainTextLength < 500) ||
+                                   ($containsGenericPrestations && $plainTextLength < 800 && !$isRichContent); // Rejeter seulement si court + générique + pas riche
                     
                     if ($shouldAccept || !$shouldReject) {
                         if ($containsGenericPrestations && $isRichContent) {
