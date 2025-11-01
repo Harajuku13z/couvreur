@@ -203,7 +203,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('admin.ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900" title="Voir le template">
+                                        <a href="{{ route('ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900" title="Voir le template">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <button onclick="generateAdsFromTemplate({{ $template->id }})" class="text-green-600 hover:text-green-900" title="Générer des annonces">

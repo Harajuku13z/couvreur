@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-8">
         <div>
             <div class="flex items-center mb-2">
-                <a href="{{ route('admin.ads.templates.index') }}" class="text-blue-600 hover:text-blue-800 mr-4">
+                <a href="{{ route('ads.templates.index') }}" class="text-blue-600 hover:text-blue-800 mr-4">
                     <i class="fas fa-arrow-left"></i> Retour aux templates
                 </a>
             </div>
