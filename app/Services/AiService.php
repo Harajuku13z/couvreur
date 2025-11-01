@@ -84,13 +84,19 @@ class AiService
                         'provider' => 'chatgpt'
                     ];
                 } else {
+                    $errorBody = $response->json();
                     Log::warning('Erreur API OpenAI, tentative avec Groq', [
                         'status' => $response->status(),
-                        'response' => $response->body()
+                        'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
+                        'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                        'response_preview' => substr($response->body(), 0, 500)
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Erreur appel ChatGPT: ' . $e->getMessage());
+                Log::error('Erreur appel ChatGPT', [
+                    'message' => $e->getMessage(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                ]);
             }
         } else {
             Log::info('ChatGPT désactivé ou clé manquante, utilisation de Groq');
@@ -127,13 +133,19 @@ class AiService
                         'provider' => 'groq'
                     ];
                 } else {
+                    $errorBody = $groqResponse->json();
                     Log::error('Erreur API Groq', [
                         'status' => $groqResponse->status(),
-                        'response' => $groqResponse->body()
+                        'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
+                        'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                        'response_preview' => substr($groqResponse->body(), 0, 500)
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Erreur appel Groq: ' . $e->getMessage());
+                Log::error('Erreur appel Groq', [
+                    'message' => $e->getMessage(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                ]);
             }
         } else {
             Log::warning('Clé API Groq manquante, impossible d\'utiliser le fallback');

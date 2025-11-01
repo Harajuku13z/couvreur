@@ -1507,17 +1507,67 @@ EXEMPLES CONCRETS POUR {$keyword}:
 
 Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_URL], [URL], [TITRE] pour personnalisation par ville.";
             
-            // Appel à AiService
+            // TEST PRÉALABLE des APIs avant la génération
+            Log::info('TEST PRÉALABLE des APIs', [
+                'chatgpt_enabled' => $chatgptEnabledValue,
+                'chatgpt_api_key_present' => !empty($chatgptApiKey),
+                'groq_api_key_present' => !empty($groqApiKey)
+            ]);
+            
+            // Test rapide de Groq d'abord (plus rapide) si disponible
+            $groqTestOk = false;
+            if ($groqApiKey) {
+                try {
+                    $testResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
+                        ->timeout(10)
+                        ->post('https://api.groq.com/openai/v1/chat/completions', [
+                            'model' => $groqModel,
+                            'messages' => [
+                                ['role' => 'user', 'content' => 'Test']
+                            ],
+                            'max_tokens' => 5
+                        ]);
+                    $groqTestOk = $testResponse->successful();
+                    Log::info('Test Groq', ['success' => $groqTestOk, 'status' => $testResponse->status()]);
+                } catch (\Exception $e) {
+                    Log::warning('Test Groq échoué', ['error' => $e->getMessage()]);
+                }
+            }
+            
+            // Test rapide de ChatGPT si disponible
+            $chatgptTestOk = false;
+            if ($chatgptEnabledValue && $chatgptApiKey) {
+                try {
+                    $testResponse = \Illuminate\Support\Facades\Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $chatgptApiKey,
+                        'Content-Type' => 'application/json',
+                    ])->timeout(10)->post('https://api.openai.com/v1/chat/completions', [
+                        'model' => $chatgptModel,
+                        'messages' => [
+                            ['role' => 'user', 'content' => 'Test']
+                        ],
+                        'max_tokens' => 5
+                    ]);
+                    $chatgptTestOk = $testResponse->successful();
+                    Log::info('Test ChatGPT', ['success' => $chatgptTestOk, 'status' => $testResponse->status()]);
+                } catch (\Exception $e) {
+                    Log::warning('Test ChatGPT échoué', ['error' => $e->getMessage()]);
+                }
+            }
+            
+            // Appel à AiService avec timeout augmenté
             Log::info('Appel à AiService::callAI', [
                 'prompt_length' => strlen($prompt),
                 'system_message_length' => strlen($systemMessage),
                 'max_tokens' => 6000,
-                'temperature' => 0.95
+                'temperature' => 0.95,
+                'timeout' => 120
             ]);
             
             $result = AiService::callAI($prompt, $systemMessage, [
                 'max_tokens' => 6000, // Augmenté pour permettre plus de contenu personnalisé
-                'temperature' => 0.95 // Augmenté pour plus de créativité et personnalisation
+                'temperature' => 0.95, // Augmenté pour plus de créativité et personnalisation
+                'timeout' => 120 // Timeout augmenté à 120 secondes
             ]);
             
             Log::info('Résultat AiService::callAI', [
@@ -1525,7 +1575,9 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                 'result_type' => gettype($result),
                 'has_content' => isset($result['content']),
                 'provider' => $result['provider'] ?? 'NONE',
-                'content_length' => isset($result['content']) ? strlen($result['content']) : 0
+                'content_length' => isset($result['content']) ? strlen($result['content']) : 0,
+                'groq_test_ok' => $groqTestOk,
+                'chatgpt_test_ok' => $chatgptTestOk
             ]);
             
             // Si l'IA n'a pas répondu, FORCER une nouvelle tentative avec Groq directement
@@ -1575,10 +1627,13 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                                 'content_length' => strlen($result['content'])
                             ]);
                         } else {
+                            $errorBody = $groqResponse->json();
                             Log::error('Échec Groq direct', [
                                 'status' => $groqResponse->status(),
-                                'body' => $groqResponse->body(),
-                                'json' => $groqResponse->json()
+                                'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
+                                'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                                'response_preview' => substr($groqResponse->body(), 0, 500),
+                                'full_response' => config('app.debug') ? $groqResponse->body() : null
                             ]);
                         }
                     } catch (\Exception $groqException) {
@@ -1633,10 +1688,13 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                                     'content_length' => strlen($result['content'])
                                 ]);
                             } else {
+                                $errorBody = $chatgptResponse->json();
                                 Log::error('Échec ChatGPT direct', [
                                     'status' => $chatgptResponse->status(),
-                                    'body' => $chatgptResponse->body(),
-                                    'json' => $chatgptResponse->json()
+                                    'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
+                                    'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                                    'response_preview' => substr($chatgptResponse->body(), 0, 500),
+                                    'full_response' => config('app.debug') ? $chatgptResponse->body() : null
                                 ]);
                             }
                         } catch (\Exception $chatgptException) {
