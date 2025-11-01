@@ -954,5 +954,171 @@ async function testGroq() {
     }
 }
 
+// Test ChatGPT avec génération de contenu
+async function testChatGPTGenerate() {
+    const apiKey = document.getElementById('chatgpt_api_key').value;
+    const prompt = document.getElementById('test_prompt').value;
+    
+    if (!apiKey && !prompt) {
+        alert('Veuillez d\'abord saisir votre clé API ChatGPT et un prompt de test');
+        return;
+    }
+    
+    const button = document.getElementById('test-chatgpt-generate-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    button.disabled = true;
+    
+    const resultsDiv = document.getElementById('test-results');
+    const resultsContent = document.getElementById('test-results-content');
+    
+    try {
+        const response = await fetch('/config/test-chatgpt-generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                api_key: apiKey || null,
+                prompt: prompt 
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            let html = '<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">';
+            html += '<h5 class="font-semibold text-green-800 mb-2"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</h5>';
+            html += '<div class="text-sm text-gray-600 mb-2"><strong>Modèle utilisé:</strong> ' + (result.model || 'N/A') + '</div>';
+            if (result.usage) {
+                html += '<div class="text-sm text-gray-600 mb-2">';
+                html += '<strong>Tokens utilisés:</strong> ' + (result.usage.total_tokens || 'N/A');
+                html += ' (Prompt: ' + (result.usage.prompt_tokens || 'N/A') + ', Completion: ' + (result.usage.completion_tokens || 'N/A') + ')';
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            html += '<div class="bg-white border border-gray-200 rounded-lg p-4">';
+            html += '<h5 class="font-semibold mb-2">Prompt envoyé:</h5>';
+            html += '<pre class="bg-gray-50 p-3 rounded text-sm mb-4 whitespace-pre-wrap">' + escapeHtml(result.prompt) + '</pre>';
+            html += '<h5 class="font-semibold mb-2">Réponse générée:</h5>';
+            html += '<div class="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap">' + escapeHtml(result.content) + '</div>';
+            html += '</div>';
+            
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        } else {
+            let html = '<div class="bg-red-50 border border-red-200 rounded-lg p-4">';
+            html += '<h5 class="font-semibold text-red-800 mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Erreur</h5>';
+            html += '<p class="text-sm text-red-700">' + escapeHtml(result.message) + '</p>';
+            if (result.error_details) {
+                html += '<div class="mt-2 text-xs text-red-600">';
+                html += '<strong>Détails:</strong> ' + JSON.stringify(result.error_details, null, 2);
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+    } catch (error) {
+        resultsContent.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4"><p class="text-sm text-red-700">Erreur de connexion : ' + escapeHtml(error.message) + '</p></div>';
+        resultsDiv.classList.remove('hidden');
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Test Groq avec génération de contenu
+async function testGroqGenerate() {
+    const apiKey = document.getElementById('groq_api_key').value;
+    const prompt = document.getElementById('test_prompt').value;
+    
+    if (!apiKey && !prompt) {
+        alert('Veuillez d\'abord saisir votre clé API Groq et un prompt de test');
+        return;
+    }
+    
+    const button = document.getElementById('test-groq-generate-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    button.disabled = true;
+    
+    const resultsDiv = document.getElementById('test-results');
+    const resultsContent = document.getElementById('test-results-content');
+    
+    try {
+        const response = await fetch('/config/test-groq-generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                api_key: apiKey || null,
+                prompt: prompt 
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            let html = '<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">';
+            html += '<h5 class="font-semibold text-green-800 mb-2"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</h5>';
+            html += '<div class="text-sm text-gray-600 mb-2"><strong>Modèle utilisé:</strong> ' + (result.model || 'N/A') + '</div>';
+            if (result.usage) {
+                html += '<div class="text-sm text-gray-600 mb-2">';
+                html += '<strong>Tokens utilisés:</strong> ' + (result.usage.total_tokens || 'N/A');
+                html += ' (Prompt: ' + (result.usage.prompt_tokens || 'N/A') + ', Completion: ' + (result.usage.completion_tokens || 'N/A') + ')';
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            html += '<div class="bg-white border border-gray-200 rounded-lg p-4">';
+            html += '<h5 class="font-semibold mb-2">Prompt envoyé:</h5>';
+            html += '<pre class="bg-gray-50 p-3 rounded text-sm mb-4 whitespace-pre-wrap">' + escapeHtml(result.prompt) + '</pre>';
+            html += '<h5 class="font-semibold mb-2">Réponse générée:</h5>';
+            html += '<div class="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap">' + escapeHtml(result.content) + '</div>';
+            html += '</div>';
+            
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        } else {
+            let html = '<div class="bg-red-50 border border-red-200 rounded-lg p-4">';
+            html += '<h5 class="font-semibold text-red-800 mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Erreur</h5>';
+            html += '<p class="text-sm text-red-700">' + escapeHtml(result.message) + '</p>';
+            if (result.error_details) {
+                html += '<div class="mt-2 text-xs text-red-600">';
+                html += '<strong>Détails:</strong> ' + JSON.stringify(result.error_details, null, 2);
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+    } catch (error) {
+        resultsContent.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4"><p class="text-sm text-red-700">Erreur de connexion : ' + escapeHtml(error.message) + '</p></div>';
+        resultsDiv.classList.remove('hidden');
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Fonction utilitaire pour échapper le HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 </script>
 @endsection
