@@ -1028,29 +1028,74 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
         }
         
         // Dernière tentative : chercher juste le HTML dans la description
-        if (preg_match('/"description"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s', $content, $matches)) {
-            Log::info('Extraction description HTML depuis JSON malformé');
-            $htmlContent = str_replace('\\"', '"', $matches[1]);
-            $htmlContent = str_replace('\\n', "\n", $htmlContent);
+        // Pattern amélioré pour capturer HTML échappé dans JSON
+        $descriptionPatterns = [
+            '/"description"\s*:\s*"((?:[^"\\\\]|\\\\.|\\\\n)*)"/s',  // JSON avec échappement
+            '/"description"\s*:\s*`([^`]*)`/s',  // Backticks
+            '/description["\']?\s*:\s*["\']([^"\']*)["\']/s',  // Variantes de guillemets
+        ];
+        
+        foreach ($descriptionPatterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $htmlContent = $matches[1];
+                
+                // Déséchapper le contenu
+                $htmlContent = str_replace(['\\"', "\\'"], ['"', "'"], $htmlContent);
+                $htmlContent = str_replace(['\\n', '\\r', '\\t'], ["\n", "\r", "\t"], $htmlContent);
+                $htmlContent = str_replace('\\/', '/', $htmlContent);
+                $htmlContent = stripslashes($htmlContent);
+                
+                Log::info('HTML extrait depuis champ description du JSON', [
+                    'html_length' => strlen($htmlContent),
+                    'html_preview' => substr($htmlContent, 0, 200)
+                ]);
+                
+                $plainText = strip_tags($htmlContent);
+                
+                return [
+                    'description' => $htmlContent,
+                    'short_description' => !empty($plainText) ? Str::limit($plainText, 140) : Str::limit($htmlContent, 140),
+                    'long_description' => !empty($plainText) ? Str::limit($plainText, 500) : Str::limit($htmlContent, 500),
+                    'icon' => 'fas fa-tools',
+                    'meta_title' => '',
+                    'meta_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($htmlContent, 160),
+                    'og_title' => '',
+                    'og_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($htmlContent, 160),
+                    'twitter_title' => '',
+                    'twitter_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($htmlContent, 160),
+                    'meta_keywords' => ''
+                ];
+            }
+        }
+        
+        // Dernière tentative : si c'est juste du HTML brut sans JSON, l'accepter comme description
+        if ($hasHtmlTags && strlen($content) > 500 && !$hasJsonStructure) {
+            Log::info('Contenu HTML brut accepté comme description (pas de JSON trouvé)', [
+                'content_length' => strlen($content),
+                'content_preview' => substr($content, 0, 200)
+            ]);
             
-            $plainText = strip_tags($htmlContent);
+            $plainText = strip_tags($content);
             return [
-                'description' => $htmlContent,
-                'short_description' => Str::limit($plainText, 140),
-                'long_description' => Str::limit($plainText, 500),
+                'description' => $content,
+                'short_description' => !empty($plainText) ? Str::limit($plainText, 140) : Str::limit($content, 140),
+                'long_description' => !empty($plainText) ? Str::limit($plainText, 500) : Str::limit($content, 500),
                 'icon' => 'fas fa-tools',
                 'meta_title' => '',
-                'meta_description' => Str::limit($plainText, 160),
+                'meta_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($content, 160),
                 'og_title' => '',
-                'og_description' => Str::limit($plainText, 160),
+                'og_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($content, 160),
                 'twitter_title' => '',
-                'twitter_description' => Str::limit($plainText, 160),
+                'twitter_description' => !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($content, 160),
                 'meta_keywords' => ''
             ];
         }
         
         Log::warning('Impossible de parser la réponse IA', [
             'content_preview' => substr($content, 0, 500),
+            'content_length' => strlen($content),
+            'has_html_tags' => $hasHtmlTags ?? false,
+            'has_json_structure' => $hasJsonStructure ?? false,
             'json_error' => json_last_error_msg()
         ]);
         
