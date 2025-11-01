@@ -151,7 +151,7 @@ class ServiceAiController extends Controller
     /**
      * Générer un contenu complet de service via IA (EXACTEMENT comme AdTemplateController::generateCompleteTemplateContent)
      */
-    private function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo)
+    public function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
     {
         try {
             $companyName = $companyInfo['company_name'] ?? setting('company_name', 'Notre Entreprise');
