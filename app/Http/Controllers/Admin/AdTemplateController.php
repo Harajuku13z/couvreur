@@ -1509,7 +1509,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
 </div>';
             
             // Prompt simplifié pour générer un JSON structuré
-            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide, sans texte avant ou après.";
+            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.";
             
             $userPrompt = ($aiPrompt ? ($aiPrompt . "\n\n") : '') . "Service: {$serviceName}
 Description: {$shortDescription}
@@ -1517,7 +1517,7 @@ Entreprise: {$companyName}
 Ville: {$companyCity}
 Département: {$companyDept}
 
-Crée un JSON avec les données suivantes pour remplir un template HTML:
+Génère un JSON avec exactement cette structure (remplace les exemples par du contenu réel):
 
 {
   \"description_courte\": \"Description courte du {$serviceName} incluant {$companyCity} et le département {$companyDept} (150-200 caractères)\",
@@ -1553,10 +1553,15 @@ Crée un JSON avec les données suivantes pour remplir un template HTML:
   ]
 }
 
-IMPORTANT:
-- Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
-- Utilise le vocabulaire professionnel du métier
-- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
+RÈGLES STRICTES:
+1. Réponds UNIQUEMENT avec le JSON (commence par { et finit par })
+2. PAS de texte avant le {
+3. PAS de texte après le }
+4. PAS de ```json ou ``` autour
+5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
+6. Utilise le vocabulaire professionnel du métier
+7. Les guillemets dans les valeurs doivent être échappés avec \\
+8. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
@@ -1590,11 +1595,17 @@ IMPORTANT:
             $jsonData = $this->parseJsonResponseForTemplate($result['content']);
             
             if (!$jsonData) {
+                // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
                     'service_name' => $serviceName,
-                    'content_preview' => substr($result['content'], 0, 500)
+                    'provider' => $result['provider'] ?? 'unknown',
+                    'content_length' => strlen($result['content']),
+                    'content_full' => $result['content'], // Contenu complet pour diagnostic
+                    'content_preview' => substr($result['content'], 0, 1000),
+                    'json_error' => json_last_error_msg()
                 ]);
-                throw new \Exception('Erreur: L\'IA n\'a pas retourné un JSON valide.');
+                
+                throw new \Exception('Erreur: L\'IA n\'a pas retourné un JSON valide. Contenu reçu: ' . substr($result['content'], 0, 200) . '... Consultez les logs pour plus de détails.');
             }
             
             // Remplir le template HTML avec les données JSON
@@ -1628,31 +1639,80 @@ IMPORTANT:
     }
     
     /**
-     * Parser le JSON de la réponse IA (simplifié)
+     * Parser le JSON de la réponse IA (robuste)
      */
     private function parseJsonResponseForTemplate($content)
     {
         $content = trim($content);
+        
+        Log::info('Tentative de parsing JSON pour template', [
+            'content_length' => strlen($content),
+            'content_preview' => substr($content, 0, 300),
+            'has_braces' => strpos($content, '{') !== false
+        ]);
+        
+        // Essayer plusieurs patterns pour extraire le JSON
+        $jsonPatterns = [
+            '/```json\s*(\{[\s\S]*?\})\s*```/s',  // JSON dans code block avec json
+            '/```\s*(\{[\s\S]*?\})\s*```/s',      // JSON dans code block sans json
+            '/\{[\s\S]*\"description_courte\"[\s\S]*\}/s',  // JSON contenant description_courte
+            '/\{[\s\S]*\}/s',                      // N'importe quel JSON
+        ];
+        
+        foreach ($jsonPatterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $jsonString = $matches[1] ?? $matches[0];
+                $jsonString = trim($jsonString);
+                
+                Log::info('Pattern JSON trouvé', [
+                    'pattern_matched' => true,
+                    'json_length' => strlen($jsonString),
+                    'json_preview' => substr($jsonString, 0, 200)
+                ]);
+                
+                $data = json_decode($jsonString, true);
+                
+                if ($data && is_array($data) && !empty($data)) {
+                    Log::info('JSON parsé avec succès pour template', [
+                        'keys' => array_keys($data)
+                    ]);
+                    return $data;
+                } else {
+                    Log::warning('JSON invalide après pattern match', [
+                        'error' => json_last_error_msg(),
+                        'json_preview' => substr($jsonString, 0, 500)
+                    ]);
+                }
+            }
+        }
+        
+        // Si aucun pattern ne fonctionne, essayer de trouver le JSON manuellement
         $jsonStart = strpos($content, '{');
         $jsonEnd = strrpos($content, '}');
         
-        if ($jsonStart === false || $jsonEnd === false) {
-            Log::warning('JSON non trouvé dans la réponse IA pour template', ['content_preview' => substr($content, 0, 500)]);
-            return null;
+        if ($jsonStart !== false && $jsonEnd !== false && $jsonEnd > $jsonStart) {
+            $jsonString = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+            $data = json_decode($jsonString, true);
+            
+            if ($data && is_array($data) && !empty($data)) {
+                Log::info('JSON parsé avec extraction manuelle');
+                return $data;
+            }
         }
         
-        $jsonString = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
-        $data = json_decode($jsonString, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Erreur parsing JSON pour template', [
-                'error' => json_last_error_msg(),
-                'json_preview' => substr($jsonString, 0, 500)
-            ]);
-            return null;
+        // Dernière tentative : décoder directement
+        $data = json_decode($content, true);
+        if ($data && is_array($data) && !empty($data)) {
+            Log::info('JSON parsé directement');
+            return $data;
         }
         
-        return $data;
+        Log::error('Impossible de parser le JSON pour template', [
+            'content_preview' => substr($content, 0, 1000),
+            'json_error' => json_last_error_msg()
+        ]);
+        
+        return null;
     }
     
     /**
