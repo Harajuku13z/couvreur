@@ -772,7 +772,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                     <p class="leading-relaxed">Chaque intervention de ' . $serviceName . ' est réalisée selon les normes professionnelles les plus strictes.</p>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceName . '</h3>
-                <ul class="space-y-3">' . $this->generateSpecificPrestations($serviceName) . '</ul>
+                <ul class="space-y-3"><!-- PRESTATIONS SUPPRIMÉES - FONCTION DÉPRÉCIÉE --></ul>
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>
                     <div class="space-y-2">
