@@ -170,11 +170,11 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Template</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisation</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créé le</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -189,6 +189,22 @@
                                             <div class="text-sm font-medium text-gray-900">{{ $template->name }}</div>
                                             <div class="text-sm text-gray-500">{{ Str::limit($template->short_description, 60) }}</div>
                                         </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('admin.ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900" title="Voir le template">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button onclick="generateAdsFromTemplate({{ $template->id }})" class="text-green-600 hover:text-green-900" title="Générer des annonces">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </button>
+                                        <button onclick="toggleTemplateStatus({{ $template->id }}, {{ $template->is_active ? 'false' : 'true' }})" class="text-orange-600 hover:text-orange-900" title="{{ $template->is_active ? 'Désactiver' : 'Activer' }}">
+                                            <i class="fas fa-{{ $template->is_active ? 'pause' : 'play' }}"></i>
+                                        </button>
+                                        <button onclick="deleteTemplate({{ $template->id }})" class="text-red-600 hover:text-red-900" title="Supprimer le template">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -220,22 +236,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $template->created_at->format('d/m/Y H:i') }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="{{ route('admin.ads.templates.show', $template) }}" class="text-blue-600 hover:text-blue-900" title="Voir le template">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <button onclick="generateAdsFromTemplate({{ $template->id }})" class="text-green-600 hover:text-green-900" title="Générer des annonces">
-                                            <i class="fas fa-plus-circle"></i>
-                                        </button>
-                                        <button onclick="toggleTemplateStatus({{ $template->id }}, {{ $template->is_active ? 'false' : 'true' }})" class="text-orange-600 hover:text-orange-900" title="{{ $template->is_active ? 'Désactiver' : 'Activer' }}">
-                                            <i class="fas fa-{{ $template->is_active ? 'pause' : 'play' }}"></i>
-                                        </button>
-                                        <button onclick="deleteTemplate({{ $template->id }})" class="text-red-600 hover:text-red-900" title="Supprimer le template">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         @endforeach
