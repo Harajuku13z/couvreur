@@ -1606,7 +1606,18 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $promptWithUniqueness = $prompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}";
             
             // Utiliser le service AI avec fallback automatique
-            $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance approfondie du domaine. Tu crées du contenu professionnel, engageant et optimisé SEO pour des templates d'annonces. CRITIQUE ABSOLUE: Chaque service DOIT avoir un contenu UNIQUE et PERSONNALISÉ avec des placeholders [VILLE], [RÉGION], [DÉPARTEMENT] pour personnalisation par ville. Ne génère JAMAIS de contenu générique ou répétitif. Adapte TOUT spécifiquement au service mentionné.";
+            $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE et SPÉCIFIQUE de ce domaine. Tu crées du contenu professionnel, engageant, technique et optimisé SEO pour des templates d'annonces.
+
+🚨 CRITIQUE ABSOLUE - PERSONNALISATION OBLIGATOIRE:
+- Chaque section DOIT contenir du contenu VRAIMENT écrit, pas de placeholders [Paragraphe X] ou [ÉCRIRE ICI]
+- Utilise un vocabulaire TECHNIQUE et SPÉCIFIQUE à {$serviceName}: normes (RT 2012, DTU), certifications (RGE, Qualit'ENR, NF), matériaux précis (ex: laine de verre ISOVER, polyuréthane, fibre de bois), techniques professionnelles
+- Mentionne des CHIFFRES CONCRETS: résistances thermiques (R en m².K/W), épaisseurs, performances, économies d'énergie, délais d'intervention
+- Donne des EXEMPLES CONCRETS de réalisations, processus, garanties spécifiques à {$serviceName}
+- INTERDIT absolu: phrases génériques comme \"Nous garantissons la satisfaction\", \"Notre expertise locale\", \"Intervention rapide\" sans détails techniques
+
+✅ ACCEPTE seulement: contenu technique, spécifique, avec chiffres, normes, matériaux, processus précis pour {$serviceName}.
+
+Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_URL], [URL], [TITRE] pour personnalisation par ville.";
             
             $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
                 'max_tokens' => 4000,
@@ -1696,23 +1707,25 @@ IMPORTANT: Ce template sera utilisé pour créer des annonces personnalisées pa
 
 📋 STRUCTURE HTML OBLIGATOIRE DU CHAMP \"description\":
 
+⚠️⚠️⚠️ IMPORTANT: REMPLACEZ TOUS LES PLACEHOLDERS [Paragraphe X] PAR DU VRAI CONTENU PERSONNALISÉ ⚠️⚠️⚠️
+
 Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exacte:
 
 <div class=\"grid md:grid-cols-2 gap-8\">
   <div class=\"space-y-6\">
     <!-- SECTION 1: DESCRIPTION LONGUE PERSONNALISÉE -->
     <div class=\"space-y-4\">
-      <p class=\"text-lg leading-relaxed\">[Description longue et détaillée de 3-4 paragraphes sur {$serviceName} à [VILLE], incluant l'expertise, les techniques utilisées, et les bénéfices pour les clients locaux. SOYEZ SPÉCIFIQUE et TECHNIQUE.]</p>
-      <p class=\"text-lg leading-relaxed\">[Paragraphe 2: Informations complémentaires sur l'approche, les matériaux, les certifications ou normes spécifiques à {$serviceName}.]</p>
-      <p class=\"text-lg leading-relaxed\">[Paragraphe 3: Pourquoi choisir notre entreprise pour {$serviceName} à [VILLE] et dans la région de [RÉGION]. Mentionner l'expérience locale, les réalisations, etc.]</p>
+      <p class=\"text-lg leading-relaxed\">ÉCRIRE ICI un paragraphe de 5-6 phrases sur {$serviceName} à [VILLE], mentionnant des techniques spécifiques, matériaux, normes (ex: RT 2012, DTU), certifications (ex: RGE, Qualit'ENR), et l'impact pour les clients locaux. NE PAS utiliser de texte générique.</p>
+      <p class=\"text-lg leading-relaxed\">ÉCRIRE ICI un deuxième paragraphe avec des détails techniques précis sur {$serviceName}: types de matériaux utilisés (ex: laine de verre, polyuréthane, fibre de bois), méthodes de pose, épaisseurs, résistances thermiques, normes respectées. SOYEZ TRÈS SPÉCIFIQUE.</p>
+      <p class=\"text-lg leading-relaxed\">ÉCRIRE ICI un troisième paragraphe expliquant pourquoi notre entreprise est experte en {$serviceName} dans [RÉGION]: nombre d'années d'expérience, nombre de chantiers réalisés, types de projets (particuliers, professionnels, collectivités), certifications obtenues, garanties proposées.</p>
     </div>
     
     <!-- SECTION 2: NOTRE ENGAGEMENT QUALITÉ (PERSONNALISÉ) -->
     <div class=\"bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600\">
       <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité pour {$serviceName}</h3>
-      <p class=\"leading-relaxed mb-3\">[Paragraphe 1: Engagement spécifique pour {$serviceName} - garanties, normes, certifications particulières à ce service. SOYEZ SPÉCIFIQUE, pas générique.]</p>
-      <p class=\"leading-relaxed mb-3\">[Paragraphe 2: Comment nous garantissons la qualité pour {$serviceName} - processus, contrôles, suivi post-intervention spécifiques.]</p>
-      <p class=\"leading-relaxed\">[Paragraphe 3: Engagement client pour {$serviceName} à [VILLE] - satisfaction, réactivité, disponibilité locale.]</p>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe spécifique: pour {$serviceName}, nous garantissons [MENTIONNER DES GARANTIES SPÉCIFIQUES: ex: garantie décennale, garantie biennale, garantie de résultat d'économie d'énergie, etc.]. Nos équipes sont certifiées [MENTIONNER CERTIFICATIONS SPÉCIFIQUES au domaine {$serviceName}].</p>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI comment nous garantissons la qualité: pour chaque intervention de {$serviceName}, nous réalisons [MENTIONNER DES PROCESSUS SPÉCIFIQUES: ex: diagnostic thermique avant travaux, contrôle qualité en cours de chantier, test d'étanchéité à l'air, mesure de performance, etc.]. Un suivi post-intervention est assuré avec [PRÉCISER: ex: visite de contrôle, mesure de performance, assistance SAV].</p>
+      <p class=\"leading-relaxed\">ÉCRIRE ICI notre engagement client: à [VILLE] et dans [RÉGION], nous nous engageons à [MENTIONNER DES ENGAGEMENTS SPÉCIFIQUES: ex: intervenir sous 48h en urgence, devis sous 24h, respect des délais annoncés, nettoyage complet après intervention, etc.].</p>
     </div>
     
     <!-- SECTION 3: 10 PRESTATIONS SPÉCIFIQUES -->
@@ -1745,19 +1758,21 @@ Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exac
     <!-- SECTION 5: POURQUOI CHOISIR CE SERVICE -->
     <div class=\"bg-green-50 p-6 rounded-lg border-l-4 border-green-600\">
       <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir {$serviceName} avec Notre Entreprise</h3>
-      <p class=\"leading-relaxed mb-3\">[Paragraphe personnalisé expliquant les avantages spécifiques de notre approche pour {$serviceName} à [VILLE].]</p>
-      <p class=\"leading-relaxed\">[Paragraphe sur notre expertise locale et notre connaissance des spécificités de [RÉGION] pour {$serviceName}.]</p>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI les avantages concrets de notre approche pour {$serviceName}: [MENTIONNER 3-4 AVANTAGES SPÉCIFIQUES comme: matériaux premium sélectionnés, techniques avancées utilisées, certifications détenues, prix compétitifs, garanties étendues, etc.]. Chaque avantage doit être spécifique à {$serviceName}, pas générique.</p>
+      <p class=\"leading-relaxed\">ÉCRIRE ICI notre expertise locale: nous connaissons parfaitement les spécificités climatiques de [RÉGION] (ex: humidité, gel, vent, exposition solaire) et nous adaptons nos solutions de {$serviceName} en conséquence. Notre présence locale à [VILLE] nous permet de [MENTIONNER AVANTAGES LOCAUX: ex: intervenir rapidement, connaître les réglementations locales, travailler avec des artisans locaux, etc.].</p>
     </div>
     
     <!-- SECTION 6: NOTRE EXPERTISE LOCALE -->
     <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale en {$serviceName}</h3>
-    <p class=\"leading-relaxed mb-4\">[Description de l'expérience locale, des réalisations, de la connaissance des spécificités régionales pour {$serviceName}.]</p>
-    <p class=\"leading-relaxed\">[Informations complémentaires sur l'approche locale et l'adaptation aux besoins de [VILLE] et [RÉGION].]</p>
+    <p class=\"leading-relaxed mb-4\">ÉCRIRE ICI notre expérience: depuis [NOMBRE] années, nous intervenons sur [VILLE] et dans [RÉGION] pour des projets de {$serviceName}. Nous avons réalisé [MENTIONNER TYPES DE PROJETS: ex: plus de 200 chantiers d'isolation de combles, 150 rénovations de toiture, etc.]. Notre connaissance des spécificités régionales nous permet de proposer des solutions adaptées.</p>
+    <p class=\"leading-relaxed\">ÉCRIRE ICI des exemples concrets: nous avons notamment [MENTIONNER 2-3 EXEMPLES CONCRETS de réalisations en {$serviceName} dans [RÉGION], avec détails techniques si possible]. Cette expérience locale nous permet de comprendre les besoins spécifiques des habitants de [VILLE] et de [RÉGION] en matière de {$serviceName}.</p>
     
     <!-- SECTION 7: FINANCEMENT ET AIDES (PERSONNALISÉ SELON SERVICE) -->
     <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et Aides pour {$serviceName}</h4>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé expliquant pourquoi les aides sont importantes pour {$serviceName} et comment nous accompagnons les clients. Ensuite, intégrer les informations suivantes:</p>
       {$financementInfo}
+      <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion expliquant comment notre équipe aide concrètement les clients à bénéficier de ces aides pour leurs travaux de {$serviceName} à [VILLE].</p>
     </div>
     
     <!-- SECTION 8: BESOIN D'UN DEVIS -->
@@ -1810,17 +1825,41 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], expert {$serviceName}, devis gratuit {$serviceName}, professionnel {$serviceName}\"
 }
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU PERSONNALISÉ ⚠️⚠️⚠️:
+
+🔴 INTERDICTIONS STRICTES:
+- INTERDIT de copier les placeholders [Paragraphe X] - TU DOIS LES REMPLACER PAR DU VRAI TEXTE
+- INTERDIT d'utiliser des phrases génériques comme \"Nous garantissons la satisfaction\", \"Notre expertise locale\", \"Intervention rapide\" sans détails concrets
+- INTERDIT d'utiliser \"Spécialistes en travaux de {$serviceName}\" ou phrases similaires génériques
+- INTERDIT d'écrire \"Nous vous accompagnons dans vos démarches\" sans expliquer COMMENT concrètement
+
+✅ OBLIGATIONS:
+1. REMPLACER TOUS les \"[Paragraphe X]\" et \"ÉCRIRE ICI\" par du VRAI contenu écrit
+2. Pour chaque section, écrire 3-4 phrases MINIMUM avec des détails CONCRETS
+3. Mentionner des chiffres, techniques, matériaux, normes, certifications SPÉCIFIQUES à {$serviceName}
+4. Utiliser un vocabulaire PROFESSIONNEL du métier de {$serviceName}
+5. Donner des EXEMPLES CONCRETS (types de projets, techniques utilisées, matériaux)
+
+📝 EXEMPLE POUR \"Isolation thermique\":
+
+❌ MAUVAIS (GÉNÉRIQUE):
+\"Nous garantissons la satisfaction totale de nos clients. Nous réalisons des travaux d'isolation selon les normes.\"
+
+✅ BON (PERSONNALISÉ):
+\"Pour l'isolation thermique, nous garantissons une performance énergétique conforme aux exigences RT 2012, avec une résistance thermique minimale R = 7 m².K/W pour les combles perdus. Nos équipes certifiées RGE Qualit'ENR utilisent exclusivement des isolants certifiés ACERMI (laine de verre, laine de roche, ouate de cellulose) adaptés aux spécificités climatiques de [RÉGION]. Chaque chantier fait l'objet d'un diagnostic thermique complet avant travaux, puis d'un contrôle qualité avec mesure de l'étanchéité à l'air selon la norme NF EN 13829, garantissant jusqu'à 30% d'économies d'énergie.\"
+
+📋 INSTRUCTIONS TECHNIQUES JSON:
 - TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
 - COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
 - TERMINE DIRECTEMENT PAR } (accolade fermante)
 - PAS de texte avant le JSON
 - PAS de texte après le JSON
 - PAS de ```json ou ``` autour du JSON
-- GÉNÈRE EXACTEMENT 10 PRESTATIONS TECHNIQUES SPÉCIFIQUES avec descriptions détaillées
-- GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName}
-- TOUT le contenu doit être PERSONNALISÉ pour {$serviceName}, pas générique
-- La description longue doit faire minimum 400 mots
+- GÉNÈRE EXACTEMENT 10 PRESTATIONS TECHNIQUES SPÉCIFIQUES avec descriptions détaillées (minimum 2 phrases par prestation)
+- GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName} avec réponses détaillées (minimum 3 phrases par réponse)
+- TOUT le contenu HTML dans \"description\" doit être COMPLET avec TOUS les \"ÉCRIRE ICI\" REMPLACÉS par du vrai texte
+- La description longue (long_description) doit faire minimum 400 mots
+- INTÈGRE la section financement ({$financementInfo}) dans le HTML de \"description\" en ajoutant des paragraphes d'introduction et conclusion personnalisés
 ";
 
         if ($aiPrompt) {
