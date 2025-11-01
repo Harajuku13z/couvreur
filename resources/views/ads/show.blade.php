@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@php
+    // S'assurer que les métadonnées sont disponibles pour le layout
+    // Le layout utilise $pageTitle, $pageDescription, etc. en priorité
+    // Ces variables sont passées depuis AdPublicController::show()
+@endphp
+
 @section('title', $pageTitle ?? 'Service professionnel')
 
 @section('description', $pageDescription ?? 'Service professionnel de qualité. Devis gratuit et intervention rapide.')
