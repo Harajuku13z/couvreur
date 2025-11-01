@@ -1450,6 +1450,12 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $companyCity = $companyInfo['company_city'] ?? setting('company_city', '');
             $companyDept = $companyInfo['company_region'] ?? setting('company_region', '');
             
+            // Récupérer les informations pratiques depuis les settings
+            $companyAddress = setting('company_address', '');
+            $companyPhone = setting('company_phone', '');
+            $companyEmail = setting('company_email', '');
+            $companyHours = setting('company_hours', '');
+            
             // Template HTML exact fourni par l'utilisateur
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
@@ -1511,30 +1517,63 @@ EXEMPLES CONCRETS POUR {$keyword}:
             // Prompt simplifié pour générer un JSON structuré
             $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.";
             
+            // Construire les infos pratiques pour le prompt
+            $infosPratiquesPrompt = "Informations pratiques à utiliser EXACTEMENT (ne pas inventer):\n";
+            if ($companyAddress) {
+                $infosPratiquesPrompt .= "- Adresse : {$companyAddress}\n";
+            }
+            if ($companyPhone) {
+                $infosPratiquesPrompt .= "- Téléphone : {$companyPhone}\n";
+            }
+            if ($companyEmail) {
+                $infosPratiquesPrompt .= "- Email : {$companyEmail}\n";
+            }
+            if ($companyHours) {
+                $infosPratiquesPrompt .= "- Horaires de travail : {$companyHours}\n";
+            }
+            if ($companyName) {
+                $infosPratiquesPrompt .= "- Société : {$companyName}\n";
+            }
+            
+            // Déterminer les types de prestations selon le service
+            $prestationsExamples = '';
+            $serviceLower = mb_strtolower($serviceName);
+            if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Réparation toiture, Hydrofuge toiture, Remplacement tuiles, Zinguerie, Réfection charpente, etc.";
+            } elseif (strpos($serviceLower, 'isolation') !== false || strpos($serviceLower, 'isol') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Isolation combles perdus, Isolation toiture, Isolation murs, Isolation sols, Traitement ponts thermiques, etc.";
+            } elseif (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Ravalement façade, Enduit façade, Peinture façade, Nettoyage façade, Réfection parement, etc.";
+            } else {
+                $prestationsExamples = "Génère 10 prestations techniques spécifiques au {$serviceName} avec le vocabulaire professionnel du métier.";
+            }
+            
             $userPrompt = ($aiPrompt ? ($aiPrompt . "\n\n") : '') . "Service: {$serviceName}
 Description: {$shortDescription}
 Entreprise: {$companyName}
 Ville: {$companyCity}
 Département: {$companyDept}
 
-Génère un JSON avec exactement cette structure (remplace les exemples par du contenu réel):
+{$infosPratiquesPrompt}
+
+Génère un JSON avec exactement cette structure:
 
 {
-  \"description_courte\": \"Description courte du {$serviceName} incluant {$companyCity} et le département {$companyDept} (150-200 caractères)\",
-  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux (minimum 300 caractères)\",
+  \"description_courte\": \"Description courte du {$serviceName} dans la ville de {$companyCity} et le département {$companyDept}\",
+  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux. Intègre le nom de la ville {$companyCity} et le département {$companyDept} dans le texte.\",
   \"titre_garantie\": \"Titre de l'engagement ou garantie (ex: Garantie de satisfaction)\",
   \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
   \"prestations\": [
-    {\"titre\": \"Prestation 1 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 2 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 3 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 4 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 5 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 6 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 7 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 8 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 9 technique spécifique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 10 technique spécifique\", \"description\": \"Description en une phrase\"}
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
+    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"}
   ],
   \"faq\": [
     {\"question\": \"Question fréquente 1\", \"reponse\": \"Réponse détaillée\"},
@@ -1542,14 +1581,18 @@ Génère un JSON avec exactement cette structure (remplace les exemples par du c
     {\"question\": \"Question fréquente 3\", \"reponse\": \"Réponse détaillée\"},
     {\"question\": \"Question fréquente 4\", \"reponse\": \"Réponse détaillée\"}
   ],
-  \"pourquoi_choisir\": \"Avantages de travailler avec nous pour ce service et parler de notre expertise\",
+  \"pourquoi_choisir\": \"Avantages de travailler avec {$companyName} pour ce service et parler de notre expertise\",
   \"financement_aides\": \"Parler des aides disponibles en France selon le service (MaPrimeRénov, CEE, etc.)\",
   \"infos_pratiques\": [
-    \"Info pratique 1\",
-    \"Info pratique 2\",
-    \"Info pratique 3\",
-    \"Info pratique 4\",
-    \"Info pratique 5\"
+    " . implode(",\n    ", array_map(function($item) {
+      return "\"" . addslashes($item) . "\"";
+    }, array_filter([
+      $companyAddress ? "Adresse : {$companyAddress}" : null,
+      $companyPhone ? "Téléphone : {$companyPhone}" : null,
+      $companyEmail ? "Email : {$companyEmail}" : null,
+      $companyHours ? "Horaires de travail : {$companyHours}" : null,
+      $companyName ? "Société : {$companyName}" : null
+    ]))) . "
   ]
 }
 
@@ -1558,10 +1601,12 @@ RÈGLES STRICTES:
 2. PAS de texte avant le {
 3. PAS de texte après le }
 4. PAS de ```json ou ``` autour
-5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
-6. Utilise le vocabulaire professionnel du métier
-7. Les guillemets dans les valeurs doivent être échappés avec \\
-8. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)";
+5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
+6. Utilise le vocabulaire professionnel du métier de {$serviceName}
+7. Dans description_courte et description_longue, intègre TOUJOURS la ville {$companyCity} et le département {$companyDept}
+8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
+9. Les guillemets dans les valeurs doivent être échappés avec \\
+10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
