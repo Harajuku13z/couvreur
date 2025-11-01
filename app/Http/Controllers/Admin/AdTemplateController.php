@@ -94,7 +94,24 @@ class AdTemplateController extends Controller
         $servicesData = Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
+        if (!is_array($services)) {
+            $services = [];
+        }
+        
         $service = collect($services)->firstWhere('slug', $serviceSlug);
+        
+        // Log pour vérifier la structure du service récupéré
+        if ($service) {
+            Log::info('Service récupéré pour création template', [
+                'service_name' => $service['name'] ?? 'N/A',
+                'service_slug' => $serviceSlug,
+                'has_featured_image' => isset($service['featured_image']),
+                'featured_image_value' => $service['featured_image'] ?? 'null',
+                'has_og_image' => isset($service['og_image']),
+                'og_image_value' => $service['og_image'] ?? 'null',
+                'service_keys' => array_keys($service)
+            ]);
+        }
         
         if (!$service) {
             return response()->json([
