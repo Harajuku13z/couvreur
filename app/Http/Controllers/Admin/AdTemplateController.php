@@ -1552,7 +1552,13 @@ EXEMPLES CONCRETS POUR {$keyword}:
 Description: {$shortDescription}
 Entreprise: {$companyName}
 
-IMPORTANT: Ceci est un TEMPLATE. Utilise [VILLE] et [DÉPARTEMENT] comme placeholders qui seront remplacés plus tard lors de la création des annonces.
+⚠️⚠️⚠️ CRITIQUE - C'EST UN TEMPLATE ⚠️⚠️⚠️
+- Ceci est un TEMPLATE qui sera utilisé pour créer des annonces pour différentes villes
+- TU DOIS utiliser UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders
+- INTERDIT ABSOLU d'utiliser une vraie ville comme Paris, Lyon, Marseille, etc.
+- INTERDIT ABSOLU d'utiliser un vrai département comme Paris, Seine-et-Marne, etc.
+- Utilise SEULEMENT les placeholders [VILLE] et [DÉPARTEMENT] dans TOUS les textes
+- Ces placeholders seront remplacés automatiquement par la vraie ville et département plus tard
 
 {$infosPratiquesPrompt}
 
@@ -1602,11 +1608,13 @@ RÈGLES STRICTES:
 4. PAS de ```json ou ``` autour
 5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
 6. Utilise le vocabulaire professionnel du métier de {$serviceName}
-7. Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords), utilise [VILLE] et [DÉPARTEMENT] comme placeholders (ne pas mettre de vraie ville)
-8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
-9. Les guillemets dans les valeurs doivent être échappés avec \\
-10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-11. Ceci est un TEMPLATE : tous les textes doivent contenir [VILLE] et [DÉPARTEMENT] pour être personnalisés plus tard";
+7. ⚠️ CRITIQUE TEMPLATE: Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords, pourquoi_choisir), utilise UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders. JAMAIS de vraie ville comme Paris, Lyon, Marseille, Bordeaux, etc. JAMAIS de vrai département.
+8. Exemple CORRECT: \"Service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]\"
+9. Exemple INCORRECT (INTERDIT): \"Service de {$serviceName} à Paris dans le département Paris\" ou toute autre ville réelle
+10. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
+11. Les guillemets dans les valeurs doivent être échappés avec \\
+12. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+13. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
