@@ -261,7 +261,19 @@ class FormControllerSimple extends Controller
             ]);
         }
 
-        return view('form.steps.' . $step, compact('submission'));
+        // Métadonnées SEO pour la page propertyType (simulateur de devis)
+        $pageTitle = null;
+        $pageDescription = null;
+        $pageKeywords = null;
+        
+        if ($step === 'propertyType') {
+            $companyName = setting('company_name', 'Notre Entreprise');
+            $pageTitle = 'Simulateur de devis gratuit - ' . $companyName;
+            $pageDescription = 'Obtenez votre devis gratuit en quelques clics pour vos travaux de rénovation. ' . $companyName . ' vous accompagne dans tous vos projets de toiture, isolation, façade et plus encore.';
+            $pageKeywords = 'devis gratuit, simulateur devis, estimation travaux, devis en ligne, rénovation, toiture, isolation, façade';
+        }
+
+        return view('form.steps.' . $step, compact('submission', 'pageTitle', 'pageDescription', 'pageKeywords'));
     }
 
     public function submitStep(Request $request, string $step)

@@ -339,7 +339,7 @@ IMPORTANT:
             $siteUrl = 'https://' . $siteUrl;
         }
         $serviceUrl = $siteUrl . '/services/' . Str::slug($serviceName);
-        $formUrl = $siteUrl . '/form/propertyType';
+        $formUrl = $siteUrl . '/devis-gratuit';
         
         // Générer la liste des prestations
         $prestationsHtml = '';

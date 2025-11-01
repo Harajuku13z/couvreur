@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Type de bien - Simulateur de Travaux')
+@php
+    // Passer les métadonnées SEO au layout
+    $currentPage = 'form';
+    if (isset($pageTitle)) {
+        // Les variables sont déjà définies depuis FormControllerSimple::showStep()
+    } else {
+        $pageTitle = 'Simulateur de devis gratuit - ' . setting('company_name', 'Notre Entreprise');
+        $pageDescription = 'Obtenez votre devis gratuit en quelques clics pour vos travaux de rénovation. Estimation rapide et gratuite.';
+        $pageKeywords = 'devis gratuit, simulateur devis, estimation travaux, devis en ligne';
+    }
+@endphp
+
+@section('title', $pageTitle ?? 'Simulateur de devis gratuit')
+
+@section('description', $pageDescription ?? 'Obtenez votre devis gratuit en quelques clics.')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
