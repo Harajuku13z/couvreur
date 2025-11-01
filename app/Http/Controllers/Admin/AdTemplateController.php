@@ -283,63 +283,14 @@ class AdTemplateController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur création template', [
                 'service' => $service['name'],
-                'error' => $e->getMessage()
-            ]);
-
-            // Essayer de créer un template avec du contenu de fallback
-            try {
-                $fallbackContent = $this->generateFallbackTemplateContent($service);
-                
-                // Copier l'image du service même en fallback (vérifier aussi og_image comme fallback)
-                $featuredImage = $service['featured_image'] ?? $service['og_image'] ?? null;
-                
-                Log::info('Copie image service vers template (fallback)', [
-                    'service_name' => $service['name'],
-                    'featured_image' => $featuredImage,
-                    'has_featured_image' => isset($service['featured_image']),
-                    'has_og_image' => isset($service['og_image'])
-                ]);
-                
-                $template = AdTemplate::create([
-                    'name' => $service['name'],
-                    'service_name' => $service['name'],
-                    'service_slug' => $service['slug'],
-                    'content_html' => $fallbackContent['description'],
-                    'short_description' => $fallbackContent['short_description'],
-                    'long_description' => $fallbackContent['long_description'],
-                    'icon' => $fallbackContent['icon'],
-                    'featured_image' => $featuredImage,
-                    'meta_title' => $fallbackContent['meta_title'],
-                    'meta_description' => $fallbackContent['meta_description'],
-                    'meta_keywords' => $fallbackContent['meta_keywords'],
-                    'og_title' => $fallbackContent['og_title'],
-                    'og_description' => $fallbackContent['og_description'],
-                    'twitter_title' => $fallbackContent['twitter_title'],
-                    'twitter_description' => $fallbackContent['twitter_description'],
-                    'ai_prompt_used' => $request->input('ai_prompt'),
-                    'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
-                ]);
-
-                // Retourner une réponse JSON même avec fallback
-                return response()->json([
-                    'success' => true,
-                    'message' => 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.',
-                    'template_id' => $template->id,
-                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
-                    'warning' => true
-                ]);
-                
-            } catch (\Exception $fallbackError) {
-                Log::error('Erreur création template fallback', [
-                    'service' => $service['name'],
-                    'error' => $fallbackError->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
                 ]);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
+                'message' => 'Erreur lors de la création du template via IA: ' . $e->getMessage() . '. Vérifiez vos clés API ChatGPT ou Groq.'
                 ], 500);
-            }
         }
     }
 
@@ -896,9 +847,10 @@ EXEMPLES CONCRETS POUR {$serviceName}:
     }
 
     /**
-     * Générer des prestations spécifiques selon le type de service
+     * SUPPRIMÉ - Cette fonction n'est plus utilisée car on force l'IA uniquement
+     * @deprecated
      */
-    private function generateSpecificPrestations($serviceName)
+    private function generateSpecificPrestations_DELETED($serviceName)
     {
         $prestations = [];
         
@@ -1110,9 +1062,10 @@ EXEMPLES CONCRETS POUR {$keyword}:
     }
 
     /**
-     * Générer un contenu de fallback pour un template de mot-clé
+     * SUPPRIMÉ - Cette fonction n'est plus utilisée car on force l'IA uniquement
+     * @deprecated
      */
-    private function generateFallbackKeywordTemplateContent($keyword)
+    private function generateFallbackKeywordTemplateContent_DELETED($keyword)
     {
         // Contenu HTML de fallback avec la même structure que l'IA
         $contentHtml = '<div class="grid md:grid-cols-2 gap-8">
@@ -1127,7 +1080,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     <p class="leading-relaxed">Chaque intervention de ' . $keyword . ' est réalisée selon les normes professionnelles les plus strictes.</p>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $keyword . '</h3>
-                <ul class="space-y-3">' . $this->generateSpecificPrestations($keyword) . '</ul>
+                <ul class="space-y-3"><!-- PRESTATIONS SUPPRIMÉES - FONCTION DÉPRÉCIÉE --></ul>
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>
                     <div class="space-y-2">
@@ -1352,7 +1305,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                             'title' => $template->service_name . ' à ' . $randomCity->name,
                             'keyword' => $template->service_name,
                             'city_id' => $randomCity->id,
-                            'template_id' => $template->id,
+                'template_id' => $template->id,
                             'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
                             'status' => 'published',
                             'published_at' => now(),
@@ -1379,11 +1332,11 @@ EXEMPLES CONCRETS POUR {$keyword}:
                         ]);
                     }
                 }
-            } catch (\Exception $e) {
+        } catch (\Exception $e) {
                 Log::warning('Impossible de créer automatiquement une annonce pour le template', [
                     'template_id' => $template->id,
-                    'error' => $e->getMessage()
-                ]);
+                'error' => $e->getMessage()
+            ]);
                 // On continue même si l'annonce n'a pas pu être créée
             }
 
@@ -1394,205 +1347,26 @@ EXEMPLES CONCRETS POUR {$keyword}:
             }
 
             // Retourner une réponse JSON pour les appels AJAX
-            return response()->json([
-                'success' => true,
+                return response()->json([
+                    'success' => true,
                 'message' => $message,
-                'template_id' => $template->id,
+                    'template_id' => $template->id,
                 'ad_created' => $adCreated,
                 'city_name' => $randomCity ? $randomCity->name : null,
                 'redirect_url' => route('admin.ads.templates.edit', $template->id)
-            ]);
-
+                ]);
+                
         } catch (\Exception $e) {
-            Log::error('Erreur création template mot-clé - Première tentative échouée', [
-                'keyword' => $keyword,
-                'error' => $e->getMessage()
-            ]);
-
-            // FORCER une nouvelle tentative avec l'IA - NE JAMAIS utiliser le fallback générique
-            try {
-                Log::info('Tentative de re-génération IA pour template mot-clé', ['keyword' => $keyword]);
-                
-                // Essayer plusieurs fois avec des paramètres différents
-                $maxRetries = 3;
-                $aiContent = null;
-                
-                for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
-                    try {
-                        Log::info("Tentative {$attempt}/{$maxRetries} de génération IA", ['keyword' => $keyword]);
-                        
-                        // Re-générer avec des paramètres plus agressifs
-                        $companyInfo = $this->getCompanyInfo();
-                        $aiContent = $this->generateCompleteTemplateContent(
-                            $keyword,
-                            '',
-                            $companyInfo,
-                            $request->input('ai_prompt') . ($attempt > 1 ? " (Tentative {$attempt} - CONTENU GÉNÉRIQUE INTERDIT)" : '')
-                        );
-                        
-                        // Si on a réussi à obtenir du contenu, sortir de la boucle
-                        if ($aiContent && isset($aiContent['description']) && strlen(strip_tags($aiContent['description'])) > 1500) {
-                            Log::info("Génération IA réussie à la tentative {$attempt}", ['keyword' => $keyword]);
-                            break;
-                        }
-                    } catch (\Exception $retryException) {
-                        Log::warning("Tentative {$attempt} échouée", [
-                            'keyword' => $keyword,
-                            'error' => $retryException->getMessage()
-                        ]);
-                        
-                        if ($attempt === $maxRetries) {
-                            throw $retryException;
-                        }
-                    }
-                }
-                
-                if (!$aiContent || !isset($aiContent['description'])) {
-                    throw new \Exception("Impossible de générer du contenu via IA après {$maxRetries} tentatives");
-                }
-                
-                // Créer le template avec le contenu IA généré
-                $template = AdTemplate::create([
-                    'name' => $keyword,
-                    'service_name' => $keyword,
-                    'service_slug' => Str::slug($keyword),
-                    'content_html' => $aiContent['description'],
-                    'short_description' => $aiContent['short_description'],
-                    'long_description' => $aiContent['long_description'],
-                    'icon' => $aiContent['icon'],
-                    'featured_image' => $featuredImagePath,
-                    'meta_title' => $aiContent['meta_title'],
-                    'meta_description' => $aiContent['meta_description'],
-                    'meta_keywords' => $aiContent['meta_keywords'],
-                    'og_title' => $aiContent['og_title'],
-                    'og_description' => $aiContent['og_description'],
-                    'twitter_title' => $aiContent['twitter_title'],
-                    'twitter_description' => $aiContent['twitter_description'],
-                    'ai_prompt_used' => $request->input('ai_prompt'),
-                    'ai_response_data' => $aiContent
-                ]);
-                
-                // Retourner la réponse de succès (pas de fallback)
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Template créé avec succès via IA après plusieurs tentatives. Vous pouvez maintenant le personnaliser avant de générer les annonces.',
-                    'template_id' => $template->id,
-                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
-                    'warning' => true
-                ]);
-                
-            } catch (\Exception $fallbackError) {
-                Log::error('ÉCHEC COMPLET - Toutes les tentatives IA ont échoué', [
+            Log::error('Erreur création template mot-clé', [
                     'keyword' => $keyword,
-                    'error' => $fallbackError->getMessage()
-                ]);
-
-                // DERNIER RECOURS: Essayer de créer un template avec du contenu de fallback PERSONNALISÉ (pas générique)
-                try {
-                    // Utiliser generateFallbackTemplateContent mais avec un service personnalisé
-                    $fallbackContent = $this->generateFallbackTemplateContent([
-                        'name' => $keyword,
-                        'slug' => Str::slug($keyword),
-                        'short_description' => "Service professionnel de {$keyword}"
-                    ]);
-                
-                $template = AdTemplate::create([
-                    'name' => $keyword,
-                    'service_name' => $keyword,
-                    'service_slug' => Str::slug($keyword),
-                    'content_html' => $fallbackContent['description'],
-                    'short_description' => $fallbackContent['short_description'],
-                    'long_description' => $fallbackContent['long_description'],
-                    'icon' => $fallbackContent['icon'],
-                        'featured_image' => $featuredImagePath, // Conserver l'image même en fallback
-                    'meta_title' => $fallbackContent['meta_title'],
-                    'meta_description' => $fallbackContent['meta_description'],
-                    'meta_keywords' => $fallbackContent['meta_keywords'],
-                    'og_title' => $fallbackContent['og_title'],
-                    'og_description' => $fallbackContent['og_description'],
-                    'twitter_title' => $fallbackContent['twitter_title'],
-                    'twitter_description' => $fallbackContent['twitter_description'],
-                    'ai_prompt_used' => $request->input('ai_prompt'),
-                    'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
-                ]);
-
-                    // Générer aussi une annonce en fallback pour respecter la personnalisation
-                    $randomCity = null;
-                    $adCreated = false;
-                    
-                    try {
-                        $randomCity = City::inRandomOrder()->first();
-                        
-                        if ($randomCity) {
-                            $existingAd = Ad::where('template_id', $template->id)
-                                ->where('city_id', $randomCity->id)
-                                ->first();
-
-                            if (!$existingAd) {
-                                $contentForCity = $template->getContentForCity($randomCity);
-                                $metaForCity = $template->getMetaForCity($randomCity);
-
-                                Ad::create([
-                                    'title' => $template->service_name . ' à ' . $randomCity->name,
-                                    'keyword' => $template->service_name,
-                                    'city_id' => $randomCity->id,
-                                    'template_id' => $template->id,
-                                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $randomCity->name)),
-                                    'status' => 'published',
-                                    'published_at' => now(),
-                                    'meta_title' => $metaForCity['meta_title'],
-                                    'meta_description' => $metaForCity['meta_description'],
-                                    'meta_keywords' => $metaForCity['meta_keywords'],
-                                    'content_html' => $contentForCity,
-                                    'content_json' => json_encode([
-                                        'template_id' => $template->id,
-                                        'city' => $randomCity->toArray(),
-                                        'generated_at' => now()->toISOString(),
-                                        'auto_generated' => true,
-                                        'fallback' => true
-                                    ])
-                                ]);
-
-                                $template->incrementUsage();
-                                $adCreated = true;
-                            }
-                        }
-                    } catch (\Exception $adError) {
-                        Log::warning('Impossible de créer automatiquement une annonce en fallback', [
-                            'template_id' => $template->id,
-                            'error' => $adError->getMessage()
-                        ]);
-                    }
-
-                    // Message avec information sur la ville
-                    $message = 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.';
-                    if ($adCreated && $randomCity) {
-                        $message .= ' Une annonce a été automatiquement générée pour ' . $randomCity->name . '.';
-                    }
-
-                    // Retourner une réponse JSON même avec fallback
-                return response()->json([
-                    'success' => true,
-                        'message' => $message,
-                    'template_id' => $template->id,
-                        'ad_created' => $adCreated,
-                        'city_name' => $randomCity ? $randomCity->name : null,
-                        'redirect_url' => route('admin.ads.templates.edit', $template->id),
-                        'warning' => true
-                    ]);
-                    
-                } catch (\Exception $finalError) {
-                    Log::error('Erreur création template mot-clé fallback final', [
-                    'keyword' => $keyword,
-                        'error' => $finalError->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
                 ]);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
+                'message' => 'Erreur lors de la création du template via IA: ' . $e->getMessage() . '. Vérifiez vos clés API ChatGPT ou Groq.'
                 ], 500);
-                }
-            }
         }
     }
 
@@ -1994,13 +1768,8 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
             }
         }
         
-        // Fallback amélioré en cas d'échec
-        Log::warning('Utilisation du contenu fallback pour template', ['service_name' => $serviceName]);
-        return $this->generateFallbackTemplateContent([
-            'name' => $serviceName,
-            'slug' => Str::slug($serviceName),
-            'short_description' => $shortDescription
-        ]);
+        // Si on arrive ici, c'est qu'aucune tentative n'a fonctionné
+        throw new \Exception("ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives. Vérifiez vos clés API ChatGPT ou Groq.");
     }
 
     /**
