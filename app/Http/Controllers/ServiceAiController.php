@@ -271,16 +271,16 @@ Génère un JSON avec cette structure (remplis chaque champ avec du CONTENU RÉE
   \"titre_garantie\": \"Garantie de satisfaction\",
   \"texte_garantie\": \"[Détaille les garanties pour {$serviceName}: garantie décennale, chantier propre, normes, matériaux qualité. SOIS SPÉCIFIQUE. TEXTE BRUT SEULEMENT]\",
   \"prestations\": [
-    {\"titre\": \"[Prestation technique 1 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 2 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 3 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 4 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 5 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 6 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 7 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 8 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 9 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
-    {\"titre\": \"[Prestation technique 10 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"
+    {\"titre\": \"[Prestation technique 1 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 2 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 3 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 4 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 5 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 6 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 7 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 8 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 9 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"},
+    {\"titre\": \"[Prestation technique 10 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"}
   ],
   \"faq\": [
     {\"question\": \"[Question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée]\"},
