@@ -239,10 +239,10 @@ Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du
 Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL, TECHNIQUE et PROFESSIONNEL spécifique à {$serviceName} :
 
 {
-  \"description_courte\": \"[Génère une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, avec bénéfices concrets et spécifiques à ce service]\",
-  \"description_longue\": \"[Génère une description longue et détaillée du {$serviceName}. Intègre {$companyCity} et {$companyDept}. Parle des techniques spécifiques utilisées, matériaux concrets, bénéfices énergétiques, durabilité, qualité. 400-600 mots minimum. SOIS TECHNIQUE et SPÉCIFIQUE]\",
+  \"description_courte\": \"[Génère une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, avec bénéfices concrets et spécifiques à ce service. TEXTE BRUT SEULEMENT, PAS DE HTML, PAS DE LIENS]\",
+  \"description_longue\": \"[Génère une description longue et détaillée du {$serviceName}. Intègre {$companyCity} et {$companyDept}. Parle des techniques spécifiques utilisées, matériaux concrets, bénéfices énergétiques, durabilité, qualité. 400-600 mots minimum. SOIS TECHNIQUE et SPÉCIFIQUE. TEXTE BRUT SEULEMENT, PAS DE HTML, PAS DE LIENS, PAS DE BALISES]\",
   \"titre_garantie\": \"[Génère un titre d'engagement/garantie spécifique au {$serviceName}]\",
-  \"texte_garantie\": \"[Génère une description détaillée des garanties pour {$serviceName}. Mentionne: garantie décennale, chantier propre, respect normes, matériaux qualité, satisfaction garantie. SOIS SPÉCIFIQUE au service]\",
+  \"texte_garantie\": \"[Génère une description détaillée des garanties pour {$serviceName}. Mentionne: garantie décennale, chantier propre, respect normes, matériaux qualité, satisfaction garantie. SOIS SPÉCIFIQUE au service. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
   \"prestations\": [
     {\"titre\": \"[Génère prestation technique 1 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
     {\"titre\": \"[Génère prestation technique 2 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
@@ -261,8 +261,8 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
     {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
     {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"}
   ],
-  \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity}. Mentionne expertise locale, qualité, réactivité, garanties, savoir-faire, certifications. SOIS SPÉCIFIQUE et CONCRET]\",
-  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon {$serviceName}]\",
+  \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity}. Mentionne expertise locale, qualité, réactivité, garanties, savoir-faire, certifications. SOIS SPÉCIFIQUE et CONCRET. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
+  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon {$serviceName}. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
   \"infos_pratiques\": [
     {$infosPratiquesJsonString}
   ],
@@ -287,6 +287,9 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
 - ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
 - ⚠️ INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement' sans précision technique
 - ⚠️ Les prestations DOIVENT être TECHNIQUES et SPÉCIFIQUES au {$serviceName}. Exemples inspirants: {$prestationsExamples}
+- ⚠️ INTERDIT ABSOLU de générer du HTML, des liens, des balises, du markdown ou du code dans les champs texte
+- ⚠️ INTERDIT ABSOLU de générer des URLs, liens href, ou boutons dans les descriptions
+- ⚠️ Tous les champs texte doivent contenir UNIQUEMENT du texte brut, sans HTML ni liens
 - Utilise le vocabulaire professionnel EXACT du métier de {$serviceName}
 - Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents, incluant:
   * Le nom du service et ses variations géographiques
@@ -299,7 +302,8 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
 - VÉRIFIE avant d'envoyer: 
   * Le tableau \"prestations\" contient exactement 10 éléments avec contenu réel
   * Toutes les descriptions sont spécifiques et techniques
-  * Aucun contenu générique ou copié";
+  * Aucun contenu générique ou copié
+  * AUCUN HTML, liens, ou balises dans les champs texte";
 
             try {
                 // Utiliser AiService qui gère automatiquement ChatGPT et Groq avec fallback
@@ -572,9 +576,34 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
         $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
         // Remplacer [FORM_URL] par /devis-gratuit (route relative)
         $html = str_replace('[FORM_URL]', '/devis-gratuit', $html);
+        
+        // Nettoyer et remplacer TOUS les liens devis pour pointer vers /devis-gratuit
         // Remplacer les liens hardcodés vers le formulaire (fallback pour anciens templates)
         $html = str_replace('href="/form/propertyType"', 'href="/devis-gratuit"', $html);
-        $html = str_replace('href="/form', 'href="/devis-gratuit', $html);
+        $html = str_replace('href="/form"', 'href="/devis-gratuit"', $html);
+        $html = preg_replace('/href="https?:\/\/[^"]*form[^"]*"/i', 'href="/devis-gratuit"', $html);
+        
+        // Remplacer tous les liens contenant "devis" qui pointent vers des domaines externes
+        $html = preg_replace_callback('/href="(https?:\/\/[^"]*devis[^"]*)"/i', function($matches) {
+            return 'href="/devis-gratuit"';
+        }, $html);
+        
+        // Remplacer les liens relatifs contenant "devis" ou "form"
+        $html = preg_replace('/href="[^"]*\/(?:form|devis|quote|estimation)[^"]*"/i', 'href="/devis-gratuit"', $html);
+        
+        // Nettoyer le HTML généré par l'IA qui pourrait contenir du HTML supplémentaire dans les descriptions
+        // Extraire et nettoyer les descriptions pour enlever tout HTML indésirable
+        $patterns = [
+            // Supprimer les balises HTML dans les descriptions (sauf celles qu'on a générées)
+            '/(?<!<li[^>]*>)(?<!<\/i>)(?<!<\/span>)(?<!<\/p>)(?<!<\/strong>)(?<!<\/h[1-6]>)(?<!<\/div>)(?<!<\/ul>)<a\s+[^>]*href[^>]*>(.*?)<\/a>/i' => '$1',
+            // Supprimer les balises script et style si présentes
+            '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi' => '',
+            '/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi' => '',
+        ];
+        
+        foreach ($patterns as $pattern => $replacement) {
+            $html = preg_replace($pattern, $replacement, $html);
+        }
         
         return $html;
     }
