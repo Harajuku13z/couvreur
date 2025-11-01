@@ -957,17 +957,24 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
         $content = trim($content);
         
         // Si le contenu semble être directement du HTML (pas de JSON), créer un JSON avec
-        if (strpos($content, '<div') !== false && strpos($content, '{') === false) {
-            Log::info('Contenu HTML direct détecté, création de structure JSON');
+        // Détection améliorée : vérifier si c'est principalement du HTML
+        $hasHtmlTags = preg_match('/<[a-z][^>]*>/i', $content);
+        $hasJsonStructure = preg_match('/\{(?:[^{}]|(?R))*\}/s', $content);
+        
+        if ($hasHtmlTags && !$hasJsonStructure) {
+            Log::info('Contenu HTML direct détecté (pas de JSON), création de structure JSON', [
+                'content_length' => strlen($content),
+                'content_preview' => substr($content, 0, 200)
+            ]);
             // Extraire une description courte du HTML
             $plainText = strip_tags($content);
-            $shortDesc = Str::limit($plainText, 140);
-            $metaDesc = Str::limit($plainText, 160);
+            $shortDesc = !empty($plainText) ? Str::limit($plainText, 140) : Str::limit($content, 140);
+            $metaDesc = !empty($plainText) ? Str::limit($plainText, 160) : Str::limit($content, 160);
             
             return [
                 'description' => $content,
                 'short_description' => $shortDesc,
-                'long_description' => Str::limit($plainText, 500),
+                'long_description' => !empty($plainText) ? Str::limit($plainText, 500) : Str::limit($content, 500),
                 'icon' => 'fas fa-tools',
                 'meta_title' => '',
                 'meta_description' => $metaDesc,
@@ -977,6 +984,11 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                 'twitter_description' => $metaDesc,
                 'meta_keywords' => ''
             ];
+        }
+        
+        // Si le contenu commence par <div ou contient beaucoup de HTML, mais aussi un JSON, essayer d'extraire le JSON
+        if ($hasHtmlTags && $hasJsonStructure) {
+            Log::info('Contenu mixte HTML+JSON détecté, tentative extraction JSON');
         }
         
         // Chercher le JSON dans différentes positions (amélioré pour capturer plus de cas)
