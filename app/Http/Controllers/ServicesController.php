@@ -307,6 +307,18 @@ class ServicesController extends Controller
                 $companyInfo,
                 $request->input('ai_prompt')
             );
+            
+            // Vérifier si l'IA a retourné une erreur
+            if (isset($aiContent['error']) && $aiContent['error']) {
+                Log::error('Erreur génération IA lors de la régénération', [
+                    'service_id' => $id,
+                    'service_name' => $service['name'],
+                    'error_message' => $aiContent['error_message'],
+                    'debug_info' => $aiContent['debug_info'] ?? []
+                ]);
+                
+                return back()->with('error', 'Erreur lors de la génération du contenu par l\'IA: ' . $aiContent['error_message'] . '. Consultez les logs pour plus de détails.');
+            }
 
             // Mettre à jour le service avec le nouveau contenu
             $this->updateService($id, [

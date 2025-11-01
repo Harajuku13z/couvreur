@@ -65,7 +65,31 @@
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
-                    {!! $service['description'] !!}
+                    @if(isset($service['error']) && $service['error'])
+                        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg mb-6">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur de génération du contenu</h3>
+                                    <p class="text-red-700 mb-4">{{ $service['error_message'] ?? 'Une erreur est survenue lors de la génération du contenu par l\'IA.' }}</p>
+                                    @if(isset($service['debug_info']))
+                                        <details class="mt-4">
+                                            <summary class="text-sm text-red-600 cursor-pointer hover:text-red-800">Détails techniques (cliquez pour afficher)</summary>
+                                            <pre class="mt-2 p-4 bg-red-100 rounded text-xs overflow-auto">{{ json_encode($service['debug_info'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                        </details>
+                                    @endif
+                                    <p class="text-sm text-red-600 mt-4">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        Veuillez contacter l'administrateur ou régénérer le contenu depuis l'interface d'administration.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        {!! $service['description'] !!}
+                    @endif
                 </div>
 
                 <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
