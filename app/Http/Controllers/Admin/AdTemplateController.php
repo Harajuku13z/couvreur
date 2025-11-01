@@ -1404,14 +1404,97 @@ EXEMPLES CONCRETS POUR {$keyword}:
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur création template mot-clé', [
+            Log::error('Erreur création template mot-clé - Première tentative échouée', [
                 'keyword' => $keyword,
                 'error' => $e->getMessage()
             ]);
 
-            // Essayer de créer un template avec du contenu de fallback
+            // FORCER une nouvelle tentative avec l'IA - NE JAMAIS utiliser le fallback générique
             try {
-                $fallbackContent = $this->generateFallbackKeywordTemplateContent($keyword);
+                Log::info('Tentative de re-génération IA pour template mot-clé', ['keyword' => $keyword]);
+                
+                // Essayer plusieurs fois avec des paramètres différents
+                $maxRetries = 3;
+                $aiContent = null;
+                
+                for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+                    try {
+                        Log::info("Tentative {$attempt}/{$maxRetries} de génération IA", ['keyword' => $keyword]);
+                        
+                        // Re-générer avec des paramètres plus agressifs
+                        $companyInfo = $this->getCompanyInfo();
+                        $aiContent = $this->generateCompleteTemplateContent(
+                            $keyword,
+                            '',
+                            $companyInfo,
+                            $request->input('ai_prompt') . ($attempt > 1 ? " (Tentative {$attempt} - CONTENU GÉNÉRIQUE INTERDIT)" : '')
+                        );
+                        
+                        // Si on a réussi à obtenir du contenu, sortir de la boucle
+                        if ($aiContent && isset($aiContent['description']) && strlen(strip_tags($aiContent['description'])) > 1500) {
+                            Log::info("Génération IA réussie à la tentative {$attempt}", ['keyword' => $keyword]);
+                            break;
+                        }
+                    } catch (\Exception $retryException) {
+                        Log::warning("Tentative {$attempt} échouée", [
+                            'keyword' => $keyword,
+                            'error' => $retryException->getMessage()
+                        ]);
+                        
+                        if ($attempt === $maxRetries) {
+                            throw $retryException;
+                        }
+                    }
+                }
+                
+                if (!$aiContent || !isset($aiContent['description'])) {
+                    throw new \Exception("Impossible de générer du contenu via IA après {$maxRetries} tentatives");
+                }
+                
+                // Créer le template avec le contenu IA généré
+                $template = AdTemplate::create([
+                    'name' => $keyword,
+                    'service_name' => $keyword,
+                    'service_slug' => Str::slug($keyword),
+                    'content_html' => $aiContent['description'],
+                    'short_description' => $aiContent['short_description'],
+                    'long_description' => $aiContent['long_description'],
+                    'icon' => $aiContent['icon'],
+                    'featured_image' => $featuredImagePath,
+                    'meta_title' => $aiContent['meta_title'],
+                    'meta_description' => $aiContent['meta_description'],
+                    'meta_keywords' => $aiContent['meta_keywords'],
+                    'og_title' => $aiContent['og_title'],
+                    'og_description' => $aiContent['og_description'],
+                    'twitter_title' => $aiContent['twitter_title'],
+                    'twitter_description' => $aiContent['twitter_description'],
+                    'ai_prompt_used' => $request->input('ai_prompt'),
+                    'ai_response_data' => $aiContent
+                ]);
+                
+                // Retourner la réponse de succès (pas de fallback)
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Template créé avec succès via IA après plusieurs tentatives. Vous pouvez maintenant le personnaliser avant de générer les annonces.',
+                    'template_id' => $template->id,
+                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
+                    'warning' => true
+                ]);
+                
+            } catch (\Exception $fallbackError) {
+                Log::error('ÉCHEC COMPLET - Toutes les tentatives IA ont échoué', [
+                    'keyword' => $keyword,
+                    'error' => $fallbackError->getMessage()
+                ]);
+
+                // DERNIER RECOURS: Essayer de créer un template avec du contenu de fallback PERSONNALISÉ (pas générique)
+                try {
+                    // Utiliser generateFallbackTemplateContent mais avec un service personnalisé
+                    $fallbackContent = $this->generateFallbackTemplateContent([
+                        'name' => $keyword,
+                        'slug' => Str::slug($keyword),
+                        'short_description' => "Service professionnel de {$keyword}"
+                    ]);
                 
                 $template = AdTemplate::create([
                     'name' => $keyword,
@@ -1619,10 +1702,82 @@ EXEMPLES CONCRETS POUR {$keyword}:
 
 Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_URL], [URL], [TITRE] pour personnalisation par ville.";
             
-            $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
+            $result = AiService::callAI($prompt, $systemMessage, [
                 'max_tokens' => 6000, // Augmenté pour permettre plus de contenu personnalisé
                 'temperature' => 0.95 // Augmenté pour plus de créativité et personnalisation
             ]);
+            
+            // Si l'IA n'a pas répondu, FORCER une nouvelle tentative avec Groq directement
+            if (!$result || !isset($result['content'])) {
+                Log::warning('Première tentative IA échouée, tentative directe avec Groq', ['service_name' => $serviceName]);
+                
+                // Essayer directement avec Groq
+                $groqApiKey = setting('groq_api_key', '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');
+                if ($groqApiKey) {
+                    try {
+                        $groqResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
+                            ->timeout(120)
+                            ->post('https://api.groq.com/openai/v1/chat/completions', [
+                                'model' => setting('groq_model', 'llama-3.1-8b-instant'),
+                                'messages' => [
+                                    ['role' => 'system', 'content' => $systemMessage],
+                                    ['role' => 'user', 'content' => $prompt]
+                                ],
+                                'max_tokens' => 6000,
+                                'temperature' => 0.95
+                            ]);
+                        
+                        if ($groqResponse->successful() && isset($groqResponse->json()['choices'][0]['message']['content'])) {
+                            $result = [
+                                'content' => $groqResponse->json()['choices'][0]['message']['content'],
+                                'provider' => 'groq-direct'
+                            ];
+                            Log::info('Génération réussie avec Groq direct', ['service_name' => $serviceName]);
+                        }
+                    } catch (\Exception $groqException) {
+                        Log::error('Échec appel Groq direct', [
+                            'service_name' => $serviceName,
+                            'error' => $groqException->getMessage()
+                        ]);
+                    }
+                }
+                
+                // Si toujours pas de résultat, essayer ChatGPT directement
+                if (!$result || !isset($result['content'])) {
+                    $chatgptApiKey = setting('chatgpt_api_key');
+                    $chatgptEnabled = setting('chatgpt_enabled', true);
+                    
+                    if ($chatgptEnabled && $chatgptApiKey) {
+                        Log::warning('Groq échoué, tentative directe avec ChatGPT', ['service_name' => $serviceName]);
+                        try {
+                            $chatgptResponse = \Illuminate\Support\Facades\Http::withToken($chatgptApiKey)
+                                ->timeout(120)
+                                ->post('https://api.openai.com/v1/chat/completions', [
+                                    'model' => setting('chatgpt_model', 'gpt-4'),
+                                    'messages' => [
+                                        ['role' => 'system', 'content' => $systemMessage],
+                                        ['role' => 'user', 'content' => $prompt]
+                                    ],
+                                    'max_tokens' => 6000,
+                                    'temperature' => 0.95
+                                ]);
+                            
+                            if ($chatgptResponse->successful() && isset($chatgptResponse->json()['choices'][0]['message']['content'])) {
+                                $result = [
+                                    'content' => $chatgptResponse->json()['choices'][0]['message']['content'],
+                                    'provider' => 'chatgpt-direct'
+                                ];
+                                Log::info('Génération réussie avec ChatGPT direct', ['service_name' => $serviceName]);
+                            }
+                        } catch (\Exception $chatgptException) {
+                            Log::error('Échec appel ChatGPT direct', [
+                                'service_name' => $serviceName,
+                                'error' => $chatgptException->getMessage()
+                            ]);
+                        }
+                    }
+                }
+            }
             
             Log::info('Résultat appel AiService pour template', [
                 'service_name' => $serviceName,
@@ -1658,7 +1813,18 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                         'Nous maîtrisons les techniques modernes garantissant des résultats durables',
                         'Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région',
                         'une expertise reconnue dans [RÉGION]',
-                        'Pourquoi choisir ce service'
+                        'Pourquoi choisir ce service',
+                        // Prestations génériques interdites
+                        'Diagnostic et évaluation',
+                        'Intervention d\'urgence',
+                        'Maintenance préventive',
+                        'Réparation spécialisée',
+                        'Installation complète',
+                        'Rénovation totale',
+                        'Conseil personnalisé',
+                        'Suivi post-intervention',
+                        'Formation utilisateur',
+                        'Garantie étendue'
                     ];
                     
                     $hasGenericContent = false;
