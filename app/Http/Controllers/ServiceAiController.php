@@ -63,19 +63,37 @@ class ServiceAiController extends Controller
         $model = $data['model'] ?? 'llama-3.1-8b-instant';
 
         $created = 0;
+        $updated = 0;
         $existingServices = json_decode(Setting::get('services', '[]'), true) ?: [];
+        $forceRegenerate = $request->input('force_regenerate', false);
 
         foreach ($serviceNames as $serviceName) {
             $slug = Str::slug($serviceName);
             
             // Vérifier si le service existe déjà
-            $exists = collect($existingServices)->contains(function ($service) use ($slug) {
-                return isset($service['slug']) && $service['slug'] === $slug;
-            });
+            $existingServiceIndex = null;
+            $existingService = null;
+            foreach ($existingServices as $index => $service) {
+                if (isset($service['slug']) && $service['slug'] === $slug) {
+                    $existingServiceIndex = $index;
+                    $existingService = $service;
+                    break;
+                }
+            }
             
-            if ($exists) {
+            if ($existingService && !$forceRegenerate) {
+                \Log::info('Service déjà existant, skip (utilisez force_regenerate=1 pour régénérer)', [
+                    'service' => $serviceName,
+                    'slug' => $slug
+                ]);
                 continue; // skip existing
             }
+
+            \Log::info('Génération IA pour service', [
+                'service' => $serviceName,
+                'slug' => $slug,
+                'force_regenerate' => $forceRegenerate && $existingService ? true : false
+            ]);
 
             $companyName = setting('company_name', 'Notre Entreprise');
             $companyCity = setting('company_city', '');
@@ -211,30 +229,70 @@ IMPORTANT:
                 $estimatedInputTokens = (int)((strlen($system) + strlen($user)) / 4);
                 $maxTokens = max(1000, min(3000, 5500 - $estimatedInputTokens)); // Laisser marge de sécurité
                 
+                // Ajouter une variabilité pour éviter les réponses identiques
+                // Utiliser un timestamp ou un hash pour rendre chaque requête unique
+                $timestamp = now()->timestamp;
+                $uniquePrompt = $user . "\n\nTimestamp de génération: {$timestamp}";
+                
+                \Log::info('Appel API Groq pour service', [
+                    'service' => $serviceName,
+                    'model' => $model,
+                    'max_tokens' => $maxTokens,
+                    'estimated_input_tokens' => $estimatedInputTokens,
+                    'temperature' => 0.7
+                ]);
+                
                 $response = Http::withToken(env('GROQ_API_KEY'))
+                    ->timeout(120)
                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model' => $model ?: 'llama-3.1-8b-instant',
                         'messages' => [
                             ['role' => 'system', 'content' => $system],
-                            ['role' => 'user', 'content' => $user],
+                            ['role' => 'user', 'content' => $uniquePrompt],
                         ],
-                        'temperature' => 0.7,
+                        'temperature' => 0.8, // Augmenter légèrement pour plus de variabilité
                         'max_tokens' => $maxTokens,
+                    ]);
+                
+                \Log::info('Réponse API Groq reçue', [
+                    'service' => $serviceName,
+                    'status' => $response->status(),
+                    'response_ok' => $response->ok()
                     ]);
                     
                 $content = $response->ok() ? data_get($response->json(), 'choices.0.message.content') : null;
 
                 if (!$content) {
+                    \Log::error('Pas de contenu retourné par l\'IA pour le service', [
+                        'service' => $serviceName,
+                        'response_status' => $response->status(),
+                        'response_body' => substr($response->body(), 0, 500)
+                    ]);
                     continue;
                 }
+
+                \Log::info('Contenu IA reçu pour service', [
+                    'service' => $serviceName,
+                    'content_length' => strlen($content),
+                    'content_preview' => substr($content, 0, 200)
+                ]);
 
                 // Parser le JSON de la réponse IA
                 $jsonData = $this->parseJsonResponse($content);
                 
                 if (!$jsonData) {
-                    \Log::warning('Impossible de parser le JSON pour le service: ' . $serviceName);
+                    \Log::warning('Impossible de parser le JSON pour le service', [
+                        'service' => $serviceName,
+                        'content_preview' => substr($content, 0, 500)
+                    ]);
                     continue;
                 }
+                
+                \Log::info('JSON parsé avec succès pour service', [
+                    'service' => $serviceName,
+                    'keys' => array_keys($jsonData),
+                    'prestations_count' => count($jsonData['prestations'] ?? [])
+                ]);
 
                 // Vérifier que les prestations sont présentes et complètes
                 if (!isset($jsonData['prestations']) || !is_array($jsonData['prestations'])) {
@@ -299,8 +357,22 @@ IMPORTANT:
                     'updated_at' => now()->toISOString(),
                 ];
 
+                // Si le service existe déjà et qu'on force la régénération, le remplacer
+                if ($existingService && $forceRegenerate && $existingServiceIndex !== null) {
+                    $existingServices[$existingServiceIndex] = $newService;
+                    $updated++;
+                    \Log::info('Service régénéré', [
+                        'service' => $serviceName,
+                        'slug' => $slug
+                    ]);
+                } else {
                 $existingServices[] = $newService;
                 $created++;
+                    \Log::info('Nouveau service créé', [
+                        'service' => $serviceName,
+                        'slug' => $slug
+                    ]);
+                }
 
             } catch (\Throwable $e) {
                 // Ignore and continue to next service
@@ -309,12 +381,25 @@ IMPORTANT:
         }
 
         // Sauvegarder tous les services
-        if ($created > 0) {
+        if ($created > 0 || $updated > 0) {
             Setting::set('services', json_encode($existingServices), 'json', 'services');
             Setting::clearCache();
         }
 
-        return redirect()->route('admin.services.index')->with('status', "$created service(s) généré(s) par IA.");
+        $message = '';
+        if ($created > 0) {
+            $message .= "$created service(s) créé(s)";
+        }
+        if ($updated > 0) {
+            $message .= ($message ? ' et ' : '') . "$updated service(s) régénéré(s)";
+        }
+        if ($created > 0 || $updated > 0) {
+            $message .= ' par IA.';
+        } else {
+            $message = 'Aucun service généré. Les services existent peut-être déjà. Utilisez force_regenerate=1 pour les régénérer.';
+        }
+
+        return redirect()->route('admin.services.index')->with('status', $message);
     }
 
     /**
