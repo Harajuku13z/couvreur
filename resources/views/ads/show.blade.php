@@ -200,7 +200,7 @@
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $relatedAd->title }}</h3>
                             <p class="text-gray-600 text-sm mb-4">{{ Str::limit($relatedAd->meta_description, 100) }}</p>
-                            <a href="{{ route('ads.show', ['service' => explode('-', $relatedAd->slug)[0], 'city' => implode('-', array_slice(explode('-', $relatedAd->slug), 1))]) }}" 
+                            <a href="{{ route('ads.show', $relatedAd->slug) }}" 
                                class="inline-block text-white font-semibold px-4 py-2 rounded-lg transition-colors"
                                style="background-color: var(--primary-color);"
                                onmouseover="this.style.backgroundColor='var(--secondary-color)';"
