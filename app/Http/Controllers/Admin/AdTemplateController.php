@@ -328,16 +328,20 @@ class AdTemplateController extends Controller
      */
     private function buildTemplatePrompt($serviceName, $aiPrompt = null)
     {
-        $basePrompt = "Tu es un expert en {$serviceName} avec une connaissance approfondie des prestations spécifiques à ce domaine. Crée un template d'annonce professionnel avec des prestations RÉELLES et SPÉCIFIQUES à {$serviceName}.
+        $basePrompt = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE des prestations, techniques et matériaux spécifiques à ce domaine. Crée un template d'annonce TOTALEMENT personnalisé pour {$serviceName}.
 
-SERVICE: {$serviceName}
+⚠️⚠️⚠️ SERVICE À PERSONNALISER: {$serviceName} ⚠️⚠️⚠️
 
-INSTRUCTIONS IMPORTANTES:
-- Génère 10 prestations VRAIMENT spécifiques à {$serviceName}
-- Utilise un vocabulaire technique et professionnel
-- Les prestations doivent être réalistes et détaillées
-- Évite les prestations génériques comme 'diagnostic' ou 'conseil'
-- Sois précis sur les techniques et matériaux utilisés
+🚫 INTERDICTIONS ABSOLUES:
+- INTERDIT d'utiliser des prestations génériques comme 'Diagnostic', 'Conseil', 'Maintenance générale', 'Installation professionnelle'
+- INTERDIT de copier du contenu générique applicable à tous les services
+- INTERDIT d'utiliser un vocabulaire vague ou général
+
+✅ OBLIGATIONS ABSOLUES POUR {$serviceName}:
+- Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$serviceName}
+- Utilise le vocabulaire PROFESSIONNEL du métier de {$serviceName}
+- Les prestations doivent mentionner des techniques, matériaux ou méthodes PRÉCISES liés à {$serviceName}
+- Chaque description doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
 
 EXEMPLES DE PRESTATIONS SPÉCIFIQUES:
 - Pour 'Rénovation de toiture': 'Diagnostic et inspection de toiture', 'Nettoyage et démoussage', 'Réparation partielle de toiture', 'Réfection complète de toiture', 'Isolation de toiture', 'Étanchéité et traitement hydrofuge', 'Réparation de zinguerie', 'Pose de charpente', 'Installation de fenêtres de toit', 'Entretien annuel et maintenance préventive'
@@ -359,14 +363,20 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
 }
 
-IMPORTANT: 
-- Réponds UNIQUEMENT avec le JSON ci-dessus
-- Ne pas ajouter de texte avant ou après
-- Ne pas modifier la structure
-- Commence directement par { et termine par }
-- Copie exactement le JSON fourni
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+- REMPLACE TOUT le contenu par du contenu VRAIMENT spécifique à {$serviceName}
+- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName}] par 10 prestations TECHNIQUES RÉELLES pour {$serviceName}
+- Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$serviceName}
+- PERSONNALISE les descriptions, FAQ, et tous les textes pour {$serviceName} spécifiquement
 - Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
-- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName} AVEC DES DESCRIPTIONS DÉTAILLÉES] par 10 prestations réelles avec le format: <li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Nom de la prestation</strong> - Description détaillée</span></li>";
+- Le contenu HTML doit être COMPLET et PERSONNALISÉ, pas un template copié-collé
+- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après
+
+EXEMPLES CONCRETS POUR {$serviceName}:
+- Si {$serviceName} = 'Désamiantage' → prestations: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
+- Si {$serviceName} = 'Traitement humidité' → prestations: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'
+- Si {$serviceName} = 'Rénovation toiture' → prestations: 'Diagnostic toiture par drone', 'Réfection tuiles ardoise', 'Installation écran de sous-toiture'
+";
 
         if ($aiPrompt) {
             $basePrompt .= "\n\nINSTRUCTIONS PERSONNALISÉES SUPPLÉMENTAIRES:\n" . $aiPrompt;
@@ -687,10 +697,13 @@ IMPORTANT:
             'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
         ]);
         
+        // Message système pour forcer la personnalisation
+        $systemMessage = "Tu es un expert technique en {$keyword} avec une connaissance approfondie du domaine. CRITIQUE ABSOLUE: Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$keyword}. INTERDIT d'utiliser des prestations génériques ou du contenu copié. Adapte TOUT spécifiquement au mot-clé {$keyword}.";
+        
         // Utiliser AiService avec fallback automatique vers Groq
-        $result = AiService::callAI($prompt, null, [
-            'max_tokens' => 3000,
-            'temperature' => 0.7,
+        $result = AiService::callAI($prompt, $systemMessage, [
+            'max_tokens' => 4000,
+            'temperature' => 0.9,  // Augmenté pour plus de créativité et personnalisation
             'timeout' => 120
         ]);
 
@@ -721,16 +734,20 @@ IMPORTANT:
      */
     private function buildKeywordTemplatePrompt($keyword, $aiPrompt = null)
     {
-        $basePrompt = "Tu es un expert en {$keyword} avec une connaissance approfondie des prestations spécifiques à ce domaine. Crée un template d'annonce professionnel avec des prestations RÉELLES et SPÉCIFIQUES à {$keyword}.
+        $basePrompt = "Tu es un expert technique en {$keyword} avec une connaissance PROFONDE des prestations, techniques et matériaux spécifiques à ce domaine. Crée un template d'annonce TOTALEMENT personnalisé pour {$keyword}.
 
-MOT-CLÉ: {$keyword}
+⚠️⚠️⚠️ MOT-CLÉ À PERSONNALISER: {$keyword} ⚠️⚠️⚠️
 
-INSTRUCTIONS IMPORTANTES:
-- Génère 10 prestations VRAIMENT spécifiques à {$keyword}
-- Utilise un vocabulaire technique et professionnel
-- Les prestations doivent être réalistes et détaillées
-- Évite les prestations génériques comme 'diagnostic' ou 'conseil'
-- Sois précis sur les techniques et matériaux utilisés
+🚫 INTERDICTIONS ABSOLUES:
+- INTERDIT d'utiliser des prestations génériques comme 'Diagnostic', 'Conseil', 'Maintenance générale', 'Installation professionnelle'
+- INTERDIT de copier du contenu générique applicable à tous les services
+- INTERDIT d'utiliser un vocabulaire vague ou général
+
+✅ OBLIGATIONS ABSOLUES POUR {$keyword}:
+- Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$keyword}
+- Utilise le vocabulaire PROFESSIONNEL du métier de {$keyword}
+- Les prestations doivent mentionner des techniques, matériaux ou méthodes PRÉCISES liés à {$keyword}
+- Chaque description doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$keyword}
 
 GÉNÈRE UN JSON AVEC CES CHAMPS:
 
@@ -748,14 +765,20 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
   \"meta_keywords\": \"{$keyword}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
 }
 
-IMPORTANT: 
-- Réponds UNIQUEMENT avec le JSON ci-dessus
-- Ne pas ajouter de texte avant ou après
-- Ne pas modifier la structure
-- Commence directement par { et termine par }
-- Copie exactement le JSON fourni
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+- REMPLACE TOUT le contenu par du contenu VRAIMENT spécifique à {$keyword}
+- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword}] par 10 prestations TECHNIQUES RÉELLES pour {$keyword}
+- Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$keyword}
+- PERSONNALISE les descriptions, FAQ, et tous les textes pour {$keyword} spécifiquement
 - Utilise [VILLE], [RÉGION], [DÉPARTEMENT] comme placeholders pour les variables dynamiques
-- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword} AVEC DES DESCRIPTIONS DÉTAILLÉES] par 10 prestations réelles avec le format: <li class='flex items-start'><i class='fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0'></i><span><strong>Nom de la prestation</strong> - Description détaillée</span></li>";
+- Le contenu HTML doit être COMPLET et PERSONNALISÉ, pas un template copié-collé
+- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après
+
+EXEMPLES CONCRETS POUR {$keyword}:
+- Si {$keyword} = 'Désamiantage' → prestations: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
+- Si {$keyword} = 'Traitement humidité' → prestations: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'
+- Si {$keyword} = 'Rénovation toiture' → prestations: 'Diagnostic toiture par drone', 'Réfection tuiles ardoise', 'Installation écran de sous-toiture'
+";
 
         if ($aiPrompt) {
             $basePrompt .= "\n\nINSTRUCTIONS PERSONNALISÉES SUPPLÉMENTAIRES:\n" . $aiPrompt;
