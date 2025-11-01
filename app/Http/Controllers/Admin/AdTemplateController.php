@@ -1551,16 +1551,16 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $userPrompt = ($aiPrompt ? ($aiPrompt . "\n\n") : '') . "Service: {$serviceName}
 Description: {$shortDescription}
 Entreprise: {$companyName}
-Ville: {$companyCity}
-Département: {$companyDept}
+
+IMPORTANT: Ceci est un TEMPLATE. Utilise [VILLE] et [DÉPARTEMENT] comme placeholders qui seront remplacés plus tard lors de la création des annonces.
 
 {$infosPratiquesPrompt}
 
 Génère un JSON avec exactement cette structure (remplace les exemples par du contenu réel):
 
 {
-  \"description_courte\": \"Description courte du {$serviceName} dans la ville de {$companyCity} et le département {$companyDept}\",
-  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux. Intègre le nom de la ville {$companyCity} et le département {$companyDept} dans le texte.\",
+  \"description_courte\": \"Description courte du {$serviceName} dans la ville de [VILLE] et le département [DÉPARTEMENT]\",
+  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux. Intègre le nom de la ville [VILLE] et le département [DÉPARTEMENT] dans le texte.\",
   \"titre_garantie\": \"Titre de l'engagement ou garantie (ex: Garantie de satisfaction)\",
   \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
   \"prestations\": [
@@ -1581,11 +1581,18 @@ Génère un JSON avec exactement cette structure (remplace les exemples par du c
     {\"question\": \"Question fréquente 3\", \"reponse\": \"Réponse détaillée\"},
     {\"question\": \"Question fréquente 4\", \"reponse\": \"Réponse détaillée\"}
   ],
-  \"pourquoi_choisir\": \"Avantages de travailler avec {$companyName} pour ce service et parler de notre expertise\",
+  \"pourquoi_choisir\": \"Avantages de travailler avec {$companyName} pour ce service à [VILLE] et dans le département [DÉPARTEMENT]\",
   \"financement_aides\": \"Parler des aides disponibles en France selon le service (MaPrimeRénov, CEE, etc.)\",
   \"infos_pratiques\": [
     \"Utilise EXACTEMENT les informations pratiques fournies ci-dessus dans cette section\"
-  ]
+  ],
+  \"meta_title\": \"{$serviceName} à [VILLE] - Expert professionnel | Devis gratuit\",
+  \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.\",
+  \"meta_keywords\": \"{$serviceName}, [VILLE], [DÉPARTEMENT], expert {$serviceName}, devis gratuit\",
+  \"og_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
+  \"og_description\": \"Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.\",
+  \"twitter_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
+  \"twitter_description\": \"Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.\"
 }
 
 RÈGLES STRICTES:
@@ -1595,10 +1602,11 @@ RÈGLES STRICTES:
 4. PAS de ```json ou ``` autour
 5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
 6. Utilise le vocabulaire professionnel du métier de {$serviceName}
-7. Dans description_courte et description_longue, intègre TOUJOURS la ville {$companyCity} et le département {$companyDept}
+7. Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords), utilise [VILLE] et [DÉPARTEMENT] comme placeholders (ne pas mettre de vraie ville)
 8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
 9. Les guillemets dans les valeurs doivent être échappés avec \\
-10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)";
+10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+11. Ceci est un TEMPLATE : tous les textes doivent contenir [VILLE] et [DÉPARTEMENT] pour être personnalisés plus tard";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
@@ -1634,7 +1642,7 @@ RÈGLES STRICTES:
             if (!$jsonData) {
                 // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
-                    'service_name' => $serviceName,
+                                'service_name' => $serviceName,
                     'provider' => $result['provider'] ?? 'unknown',
                     'content_length' => strlen($result['content']),
                     'content_full' => $result['content'], // Contenu complet pour diagnostic
@@ -1652,23 +1660,23 @@ RÈGLES STRICTES:
                 throw new \Exception('Erreur: Impossible de remplir le template HTML.');
             }
             
-            // Retourner les données formatées pour le template
+            // Retourner les données formatées pour le template (avec placeholders [VILLE] et [DÉPARTEMENT])
             return [
                 'description' => $htmlContent,
                 'short_description' => $jsonData['description_courte'] ?? $shortDescription,
                 'long_description' => $jsonData['description_longue'] ?? '',
                 'icon' => 'fas fa-tools',
-                'meta_title' => $serviceName . ' - Expert professionnel | Devis gratuit',
-                'meta_description' => ($jsonData['description_courte'] ?? $shortDescription) . ' Devis gratuit, intervention rapide.',
-                'og_title' => $serviceName . ' - Expert professionnel',
-                'og_description' => $jsonData['description_courte'] ?? $shortDescription,
-                'twitter_title' => $serviceName . ' - Expert professionnel',
-                'twitter_description' => $jsonData['description_courte'] ?? $shortDescription,
-                'meta_keywords' => $serviceName . ', expert ' . $serviceName . ', devis gratuit, professionnel'
+                'meta_title' => $jsonData['meta_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel | Devis gratuit'),
+                'meta_description' => $jsonData['meta_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.'),
+                'og_title' => $jsonData['og_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel'),
+                'og_description' => $jsonData['og_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
+                'twitter_title' => $jsonData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel'),
+                'twitter_description' => $jsonData['twitter_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
+                'meta_keywords' => $jsonData['meta_keywords'] ?? ($serviceName . ', [VILLE], [DÉPARTEMENT], expert ' . $serviceName . ', devis gratuit')
             ];
         } catch (\Exception $e) {
             Log::error('Erreur génération template: ' . $e->getMessage(), [
-                'service_name' => $serviceName,
+                                    'service_name' => $serviceName,
                 'error' => $e->getTraceAsString()
             ]);
             throw $e;
