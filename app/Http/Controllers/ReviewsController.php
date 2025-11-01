@@ -187,7 +187,7 @@ class ReviewsController extends Controller
                     'review_text' => $review['snippet'] ?? '',
                     'review_date' => isset($review['iso_date']) ? 
                         date('Y-m-d H:i:s', strtotime($review['iso_date'])) : now(),
-                    'source' => 'Google Maps (SerpAPI)',
+                    'source' => 'Google',
                     'is_active' => $autoApprove ? 1 : 0,
                     'is_verified' => true
                 ];
