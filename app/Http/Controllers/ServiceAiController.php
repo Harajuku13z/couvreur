@@ -149,7 +149,7 @@ class ServiceAiController extends Controller
     }
 
     /**
-     * Générer un contenu complet de service via IA (inspiré de AdTemplateController::generateCompleteTemplateContent)
+     * Générer un contenu complet de service via IA (EXACTEMENT comme AdTemplateController::generateCompleteTemplateContent)
      */
     private function generateCompleteServiceContent($serviceName, $shortDescription, $companyInfo)
     {
@@ -164,57 +164,42 @@ class ServiceAiController extends Controller
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
             
-            // Template HTML exact (même que AdTemplateController mais sans [VILLE] et [DÉPARTEMENT])
+            // Template HTML exact (même que AdTemplateController)
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
     <div class="space-y-4">
       <p class="text-lg leading-relaxed">[description_courte]</p>
       <p class="text-lg leading-relaxed">[description_longue]</p>
     </div>
-    <!-- Champ 2 : Engagement / garanties -->
     <div class="bg-blue-50 p-6 rounded-lg">
       <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
       <p class="leading-relaxed mb-3">[texte_garantie]</p>
     </div>
-    <!-- Champ 3 : Prestations / services il en faut 10 -->
     <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
-    <ul class="space-y-3">
-[prestations_liste]
-    </ul>
-    <!-- Champ 8 : FAQ 4 question et reponse -->
+    <ul class="space-y-3">[prestations_liste]</ul>
     <div class="bg-gray-50 p-6 rounded-lg mt-6">
       <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ du [service]</h4>
-      <div class="space-y-2">
-[faq_liste]
-      </div>
+      <div class="space-y-2">[faq_liste]</div>
     </div>
   </div>
-  <!-- Colonne droite : Informations complémentaires -->
   <div class="space-y-6">
-    <!-- Champ 4 : Pourquoi choisir ce service -->
     <div class="bg-green-50 p-6 rounded-lg">
       <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
       <p class="leading-relaxed">[pourquoi_choisir]</p>
     </div>
-    <!-- Champ 9 : Financement / aides disponibles -->
     <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
       <p>[financement_aides]</p>
     </div>
-    <!-- Champ 6 : CTA - demande de devis -->
     <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
       <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
       <a href="/devis-gratuit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
-    <!-- Champ 7 : Informations pratiques -->
     <div class="bg-gray-50 p-6 rounded-lg">
       <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
-      <ul class="space-y-2 text-sm">
-[infos_pratiques_liste]
-      </ul>
+      <ul class="space-y-2 text-sm">[infos_pratiques_liste]</ul>
     </div>
-    <!-- Champ 10 : Partage social -->
     <div class="mt-8 pt-6 border-t border-gray-200">
       <div class="text-center">
         <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
@@ -237,63 +222,65 @@ class ServiceAiController extends Controller
   </div>
 </div>';
             
-            // Prompt simplifié pour générer un JSON structuré (exactement comme AdTemplateController)
-            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. 
-
-🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
-- INTERDIT ABSOLU de créer un champ \"description\" (même vide)
-- INTERDIT ABSOLU de générer du HTML dans les champs JSON
-- INTERDIT ABSOLU de retourner du texte formaté ou du markdown
-
-✅✅✅ OBLIGATION ABSOLUE ✅✅✅:
-Tu génères UNIQUEMENT un JSON valide avec les champs EXACTS: description_courte, description_longue, prestations, faq, etc.
-PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
+            // Prompt système EXACTEMENT comme AdTemplateController
+            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
 
 ⚠️ CRITIQUE : Les valeurs entre [crochets] dans les instructions sont des EXEMPLES/INSTRUCTIONS à suivre, PAS du contenu à copier littéralement. Tu DOIS générer du VRAI contenu professionnel et spécifique, en remplaçant complètement ces instructions par du contenu réel.";
             
             // Construire les infos pratiques pour le prompt
             $infosPratiquesPrompt = "Informations pratiques à utiliser EXACTEMENT (ne pas inventer):\n";
-            $infosPratiquesJson = [];
             if ($companyAddress) {
                 $infosPratiquesPrompt .= "- Adresse : {$companyAddress}\n";
-                $infosPratiquesJson[] = '"Adresse : ' . addslashes($companyAddress) . '"';
             }
             if ($companyPhone) {
                 $infosPratiquesPrompt .= "- Téléphone : {$companyPhone}\n";
-                $infosPratiquesJson[] = '"Téléphone : ' . addslashes($companyPhone) . '"';
             }
             if ($companyEmail) {
                 $infosPratiquesPrompt .= "- Email : {$companyEmail}\n";
-                $infosPratiquesJson[] = '"Email : ' . addslashes($companyEmail) . '"';
             }
             if ($companyHours) {
                 $infosPratiquesPrompt .= "- Horaires de travail : {$companyHours}\n";
-                $infosPratiquesJson[] = '"Horaires de travail : ' . addslashes($companyHours) . '"';
             }
             if ($companyName) {
                 $infosPratiquesPrompt .= "- Société : {$companyName}\n";
-                $infosPratiquesJson[] = '"Société : ' . addslashes($companyName) . '"';
             }
-            $infosPratiquesJsonString = implode(",\n    ", $infosPratiquesJson);
             
             // Déterminer les types de prestations selon le service
             $prestationsExamples = '';
             $serviceLower = mb_strtolower($serviceName);
             if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Réparation de tuiles cassées, Remplacement de faîtage, Traitement hydrofuge, Réfection de zinguerie, Réparation de solin, Remplacement d'ardoises, Réparation de charpente, Isolation des combles, Réfection de gouttières, Traitement anti-moisissure";
+                $prestationsExamples = "Exemples pour {$serviceName}: Réparation toiture, Hydrofuge toiture, Remplacement tuiles, Zinguerie, Réfection charpente, etc.";
             } elseif (strpos($serviceLower, 'isolation') !== false || strpos($serviceLower, 'isol') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Isolation des combles perdus, Isolation sous rampants, Isolation des murs par l'intérieur, Isolation des murs par l'extérieur, Isolation des sols, Traitement des ponts thermiques, Pose de VMC double flux, Calorifugeage";
+                $prestationsExamples = "Exemples pour {$serviceName}: Isolation combles perdus, Isolation toiture, Isolation murs, Isolation sols, Traitement ponts thermiques, etc.";
             } elseif (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Ravalement de façade, Application d'enduit monocouche, Peinture façade, Nettoyage haute pression, Réfection de parement, Réparation de fissures, Traitement anti-humidité, Isolation thermique par l'extérieur";
+                $prestationsExamples = "Exemples pour {$serviceName}: Ravalement façade, Enduit façade, Peinture façade, Nettoyage façade, Réfection parement, etc.";
             } else {
                 $prestationsExamples = "Génère 10 prestations techniques spécifiques au {$serviceName} avec le vocabulaire professionnel du métier.";
             }
             
+            // Construire le tableau JSON pour infos_pratiques
+            $infosPratiquesJson = [];
+            if ($companyAddress) {
+                $infosPratiquesJson[] = '"Adresse : ' . addslashes($companyAddress) . '"';
+            }
+            if ($companyPhone) {
+                $infosPratiquesJson[] = '"Téléphone : ' . addslashes($companyPhone) . '"';
+            }
+            if ($companyEmail) {
+                $infosPratiquesJson[] = '"Email : ' . addslashes($companyEmail) . '"';
+            }
+            if ($companyHours) {
+                $infosPratiquesJson[] = '"Horaires de travail : ' . addslashes($companyHours) . '"';
+            }
+            if ($companyName) {
+                $infosPratiquesJson[] = '"Société : ' . addslashes($companyName) . '"';
+            }
+            $infosPratiquesJsonString = implode(",\n    ", $infosPratiquesJson);
+            
+            // Prompt utilisateur EXACTEMENT comme AdTemplateController (sans [VILLE] et [DÉPARTEMENT])
             $userPrompt = "Service: {$serviceName}
 Description: {$shortDescription}
 Entreprise: {$companyName}
-Ville: {$companyCity}
-Département: {$companyDept}
 
 {$infosPratiquesPrompt}
 
@@ -339,31 +326,20 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
   \"twitter_description\": \"Service professionnel de {$serviceName} à {$companyCity} dans le département {$companyDept}. Devis gratuit.\"
 }
 
-⚠️⚠️⚠️ FORMAT JSON OBLIGATOIRE ⚠️⚠️⚠️:
+RÈGLES STRICTES:
 1. Réponds UNIQUEMENT avec le JSON (commence par { et finit par })
 2. PAS de texte avant le {
 3. PAS de texte après le }
 4. PAS de ```json ou ``` autour
-5. ⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue.
-
-⚠️⚠️⚠️ CONTENU DES PRESTATIONS ⚠️⚠️⚠️:
-6. Les prestations DOIVENT être UNIQUEMENT et EXCLUSIVEMENT liées à {$serviceName}
-7. INTERDIT ABSOLU d'inclure des prestations qui ne sont PAS liées à {$serviceName} (ex: si {$serviceName} = \"Rénovation de toiture\", INTERDIT \"Élagage\", \"Peinture façade\", \"Rénovation chauffage\", etc.)
-8. Les prestations doivent utiliser le vocabulaire professionnel EXACT du métier de {$serviceName}
-9. {$prestationsExamples}
-10. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations TECHNIQUES et SPÉCIFIQUES à {$serviceName}. PAS moins, PAS plus.
-
-⚠️⚠️⚠️ QUALITÉ DU CONTENU ⚠️⚠️⚠️:
-11. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
-12. INTERDIT ABSOLU d'utiliser des phrases répétitives comme \"Nous proposons des interventions techniques de...\" dans TOUTES les prestations
-13. Chaque prestation DOIT être UNIQUE et DIFFÉRENTE, avec un vocabulaire varié
-14. Utilise le vocabulaire professionnel EXACT du métier de {$serviceName}
-
-RÈGLES TECHNIQUES:
-15. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
-16. Les guillemets dans les valeurs doivent être échappés avec \\
-17. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-18. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.";
+5. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
+6. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
+7. Utilise le vocabulaire professionnel du métier de {$serviceName}
+8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
+9. Les guillemets dans les valeurs doivent être échappés avec \\
+10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.
+12. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
+13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.";
             
             Log::info('Appel à AiService::callAI pour service', [
                 'service_name' => $serviceName,
@@ -406,22 +382,6 @@ RÈGLES TECHNIQUES:
                 'content_preview' => substr($result['content'], 0, 300)
             ]);
             
-            // Vérifier si l'IA a retourné un champ "description" AVANT même le parsing
-            $content = $result['content'];
-            $hasDescriptionField = preg_match('/"description"\s*:/', $content) || preg_match('/\'description\'\s*:/', $content);
-            
-            if ($hasDescriptionField) {
-                Log::error('L\'IA a généré un champ "description" INTERDIT - REJET IMMÉDIAT', [
-                    'service_name' => $serviceName,
-                    'content_preview' => substr($content, 0, 500),
-                    'has_html_in_description' => preg_match('/"description"\s*:\s*["\'][^"\']*<[^>]+>/', $content)
-                ]);
-                return [
-                    'error' => true,
-                    'error_message' => 'L\'IA a généré un champ "description" (interdit). Le système attend UNIQUEMENT les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer ou augmenter la température pour plus de créativité.'
-                ];
-            }
-            
             // Parser le JSON de la réponse IA (même méthode que AdTemplateController)
             $jsonData = $this->parseJsonResponseForService($result['content']);
             
@@ -461,44 +421,6 @@ RÈGLES TECHNIQUES:
                 ];
             }
             
-            // Vérifier qu'il n'y a PAS de champ "description" (c'est une erreur - le champ est interdit)
-            if (isset($jsonData['description'])) {
-                Log::error('Le JSON contient un champ "description" INTERDIT - FORMAT INCORRECT', [
-                    'service_name' => $serviceName,
-                    'json_keys' => array_keys($jsonData),
-                    'description_preview' => substr($jsonData['description'], 0, 200),
-                    'description_length' => strlen($jsonData['description'] ?? ''),
-                    'contains_html' => preg_match('/<[^>]+>/', $jsonData['description'] ?? '')
-                ]);
-                // Ignorer le champ "description" et continuer si description_courte et description_longue existent
-                if (isset($jsonData['description_courte']) && isset($jsonData['description_longue'])) {
-                    unset($jsonData['description']); // Supprimer le champ interdit
-                    Log::info('Champ "description" supprimé, utilisation de description_courte et description_longue', [
-                        'service_name' => $serviceName
-                    ]);
-                } else {
-                    return [
-                        'error' => true,
-                        'error_message' => 'Le JSON généré contient un champ "description" (interdit). Le système attend les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer.'
-                    ];
-                }
-            }
-            
-            // Vérifier que les champs attendus sont présents
-            if (!isset($jsonData['description_courte']) || !isset($jsonData['prestations'])) {
-                Log::error('Champs JSON attendus manquants', [
-                    'service_name' => $serviceName,
-                    'json_keys' => array_keys($jsonData),
-                    'has_description_courte' => isset($jsonData['description_courte']),
-                    'has_prestations' => isset($jsonData['prestations']),
-                    'has_description_instead' => isset($jsonData['description'])
-                ]);
-                return [
-                    'error' => true,
-                    'error_message' => 'Le JSON généré ne contient pas les champs requis (description_courte, prestations). Champs trouvés: ' . implode(', ', array_keys($jsonData))
-                ];
-            }
-            
             // Vérifier que les prestations sont présentes (10 exactement)
             if (!isset($jsonData['prestations']) || !is_array($jsonData['prestations']) || count($jsonData['prestations']) < 10) {
                 Log::error('Nombre insuffisant de prestations', [
@@ -512,44 +434,19 @@ RÈGLES TECHNIQUES:
                 ];
             }
             
-            // S'assurer qu'il n'y a plus de champ "description" dans jsonData (nettoyage final)
-            if (isset($jsonData['description'])) {
-                unset($jsonData['description']);
-                Log::info('Nettoyage final: champ "description" supprimé du JSON avant remplissage template');
-            }
-            
             // Remplir le template HTML avec les données JSON
             $htmlContent = $this->fillTemplateForService($template, $jsonData, $serviceName, $companyName, $companyInfo);
             
-            if (!$htmlContent || empty(trim($htmlContent))) {
-                Log::error('Template HTML vide après remplissage', [
-                    'service_name' => $serviceName,
-                    'template_length' => strlen($template),
-                    'json_keys' => array_keys($jsonData)
-                ]);
+            if (!$htmlContent) {
                 return [
                     'error' => true,
                     'error_message' => 'Erreur: Impossible de remplir le template HTML.'
                 ];
             }
             
-            // Vérifier que le HTML généré contient bien les éléments attendus
-            if (strpos($htmlContent, '[description_courte]') !== false || 
-                strpos($htmlContent, '[description_longue]') !== false ||
-                strpos($htmlContent, '[prestations_liste]') !== false) {
-                Log::error('Template HTML contient encore des placeholders non remplacés', [
-                    'service_name' => $serviceName,
-                    'html_preview' => substr($htmlContent, 0, 500)
-                ]);
-                return [
-                    'error' => true,
-                    'error_message' => 'Erreur: Le template HTML contient encore des placeholders non remplacés. Vérifiez que tous les champs JSON sont présents.'
-                ];
-            }
-            
-            // Retourner les données formatées (description = HTML généré depuis template, PAS depuis JSON)
+            // Retourner les données formatées
             return [
-                'description' => $htmlContent, // HTML généré depuis le template, PAS depuis JSON
+                'description' => $htmlContent,
                 'short_description' => $jsonData['description_courte'] ?? $shortDescription,
                 'icon' => 'fas fa-tools',
                 'meta_title' => $jsonData['meta_title'] ?? ($serviceName . ' à ' . $companyCity . ' - Expert professionnel | Devis gratuit'),
@@ -571,7 +468,7 @@ RÈGLES TECHNIQUES:
     }
     
     /**
-     * Parser le JSON de la réponse IA (même méthode que AdTemplateController::parseJsonResponseForTemplate)
+     * Parser le JSON de la réponse IA (EXACTEMENT comme AdTemplateController::parseJsonResponseForTemplate)
      */
     private function parseJsonResponseForService($content)
     {
@@ -647,7 +544,7 @@ RÈGLES TECHNIQUES:
     }
     
     /**
-     * Remplir le template HTML avec les données JSON (même méthode que AdTemplateController::fillTemplateForAds)
+     * Remplir le template HTML avec les données JSON (EXACTEMENT comme AdTemplateController::fillTemplateForAds)
      */
     private function fillTemplateForService($template, $data, $serviceName, $companyName, $companyInfo)
     {
