@@ -132,19 +132,33 @@
 </style>
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-6">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="bg-gray-50 min-h-full p-6">
+    <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="mb-8">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">🛠️ Créer un Nouveau Service</h1>
+                    <h2 class="text-3xl font-bold text-gray-900">🛠️ Créer un Nouveau Service</h2>
                     <p class="mt-2 text-gray-600">Créez une page de service avec génération automatique de contenu par IA</p>
                 </div>
                 <a href="{{ route('services.admin.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
                     <i class="fas fa-arrow-left mr-2"></i>Retour aux Services
                 </a>
             </div>
+            
+            @if(session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+            
+            @if(session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
         </div>
 
         <form action="{{ route('services.admin.store') }}" method="POST" id="service-form" enctype="multipart/form-data">
