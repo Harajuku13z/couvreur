@@ -159,7 +159,10 @@ class AiService
                         'status' => $status,
                         'error_message' => $errorMessage,
                         'error_type' => $errorType,
-                        'response_preview' => substr($groqResponse->body(), 0, 500)
+                        'estimated_input_tokens' => $estimatedInputTokens ?? 0,
+                        'groq_max_tokens' => $groqMaxTokens ?? 0,
+                        'response_preview' => substr($groqResponse->body(), 0, 500),
+                        'full_response' => config('app.debug') ? $groqResponse->body() : null
                     ]);
                     
                     // Gérer spécifiquement l'erreur 413 (Request too large)
@@ -207,10 +210,20 @@ class AiService
                                         'content' => $groqContent,
                                         'provider' => 'groq'
                                     ];
+                                } else {
+                                    $retryErrorBody = $retryResponse->json();
+                                    Log::error('Échec retry Groq avec prompt réduit', [
+                                        'status' => $retryResponse->status(),
+                                        'error_message' => $retryErrorBody['error']['message'] ?? 'Unknown error',
+                                        'reduced_input_length' => $reducedLength ?? 0,
+                                        'reduced_input_tokens' => $reducedInputTokens ?? 0,
+                                        'reduced_max_tokens' => $reducedMaxTokens ?? 0
+                                    ]);
                                 }
                             } catch (\Exception $retryException) {
-                                Log::error('Échec retry Groq avec prompt réduit', [
-                                    'message' => $retryException->getMessage()
+                                Log::error('Exception lors du retry Groq avec prompt réduit', [
+                                    'message' => $retryException->getMessage(),
+                                    'trace' => config('app.debug') ? $retryException->getTraceAsString() : null
                                 ]);
                             }
                         }
@@ -225,6 +238,16 @@ class AiService
         } else {
             Log::warning('Clé API Groq manquante, impossible d\'utiliser le fallback');
         }
+        
+        // Log final si tout a échoué
+        Log::error('AiService::callAI - Échec total : toutes les tentatives ont échoué', [
+            'chatgpt_enabled' => $chatgptEnabled ?? false,
+            'chatgpt_api_key_exists' => !empty($chatgptApiKey),
+            'groq_api_key_exists' => !empty($groqApiKey),
+            'prompt_length' => strlen($prompt),
+            'system_message_length' => $systemMessage ? strlen($systemMessage) : 0,
+            'total_input_length' => $totalMessageLength ?? 0
+        ]);
         
         return null;
     }

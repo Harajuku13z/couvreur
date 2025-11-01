@@ -1787,11 +1787,20 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     'groq_api_key_preview' => $groqApiKey ? substr($groqApiKey, 0, 10) . '...' : 'NULL'
                 ]);
                 
-                $errorMessage = "ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives.\n";
-                $errorMessage .= "ChatGPT activé: " . ($chatgptEnabledValue ? 'OUI' : 'NON') . "\n";
-                $errorMessage .= "Clé ChatGPT: " . (!empty($chatgptApiKey) ? 'PRÉSENTE (' . strlen($chatgptApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
-                $errorMessage .= "Clé Groq: " . (!empty($groqApiKey) ? 'PRÉSENTE (' . strlen($groqApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
-                $errorMessage .= "Vérifiez vos clés API dans /config et consultez les logs Laravel (storage/logs/laravel.log) pour plus de détails.";
+                $errorMessage = "ERREUR CRITIQUE: Impossible de générer du contenu via IA après toutes les tentatives.\n\n";
+                $errorMessage .= "DIAGNOSTIC:\n";
+                $errorMessage .= "- ChatGPT activé: " . ($chatgptEnabledValue ? 'OUI' : 'NON') . "\n";
+                $errorMessage .= "- Clé ChatGPT: " . (!empty($chatgptApiKey) ? 'PRÉSENTE (' . strlen($chatgptApiKey) . ' caractères)' : 'MANQUANTE') . "\n";
+                $errorMessage .= "- Clé Groq: " . (!empty($groqApiKey) ? 'PRÉSENTE (' . strlen($groqApiKey) . ' caractères)' : 'MANQUANTE') . "\n\n";
+                $errorMessage .= "SOLUTIONS POSSIBLES:\n";
+                $errorMessage .= "1. Vérifiez que vos clés API sont valides dans /config\n";
+                $errorMessage .= "2. Si vous utilisez Groq, vérifiez que vous n'avez pas atteint la limite TPM (6000 tokens/min)\n";
+                $errorMessage .= "3. Consultez les logs détaillés: tail -f storage/logs/laravel.log | grep -i 'AiService\\|Groq\\|ChatGPT'\n";
+                $errorMessage .= "4. Réessayez dans quelques instants si la limite de taux a été atteinte\n";
+                
+                if (empty($chatgptApiKey) && empty($groqApiKey)) {
+                    $errorMessage .= "\n⚠️ AUCUNE CLÉ API CONFIGURÉE - Vous devez configurer au moins ChatGPT OU Groq dans /config";
+                }
                 
                 throw new \Exception($errorMessage);
             }
