@@ -295,9 +295,12 @@ class AdTemplateController extends Controller
             'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
         ]);
         
-        $result = AiService::callAI($prompt, null, [
-            'max_tokens' => 3000,
-            'temperature' => 0.7,
+        // Message système pour forcer la personnalisation
+        $systemMessage = "Tu es un expert technique en {$service['name']} avec une connaissance approfondie du domaine. CRITIQUE ABSOLUE: Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$service['name']}. INTERDIT d'utiliser des prestations génériques ou du contenu copié. Adapte TOUT spécifiquement au service {$service['name']}.";
+        
+        $result = AiService::callAI($prompt, $systemMessage, [
+            'max_tokens' => 4000,
+            'temperature' => 0.9,  // Augmenté pour plus de créativité et personnalisation
             'timeout' => 120
         ]);
 
