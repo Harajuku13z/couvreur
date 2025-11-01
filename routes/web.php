@@ -213,12 +213,12 @@ Route::middleware(['check.setup'])->group(function () {
 
         // ===== TEMPLATES D'ANNONCES =====
         Route::get('/ads/templates', [App\Http\Controllers\Admin\AdTemplateController::class, 'index'])->name('ads.templates.index');
+        Route::get('/ads/templates/create', [App\Http\Controllers\Admin\AdTemplateController::class, 'create'])->name('ads.templates.create');
+        Route::post('/ads/templates', [App\Http\Controllers\Admin\AdTemplateController::class, 'store'])->name('ads.templates.store');
         Route::get('/ads/templates/cities', [App\Http\Controllers\Admin\AdTemplateController::class, 'getCities'])->name('ads.templates.cities');
         Route::get('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('ads.templates.show');
         Route::get('/ads/templates/{template}/edit', [App\Http\Controllers\Admin\AdTemplateController::class, 'edit'])->name('ads.templates.edit');
         Route::put('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'update'])->name('ads.templates.update');
-        Route::post('/ads/templates/create-from-service', [App\Http\Controllers\Admin\AdTemplateController::class, 'createFromService'])->name('ads.templates.create-from-service');
-        Route::post('/ads/templates/create-from-keyword', [App\Http\Controllers\Admin\AdTemplateController::class, 'createFromKeyword'])->name('ads.templates.create-from-keyword');
         Route::post('/ads/templates/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('ads.templates.generate-ads');
         Route::post('/ads/templates/{template}/toggle-status', [App\Http\Controllers\Admin\AdTemplateController::class, 'toggleStatus'])->name('ads.templates.toggle-status');
         Route::delete('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'destroy'])->name('ads.templates.destroy');

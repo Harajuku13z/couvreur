@@ -79,7 +79,97 @@ class AdTemplateController extends Controller
     }
 
     /**
-     * Créer un template à partir d'un service
+     * Créer un template manuellement
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'service_name' => 'required|string|max:255',
+            'service_slug' => 'required|string|max:255',
+            'content_html' => 'required|string',
+            'short_description' => 'required|string|max:500',
+            'long_description' => 'required|string|max:2000',
+            'meta_title' => 'required|string|max:160',
+            'meta_description' => 'required|string|max:500',
+            'meta_keywords' => 'nullable|string|max:500',
+            'og_title' => 'nullable|string|max:160',
+            'og_description' => 'nullable|string|max:500',
+            'twitter_title' => 'nullable|string|max:160',
+            'twitter_description' => 'nullable|string|max:500',
+            'icon' => 'nullable|string|max:50',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        try {
+            // Gérer l'upload de l'image si fournie
+            $featuredImagePath = null;
+            if ($request->hasFile('featured_image')) {
+                $file = $request->file('featured_image');
+                $fileName = 'template_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                
+                $uploadPath = public_path('uploads/templates');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+                
+                $file->move($uploadPath, $fileName);
+                $featuredImagePath = 'uploads/templates/' . $fileName;
+            }
+
+            // Créer le template
+            $template = AdTemplate::create([
+                'name' => $validated['name'],
+                'service_name' => $validated['service_name'],
+                'service_slug' => $validated['service_slug'],
+                'content_html' => $validated['content_html'],
+                'short_description' => $validated['short_description'],
+                'long_description' => $validated['long_description'],
+                'icon' => $validated['icon'] ?? 'fas fa-tools',
+                'featured_image' => $featuredImagePath,
+                'meta_title' => $validated['meta_title'],
+                'meta_description' => $validated['meta_description'],
+                'meta_keywords' => $validated['meta_keywords'] ?? '',
+                'og_title' => $validated['og_title'] ?? $validated['meta_title'],
+                'og_description' => $validated['og_description'] ?? $validated['meta_description'],
+                'twitter_title' => $validated['twitter_title'] ?? $validated['meta_title'],
+                'twitter_description' => $validated['twitter_description'] ?? $validated['meta_description'],
+            ]);
+
+            return redirect()
+                ->route('admin.ads.templates.show', $template->id)
+                ->with('success', 'Template créé avec succès ! Vous pouvez maintenant générer des annonces.');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur création template manuel', [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Erreur lors de la création du template: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Afficher le formulaire de création
+     */
+    public function create()
+    {
+        // Récupérer les services depuis les settings pour le select
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        if (!is_array($services)) {
+            $services = [];
+        }
+
+        return view('admin.ads.templates.create', compact('services'));
+    }
+
+    /**
+     * Créer un template à partir d'un service (DÉSACTIVÉ - Utiliser store() à la place)
+     * @deprecated
      */
     public function createFromService(Request $request)
     {
@@ -617,14 +707,14 @@ EXEMPLES CONCRETS POUR {$serviceName}:
         $lastBrace = strrpos($content, '}');
         
         if ($firstBrace !== false && $lastBrace !== false && $firstBrace < $lastBrace) {
-            $jsonContent = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
-            
+        $jsonContent = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
+        
             // Essayer de parser directement
             $data = json_decode($jsonContent, true);
             if ($data && is_array($data)) {
                 Log::info('JSON extrait directement');
-                return $jsonContent;
-            }
+            return $jsonContent;
+        }
             
             // Essayer après correction
             $corrected = $this->attemptJsonCorrection($jsonContent);
