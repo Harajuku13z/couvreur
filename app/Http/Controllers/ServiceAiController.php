@@ -237,7 +237,7 @@ class ServiceAiController extends Controller
   </div>
 </div>';
             
-            // Prompt simplifié pour générer un JSON structuré (inspiré de AdTemplateController)
+            // Prompt simplifié pour générer un JSON structuré (exactement comme AdTemplateController)
             $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
 
 ⚠️ CRITIQUE : Les valeurs entre [crochets] dans les instructions sont des EXEMPLES/INSTRUCTIONS à suivre, PAS du contenu à copier littéralement. Tu DOIS générer du VRAI contenu professionnel et spécifique, en remplaçant complètement ces instructions par du contenu réel.";
@@ -281,34 +281,22 @@ class ServiceAiController extends Controller
             }
             
             $userPrompt = "Service: {$serviceName}
+Description: {$shortDescription}
 Entreprise: {$companyName}
 Ville: {$companyCity}
 Département: {$companyDept}
 
 {$infosPratiquesPrompt}
 
-🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
-- INTERDIT de créer un champ \"description\" contenant du HTML
-- INTERDIT de générer du HTML dans n'importe quel champ JSON
-- INTERDIT de retourner du texte formaté ou du markdown
-- TU DOIS générer uniquement un JSON avec les champs EXACTS demandés ci-dessous
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
+Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
 
-⚠️⚠️⚠️ ATTENTION CRITIQUE ⚠️⚠️⚠️:
-Le template HTML est DÉJÀ créé sur le serveur. Tu dois UNIQUEMENT fournir les DONNÉES en JSON.
-Les champs JSON doivent être: description_courte, description_longue, prestations, faq, etc.
-PAS de champ \"description\" avec du HTML !
-
-⚠️⚠️⚠️ STRUCTURE JSON OBLIGATOIRE - PAS DE CHAMP \"description\" ⚠️⚠️⚠️:
-Les champs JSON DOIVENT être EXACTEMENT ceux listés ci-dessous.
-INTERDIT de créer un champ \"description\".
-INTERDIT de créer un champ avec du HTML.
-
-Génère un JSON avec cette structure EXACTE (remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL) :
+Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL :
 
 {
-  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, mentionnant les bénéfices principaux. TEXTE BRUT SEULEMENT]\",
-  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement {$companyCity} et {$companyDept}. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots. TEXTE BRUT SEULEMENT]\",
-  \"titre_garantie\": \"Garantie de satisfaction\",
+  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, mentionnant les bénéfices principaux.]\",
+  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement {$companyCity} et {$companyDept}. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots.]\",
+  \"titre_garantie\": \"[Génère un titre de garantie attractif, ex: 'Garantie décennale et satisfaction' ou 'Nos engagements qualité']\",
   \"texte_garantie\": \"[Génère un texte détaillant les garanties offertes: garantie décennale, assurance, normes respectées, chantier propre, suivi post-intervention, etc.]\",
   \"prestations\": [
     {\"titre\": \"[Prestation technique 1 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
@@ -342,23 +330,6 @@ Génère un JSON avec cette structure EXACTE (remplis chaque champ avec du CONTE
   \"twitter_description\": \"Service professionnel de {$serviceName} à {$companyCity} dans le département {$companyDept}. Devis gratuit.\"
 }
 
-🚫🚫🚫 CHAMPS INTERDITS 🚫🚫🚫:
-- INTERDIT ABSOLU de créer un champ \"description\" (même vide)
-- INTERDIT ABSOLU de créer un champ avec du HTML ou des balises
-- INTERDIT ABSOLU de créer d'autres champs que ceux listés ci-dessus
-
-✅✅✅ CHAMPS OBLIGATOIRES (utilise EXACTEMENT ces noms) ✅✅✅:
-- description_courte (TEXTE BRUT)
-- description_longue (TEXTE BRUT)
-- titre_garantie (TEXTE BRUT)
-- texte_garantie (TEXTE BRUT)
-- prestations (TABLEAU de 10 objets)
-- faq (TABLEAU de 4 objets)
-- pourquoi_choisir (TEXTE BRUT)
-- financement_aides (TEXTE BRUT)
-- infos_pratiques (TABLEAU de strings)
-- meta_title, meta_description, meta_keywords, og_title, og_description, twitter_title, twitter_description (TEXTE BRUT)
-
 RÈGLES STRICTES:
 1. Réponds UNIQUEMENT avec le JSON (commence par { et finit par })
 2. PAS de texte avant le {
@@ -370,10 +341,17 @@ RÈGLES STRICTES:
 8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
 9. Les guillemets dans les valeurs doivent être échappés avec \\
 10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.
+11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
+    - Le nom du service et ses variations géographiques
+    - Des termes techniques spécifiques au métier
+    - Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
+    - Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
+    - Des termes géographiques avec {$companyCity} et {$companyDept}
+    - Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
+    - Des matériaux ou techniques spécifiques au service
 12. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
 13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.
-14. ⚠️⚠️⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue, PAS description.";
+14. ⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue, PAS description.";
             
             Log::info('Appel à AiService::callAI pour service', [
                 'service_name' => $serviceName,
