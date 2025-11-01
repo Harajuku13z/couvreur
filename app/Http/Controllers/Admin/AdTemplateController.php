@@ -1495,26 +1495,26 @@ EXEMPLES CONCRETS POUR {$keyword}:
                         'slug' => Str::slug($keyword),
                         'short_description' => "Service professionnel de {$keyword}"
                     ]);
-                    
-                    $template = AdTemplate::create([
-                        'name' => $keyword,
-                        'service_name' => $keyword,
-                        'service_slug' => Str::slug($keyword),
-                        'content_html' => $fallbackContent['description'],
-                        'short_description' => $fallbackContent['short_description'],
-                        'long_description' => $fallbackContent['long_description'],
-                        'icon' => $fallbackContent['icon'],
+                
+                $template = AdTemplate::create([
+                    'name' => $keyword,
+                    'service_name' => $keyword,
+                    'service_slug' => Str::slug($keyword),
+                    'content_html' => $fallbackContent['description'],
+                    'short_description' => $fallbackContent['short_description'],
+                    'long_description' => $fallbackContent['long_description'],
+                    'icon' => $fallbackContent['icon'],
                         'featured_image' => $featuredImagePath, // Conserver l'image même en fallback
-                        'meta_title' => $fallbackContent['meta_title'],
-                        'meta_description' => $fallbackContent['meta_description'],
-                        'meta_keywords' => $fallbackContent['meta_keywords'],
-                        'og_title' => $fallbackContent['og_title'],
-                        'og_description' => $fallbackContent['og_description'],
-                        'twitter_title' => $fallbackContent['twitter_title'],
-                        'twitter_description' => $fallbackContent['twitter_description'],
-                        'ai_prompt_used' => $request->input('ai_prompt'),
-                        'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
-                    ]);
+                    'meta_title' => $fallbackContent['meta_title'],
+                    'meta_description' => $fallbackContent['meta_description'],
+                    'meta_keywords' => $fallbackContent['meta_keywords'],
+                    'og_title' => $fallbackContent['og_title'],
+                    'og_description' => $fallbackContent['og_description'],
+                    'twitter_title' => $fallbackContent['twitter_title'],
+                    'twitter_description' => $fallbackContent['twitter_description'],
+                    'ai_prompt_used' => $request->input('ai_prompt'),
+                    'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
+                ]);
 
                     // Générer aussi une annonce en fallback pour respecter la personnalisation
                     $randomCity = null;
@@ -1571,10 +1571,10 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     }
 
                     // Retourner une réponse JSON même avec fallback
-                    return response()->json([
-                        'success' => true,
+                return response()->json([
+                    'success' => true,
                         'message' => $message,
-                        'template_id' => $template->id,
+                    'template_id' => $template->id,
                         'ad_created' => $adCreated,
                         'city_name' => $randomCity ? $randomCity->name : null,
                         'redirect_url' => route('admin.ads.templates.edit', $template->id),
@@ -1583,14 +1583,14 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     
                 } catch (\Exception $finalError) {
                     Log::error('Erreur création template mot-clé fallback final', [
-                        'keyword' => $keyword,
+                    'keyword' => $keyword,
                         'error' => $finalError->getMessage()
-                    ]);
+                ]);
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
-                    ], 500);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du template: ' . $e->getMessage()
+                ], 500);
                 }
             }
         }
@@ -1866,7 +1866,22 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     $serviceNameCount = substr_count(strtolower($plainText), strtolower($serviceName));
                     $serviceNamePresent = $serviceNameCount >= 5; // Le service doit être mentionné au moins 5 fois
                     
-                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent) {
+                    // Vérifier si le contenu de financement est présent (MaPrimeRénov, CEE, etc.)
+                    $financementInfo = $this->getFinancementInfoForService($serviceName);
+                    $hasFinancementContent = false;
+                    if (strpos($serviceLower, 'isolation') !== false || 
+                        strpos($serviceLower, 'thermique') !== false ||
+                        strpos($serviceLower, 'isoler') !== false) {
+                        // Pour l'isolation, vérifier la présence de MaPrimeRénov et CEE
+                        $hasFinancementContent = (stripos($description, 'MaPrimeRénov') !== false || stripos($description, 'ma prime renov') !== false) &&
+                                                  (stripos($description, 'CEE') !== false || stripos($description, 'Certificats d\'Économies') !== false);
+                    } else {
+                        // Pour les autres services, vérifier au moins MaPrimeRénov ou CEE
+                        $hasFinancementContent = (stripos($description, 'MaPrimeRénov') !== false || stripos($description, 'ma prime renov') !== false || 
+                                                  stripos($description, 'CEE') !== false || stripos($description, 'Certificats d\'Économies') !== false);
+                    }
+                    
+                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent || !$hasFinancementContent) {
                         Log::error('Contenu template REJETÉ - générique ou incomplet', [
                             'service_name' => $serviceName,
                             'has_generic_content' => $hasGenericContent,
@@ -1876,6 +1891,7 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                             'text_length' => strlen($plainText),
                             'service_name_present' => $serviceNamePresent,
                             'service_name_count' => $serviceNameCount,
+                            'has_financement_content' => $hasFinancementContent,
                             'description_preview' => substr($plainText, 0, 300)
                         ]);
                         
@@ -2054,7 +2070,7 @@ Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exac
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et Aides pour {$serviceName}</h4>
       <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé pour {$serviceName}: mentionner pourquoi les aides sont importantes pour ce type de travaux (économies d'énergie, rénovation, amélioration de l'habitat). SOYEZ SPÉCIFIQUE à {$serviceName}, pas générique.</p>
       
-      <!-- GÉNÉRER ICI les informations de financement SPÉCIFIQUES à {$serviceName} -->
+      <!-- INFORMATIONS DE FINANCEMENT SPÉCIFIQUES À {$serviceName} - COPIER CE CONTENU TEL QUEL: -->
       {$financementInfo}
       
       <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion CONCRET: expliquer COMMENT notre équipe aide les clients (ex: montage de dossiers MaPrimeRénov, simulation CEE, accompagnement éco-PTZ, etc.). Mentionner des actions concrètes comme \"Nous remplissons votre dossier MaPrimeRénov\", \"Nous calculons votre éligibilité CEE\", etc.</p>
@@ -2144,12 +2160,13 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
 - GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName} avec réponses détaillées (minimum 3 phrases par réponse)
 - TOUT le contenu HTML dans \"description\" doit être COMPLET avec TOUS les \"ÉCRIRE ICI\" REMPLACÉS par du vrai texte
 - La description longue (long_description) doit faire minimum 400 mots
-- Pour la section FINANCEMENT ET AIDES: 
-  * REMPLACE le placeholder \"{$financementInfo}\" par le contenu HTML RÉEL fourni ci-dessous
-  * Le contenu suivant DOIT être copié tel quel dans le HTML (ce sont les informations spécifiques à {$serviceName}):
-{$financementInfo}
-  * ÉCRIS les paragraphes d'introduction et conclusion AVANT et APRÈS ce contenu, en les personnalisant pour {$serviceName}
+- Pour la section FINANCEMENT ET AIDES (SECTION CRITIQUE):
+  * ⚠️⚠️⚠️ CRITIQUE: Le contenu HTML entre les balises COMMENTAIRES \"SECTION CRITIQUE - INFORMATIONS DE FINANCEMENT\" et \"FIN DU CONTENU À COPIER\" DOIT être COPIÉ EXACTEMENT tel quel dans le champ \"description\" du JSON
+  * ⚠️⚠️⚠️ CE CONTENU CONTIENT LES INFORMATIONS SPÉCIFIQUES SUR MaPrimeRénov, CEE, Éco-PTZ, TVA RÉDUITE - TU NE DOIS PAS LE MODIFIER
+  * ⚠️⚠️⚠️ NE REMPLACE PAS CE CONTENU PAR DU TEXTE GÉNÉRIQUE - SI TU NE COPIE PAS EXACTEMENT CE CONTENU, TA RÉPONSE SERA REJETÉE
+  * ÉCRIS UNIQUEMENT les paragraphes d'introduction et conclusion AVANT et APRÈS ce contenu (entre les balises <p class=\"leading-relaxed mb-3\">...</p>), en les personnalisant pour {$serviceName}
   * INTERDIT d'utiliser \"Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de\" - utilise une phrase UNIQUE et SPÉCIFIQUE
+  * VALIDATION: Ta réponse sera vérifiée - si le contenu MaPrimeRénov ou CEE n'est pas présent exactement comme fourni ci-dessus, la génération sera rejetée
 ";
 
         if ($aiPrompt) {
