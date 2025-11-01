@@ -63,8 +63,6 @@ return [
                     PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
                 ]),
                 [
-                    // Reconnexion automatique en cas de perte de connexion
-                    PDO::ATTR_TIMEOUT => 10,
                     // Gestion d'erreurs
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     // Éviter les requêtes préparées multiples

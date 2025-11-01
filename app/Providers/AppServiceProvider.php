@@ -34,30 +34,18 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ServiceUpdated::class, UpdateSitemapListener::class);
         
         // S'assurer que MySQL est toujours utilisé comme connexion par défaut
+        // Note: On vérifie seulement la configuration, pas la connexion active
+        // pour éviter les erreurs si la DB n'est pas encore disponible
         try {
-            $connection = DB::connection();
-            $driverName = $connection->getDriverName();
+            $defaultConnection = config('database.default');
             
-            if ($driverName !== 'mysql') {
-                Log::warning("La connexion par défaut n'est pas MySQL (driver: {$driverName}), forçage vers MySQL...");
+            if ($defaultConnection !== 'mysql') {
+                Log::warning("La connexion par défaut n'est pas MySQL (driver: {$defaultConnection}), forçage vers MySQL...");
                 config(['database.default' => 'mysql']);
                 DB::purge();
-                DB::reconnect('mysql');
             }
-            
-            // Test de connexion au démarrage
-            DB::select('SELECT 1');
-            Log::info('Connexion MySQL vérifiée et active au démarrage');
         } catch (\Exception $e) {
-            Log::error('Erreur de connexion MySQL au démarrage: ' . $e->getMessage());
-            // Tentative de reconnexion
-            try {
-                DB::reconnect('mysql');
-                DB::select('SELECT 1');
-                Log::info('Reconnexion MySQL réussie');
-            } catch (\Exception $reconnectException) {
-                Log::error('Impossible de se reconnecter à MySQL: ' . $reconnectException->getMessage());
-            }
+            Log::error('Erreur lors de la configuration MySQL: ' . $e->getMessage());
         }
     }
 }
