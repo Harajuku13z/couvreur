@@ -6,9 +6,9 @@
     @php
         $currentPage = $currentPage ?? 'home';
         
-        // Si des métadonnées spécifiques sont passées (pour les annonces), les utiliser directement
-        if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords)) {
-            // Utiliser les métadonnées spécifiques pour les annonces
+        // Si des métadonnées spécifiques sont passées (pour les annonces, articles, etc.), les utiliser directement
+        if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords) || isset($pageTitle)) {
+            // Utiliser les métadonnées spécifiques pour les annonces et articles
             $finalTitle = $pageTitle ?? '';
             $finalDescription = $pageDescription ?? '';
             $finalKeywords = $pageKeywords ?? '';
