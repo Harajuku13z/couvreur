@@ -1515,7 +1515,9 @@ EXEMPLES CONCRETS POUR {$keyword}:
 </div>';
             
             // Prompt simplifié pour générer un JSON structuré
-            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.";
+            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
+
+⚠️ CRITIQUE : Les valeurs entre [crochets] dans les instructions sont des EXEMPLES/INSTRUCTIONS à suivre, PAS du contenu à copier littéralement. Tu DOIS générer du VRAI contenu professionnel et spécifique, en remplaçant complètement ces instructions par du contenu réel.";
             
             // Construire les infos pratiques pour le prompt
             $infosPratiquesPrompt = "Informations pratiques à utiliser EXACTEMENT (ne pas inventer):\n";
@@ -1562,35 +1564,38 @@ Entreprise: {$companyName}
 
 {$infosPratiquesPrompt}
 
-Génère un JSON avec exactement cette structure (remplace les exemples par du contenu réel):
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
+Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
+
+Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL :
 
 {
-  \"description_courte\": \"Description courte du {$serviceName} dans la ville de [VILLE] et le département [DÉPARTEMENT]\",
-  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux. Intègre le nom de la ville [VILLE] et le département [DÉPARTEMENT] dans le texte.\",
-  \"titre_garantie\": \"Titre de l'engagement ou garantie (ex: Garantie de satisfaction)\",
-  \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
+  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. 150-200 caractères, mentionnant les bénéfices principaux.]\",
+  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement [VILLE] et [DÉPARTEMENT]. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots.]\",
+  \"titre_garantie\": \"[Génère un titre de garantie attractif, ex: 'Garantie décennale et satisfaction' ou 'Nos engagements qualité']\",
+  \"texte_garantie\": \"[Génère un texte détaillant les garanties offertes: garantie décennale, assurance, normes respectées, chantier propre, suivi post-intervention, etc.]\",
   \"prestations\": [
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"},
-    {\"titre\": \"Prestation technique spécifique au {$serviceName}\", \"description\": \"Description détaillée en une phrase\"}
+    {\"titre\": \"[Prestation technique 1 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 2 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 3 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 4 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 5 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 6 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 7 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 8 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 9 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 10 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"}
   ],
   \"faq\": [
-    {\"question\": \"Question fréquente 1\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question fréquente 2\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question fréquente 3\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question fréquente 4\", \"reponse\": \"Réponse détaillée\"}
+    {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"}
   ],
-  \"pourquoi_choisir\": \"Avantages de travailler avec {$companyName} pour ce service à [VILLE] et dans le département [DÉPARTEMENT]\",
-  \"financement_aides\": \"Parler des aides disponibles en France selon le service (MaPrimeRénov, CEE, etc.)\",
+  \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Mentionne expertise, qualité, réactivité, garanties, savoir-faire local, etc.]\",
+  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon le service.]\",
   \"infos_pratiques\": [
-    \"Utilise EXACTEMENT les informations pratiques fournies ci-dessus dans cette section\"
+    \"[Utilise EXACTEMENT les informations pratiques fournies ci-dessus - ne pas inventer]\"
   ],
   \"meta_title\": \"{$serviceName} à [VILLE] - Expert professionnel | Devis gratuit\",
   \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.\",
@@ -1606,15 +1611,16 @@ RÈGLES STRICTES:
 2. PAS de texte avant le {
 3. PAS de texte après le }
 4. PAS de ```json ou ``` autour
-5. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
-6. Utilise le vocabulaire professionnel du métier de {$serviceName}
-7. ⚠️ CRITIQUE TEMPLATE: Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords, pourquoi_choisir), utilise UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders. JAMAIS de vraie ville comme Paris, Lyon, Marseille, Bordeaux, etc. JAMAIS de vrai département.
-8. Exemple CORRECT: \"Service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]\"
-9. Exemple INCORRECT (INTERDIT): \"Service de {$serviceName} à Paris dans le département Paris\" ou toute autre ville réelle
-10. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
-11. Les guillemets dans les valeurs doivent être échappés avec \\
-12. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-13. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
+5. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
+6. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
+7. Utilise le vocabulaire professionnel du métier de {$serviceName}
+8. ⚠️ CRITIQUE TEMPLATE: Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords, pourquoi_choisir), utilise UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders. JAMAIS de vraie ville comme Paris, Lyon, Marseille, Bordeaux, etc. JAMAIS de vrai département.
+9. Exemple CORRECT: \"Service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]\"
+10. Exemple INCORRECT (INTERDIT): \"Service de {$serviceName} à Paris dans le département Paris\" ou toute autre ville réelle
+11. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
+12. Les guillemets dans les valeurs doivent être échappés avec \\
+13. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+14. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
     - Le nom du service et ses variations (avec et sans [VILLE])
     - Des termes techniques spécifiques au métier (ex: pour toiture: zinguerie, charpente, étanchéité, isolation, etc.)
     - Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
@@ -1622,7 +1628,8 @@ RÈGLES STRICTES:
     - Des termes géographiques avec [VILLE] et [DÉPARTEMENT]
     - Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
     - Des matériaux ou techniques spécifiques au service
-14. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel";
+15. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel
+16. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
