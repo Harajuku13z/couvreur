@@ -730,10 +730,27 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     ]);
                     
                     // Vérifier que le contenu contient bien le nom du service
-                    $descriptionContainsService = isset($aiData['description']) && stripos($aiData['description'], $serviceName) !== false;
-                    $isGeneric = isset($aiData['description']) && (
-                        stripos($aiData['description'], 'Service professionnel') !== false && 
-                        strlen($aiData['description']) < 500
+                    // Extraire le texte brut pour vérifier même dans du HTML
+                    $descriptionHtml = $aiData['description'] ?? '';
+                    $descriptionPlainText = strip_tags($descriptionHtml);
+                    
+                    // Vérifier dans le HTML et dans le texte brut
+                    // Découper le nom du service en mots pour vérifier même si formaté différemment
+                    $serviceNameWords = explode(' ', $serviceName);
+                    $serviceNameMainWords = array_filter($serviceNameWords, function($word) {
+                        return strlen(trim($word)) > 3; // Ignorer mots courts comme "de", "le", etc.
+                    });
+                    $serviceNameCore = implode(' ', $serviceNameMainWords);
+                    
+                    // Vérifier si le nom du service (ou ses mots principaux) est présent
+                    $descriptionContainsService = !empty($descriptionHtml) && (
+                        stripos($descriptionHtml, $serviceName) !== false ||
+                        stripos($descriptionPlainText, $serviceName) !== false ||
+                        (!empty($serviceNameCore) && stripos($descriptionPlainText, $serviceNameCore) !== false)
+                    );
+                    $isGeneric = !empty($descriptionHtml) && (
+                        stripos($descriptionHtml, 'Service professionnel') !== false && 
+                        strlen($descriptionPlainText) < 500
                     );
                     
                     // Vérifier la présence de prestations génériques interdites
@@ -751,8 +768,7 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     
                     // Vérifier si ces prestations apparaissent comme titres dans les listes (dans des balises <strong> ou <li>)
                     $containsGenericPrestations = false;
-                    $descriptionHtml = $aiData['description'] ?? '';
-                    $plainText = strip_tags($descriptionHtml);
+                    $plainText = $descriptionPlainText;
                     
                     // Chercher les prestations génériques uniquement dans un contexte de liste (près de <strong> ou dans <li>)
                     // Ignorer si elles apparaissent dans le texte général
@@ -801,15 +817,38 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     // Validation plus souple : accepter si le contenu est assez long et contient le service
                     // Même avec quelques mots génériques, si le contenu est riche (> 1000 caractères), c'est acceptable
                     $plainTextLength = strlen($plainText);
-                    $isRichContent = $plainTextLength > 1000 && $descriptionContainsService;
                     
-                    // Si le contenu est riche, on accepte même avec quelques prestations génériques
-                    // Mais on rejette si c'est vraiment générique (trop court + prestations génériques)
+                    // Si le texte brut est vide mais qu'on a du HTML, utiliser la longueur du HTML comme fallback
+                    if ($plainTextLength == 0 && !empty($descriptionHtml)) {
+                        $plainTextLength = strlen($descriptionHtml);
+                        Log::info('Plain text vide, utilisation longueur HTML', [
+                            'service_name' => $serviceName,
+                            'html_length' => strlen($descriptionHtml)
+                        ]);
+                    }
+                    
+                    $isRichContent = $plainTextLength > 1000 && ($descriptionContainsService || $plainTextLength > 2000);
+                    $isVeryRichContent = $plainTextLength > 3000; // Accepté même sans nom du service si très riche
+                    
+                    // Si le contenu est très riche (>3000 caractères), on accepte TOUJOURS même avec prestations génériques
+                    // ou même si le nom du service n'est pas explicitement présent (mais probablement dans le HTML)
+                    if ($isVeryRichContent) {
+                        // Contenu très riche, accepté automatiquement même avec quelques prestations génériques
+                        Log::info('Contenu très riche accepté (taille > 3000)', [
+                            'service_name' => $serviceName,
+                            'content_length' => $plainTextLength,
+                            'html_length' => strlen($descriptionHtml),
+                            'contains_service' => $descriptionContainsService,
+                            'contains_generic_prestations' => $containsGenericPrestations
+                        ]);
+                        return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
+                    }
+                    
                     $shouldAccept = $descriptionContainsService && 
                                    (($isRichContent && !$containsGenericPrestations) || 
-                                    ($isRichContent && $plainTextLength > 2000)); // Contenu très riche, on accepte
+                                    ($isRichContent && $plainTextLength > 2000)); // Contenu riche > 2000, on accepte
                     
-                    $shouldReject = (!$descriptionContainsService) || 
+                    $shouldReject = (!$descriptionContainsService && $plainTextLength < 500) || 
                                    ($isGeneric && strlen($plainText) < 500) ||
                                    ($containsGenericPrestations && $plainTextLength < 800); // Rejeter seulement si court + générique
                     
