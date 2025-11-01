@@ -106,18 +106,27 @@ class ServiceAiController extends Controller
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
             
-            // Message système fort pour forcer la personnalisation
+            // Message système fort pour forcer la personnalisation et FORCER JSON
             $system = "Tu es un expert technique spécialisé en {$serviceName} avec une connaissance approfondie du domaine de la rénovation et couverture en France. 
 
-CRITIQUE ABSOLUE: 
-- Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$serviceName}
-- INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement'
+🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
+- INTERDIT de retourner du texte formaté avec **markdown** ou des sections
+- INTERDIT de retourner du texte descriptif comme \"Voici le contenu...\"
+- INTERDIT de retourner du HTML ou des balises
+- INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement' sans précision
 - INTERDIT de copier du contenu générique ou répétitif
 - INTERDIT d'utiliser des phrases vides comme 'Service professionnel' sans détails
+- INTERDIT d'utiliser des phrases répétitives comme \"pour garantir une propreté et une sécurité optimales\"
+
+✅✅✅ OBLIGATIONS ABSOLUES ✅✅✅:
+- Tu DOIS répondre UNIQUEMENT avec un JSON valide commençant par { et finissant par }
+- PAS de texte avant ou après le JSON
+- PAS de ```json ou markdown autour du JSON
+- Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$serviceName}
 - Tu DOIS générer du contenu vraiment personnalisé avec des détails techniques concrets
 - Adapte TOUT spécifiquement au service {$serviceName} avec le vocabulaire professionnel exact du métier
-
-Tu génères UNIQUEMENT du JSON valide, sans texte avant ou après.";
+- Les prestations DOIVENT être RÉELLES et SPÉCIFIQUES (ex: \"Réparation de tuiles cassées avec remplacement à l'identique\" PAS \"Répulsion et remplacement des tuiles\")
+- Chaque prestation DOIT avoir une description technique différente et unique";
             
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
@@ -272,15 +281,29 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
   \"meta_keywords\": \"[Génère 15-20 mots-clés pertinents incluant: {$serviceName}, {$serviceName} {$companyCity}, {$serviceName} {$companyDept}, expert {$serviceName}, {$serviceName} professionnel, entreprise {$serviceName}, artisan {$serviceName}, {$serviceName} certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, techniques modernes, matériaux spécifiques au service]\"
 }
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - FORMAT JSON ⚠️⚠️⚠️:
+🚫🚫🚫 FORMAT JSON OBLIGATOIRE - INTERDICTIONS 🚫🚫🚫:
+- INTERDIT de commencer par \"Voici\", \"Voilà\", \"Here is\", ou tout autre texte
+- INTERDIT d'utiliser du markdown avec ** ou ##
+- INTERDIT d'utiliser des sections comme \"**Description courte**\" ou \"**Titre SEO**\"
+- INTERDIT d'utiliser des listes à puces ou des tableaux markdown
+- INTERDIT de mettre des ```json ou ``` autour du JSON
+- INTERDIT d'ajouter des commentaires ou explications
+- INTERDIT de formater le JSON avec des espaces avant/après inutiles
+
+✅✅✅ FORMAT JSON OBLIGATOIRE - STRUCTURE ✅✅✅:
 - TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
-- COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
-- TERMINE DIRECTEMENT PAR } (accolade fermante)
-- PAS de texte avant le JSON
-- PAS de texte après le JSON
-- PAS de ```json ou ``` autour du JSON
-- PAS de commentaires ou explications
-- JUSTE le JSON brut
+- COMMENCE DIRECTEMENT PAR { (accolade ouvrante) - PAS d'autre caractère avant
+- TERMINE DIRECTEMENT PAR } (accolade fermante) - PAS d'autre caractère après
+- Le JSON DOIT être valide et parsable directement
+- JUSTE le JSON brut, rien d'autre
+
+EXEMPLE DE CE QUI EST INTERDIT:
+\"Voici le contenu web complet pour le service...\" ❌
+\"**Description courte**\" ❌
+\"```json { ... } ```\" ❌
+
+EXEMPLE DE CE QUI EST OBLIGATOIRE:
+{ \"description_courte\": \"...\", ... } ✅
 
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU ⚠️⚠️⚠️:
 - ⚠️⚠️⚠️ CRITIQUE ABSOLUE: Le champ \"prestations\" DOIT être un TABLEAU contenant EXACTEMENT 10 OBJETS. Chaque objet DOIT avoir la structure {\"titre\": \"...\", \"description\": \"...\"}
@@ -288,8 +311,14 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
 - ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
 - ⚠️ INTERDIT ABSOLU d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement', 'Service professionnel' sans précision technique
 - ⚠️ INTERDIT ABSOLU de mettre une seule prestation générique comme \"Service professionnel [service] - Intervention adaptée\"
+- ⚠️ INTERDIT ABSOLU d'utiliser des phrases répétitives comme \"pour garantir une propreté et une sécurité optimales\" dans TOUTES les prestations
+- ⚠️ INTERDIT ABSOLU d'utiliser des mots inventés ou incorrects (ex: \"Répulsion\" n'existe pas, utilise \"Réparation\" ou \"Remplacement\")
+- ⚠️ INTERDIT ABSOLU d'inclure des prestations qui n'ont RIEN à voir avec la toiture (ex: \"élagage\" n'est PAS une prestation de toiture)
 - ⚠️ Les prestations DOIVENT être TECHNIQUES et SPÉCIFIQUES au {$serviceName}. Exemples inspirants: {$prestationsExamples}
 - ⚠️ Chaque prestation DOIT être UNIQUE et DIFFÉRENTE des autres. PAS de répétitions.
+- ⚠️ Chaque description de prestation DOIT être différente et utiliser un vocabulaire technique varié
+- ⚠️ Exemples de prestations CORRECTES pour toiture: \"Réparation de tuiles cassées avec remplacement à l'identique\", \"Remplacement de faîtage défectueux avec étanchéité renforcée\", \"Traitement hydrofuge de la toiture avec produit silicone haute performance\"
+- ⚠️ Exemples de prestations INCORRECTES à éviter: \"Répulsion et remplacement des tuiles\", \"Retrait et remplacement de l'élagage\", toute prestation avec \"pour garantir une propreté et une sécurité optimales\"
 - ⚠️ INTERDIT ABSOLU de générer du HTML, des liens, des balises, du markdown ou du code dans les champs texte
 - ⚠️ INTERDIT ABSOLU de générer des URLs, liens href, ou boutons dans les descriptions
 - ⚠️ Tous les champs texte doivent contenir UNIQUEMENT du texte brut, sans HTML ni liens
@@ -525,25 +554,73 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
         // Nettoyer le contenu pour extraire uniquement le JSON
         $content = trim($content);
         
-        // Chercher le début du JSON
-        $jsonStart = strpos($content, '{');
-        $jsonEnd = strrpos($content, '}');
-        
-        if ($jsonStart === false || $jsonEnd === false) {
-            \Log::warning('JSON non trouvé dans la réponse IA', ['content_preview' => substr($content, 0, 500)]);
+        // Supprimer tout texte avant le premier {
+        // L'IA peut retourner "Voici le contenu..." ou du markdown
+        if (strpos($content, '{') === false) {
+            \Log::warning('JSON non trouvé dans la réponse IA - pas de {', [
+                'content_preview' => substr($content, 0, 500),
+                'content_length' => strlen($content)
+            ]);
             return null;
         }
         
-        $jsonString = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+        // Extraire tout depuis le premier { jusqu'au dernier }
+        $jsonStart = strpos($content, '{');
+        $contentFromJson = substr($content, $jsonStart);
+        
+        // Trouver le dernier } qui équilibre les accolades
+        $braceCount = 0;
+        $jsonEnd = -1;
+        for ($i = 0; $i < strlen($contentFromJson); $i++) {
+            if ($contentFromJson[$i] === '{') {
+                $braceCount++;
+            } elseif ($contentFromJson[$i] === '}') {
+                $braceCount--;
+                if ($braceCount === 0) {
+                    $jsonEnd = $i;
+                    break;
+                }
+            }
+        }
+        
+        if ($jsonEnd === -1) {
+            // Si on ne trouve pas la fin équilibrée, utiliser la dernière }
+            $jsonEnd = strrpos($contentFromJson, '}');
+            if ($jsonEnd === false) {
+                \Log::error('Impossible de trouver la fin du JSON', [
+                    'content_preview' => substr($content, 0, 500)
+                ]);
+                return null;
+            }
+        }
+        
+        $jsonString = substr($contentFromJson, 0, $jsonEnd + 1);
+        
+        // Essayer de parser le JSON
         $data = json_decode($jsonString, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
             \Log::error('Erreur parsing JSON', [
                 'error' => json_last_error_msg(),
-                'json_preview' => substr($jsonString, 0, 500)
+                'json_preview' => substr($jsonString, 0, 500),
+                'json_length' => strlen($jsonString),
+                'original_content_preview' => substr($content, 0, 200)
             ]);
-            return null;
+            
+            // Dernière tentative : essayer de corriger les erreurs JSON communes
+            // Supprimer les commentaires ou texte après }
+            $jsonStringCleaned = preg_replace('/}[^}]*$/', '}', $jsonString);
+            $data = json_decode($jsonStringCleaned, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return null;
+            }
         }
+        
+        \Log::info('JSON parsé avec succès', [
+            'json_length' => strlen($jsonString),
+            'keys' => array_keys($data ?? [])
+        ]);
         
         return $data;
     }
