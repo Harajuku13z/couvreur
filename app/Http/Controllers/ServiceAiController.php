@@ -77,14 +77,21 @@ class ServiceAiController extends Controller
                 continue; // skip existing
             }
 
-            $system = "Tu es un expert en marketing digital et SEO spécialisé pour les entreprises de couverture, toiture et rénovation en France. Tu produis STRICTEMENT du HTML (aucun Markdown), sans balises <html> ni <body>, uniquement le contenu. Utilise <h1> pour le titre principal, des <h2> pour les sections et des <h3> pour les sous-sections, des paragraphes <p>, et des listes <ul><li> avec des icônes Font Awesome. Inclure des CTA avec <a href=\"URL\" class=\"cta-link\">Texte CTA</a>. Ton professionnel, persuasif, orienté SEO et conversion. Intègre naturellement les mots-clés français du secteur.";
+            $system = "Expert SEO couverture/rénovation France. Produis du HTML pur (pas de Markdown). Utilise <h1>, <h2>, <h3>, <p>, <ul><li> avec icônes Font Awesome <i class=\"fas fa-check text-green-500 mr-2\"></i>. Ajoute des CTA <a href=\"URL\" class=\"cta-link\">Texte</a>. Ton pro, orienté conversion SEO.";
             
-            $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . "Service: {$serviceName}\nLangue: {$language}\n\nCONSIGNES DÉTAILLÉES:\n- Longueur: 1500 à 2000 mots minimum (contenu riche et détaillé)\n- Style: professionnel, engageant, orienté prospection/conversion\n- Mots-clés à intégrer naturellement: devis gratuit, intervention rapide, couvreur professionnel, réparation toiture, rénovation, artisan couvreur, travaux de couverture, entreprise de couverture, spécialiste toiture, rénovation toiture, réparation urgence, devis personnalisé, garantie travaux, matériaux de qualité, expertise technique, intervention 24h/24, couvreur qualifié, travaux de rénovation, isolation toiture, étanchéité toiture\n\nSTRUCTURE HTML OBLIGATOIRE:\n<h1>Titre principal optimisé SEO avec mots-clés</h1>\n<p>Introduction accrocheuse de 3-4 phrases sur le service, ses avantages et pourquoi choisir notre entreprise.</p>\n\n<h2>Pourquoi choisir notre service de [nom du service] ?</h2>\n<h3>Nos avantages concurrentiels</h3>\n<ul>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Avantage 1 détaillé</li>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Avantage 2 détaillé</li>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Avantage 3 détaillé</li>\n</ul>\n\n<h2>Notre expertise technique</h2>\n<h3>Techniques et matériaux utilisés</h3>\n<p>Description détaillée des techniques, matériaux, certifications, qualifications de l'équipe.</p>\n\n<h2>Processus de réalisation</h2>\n<h3>Étapes de travail détaillées</h3>\n<ul>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Étape 1: Description complète</li>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Étape 2: Description complète</li>\n<li><i class=\"fas fa-check text-green-500 mr-2\"></i>Étape 3: Description complète</li>\n</ul>\n\n<h2>Tarifs et devis personnalisé</h2>\n<h3>Transparence et qualité</h3>\n<p>Information sur les tarifs, devis gratuit, garanties, délais d'intervention.</p>\n\n<h2>Zone d'intervention</h2>\n<p>Précision sur la zone géographique couverte, délais d'intervention, service d'urgence.</p>\n\n<p><a href=\"/devis-gratuit\" class=\"cta-link\">Demander un devis gratuit et personnalisé</a></p>\n\nCONTRAINTES STRICTES:\n- 5 à 6 <h2> minimum, 6 à 8 <h3> minimum\n- Chaque <li> doit avoir l'icône <i class=\"fas fa-check text-green-500 mr-2\"></i>\n- Intégrer 15-20 mots-clés différents naturellement\n- Chaque paragraphe doit faire 4-6 phrases\n- Inclure des CTA multiples pour la conversion\n- Ton rassurant et professionnel\n- Mentionner les garanties et certifications\n- HTML uniquement, pas de CSS/JS externe";
+            $keywords = "devis gratuit, intervention rapide, couvreur professionnel, réparation toiture, rénovation, artisan couvreur, travaux de couverture, entreprise de couverture, spécialiste toiture, rénovation toiture, réparation urgence, devis personnalisé, garantie travaux, matériaux de qualité, expertise technique, intervention 24h/24, couvreur qualifié, travaux de rénovation, isolation toiture, étanchéité toiture";
+            
+            $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . "Service: {$serviceName}\nLangue: {$language}\n\nCrée un contenu HTML de 1500-2000 mots, style pro et engageant.\n\nMots-clés à intégrer: {$keywords}\n\nStructure requise:\n<h1>Titre SEO avec mots-clés</h1>\n<p>Intro 3-4 phrases</p>\n<h2>Pourquoi choisir notre service?</h2>\n<h3>Avantages concurrentiels</h3>\n<ul><li><i class=\"fas fa-check text-green-500 mr-2\"></i>Avantage détaillé</li></ul>\n<h2>Expertise technique</h2>\n<h3>Techniques et matériaux</h3>\n<p>Description détaillée</p>\n<h2>Processus</h2>\n<h3>Étapes de travail</h3>\n<ul><li><i class=\"fas fa-check text-green-500 mr-2\"></i>Étape détaillée</li></ul>\n<h2>Tarifs et devis</h2>\n<h3>Transparence</h3>\n<p>Tarifs, garanties, délais</p>\n<h2>Zone d'intervention</h2>\n<p>Zone géographique, urgences</p>\n<p><a href=\"/devis-gratuit\" class=\"cta-link\">Devis gratuit</a></p>\n\nRègles: 5-6 <h2>, 6-8 <h3>, icône dans chaque <li>, 15-20 mots-clés, paragraphes 4-6 phrases, plusieurs CTA, HTML uniquement.";
 
             try {
                 if (empty(env('GROQ_API_KEY'))) {
                     return back()->with('error', "Veuillez définir GROQ_API_KEY dans le fichier .env");
                 }
+                
+                // Pour Groq on-demand: limiter max_tokens pour laisser de la place aux tokens d'entrée
+                // Estimation: ~1 token = 4 caractères, limite TPM = 6000
+                $estimatedInputTokens = (int)((strlen($system) + strlen($user)) / 4);
+                $maxTokens = max(1000, min(3000, 5500 - $estimatedInputTokens)); // Laisser marge de sécurité
                 
                 $response = Http::withToken(env('GROQ_API_KEY'))
                     ->post('https://api.groq.com/openai/v1/chat/completions', [
@@ -94,7 +101,7 @@ class ServiceAiController extends Controller
                             ['role' => 'user', 'content' => $user],
                         ],
                         'temperature' => 0.7,
-                        'max_tokens' => 4000,
+                        'max_tokens' => $maxTokens,
                     ]);
                     
                 $content = $response->ok() ? data_get($response->json(), 'choices.0.message.content') : null;

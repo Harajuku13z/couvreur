@@ -1599,6 +1599,11 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                 
                 if ($groqApiKey) {
                     try {
+                        // Ajuster max_tokens pour respecter la limite TPM de Groq (6000 tokens totaux)
+                        $totalMessageLength = strlen($systemMessage) + strlen($prompt);
+                        $estimatedInputTokens = (int)($totalMessageLength / 4);
+                        $groqMaxTokens = max(1000, min(4000, 5500 - $estimatedInputTokens)); // Laisser marge de sécurité
+                        
                         $groqResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
                             ->timeout(120)
                             ->post('https://api.groq.com/openai/v1/chat/completions', [
@@ -1607,7 +1612,7 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                                     ['role' => 'system', 'content' => $systemMessage],
                                     ['role' => 'user', 'content' => $prompt]
                                 ],
-                                'max_tokens' => 6000,
+                                'max_tokens' => $groqMaxTokens,
                                 'temperature' => 0.95
                             ]);
                         
@@ -1628,13 +1633,62 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                             ]);
                         } else {
                             $errorBody = $groqResponse->json();
+                            $status = $groqResponse->status();
+                            $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
+                            $errorType = $errorBody['error']['type'] ?? 'unknown';
+                            
                             Log::error('Échec Groq direct', [
-                                'status' => $groqResponse->status(),
-                                'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
-                                'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                                'status' => $status,
+                                'error_message' => $errorMessage,
+                                'error_type' => $errorType,
                                 'response_preview' => substr($groqResponse->body(), 0, 500),
                                 'full_response' => config('app.debug') ? $groqResponse->body() : null
                             ]);
+                            
+                            // Gérer spécifiquement l'erreur 413 (Request too large / TPM limit)
+                            if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {
+                                Log::warning('Limite TPM Groq dépassée, tentative avec prompt réduit', [
+                                    'service_name' => $serviceName,
+                                    'original_input_length' => $totalMessageLength,
+                                    'estimated_tokens' => $estimatedInputTokens
+                                ]);
+                                
+                                // Essayer avec un prompt réduit (tronquer de 30%)
+                                $reducedPrompt = substr($prompt, 0, (int)(strlen($prompt) * 0.7));
+                                $reducedLength = strlen($systemMessage) + strlen($reducedPrompt);
+                                $reducedInputTokens = (int)($reducedLength / 4);
+                                $reducedMaxTokens = max(1000, min(4000, 5500 - $reducedInputTokens));
+                                
+                                try {
+                                    $retryResponse = \Illuminate\Support\Facades\Http::withToken($groqApiKey)
+                                        ->timeout(120)
+                                        ->post('https://api.groq.com/openai/v1/chat/completions', [
+                                            'model' => $groqModel,
+                                            'messages' => [
+                                                ['role' => 'system', 'content' => $systemMessage],
+                                                ['role' => 'user', 'content' => $reducedPrompt]
+                                            ],
+                                            'max_tokens' => $reducedMaxTokens,
+                                            'temperature' => 0.95
+                                        ]);
+                                    
+                                    if ($retryResponse->successful() && isset($retryResponse->json()['choices'][0]['message']['content'])) {
+                                        $result = [
+                                            'content' => $retryResponse->json()['choices'][0]['message']['content'],
+                                            'provider' => 'groq-direct'
+                                        ];
+                                        Log::info('Génération réussie avec Groq direct après réduction du prompt', [
+                                            'service_name' => $serviceName,
+                                            'content_length' => strlen($result['content'])
+                                        ]);
+                                    }
+                                } catch (\Exception $retryException) {
+                                    Log::error('Échec retry Groq avec prompt réduit', [
+                                        'service_name' => $serviceName,
+                                        'error' => $retryException->getMessage()
+                                    ]);
+                                }
+                            }
                         }
                     } catch (\Exception $groqException) {
                         Log::error('Échec appel Groq direct', [

@@ -110,13 +110,30 @@ class AiService
                 
                 Log::info('Tentative avec Groq', ['model' => $groqModel]);
                 
+                // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
+                // Estimation: ~1 token = 4 caractères pour le texte
+                $totalMessageLength = 0;
+                foreach ($messages as $msg) {
+                    $totalMessageLength += strlen($msg['content'] ?? '');
+                }
+                $estimatedInputTokens = (int)($totalMessageLength / 4);
+                // Laisser une marge de sécurité: limiter à 5500 tokens totaux
+                // Réduire max_tokens si nécessaire pour respecter la limite
+                $groqMaxTokens = min($maxTokens, max(500, 5500 - $estimatedInputTokens));
+                
+                Log::info('Calcul tokens Groq', [
+                    'estimated_input_tokens' => $estimatedInputTokens,
+                    'original_max_tokens' => $maxTokens,
+                    'adjusted_max_tokens' => $groqMaxTokens
+                ]);
+                
                 $groqResponse = Http::withToken($groqApiKey)
                     ->timeout($timeout)
                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model' => $groqModel,
                         'messages' => $messages,
                         'temperature' => $temperature,
-                        'max_tokens' => $maxTokens,
+                        'max_tokens' => $groqMaxTokens,
                     ]);
                 
                 if ($groqResponse->successful()) {
@@ -134,12 +151,70 @@ class AiService
                     ];
                 } else {
                     $errorBody = $groqResponse->json();
+                    $status = $groqResponse->status();
+                    $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
+                    $errorType = $errorBody['error']['type'] ?? 'unknown';
+                    
                     Log::error('Erreur API Groq', [
-                        'status' => $groqResponse->status(),
-                        'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
-                        'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                        'status' => $status,
+                        'error_message' => $errorMessage,
+                        'error_type' => $errorType,
                         'response_preview' => substr($groqResponse->body(), 0, 500)
                     ]);
+                    
+                    // Gérer spécifiquement l'erreur 413 (Request too large)
+                    if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {
+                        Log::warning('Limite TPM Groq dépassée, tentative avec prompt réduit', [
+                            'original_input_length' => $totalMessageLength,
+                            'estimated_tokens' => $estimatedInputTokens
+                        ]);
+                        
+                        // Essayer avec un prompt réduit (tronquer le prompt utilisateur de 30%)
+                        $reducedMessages = $messages;
+                        if (isset($reducedMessages[count($reducedMessages) - 1]) && $reducedMessages[count($reducedMessages) - 1]['role'] === 'user') {
+                            $originalUserPrompt = $reducedMessages[count($reducedMessages) - 1]['content'];
+                            $reducedUserPrompt = substr($originalUserPrompt, 0, (int)(strlen($originalUserPrompt) * 0.7));
+                            $reducedMessages[count($reducedMessages) - 1]['content'] = $reducedUserPrompt;
+                            
+                            // Recalculer avec le prompt réduit
+                            $reducedLength = 0;
+                            foreach ($reducedMessages as $msg) {
+                                $reducedLength += strlen($msg['content'] ?? '');
+                            }
+                            $reducedInputTokens = (int)($reducedLength / 4);
+                            $reducedMaxTokens = min($maxTokens, max(500, 5500 - $reducedInputTokens));
+                            
+                            try {
+                                $retryResponse = Http::withToken($groqApiKey)
+                                    ->timeout($timeout)
+                                    ->post('https://api.groq.com/openai/v1/chat/completions', [
+                                        'model' => $groqModel,
+                                        'messages' => $reducedMessages,
+                                        'temperature' => $temperature,
+                                        'max_tokens' => $reducedMaxTokens,
+                                    ]);
+                                
+                                if ($retryResponse->successful()) {
+                                    $groqData = $retryResponse->json();
+                                    $groqContent = $groqData['choices'][0]['message']['content'] ?? '';
+                                    
+                                    Log::info('Réponse Groq reçue après réduction du prompt', [
+                                        'content_length' => strlen($groqContent),
+                                        'model' => $groqModel
+                                    ]);
+                                    
+                                    return [
+                                        'content' => $groqContent,
+                                        'provider' => 'groq'
+                                    ];
+                                }
+                            } catch (\Exception $retryException) {
+                                Log::error('Échec retry Groq avec prompt réduit', [
+                                    'message' => $retryException->getMessage()
+                                ]);
+                            }
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('Erreur appel Groq', [
