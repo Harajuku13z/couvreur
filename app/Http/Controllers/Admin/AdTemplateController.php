@@ -2038,7 +2038,29 @@ IMPORTANT: Ce template sera utilisé pour créer des annonces personnalisées pa
 - Utilise [VILLE] et [RÉGION] dans le contenu pour personnalisation future
 
 EXEMPLES CONCRETS SELON LE SERVICE:
-
+";
+        
+        // Ajouter des exemples spécifiques selon le type de service
+        $serviceNameLower = mb_strtolower($serviceName);
+        if (strpos($serviceNameLower, 'façade') !== false || strpos($serviceNameLower, 'ravalement') !== false) {
+            $basePrompt .= "- Si {$serviceName} = 'Rénovation de façade' → EXCELLENT: 'Ravalement façade complet', 'Réfection enduit façade', 'Peinture façade haute qualité', 'Rénovation parement pierre', 'Pose bardage façade', 'Crépis façade décoratif', 'Nettoyage façade haute pression', 'Isolation façade par l'extérieur (ITE)', 'Remplacement volets et menuiseries', 'Restauration éléments décoratifs façade'\n";
+            $basePrompt .= "- MAUVAIS (INTERDIT): 'Diagnostic et inspection de toiture', 'Réparation partielle de toiture', 'Réfection complète de toiture', 'Isolation de toiture' (ce sont des prestations de TOITURE, pas de FAÇADE)\n";
+        } elseif (strpos($serviceNameLower, 'désamiantage') !== false || strpos($serviceNameLower, 'amiante') !== false) {
+            $basePrompt .= "- Si {$serviceName} = 'Désamiantage' → EXCELLENT: 'Dépollution amiante', 'Diagnostic amiante avant travaux', 'Retrait amiante sous confinement', 'Gestion déchets amiante', 'Désamiantage flocage', 'Confinement amiante'\n";
+            $basePrompt .= "- MAUVAIS (INTERDIT): 'Diagnostic et évaluation', 'Installation complète', 'Rénovation totale'\n";
+        } elseif (strpos($serviceNameLower, 'élagage') !== false || strpos($serviceNameLower, 'élague') !== false) {
+            $basePrompt .= "- Si {$serviceName} = 'Élagage' → EXCELLENT: 'Élagage raisonné', 'Taille de formation', 'Haubanage', 'Abattage sécurisé', 'Élagage fruitier', 'Taille ornementale', 'Démontage sécurisé', 'Rogne de souche', 'Élagage respectueux de la faune', 'Mise en sécurité arbres'\n";
+            $basePrompt .= "- MAUVAIS (INTERDIT): 'Diagnostic et évaluation', 'Intervention d'urgence', 'Maintenance préventive'\n";
+        } elseif (strpos($serviceNameLower, 'humidité') !== false || strpos($serviceNameLower, 'ventilation') !== false) {
+            $basePrompt .= "- Si {$serviceName} = 'Traitement humidité' → EXCELLENT: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux', 'Traitement remontées capillaires', 'Assèchement murs humides'\n";
+            $basePrompt .= "- MAUVAIS (INTERDIT): 'Diagnostic et évaluation', 'Conseil personnalisé', 'Maintenance préventive'\n";
+        } else {
+            $basePrompt .= "- Pour {$serviceName}, RECHERCHE les termes techniques professionnels spécifiques à ce métier\n";
+            $basePrompt .= "- Utilise le vocabulaire RÉEL du métier de {$serviceName} (ex: pour {$serviceName}, quels sont les termes techniques utilisés par les professionnels?)\n";
+            $basePrompt .= "- Évite TOUT ce qui pourrait s'appliquer à n'importe quel autre service\n";
+        }
+        
+        $basePrompt .= "
 📋 STRUCTURE HTML OBLIGATOIRE DU CHAMP \"description\":
 
 ⚠️⚠️⚠️ IMPORTANT: REMPLACEZ TOUS LES PLACEHOLDERS [Paragraphe X] PAR DU VRAI CONTENU PERSONNALISÉ ⚠️⚠️⚠️
