@@ -283,10 +283,13 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
 - JUSTE le JSON brut
 
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU ⚠️⚠️⚠️:
-- ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus. Chaque prestation doit avoir un \"titre\" et une \"description\".
+- ⚠️⚠️⚠️ CRITIQUE ABSOLUE: Le champ \"prestations\" DOIT être un TABLEAU contenant EXACTEMENT 10 OBJETS. Chaque objet DOIT avoir la structure {\"titre\": \"...\", \"description\": \"...\"}
+- ⚠️⚠️⚠️ Tu DOIS générer 10 prestations COMPLÈTES et DIFFÉRENTES, chacune avec un \"titre\" et une \"description\" REMPLIS avec du VRAI contenu
 - ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
-- ⚠️ INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement' sans précision technique
+- ⚠️ INTERDIT ABSOLU d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement', 'Service professionnel' sans précision technique
+- ⚠️ INTERDIT ABSOLU de mettre une seule prestation générique comme \"Service professionnel [service] - Intervention adaptée\"
 - ⚠️ Les prestations DOIVENT être TECHNIQUES et SPÉCIFIQUES au {$serviceName}. Exemples inspirants: {$prestationsExamples}
+- ⚠️ Chaque prestation DOIT être UNIQUE et DIFFÉRENTE des autres. PAS de répétitions.
 - ⚠️ INTERDIT ABSOLU de générer du HTML, des liens, des balises, du markdown ou du code dans les champs texte
 - ⚠️ INTERDIT ABSOLU de générer des URLs, liens href, ou boutons dans les descriptions
 - ⚠️ Tous les champs texte doivent contenir UNIQUEMENT du texte brut, sans HTML ni liens
@@ -375,18 +378,51 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
 
                 // Vérifier que les prestations sont présentes et complètes
                 if (!isset($jsonData['prestations']) || !is_array($jsonData['prestations'])) {
-                    \Log::warning('Prestations manquantes ou invalides pour le service: ' . $serviceName);
+                    \Log::error('Prestations manquantes ou invalides pour le service', [
+                        'service' => $serviceName,
+                        'prestations_key_exists' => isset($jsonData['prestations']),
+                        'prestations_type' => gettype($jsonData['prestations'] ?? null),
+                        'json_keys' => array_keys($jsonData)
+                    ]);
                     $jsonData['prestations'] = [];
                 }
                 
-                // Valider et logger le nombre de prestations
+                // Valider et logger le nombre de prestations avec détails
                 $prestationsCount = count($jsonData['prestations']);
+                \Log::info('Validation prestations', [
+                    'service' => $serviceName,
+                    'count' => $prestationsCount,
+                    'expected' => 10,
+                    'prestations_preview' => array_slice($jsonData['prestations'], 0, 3)
+                ]);
+                
                 if ($prestationsCount < 10) {
-                    \Log::warning('Nombre insuffisant de prestations pour le service', [
+                    \Log::error('Nombre insuffisant de prestations pour le service - Génération invalide', [
                         'service' => $serviceName,
                         'count' => $prestationsCount,
-                        'expected' => 10
+                        'expected' => 10,
+                        'prestations' => $jsonData['prestations']
                     ]);
+                    // Ne pas continuer si moins de 10 prestations - c'est critique
+                    throw new \Exception("L'IA n'a généré que {$prestationsCount} prestation(s) au lieu de 10. Veuillez réessayer avec 'Forcer la régénération'.");
+                }
+                
+                // Valider que chaque prestation a un titre et une description
+                foreach ($jsonData['prestations'] as $index => $prestation) {
+                    if (!isset($prestation['titre']) || empty(trim($prestation['titre']))) {
+                        \Log::error('Prestation invalide - titre manquant', [
+                            'service' => $serviceName,
+                            'prestation_index' => $index,
+                            'prestation' => $prestation
+                        ]);
+                    }
+                    if (!isset($prestation['description']) || empty(trim($prestation['description']))) {
+                        \Log::error('Prestation invalide - description manquante', [
+                            'service' => $serviceName,
+                            'prestation_index' => $index,
+                            'prestation' => $prestation
+                        ]);
+                    }
                 }
 
                 // Remplir le template HTML avec les données JSON
@@ -527,14 +563,61 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
         // Générer la liste des prestations
         $prestationsHtml = '';
         if (isset($data['prestations']) && is_array($data['prestations'])) {
-            foreach ($data['prestations'] as $prestation) {
-                $titre = htmlspecialchars($prestation['titre'] ?? '', ENT_QUOTES, 'UTF-8');
-                $description = htmlspecialchars($prestation['description'] ?? '', ENT_QUOTES, 'UTF-8');
+            $prestationsCount = count($data['prestations']);
+            \Log::info('Génération HTML prestations', [
+                'service' => $serviceName,
+                'prestations_count' => $prestationsCount
+            ]);
+            
+            foreach ($data['prestations'] as $index => $prestation) {
+                // Vérifier que la prestation est bien un tableau avec titre et description
+                if (!is_array($prestation)) {
+                    \Log::warning('Prestation invalide - pas un tableau', [
+                        'service' => $serviceName,
+                        'index' => $index,
+                        'prestation_type' => gettype($prestation),
+                        'prestation_value' => $prestation
+                    ]);
+                    continue;
+                }
+                
+                $titre = isset($prestation['titre']) ? trim($prestation['titre']) : '';
+                $description = isset($prestation['description']) ? trim($prestation['description']) : '';
+                
+                // Ne pas ajouter si titre ou description vide
+                if (empty($titre) && empty($description)) {
+                    \Log::warning('Prestation vide ignorée', [
+                        'service' => $serviceName,
+                        'index' => $index
+                    ]);
+                    continue;
+                }
+                
+                $titreEscaped = htmlspecialchars($titre, ENT_QUOTES, 'UTF-8');
+                $descriptionEscaped = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
+                
                 $prestationsHtml .= '<li class="flex items-start">' .
                     '<i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>' .
-                    '<span><strong>' . $titre . '</strong> - ' . $description . '</span>' .
+                    '<span><strong>' . $titreEscaped . '</strong>' . 
+                    (!empty($descriptionEscaped) ? ' - ' . $descriptionEscaped : '') . 
+                    '</span>' .
                     '</li>';
             }
+        } else {
+            \Log::error('Prestations non disponibles dans fillTemplate', [
+                'service' => $serviceName,
+                'prestations_exists' => isset($data['prestations']),
+                'prestations_type' => gettype($data['prestations'] ?? null),
+                'data_keys' => array_keys($data)
+            ]);
+        }
+        
+        // Si aucune prestation générée, ajouter un message d'erreur visible
+        if (empty($prestationsHtml)) {
+            $prestationsHtml = '<li class="flex items-start text-red-600">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Erreur:</strong> Aucune prestation n\'a été générée. Veuillez régénérer le service avec "Forcer la régénération".</span>
+            </li>';
         }
         
         // Générer la liste FAQ
