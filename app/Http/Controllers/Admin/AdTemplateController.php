@@ -145,10 +145,13 @@ class AdTemplateController extends Controller
                 'ai_response_data' => $aiContent,
             ]);
 
-            // Rediriger vers la page d'édition pour personnaliser le template
-            return redirect()
-                ->route('admin.ads.templates.edit', $template->id)
-                ->with('success', 'Template créé avec succès. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
+            // Retourner une réponse JSON pour les appels AJAX
+            return response()->json([
+                'success' => true,
+                'message' => 'Template créé avec succès. Vous pouvez maintenant le personnaliser avant de générer les annonces.',
+                'template_id' => $template->id,
+                'redirect_url' => route('admin.ads.templates.edit', $template->id)
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Erreur création template', [
@@ -179,10 +182,14 @@ class AdTemplateController extends Controller
                     'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                 ]);
 
-                // Rediriger vers la page d'édition même avec fallback
-                return redirect()
-                    ->route('admin.ads.templates.edit', $template->id)
-                    ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
+                // Retourner une réponse JSON même avec fallback
+                return response()->json([
+                    'success' => true,
+                    'message' => 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.',
+                    'template_id' => $template->id,
+                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
+                    'warning' => true
+                ]);
                 
             } catch (\Exception $fallbackError) {
                 Log::error('Erreur création template fallback', [
@@ -1159,10 +1166,13 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 'ai_response_data' => $aiContent
             ]);
 
-            // Rediriger vers la page d'édition pour personnaliser le template
-            return redirect()
-                ->route('admin.ads.templates.edit', $template->id)
-                ->with('success', 'Template créé avec succès pour le mot-clé: ' . $keyword . '. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
+            // Retourner une réponse JSON pour les appels AJAX
+            return response()->json([
+                'success' => true,
+                'message' => 'Template créé avec succès pour le mot-clé: ' . $keyword . '. Vous pouvez maintenant le personnaliser avant de générer les annonces.',
+                'template_id' => $template->id,
+                'redirect_url' => route('admin.ads.templates.edit', $template->id)
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Erreur création template mot-clé', [
@@ -1193,10 +1203,14 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     'ai_response_data' => ['fallback' => true, 'error' => $e->getMessage()],
                 ]);
 
-                // Rediriger vers la page d'édition même avec fallback
-                return redirect()
-                    ->route('admin.ads.templates.edit', $template->id)
-                    ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
+                // Retourner une réponse JSON même avec fallback
+                return response()->json([
+                    'success' => true,
+                    'message' => 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.',
+                    'template_id' => $template->id,
+                    'redirect_url' => route('admin.ads.templates.edit', $template->id),
+                    'warning' => true
+                ]);
                 
             } catch (\Exception $fallbackError) {
                 Log::error('Erreur création template mot-clé fallback', [

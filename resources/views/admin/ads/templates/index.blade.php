@@ -488,18 +488,42 @@ document.getElementById('createTemplateForm').addEventListener('submit', functio
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        // Vérifier si la réponse est JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            // Si ce n'est pas du JSON, essayer de parser quand même
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Réponse invalide du serveur');
+                }
+            });
+        }
+    })
     .then(data => {
         if (data.success) {
-            alert('Template créé avec succès !');
-            location.reload();
+            if (data.warning) {
+                alert('⚠️ ' + data.message);
+            } else {
+                alert('✅ ' + data.message);
+            }
+            // Rediriger vers la page d'édition si l'URL est fournie
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                location.reload();
+            }
         } else {
-            alert('Erreur lors de la création : ' + data.message);
+            alert('Erreur lors de la création : ' + (data.message || 'Erreur inconnue'));
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        alert('Erreur lors de la création du template');
+        alert('Erreur lors de la création du template : ' + error.message);
     })
     .finally(() => {
         button.textContent = originalText;
@@ -573,11 +597,33 @@ document.getElementById('createKeywordTemplateForm').addEventListener('submit', 
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Réponse invalide du serveur');
+                }
+            });
+        }
+    })
     .then(data => {
         if (data.success) {
-            alert('Template créé avec succès !');
-            location.reload();
+            if (data.warning) {
+                alert('⚠️ ' + data.message);
+            } else {
+                alert('✅ ' + data.message);
+            }
+            // Rediriger vers la page d'édition si l'URL est fournie
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                location.reload();
+            }
         } else {
             if (data.existing_templates && data.existing_templates.length > 0) {
                 let message = data.message + '\n\nTemplates existants :\n';
@@ -596,24 +642,49 @@ document.getElementById('createKeywordTemplateForm').addEventListener('submit', 
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
+                        } else {
+                            return response.text().then(text => {
+                                try {
+                                    return JSON.parse(text);
+                                } catch (e) {
+                                    throw new Error('Réponse invalide du serveur');
+                                }
+                            });
+                        }
+                    })
                     .then(data => {
                         if (data.success) {
-                            alert('Template créé avec succès !');
-                            location.reload();
+                            if (data.warning) {
+                                alert('⚠️ ' + data.message);
+                            } else {
+                                alert('✅ ' + data.message);
+                            }
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                location.reload();
+                            }
                         } else {
-                            alert('Erreur lors de la création : ' + data.message);
+                            alert('Erreur lors de la création : ' + (data.message || 'Erreur inconnue'));
                         }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors de la création : ' + error.message);
                     });
                 }
             } else {
-                alert('Erreur lors de la création : ' + data.message);
+                alert('Erreur lors de la création : ' + (data.message || 'Erreur inconnue'));
             }
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        alert('Erreur lors de la création du template');
+        alert('Erreur lors de la création du template : ' + error.message);
     })
     .finally(() => {
         button.textContent = originalText;
