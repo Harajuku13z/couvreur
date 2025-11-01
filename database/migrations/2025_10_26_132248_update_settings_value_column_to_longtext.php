@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->longText('value')->change();
-        });
+        // Utiliser DB::statement directement pour éviter les problèmes avec les données existantes
+        // et permettre NULL comme dans la migration originale
+        \DB::statement('ALTER TABLE `settings` MODIFY `value` LONGTEXT NULL');
     }
 
     /**
@@ -21,8 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->text('value')->change();
-        });
+        // Revenir à TEXT en cas de rollback
+        \DB::statement('ALTER TABLE `settings` MODIFY `value` TEXT NULL');
     }
 };
