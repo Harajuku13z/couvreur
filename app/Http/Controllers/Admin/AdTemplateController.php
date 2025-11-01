@@ -1867,6 +1867,7 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     $serviceNamePresent = $serviceNameCount >= 5; // Le service doit être mentionné au moins 5 fois
                     
                     // Vérifier si le contenu de financement est présent (MaPrimeRénov, CEE, etc.)
+                    $serviceLower = strtolower($serviceName);
                     $financementInfo = $this->getFinancementInfoForService($serviceName);
                     $hasFinancementContent = false;
                     if (strpos($serviceLower, 'isolation') !== false || 
