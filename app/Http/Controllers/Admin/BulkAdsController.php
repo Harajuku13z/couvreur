@@ -50,22 +50,39 @@ class BulkAdsController extends Controller
         // Log pour déboguer
         Log::info('=== DÉBUT generateBulkAds ===', [
             'all_input' => $request->all(),
+            'all_request' => $request->all(),
+            'request_json' => $request->json()->all(),
             'service_slug' => $request->input('service_slug'),
-            'service_slug_raw' => $request->get('service_slug'),
+            'service_slug_get' => $request->get('service_slug'),
+            'service_slug_post' => $request->post('service_slug'),
+            'service_slug_query' => $request->query('service_slug'),
             'city_ids' => $request->input('city_ids'),
-            'city_ids_raw' => $request->get('city_ids'),
+            'city_ids_array' => $request->input('city_ids', []),
             'ai_prompt' => $request->input('ai_prompt'),
             'method' => $request->method(),
             'content_type' => $request->header('Content-Type'),
+            'is_json' => $request->isJson(),
+            'wants_json' => $request->wantsJson(),
         ]);
 
+        // Essayer plusieurs façons de récupérer service_slug
+        $serviceSlug = $request->input('service_slug') 
+                    ?? $request->get('service_slug')
+                    ?? $request->post('service_slug')
+                    ?? ($request->isJson() ? $request->json('service_slug') : null)
+                    ?? null;
+
         // Vérifier manuellement avant validation
-        if (!$request->has('service_slug') || empty($request->input('service_slug'))) {
+        if (empty($serviceSlug)) {
             Log::error('service_slug manquant dans la requête', [
                 'all_input' => $request->all(),
+                'all_request_keys' => array_keys($request->all()),
                 'has_service_slug' => $request->has('service_slug'),
-                'service_slug_value' => $request->input('service_slug'),
-                'all_keys' => array_keys($request->all()),
+                'service_slug_input' => $request->input('service_slug'),
+                'service_slug_get' => $request->get('service_slug'),
+                'service_slug_post' => $request->post('service_slug'),
+                'content_type' => $request->header('Content-Type'),
+                'raw_content' => substr($request->getContent(), 0, 500),
             ]);
             
             return response()->json([
@@ -73,11 +90,16 @@ class BulkAdsController extends Controller
                 'message' => 'Le champ service_slug est requis. Vérifiez que vous avez sélectionné un service.',
                 'debug' => [
                     'has_service_slug' => $request->has('service_slug'),
-                    'service_slug_value' => $request->input('service_slug'),
+                    'service_slug_input' => $request->input('service_slug'),
+                    'service_slug_get' => $request->get('service_slug'),
                     'all_keys' => array_keys($request->all()),
+                    'content_type' => $request->header('Content-Type'),
                 ]
             ], 422);
         }
+        
+        // Utiliser la valeur récupérée
+        $request->merge(['service_slug' => $serviceSlug]);
 
         $request->validate([
             'service_slug' => 'required|string',
