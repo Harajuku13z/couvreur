@@ -106,27 +106,25 @@ class ServiceAiController extends Controller
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
             
-            // Message système fort pour forcer la personnalisation et FORCER JSON
-            $system = "Tu es un expert technique spécialisé en {$serviceName} avec une connaissance approfondie du domaine de la rénovation et couverture en France. 
+            // Message système fort pour forcer JSON PUR - INTERDIT HTML
+            $system = "Tu es un expert technique spécialisé en {$serviceName}. 
 
-🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
-- INTERDIT de retourner du texte formaté avec **markdown** ou des sections
-- INTERDIT de retourner du texte descriptif comme \"Voici le contenu...\"
-- INTERDIT de retourner du HTML ou des balises
-- INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement' sans précision
-- INTERDIT de copier du contenu générique ou répétitif
-- INTERDIT d'utiliser des phrases vides comme 'Service professionnel' sans détails
-- INTERDIT d'utiliser des phrases répétitives comme \"pour garantir une propreté et une sécurité optimales\"
+🚫🚫🚫 INTERDICTIONS ABSOLUES - CRITIQUE 🚫🚫🚫:
+- INTERDIT ABSOLU de retourner du HTML ou des balises HTML comme <div>, <p>, <li>, etc.
+- INTERDIT ABSOLU de retourner du texte formaté avec markdown (**, ##, etc.)
+- INTERDIT ABSOLU de retourner du texte descriptif comme \"Voici le contenu...\" ou \"Description:\"
+- INTERDIT ABSOLU de générer le template HTML complet
+- INTERDIT d'utiliser des prestations génériques
+- INTERDIT d'utiliser des phrases répétitives
 
-✅✅✅ OBLIGATIONS ABSOLUES ✅✅✅:
-- Tu DOIS répondre UNIQUEMENT avec un JSON valide commençant par { et finissant par }
-- PAS de texte avant ou après le JSON
-- PAS de ```json ou markdown autour du JSON
-- Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$serviceName}
-- Tu DOIS générer du contenu vraiment personnalisé avec des détails techniques concrets
-- Adapte TOUT spécifiquement au service {$serviceName} avec le vocabulaire professionnel exact du métier
-- Les prestations DOIVENT être RÉELLES et SPÉCIFIQUES (ex: \"Réparation de tuiles cassées avec remplacement à l'identique\" PAS \"Répulsion et remplacement des tuiles\")
-- Chaque prestation DOIT avoir une description technique différente et unique";
+✅✅✅ OBLIGATION ABSOLUE - UNIQUEMENT JSON ✅✅✅:
+- Tu DOIS répondre UNIQUEMENT avec un JSON valide
+- Le JSON DOIT commencer PAR { (accolade ouvrante) - RIEN avant
+- Le JSON DOIT finir PAR } (accolade fermante) - RIEN après
+- PAS de texte, PAS de HTML, PAS de markdown
+- JUSTE le JSON brut avec les champs demandés
+- Le template HTML est DÉJÀ créé, tu dois UNIQUEMENT fournir les DONNÉES en JSON
+- Chaque contenu DOIT être UNIQUE et TECHNIQUE spécifique à {$serviceName}";
             
             // Template HTML fixe - l'IA génère uniquement le JSON qui sera injecté ici
             $template = '<div class="grid md:grid-cols-2 gap-8">
@@ -258,12 +256,13 @@ Langue: {$language}
 
 {$infosPratiquesPrompt}
 
-⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
-Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
+⚠️⚠️⚠️ ATTENTION CRITIQUE ⚠️⚠️⚠️:
+1. Le template HTML est DÉJÀ créé sur le serveur
+2. Tu dois UNIQUEMENT générer un JSON avec les DONNÉES
+3. INTERDIT de générer du HTML - le JSON sera injecté dans le template
+4. INTERDIT de copier les exemples entre [crochets] - génère du VRAI contenu
 
-⚠️ IMPORTANT: Ce JSON sera injecté dans un template HTML. Tu dois générer UNIQUEMENT le JSON, rien d'autre.
-
-Génère un JSON avec cette structure (remplis chaque champ avec du CONTENU RÉEL, TECHNIQUE et PROFESSIONNEL) :
+STRUCTURE JSON REQUISE (remplis chaque champ avec du CONTENU RÉEL et TECHNIQUE) :
 
 {
   \"description_courte\": \"[Description courte de {$serviceName} incluant {$companyCity} et le département {$companyDept}. 150-200 caractères, TEXTE BRUT SEULEMENT]\",
@@ -406,15 +405,26 @@ EXEMPLE DE CE QUI EST OBLIGATOIRE:
                     'content_preview' => substr($content, 0, 200)
                 ]);
 
+                // Vérifier si l'IA a retourné du HTML au lieu de JSON
+                if (preg_match('/<div[^>]*>|<p[^>]*>|<li[^>]*>/i', $content)) {
+                    \Log::error('L\'IA a généré du HTML au lieu de JSON - rejeté', [
+                        'service' => $serviceName,
+                        'content_preview' => substr($content, 0, 300)
+                    ]);
+                    throw new \Exception("L'IA a généré du HTML au lieu de JSON. Le système attend UNIQUEMENT un JSON avec les données. Veuillez réessayer.");
+                }
+                
                 // Parser le JSON de la réponse IA
                 $jsonData = $this->parseJsonResponse($content);
                 
                 if (!$jsonData) {
-                    \Log::warning('Impossible de parser le JSON pour le service', [
+                    \Log::error('Impossible de parser le JSON pour le service', [
                         'service' => $serviceName,
-                        'content_preview' => substr($content, 0, 500)
+                        'content_preview' => substr($content, 0, 500),
+                        'content_length' => strlen($content),
+                        'contains_html' => preg_match('/<[^>]+>/', $content)
                     ]);
-                    continue;
+                    throw new \Exception("L'IA n'a pas retourné un JSON valide. Veuillez réessayer avec 'Forcer la régénération'.");
                 }
                 
                 \Log::info('JSON parsé avec succès pour service', [
