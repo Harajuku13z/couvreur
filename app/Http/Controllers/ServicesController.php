@@ -230,7 +230,7 @@ class ServicesController extends Controller
         
         // Variables pour le SEO centralisé
         $currentPage = 'services';
-        $pageTitle = $service['meta_title'] ?? $service['name'] . ' - ' . setting('company_name', 'Sauser Couverture');
+        $pageTitle = $service['meta_title'] ?? $service['name'] . ' - ' . setting('company_name', 'Ajpv');
         $pageDescription = $service['meta_description'] ?? $service['short_description'] ?? 'Découvrez nos services de ' . $service['name'] . '. Devis gratuit, intervention rapide, qualité garantie.';
         $pageImage = $service['featured_image'] ?? $service['og_image'] ?? null; // null pour utiliser l'image par défaut du SeoHelper
         $pageType = 'website';
@@ -649,15 +649,24 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
             if ($result && isset($result['content'])) {
                 Log::info('Réponse IA reçue', [
                     'service_name' => $serviceName,
-                    'provider' => $result['provider'],
+                    'provider' => $result['provider'] ?? 'unknown',
                     'content_length' => strlen($result['content']),
-                    'content_preview' => substr($result['content'], 0, 500)
+                    'content_preview' => substr($result['content'], 0, 500),
+                    'full_content' => $result['content'] // Logger le contenu complet pour debug
                 ]);
                 
                 // Parser le JSON de manière plus robuste
                 $aiData = $this->parseAIResponse($result['content']);
                 
                 if ($aiData && is_array($aiData)) {
+                    Log::info('JSON parsé avec succès', [
+                        'service_name' => $serviceName,
+                        'ai_data_keys' => array_keys($aiData),
+                        'has_description' => isset($aiData['description']),
+                        'description_length' => isset($aiData['description']) ? strlen($aiData['description']) : 0,
+                        'description_preview' => isset($aiData['description']) ? substr($aiData['description'], 0, 300) : 'N/A'
+                    ]);
+                    
                     // Vérifier que le contenu contient bien le nom du service
                     $descriptionContainsService = isset($aiData['description']) && stripos($aiData['description'], $serviceName) !== false;
                     $isGeneric = isset($aiData['description']) && (
@@ -674,7 +683,9 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                         'Accompagnement dans vos choix',
                         'Diagnostic précis et traitement adapté',
                         'Remplacement intégral avec matériaux de qualité',
-                        'Pose selon les normes en vigueur'
+                        'Pose selon les normes en vigueur',
+                        'Service professionnel',
+                        'Intervention adaptée à vos besoins spécifiques'
                     ];
                     
                     $containsGenericPrestations = false;
@@ -684,7 +695,8 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                             $containsGenericPrestations = true;
                             Log::warning('Prestation générique détectée dans le contenu IA', [
                                 'service_name' => $serviceName,
-                                'generic_prestation' => $generic
+                                'generic_prestation' => $generic,
+                                'description_excerpt' => substr($descriptionHtml, 0, 500)
                             ]);
                             break;
                         }
@@ -692,37 +704,88 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     
                     if ($descriptionContainsService && !$isGeneric && !$containsGenericPrestations) {
                         Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
-                    // Valider et nettoyer les données
-                    return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
+                        // Valider et nettoyer les données
+                        return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                     } else {
-                        Log::warning('Contenu IA rejeté - générique ou contient prestations interdites', [
+                        $errorReason = [];
+                        if (!$descriptionContainsService) $errorReason[] = 'Ne contient pas le nom du service';
+                        if ($isGeneric) $errorReason[] = 'Contenu trop générique (< 500 caractères)';
+                        if ($containsGenericPrestations) $errorReason[] = 'Contient des prestations génériques interdites';
+                        
+                        Log::error('Contenu IA rejeté - générique ou invalide', [
                             'service_name' => $serviceName,
                             'contains_service' => $descriptionContainsService,
                             'is_generic' => $isGeneric,
-                            'contains_generic_prestations' => $containsGenericPrestations
+                            'contains_generic_prestations' => $containsGenericPrestations,
+                            'error_reasons' => implode(', ', $errorReason),
+                            'description_preview' => substr($descriptionHtml, 0, 500)
                         ]);
-                }
-            } else {
-                    Log::warning('Échec parsing JSON de la réponse IA', [
+                        
+                        // Retourner une erreur explicite au lieu du fallback
+                        return [
+                            'error' => true,
+                            'error_message' => 'L\'IA a généré un contenu générique ou invalide. Raisons: ' . implode(', ', $errorReason),
+                            'debug_info' => [
+                                'provider' => $result['provider'] ?? 'unknown',
+                                'content_length' => strlen($result['content']),
+                                'description_length' => strlen($descriptionHtml),
+                                'contains_service' => $descriptionContainsService,
+                                'is_generic' => $isGeneric,
+                                'contains_generic_prestations' => $containsGenericPrestations
+                            ]
+                        ];
+                    }
+                } else {
+                    Log::error('Échec parsing JSON de la réponse IA', [
                         'service_name' => $serviceName,
-                        'content_preview' => substr($result['content'], 0, 300)
+                        'content_preview' => substr($result['content'], 0, 500),
+                        'content_full' => $result['content']
                     ]);
+                    
+                    return [
+                        'error' => true,
+                        'error_message' => 'Impossible de parser le JSON retourné par l\'IA. Le format de la réponse est invalide.',
+                        'debug_info' => [
+                            'provider' => $result['provider'] ?? 'unknown',
+                            'content_length' => strlen($result['content']),
+                            'content_preview' => substr($result['content'], 0, 500)
+                        ]
+                    ];
                 }
             } else {
                 Log::error('Aucune réponse de l\'IA', [
                     'service_name' => $serviceName,
-                    'result' => $result
+                    'has_result' => !is_null($result),
+                    'has_content' => isset($result['content']),
+                    'result_keys' => $result ? array_keys($result) : []
                 ]);
+                
+                return [
+                    'error' => true,
+                    'error_message' => 'Aucune réponse de l\'IA. Vérifiez vos clés API ChatGPT ou Groq.',
+                    'debug_info' => [
+                        'has_result' => !is_null($result),
+                        'has_content' => isset($result['content'] ?? false),
+                        'provider' => $result['provider'] ?? 'none'
+                    ]
+                ];
             }
         } catch (\Exception $e) {
-            Log::error('Erreur génération IA: ' . $e->getMessage(), [
+            Log::error('Erreur génération IA', [
                 'service_name' => $serviceName,
-                'error' => $e->getTraceAsString()
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString()
             ]);
+            
+            return [
+                'error' => true,
+                'error_message' => 'Erreur lors de la génération par l\'IA: ' . $e->getMessage(),
+                'debug_info' => [
+                    'exception_type' => get_class($e),
+                    'error_trace' => $e->getTraceAsString()
+                ]
+            ];
         }
-        
-        // Fallback amélioré en cas d'échec
-        return $this->generateEnhancedFallbackContent($serviceName, $shortDescription, $companyInfo);
     }
 
     /**
