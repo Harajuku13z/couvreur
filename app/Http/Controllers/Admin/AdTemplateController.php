@@ -73,7 +73,7 @@ class AdTemplateController extends Controller
         $template->update($validated);
 
         return redirect()
-            ->route('ads.templates.show', $template->id)
+            ->route('admin.ads.templates.show', $template->id)
             ->with('success', 'Template personnalisé avec succès ! Vous pouvez maintenant générer des annonces.');
     }
 
@@ -147,7 +147,7 @@ class AdTemplateController extends Controller
 
             // Rediriger vers la page d'édition pour personnaliser le template
             return redirect()
-                ->route('ads.templates.edit', $template->id)
+                ->route('admin.ads.templates.edit', $template->id)
                 ->with('success', 'Template créé avec succès. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
 
         } catch (\Exception $e) {
@@ -181,7 +181,7 @@ class AdTemplateController extends Controller
 
                 // Rediriger vers la page d'édition même avec fallback
                 return redirect()
-                    ->route('ads.templates.edit', $template->id)
+                    ->route('admin.ads.templates.edit', $template->id)
                     ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
                 
             } catch (\Exception $fallbackError) {
@@ -1161,7 +1161,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
 
             // Rediriger vers la page d'édition pour personnaliser le template
             return redirect()
-                ->route('ads.templates.edit', $template->id)
+                ->route('admin.ads.templates.edit', $template->id)
                 ->with('success', 'Template créé avec succès pour le mot-clé: ' . $keyword . '. Vous pouvez maintenant le personnaliser avant de générer les annonces.');
 
         } catch (\Exception $e) {
@@ -1195,7 +1195,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
 
                 // Rediriger vers la page d'édition même avec fallback
                 return redirect()
-                    ->route('ads.templates.edit', $template->id)
+                    ->route('admin.ads.templates.edit', $template->id)
                     ->with('warning', 'L\'API IA n\'était pas disponible. Le template a été créé avec du contenu par défaut. Vous pouvez le personnaliser maintenant.');
                 
             } catch (\Exception $fallbackError) {

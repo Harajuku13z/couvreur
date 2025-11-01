@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-8">
         <div>
             <div class="flex items-center mb-2">
-                <a href="{{ route('ads.templates.index') }}" class="text-blue-600 hover:text-blue-800 mr-4">
+                <a href="{{ route('admin.ads.templates.index') }}" class="text-blue-600 hover:text-blue-800 mr-4">
                     <i class="fas fa-arrow-left"></i> Retour aux templates
                 </a>
             </div>
@@ -16,7 +16,7 @@
             <p class="text-gray-600 mt-2">{{ $template->short_description }}</p>
         </div>
         <div class="flex space-x-4">
-            <a href="{{ route('ads.templates.edit', $template->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+            <a href="{{ route('admin.ads.templates.edit', $template->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
                 <i class="fas fa-edit"></i>
                 <span>Personnaliser</span>
             </a>
