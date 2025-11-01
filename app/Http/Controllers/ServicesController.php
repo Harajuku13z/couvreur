@@ -624,20 +624,69 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             $timestamp = now()->toIso8601String();
             
             // Instructions ultra-spécifiques pour éviter le contenu générique
+            $serviceLower = strtolower($serviceName);
+            
+            // Générer des exemples concrets selon le type de service
+            $concreteExamples = "";
+            if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
+                $concreteExamples = "EXEMPLES ACCEPTABLES pour {$serviceName}:
+- Réparation de tuiles cassées ou déformées avec remplacement à l'identique
+- Remplacement de faîtage défectueux avec étanchéité renforcée
+- Traitement hydrofuge de la toiture avec produit silicone haute performance
+- Réfection complète de zinguerie (gouttières, chéneaux, noues)
+- Réparation de solin périphérique avec mortier spécial ou bande bitumineuse
+- Remplacement d'ardoises manquantes avec ardoises naturelles ou fibro-ciment
+- Réparation de charpente avec renforcement des fermes et pannes
+- Isolation des combles perdus par soufflage de laine de verre ou ouate
+- Réfection de gouttières PVC ou métalliques avec pose de protections
+- Traitement anti-moisissure et démoussage avec produit biocide certifié";
+            } elseif (strpos($serviceLower, 'isolation') !== false) {
+                $concreteExamples = "EXEMPLES ACCEPTABLES pour {$serviceName}:
+- Isolation des combles perdus par soufflage de laine de verre R=7
+- Isolation sous rampants avec panneaux de laine de roche semi-rigides
+- Isolation des murs par l'intérieur avec doublage et pare-vapeur
+- Isolation thermique par l'extérieur avec enduit isolant (ITE)
+- Isolation des sols sur terre-plein avec polystyrène expansé
+- Traitement des ponts thermiques avec bandes d'arêtes et rupteurs
+- Pose de VMC double flux avec récupération de chaleur >90%
+- Calorifugeage des canalisations avec coquilles isolantes";
+            } elseif (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
+                $concreteExamples = "EXEMPLES ACCEPTABLES pour {$serviceName}:
+- Ravalement de façade avec enduit monocouche hydraulique
+- Application d'enduit à la tyrolienne avec granulométrie choisie
+- Peinture façade avec système acrylique haute opacité
+- Nettoyage haute pression avec injection de produit décapant
+- Réfection de parement pierre avec jointoiement à la chaux
+- Réparation de fissures structurelles par injection résine époxy
+- Traitement anti-humidité avec injection de résine hydrofuge
+- Isolation thermique par l'extérieur avec bardage ventilé";
+            } else {
+                $concreteExamples = "EXEMPLES ACCEPTABLES pour {$serviceName}:
+Génère 10 prestations techniques RÉELLES et SPÉCIFIQUES au métier de {$serviceName}.
+Chaque prestation doit mentionner:
+- Le matériau/technique précis utilisé
+- La méthode d'intervention
+- Le bénéfice technique concret";
+            }
+            
             $specificityInstructions = "\n\n🚫🚫🚫 INTERDICTIONS ABSOLUES - NE PAS UTILISER CES PRESTATIONS 🚫🚫🚫:
-- INTERDIT: 'Réparation et maintenance'
-- INTERDIT: 'Rénovation complète'
-- INTERDIT: 'Installation professionnelle'
-- INTERDIT: 'Conseils personnalisés'
-- INTERDIT: Toute prestation générique ou vague
+- INTERDIT: 'Réparation et maintenance' (trop vague)
+- INTERDIT: 'Rénovation complète' (trop générique)
+- INTERDIT: 'Installation professionnelle' (pas spécifique)
+- INTERDIT: 'Conseils personnalisés' (pas une prestation technique)
+- INTERDIT: 'Intervention adaptée à vos besoins spécifiques' (phrase vide)
+- INTERDIT: Toute prestation qui pourrait s'appliquer à n'importe quel service
 
 ✅✅✅ EXIGENCES ABSOLUES POUR {$serviceName} ✅✅✅:
 - Chaque prestation DOIT avoir un NOM TECHNIQUE précis du domaine de {$serviceName}
-- Chaque prestation DOIT expliquer la MÉTHODE et la TECHNIQUE utilisée
+- Chaque prestation DOIT mentionner les MATÉRIAUX ou TECHNIQUES utilisés
+- Chaque prestation DOIT expliquer la MÉTHODE d'intervention
 - Les prestations doivent être SPÉCIFIQUES au métier de {$serviceName}
+- Minimum 10 prestations TECHNIQUES différentes
 
-EXEMPLES CONCRETS POUR {$serviceName}:
-";
+{$concreteExamples}
+
+⚠️ CRITIQUE: Si tu utilises des prestations génériques, le contenu sera REJETÉ.";
             
             // Ajouter des exemples selon le type de service
             $serviceNameLower = mb_strtolower($serviceName);
@@ -698,7 +747,8 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     );
                     
                     // Vérifier la présence de prestations génériques interdites
-                    $genericPrestations = [
+                    // Liste des prestations vraiment génériques (utilisées comme titres de prestations)
+                    $genericPrestationTitles = [
                         'Réparation et maintenance',
                         'Rénovation complète',
                         'Installation professionnelle',
@@ -706,40 +756,98 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                         'Accompagnement dans vos choix',
                         'Diagnostic précis et traitement adapté',
                         'Remplacement intégral avec matériaux de qualité',
-                        'Pose selon les normes en vigueur',
-                        'Service professionnel',
-                        'Intervention adaptée à vos besoins spécifiques'
+                        'Pose selon les normes en vigueur'
                     ];
                     
+                    // Vérifier si ces prestations apparaissent comme titres dans les listes (dans des balises <strong> ou <li>)
                     $containsGenericPrestations = false;
                     $descriptionHtml = $aiData['description'] ?? '';
-                    foreach ($genericPrestations as $generic) {
-                        if (stripos($descriptionHtml, $generic) !== false) {
+                    $plainText = strip_tags($descriptionHtml);
+                    
+                    // Chercher les prestations génériques uniquement dans un contexte de liste (près de <strong> ou dans <li>)
+                    // Ignorer si elles apparaissent dans le texte général
+                    foreach ($genericPrestationTitles as $generic) {
+                        // Chercher le pattern: <li>...<strong>Prestation générique</strong> ou <strong>Prestation générique</strong>
+                        $pattern = '/<li[^>]*>.*?<strong[^>]*>.*?' . preg_quote($generic, '/') . '.*?<\/strong>/is';
+                        if (preg_match($pattern, $descriptionHtml)) {
                             $containsGenericPrestations = true;
-                            Log::warning('Prestation générique détectée dans le contenu IA', [
+                            Log::warning('Prestation générique détectée comme titre dans le contenu IA', [
                                 'service_name' => $serviceName,
                                 'generic_prestation' => $generic,
-                                'description_excerpt' => substr($descriptionHtml, 0, 500)
+                                'context' => 'dans une liste de prestations'
                             ]);
                             break;
                         }
+                        
+                        // Vérifier aussi si c'est exactement le titre d'une prestation (ligne commençant par cette phrase)
+                        $pattern2 = '/^.*?' . preg_quote($generic, '/') . '.*?$/m';
+                        if (preg_match($pattern2, $plainText)) {
+                            // Vérifier si c'est dans un contexte acceptable (phrase longue) ou dans une liste
+                            $context = substr($descriptionHtml, max(0, stripos($descriptionHtml, $generic) - 100), 300);
+                            // Si c'est dans un <li> ou <strong>, c'est probablement une prestation générique
+                            if (preg_match('/<(li|strong)[^>]*>.*?' . preg_quote($generic, '/') . '/is', $context)) {
+                                $containsGenericPrestations = true;
+                                Log::warning('Prestation générique détectée dans liste', [
+                                    'service_name' => $serviceName,
+                                    'generic_prestation' => $generic,
+                                    'context' => $context
+                                ]);
+                                break;
+                            }
+                        }
                     }
                     
-                    if ($descriptionContainsService && !$isGeneric && !$containsGenericPrestations) {
-                        Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
+                    // Vérifier aussi si on a "Service professionnel [service]" comme seule prestation (cas très générique)
+                    $hasOnlyGenericService = preg_match('/<li[^>]*>.*?Service professionnel.*?<\/li>/is', $descriptionHtml) && 
+                                             substr_count($descriptionHtml, '<li') <= 2;
+                    if ($hasOnlyGenericService && strlen($plainText) < 800) {
+                        $containsGenericPrestations = true;
+                        Log::warning('Contenu semble avoir uniquement des prestations génériques', [
+                            'service_name' => $serviceName,
+                            'description_length' => strlen($plainText)
+                        ]);
+                    }
+                    
+                    // Validation plus souple : accepter si le contenu est assez long et contient le service
+                    // Même avec quelques mots génériques, si le contenu est riche (> 1000 caractères), c'est acceptable
+                    $plainTextLength = strlen($plainText);
+                    $isRichContent = $plainTextLength > 1000 && $descriptionContainsService;
+                    
+                    // Si le contenu est riche, on accepte même avec quelques prestations génériques
+                    // Mais on rejette si c'est vraiment générique (trop court + prestations génériques)
+                    $shouldAccept = $descriptionContainsService && 
+                                   (($isRichContent && !$containsGenericPrestations) || 
+                                    ($isRichContent && $plainTextLength > 2000)); // Contenu très riche, on accepte
+                    
+                    $shouldReject = (!$descriptionContainsService) || 
+                                   ($isGeneric && strlen($plainText) < 500) ||
+                                   ($containsGenericPrestations && $plainTextLength < 800); // Rejeter seulement si court + générique
+                    
+                    if ($shouldAccept || !$shouldReject) {
+                        if ($containsGenericPrestations && $isRichContent) {
+                            Log::info('Contenu IA accepté malgré prestations génériques (contenu riche)', [
+                                'service_name' => $serviceName,
+                                'content_length' => $plainTextLength
+                            ]);
+                        } else {
+                            Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
+                        }
                         // Valider et nettoyer les données
                         return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                     } else {
                         $errorReason = [];
                         if (!$descriptionContainsService) $errorReason[] = 'Ne contient pas le nom du service';
-                        if ($isGeneric) $errorReason[] = 'Contenu trop générique (< 500 caractères)';
-                        if ($containsGenericPrestations) $errorReason[] = 'Contient des prestations génériques interdites';
+                        if ($isGeneric && strlen($plainText) < 500) $errorReason[] = 'Contenu trop générique (< 500 caractères)';
+                        if ($containsGenericPrestations && $plainTextLength < 800) {
+                            $errorReason[] = 'Contient des prestations génériques interdites comme titres de prestations';
+                        }
                         
                         Log::error('Contenu IA rejeté - générique ou invalide', [
                             'service_name' => $serviceName,
                             'contains_service' => $descriptionContainsService,
                             'is_generic' => $isGeneric,
                             'contains_generic_prestations' => $containsGenericPrestations,
+                            'plain_text_length' => $plainTextLength,
                             'error_reasons' => implode(', ', $errorReason),
                             'description_preview' => substr($descriptionHtml, 0, 500)
                         ]);
