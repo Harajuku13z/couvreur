@@ -140,6 +140,22 @@ Exemples:
                 <p class="text-sm text-gray-500 mt-1">Ces instructions seront ajoutées au prompt principal pour personnaliser la génération.</p>
             </div>
 
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input 
+                        type="checkbox" 
+                        name="force_regenerate" 
+                        value="1"
+                        class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        {{ old('force_regenerate') ? 'checked' : '' }}
+                    >
+                    <span class="text-sm font-medium text-gray-700">
+                        Forcer la régénération même si le service existe déjà
+                    </span>
+                </label>
+                <p class="text-sm text-gray-500 mt-1 ml-6">Cochez cette case pour régénérer le contenu des services existants avec un nouveau contenu unique.</p>
+            </div>
+
             <div class="flex gap-4">
                 <button 
                     type="submit" 

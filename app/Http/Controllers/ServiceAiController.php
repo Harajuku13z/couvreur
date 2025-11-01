@@ -54,6 +54,7 @@ class ServiceAiController extends Controller
             'custom_prompt' => 'nullable|string|max:2000',
             'provider' => 'nullable|in:groq',
             'model' => 'nullable|string|max:255',
+            'force_regenerate' => 'nullable|boolean',
         ]);
 
         $serviceNames = collect(preg_split("/\r?\n/", trim($data['service_names'])))->filter();
@@ -65,7 +66,7 @@ class ServiceAiController extends Controller
         $created = 0;
         $updated = 0;
         $existingServices = json_decode(Setting::get('services', '[]'), true) ?: [];
-        $forceRegenerate = $request->input('force_regenerate', false);
+        $forceRegenerate = $request->has('force_regenerate') && $request->input('force_regenerate') == '1';
 
         foreach ($serviceNames as $serviceName) {
             $slug = Str::slug($serviceName);
