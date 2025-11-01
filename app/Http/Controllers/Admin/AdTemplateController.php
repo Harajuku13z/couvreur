@@ -288,6 +288,13 @@ class AdTemplateController extends Controller
         // Construire le prompt pour le template (sans ville spécifique)
         $prompt = $this->buildTemplatePrompt($service['name'], $aiPrompt);
         
+        Log::info('=== DÉBUT GÉNÉRATION TEMPLATE ===', [
+            'service_name' => $service['name'],
+            'chatgpt_enabled' => setting('chatgpt_enabled', true),
+            'chatgpt_api_key_exists' => !empty(setting('chatgpt_api_key')),
+            'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
+        ]);
+        
         $result = AiService::callAI($prompt, null, [
             'max_tokens' => 3000,
             'temperature' => 0.7,
@@ -295,10 +302,22 @@ class AdTemplateController extends Controller
         ]);
 
         if (!$result || !isset($result['content'])) {
-            throw new \Exception('Erreur API IA: Impossible de générer le contenu');
+            Log::error('Échec génération template - Aucune réponse de l\'IA', [
+                'service_name' => $service['name'],
+                'result' => $result
+            ]);
+            throw new \Exception('Erreur API IA: Impossible de générer le contenu. ChatGPT et Groq ont tous deux échoué.');
         }
 
+        $provider = $result['provider'] ?? 'unknown';
         $aiContent = $result['content'];
+        
+        Log::info('Réponse IA reçue pour template', [
+            'service_name' => $service['name'],
+            'provider' => $provider,
+            'content_length' => strlen($aiContent),
+            'content_preview' => substr($aiContent, 0, 200)
+        ]);
         
         // Valider et nettoyer le contenu
         return $this->validateAndCleanAIData($aiContent, $service['name']);
@@ -658,39 +677,42 @@ IMPORTANT:
      */
     private function generateKeywordTemplateContent($keyword, $aiPrompt = null)
     {
-        $apiKey = setting('openai_api_key') ?: setting('chatgpt_api_key');
-        
-        if (!$apiKey) {
-            throw new \Exception('Clé API OpenAI non configurée');
-        }
-
         // Construire le prompt pour le mot-clé
         $prompt = $this->buildKeywordTemplatePrompt($keyword, $aiPrompt);
         
-        $response = \Illuminate\Support\Facades\Http::timeout(120)
-            ->retry(3, 2000)
-            ->withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4',
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
-                'max_tokens' => 3000,
-                'temperature' => 0.7
-            ]);
+        Log::info('=== DÉBUT GÉNÉRATION TEMPLATE MOT-CLÉ ===', [
+            'keyword' => $keyword,
+            'chatgpt_enabled' => setting('chatgpt_enabled', true),
+            'chatgpt_api_key_exists' => !empty(setting('chatgpt_api_key')),
+            'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
+        ]);
+        
+        // Utiliser AiService avec fallback automatique vers Groq
+        $result = AiService::callAI($prompt, null, [
+            'max_tokens' => 3000,
+            'temperature' => 0.7,
+            'timeout' => 120
+        ]);
 
-        if (!$response->successful()) {
-            throw new \Exception('Erreur API OpenAI: ' . $response->status());
+        if (!$result || !isset($result['content'])) {
+            Log::error('Échec génération template mot-clé - Aucune réponse de l\'IA', [
+                'keyword' => $keyword,
+                'result' => $result
+            ]);
+            throw new \Exception('Erreur API IA: Impossible de générer le contenu. ChatGPT et Groq ont tous deux échoué.');
         }
 
-        $aiData = $response->json();
-        $aiContent = $aiData['choices'][0]['message']['content'] ?? '';
-
+        $provider = $result['provider'] ?? 'unknown';
+        $aiContent = $result['content'];
+        
+        Log::info('Réponse IA reçue pour template mot-clé', [
+            'keyword' => $keyword,
+            'provider' => $provider,
+            'content_length' => strlen($aiContent),
+            'content_preview' => substr($aiContent, 0, 200)
+        ]);
+        
+        // Valider et nettoyer le contenu
         return $this->validateAndCleanAIData($aiContent, $keyword);
     }
 
