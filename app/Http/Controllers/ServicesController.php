@@ -686,19 +686,9 @@ Chaque prestation doit mentionner:
 
 {$concreteExamples}
 
-⚠️ CRITIQUE: Si tu utilises des prestations génériques, le contenu sera REJETÉ.";
-            
-            // Ajouter des exemples selon le type de service
-            $serviceNameLower = mb_strtolower($serviceName);
-            if (strpos($serviceNameLower, 'désamiantage') !== false || strpos($serviceNameLower, 'amiante') !== false) {
-                $specificityInstructions .= "- Bon: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'\n- Mauvais: 'Réparation et maintenance', 'Installation professionnelle'\n";
-            } elseif (strpos($serviceNameLower, 'humidité') !== false || strpos($serviceNameLower, 'ventilation') !== false) {
-                $specificityInstructions .= "- Bon: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'\n- Mauvais: 'Réparation et maintenance', 'Conseils personnalisés'\n";
-            } else {
-                $specificityInstructions .= "- Pour {$serviceName}, utilise le vocabulaire TECHNIQUE et les prestations RÉELLES du métier\n- Recherche les termes techniques professionnels spécifiques à {$serviceName}\n- Évite TOUT ce qui pourrait s'appliquer à n'importe quel autre service\n";
-            }
-            
-            $specificityInstructions .= "\nID unique: {$uniqueId} | Timestamp: {$timestamp}
+⚠️ CRITIQUE: Si tu utilises des prestations génériques, le contenu sera REJETÉ.
+
+ID unique: {$uniqueId} | Timestamp: {$timestamp}
 Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente pour {$serviceName}.";
             
             $promptWithUniqueness = $prompt . $specificityInstructions;
