@@ -1836,7 +1836,11 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                         'Conseil personnalisé',
                         'Suivi post-intervention',
                         'Formation utilisateur',
-                        'Garantie étendue'
+                        'Garantie étendue',
+                        // Phrases génériques financement interdites
+                        'Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de',
+                        'Nous vous accompagnons dans vos démarches',
+                        'pour bénéficier des aides financières disponibles'
                     ];
                     
                     $hasGenericContent = false;
@@ -2048,9 +2052,12 @@ Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exac
     <!-- SECTION 7: FINANCEMENT ET AIDES (PERSONNALISÉ SELON SERVICE) -->
     <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
       <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et Aides pour {$serviceName}</h4>
-      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé expliquant pourquoi les aides sont importantes pour {$serviceName} et comment nous accompagnons les clients. Ensuite, intégrer les informations suivantes:</p>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé pour {$serviceName}: mentionner pourquoi les aides sont importantes pour ce type de travaux (économies d'énergie, rénovation, amélioration de l'habitat). SOYEZ SPÉCIFIQUE à {$serviceName}, pas générique.</p>
+      
+      <!-- GÉNÉRER ICI les informations de financement SPÉCIFIQUES à {$serviceName} -->
       {$financementInfo}
-      <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion expliquant comment notre équipe aide concrètement les clients à bénéficier de ces aides pour leurs travaux de {$serviceName} à [VILLE].</p>
+      
+      <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion CONCRET: expliquer COMMENT notre équipe aide les clients (ex: montage de dossiers MaPrimeRénov, simulation CEE, accompagnement éco-PTZ, etc.). Mentionner des actions concrètes comme \"Nous remplissons votre dossier MaPrimeRénov\", \"Nous calculons votre éligibilité CEE\", etc.</p>
     </div>
     
     <!-- SECTION 8: BESOIN D'UN DEVIS -->
@@ -2137,7 +2144,12 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
 - GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName} avec réponses détaillées (minimum 3 phrases par réponse)
 - TOUT le contenu HTML dans \"description\" doit être COMPLET avec TOUS les \"ÉCRIRE ICI\" REMPLACÉS par du vrai texte
 - La description longue (long_description) doit faire minimum 400 mots
-- INTÈGRE la section financement ({$financementInfo}) dans le HTML de \"description\" en ajoutant des paragraphes d'introduction et conclusion personnalisés
+- Pour la section FINANCEMENT ET AIDES: 
+  * REMPLACE le placeholder \"{$financementInfo}\" par le contenu HTML RÉEL fourni ci-dessous
+  * Le contenu suivant DOIT être copié tel quel dans le HTML (ce sont les informations spécifiques à {$serviceName}):
+{$financementInfo}
+  * ÉCRIS les paragraphes d'introduction et conclusion AVANT et APRÈS ce contenu, en les personnalisant pour {$serviceName}
+  * INTERDIT d'utiliser \"Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de\" - utilise une phrase UNIQUE et SPÉCIFIQUE
 ";
 
         if ($aiPrompt) {
@@ -2292,9 +2304,11 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
       <p class=\"leading-relaxed\"><strong>Crédit d'impôt :</strong> Possibilité de crédit d'impôt pour l'installation de fenêtres à haute performance énergétique.</p>";
         }
         
-        // Par défaut - financement général
-        return "<p class=\"leading-relaxed mb-3\">Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}. De nombreuses solutions de financement existent selon votre situation.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Aides disponibles :</strong> Selon votre projet et votre situation, vous pouvez bénéficier de MaPrimeRénov, des primes CEE, de l'éco-PTZ, ou de la TVA réduite à 5,5%.</p>
-      <p class=\"leading-relaxed\"><strong>Accompagnement personnalisé :</strong> Notre équipe vous guide dans vos démarches administratives pour maximiser vos aides et optimiser votre investissement.</p>";
+        // Par défaut - financement général (mais toujours avec détails)
+        return "
+      <p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Selon votre projet de {$serviceName} et vos revenus, vous pouvez bénéficier de MaPrimeRénov. Cette aide de l'État peut couvrir une partie significative de vos travaux. Notre équipe vous aide à monter votre dossier et vérifier votre éligibilité selon le type de travaux de {$serviceName} que vous souhaitez réaliser.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Primes CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE sont versées par les fournisseurs d'énergie pour inciter à la rénovation énergétique. Pour vos travaux de {$serviceName}, nous vérifions votre éligibilité et calculons le montant de la prime que vous pouvez obtenir. Ces primes sont cumulables avec MaPrimeRénov.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ (Éco-prêt à taux zéro) :</strong> Pour financer vos travaux de {$serviceName}, l'éco-prêt à taux zéro permet d'emprunter jusqu'à 50 000€ sans intérêts sur 20 ans. Accessible sans conditions de ressources, il peut couvrir une partie importante de votre projet.</p>
+      <p class=\"leading-relaxed\"><strong>TVA réduite à 5,5% :</strong> Pour vos travaux de {$serviceName} dans un logement de plus de 2 ans, vous bénéficiez de la TVA réduite à 5,5% au lieu de 20%, ce qui représente une économie significative sur l'ensemble de votre projet.</p>";
     }
 }
