@@ -238,7 +238,16 @@ class ServiceAiController extends Controller
 </div>';
             
             // Prompt simplifié pour générer un JSON structuré (exactement comme AdTemplateController)
-            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
+            $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. 
+
+🚫🚫🚫 INTERDICTIONS ABSOLUES 🚫🚫🚫:
+- INTERDIT ABSOLU de créer un champ \"description\" (même vide)
+- INTERDIT ABSOLU de générer du HTML dans les champs JSON
+- INTERDIT ABSOLU de retourner du texte formaté ou du markdown
+
+✅✅✅ OBLIGATION ABSOLUE ✅✅✅:
+Tu génères UNIQUEMENT un JSON valide avec les champs EXACTS: description_courte, description_longue, prestations, faq, etc.
+PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
 
 ⚠️ CRITIQUE : Les valeurs entre [crochets] dans les instructions sont des EXEMPLES/INSTRUCTIONS à suivre, PAS du contenu à copier littéralement. Tu DOIS générer du VRAI contenu professionnel et spécifique, en remplaçant complètement ces instructions par du contenu réel.";
             
@@ -330,28 +339,31 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
   \"twitter_description\": \"Service professionnel de {$serviceName} à {$companyCity} dans le département {$companyDept}. Devis gratuit.\"
 }
 
-RÈGLES STRICTES:
+⚠️⚠️⚠️ FORMAT JSON OBLIGATOIRE ⚠️⚠️⚠️:
 1. Réponds UNIQUEMENT avec le JSON (commence par { et finit par })
 2. PAS de texte avant le {
 3. PAS de texte après le }
 4. PAS de ```json ou ``` autour
-5. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
-6. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
-7. Utilise le vocabulaire professionnel du métier de {$serviceName}
-8. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
-9. Les guillemets dans les valeurs doivent être échappés avec \\
-10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
-    - Le nom du service et ses variations géographiques
-    - Des termes techniques spécifiques au métier
-    - Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
-    - Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
-    - Des termes géographiques avec {$companyCity} et {$companyDept}
-    - Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
-    - Des matériaux ou techniques spécifiques au service
-12. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
-13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.
-14. ⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue, PAS description.";
+5. ⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue.
+
+⚠️⚠️⚠️ CONTENU DES PRESTATIONS ⚠️⚠️⚠️:
+6. Les prestations DOIVENT être UNIQUEMENT et EXCLUSIVEMENT liées à {$serviceName}
+7. INTERDIT ABSOLU d'inclure des prestations qui ne sont PAS liées à {$serviceName} (ex: si {$serviceName} = \"Rénovation de toiture\", INTERDIT \"Élagage\", \"Peinture façade\", \"Rénovation chauffage\", etc.)
+8. Les prestations doivent utiliser le vocabulaire professionnel EXACT du métier de {$serviceName}
+9. {$prestationsExamples}
+10. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations TECHNIQUES et SPÉCIFIQUES à {$serviceName}. PAS moins, PAS plus.
+
+⚠️⚠️⚠️ QUALITÉ DU CONTENU ⚠️⚠️⚠️:
+11. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
+12. INTERDIT ABSOLU d'utiliser des phrases répétitives comme \"Nous proposons des interventions techniques de...\" dans TOUTES les prestations
+13. Chaque prestation DOIT être UNIQUE et DIFFÉRENTE, avec un vocabulaire varié
+14. Utilise le vocabulaire professionnel EXACT du métier de {$serviceName}
+
+RÈGLES TECHNIQUES:
+15. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
+16. Les guillemets dans les valeurs doivent être échappés avec \\
+17. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+18. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.";
             
             Log::info('Appel à AiService::callAI pour service', [
                 'service_name' => $serviceName,
@@ -394,16 +406,19 @@ RÈGLES STRICTES:
                 'content_preview' => substr($result['content'], 0, 300)
             ]);
             
-            // Vérifier si l'IA a retourné du HTML ou un champ "description" avec HTML
+            // Vérifier si l'IA a retourné un champ "description" AVANT même le parsing
             $content = $result['content'];
-            if (preg_match('/"description"\s*:\s*["\']<[^>]+>/', $content) || preg_match('/"description"\s*:\s*["\']\\n\s*<div/', $content)) {
-                Log::error('L\'IA a généré un champ "description" avec du HTML', [
+            $hasDescriptionField = preg_match('/"description"\s*:/', $content) || preg_match('/\'description\'\s*:/', $content);
+            
+            if ($hasDescriptionField) {
+                Log::error('L\'IA a généré un champ "description" INTERDIT - REJET IMMÉDIAT', [
                     'service_name' => $serviceName,
-                    'content_preview' => substr($content, 0, 500)
+                    'content_preview' => substr($content, 0, 500),
+                    'has_html_in_description' => preg_match('/"description"\s*:\s*["\'][^"\']*<[^>]+>/', $content)
                 ]);
                 return [
                     'error' => true,
-                    'error_message' => 'L\'IA a généré un champ "description" contenant du HTML au lieu des champs JSON attendus (description_courte, description_longue, prestations). Veuillez réessayer.'
+                    'error_message' => 'L\'IA a généré un champ "description" (interdit). Le système attend UNIQUEMENT les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer ou augmenter la température pour plus de créativité.'
                 ];
             }
             
