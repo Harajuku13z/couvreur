@@ -115,7 +115,7 @@
         </form>
         
         <!-- Formulaire par mot-clé -->
-        <form id="createKeywordTemplateForm" class="tab-content hidden" data-tab="keyword">
+        <form id="createKeywordTemplateForm" class="tab-content hidden" data-tab="keyword" enctype="multipart/form-data">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -124,6 +124,12 @@
                 </div>
                 
                 <div>
+                    <label for="keyword_featured_image" class="block text-sm font-medium text-gray-700 mb-2">Image de mise en avant (optionnel)</label>
+                    <input type="file" id="keyword_featured_image" name="featured_image" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">Formats acceptés: JPEG, PNG, GIF, WebP (max 5MB)</p>
+                </div>
+                
+                <div class="md:col-span-2">
                     <label for="keyword_ai_prompt" class="block text-sm font-medium text-gray-700 mb-2">Instructions personnalisées (optionnel)</label>
                     <textarea id="keyword_ai_prompt" name="ai_prompt" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ajoutez des instructions spécifiques pour la génération du contenu..."></textarea>
                 </div>

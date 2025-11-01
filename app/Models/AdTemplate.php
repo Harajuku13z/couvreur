@@ -18,6 +18,7 @@ class AdTemplate extends Model
         'short_description',
         'long_description',
         'icon',
+        'featured_image',
         'meta_title',
         'meta_description',
         'meta_keywords',

@@ -125,6 +125,9 @@ class AdTemplateController extends Controller
             // Générer le contenu via IA
             $aiContent = $this->generateTemplateContent($service, $request->input('ai_prompt'));
             
+            // Copier l'image du service vers le template
+            $featuredImage = $service['featured_image'] ?? null;
+            
             // Créer le template
             $template = AdTemplate::create([
                 'name' => $service['name'],
@@ -134,6 +137,7 @@ class AdTemplateController extends Controller
                 'short_description' => $aiContent['short_description'],
                 'long_description' => $aiContent['long_description'],
                 'icon' => $aiContent['icon'],
+                'featured_image' => $featuredImage,
                 'meta_title' => $aiContent['meta_title'],
                 'meta_description' => $aiContent['meta_description'],
                 'meta_keywords' => $aiContent['meta_keywords'],
@@ -163,6 +167,9 @@ class AdTemplateController extends Controller
             try {
                 $fallbackContent = $this->generateFallbackTemplateContent($service);
                 
+                // Copier l'image du service même en fallback
+                $featuredImage = $service['featured_image'] ?? null;
+                
                 $template = AdTemplate::create([
                     'name' => $service['name'],
                     'service_name' => $service['name'],
@@ -171,6 +178,7 @@ class AdTemplateController extends Controller
                     'short_description' => $fallbackContent['short_description'],
                     'long_description' => $fallbackContent['long_description'],
                     'icon' => $fallbackContent['icon'],
+                    'featured_image' => $featuredImage,
                     'meta_title' => $fallbackContent['meta_title'],
                     'meta_description' => $fallbackContent['meta_description'],
                     'meta_keywords' => $fallbackContent['meta_keywords'],
@@ -1119,9 +1127,26 @@ EXEMPLES CONCRETS POUR {$keyword}:
         $request->validate([
             'keyword' => 'required|string|max:255',
             'ai_prompt' => 'nullable|string|max:5000',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         $keyword = $request->input('keyword');
+        
+        // Gérer l'upload de l'image si fournie
+        $featuredImagePath = null;
+        if ($request->hasFile('featured_image')) {
+            $file = $request->file('featured_image');
+            $fileName = 'template_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            // Créer le dossier s'il n'existe pas
+            $uploadPath = public_path('uploads/templates');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            $file->move($uploadPath, $fileName);
+            $featuredImagePath = 'uploads/templates/' . $fileName;
+        }
         
         try {
             // Vérifier si des templates existent déjà pour ce mot-clé
@@ -1155,6 +1180,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 'short_description' => $aiContent['short_description'],
                 'long_description' => $aiContent['long_description'],
                 'icon' => $aiContent['icon'],
+                'featured_image' => $featuredImagePath,
                 'meta_title' => $aiContent['meta_title'],
                 'meta_description' => $aiContent['meta_description'],
                 'meta_keywords' => $aiContent['meta_keywords'],
@@ -1192,6 +1218,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                     'short_description' => $fallbackContent['short_description'],
                     'long_description' => $fallbackContent['long_description'],
                     'icon' => $fallbackContent['icon'],
+                    'featured_image' => $featuredImagePath, // Conserver l'image même en fallback
                     'meta_title' => $fallbackContent['meta_title'],
                     'meta_description' => $fallbackContent['meta_description'],
                     'meta_keywords' => $fallbackContent['meta_keywords'],
