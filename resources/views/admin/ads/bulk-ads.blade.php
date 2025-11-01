@@ -424,11 +424,19 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         // Récupérer les valeurs directement depuis les éléments du formulaire
-        const serviceSlug = serviceSelect.value;
+        const serviceSlugElement = document.getElementById('service-select');
+        if (!serviceSlugElement) {
+            alert('Erreur: élément service-select introuvable');
+            console.error('Élément #service-select introuvable');
+            return;
+        }
+        
+        const serviceSlug = serviceSlugElement.value;
         const selectedCityIds = Array.from(document.querySelectorAll('.city-checkbox:checked')).map(cb => cb.value);
-        const aiPrompt = document.querySelector('[name="ai_prompt"]').value || '';
+        const aiPromptElement = document.querySelector('[name="ai_prompt"]');
+        const aiPrompt = aiPromptElement ? aiPromptElement.value : '';
 
-        if (!serviceSlug) {
+        if (!serviceSlug || serviceSlug === '') {
             alert('Veuillez sélectionner un service');
             return;
         }
@@ -437,6 +445,14 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Veuillez sélectionner au moins une ville');
             return;
         }
+
+        // Debug
+        console.log('=== Validation côté client ===', {
+            serviceSlug: serviceSlug,
+            selectedCityIds: selectedCityIds,
+            cityCount: selectedCityIds.length,
+            aiPrompt: aiPrompt
+        });
 
         // Afficher la progression
         progressSection.classList.remove('hidden');
@@ -462,10 +478,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Préparer les données avec FormData - construire manuellement pour être sûr
         const requestData = new FormData();
         requestData.append('service_slug', serviceSlug);
-        requestData.append('ai_prompt', aiPrompt);
+        if (aiPrompt) {
+            requestData.append('ai_prompt', aiPrompt);
+        }
         requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         selectedCityIds.forEach(cityId => {
             requestData.append('city_ids[]', cityId);
+        });
+
+        // Debug: afficher ce qui sera envoyé
+        console.log('Données à envoyer:', {
+            service_slug: serviceSlug,
+            ai_prompt: aiPrompt,
+            city_ids: selectedCityIds,
+            city_count: selectedCityIds.length
         });
 
         // Appel AJAX
@@ -545,15 +571,23 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             clearInterval(progressInterval);
+            console.error('Erreur lors de la génération:', error);
             progressDetails.textContent = 'Erreur lors de la génération';
             resultsSection.classList.remove('hidden');
+            
+            let errorMessage = 'Une erreur est survenue lors de la génération';
+            if (error.message) {
+                errorMessage = error.message;
+            }
+            
             resultsContent.innerHTML = `
                 <div class="bg-red-50 border border-red-200 rounded-md p-4">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-red-800">Erreur</h4>
-                            <p class="text-sm text-red-700 mt-1">Une erreur est survenue lors de la génération</p>
+                            <p class="text-sm text-red-700 mt-1">${errorMessage}</p>
+                            <p class="text-xs text-red-600 mt-2">Vérifiez la console du navigateur pour plus de détails.</p>
                         </div>
                     </div>
                 </div>

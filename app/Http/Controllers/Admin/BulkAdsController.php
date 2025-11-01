@@ -47,6 +47,14 @@ class BulkAdsController extends Controller
      */
     public function generateBulkAds(Request $request)
     {
+        // Log pour déboguer
+        Log::info('=== DÉBUT generateBulkAds ===', [
+            'all_input' => $request->all(),
+            'service_slug' => $request->input('service_slug'),
+            'city_ids' => $request->input('city_ids'),
+            'ai_prompt' => $request->input('ai_prompt'),
+        ]);
+
         $request->validate([
             'service_slug' => 'required|string',
             'ai_prompt' => 'nullable|string|max:5000',
