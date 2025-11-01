@@ -1787,6 +1787,17 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                 'content_length' => isset($result['content']) ? strlen($result['content']) : 0
             ]);
             
+            // FORCER l'utilisation de l'IA - NE JAMAIS retourner de fallback ici
+            if (!$result || !isset($result['content'])) {
+                Log::error('IMPOSSIBLE de générer du contenu via IA (ni AiService, ni Groq direct, ni ChatGPT direct)', [
+                    'service_name' => $serviceName,
+                    'chatgpt_enabled' => setting('chatgpt_enabled', true),
+                    'chatgpt_api_key_exists' => !empty(setting('chatgpt_api_key')),
+                    'groq_api_key_exists' => !empty(setting('groq_api_key'))
+                ]);
+                throw new \Exception("ERREUR CRITIQUE: Impossible de générer du contenu via IA. Vérifiez vos clés API ChatGPT ou Groq. Le système refuse d'utiliser un contenu générique.");
+            }
+            
             if ($result && isset($result['content'])) {
                 Log::info('Réponse IA reçue pour template', [
                     'service_name' => $serviceName,
