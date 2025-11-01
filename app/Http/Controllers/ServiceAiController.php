@@ -154,16 +154,16 @@ Crée un JSON avec les données suivantes pour remplir ce template HTML:
   \"titre_garantie\": \"Titre de l'engagement ou garantie\",
   \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
   \"prestations\": [
-    {\"titre\": \"Prestation 1 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 2 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 3 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 4 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 5 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 6 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 7 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 8 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 9 technique\", \"description\": \"Description en une phrase\"},
-    {\"titre\": \"Prestation 10 technique\", \"description\": \"Description en une phrase\"}
+    {\"titre\": \"[Prestation technique 1 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 2 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 3 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 4 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 5 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 6 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 7 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 8 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 9 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
+    {\"titre\": \"[Prestation technique 10 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"}
   ],
   \"faq\": [
     {\"question\": \"Question 1\", \"reponse\": \"Réponse détaillée\"},
@@ -188,6 +188,7 @@ Crée un JSON avec les données suivantes pour remplir ce template HTML:
 
 IMPORTANT:
 - ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus. Chaque prestation doit avoir un \"titre\" et une \"description\".
+- ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets] ci-dessus. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
 - Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
 - Utilise le vocabulaire professionnel du métier
 - Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents, incluant:
