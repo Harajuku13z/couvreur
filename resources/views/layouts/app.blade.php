@@ -45,7 +45,9 @@
     @php
         $keywordsValue = $finalKeywords ?? '';
         if (empty($keywordsValue)) {
-            $keywordsValue = @yield('keywords') ?: setting('meta_keywords', 'travaux, rénovation, toiture, façade');
+            // Utiliser view()->yieldContent() au lieu de @yield() dans un bloc PHP
+            $yieldKeywords = view()->yieldContent('keywords', '');
+            $keywordsValue = !empty($yieldKeywords) ? $yieldKeywords : setting('meta_keywords', 'travaux, rénovation, toiture, façade');
         }
     @endphp
     <meta name="keywords" content="{{ $keywordsValue }}">
