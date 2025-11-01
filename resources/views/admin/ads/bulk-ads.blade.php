@@ -699,7 +699,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Afficher les résultats
                 resultsSection.classList.remove('hidden');
+                const templateInfo = data.data.template_id ? `<div class="bg-purple-50 border border-purple-200 rounded-md p-4 mb-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt text-purple-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-purple-800">Template créé</h4>
+                            <p class="text-sm text-purple-700 mt-1">Le template "${data.data.template_name}" a été créé et apparaît maintenant dans la liste des templates.</p>
+                            <a href="/admin/ads/templates/${data.data.template_id}" class="text-purple-600 hover:text-purple-800 text-sm underline mt-1 inline-block">Voir le template</a>
+                        </div>
+                    </div>
+                </div>` : '';
+                
                 resultsContent.innerHTML = `
+                    ${templateInfo}
                     <div class="bg-green-50 border border-green-200 rounded-md p-4">
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-600 mr-3"></i>

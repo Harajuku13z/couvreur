@@ -76,19 +76,27 @@ class BulkAdsController extends Controller
             $template = \App\Models\AdTemplate::where('service_slug', $request->service_slug)->first();
             
             if (!$template) {
-                // Créer le template via AdTemplateController
-                $templateController = new \App\Http\Controllers\Admin\AdTemplateController();
-                $templateRequest = new Request([
-                    'service_slug' => $request->service_slug,
-                    'ai_prompt' => $request->input('ai_prompt'),
-                    'force_create' => false
-                ]);
-                $templateRequest->setMethod('POST');
+                // Créer le template directement avec la même logique que AdTemplateController
+                $templateController = app(\App\Http\Controllers\Admin\AdTemplateController::class);
                 
+                // Créer un nouveau Request avec les données nécessaires
+                $templateRequest = Request::create(
+                    '/admin/ads/templates/create-from-service',
+                    'POST',
+                    [
+                        'service_slug' => $request->service_slug,
+                        'ai_prompt' => $request->input('ai_prompt'),
+                        'force_create' => false
+                    ]
+                );
+                $templateRequest->headers->set('Content-Type', 'application/json');
+                $templateRequest->headers->set('Accept', 'application/json');
+                
+                // Appeler la méthode du contrôleur
                 $templateResponse = $templateController->createFromService($templateRequest);
                 $templateData = json_decode($templateResponse->getContent(), true);
                 
-                if (!$templateData['success']) {
+                if (!$templateData || !isset($templateData['success']) || !$templateData['success']) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Erreur lors de la création du template : ' . ($templateData['message'] ?? 'Erreur inconnue')
@@ -913,20 +921,29 @@ IMPORTANT:
             $template = \App\Models\AdTemplate::where('service_slug', Str::slug($keyword))->first();
             
             if (!$template) {
-                // Créer le template via AdTemplateController
-                $templateController = new \App\Http\Controllers\Admin\AdTemplateController();
-                $templateRequest = new Request([
-                    'keyword' => $keyword,
-                    'ai_prompt' => $request->input('keyword_ai_prompt'),
-                    'featured_image' => $request->file('featured_image'),
-                    'force_create' => false
-                ]);
-                $templateRequest->setMethod('POST');
+                // Créer le template directement avec la même logique que AdTemplateController
+                $templateController = app(\App\Http\Controllers\Admin\AdTemplateController::class);
                 
+                // Créer un nouveau Request avec les données nécessaires
+                $templateRequest = Request::create(
+                    '/admin/ads/templates/create-from-keyword',
+                    'POST',
+                    [
+                        'keyword' => $keyword,
+                        'ai_prompt' => $request->input('keyword_ai_prompt'),
+                        'force_create' => false
+                    ],
+                    [],
+                    ['featured_image' => $request->file('featured_image')]
+                );
+                $templateRequest->headers->set('Content-Type', 'multipart/form-data');
+                $templateRequest->headers->set('Accept', 'application/json');
+                
+                // Appeler la méthode du contrôleur
                 $templateResponse = $templateController->createFromKeyword($templateRequest);
                 $templateData = json_decode($templateResponse->getContent(), true);
                 
-                if (!$templateData['success']) {
+                if (!$templateData || !isset($templateData['success']) || !$templateData['success']) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Erreur lors de la création du template : ' . ($templateData['message'] ?? 'Erreur inconnue')
