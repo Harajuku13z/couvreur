@@ -475,9 +475,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
 
-        // Préparer les données avec FormData - construire manuellement pour être sûr
+        // Préparer les données - Essayer deux approches : FormData puis JSON en fallback
+        // Approche 1: FormData (préféré pour les fichiers et compatibilité Laravel)
         const requestData = new FormData();
-        requestData.append('service_slug', serviceSlug);
+        requestData.append('service_slug', serviceSlug || '');
         if (aiPrompt) {
             requestData.append('ai_prompt', aiPrompt);
         }
@@ -487,17 +488,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Debug: afficher ce qui sera envoyé
-        console.log('Données à envoyer:', {
-            service_slug: serviceSlug,
-            ai_prompt: aiPrompt,
-            city_ids: selectedCityIds,
-            city_count: selectedCityIds.length
-        });
-
-        // Appel AJAX - Vérifier le contenu avant envoi
+        console.log('=== DEBUG PRÉ-ENVOI ===');
+        console.log('serviceSlug:', serviceSlug);
+        console.log('selectedCityIds:', selectedCityIds);
+        console.log('aiPrompt:', aiPrompt);
         console.log('FormData entries:');
         for (let pair of requestData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
+            console.log('  ' + pair[0] + ': ' + pair[1]);
+        }
+        console.log('=== FIN DEBUG ===');
+        
+        // Vérification finale avant envoi
+        if (!serviceSlug || serviceSlug.trim() === '') {
+            alert('ERREUR: service_slug est vide! Vérifiez que vous avez sélectionné un service.');
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Créer Annonces en Masse';
+            return;
         }
 
         // Appel AJAX
