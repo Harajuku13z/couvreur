@@ -232,12 +232,39 @@ class AdTemplateController extends Controller
 
             // Utiliser generateCompleteTemplateContent inspiré de ServicesController
             $companyInfo = $this->getCompanyInfo();
-            $aiContent = $this->generateCompleteTemplateContent(
-                $service['name'], 
-                $service['short_description'] ?? '',
-                $companyInfo,
-                $request->input('ai_prompt')
-            );
+            
+            try {
+                $aiContent = $this->generateCompleteTemplateContent(
+                    $service['name'], 
+                    $service['short_description'] ?? '',
+                    $companyInfo,
+                    $request->input('ai_prompt')
+                );
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la génération du contenu IA dans createFromService', [
+                    'service_name' => $service['name'],
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du template via IA: ' . $e->getMessage() . '. Vérifiez vos clés API ChatGPT ou Groq.'
+                ], 500);
+            }
+            
+            // Vérifier que aiContent contient les champs requis
+            if (!isset($aiContent['description']) || empty($aiContent['description'])) {
+                Log::error('aiContent ne contient pas description', [
+                    'service_name' => $service['name'],
+                    'aiContent_keys' => array_keys($aiContent ?? [])
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur: Le contenu généré par l\'IA est incomplet. Veuillez réessayer.'
+                ], 500);
+            }
             
             // Copier l'image du service vers le template
             $featuredImage = $service['featured_image'] ?? $service['og_image'] ?? null;
@@ -251,26 +278,54 @@ class AdTemplateController extends Controller
                 'has_og_image' => isset($service['og_image'])
             ]);
             
-            // Créer le template
-            $template = AdTemplate::create([
-                'name' => $service['name'],
-                'service_name' => $service['name'],
-                'service_slug' => $service['slug'],
-                'content_html' => $aiContent['description'],
-                'short_description' => $aiContent['short_description'],
-                'long_description' => $aiContent['long_description'],
-                'icon' => $aiContent['icon'],
-                'featured_image' => $featuredImage,
-                'meta_title' => $aiContent['meta_title'],
-                'meta_description' => $aiContent['meta_description'],
-                'meta_keywords' => $aiContent['meta_keywords'],
-                'og_title' => $aiContent['og_title'],
-                'og_description' => $aiContent['og_description'],
-                'twitter_title' => $aiContent['twitter_title'],
-                'twitter_description' => $aiContent['twitter_description'],
-                'ai_prompt_used' => $request->input('ai_prompt'),
-                'ai_response_data' => $aiContent,
-            ]);
+            // Créer le template avec valeurs par défaut pour éviter les erreurs de validation
+            try {
+                $template = AdTemplate::create([
+                    'name' => $service['name'] ?? 'Template sans nom',
+                    'service_name' => $service['name'] ?? '',
+                    'service_slug' => $service['slug'] ?? '',
+                    'content_html' => $aiContent['description'] ?? '',
+                    'short_description' => $aiContent['short_description'] ?? ($service['short_description'] ?? ''),
+                    'long_description' => $aiContent['long_description'] ?? '',
+                    'icon' => $aiContent['icon'] ?? 'fas fa-tools',
+                    'featured_image' => $featuredImage,
+                    'meta_title' => $aiContent['meta_title'] ?? ($service['name'] . ' à [VILLE] - Expert professionnel'),
+                    'meta_description' => $aiContent['meta_description'] ?? ('Service professionnel de ' . ($service['name'] ?? '') . ' à [VILLE]'),
+                    'meta_keywords' => $aiContent['meta_keywords'] ?? '',
+                    'og_title' => $aiContent['og_title'] ?? ($service['name'] . ' à [VILLE]'),
+                    'og_description' => $aiContent['og_description'] ?? ($aiContent['meta_description'] ?? ''),
+                    'twitter_title' => $aiContent['twitter_title'] ?? ($aiContent['og_title'] ?? ''),
+                    'twitter_description' => $aiContent['twitter_description'] ?? ($aiContent['og_description'] ?? ''),
+                    'ai_prompt_used' => $request->input('ai_prompt') ? ['prompt' => $request->input('ai_prompt')] : null,
+                    'ai_response_data' => $aiContent,
+                    'is_active' => true,
+                    'usage_count' => 0,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                Log::error('Erreur lors de la création du template (QueryException)', [
+                    'service_name' => $service['name'],
+                    'error' => $e->getMessage(),
+                    'sql_state' => $e->getCode(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du template : ' . $e->getMessage()
+                ], 500);
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la création du template (Exception générale)', [
+                    'service_name' => $service['name'],
+                    'error' => $e->getMessage(),
+                    'error_type' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du template : ' . $e->getMessage()
+                ], 500);
+            }
 
             // Retourner une réponse JSON pour les appels AJAX
             return response()->json([
