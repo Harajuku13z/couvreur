@@ -43,14 +43,15 @@ class BulkAdsController extends Controller
 
     /**
      * Générer des annonces pour toutes les villes d'un service
+     * Nouveau workflow : créer d'abord un template, puis générer les annonces
      */
     public function generateBulkAds(Request $request)
     {
         $request->validate([
             'service_slug' => 'required|string',
             'ai_prompt' => 'nullable|string|max:5000',
-            'batch_size' => 'nullable|integer|min:1|max:100',
-            'include_all_cities' => 'boolean'
+            'city_ids' => 'required|array|min:1',
+            'city_ids.*' => 'required|integer|exists:cities,id',
         ]);
 
         try {
@@ -71,108 +72,97 @@ class BulkAdsController extends Controller
                 ], 404);
             }
 
-            // Récupérer toutes les villes ou seulement les favorites
-            if ($request->boolean('include_all_cities')) {
-                $cities = City::orderBy('name')->get();
-            } else {
-                $cities = City::where('is_favorite', true)->orderBy('name')->get();
+            // ÉTAPE 1 : Créer ou récupérer le template pour ce service
+            $template = \App\Models\AdTemplate::where('service_slug', $request->service_slug)->first();
+            
+            if (!$template) {
+                // Créer le template via AdTemplateController
+                $templateController = new \App\Http\Controllers\Admin\AdTemplateController();
+                $templateRequest = new Request([
+                    'service_slug' => $request->service_slug,
+                    'ai_prompt' => $request->input('ai_prompt'),
+                    'force_create' => false
+                ]);
+                $templateRequest->setMethod('POST');
                 
-                // Si pas de villes favorites configurées, utiliser les 10 premières villes
-                if ($cities->isEmpty()) {
-                    $cities = City::orderBy('name')->take(10)->get();
+                $templateResponse = $templateController->createFromService($templateRequest);
+                $templateData = json_decode($templateResponse->getContent(), true);
+                
+                if (!$templateData['success']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erreur lors de la création du template : ' . ($templateData['message'] ?? 'Erreur inconnue')
+                    ], 500);
                 }
+                
+                $template = \App\Models\AdTemplate::find($templateData['template_id']);
             }
 
-            $batchSize = $request->input('batch_size', 10);
-            $aiPrompt = $request->input('ai_prompt');
-            
-            Log::info('Début génération en masse', [
-                'service' => $service['name'],
-                'cities_count' => $cities->count(),
-                'batch_size' => $batchSize,
-                'include_all_cities' => $request->boolean('include_all_cities')
-            ]);
-
-            // Le contenu sera généré individuellement pour chaque ville via l'IA
+            // ÉTAPE 2 : Générer les annonces depuis le template avec les villes sélectionnées
+            $cities = City::whereIn('id', $request->input('city_ids'))->get();
             
             $createdAds = 0;
             $skippedAds = 0;
             $errors = [];
 
-            // Traiter les villes par batch
-            $cities->chunk($batchSize)->each(function ($cityBatch) use ($service, $aiPrompt, &$createdAds, &$skippedAds, &$errors) {
-                foreach ($cityBatch as $city) {
-                    try {
-                        // Vérifier si une annonce existe déjà
-                        $existingAd = Ad::where('keyword', $service['name'])
-                            ->where('city_id', $city->id)
-                            ->first();
+            foreach ($cities as $city) {
+                try {
+                    // Vérifier si une annonce existe déjà pour cette combinaison
+                    $existingAd = Ad::where('template_id', $template->id)
+                        ->where('city_id', $city->id)
+                        ->first();
 
-                        if ($existingAd) {
-                            $skippedAds++;
-                            Log::info('Annonce déjà existante', [
-                                'service' => $service['name'],
-                                'city' => $city->name
-                            ]);
-                            continue;
-                        }
-
-                        // Générer le contenu personnalisé via l'IA pour cette ville
-                        $content = $this->generateAdContentWithAI($service, $city, $aiPrompt);
-                        
-                        // Créer l'annonce
-                        $ad = Ad::create([
-                            'title' => $service['name'] . ' à ' . $city->name,
-                            'keyword' => $service['name'],
-                            'city_id' => $city->id,
-                            'slug' => Str::slug($service['name'] . '-' . $city->name),
-                            'status' => 'published',
-                            'meta_title' => $service['name'] . ' à ' . $city->name . ' | Devis Gratuit',
-                            'meta_description' => 'Service professionnel de ' . $service['name'] . ' à ' . $city->name . '. Devis gratuit et intervention rapide.',
-                            'content_html' => $content,
-                            'content_json' => json_encode([
-                                'service' => $service,
-                                'city' => $city->toArray(),
-                                'template_type' => 'bulk_generated',
-                                'generated_at' => now()->toISOString()
-                            ])
-                        ]);
-
-                        $createdAds++;
-                        
-                        Log::info('Annonce créée', [
-                            'ad_id' => $ad->id,
-                            'service' => $service['name'],
-                            'city' => $city->name,
-                            'slug' => $ad->slug
-                        ]);
-
-                        // Pause pour éviter de surcharger
-                        usleep(100000); // 0.1 seconde
-
-                    } catch (\Exception $e) {
-                        $errors[] = [
-                            'city' => $city->name,
-                            'error' => $e->getMessage()
-                        ];
-                        Log::error('Erreur création annonce', [
-                            'city' => $city->name,
-                            'error' => $e->getMessage()
-                        ]);
+                    if ($existingAd) {
+                        $skippedAds++;
+                        continue;
                     }
-                }
-            });
 
-            Log::info('Génération en masse terminée', [
-                'created_ads' => $createdAds,
-                'skipped_ads' => $skippedAds,
-                'errors_count' => count($errors)
-            ]);
+                    // Obtenir le contenu et les métadonnées personnalisées pour cette ville
+                    $contentForCity = $template->getContentForCity($city);
+                    $metaForCity = $template->getMetaForCity($city);
+
+                    // Créer l'annonce
+                    $ad = Ad::create([
+                        'title' => $template->service_name . ' à ' . $city->name,
+                        'keyword' => $template->service_name,
+                        'city_id' => $city->id,
+                        'template_id' => $template->id,
+                        'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                        'status' => 'published',
+                        'published_at' => now(),
+                        'meta_title' => $metaForCity['meta_title'],
+                        'meta_description' => $metaForCity['meta_description'],
+                        'meta_keywords' => $metaForCity['meta_keywords'],
+                        'content_html' => $contentForCity,
+                        'content_json' => json_encode([
+                            'template_id' => $template->id,
+                            'city' => $city->toArray(),
+                            'generated_at' => now()->toISOString(),
+                            'bulk_generated' => true
+                        ])
+                    ]);
+
+                    $createdAds++;
+                    $template->incrementUsage();
+
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'city' => $city->name,
+                        'error' => $e->getMessage()
+                    ];
+                    Log::error('Erreur création annonce', [
+                        'city' => $city->name,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => "Génération terminée : {$createdAds} annonces créées, {$skippedAds} ignorées",
                 'data' => [
+                    'template_id' => $template->id,
+                    'template_name' => $template->name,
                     'created_ads' => $createdAds,
                     'skipped_ads' => $skippedAds,
                     'errors_count' => count($errors),
@@ -188,6 +178,22 @@ class BulkAdsController extends Controller
                 'message' => 'Erreur lors de la génération : ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Générer un slug unique pour les annonces
+     */
+    private function generateUniqueSlug($baseSlug)
+    {
+        $slug = $baseSlug;
+        $counter = 1;
+        
+        while (Ad::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+        
+        return $slug;
     }
 
     /**
@@ -888,123 +894,113 @@ IMPORTANT:
 
     /**
      * Générer des annonces en masse par mot-clé
+     * Nouveau workflow : créer d'abord un template, puis générer les annonces
      */
     public function generateBulkAdsByKeyword(Request $request)
     {
         $request->validate([
             'keyword' => 'required|string|max:100',
             'keyword_ai_prompt' => 'nullable|string|max:5000',
-            'keyword_batch_size' => 'nullable|integer|min:1|max:100',
-            'include_all_cities' => 'boolean'
+            'city_ids' => 'required|array|min:1',
+            'city_ids.*' => 'required|integer|exists:cities,id',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         try {
             $keyword = $request->input('keyword');
             
-            // Récupérer toutes les villes ou seulement les favorites
-            if ($request->boolean('include_all_cities')) {
-                $cities = City::orderBy('name')->get();
-            } else {
-                $cities = City::where('is_favorite', true)->orderBy('name')->get();
+            // ÉTAPE 1 : Créer ou récupérer le template pour ce mot-clé
+            $template = \App\Models\AdTemplate::where('service_slug', Str::slug($keyword))->first();
+            
+            if (!$template) {
+                // Créer le template via AdTemplateController
+                $templateController = new \App\Http\Controllers\Admin\AdTemplateController();
+                $templateRequest = new Request([
+                    'keyword' => $keyword,
+                    'ai_prompt' => $request->input('keyword_ai_prompt'),
+                    'featured_image' => $request->file('featured_image'),
+                    'force_create' => false
+                ]);
+                $templateRequest->setMethod('POST');
                 
-                // Si pas de villes favorites configurées, utiliser les 10 premières villes
-                if ($cities->isEmpty()) {
-                    $cities = City::orderBy('name')->take(10)->get();
-                    Log::info('Aucune ville favorite configurée, utilisation des 10 premières villes');
+                $templateResponse = $templateController->createFromKeyword($templateRequest);
+                $templateData = json_decode($templateResponse->getContent(), true);
+                
+                if (!$templateData['success']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erreur lors de la création du template : ' . ($templateData['message'] ?? 'Erreur inconnue')
+                    ], 500);
                 }
+                
+                $template = \App\Models\AdTemplate::find($templateData['template_id']);
             }
 
-            $batchSize = $request->input('keyword_batch_size', 10);
-            $aiPrompt = $request->input('keyword_ai_prompt');
-            
-            Log::info('Début génération en masse par mot-clé', [
-                'keyword' => $keyword,
-                'cities_count' => $cities->count(),
-                'batch_size' => $batchSize,
-                'include_all_cities' => $request->boolean('include_all_cities')
-            ]);
-
-            // Le contenu sera généré individuellement pour chaque ville via l'IA
+            // ÉTAPE 2 : Générer les annonces depuis le template avec les villes sélectionnées
+            $cities = City::whereIn('id', $request->input('city_ids'))->get();
             
             $createdAds = 0;
             $skippedAds = 0;
             $errors = [];
 
-            // Traiter les villes par batch
-            $cities->chunk($batchSize)->each(function ($cityBatch) use ($keyword, $aiPrompt, &$createdAds, &$skippedAds, &$errors) {
-                foreach ($cityBatch as $city) {
-                    try {
-                        // Vérifier si une annonce existe déjà
-                        $existingAd = Ad::where('keyword', $keyword)
-                            ->where('city_id', $city->id)
-                            ->first();
+            foreach ($cities as $city) {
+                try {
+                    // Vérifier si une annonce existe déjà pour cette combinaison
+                    $existingAd = Ad::where('template_id', $template->id)
+                        ->where('city_id', $city->id)
+                        ->first();
 
-                        if ($existingAd) {
-                            $skippedAds++;
-                            Log::info('Annonce déjà existante', [
-                                'keyword' => $keyword,
-                                'city' => $city->name
-                            ]);
-                            continue;
-                        }
-
-                        // Générer le contenu personnalisé via l'IA pour cette ville
-                        $content = $this->generateKeywordAdContentWithAI($keyword, $city, $aiPrompt);
-                        
-                        // Créer l'annonce
-                        $ad = Ad::create([
-                            'title' => ucfirst($keyword) . ' à ' . $city->name,
-                            'keyword' => $keyword,
-                            'city_id' => $city->id,
-                            'slug' => Str::slug($keyword . '-' . $city->name),
-                            'status' => 'published',
-                            'meta_title' => ucfirst($keyword) . ' à ' . $city->name . ' | Devis Gratuit',
-                            'meta_description' => 'Service professionnel de ' . $keyword . ' à ' . $city->name . '. Devis gratuit et intervention rapide.',
-                            'content_html' => $content,
-                            'content_json' => json_encode([
-                                'keyword' => $keyword,
-                                'city' => $city->toArray(),
-                                'template_type' => 'bulk_generated_keyword',
-                                'generated_at' => now()->toISOString()
-                            ])
-                        ]);
-
-                        $createdAds++;
-                        
-                        Log::info('Annonce créée par mot-clé', [
-                            'ad_id' => $ad->id,
-                            'keyword' => $keyword,
-                            'city' => $city->name,
-                            'slug' => $ad->slug
-                        ]);
-
-                        // Pause pour éviter de surcharger
-                        usleep(100000); // 0.1 seconde
-
-                    } catch (\Exception $e) {
-                        $errors[] = [
-                            'city' => $city->name,
-                            'error' => $e->getMessage()
-                        ];
-                        Log::error('Erreur création annonce par mot-clé', [
-                            'city' => $city->name,
-                            'error' => $e->getMessage()
-                        ]);
+                    if ($existingAd) {
+                        $skippedAds++;
+                        continue;
                     }
-                }
-            });
 
-            Log::info('Génération en masse par mot-clé terminée', [
-                'keyword' => $keyword,
-                'created_ads' => $createdAds,
-                'skipped_ads' => $skippedAds,
-                'errors_count' => count($errors)
-            ]);
+                    // Obtenir le contenu et les métadonnées personnalisées pour cette ville
+                    $contentForCity = $template->getContentForCity($city);
+                    $metaForCity = $template->getMetaForCity($city);
+
+                    // Créer l'annonce
+                    $ad = Ad::create([
+                        'title' => $template->service_name . ' à ' . $city->name,
+                        'keyword' => $template->service_name,
+                        'city_id' => $city->id,
+                        'template_id' => $template->id,
+                        'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                        'status' => 'published',
+                        'published_at' => now(),
+                        'meta_title' => $metaForCity['meta_title'],
+                        'meta_description' => $metaForCity['meta_description'],
+                        'meta_keywords' => $metaForCity['meta_keywords'],
+                        'content_html' => $contentForCity,
+                        'content_json' => json_encode([
+                            'template_id' => $template->id,
+                            'city' => $city->toArray(),
+                            'generated_at' => now()->toISOString(),
+                            'bulk_generated' => true
+                        ])
+                    ]);
+
+                    $createdAds++;
+                    $template->incrementUsage();
+
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'city' => $city->name,
+                        'error' => $e->getMessage()
+                    ];
+                    Log::error('Erreur création annonce par mot-clé', [
+                        'city' => $city->name,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => "Génération terminée : {$createdAds} annonces créées pour le mot-clé '{$keyword}', {$skippedAds} ignorées",
                 'data' => [
+                    'template_id' => $template->id,
+                    'template_name' => $template->name,
                     'keyword' => $keyword,
                     'created_ads' => $createdAds,
                     'skipped_ads' => $skippedAds,

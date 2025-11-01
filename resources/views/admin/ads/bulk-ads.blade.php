@@ -116,19 +116,30 @@
                             </select>
                         </div>
 
-                        <!-- Scope des villes -->
+                        <!-- Sélection des villes -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Portée des Villes</label>
-                            <div class="space-y-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sélectionner les Villes</label>
+                            <div class="space-y-3 mb-3">
                                 <label class="flex items-center">
-                                    <input type="radio" name="city_scope" value="favorites" checked class="mr-3 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-sm text-gray-700">Villes favorites uniquement ({{ count($favoriteCities) }} villes)</span>
+                                    <input type="checkbox" id="select-favorites" class="mr-3 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Sélectionner toutes les villes favorites ({{ count($favoriteCities) }} villes)</span>
                                 </label>
                                 <label class="flex items-center">
-                                    <input type="radio" name="city_scope" value="all" class="mr-3 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-sm text-gray-700">Toutes les villes ({{ $cities->count() }} villes)</span>
+                                    <input type="checkbox" id="select-all" class="mr-3 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Sélectionner toutes les villes ({{ $cities->count() }} villes)</span>
                                 </label>
                             </div>
+                            <div class="max-h-60 overflow-y-auto border border-gray-300 rounded-md p-3 bg-gray-50">
+                                <div class="grid grid-cols-2 gap-2" id="cities-checkboxes">
+                                    @foreach($cities as $city)
+                                        <label class="flex items-center text-sm">
+                                            <input type="checkbox" name="city_ids[]" value="{{ $city->id }}" class="mr-2 city-checkbox" {{ in_array($city->id, $favoriteCities->pluck('id')->toArray()) ? 'checked' : '' }}>
+                                            <span>{{ $city->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Le template sera créé automatiquement, puis les annonces seront générées pour les villes sélectionnées</p>
                         </div>
 
                         <!-- Aperçu du template -->
@@ -212,41 +223,54 @@
                             </div>
                         </div>
 
-                        <!-- Scope des villes -->
+                        <!-- Sélection des villes -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Portée des Villes</label>
-                            <div class="space-y-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sélectionner les Villes</label>
+                            <div class="space-y-3 mb-3">
                                 <label class="flex items-center">
-                                    <input type="radio" name="keyword_city_scope" value="favorites" checked class="mr-3 text-green-600 focus:ring-green-500">
-                                    <span class="text-sm text-gray-700">Villes favorites uniquement ({{ count($favoriteCities) }} villes)</span>
+                                    <input type="checkbox" id="keyword-select-favorites" class="mr-3 text-green-600 focus:ring-green-500">
+                                    <span class="text-sm text-gray-700">Sélectionner toutes les villes favorites ({{ count($favoriteCities) }} villes)</span>
                                 </label>
                                 <label class="flex items-center">
-                                    <input type="radio" name="keyword_city_scope" value="all" class="mr-3 text-green-600 focus:ring-green-500">
-                                    <span class="text-sm text-gray-700">Toutes les villes ({{ $cities->count() }} villes)</span>
+                                    <input type="checkbox" id="keyword-select-all" class="mr-3 text-green-600 focus:ring-green-500">
+                                    <span class="text-sm text-gray-700">Sélectionner toutes les villes ({{ $cities->count() }} villes)</span>
                                 </label>
                             </div>
+                            <div class="max-h-60 overflow-y-auto border border-gray-300 rounded-md p-3 bg-gray-50">
+                                <div class="grid grid-cols-2 gap-2" id="keyword-cities-checkboxes">
+                                    @foreach($cities as $city)
+                                        <label class="flex items-center text-sm">
+                                            <input type="checkbox" name="keyword_city_ids[]" value="{{ $city->id }}" class="mr-2 keyword-city-checkbox" {{ in_array($city->id, $favoriteCities->pluck('id')->toArray()) ? 'checked' : '' }}>
+                                            <span>{{ $city->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Le template sera créé automatiquement, puis les annonces seront générées pour les villes sélectionnées</p>
                         </div>
 
-                        <!-- Estimation -->
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <h3 class="text-sm font-medium text-green-800 mb-2">Estimation</h3>
-                            <p id="keyword-estimated-count" class="text-sm text-green-700">Saisissez un mot-clé pour voir le nombre d'annonces à créer</p>
-                        </div>
                     </div>
 
                     <!-- Colonne droite -->
                     <div class="space-y-6">
+                        <!-- Image de mise en avant -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image de mise en avant (optionnel)</label>
+                            <input type="file" name="featured_image" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Formats acceptés: JPEG, PNG, GIF, WebP (max 5MB)</p>
+                        </div>
+                        
                         <!-- Prompt IA personnalisé -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Prompt IA Personnalisé (Optionnel)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Instructions IA Personnalisées (Optionnel)</label>
                             <textarea name="keyword_ai_prompt" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Instructions spécifiques pour l'IA..."></textarea>
-                            <p class="text-xs text-gray-500 mt-1">Laissez vide pour utiliser le prompt par défaut</p>
+                            <p class="text-xs text-gray-500 mt-1">Ces instructions seront utilisées pour créer le template</p>
                         </div>
 
                         <!-- Estimation -->
                         <div class="bg-green-50 p-4 rounded-lg">
                             <h3 class="text-sm font-medium text-green-800 mb-2">Estimation</h3>
-                            <p id="keyword-estimated-count" class="text-sm text-green-700">Saisissez un mot-clé pour voir le nombre d'annonces à créer</p>
+                            <p id="keyword-estimated-count" class="text-sm text-green-700">Sélectionnez des villes pour voir le nombre d'annonces à créer</p>
                         </div>
 
                         <!-- Bouton de génération -->
@@ -357,21 +381,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour le nombre estimé d'annonces
     function updateEstimatedCount() {
         const serviceSlug = serviceSelect.value;
-        const cityScope = document.querySelector('input[name="city_scope"]:checked').value;
+        const selectedCities = document.querySelectorAll('.city-checkbox:checked').length;
         
         if (!serviceSlug) {
             estimatedCount.textContent = 'Sélectionnez un service pour voir le nombre d\'annonces à créer';
             return;
         }
 
-        const cityCount = cityScope === 'all' ? {{ $cities->count() }} : {{ count($favoriteCities) }};
-        estimatedCount.textContent = `Environ ${cityCount} annonces seront créées pour ce service`;
+        if (selectedCities === 0) {
+            estimatedCount.textContent = 'Sélectionnez au moins une ville';
+            return;
+        }
+
+        estimatedCount.textContent = `${selectedCities} annonce(s) sera(ont) créée(s) pour ce service. Un template sera créé automatiquement.`;
     }
+
+    // Sélection rapide des villes favorites
+    document.getElementById('select-favorites').addEventListener('change', function() {
+        const favoriteCityIds = [{{ implode(',', $favoriteCities->pluck('id')->toArray()) }}];
+        document.querySelectorAll('.city-checkbox').forEach(checkbox => {
+            checkbox.checked = favoriteCityIds.includes(parseInt(checkbox.value));
+        });
+        updateEstimatedCount();
+    });
+
+    // Sélection rapide de toutes les villes
+    document.getElementById('select-all').addEventListener('change', function() {
+        document.querySelectorAll('.city-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateEstimatedCount();
+    });
 
     // Événements
     serviceSelect.addEventListener('change', updateEstimatedCount);
-    cityScopeRadios.forEach(radio => {
-        radio.addEventListener('change', updateEstimatedCount);
+    document.querySelectorAll('.city-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateEstimatedCount);
     });
 
     // Soumission du formulaire
@@ -380,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(form);
         const serviceSlug = formData.get('service_slug');
-        const cityScope = formData.get('city_scope');
+        const selectedCityIds = Array.from(document.querySelectorAll('.city-checkbox:checked')).map(cb => cb.value);
         const aiPrompt = formData.get('ai_prompt');
 
         if (!serviceSlug) {
@@ -388,36 +433,47 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        if (selectedCityIds.length === 0) {
+            alert('Veuillez sélectionner au moins une ville');
+            return;
+        }
+
         // Afficher la progression
         progressSection.classList.remove('hidden');
         resultsSection.classList.add('hidden');
         generateBtn.disabled = true;
-        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Création du template et génération en cours...';
 
         // Simuler la progression
         let progress = 0;
         const progressInterval = setInterval(() => {
-            progress += Math.random() * 10;
+            progress += Math.random() * 5;
             if (progress > 90) progress = 90;
             
             progressBar.style.width = progress + '%';
             progressText.textContent = Math.round(progress) + '%';
-            progressDetails.textContent = `Génération des annonces... ${Math.round(progress)}%`;
-        }, 500);
+            if (progress < 30) {
+                progressDetails.textContent = `Création du template... ${Math.round(progress)}%`;
+            } else {
+                progressDetails.textContent = `Génération des annonces... ${Math.round(progress)}%`;
+            }
+        }, 300);
+
+        // Préparer les données avec city_ids
+        const requestData = new FormData();
+        requestData.append('service_slug', serviceSlug);
+        requestData.append('ai_prompt', aiPrompt || '');
+        selectedCityIds.forEach(cityId => {
+            requestData.append('city_ids[]', cityId);
+        });
 
         // Appel AJAX
         fetch('{{ route("admin.ads.bulk-ads.generate") }}', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({
-                service_slug: serviceSlug,
-                include_all_cities: cityScope === 'all',
-                batch_size: 10,
-                ai_prompt: aiPrompt
-            })
+            body: requestData
         })
         .then(response => response.json())
         .then(data => {
@@ -534,20 +590,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour le nombre estimé d'annonces pour les mots-clés
     function updateKeywordEstimatedCount() {
         const keyword = keywordCustom.value.trim();
-        const cityScope = document.querySelector('input[name="keyword_city_scope"]:checked').value;
+        const selectedCities = document.querySelectorAll('.keyword-city-checkbox:checked').length;
         
         if (!keyword) {
             keywordEstimatedCount.textContent = 'Saisissez un mot-clé pour voir le nombre d\'annonces à créer';
             return;
         }
 
-        const cityCount = cityScope === 'all' ? {{ $cities->count() }} : {{ count($favoriteCities) }};
-        keywordEstimatedCount.textContent = `Environ ${cityCount} annonces seront créées pour le mot-clé "${keyword}"`;
+        if (selectedCities === 0) {
+            keywordEstimatedCount.textContent = 'Sélectionnez au moins une ville';
+            return;
+        }
+
+        keywordEstimatedCount.textContent = `${selectedCities} annonce(s) sera(ont) créée(s) pour le mot-clé "${keyword}". Un template sera créé automatiquement.`;
     }
 
+    // Sélection rapide des villes favorites pour mots-clés
+    document.getElementById('keyword-select-favorites').addEventListener('change', function() {
+        const favoriteCityIds = [{{ implode(',', $favoriteCities->pluck('id')->toArray()) }}];
+        document.querySelectorAll('.keyword-city-checkbox').forEach(checkbox => {
+            checkbox.checked = favoriteCityIds.includes(parseInt(checkbox.value));
+        });
+        updateKeywordEstimatedCount();
+    });
+
+    // Sélection rapide de toutes les villes pour mots-clés
+    document.getElementById('keyword-select-all').addEventListener('change', function() {
+        document.querySelectorAll('.keyword-city-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateKeywordEstimatedCount();
+    });
+
     // Événements pour les mots-clés
-    keywordCityScopeRadios.forEach(radio => {
-        radio.addEventListener('change', updateKeywordEstimatedCount);
+    keywordCustom.addEventListener('input', updateKeywordEstimatedCount);
+    document.querySelectorAll('.keyword-city-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateKeywordEstimatedCount);
     });
 
     // Soumission du formulaire mots-clés
@@ -556,11 +634,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(keywordsForm);
         const keyword = formData.get('keyword');
-        const cityScope = formData.get('keyword_city_scope');
+        const selectedCityIds = Array.from(document.querySelectorAll('.keyword-city-checkbox:checked')).map(cb => cb.value);
         const aiPrompt = formData.get('keyword_ai_prompt');
+        const featuredImage = formData.get('featured_image');
 
         if (!keyword || !keyword.trim()) {
             alert('Veuillez saisir un mot-clé');
+            return;
+        }
+
+        if (selectedCityIds.length === 0) {
+            alert('Veuillez sélectionner au moins une ville');
             return;
         }
 
@@ -568,26 +652,33 @@ document.addEventListener('DOMContentLoaded', function() {
         progressSection.classList.remove('hidden');
         resultsSection.classList.add('hidden');
         generateKeywordsBtn.disabled = true;
-        generateKeywordsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+        generateKeywordsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Création du template et génération en cours...';
 
         // Simuler la progression
         let progress = 0;
         const progressInterval = setInterval(() => {
-            progress += Math.random() * 15;
+            progress += Math.random() * 5;
             if (progress > 90) progress = 90;
             
             progressBar.style.width = progress + '%';
             progressText.textContent = Math.round(progress) + '%';
-            progressDetails.textContent = `Génération des annonces pour le mot-clé "${keyword}"...`;
-        }, 500);
+            if (progress < 30) {
+                progressDetails.textContent = `Création du template pour "${keyword}"... ${Math.round(progress)}%`;
+            } else {
+                progressDetails.textContent = `Génération des annonces pour "${keyword}"... ${Math.round(progress)}%`;
+            }
+        }, 300);
 
         // Préparer les données pour l'envoi
         const requestData = new FormData();
         requestData.append('keyword', keyword);
-        requestData.append('keyword_batch_size', 10);
-        requestData.append('keyword_ai_prompt', aiPrompt);
-        requestData.append('include_all_cities', cityScope === 'all' ? '1' : '0');
-        requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        requestData.append('keyword_ai_prompt', aiPrompt || '');
+        if (featuredImage) {
+            requestData.append('featured_image', featuredImage);
+        }
+        selectedCityIds.forEach(cityId => {
+            requestData.append('city_ids[]', cityId);
+        });
 
         // Envoyer la requête
         fetch('{{ route("admin.ads.bulk-ads.generate-keyword") }}', {
@@ -688,3 +779,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+
