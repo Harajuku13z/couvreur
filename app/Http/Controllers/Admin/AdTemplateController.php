@@ -1620,8 +1620,8 @@ EXEMPLES CONCRETS POUR {$keyword}:
 Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_URL], [URL], [TITRE] pour personnalisation par ville.";
             
             $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
-                'max_tokens' => 4000,
-                'temperature' => 0.9
+                'max_tokens' => 6000, // Augmenté pour permettre plus de contenu personnalisé
+                'temperature' => 0.95 // Augmenté pour plus de créativité et personnalisation
             ]);
             
             Log::info('Résultat appel AiService pour template', [
