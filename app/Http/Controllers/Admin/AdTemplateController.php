@@ -22,7 +22,15 @@ class AdTemplateController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('admin.ads.templates.index', compact('templates'));
+        // Récupérer les services depuis les settings
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        
+        if (!is_array($services)) {
+            $services = [];
+        }
+
+        return view('admin.ads.templates.index', compact('templates', 'services'));
     }
 
     /**
