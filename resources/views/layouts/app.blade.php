@@ -5,38 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
         $currentPage = $currentPage ?? 'home';
-        $seoData = \App\Helpers\SeoHelper::generateMetaTags($currentPage, [
-            'title' => $pageTitle ?? '',
-            'description' => $pageDescription ?? '',
-            'image' => $pageImage ?? '',
-            'type' => $pageType ?? 'website'
-        ]);
+        
+        // Si des métadonnées spécifiques sont passées (pour les annonces), les utiliser directement
+        if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords)) {
+            // Utiliser les métadonnées spécifiques pour les annonces
+            $finalTitle = $pageTitle ?? '';
+            $finalDescription = $pageDescription ?? '';
+            $finalKeywords = $pageKeywords ?? '';
+            $finalOgTitle = $ogTitle ?? $finalTitle;
+            $finalOgDescription = $ogDescription ?? $finalDescription;
+            $finalTwitterTitle = $twitterTitle ?? $finalOgTitle ?? $finalTitle;
+            $finalTwitterDescription = $twitterDescription ?? $finalOgDescription ?? $finalDescription;
+            $finalImage = $pageImage ?? '';
+        } else {
+            // Sinon, utiliser SeoHelper
+            $seoData = \App\Helpers\SeoHelper::generateMetaTags($currentPage, [
+                'title' => $pageTitle ?? '',
+                'description' => $pageDescription ?? '',
+                'image' => $pageImage ?? '',
+                'type' => $pageType ?? 'website'
+            ]);
+            $finalTitle = $seoData['title'];
+            $finalDescription = $seoData['description'];
+            $finalKeywords = '';
+            $finalOgTitle = $seoData['og:title'];
+            $finalOgDescription = $seoData['og:description'];
+            $finalTwitterTitle = $seoData['twitter:title'];
+            $finalTwitterDescription = $seoData['twitter:description'];
+            $finalImage = $seoData['og:image'];
+        }
         
         // Récupérer la configuration SEO pour les tags de tracking
         $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
     @endphp
     
-    <title>{{ $seoData['title'] }}</title>
-    <meta name="description" content="{{ $seoData['description'] }}">
-    <meta name="keywords" content="@yield('keywords', setting('meta_keywords', 'travaux, rénovation, toiture, façade'))">
+    <title>{{ $finalTitle }}</title>
+    <meta name="description" content="{{ $finalDescription }}">
+    <meta name="keywords" content="{{ $finalKeywords ?: (@yield('keywords') ?: setting('meta_keywords', 'travaux, rénovation, toiture, façade')) }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{{ $seoData['og:title'] }}">
-    <meta property="og:description" content="{{ $seoData['og:description'] }}">
-    <meta property="og:image" content="{{ $seoData['og:image'] }}">
-    <meta property="og:url" content="{{ $seoData['og:url'] }}">
-    <meta property="og:type" content="{{ $seoData['og:type'] }}">
+    <meta property="og:title" content="{{ $finalOgTitle }}">
+    <meta property="og:description" content="{{ $finalOgDescription }}">
+    <meta property="og:image" content="{{ $finalImage }}">
+    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:type" content="{{ $pageType ?? 'website' }}">
     <meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoData['twitter:title'] }}">
-    <meta name="twitter:description" content="{{ $seoData['twitter:description'] }}">
-    <meta name="twitter:image" content="{{ $seoData['twitter:image'] }}">
+    <meta name="twitter:title" content="{{ $finalTwitterTitle }}">
+    <meta name="twitter:description" content="{{ $finalTwitterDescription }}">
+    <meta name="twitter:image" content="{{ $finalImage }}">
     
     <!-- Favicon -->
     @php
