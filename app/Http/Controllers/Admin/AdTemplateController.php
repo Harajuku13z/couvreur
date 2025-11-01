@@ -1667,6 +1667,9 @@ EXEMPLES CONCRETS POUR {$keyword}:
      */
     private function buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
     {
+        // Déterminer les informations de financement selon le service
+        $financementInfo = $this->getFinancementInfoForService($serviceName);
+        
         $basePrompt = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE des prestations, techniques et matériaux spécifiques à ce domaine. Crée un template d'annonce TOTALEMENT personnalisé pour {$serviceName}.
 
 ⚠️⚠️⚠️ SERVICE À PERSONNALISER: {$serviceName} ⚠️⚠️⚠️
@@ -1691,20 +1694,120 @@ IMPORTANT: Ce template sera utilisé pour créer des annonces personnalisées pa
 - Chaque description doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
 - Utilise [VILLE] et [RÉGION] dans le contenu pour personnalisation future
 
+📋 STRUCTURE HTML OBLIGATOIRE DU CHAMP \"description\":
+
+Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exacte:
+
+<div class=\"grid md:grid-cols-2 gap-8\">
+  <div class=\"space-y-6\">
+    <!-- SECTION 1: DESCRIPTION LONGUE PERSONNALISÉE -->
+    <div class=\"space-y-4\">
+      <p class=\"text-lg leading-relaxed\">[Description longue et détaillée de 3-4 paragraphes sur {$serviceName} à [VILLE], incluant l'expertise, les techniques utilisées, et les bénéfices pour les clients locaux. SOYEZ SPÉCIFIQUE et TECHNIQUE.]</p>
+      <p class=\"text-lg leading-relaxed\">[Paragraphe 2: Informations complémentaires sur l'approche, les matériaux, les certifications ou normes spécifiques à {$serviceName}.]</p>
+      <p class=\"text-lg leading-relaxed\">[Paragraphe 3: Pourquoi choisir notre entreprise pour {$serviceName} à [VILLE] et dans la région de [RÉGION]. Mentionner l'expérience locale, les réalisations, etc.]</p>
+    </div>
+    
+    <!-- SECTION 2: NOTRE ENGAGEMENT QUALITÉ (PERSONNALISÉ) -->
+    <div class=\"bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Notre Engagement Qualité pour {$serviceName}</h3>
+      <p class=\"leading-relaxed mb-3\">[Paragraphe 1: Engagement spécifique pour {$serviceName} - garanties, normes, certifications particulières à ce service. SOYEZ SPÉCIFIQUE, pas générique.]</p>
+      <p class=\"leading-relaxed mb-3\">[Paragraphe 2: Comment nous garantissons la qualité pour {$serviceName} - processus, contrôles, suivi post-intervention spécifiques.]</p>
+      <p class=\"leading-relaxed\">[Paragraphe 3: Engagement client pour {$serviceName} à [VILLE] - satisfaction, réactivité, disponibilité locale.]</p>
+    </div>
+    
+    <!-- SECTION 3: 10 PRESTATIONS SPÉCIFIQUES -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Nos Prestations {$serviceName}</h3>
+    <ul class=\"space-y-4\">
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 1 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée avec techniques, matériaux, méthodes précises. Minimum 2-3 phrases.]</p>
+        </div>
+      </li>
+      <!-- RÉPÉTER pour les 10 prestations, chacune avec nom technique et description détaillée -->
+    </ul>
+    
+    <!-- SECTION 4: FAQ PERSONNALISÉE (MINIMUM 6 QUESTIONS) -->
+    <div class=\"bg-gray-50 p-6 rounded-lg mt-6\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-4\">Questions Fréquentes sur {$serviceName} à [VILLE]</h4>
+      <div class=\"space-y-4\">
+        <div>
+          <p class=\"font-semibold text-gray-900 mb-2\"><strong>Q1:</strong> [Question spécifique sur {$serviceName} à [VILLE] - coûts, délais, ou processus technique]</p>
+          <p class=\"text-gray-700 text-sm\"><strong>R:</strong> [Réponse détaillée et technique, incluant informations spécifiques sur {$serviceName}. Minimum 3-4 phrases.]</p>
+        </div>
+        <!-- MINIMUM 6 questions au total, toutes spécifiques à {$serviceName} -->
+      </div>
+    </div>
+  </div>
+  
+  <div class=\"space-y-6\">
+    <!-- SECTION 5: POURQUOI CHOISIR CE SERVICE -->
+    <div class=\"bg-green-50 p-6 rounded-lg border-l-4 border-green-600\">
+      <h3 class=\"text-xl font-bold text-gray-900 mb-3\">Pourquoi Choisir {$serviceName} avec Notre Entreprise</h3>
+      <p class=\"leading-relaxed mb-3\">[Paragraphe personnalisé expliquant les avantages spécifiques de notre approche pour {$serviceName} à [VILLE].]</p>
+      <p class=\"leading-relaxed\">[Paragraphe sur notre expertise locale et notre connaissance des spécificités de [RÉGION] pour {$serviceName}.]</p>
+    </div>
+    
+    <!-- SECTION 6: NOTRE EXPERTISE LOCALE -->
+    <h3 class=\"text-2xl font-bold text-gray-900 mb-4\">Notre Expertise Locale en {$serviceName}</h3>
+    <p class=\"leading-relaxed mb-4\">[Description de l'expérience locale, des réalisations, de la connaissance des spécificités régionales pour {$serviceName}.]</p>
+    <p class=\"leading-relaxed\">[Informations complémentaires sur l'approche locale et l'adaptation aux besoins de [VILLE] et [RÉGION].]</p>
+    
+    <!-- SECTION 7: FINANCEMENT ET AIDES (PERSONNALISÉ SELON SERVICE) -->
+    <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et Aides pour {$serviceName}</h4>
+      {$financementInfo}
+    </div>
+    
+    <!-- SECTION 8: BESOIN D'UN DEVIS -->
+    <div class=\"bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600\">
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Besoin d'un Devis pour {$serviceName} à [VILLE]?</h4>
+      <p class=\"mb-4 text-gray-700\">Contactez-nous dès aujourd'hui pour obtenir un devis gratuit et personnalisé pour vos travaux de {$serviceName} à [VILLE].</p>
+      <a href=\"[FORM_URL]\" class=\"inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300\">
+        <i class=\"fas fa-calculator mr-2\"></i>Demander un Devis Gratuit
+      </a>
+    </div>
+    
+    <!-- SECTION 9: INFORMATIONS PRATIQUES -->
+    <div class=\"bg-gray-50 p-6 rounded-lg\">
+      <h4 class=\"text-lg font-bold text-gray-900 mb-3\">Informations Pratiques</h4>
+      <ul class=\"space-y-2 text-sm\">
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>Devis gratuit et sans engagement pour {$serviceName}</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>Intervention rapide sur [VILLE] et [RÉGION]</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>Garantie sur tous nos travaux de {$serviceName}</span>
+        </li>
+        <li class=\"flex items-center\">
+          <i class=\"fas fa-check text-green-600 mr-3 flex-shrink-0\"></i>
+          <span>Équipe d'experts certifiés en {$serviceName}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-  \"description\": \"<div class='grid md:grid-cols-2 gap-8'>[HTML complet avec structure et prestations spécifiques à {$serviceName}, utilise [VILLE] et [RÉGION] comme placeholders]\",
+  \"description\": \"[HTML complet suivant la structure ci-dessus, avec TOUTES les sections remplies et PERSONNALISÉES pour {$serviceName}]\",
   \"short_description\": \"Service professionnel de {$serviceName} à [VILLE] - Devis gratuit et intervention rapide\",
-  \"long_description\": \"Notre entreprise spécialisée en {$serviceName} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants.\",
+  \"long_description\": \"[Description longue de 4-5 phrases sur {$serviceName}, expliquant l'expertise, les techniques, les matériaux, et pourquoi choisir notre entreprise pour {$serviceName} à [VILLE] et dans la région de [RÉGION]. SOYEZ SPÉCIFIQUE et DÉTAILLÉ, minimum 400 mots.]\",
   \"icon\": \"fas fa-tools\",
-  \"meta_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
-  \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
-  \"og_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
+  \"meta_title\": \"{$serviceName} à [VILLE] - Expert professionnel | Devis gratuit\",
+  \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE] et dans toute la région de [RÉGION]. Devis gratuit, intervention rapide, équipe experte certifiée. Garantie sur tous nos travaux.\",
+  \"og_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
   \"og_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
-  \"twitter_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
+  \"twitter_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
   \"twitter_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
-  \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
+  \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], expert {$serviceName}, devis gratuit {$serviceName}, professionnel {$serviceName}\"
 }
 
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
@@ -1714,8 +1817,10 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
 - PAS de texte avant le JSON
 - PAS de texte après le JSON
 - PAS de ```json ou ``` autour du JSON
-- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName}] par 10 prestations TECHNIQUES RÉELLES pour {$serviceName}
-- Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$serviceName}
+- GÉNÈRE EXACTEMENT 10 PRESTATIONS TECHNIQUES SPÉCIFIQUES avec descriptions détaillées
+- GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName}
+- TOUT le contenu doit être PERSONNALISÉ pour {$serviceName}, pas générique
+- La description longue doit faire minimum 400 mots
 ";
 
         if ($aiPrompt) {
@@ -1812,5 +1917,67 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
             'twitter_title' => $cleanText($aiData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
             'twitter_description' => $cleanText($aiData['twitter_description'] ?? 'Service professionnel à [VILLE]', 500),
         ];
+    }
+
+    /**
+     * Obtenir les informations de financement selon le type de service
+     */
+    private function getFinancementInfoForService($serviceName)
+    {
+        $serviceLower = strtolower($serviceName);
+        
+        // Isolation thermique - MaPrimeRénov, CEE, etc.
+        if (strpos($serviceLower, 'isolation') !== false || 
+            strpos($serviceLower, 'thermique') !== false ||
+            strpos($serviceLower, 'isoler') !== false) {
+            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Pour vos travaux d'isolation, bénéficiez de MaPrimeRénov, une aide de l'État qui peut couvrir jusqu'à 90% du montant de vos travaux selon vos revenus. Cette aide est cumulable avec d'autres dispositifs.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE peuvent vous faire économiser jusqu'à plusieurs centaines d'euros sur vos travaux d'isolation. Nous vous accompagnons dans vos démarches pour bénéficier de ces aides.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ :</strong> L'éco-prêt à taux zéro permet de financer vos travaux d'isolation sans intérêts, jusqu'à 30 000€ sur 20 ans.</p>
+      <p class=\"leading-relaxed\"><strong>TVA réduite :</strong> Les travaux d'isolation bénéficient de la TVA réduite à 5,5% pour les logements de plus de 2 ans.</p>";
+        }
+        
+        // Rénovation énergétique
+        if (strpos($serviceLower, 'rénovation') !== false && 
+            (strpos($serviceLower, 'énergét') !== false || strpos($serviceLower, 'energet') !== false)) {
+            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Aide principale pour la rénovation énergétique, pouvant atteindre jusqu'à 90% du montant des travaux selon vos revenus.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Complémentaire à MaPrimeRénov, les Certificats d'Économies d'Énergie offrent des primes additionnelles pour améliorer l'efficacité énergétique.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ :</strong> Prêt à taux zéro jusqu'à 50 000€ pour financer votre rénovation énergétique globale.</p>
+      <p class=\"leading-relaxed\"><strong>Chèque Énergie :</strong> Pour les ménages modestes, le chèque énergie peut être utilisé pour financer une partie des travaux.</p>";
+        }
+        
+        // Chauffage / PAC
+        if (strpos($serviceLower, 'chauffage') !== false || 
+            strpos($serviceLower, 'pompe à chaleur') !== false ||
+            strpos($serviceLower, 'pac') !== false) {
+            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Installation de pompes à chaleur éligible à MaPrimeRénov, jusqu'à 11 000€ selon vos revenus.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Prime additionnelle pour l'installation de systèmes de chauffage performants, cumulable avec MaPrimeRénov.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour l'installation d'équipements de chauffage dans les logements anciens.</p>
+      <p class=\"leading-relaxed\"><strong>Éco-PTZ :</strong> Financement jusqu'à 30 000€ sans intérêts pour remplacer votre système de chauffage.</p>";
+        }
+        
+        // Toiture / Couverture
+        if (strpos($serviceLower, 'toiture') !== false || 
+            strpos($serviceLower, 'couverture') !== false ||
+            strpos($serviceLower, 'charpente') !== false) {
+            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Rénovation de toiture éligible si couplée avec des travaux d'isolation, jusqu'à 75€/m² pour l'isolation des combles.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Aide disponible pour l'isolation de toiture lors d'une rénovation complète.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour les travaux de rénovation de toiture dans les logements de plus de 2 ans.</p>
+      <p class=\"leading-relaxed\"><strong>Crédit d'impôt :</strong> Certains travaux de toiture peuvent bénéficier d'un crédit d'impôt sous certaines conditions.</p>";
+        }
+        
+        // Fenêtres / Menuiserie
+        if (strpos($serviceLower, 'fenêtre') !== false || 
+            strpos($serviceLower, 'menuiserie') !== false ||
+            strpos($serviceLower, 'vitrage') !== false) {
+            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Remplacement de fenêtres par des modèles performants éligible à MaPrimeRénov, jusqu'à 75€ par menuiserie.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Aide supplémentaire pour l'installation de fenêtres double vitrage performantes.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour le remplacement de menuiseries dans les logements anciens.</p>
+      <p class=\"leading-relaxed\"><strong>Crédit d'impôt :</strong> Possibilité de crédit d'impôt pour l'installation de fenêtres à haute performance énergétique.</p>";
+        }
+        
+        // Par défaut - financement général
+        return "<p class=\"leading-relaxed mb-3\">Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}. De nombreuses solutions de financement existent selon votre situation.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Aides disponibles :</strong> Selon votre projet et votre situation, vous pouvez bénéficier de MaPrimeRénov, des primes CEE, de l'éco-PTZ, ou de la TVA réduite à 5,5%.</p>
+      <p class=\"leading-relaxed\"><strong>Accompagnement personnalisé :</strong> Notre équipe vous guide dans vos démarches administratives pour maximiser vos aides et optimiser votre investissement.</p>";
     }
 }

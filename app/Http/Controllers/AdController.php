@@ -35,18 +35,24 @@ class AdController extends Controller
         // Variables pour le SEO - utiliser getMetaForCity si template existe
         $currentPage = 'ads';
         
+        // Récupérer l'image du template si elle existe
+        $featuredImage = null;
+        
         // Si l'annonce a un template, utiliser getMetaForCity pour les métadonnées personnalisées
         if ($ad->template_id && $ad->template) {
             $metaForCity = $ad->template->getMetaForCity($cityModel);
             $pageTitle = $metaForCity['meta_title'] ?? $ad->meta_title ?? $ad->title ?? 'Service professionnel';
             $pageDescription = $metaForCity['meta_description'] ?? $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
+            
+            // Récupérer l'image du template
+            $featuredImage = $ad->template->featured_image ?? null;
         } else {
             // Utiliser les métadonnées de l'annonce directement
             $pageTitle = $ad->meta_title ?? $ad->title ?? 'Service professionnel';
             $pageDescription = $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
         }
         
-        $pageImage = null; // Utiliser l'image par défaut du SeoHelper
+        $pageImage = $featuredImage ? asset($featuredImage) : null; // Utiliser l'image du template ou l'image par défaut du SeoHelper
         $pageType = 'website';
         
         // Récupérer des annonces similaires
@@ -65,6 +71,6 @@ class AdController extends Controller
             return is_array($item) && ($item['is_visible'] ?? true);
         });
         
-        return view('ads.show', compact('ad', 'cityModel', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType', 'relatedAds', 'portfolioItems'));
+        return view('ads.show', compact('ad', 'cityModel', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage', 'pageType', 'relatedAds', 'portfolioItems', 'featuredImage'));
     }
 }
