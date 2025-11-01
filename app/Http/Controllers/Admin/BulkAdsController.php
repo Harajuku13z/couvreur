@@ -51,9 +51,33 @@ class BulkAdsController extends Controller
         Log::info('=== DÉBUT generateBulkAds ===', [
             'all_input' => $request->all(),
             'service_slug' => $request->input('service_slug'),
+            'service_slug_raw' => $request->get('service_slug'),
             'city_ids' => $request->input('city_ids'),
+            'city_ids_raw' => $request->get('city_ids'),
             'ai_prompt' => $request->input('ai_prompt'),
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
         ]);
+
+        // Vérifier manuellement avant validation
+        if (!$request->has('service_slug') || empty($request->input('service_slug'))) {
+            Log::error('service_slug manquant dans la requête', [
+                'all_input' => $request->all(),
+                'has_service_slug' => $request->has('service_slug'),
+                'service_slug_value' => $request->input('service_slug'),
+                'all_keys' => array_keys($request->all()),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Le champ service_slug est requis. Vérifiez que vous avez sélectionné un service.',
+                'debug' => [
+                    'has_service_slug' => $request->has('service_slug'),
+                    'service_slug_value' => $request->input('service_slug'),
+                    'all_keys' => array_keys($request->all()),
+                ]
+            ], 422);
+        }
 
         $request->validate([
             'service_slug' => 'required|string',
