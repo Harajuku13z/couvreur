@@ -100,7 +100,24 @@ class ServiceAiController extends Controller
             $companyCity = setting('company_city', '');
             $companyDept = setting('company_region', '');
             
-            $system = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide, sans texte avant ou après.";
+            // Récupérer les informations pratiques depuis les settings
+            $companyAddress = setting('company_address', '');
+            $companyPhone = setting('company_phone', '');
+            $companyEmail = setting('company_email', '');
+            $companyHours = setting('company_hours', '');
+            
+            // Message système fort pour forcer la personnalisation
+            $system = "Tu es un expert technique spécialisé en {$serviceName} avec une connaissance approfondie du domaine de la rénovation et couverture en France. 
+
+CRITIQUE ABSOLUE: 
+- Chaque contenu DOIT être UNIQUE, TECHNIQUE et SPÉCIFIQUE à {$serviceName}
+- INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement'
+- INTERDIT de copier du contenu générique ou répétitif
+- INTERDIT d'utiliser des phrases vides comme 'Service professionnel' sans détails
+- Tu DOIS générer du contenu vraiment personnalisé avec des détails techniques concrets
+- Adapte TOUT spécifiquement au service {$serviceName} avec le vocabulaire professionnel exact du métier
+
+Tu génères UNIQUEMENT du JSON valide, sans texte avant ou après.";
             
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
@@ -159,115 +176,172 @@ class ServiceAiController extends Controller
   </div>
 </div>';
             
+            // Construire la liste des infos pratiques dynamiquement pour le prompt JSON
+            $infosPratiquesList = [];
+            if ($companyAddress) {
+                $infosPratiquesList[] = "Adresse : {$companyAddress}";
+            }
+            if ($companyPhone) {
+                $infosPratiquesList[] = "Téléphone : {$companyPhone}";
+            }
+            if ($companyEmail) {
+                $infosPratiquesList[] = "Email : {$companyEmail}";
+            }
+            if ($companyHours) {
+                $infosPratiquesList[] = "Horaires de travail : {$companyHours}";
+            }
+            if ($companyName) {
+                $infosPratiquesList[] = "Société : {$companyName}";
+            }
+            $infosPratiquesPrompt = "Informations Pratiques à utiliser EXACTEMENT:\n" . implode("\n", $infosPratiquesList);
+            
+            // Construire le tableau JSON pour infos_pratiques
+            $infosPratiquesJson = [];
+            if ($companyAddress) {
+                $infosPratiquesJson[] = '"Adresse : ' . addslashes($companyAddress) . '"';
+            }
+            if ($companyPhone) {
+                $infosPratiquesJson[] = '"Téléphone : ' . addslashes($companyPhone) . '"';
+            }
+            if ($companyEmail) {
+                $infosPratiquesJson[] = '"Email : ' . addslashes($companyEmail) . '"';
+            }
+            if ($companyHours) {
+                $infosPratiquesJson[] = '"Horaires de travail : ' . addslashes($companyHours) . '"';
+            }
+            $infosPratiquesJson[] = '"Société : ' . addslashes($companyName) . '"';
+            $infosPratiquesJsonString = implode(",\n    ", $infosPratiquesJson);
+            
+            // Générer des exemples de prestations selon le type de service
+            $serviceLower = strtolower($serviceName);
+            $prestationsExamples = "";
+            if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Réparation de tuiles cassées, Remplacement de faîtage, Traitement hydrofuge, Réfection de zinguerie, Réparation de solin, Remplacement d'ardoises, Réparation de charpente, Isolation des combles, Réfection de gouttières, Traitement anti-moisissure";
+            } elseif (strpos($serviceLower, 'isolation') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Isolation des combles perdus, Isolation sous rampants, Isolation des murs par l'intérieur, Isolation des murs par l'extérieur, Isolation des sols, Traitement des ponts thermiques, Pose de VMC double flux, Calorifugeage";
+            } elseif (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
+                $prestationsExamples = "Exemples pour {$serviceName}: Ravalement de façade, Application d'enduit monocouche, Peinture façade, Nettoyage haute pression, Réfection de parement, Réparation de fissures, Traitement anti-humidité, Isolation thermique par l'extérieur";
+            } else {
+                $prestationsExamples = "Génère 10 prestations techniques spécifiques au {$serviceName} avec le vocabulaire professionnel exact du métier.";
+            }
+            
             $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . "Service: {$serviceName}
 Entreprise: {$companyName}
 Ville: {$companyCity}
 Département: {$companyDept}
 Langue: {$language}
 
-Crée un JSON avec les données suivantes pour remplir ce template HTML:
+{$infosPratiquesPrompt}
+
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
+Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
+
+Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL, TECHNIQUE et PROFESSIONNEL spécifique à {$serviceName} :
 
 {
-  \"description_courte\": \"Description courte du {$serviceName} incluant {$companyCity} et le département (150-200 caractères)\",
-  \"description_longue\": \"Description longue et détaillée du {$serviceName} avec bénéfices, techniques, matériaux (minimum 300 caractères)\",
-  \"titre_garantie\": \"Titre de l'engagement ou garantie\",
-  \"texte_garantie\": \"Description des garanties, normes de qualité, chantier rendu propre, etc.\",
+  \"description_courte\": \"[Génère une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, avec bénéfices concrets et spécifiques à ce service]\",
+  \"description_longue\": \"[Génère une description longue et détaillée du {$serviceName}. Intègre {$companyCity} et {$companyDept}. Parle des techniques spécifiques utilisées, matériaux concrets, bénéfices énergétiques, durabilité, qualité. 400-600 mots minimum. SOIS TECHNIQUE et SPÉCIFIQUE]\",
+  \"titre_garantie\": \"[Génère un titre d'engagement/garantie spécifique au {$serviceName}]\",
+  \"texte_garantie\": \"[Génère une description détaillée des garanties pour {$serviceName}. Mentionne: garantie décennale, chantier propre, respect normes, matériaux qualité, satisfaction garantie. SOIS SPÉCIFIQUE au service]\",
   \"prestations\": [
-    {\"titre\": \"[Prestation technique 1 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 2 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 3 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 4 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 5 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 6 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 7 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 8 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 9 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"},
-    {\"titre\": \"[Prestation technique 10 spécifique au {$serviceName}]\", \"description\": \"[Description détaillée technique et professionnelle]\"}
+    {\"titre\": \"[Génère prestation technique 1 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 2 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 3 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 4 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 5 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 6 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 7 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 8 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 9 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
+    {\"titre\": \"[Génère prestation technique 10 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"}
   ],
   \"faq\": [
-    {\"question\": \"Question 1\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question 2\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question 3\", \"reponse\": \"Réponse détaillée\"},
-    {\"question\": \"Question 4\", \"reponse\": \"Réponse détaillée\"}
+    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
+    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"}
   ],
-  \"pourquoi_choisir\": \"Avantages de travailler avec nous pour ce service et parler de notre expertise\",
-  \"financement_aides\": \"Parler des aides disponibles en France selon le service\",
+  \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity}. Mentionne expertise locale, qualité, réactivité, garanties, savoir-faire, certifications. SOIS SPÉCIFIQUE et CONCRET]\",
+  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon {$serviceName}]\",
   \"infos_pratiques\": [
-    \"Info pratique 1\",
-    \"Info pratique 2\",
-    \"Info pratique 3\",
-    \"Info pratique 4\",
-    \"Info pratique 5\"
+    {$infosPratiquesJsonString}
   ],
-  \"short_description\": \"Description courte SEO 120-140 caractères\",
-  \"meta_title\": \"Titre SEO 50-60 caractères\",
-  \"meta_description\": \"Description SEO 150-160 caractères\",
-  \"meta_keywords\": \"service, service professionnel, expert service, entreprise service, artisan service, service certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, techniques modernes, normes professionnelles\"
+  \"short_description\": \"[Génère description courte SEO 120-140 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_title\": \"[Génère titre SEO optimisé 50-60 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_description\": \"[Génère description SEO 150-160 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_keywords\": \"[Génère 15-20 mots-clés pertinents incluant: {$serviceName}, {$serviceName} {$companyCity}, {$serviceName} {$companyDept}, expert {$serviceName}, {$serviceName} professionnel, entreprise {$serviceName}, artisan {$serviceName}, {$serviceName} certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, techniques modernes, matériaux spécifiques au service]\"
 }
 
-IMPORTANT:
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - FORMAT JSON ⚠️⚠️⚠️:
+- TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
+- COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
+- TERMINE DIRECTEMENT PAR } (accolade fermante)
+- PAS de texte avant le JSON
+- PAS de texte après le JSON
+- PAS de ```json ou ``` autour du JSON
+- PAS de commentaires ou explications
+- JUSTE le JSON brut
+
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU ⚠️⚠️⚠️:
 - ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus. Chaque prestation doit avoir un \"titre\" et une \"description\".
-- ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets] ci-dessus. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
-- Les prestations DOIVENT être techniques et spécifiques au {$serviceName}
-- Utilise le vocabulaire professionnel du métier
+- ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Les valeurs entre [crochets] sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace complètement ces instructions.
+- ⚠️ INTERDIT d'utiliser des prestations génériques comme 'Nettoyage', 'Réparation', 'Remplacement' sans précision technique
+- ⚠️ Les prestations DOIVENT être TECHNIQUES et SPÉCIFIQUES au {$serviceName}. Exemples inspirants: {$prestationsExamples}
+- Utilise le vocabulaire professionnel EXACT du métier de {$serviceName}
 - Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents, incluant:
-  * Le nom du service et ses variations
+  * Le nom du service et ses variations géographiques
   * Des termes techniques spécifiques au métier
   * Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
   * Des termes de qualité (professionnel, expert, certifié, qualifié, etc.)
   * Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
   * Des matériaux ou techniques spécifiques au service
-- Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.
-- VÉRIFIE avant d'envoyer: le tableau \"prestations\" contient exactement 10 éléments.";
+- Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus
+- VÉRIFIE avant d'envoyer: 
+  * Le tableau \"prestations\" contient exactement 10 éléments avec contenu réel
+  * Toutes les descriptions sont spécifiques et techniques
+  * Aucun contenu générique ou copié";
 
             try {
-                if (empty(env('GROQ_API_KEY'))) {
-                    return back()->with('error', "Veuillez définir GROQ_API_KEY dans le fichier .env");
-                }
-                
-                // Pour Groq on-demand: limiter max_tokens pour laisser de la place aux tokens d'entrée
-                // Estimation: ~1 token = 4 caractères, limite TPM = 6000
+                // Utiliser AiService qui gère automatiquement ChatGPT et Groq avec fallback
+                // Calculer max_tokens dynamiquement pour respecter la limite TPM Groq (6000)
                 $estimatedInputTokens = (int)((strlen($system) + strlen($user)) / 4);
-                $maxTokens = max(1000, min(3000, 5500 - $estimatedInputTokens)); // Laisser marge de sécurité
+                $maxTokens = min(4000, max(2000, 5500 - $estimatedInputTokens));
                 
-                // Ajouter une variabilité pour éviter les réponses identiques
-                // Utiliser un timestamp ou un hash pour rendre chaque requête unique
-                $timestamp = now()->timestamp;
-                $uniquePrompt = $user . "\n\nTimestamp de génération: {$timestamp}";
-                
-                \Log::info('Appel API Groq pour service', [
+                \Log::info('Appel AiService pour génération service', [
                     'service' => $serviceName,
-                    'model' => $model,
-                    'max_tokens' => $maxTokens,
                     'estimated_input_tokens' => $estimatedInputTokens,
-                    'temperature' => 0.7
+                    'max_tokens' => $maxTokens,
+                    'temperature' => 0.9
                 ]);
                 
-                $response = Http::withToken(env('GROQ_API_KEY'))
-                    ->timeout(120)
-                    ->post('https://api.groq.com/openai/v1/chat/completions', [
-                        'model' => $model ?: 'llama-3.1-8b-instant',
-                        'messages' => [
-                            ['role' => 'system', 'content' => $system],
-                            ['role' => 'user', 'content' => $uniquePrompt],
-                        ],
-                        'temperature' => 0.8, // Augmenter légèrement pour plus de variabilité
-                        'max_tokens' => $maxTokens,
-                    ]);
+                $result = \App\Services\AiService::callAI($user, $system, [
+                    'max_tokens' => $maxTokens,
+                    'temperature' => 0.9, // Température élevée pour créativité et personnalisation
+                    'timeout' => 120
+                ]);
                 
-                \Log::info('Réponse API Groq reçue', [
-                    'service' => $serviceName,
-                    'status' => $response->status(),
-                    'response_ok' => $response->ok()
+                if (!$result || !isset($result['content'])) {
+                    \Log::error('Échec génération service via AiService', [
+                        'service' => $serviceName,
+                        'result' => $result
                     ]);
-                    
-                $content = $response->ok() ? data_get($response->json(), 'choices.0.message.content') : null;
+                    throw new \Exception('Erreur API IA: Impossible de générer le contenu. Vérifiez vos clés API ChatGPT ou Groq.');
+                }
+                
+                $content = $result['content'];
+                $provider = $result['provider'] ?? 'unknown';
+                
+                \Log::info('Réponse IA reçue pour service', [
+                    'service' => $serviceName,
+                    'provider' => $provider,
+                    'content_length' => strlen($content),
+                    'content_preview' => substr($content, 0, 300)
+                ]);
 
-                if (!$content) {
+                if (!$content || empty($content)) {
                     \Log::error('Pas de contenu retourné par l\'IA pour le service', [
                         'service' => $serviceName,
-                        'response_status' => $response->status(),
-                        'response_body' => substr($response->body(), 0, 500)
+                        'provider' => $provider
                     ]);
                     continue;
                 }
