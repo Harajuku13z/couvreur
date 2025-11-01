@@ -319,7 +319,7 @@ document.getElementById('createTemplateForm').addEventListener('submit', functio
     button.textContent = 'Création en cours...';
     button.disabled = true;
     
-    fetch('/admin/ads/templates/create-from-service', {
+    fetch('{{ route("admin.ads.templates.create-from-service") }}', {
         method: 'POST',
         body: formData,
         headers: {
@@ -360,7 +360,7 @@ document.getElementById('createKeywordTemplateForm').addEventListener('submit', 
     button.textContent = 'Création en cours...';
     button.disabled = true;
     
-    fetch('/admin/ads/templates/create-from-keyword', {
+    fetch('{{ route("admin.ads.templates.create-from-keyword") }}', {
         method: 'POST',
         body: formData,
         headers: {
@@ -497,7 +497,7 @@ function generateAdsFromSelectedCities() {
     button.textContent = 'Génération en cours...';
     button.disabled = true;
     
-    fetch('/admin/ads/templates/generate-ads', {
+    fetch('{{ route("admin.ads.templates.generate-ads") }}', {
         method: 'POST',
         body: formData,
         headers: {
