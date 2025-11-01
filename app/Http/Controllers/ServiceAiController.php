@@ -96,7 +96,7 @@ class ServiceAiController extends Controller
     <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
     <ul class="space-y-3">[prestations_liste]</ul>
     <div class="bg-gray-50 p-6 rounded-lg mt-6">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ [service]</h4>
+      <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ du [service]</h4>
       <div class="space-y-2">[faq_liste]</div>
     </div>
   </div>
@@ -410,10 +410,11 @@ IMPORTANT:
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
         $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
         $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[FORM_URL]', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        // Remplacer [FORM_URL] par /devis-gratuit (route relative)
+        $html = str_replace('[FORM_URL]', '/devis-gratuit', $html);
         // Remplacer les liens hardcodés vers le formulaire (fallback pour anciens templates)
-        $html = str_replace('/devis-gratuit', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('href="/form', 'href="' . htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('href="/form/propertyType"', 'href="/devis-gratuit"', $html);
+        $html = str_replace('href="/form', 'href="/devis-gratuit', $html);
         
         return $html;
     }
