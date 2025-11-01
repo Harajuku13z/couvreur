@@ -42,7 +42,13 @@
     
     <title>{{ $finalTitle }}</title>
     <meta name="description" content="{{ $finalDescription }}">
-    <meta name="keywords" content="{{ $finalKeywords ?: (@yield('keywords') ?: setting('meta_keywords', 'travaux, rénovation, toiture, façade')) }}">
+    @php
+        $keywordsValue = $finalKeywords ?? '';
+        if (empty($keywordsValue)) {
+            $keywordsValue = @yield('keywords') ?: setting('meta_keywords', 'travaux, rénovation, toiture, façade');
+        }
+    @endphp
+    <meta name="keywords" content="{{ $keywordsValue }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Open Graph Meta Tags -->
