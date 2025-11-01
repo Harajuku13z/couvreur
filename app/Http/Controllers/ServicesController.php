@@ -413,43 +413,43 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
     <ul class=\"space-y-3\">
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 1 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 1 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 2 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 2 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 3 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 3 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 4 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 4 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 5 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 5 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 6 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 6 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 7 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 7 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 8 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 8 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 9 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 9 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
       <li class=\"flex items-start\">
         <i class=\"fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
-        <span><strong>[Prestation 10 spécifique {$serviceName}]</strong> - [Description détaillée]</span>
+        <span><strong>[Prestation 10 technique et spécifique à {$serviceName} uniquement]</strong> - [Description technique détaillée de cette prestation précise pour {$serviceName}]</span>
       </li>
     </ul>
 
@@ -531,14 +531,25 @@ STRUCTURE HTML OBLIGATOIRE (utilise exactement cette structure):
 
 </div>
 
-INSTRUCTIONS CRITIQUES POUR UN CONTENU UNIQUE:
-⚠️ OBLIGATOIRE - CONTENU 100% PERSONNALISÉ:
-- Le contenu DOIT être COMPLÈTEMENT différent pour chaque service
-- Personnalise TOUT spécifiquement pour le service: {$serviceName}
-- Utilise des techniques, matériaux et exemples UNIQUES à {$serviceName}
-- GÉNÈRE du contenu ORIGINAL, pas de copier-coller
-- Chaque prestation doit être SPÉCIFIQUE à {$serviceName}
-- Les exemples et cas d'usage doivent être adaptés à {$serviceName}
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - CONTENU 100% PERSONNALISÉ OBLIGATOIRE ⚠️⚠️⚠️:
+
+🚫 INTERDICTIONS ABSOLUES:
+- INTERDIT d'utiliser des prestations génériques comme "Réparation et maintenance", "Rénovation complète", "Installation professionnelle", "Conseils personnalisés"
+- INTERDIT de copier/coller du contenu d'autres services
+- INTERDIT d'utiliser des templates pré-faits
+- INTERDIT de générer du contenu vague ou général
+
+✅ OBLIGATIONS ABSOLUES:
+- Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$serviceName}
+- Pour {$serviceName}, génère des prestations VRAIMENT adaptées (ex: si c'est "Désamiantage" → "Dépollution amiante", "Retrait sécurisé amiante", "Confinement amiante", etc.)
+- Pour {$serviceName}, utilise le vocabulaire TECHNIQUE du domaine
+- Chaque description de prestation doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
+- Les 10 prestations doivent être DIFFÉRENTES et COMPLÉMENTAIRES pour {$serviceName}
+
+EXEMPLES DE PRESTATIONS SPÉCIFIQUES (à adapter à {$serviceName}):
+- Si {$serviceName} = "Désamiantage" → "Dépollution amiante", "Diagnostic amiante avant travaux", "Retrait amiante sous confinement", "Gestion déchets amiante", etc.
+- Si {$serviceName} = "Traitement humidité" → "Diagnostic humidité par imagerie thermique", "Injection résine anti-humidité", "Installation VMC double flux", "Traitement remontées capillaires", etc.
+- Si {$serviceName} = "Élagage" → "Élagage raisonné", "Taille de formation", "Haubanage", "Abattage sécurisé", etc.
 
 INSTRUCTIONS TECHNIQUES:
 - Le contenu doit être UNIQUE, professionnel et engageant.
@@ -549,13 +560,15 @@ INSTRUCTIONS TECHNIQUES:
 - Garde la structure HTML exacte.
 - Génère des prestations détaillées avec descriptions explicites.
 - REMPLACE [FORM_URL] par l'URL du formulaire de devis
-- GÉNÈRE exactement 10 prestations spécifiques au service {$serviceName} (DIFFÉRENTES à chaque fois)
-- PERSONNALISE chaque prestation selon le type de service {$serviceName}
-- UTILISE un vocabulaire technique approprié au secteur de {$serviceName}
-- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 500 caractères) dans le champ long_description
-- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages du service {$serviceName}
+- GÉNÈRE exactement 10 prestations TECHNIQUES et SPÉCIFIQUES à {$serviceName} UNIQUEMENT
+- Chaque prestation doit avoir un NOM TECHNIQUE précis (pas générique) pour {$serviceName}
+- Chaque prestation doit avoir une DESCRIPTION TECHNIQUE détaillée expliquant la méthode pour {$serviceName}
+- UTILISE le vocabulaire technique professionnel du domaine de {$serviceName}
+- OBLIGATOIRE : Génère une LONGUE DESCRIPTION détaillée (minimum 500 caractères) expliquant {$serviceName}
+- La longue description doit expliquer les bénéfices, techniques utilisées, matériaux, avantages spécifiques à {$serviceName}
 - NE PAS inclure de bouton \"En savoir plus\" ou lien externe dans le contenu
-- Le contenu dans 'description' doit être COMPLET (minimum 1500 mots) et UNIQUE pour {$serviceName}
+- Le contenu dans 'description' doit être COMPLET (minimum 1500 mots) et TOTALEMENT UNIQUE pour {$serviceName}
+- Les prestations doivent refléter la RÉALITÉ technique du métier {$serviceName}
 
 RÉPONSE FORMAT JSON:
 {
@@ -586,10 +599,47 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
             // Ajouter un identifiant unique pour forcer la génération unique
             $uniqueId = uniqid();
             $timestamp = now()->toIso8601String();
-            $promptWithUniqueness = $prompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique de cette génération: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}\n- Chaque prestation doit être DIFFÉRENTE et SPÉCIFIQUE à {$serviceName}";
+            
+            // Instructions ultra-spécifiques pour éviter le contenu générique
+            $specificityInstructions = "\n\n🚫🚫🚫 INTERDICTIONS ABSOLUES - NE PAS UTILISER CES PRESTATIONS 🚫🚫🚫:
+- INTERDIT: 'Réparation et maintenance'
+- INTERDIT: 'Rénovation complète'
+- INTERDIT: 'Installation professionnelle'
+- INTERDIT: 'Conseils personnalisés'
+- INTERDIT: Toute prestation générique ou vague
+
+✅✅✅ EXIGENCES ABSOLUES POUR {$serviceName} ✅✅✅:
+- Chaque prestation DOIT avoir un NOM TECHNIQUE précis du domaine de {$serviceName}
+- Chaque prestation DOIT expliquer la MÉTHODE et la TECHNIQUE utilisée
+- Les prestations doivent être SPÉCIFIQUES au métier de {$serviceName}
+
+EXEMPLES CONCRETS POUR {$serviceName}:
+";
+            
+            // Ajouter des exemples selon le type de service
+            $serviceNameLower = mb_strtolower($serviceName);
+            if (strpos($serviceNameLower, 'désamiantage') !== false || strpos($serviceNameLower, 'amiante') !== false) {
+                $specificityInstructions .= "- Bon: 'Dépollution amiante', 'Retrait amiante sous confinement', 'Gestion déchets amiante'
+- Mauvais: 'Réparation et maintenance', 'Installation professionnelle'
+";
+            } elseif (strpos($serviceNameLower, 'humidité') !== false || strpos($serviceNameLower, 'ventilation') !== false) {
+                $specificityInstructions .= "- Bon: 'Diagnostic humidité par imagerie thermique', 'Injection résine anti-humidité', 'Installation VMC double flux'
+- Mauvais: 'Réparation et maintenance', 'Conseils personnalisés'
+";
+            } else {
+                $specificityInstructions .= "- Pour {$serviceName}, utilise le vocabulaire TECHNIQUE et les prestations RÉELLES du métier
+- Recherche les termes techniques professionnels spécifiques à {$serviceName}
+- Évite TOUT ce qui pourrait s'appliquer à n'importe quel autre service
+";
+            }
+            
+            $specificityInstructions .= "\nID unique: {$uniqueId} | Timestamp: {$timestamp}
+Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente pour {$serviceName}.";
+            
+            $promptWithUniqueness = $prompt . $specificityInstructions;
             
             // Utiliser le service AI avec fallback automatique
-            $systemMessage = "Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO. CRITIQUE: Chaque service DOIT avoir un contenu UNIQUE et PERSONNALISÉ. Ne génère JAMAIS de contenu générique ou répétitif. Adapte TOUT spécifiquement au service mentionné.";
+            $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance approfondie du domaine. Tu crées du contenu professionnel, technique et optimisé SEO. CRITIQUE ABSOLUE: Chaque prestation DOIT être TECHNIQUE, SPÉCIFIQUE et utiliser le vocabulaire professionnel du métier de {$serviceName}. INTERDIT d'utiliser des prestations génériques ou des templates pré-faits. Chaque description de prestation doit expliquer QUOI (technique précise), COMMENT (méthode utilisée) et POURQUOI (bénéfice spécifique pour {$serviceName}).";
             $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
                 'max_tokens' => 4000,
                 'temperature' => 0.9  // Augmenté pour plus de créativité et variété
@@ -622,15 +672,41 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
                         strlen($aiData['description']) < 500
                     );
                     
-                    if ($descriptionContainsService && !$isGeneric) {
+                    // Vérifier la présence de prestations génériques interdites
+                    $genericPrestations = [
+                        'Réparation et maintenance',
+                        'Rénovation complète',
+                        'Installation professionnelle',
+                        'Conseils personnalisés',
+                        'Accompagnement dans vos choix',
+                        'Diagnostic précis et traitement adapté',
+                        'Remplacement intégral avec matériaux de qualité',
+                        'Pose selon les normes en vigueur'
+                    ];
+                    
+                    $containsGenericPrestations = false;
+                    $descriptionHtml = $aiData['description'] ?? '';
+                    foreach ($genericPrestations as $generic) {
+                        if (stripos($descriptionHtml, $generic) !== false) {
+                            $containsGenericPrestations = true;
+                            Log::warning('Prestation générique détectée dans le contenu IA', [
+                                'service_name' => $serviceName,
+                                'generic_prestation' => $generic
+                            ]);
+                            break;
+                        }
+                    }
+                    
+                    if ($descriptionContainsService && !$isGeneric && !$containsGenericPrestations) {
                         Log::info('Contenu IA validé et personnalisé', ['service_name' => $serviceName]);
                         // Valider et nettoyer les données
                         return $this->validateAndCleanAIData($aiData, $serviceName, $shortDescription, $companyInfo);
                     } else {
-                        Log::warning('Contenu IA semble générique ou ne contient pas le service', [
+                        Log::warning('Contenu IA rejeté - générique ou contient prestations interdites', [
                             'service_name' => $serviceName,
                             'contains_service' => $descriptionContainsService,
-                            'is_generic' => $isGeneric
+                            'is_generic' => $isGeneric,
+                            'contains_generic_prestations' => $containsGenericPrestations
                         ]);
                     }
                 } else {
@@ -831,6 +907,69 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     }
 
     /**
+     * Générer des prestations spécifiques selon le type de service
+     */
+    private function generateSpecificPrestationsForService($serviceName)
+    {
+        $serviceNameLower = mb_strtolower($serviceName);
+        $prestations = [];
+        
+        // Désamiantage
+        if (strpos($serviceNameLower, 'désamiantage') !== false || strpos($serviceNameLower, 'amiante') !== false) {
+            $prestations = [
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Diagnostic amiante avant travaux</strong> - Recherche et identification de tous les matériaux contenant de l\'amiante selon la réglementation</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Dépollution amiante</strong> - Retrait sécurisé et conforme des matériaux amiantés avec confinement négatif</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Confinement amiante</strong> - Mise en place d\'un sas de décontamination et d\'une zone de confinement étanche</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Retrait amiante sous confinement</strong> - Désamiantage avec techniques de retrait sous pression négative</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Gestion déchets amiante</strong> - Évacuation et traçabilité complète vers centre d\'enfouissement agréé</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Désamiantage flocage</strong> - Retrait des flocages amiantés au plafond selon normes NF X 46-020</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Désamiantage calorifugeage</strong> - Dépollution des canalisations et équipements calorifugés amiantés</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Réhabilitation post-désamiantage</strong> - Restauration complète après travaux avec matériaux conformes</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Contrôle de reprise</strong> - Mesures d\'empoussièrement et attestation de fin de travaux délivrée</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Formation sécurité amiante</strong> - Sensibilisation des occupants aux risques et aux mesures préventives</span></li>'
+            ];
+        }
+        // Humidité et ventilation
+        elseif (strpos($serviceNameLower, 'humidité') !== false || strpos($serviceNameLower, 'ventilation') !== false || strpos($serviceNameLower, 'vmc') !== false) {
+            $prestations = [
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Diagnostic humidité par imagerie thermique</strong> - Détection précise des zones humides avec caméra infrarouge et hygrométrie</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Injection résine anti-humidité</strong> - Traitement des remontées capillaires par injection de résine polymère hydrofuge</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Installation VMC double flux</strong> - Mise en place de ventilation mécanique contrôlée avec récupération de chaleur</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Traitement remontées capillaires</strong> - Barrière étanche contre les remontées d\'eau par injection en nappe ou par drainage</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Assèchement des murs</strong> - Évacuation de l\'humidité avec système de drainage et de ventilation</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Ventilation naturelle assistée</strong> - Installation d\'aérateurs et grilles d\'aération pour renouvellement d\'air optimal</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Traitement condensation</strong> - Résolution des problèmes de condensation avec isolation thermique et ventilation adaptée</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Enduit d\'étanchéité</strong> - Application d\'enduits hydrofuges et respirants pour protection durable des murs</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Déshumidification de caves</strong> - Installation de déshumidificateurs et traitement des parois enterrées</span></li>',
+                '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Maintenance ventilation</strong> - Entretien régulier des systèmes VMC, nettoyage des bouches et filtres</span></li>'
+            ];
+        }
+        // Sinon, utiliser une approche intelligente basée sur des mots-clés
+        else {
+            // Pour chaque service, générer des prestations en analysant le nom
+            $keywords = explode(' ', $serviceName);
+            $prestations = $this->generatePrestationsFromKeywords($serviceName, $keywords);
+        }
+        
+        // Si aucune prestation n'a été générée, utiliser un fallback minimal mais spécifique
+        if (empty($prestations)) {
+            return '<li class="flex items-start"><i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i><span><strong>Service professionnel ' . htmlspecialchars($serviceName) . '</strong> - Intervention adaptée à vos besoins spécifiques</span></li>';
+        }
+        
+        return implode("\n      ", $prestations);
+    }
+    
+    /**
+     * Générer des prestations à partir de mots-clés du service
+     */
+    private function generatePrestationsFromKeywords($serviceName, $keywords)
+    {
+        // Cette fonction sera améliorée par l'IA, mais pour l'instant retourne un contenu spécifique basé sur les mots-clés
+        // L'IA devrait générer ce contenu de manière dynamique
+        return [];
+    }
+
+    /**
      * Générer une description par défaut de qualité
      */
     private function generateDefaultDescription($serviceName, $companyInfo)
@@ -851,22 +990,7 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     
     <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceName . '</h3>
     <ul class="space-y-3">
-      <li class="flex items-start">
-        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
-        <span><strong>Réparation et maintenance</strong> - Diagnostic précis et traitement adapté</span>
-      </li>
-      <li class="flex items-start">
-        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
-        <span><strong>Rénovation complète</strong> - Remplacement intégral avec matériaux de qualité</span>
-      </li>
-      <li class="flex items-start">
-        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
-        <span><strong>Installation professionnelle</strong> - Pose selon les normes en vigueur</span>
-      </li>
-      <li class="flex items-start">
-        <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
-        <span><strong>Conseils personnalisés</strong> - Accompagnement dans vos choix</span>
-      </li>
+      ' . $this->generateSpecificPrestationsForService($serviceName) . '
     </ul>
     
     <div class="bg-green-50 p-6 rounded-lg">
