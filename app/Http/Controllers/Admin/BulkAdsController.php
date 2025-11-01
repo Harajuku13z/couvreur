@@ -50,26 +50,22 @@ class BulkAdsController extends Controller
         // Log pour déboguer
         Log::info('=== DÉBUT generateBulkAds ===', [
             'all_input' => $request->all(),
-            'all_request' => $request->all(),
-            'request_json' => $request->json()->all(),
             'service_slug' => $request->input('service_slug'),
             'service_slug_get' => $request->get('service_slug'),
             'service_slug_post' => $request->post('service_slug'),
-            'service_slug_query' => $request->query('service_slug'),
             'city_ids' => $request->input('city_ids'),
             'city_ids_array' => $request->input('city_ids', []),
             'ai_prompt' => $request->input('ai_prompt'),
             'method' => $request->method(),
             'content_type' => $request->header('Content-Type'),
             'is_json' => $request->isJson(),
-            'wants_json' => $request->wantsJson(),
         ]);
 
         // Essayer plusieurs façons de récupérer service_slug
         $serviceSlug = $request->input('service_slug') 
                     ?? $request->get('service_slug')
                     ?? $request->post('service_slug')
-                    ?? ($request->isJson() ? $request->json('service_slug') : null)
+                    ?? ($request->isJson() && $request->json() ? $request->json()->get('service_slug') : null)
                     ?? null;
 
         // Vérifier manuellement avant validation
