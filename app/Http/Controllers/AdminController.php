@@ -299,6 +299,24 @@ class AdminController extends Controller
         return view('admin.submission-detail', compact('submission'));
     }
 
+    /**
+     * Marquer une soumission comme abandonnée manuellement
+     */
+    public function markSubmissionAsAbandoned($id)
+    {
+        $submission = Submission::findOrFail($id);
+        
+        if ($submission->status === 'IN_PROGRESS') {
+            $submission->markAsAbandoned();
+            
+            return redirect()->route('admin.submissions')
+                ->with('success', 'La soumission a été marquée comme abandonnée.');
+        }
+        
+        return redirect()->route('admin.submissions')
+            ->with('error', 'Cette soumission ne peut pas être marquée comme abandonnée.');
+    }
+
     public function showAbandonedSubmission($id)
     {
         $abandonedSubmission = Submission::abandoned()->findOrFail($id);

@@ -166,6 +166,7 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
             Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
             Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
+            Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');
             Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
             Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');
             Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
