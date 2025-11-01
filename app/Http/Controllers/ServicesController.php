@@ -574,20 +574,33 @@ RÉPONSE FORMAT JSON:
 
 Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
 
-            Log::info('Génération IA service améliorée', [
+            Log::info('=== DÉBUT GÉNÉRATION IA SERVICE ===', [
                 'service_name' => $serviceName,
-                'prompt_length' => strlen($prompt)
+                'short_description' => $shortDescription,
+                'prompt_length' => strlen($prompt),
+                'chatgpt_enabled' => setting('chatgpt_enabled', true),
+                'chatgpt_api_key_exists' => !empty(setting('chatgpt_api_key')),
+                'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
             ]);
             
             // Ajouter un identifiant unique pour forcer la génération unique
             $uniqueId = uniqid();
-            $promptWithUniqueness = $prompt . "\n\nIMPORTANT - GÉNÉRATION UNIQUE REQUISE:\n- Cette génération a l'ID unique: {$uniqueId}\n- Le contenu DOIT être différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour: {$serviceName}\n- Utilise des exemples, techniques et matériaux UNIQUES à ce service précis\n- Ne copie JAMAIS du contenu générique, crée du contenu ORIGINAL et SPÉCIFIQUE";
+            $timestamp = now()->toIso8601String();
+            $promptWithUniqueness = $prompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique de cette génération: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}\n- Chaque prestation doit être DIFFÉRENTE et SPÉCIFIQUE à {$serviceName}";
             
             // Utiliser le service AI avec fallback automatique
-            $systemMessage = "Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO. IMPORTANT: Chaque service doit avoir un contenu UNIQUE et PERSONNALISÉ. Ne génère JAMAIS de contenu générique ou répétitif.";
+            $systemMessage = "Tu es un expert en rédaction web pour entreprises de rénovation. Tu crées du contenu professionnel, engageant et optimisé SEO. CRITIQUE: Chaque service DOIT avoir un contenu UNIQUE et PERSONNALISÉ. Ne génère JAMAIS de contenu générique ou répétitif. Adapte TOUT spécifiquement au service mentionné.";
             $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
                 'max_tokens' => 4000,
                 'temperature' => 0.9  // Augmenté pour plus de créativité et variété
+            ]);
+            
+            Log::info('Résultat appel AiService', [
+                'service_name' => $serviceName,
+                'has_result' => !is_null($result),
+                'has_content' => isset($result['content']),
+                'provider' => $result['provider'] ?? 'none',
+                'content_length' => isset($result['content']) ? strlen($result['content']) : 0
             ]);
             
             if ($result && isset($result['content'])) {
