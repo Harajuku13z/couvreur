@@ -19,13 +19,13 @@
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <section class="relative py-20 text-white overflow-hidden">
-        @if(!empty($featuredImage) && file_exists(public_path($featuredImage)))
+        @if(!empty($featuredImage))
+        @php
+            // Nettoyer le chemin de l'image (enlever le préfixe uploads/ si déjà présent dans asset())
+            $imagePath = str_starts_with($featuredImage, 'http') ? $featuredImage : asset($featuredImage);
+        @endphp
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ asset($featuredImage) }}'); filter: blur(2px); transform: scale(1.1);"></div>
-        <div class="absolute inset-0 bg-black bg-opacity-60"></div>
-        @elseif(!empty($featuredImage))
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ $featuredImage }}'); filter: blur(2px); transform: scale(1.1);"></div>
+             style="background-image: url('{{ $imagePath }}'); filter: blur(2px); transform: scale(1.1);"></div>
         <div class="absolute inset-0 bg-black bg-opacity-60"></div>
         @else
         <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
