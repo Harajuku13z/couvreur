@@ -494,15 +494,33 @@ document.addEventListener('DOMContentLoaded', function() {
             city_count: selectedCityIds.length
         });
 
+        // Appel AJAX - Vérifier le contenu avant envoi
+        console.log('FormData entries:');
+        for (let pair of requestData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
         // Appel AJAX
         fetch('{{ route("admin.ads.bulk-ads.generate") }}', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
             },
             body: requestData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Réponse reçue:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+            return response.json().then(data => {
+                console.log('Données JSON:', data);
+                return { response, data };
+            });
+        })
+        .then(({ response, data }) => {
         .then(data => {
             clearInterval(progressInterval);
             progressBar.style.width = '100%';
