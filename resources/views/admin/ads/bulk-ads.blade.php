@@ -507,11 +507,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Appel AJAX
+        // IMPORTANT: Ne pas définir Content-Type manuellement avec FormData
+        // Le navigateur le définira automatiquement avec la boundary correcte
         fetch('{{ route("admin.ads.bulk-ads.generate") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
+                // Ne pas définir Content-Type - sera défini automatiquement par le navigateur
             },
             body: requestData
         })
