@@ -22,36 +22,29 @@ class ArticleAiController extends Controller
     }
 
     /**
-     * Tester la connexion à l'API OpenAI
+     * Tester la connexion à l'API IA (ChatGPT ou Groq)
      */
     public function test(Request $request)
     {
-        $apiKey = setting('chatgpt_api_key');
-        
-        if (!$apiKey) {
-            return back()->with('error', 'Clé API OpenAI manquante. Veuillez la configurer dans /config');
-        }
-
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => setting('chatgpt_model', 'gpt-4o'),
-                'messages' => [
-                    ['role' => 'user', 'content' => 'Réponds: OK']
-                ],
-                'max_tokens' => 5
+            // Utiliser AiService pour tester (gère ChatGPT et Groq automatiquement)
+            $result = AiService::callAI('Réponds: OK', null, [
+                'max_tokens' => 10,
+                'temperature' => 0.1
             ]);
 
-            $status = $response->status();
-            $ok = $response->ok();
-            $body = substr($response->body(), 0, 200);
-
-            $msg = $ok ? 'Connexion IA: OK (' . $status . ')' : 'Connexion IA: ECHEC (' . $status . ')';
-            return back()->with($ok ? 'success' : 'error', $msg . ($body ? ' Réponse: ' . $body : ''));
+            if ($result && isset($result['content']) && isset($result['provider'])) {
+                $provider = $result['provider'] === 'chatgpt' ? 'ChatGPT' : 'Groq';
+                $msg = "Connexion IA réussie avec {$provider}. Réponse: " . trim($result['content']);
+                return back()->with('success', $msg);
+            } else {
+                return back()->with('error', 'Erreur: Impossible de se connecter à l\'API IA. Vérifiez vos clés API dans /config');
+            }
 
         } catch (\Throwable $e) {
+            Log::error('Erreur test connexion IA', [
+                'error' => $e->getMessage()
+            ]);
             return back()->with('error', 'Erreur de connexion: ' . $e->getMessage());
         }
     }
@@ -199,22 +192,43 @@ class ArticleAiController extends Controller
                 "- Éviter les listes à puces, privilégier le contenu narratif";
 
         try {
+            // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
+            // Estimation: ~1 token = 4 caractères pour le texte
+            $totalMessageLength = strlen($system ?? '') + strlen($user);
+            $estimatedInputTokens = (int)($totalMessageLength / 4);
+            // Laisser une marge de sécurité: limiter à 5500 tokens totaux
+            // Réduire max_tokens si nécessaire pour respecter la limite
+            $maxTokens = min(4000, max(1000, 5500 - $estimatedInputTokens));
+            
+            Log::info('Calcul tokens pour génération article', [
+                'estimated_input_tokens' => $estimatedInputTokens,
+                'adjusted_max_tokens' => $maxTokens,
+                'model' => $model
+            ]);
+            
             $result = AiService::callAI($user, $system, [
                 'model' => $model,
                 'temperature' => 0.7,
-                'max_tokens' => 4000,
+                'max_tokens' => $maxTokens,
+                'timeout' => 120 // Plus de temps pour les articles longs
             ]);
-            
+
             if ($result && isset($result['content'])) {
+                Log::info('Article généré avec succès', [
+                    'title' => $title,
+                    'provider' => $result['provider'] ?? 'unknown',
+                    'content_length' => strlen($result['content'])
+                ]);
                 return $result['content'];
             }
-            
+
             return null;
 
         } catch (\Throwable $e) {
             Log::error('Erreur génération contenu article', [
                 'title' => $title,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
             ]);
         }
 
