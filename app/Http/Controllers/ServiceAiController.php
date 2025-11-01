@@ -298,11 +298,16 @@ Le template HTML est DÉJÀ créé sur le serveur. Tu dois UNIQUEMENT fournir le
 Les champs JSON doivent être: description_courte, description_longue, prestations, faq, etc.
 PAS de champ \"description\" avec du HTML !
 
+⚠️⚠️⚠️ STRUCTURE JSON OBLIGATOIRE - PAS DE CHAMP \"description\" ⚠️⚠️⚠️:
+Les champs JSON DOIVENT être EXACTEMENT ceux listés ci-dessous.
+INTERDIT de créer un champ \"description\".
+INTERDIT de créer un champ avec du HTML.
+
 Génère un JSON avec cette structure EXACTE (remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL) :
 
 {
-  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, mentionnant les bénéfices principaux.]\",
-  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement {$companyCity} et {$companyDept}. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots.]\",
+  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, mentionnant les bénéfices principaux. TEXTE BRUT SEULEMENT]\",
+  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement {$companyCity} et {$companyDept}. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots. TEXTE BRUT SEULEMENT]\",
   \"titre_garantie\": \"Garantie de satisfaction\",
   \"texte_garantie\": \"[Génère un texte détaillant les garanties offertes: garantie décennale, assurance, normes respectées, chantier propre, suivi post-intervention, etc.]\",
   \"prestations\": [
@@ -337,6 +342,23 @@ Génère un JSON avec cette structure EXACTE (remplis chaque champ avec du CONTE
   \"twitter_description\": \"Service professionnel de {$serviceName} à {$companyCity} dans le département {$companyDept}. Devis gratuit.\"
 }
 
+🚫🚫🚫 CHAMPS INTERDITS 🚫🚫🚫:
+- INTERDIT ABSOLU de créer un champ \"description\" (même vide)
+- INTERDIT ABSOLU de créer un champ avec du HTML ou des balises
+- INTERDIT ABSOLU de créer d'autres champs que ceux listés ci-dessus
+
+✅✅✅ CHAMPS OBLIGATOIRES (utilise EXACTEMENT ces noms) ✅✅✅:
+- description_courte (TEXTE BRUT)
+- description_longue (TEXTE BRUT)
+- titre_garantie (TEXTE BRUT)
+- texte_garantie (TEXTE BRUT)
+- prestations (TABLEAU de 10 objets)
+- faq (TABLEAU de 4 objets)
+- pourquoi_choisir (TEXTE BRUT)
+- financement_aides (TEXTE BRUT)
+- infos_pratiques (TABLEAU de strings)
+- meta_title, meta_description, meta_keywords, og_title, og_description, twitter_title, twitter_description (TEXTE BRUT)
+
 RÈGLES STRICTES:
 1. Réponds UNIQUEMENT avec le JSON (commence par { et finit par })
 2. PAS de texte avant le {
@@ -350,7 +372,8 @@ RÈGLES STRICTES:
 10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
 11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.
 12. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
-13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.";
+13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.
+14. ⚠️⚠️⚠️ INTERDIT ABSOLU de créer un champ \"description\". Les champs sont description_courte et description_longue, PAS description.";
             
             Log::info('Appel à AiService::callAI pour service', [
                 'service_name' => $serviceName,
@@ -445,18 +468,27 @@ RÈGLES STRICTES:
                 ];
             }
             
-            // Vérifier qu'il n'y a PAS de champ "description" avec HTML (c'est une erreur)
-            if (isset($jsonData['description']) && (preg_match('/<[^>]+>/', $jsonData['description']) || strlen($jsonData['description']) > 5000)) {
-                Log::error('Le JSON contient un champ "description" avec du HTML - FORMAT INCORRECT', [
+            // Vérifier qu'il n'y a PAS de champ "description" (c'est une erreur - le champ est interdit)
+            if (isset($jsonData['description'])) {
+                Log::error('Le JSON contient un champ "description" INTERDIT - FORMAT INCORRECT', [
                     'service_name' => $serviceName,
                     'json_keys' => array_keys($jsonData),
                     'description_preview' => substr($jsonData['description'], 0, 200),
-                    'description_length' => strlen($jsonData['description'])
+                    'description_length' => strlen($jsonData['description'] ?? ''),
+                    'contains_html' => preg_match('/<[^>]+>/', $jsonData['description'] ?? '')
                 ]);
-                return [
-                    'error' => true,
-                    'error_message' => 'Le JSON généré contient un champ "description" avec du HTML. Le système attend les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer.'
-                ];
+                // Ignorer le champ "description" et continuer si description_courte et description_longue existent
+                if (isset($jsonData['description_courte']) && isset($jsonData['description_longue'])) {
+                    unset($jsonData['description']); // Supprimer le champ interdit
+                    Log::info('Champ "description" supprimé, utilisation de description_courte et description_longue', [
+                        'service_name' => $serviceName
+                    ]);
+                } else {
+                    return [
+                        'error' => true,
+                        'error_message' => 'Le JSON généré contient un champ "description" (interdit). Le système attend les champs: description_courte, description_longue, prestations, faq, etc. Veuillez réessayer.'
+                    ];
+                }
             }
             
             // Vérifier que les champs attendus sont présents
