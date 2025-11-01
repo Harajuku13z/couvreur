@@ -131,6 +131,9 @@ Route::middleware(['check.setup'])->group(function () {
     Route::get('/devis-gratuit', function() {
         return redirect()->route('form.step', ['step' => 'propertyType']);
     })->name('devis.gratuit');
+    Route::get('/contact', function() {
+        return redirect()->route('form.step', ['step' => 'propertyType']);
+    })->name('contact');
     // Route de succès AVANT les routes avec paramètres
     Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
     // Route pour tous les avis
