@@ -521,10 +521,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         })
         .then(({ response, data }) => {
-        .then(data => {
             clearInterval(progressInterval);
             progressBar.style.width = '100%';
             progressText.textContent = '100%';
+            
+            // Si response n'est pas OK, traiter comme erreur
+            if (!response.ok && !data.success) {
+                throw new Error(data.message || 'Erreur HTTP: ' + response.status);
+            }
             
             if (data.success) {
                 progressDetails.textContent = 'Génération terminée avec succès !';
