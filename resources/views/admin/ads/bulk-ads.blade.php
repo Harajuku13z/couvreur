@@ -423,10 +423,10 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const formData = new FormData(form);
-        const serviceSlug = formData.get('service_slug');
+        // Récupérer les valeurs directement depuis les éléments du formulaire
+        const serviceSlug = serviceSelect.value;
         const selectedCityIds = Array.from(document.querySelectorAll('.city-checkbox:checked')).map(cb => cb.value);
-        const aiPrompt = formData.get('ai_prompt');
+        const aiPrompt = document.querySelector('[name="ai_prompt"]').value || '';
 
         if (!serviceSlug) {
             alert('Veuillez sélectionner un service');
@@ -459,22 +459,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
 
-        // Préparer les données avec city_ids - utiliser le FormData du formulaire
-        const requestData = new FormData(form);
-        // Supprimer les anciens city_ids si présents
-        requestData.delete('city_ids[]');
-        // Ajouter les city_ids sélectionnés
+        // Préparer les données avec FormData - construire manuellement pour être sûr
+        const requestData = new FormData();
+        requestData.append('service_slug', serviceSlug);
+        requestData.append('ai_prompt', aiPrompt);
+        requestData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         selectedCityIds.forEach(cityId => {
             requestData.append('city_ids[]', cityId);
         });
-        
-        // S'assurer que service_slug et ai_prompt sont bien présents
-        if (!requestData.has('service_slug')) {
-            requestData.append('service_slug', serviceSlug);
-        }
-        if (!requestData.has('ai_prompt')) {
-            requestData.append('ai_prompt', aiPrompt || '');
-        }
 
         // Appel AJAX
         fetch('{{ route("admin.ads.bulk-ads.generate") }}', {
