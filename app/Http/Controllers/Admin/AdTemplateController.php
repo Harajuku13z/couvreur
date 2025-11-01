@@ -1589,7 +1589,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
     {
         try {
             // Construire le prompt pour le template avec placeholders [VILLE], [RÉGION]
-            $prompt = $this->buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt);
+            $basePrompt = $this->buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt);
             
             Log::info('=== DÉBUT GÉNÉRATION IA TEMPLATE ===', [
                 'service_name' => $serviceName,
@@ -1603,7 +1603,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $uniqueId = uniqid();
             $timestamp = now()->toIso8601String();
             
-            $promptWithUniqueness = $prompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}";
+            $prompt = $basePrompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}";
             
             // Utiliser le service AI avec fallback automatique
             $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE et SPÉCIFIQUE de ce domaine. Tu crées du contenu professionnel, engageant, technique et optimisé SEO pour des templates d'annonces.
