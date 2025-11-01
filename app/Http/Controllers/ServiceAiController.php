@@ -128,41 +128,57 @@ class ServiceAiController extends Controller
 - Les prestations DOIVENT être RÉELLES et SPÉCIFIQUES (ex: \"Réparation de tuiles cassées avec remplacement à l'identique\" PAS \"Répulsion et remplacement des tuiles\")
 - Chaque prestation DOIT avoir une description technique différente et unique";
             
+            // Template HTML fixe - l'IA génère uniquement le JSON qui sera injecté ici
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
     <div class="space-y-4">
       <p class="text-lg leading-relaxed">[description_courte]</p>
       <p class="text-lg leading-relaxed">[description_longue]</p>
     </div>
+    <!-- Champ 2 : Engagement / garanties -->
     <div class="bg-blue-50 p-6 rounded-lg">
       <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
       <p class="leading-relaxed mb-3">[texte_garantie]</p>
     </div>
+    <!-- Champ 3 : Prestations / services il en faut 10 -->
     <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
-    <ul class="space-y-3">[prestations_liste]</ul>
+    <ul class="space-y-3">
+[prestations_liste]
+    </ul>
+    <!-- Champ 8 : FAQ 4 question et reponse -->
     <div class="bg-gray-50 p-6 rounded-lg mt-6">
       <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ du [service]</h4>
-      <div class="space-y-2">[faq_liste]</div>
+      <div class="space-y-2">
+[faq_liste]
+      </div>
     </div>
   </div>
+  <!-- Colonne droite : Informations complémentaires -->
   <div class="space-y-6">
+    <!-- Champ 4 : Pourquoi choisir ce service -->
     <div class="bg-green-50 p-6 rounded-lg">
       <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
       <p class="leading-relaxed">[pourquoi_choisir]</p>
     </div>
+    <!-- Champ 9 : Financement / aides disponibles -->
     <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
       <p>[financement_aides]</p>
     </div>
+    <!-- Champ 6 : CTA - demande de devis -->
     <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
       <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
       <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
-      <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
+      <a href="/devis-gratuit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
+    <!-- Champ 7 : Informations pratiques -->
     <div class="bg-gray-50 p-6 rounded-lg">
       <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
-      <ul class="space-y-2 text-sm">[infos_pratiques_liste]</ul>
+      <ul class="space-y-2 text-sm">
+[infos_pratiques_liste]
+      </ul>
     </div>
+    <!-- Champ 10 : Partage social -->
     <div class="mt-8 pt-6 border-t border-gray-200">
       <div class="text-center">
         <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
@@ -245,40 +261,42 @@ Langue: {$language}
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
 Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
 
-Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL, TECHNIQUE et PROFESSIONNEL spécifique à {$serviceName} :
+⚠️ IMPORTANT: Ce JSON sera injecté dans un template HTML. Tu dois générer UNIQUEMENT le JSON, rien d'autre.
+
+Génère un JSON avec cette structure (remplis chaque champ avec du CONTENU RÉEL, TECHNIQUE et PROFESSIONNEL) :
 
 {
-  \"description_courte\": \"[Génère une description courte professionnelle de {$serviceName} à {$companyCity} dans le département {$companyDept}. 150-200 caractères, avec bénéfices concrets et spécifiques à ce service. TEXTE BRUT SEULEMENT, PAS DE HTML, PAS DE LIENS]\",
-  \"description_longue\": \"[Génère une description longue et détaillée du {$serviceName}. Intègre {$companyCity} et {$companyDept}. Parle des techniques spécifiques utilisées, matériaux concrets, bénéfices énergétiques, durabilité, qualité. 400-600 mots minimum. SOIS TECHNIQUE et SPÉCIFIQUE. TEXTE BRUT SEULEMENT, PAS DE HTML, PAS DE LIENS, PAS DE BALISES]\",
-  \"titre_garantie\": \"[Génère un titre d'engagement/garantie spécifique au {$serviceName}]\",
-  \"texte_garantie\": \"[Génère une description détaillée des garanties pour {$serviceName}. Mentionne: garantie décennale, chantier propre, respect normes, matériaux qualité, satisfaction garantie. SOIS SPÉCIFIQUE au service. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
+  \"description_courte\": \"[Description courte de {$serviceName} incluant {$companyCity} et le département {$companyDept}. 150-200 caractères, TEXTE BRUT SEULEMENT]\",
+  \"description_longue\": \"[Description longue et détaillée du {$serviceName}. Intègre {$companyCity} et {$companyDept}. Techniques, matériaux, bénéfices. 400-600 mots. TEXTE BRUT SEULEMENT]\",
+  \"titre_garantie\": \"Garantie de satisfaction\",
+  \"texte_garantie\": \"[Détaille les garanties pour {$serviceName}: garantie décennale, chantier propre, normes, matériaux qualité. SOIS SPÉCIFIQUE. TEXTE BRUT SEULEMENT]\",
   \"prestations\": [
-    {\"titre\": \"[Génère prestation technique 1 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 2 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 3 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 4 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 5 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 6 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 7 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 8 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 9 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"},
-    {\"titre\": \"[Génère prestation technique 10 RÉELLE et spécifique à {$serviceName}]\", \"description\": \"[Génère description technique détaillée avec vocabulaire professionnel]\"}
+    {\"titre\": \"[Prestation technique 1 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 2 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 3 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 4 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 5 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 6 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 7 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 8 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 9 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\",
+    {\"titre\": \"[Prestation technique 10 RÉELLE pour {$serviceName}]\", \"description\": \"[Description technique en une phrase]\"
   ],
   \"faq\": [
-    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
-    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
-    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"},
-    {\"question\": \"[Génère question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Génère réponse détaillée et professionnelle]\"}
+    {\"question\": \"[Question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée]\"},
+    {\"question\": \"[Question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée]\"},
+    {\"question\": \"[Question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée]\"},
+    {\"question\": \"[Question fréquente RÉELLE sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée]\"}
   ],
-  \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity}. Mentionne expertise locale, qualité, réactivité, garanties, savoir-faire, certifications. SOIS SPÉCIFIQUE et CONCRET. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
-  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon {$serviceName}. TEXTE BRUT SEULEMENT, PAS DE HTML]\",
+  \"pourquoi_choisir\": \"[Pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity}. Avantages, expertise, qualité. TEXTE BRUT SEULEMENT]\",
+  \"financement_aides\": \"[Aides disponibles en France pour {$serviceName}: MaPrimeRénov, CEE, éco-PTZ, TVA réduite. TEXTE BRUT SEULEMENT]\",
   \"infos_pratiques\": [
     {$infosPratiquesJsonString}
   ],
-  \"short_description\": \"[Génère description courte SEO 120-140 caractères pour {$serviceName} à {$companyCity}]\",
-  \"meta_title\": \"[Génère titre SEO optimisé 50-60 caractères pour {$serviceName} à {$companyCity}]\",
-  \"meta_description\": \"[Génère description SEO 150-160 caractères pour {$serviceName} à {$companyCity}]\",
-  \"meta_keywords\": \"[Génère 15-20 mots-clés pertinents incluant: {$serviceName}, {$serviceName} {$companyCity}, {$serviceName} {$companyDept}, expert {$serviceName}, {$serviceName} professionnel, entreprise {$serviceName}, artisan {$serviceName}, {$serviceName} certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, techniques modernes, matériaux spécifiques au service]\"
+  \"short_description\": \"[Description courte SEO 120-140 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_title\": \"[Titre SEO 50-60 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_description\": \"[Description SEO 150-160 caractères pour {$serviceName} à {$companyCity}]\",
+  \"meta_keywords\": \"[15-20 mots-clés pertinents: {$serviceName}, {$serviceName} {$companyCity}, expert {$serviceName}, artisan {$serviceName}, rénovation, réparation, devis gratuit, qualité garantie]\"
 }
 
 🚫🚫🚫 FORMAT JSON OBLIGATOIRE - INTERDICTIONS 🚫🚫🚫:
