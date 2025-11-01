@@ -1637,9 +1637,22 @@ RÈGLES STRICTES:
                 'system_message_length' => strlen($systemMessage)
             ]);
             
+            // Calculer max_tokens dynamiquement pour respecter la limite TPM Groq (6000)
+            // Estimation: ~1 token = 4 caractères pour le texte
+            $totalMessageLength = strlen($systemMessage) + strlen($userPrompt);
+            $estimatedInputTokens = (int)($totalMessageLength / 4);
+            // Laisser une marge de sécurité: limiter à 5500 tokens totaux
+            // Pour un JSON volumineux (10 prestations, 4 FAQ, descriptions), besoin de plus de tokens
+            $maxTokens = min(4000, max(2000, 5500 - $estimatedInputTokens));
+            
+            Log::info('Calcul tokens pour génération template', [
+                'estimated_input_tokens' => $estimatedInputTokens,
+                'adjusted_max_tokens' => $maxTokens
+            ]);
+            
             // Utiliser AiService directement (gère automatiquement ChatGPT et Groq)
             $result = \App\Services\AiService::callAI($userPrompt, $systemMessage, [
-                'max_tokens' => 3000, // Limité pour respecter TPM Groq
+                'max_tokens' => $maxTokens,
                 'temperature' => 0.7,
                 'timeout' => 120
             ]);
@@ -1663,17 +1676,38 @@ RÈGLES STRICTES:
             $jsonData = $this->parseJsonResponseForTemplate($result['content']);
             
             if (!$jsonData) {
+                // Vérifier si le JSON est tronqué
+                $content = $result['content'];
+                $jsonStart = strpos($content, '{');
+                $isTruncated = false;
+                if ($jsonStart !== false) {
+                    $potentialJson = substr($content, $jsonStart);
+                    $openBraces = substr_count($potentialJson, '{');
+                    $closeBraces = substr_count($potentialJson, '}');
+                    $isTruncated = $openBraces > $closeBraces;
+                }
+                
                 // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
-                                'service_name' => $serviceName,
+                    'service_name' => $serviceName,
                     'provider' => $result['provider'] ?? 'unknown',
-                    'content_length' => strlen($result['content']),
-                    'content_full' => $result['content'], // Contenu complet pour diagnostic
-                    'content_preview' => substr($result['content'], 0, 1000),
-                    'json_error' => json_last_error_msg()
+                    'content_length' => strlen($content),
+                    'content_full' => $content, // Contenu complet pour diagnostic
+                    'content_preview' => substr($content, 0, 1000),
+                    'content_end' => substr($content, -500),
+                    'json_error' => json_last_error_msg(),
+                    'is_truncated' => $isTruncated,
+                    'open_braces' => $openBraces ?? 0,
+                    'close_braces' => $closeBraces ?? 0
                 ]);
                 
-                throw new \Exception('Erreur: L\'IA n\'a pas retourné un JSON valide. Contenu reçu: ' . substr($result['content'], 0, 200) . '... Consultez les logs pour plus de détails.');
+                $errorMessage = 'Erreur: L\'IA n\'a pas retourné un JSON valide. ';
+                if ($isTruncated) {
+                    $errorMessage .= 'La réponse semble tronquée (accolades non fermées). Essayez d\'augmenter max_tokens ou réduisez la taille du prompt. ';
+                }
+                $errorMessage .= 'Contenu reçu: ' . substr($content, 0, 200) . '... Consultez les logs pour plus de détails.';
+                
+                throw new \Exception($errorMessage);
             }
             
             // Remplacer toute mention de vraie ville par [VILLE] dans tous les champs texte
@@ -1784,8 +1818,25 @@ RÈGLES STRICTES:
         Log::info('Tentative de parsing JSON pour template', [
             'content_length' => strlen($content),
             'content_preview' => substr($content, 0, 300),
-            'has_braces' => strpos($content, '{') !== false
+            'has_braces' => strpos($content, '{') !== false,
+            'last_chars' => substr($content, -50) // Voir comment ça se termine
         ]);
+        
+        // Vérifier si le JSON semble tronqué (ne se termine pas par })
+        $jsonStart = strpos($content, '{');
+        if ($jsonStart !== false) {
+            $potentialJson = substr($content, $jsonStart);
+            $openBraces = substr_count($potentialJson, '{');
+            $closeBraces = substr_count($potentialJson, '}');
+            
+            if ($openBraces > $closeBraces) {
+                Log::warning('JSON potentiellement tronqué (accolades non fermées)', [
+                    'open_braces' => $openBraces,
+                    'close_braces' => $closeBraces,
+                    'last_200_chars' => substr($content, -200)
+                ]);
+            }
+        }
         
         // Essayer plusieurs patterns pour extraire le JSON
         $jsonPatterns = [
@@ -1803,7 +1854,8 @@ RÈGLES STRICTES:
                 Log::info('Pattern JSON trouvé', [
                     'pattern_matched' => true,
                     'json_length' => strlen($jsonString),
-                    'json_preview' => substr($jsonString, 0, 200)
+                    'json_preview' => substr($jsonString, 0, 200),
+                    'json_end' => substr($jsonString, -100) // Voir la fin
                 ]);
                 
                 $data = json_decode($jsonString, true);
@@ -1814,10 +1866,34 @@ RÈGLES STRICTES:
                     ]);
                     return $data;
                 } else {
+                    $jsonError = json_last_error();
                     Log::warning('JSON invalide après pattern match', [
                         'error' => json_last_error_msg(),
-                        'json_preview' => substr($jsonString, 0, 500)
+                        'error_code' => $jsonError,
+                        'json_preview' => substr($jsonString, 0, 500),
+                        'json_end' => substr($jsonString, -200),
+                        'is_truncated' => $jsonError === JSON_ERROR_SYNTAX && !str_ends_with($jsonString, '}')
                     ]);
+                    
+                    // Si le JSON est tronqué, essayer de le compléter
+                    if ($jsonError === JSON_ERROR_SYNTAX && !str_ends_with($jsonString, '}')) {
+                        // Compter les accolades ouvertes/fermées
+                        $openCount = substr_count($jsonString, '{');
+                        $closeCount = substr_count($jsonString, '}');
+                        $missingBraces = $openCount - $closeCount;
+                        
+                        // Essayer de fermer les accolades manquantes
+                        if ($missingBraces > 0) {
+                            $attemptedFix = $jsonString . str_repeat('}', $missingBraces);
+                            $fixedData = json_decode($attemptedFix, true);
+                            if ($fixedData && is_array($fixedData)) {
+                                Log::info('JSON réparé en fermant les accolades manquantes', [
+                                    'missing_braces' => $missingBraces
+                                ]);
+                                return $fixedData;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1843,9 +1919,22 @@ RÈGLES STRICTES:
             return $data;
         }
         
+        // Détecter si le problème est un JSON tronqué
+        $isTruncated = false;
+        if ($jsonStart !== false) {
+            $potentialJson = substr($content, $jsonStart);
+            $openBraces = substr_count($potentialJson, '{');
+            $closeBraces = substr_count($potentialJson, '}');
+            $isTruncated = $openBraces > $closeBraces;
+        }
+        
         Log::error('Impossible de parser le JSON pour template', [
             'content_preview' => substr($content, 0, 1000),
-            'json_error' => json_last_error_msg()
+            'content_end' => substr($content, -500),
+            'json_error' => json_last_error_msg(),
+            'is_truncated' => $isTruncated,
+            'open_braces' => $openBraces ?? 0,
+            'close_braces' => $closeBraces ?? 0
         ]);
         
         return null;
