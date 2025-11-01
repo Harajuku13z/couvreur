@@ -459,13 +459,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
 
-        // Préparer les données avec city_ids
-        const requestData = new FormData();
-        requestData.append('service_slug', serviceSlug);
-        requestData.append('ai_prompt', aiPrompt || '');
+        // Préparer les données avec city_ids - utiliser le FormData du formulaire
+        const requestData = new FormData(form);
+        // Supprimer les anciens city_ids si présents
+        requestData.delete('city_ids[]');
+        // Ajouter les city_ids sélectionnés
         selectedCityIds.forEach(cityId => {
             requestData.append('city_ids[]', cityId);
         });
+        
+        // S'assurer que service_slug et ai_prompt sont bien présents
+        if (!requestData.has('service_slug')) {
+            requestData.append('service_slug', serviceSlug);
+        }
+        if (!requestData.has('ai_prompt')) {
+            requestData.append('ai_prompt', aiPrompt || '');
+        }
 
         // Appel AJAX
         fetch('{{ route("admin.ads.bulk-ads.generate") }}', {
@@ -669,13 +678,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
 
-        // Préparer les données pour l'envoi
-        const requestData = new FormData();
-        requestData.append('keyword', keyword);
-        requestData.append('keyword_ai_prompt', aiPrompt || '');
-        if (featuredImage) {
-            requestData.append('featured_image', featuredImage);
+        // Préparer les données pour l'envoi - utiliser le FormData du formulaire
+        const requestData = new FormData(keywordsForm);
+        // Supprimer les anciens city_ids si présents (peut être keyword_city_ids[])
+        requestData.delete('city_ids[]');
+        requestData.delete('keyword_city_ids[]');
+        // S'assurer que keyword est présent
+        if (!requestData.has('keyword') || requestData.get('keyword') !== keyword) {
+            requestData.set('keyword', keyword);
         }
+        // Ajouter les city_ids sélectionnés
         selectedCityIds.forEach(cityId => {
             requestData.append('city_ids[]', cityId);
         });
