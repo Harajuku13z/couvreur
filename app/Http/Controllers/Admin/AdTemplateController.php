@@ -234,12 +234,12 @@ class AdTemplateController extends Controller
             $companyInfo = $this->getCompanyInfo();
             
             try {
-                $aiContent = $this->generateCompleteTemplateContent(
-                    $service['name'], 
-                    $service['short_description'] ?? '',
-                    $companyInfo,
-                    $request->input('ai_prompt')
-                );
+            $aiContent = $this->generateCompleteTemplateContent(
+                $service['name'], 
+                $service['short_description'] ?? '',
+                $companyInfo,
+                $request->input('ai_prompt')
+            );
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la génération du contenu IA dans createFromService', [
                     'service_name' => $service['name'],
@@ -280,7 +280,7 @@ class AdTemplateController extends Controller
             
             // Créer le template avec valeurs par défaut pour éviter les erreurs de validation
             try {
-                $template = AdTemplate::create([
+            $template = AdTemplate::create([
                     'name' => $service['name'] ?? 'Template sans nom',
                     'service_name' => $service['name'] ?? '',
                     'service_slug' => $service['slug'] ?? '',
@@ -288,7 +288,7 @@ class AdTemplateController extends Controller
                     'short_description' => $aiContent['short_description'] ?? ($service['short_description'] ?? ''),
                     'long_description' => $aiContent['long_description'] ?? '',
                     'icon' => $aiContent['icon'] ?? 'fas fa-tools',
-                    'featured_image' => $featuredImage,
+                'featured_image' => $featuredImage,
                     'meta_title' => $aiContent['meta_title'] ?? ($service['name'] . ' à [VILLE] - Expert professionnel'),
                     'meta_description' => $aiContent['meta_description'] ?? ('Service professionnel de ' . ($service['name'] ?? '') . ' à [VILLE]'),
                     'meta_keywords' => $aiContent['meta_keywords'] ?? '',
@@ -297,7 +297,7 @@ class AdTemplateController extends Controller
                     'twitter_title' => $aiContent['twitter_title'] ?? ($aiContent['og_title'] ?? ''),
                     'twitter_description' => $aiContent['twitter_description'] ?? ($aiContent['og_description'] ?? ''),
                     'ai_prompt_used' => $request->input('ai_prompt') ? ['prompt' => $request->input('ai_prompt')] : null,
-                    'ai_response_data' => $aiContent,
+                'ai_response_data' => $aiContent,
                     'is_active' => true,
                     'usage_count' => 0,
                 ]);
@@ -1744,7 +1744,7 @@ RÈGLES STRICTES:
                 
                 // Logger le contenu complet pour diagnostic
                 Log::error('Impossible de parser le JSON pour le template', [
-                    'service_name' => $serviceName,
+                                'service_name' => $serviceName,
                     'provider' => $result['provider'] ?? 'unknown',
                     'content_length' => strlen($content),
                     'content_full' => $content, // Contenu complet pour diagnostic
@@ -2035,6 +2035,14 @@ RÈGLES STRICTES:
         $infosPratiquesHtml = '';
         if (isset($data['infos_pratiques']) && is_array($data['infos_pratiques'])) {
             foreach ($data['infos_pratiques'] as $info) {
+                // Vérifier que $info est une chaîne (peut être un tableau si JSON mal formaté)
+                if (is_array($info)) {
+                    // Si c'est un tableau, essayer de le convertir en chaîne
+                    $info = is_string($info[0] ?? null) ? $info[0] : json_encode($info);
+                }
+                if (!is_string($info)) {
+                    $info = (string)$info;
+                }
                 $infoEscaped = htmlspecialchars($info, ENT_QUOTES, 'UTF-8');
                 $infosPratiquesHtml .= '<li class="flex items-center">' .
                     '<i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>' .
@@ -2043,21 +2051,32 @@ RÈGLES STRICTES:
             }
         }
         
+        // Fonction helper pour convertir en string et échapper
+        $escape = function($value) {
+            if (is_array($value)) {
+                $value = json_encode($value);
+            }
+            if (!is_string($value)) {
+                $value = (string)$value;
+            }
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        };
+        
         // Remplacer tous les placeholders dans le template
-        $html = str_replace('[description_courte]', htmlspecialchars($data['description_courte'] ?? '', ENT_QUOTES, 'UTF-8'), $template);
-        $html = str_replace('[description_longue]', htmlspecialchars($data['description_longue'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[titre_garantie]', htmlspecialchars($data['titre_garantie'] ?? 'Garantie de satisfaction', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[texte_garantie]', htmlspecialchars($data['texte_garantie'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[description_courte]', $escape($data['description_courte'] ?? ''), $template);
+        $html = str_replace('[description_longue]', $escape($data['description_longue'] ?? ''), $html);
+        $html = str_replace('[titre_garantie]', $escape($data['titre_garantie'] ?? 'Garantie de satisfaction'), $html);
+        $html = str_replace('[texte_garantie]', $escape($data['texte_garantie'] ?? ''), $html);
         $html = str_replace('[prestations_liste]', $prestationsHtml, $html);
         $html = str_replace('[faq_liste]', $faqHtml, $html);
-        $html = str_replace('[service]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[entreprise]', htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[pourquoi_choisir]', htmlspecialchars($data['pourquoi_choisir'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[financement_aides]', htmlspecialchars($data['financement_aides'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[service]', $escape($serviceName), $html);
+        $html = str_replace('[entreprise]', $escape($companyName), $html);
+        $html = str_replace('[pourquoi_choisir]', $escape($data['pourquoi_choisir'] ?? ''), $html);
+        $html = str_replace('[financement_aides]', $escape($data['financement_aides'] ?? ''), $html);
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
-        $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[FORM_URL]', htmlspecialchars($formUrl, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[URL]', $escape($serviceUrl), $html);
+        $html = str_replace('[TITRE]', $escape($serviceName), $html);
+        $html = str_replace('[FORM_URL]', $escape($formUrl), $html);
         
         return $html;
     }

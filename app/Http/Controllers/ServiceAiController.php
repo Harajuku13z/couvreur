@@ -111,10 +111,10 @@ class ServiceAiController extends Controller
                     $existingServices[$existingServiceIndex] = $newService;
                     $updated++;
                 } else {
-                    $existingServices[] = $newService;
-                    $created++;
+                $existingServices[] = $newService;
+                $created++;
                 }
-                
+
             } catch (\Throwable $e) {
                 Log::error('Erreur génération service IA: ' . $e->getMessage(), [
                     'service' => $serviceName,
@@ -712,11 +712,30 @@ RÈGLES STRICTES:
             }
         }
         
+        // Fonction helper pour convertir en string et échapper
+        $escape = function($value) {
+            if (is_array($value)) {
+                $value = json_encode($value);
+            }
+            if (!is_string($value)) {
+                $value = (string)$value;
+            }
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        };
+        
         // Générer la liste des infos pratiques
         $infosPratiquesHtml = '';
         if (isset($data['infos_pratiques']) && is_array($data['infos_pratiques'])) {
             foreach ($data['infos_pratiques'] as $info) {
-                $infoEscaped = htmlspecialchars($info, ENT_QUOTES, 'UTF-8');
+                // Vérifier que $info est une chaîne (peut être un tableau si JSON mal formaté)
+                if (is_array($info)) {
+                    // Si c'est un tableau, essayer de le convertir en chaîne
+                    $info = is_string($info[0] ?? null) ? $info[0] : json_encode($info);
+                }
+                if (!is_string($info)) {
+                    $info = (string)$info;
+                }
+                $infoEscaped = $escape($info);
                 $infosPratiquesHtml .= '<li class="flex items-center">' .
                     '<i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>' .
                     '<span>' . $infoEscaped . '</span>' .
@@ -725,19 +744,19 @@ RÈGLES STRICTES:
         }
         
         // Remplacer tous les placeholders dans le template
-        $html = str_replace('[description_courte]', htmlspecialchars($data['description_courte'] ?? '', ENT_QUOTES, 'UTF-8'), $template);
-        $html = str_replace('[description_longue]', htmlspecialchars($data['description_longue'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[titre_garantie]', htmlspecialchars($data['titre_garantie'] ?? 'Garantie de satisfaction', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[texte_garantie]', htmlspecialchars($data['texte_garantie'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[description_courte]', $escape($data['description_courte'] ?? ''), $template);
+        $html = str_replace('[description_longue]', $escape($data['description_longue'] ?? ''), $html);
+        $html = str_replace('[titre_garantie]', $escape($data['titre_garantie'] ?? 'Garantie de satisfaction'), $html);
+        $html = str_replace('[texte_garantie]', $escape($data['texte_garantie'] ?? ''), $html);
         $html = str_replace('[prestations_liste]', $prestationsHtml, $html);
         $html = str_replace('[faq_liste]', $faqHtml, $html);
-        $html = str_replace('[service]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[entreprise]', htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[pourquoi_choisir]', htmlspecialchars($data['pourquoi_choisir'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[financement_aides]', htmlspecialchars($data['financement_aides'] ?? '', ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[service]', $escape($serviceName), $html);
+        $html = str_replace('[entreprise]', $escape($companyName), $html);
+        $html = str_replace('[pourquoi_choisir]', $escape($data['pourquoi_choisir'] ?? ''), $html);
+        $html = str_replace('[financement_aides]', $escape($data['financement_aides'] ?? ''), $html);
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
-        $html = str_replace('[URL]', htmlspecialchars($serviceUrl, ENT_QUOTES, 'UTF-8'), $html);
-        $html = str_replace('[TITRE]', htmlspecialchars($serviceName, ENT_QUOTES, 'UTF-8'), $html);
+        $html = str_replace('[URL]', $escape($serviceUrl), $html);
+        $html = str_replace('[TITRE]', $escape($serviceName), $html);
         
         return $html;
     }
