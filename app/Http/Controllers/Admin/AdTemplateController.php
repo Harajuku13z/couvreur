@@ -1826,17 +1826,21 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                         'Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région',
                         'une expertise reconnue dans [RÉGION]',
                         'Pourquoi choisir ce service',
-                        // Prestations génériques interdites
+                        // Prestations génériques interdites - VÉRIFICATION STRICTE
                         'Diagnostic et évaluation',
+                        'Diagnostic et inspection de toiture', // Prestation générique
                         'Intervention d\'urgence',
                         'Maintenance préventive',
                         'Réparation spécialisée',
+                        'Réparation partielle de toiture', // Prestation générique
                         'Installation complète',
                         'Rénovation totale',
+                        'Réfection complète de toiture', // Prestation générique
                         'Conseil personnalisé',
                         'Suivi post-intervention',
                         'Formation utilisateur',
                         'Garantie étendue',
+                        'Nettoyage et démoussage', // Peut être générique si pas spécifique au service
                         // Phrases génériques financement interdites
                         'Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de',
                         'Nous vous accompagnons dans vos démarches',
@@ -1882,7 +1886,7 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                                                   stripos($description, 'CEE') !== false || stripos($description, 'Certificats d\'Économies') !== false);
                     }
                     
-                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent || !$hasFinancementContent) {
+                    if ($hasGenericContent || $hasPlaceholders || $isTooShort || !$serviceNamePresent || !$hasFinancementContent || $hasWrongPrestations) {
                         Log::error('Contenu template REJETÉ - générique ou incomplet', [
                             'service_name' => $serviceName,
                             'has_generic_content' => $hasGenericContent,
@@ -1893,6 +1897,7 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                             'service_name_present' => $serviceNamePresent,
                             'service_name_count' => $serviceNameCount,
                             'has_financement_content' => $hasFinancementContent,
+                            'has_wrong_prestations' => $hasWrongPrestations,
                             'description_preview' => substr($plainText, 0, 300)
                         ]);
                         
@@ -1992,17 +1997,21 @@ IMPORTANT: Ce template sera utilisé pour créer des annonces personnalisées pa
 - [URL] = URL de l'annonce finale
 - [TITRE] = Titre de l'annonce avec ville
 
-🚫 INTERDICTIONS ABSOLUES:
-- INTERDIT d'utiliser des prestations génériques comme 'Diagnostic', 'Conseil', 'Maintenance générale', 'Installation professionnelle'
-- INTERDIT de copier du contenu générique applicable à tous les services
-- INTERDIT d'utiliser un vocabulaire vague ou général
+🚫🚫🚫 INTERDICTIONS ABSOLUES - PRESTATIONS GÉNÉRIQUES INTERDITES 🚫🚫🚫:
+- INTERDIT ABSOLU: 'Diagnostic et évaluation', 'Intervention d'urgence', 'Maintenance préventive', 'Réparation spécialisée', 'Installation complète', 'Rénovation totale', 'Conseil personnalisé', 'Suivi post-intervention', 'Formation utilisateur', 'Garantie étendue'
+- INTERDIT: Toute prestation qui pourrait s'appliquer à n'importe quel autre service (ex: 'Réparation et maintenance', 'Installation professionnelle', 'Conseils personnalisés')
+- INTERDIT: Copier du contenu générique applicable à tous les services
+- INTERDIT: Utiliser un vocabulaire vague ou général
 
-✅ OBLIGATIONS ABSOLUES POUR {$serviceName}:
-- Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$serviceName}
-- Utilise le vocabulaire PROFESSIONNEL du métier de {$serviceName}
-- Les prestations doivent mentionner des techniques, matériaux ou méthodes PRÉCISES liés à {$serviceName}
-- Chaque description doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
+✅✅✅ OBLIGATIONS ABSOLUES POUR {$serviceName} ✅✅✅:
+- Chaque prestation DOIT avoir un NOM TECHNIQUE précis du domaine de {$serviceName} (ex: si {$serviceName} = 'Rénovation de façade' → 'Ravalement façade', 'Enduit façade', 'Peinture façade', 'Rénovation parement pierre', etc.)
+- Chaque prestation DOIT expliquer la MÉTHODE et la TECHNIQUE utilisée spécifiquement pour {$serviceName}
+- Les prestations doivent mentionner des techniques, matériaux ou méthodes PRÉCISES liés uniquement à {$serviceName}
+- Chaque description doit expliquer QUOI (technique précise), COMMENT (méthode), POURQUOI (bénéfice spécifique pour {$serviceName})
+- Utilise le vocabulaire PROFESSIONNEL du métier de {$serviceName} (ex: pour façade: ravalement, enduit, parement, bardage, crépis, etc.)
 - Utilise [VILLE] et [RÉGION] dans le contenu pour personnalisation future
+
+EXEMPLES CONCRETS SELON LE SERVICE:
 
 📋 STRUCTURE HTML OBLIGATOIRE DU CHAMP \"description\":
 
@@ -2033,11 +2042,73 @@ Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exac
       <li class=\"flex items-start\">
         <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
         <div>
-          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 1 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
-          <p class=\"text-gray-700 text-sm\">[Description détaillée avec techniques, matériaux, méthodes précises. Minimum 2-3 phrases.]</p>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 1 TECHNIQUE SPÉCIFIQUE À {$serviceName} - DOIT être un terme technique du métier, pas générique]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée avec techniques, matériaux, méthodes précises pour cette prestation spécifique à {$serviceName}. Minimum 2-3 phrases. Explicite QUOI (technique précise), COMMENT (méthode), POURQUOI (bénéfice pour {$serviceName}).]</p>
         </div>
       </li>
-      <!-- RÉPÉTER pour les 10 prestations, chacune avec nom technique et description détaillée -->
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 2 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 3 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 4 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 5 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 6 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 7 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 8 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 9 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
+      <li class=\"flex items-start\">
+        <i class=\"fas fa-check-circle text-green-600 mr-3 mt-1 flex-shrink-0\"></i>
+        <div>
+          <strong class=\"text-gray-900 block mb-1\">[NOM PRESTATION 10 TECHNIQUE SPÉCIFIQUE À {$serviceName}]</strong>
+          <p class=\"text-gray-700 text-sm\">[Description détaillée pour cette prestation spécifique à {$serviceName}]</p>
+        </div>
+      </li>
     </ul>
     
     <!-- SECTION 4: FAQ PERSONNALISÉE (MINIMUM 6 QUESTIONS) -->
@@ -2161,6 +2232,9 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
 - GÉNÈRE MINIMUM 6 QUESTIONS FAQ spécifiques à {$serviceName} avec réponses détaillées (minimum 3 phrases par réponse)
 - TOUT le contenu HTML dans \"description\" doit être COMPLET avec TOUS les \"ÉCRIRE ICI\" REMPLACÉS par du vrai texte
 - La description longue (long_description) doit faire minimum 400 mots
+- ⚠️⚠️⚠️ VALIDATION DES PRESTATIONS: Si les 10 prestations ne sont PAS spécifiques à {$serviceName} (ex: si {$serviceName} = 'Rénovation de façade' mais les prestations parlent de toiture ou autre chose), ta réponse sera REJETÉE et tu devras recommencer
+- Les 10 prestations DOIVENT être DIFFÉRENTES et COMPLÉMENTAIRES pour {$serviceName}
+- Chaque prestation DOIT être UNIQUE et ne pas se répéter
 - Pour la section FINANCEMENT ET AIDES (SECTION CRITIQUE):
   * ⚠️⚠️⚠️ CRITIQUE: Le contenu HTML entre les balises COMMENTAIRES \"SECTION CRITIQUE - INFORMATIONS DE FINANCEMENT\" et \"FIN DU CONTENU À COPIER\" DOIT être COPIÉ EXACTEMENT tel quel dans le champ \"description\" du JSON
   * ⚠️⚠️⚠️ CE CONTENU CONTIENT LES INFORMATIONS SPÉCIFIQUES SUR MaPrimeRénov, CEE, Éco-PTZ, TVA RÉDUITE - TU NE DOIS PAS LE MODIFIER
