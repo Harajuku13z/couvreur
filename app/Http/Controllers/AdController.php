@@ -18,8 +18,8 @@ class AdController extends Controller
         // Reconstituer le slug complet
         $slug = $service . '-' . $city;
         
-        // Chercher l'annonce par slug
-        $ad = Ad::where('slug', $slug)->where('status', 'published')->first();
+        // Chercher l'annonce par slug avec relation template
+        $ad = Ad::with('template')->where('slug', $slug)->where('status', 'published')->first();
         
         if (!$ad) {
             abort(404, 'Annonce non trouvée');
@@ -32,10 +32,20 @@ class AdController extends Controller
             abort(404, 'Ville non trouvée');
         }
         
-        // Variables pour le SEO avec valeurs par défaut
+        // Variables pour le SEO - utiliser getMetaForCity si template existe
         $currentPage = 'ads';
-        $pageTitle = $ad->meta_title ?? $ad->title ?? 'Service professionnel';
-        $pageDescription = $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
+        
+        // Si l'annonce a un template, utiliser getMetaForCity pour les métadonnées personnalisées
+        if ($ad->template_id && $ad->template) {
+            $metaForCity = $ad->template->getMetaForCity($cityModel);
+            $pageTitle = $metaForCity['meta_title'] ?? $ad->meta_title ?? $ad->title ?? 'Service professionnel';
+            $pageDescription = $metaForCity['meta_description'] ?? $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
+        } else {
+            // Utiliser les métadonnées de l'annonce directement
+            $pageTitle = $ad->meta_title ?? $ad->title ?? 'Service professionnel';
+            $pageDescription = $ad->meta_description ?? 'Service professionnel à ' . $cityModel->name . '. Devis gratuit et intervention rapide.';
+        }
+        
         $pageImage = null; // Utiliser l'image par défaut du SeoHelper
         $pageType = 'website';
         

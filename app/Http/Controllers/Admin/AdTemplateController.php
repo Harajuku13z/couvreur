@@ -230,8 +230,14 @@ class AdTemplateController extends Controller
                 ], 400);
             }
 
-            // Générer le contenu via IA
-            $aiContent = $this->generateTemplateContent($service, $request->input('ai_prompt'));
+            // Utiliser generateCompleteTemplateContent inspiré de ServicesController
+            $companyInfo = $this->getCompanyInfo();
+            $aiContent = $this->generateCompleteTemplateContent(
+                $service['name'], 
+                $service['short_description'] ?? '',
+                $companyInfo,
+                $request->input('ai_prompt')
+            );
             
             // Copier l'image du service vers le template
             $featuredImage = $service['featured_image'] ?? $service['og_image'] ?? null;
@@ -1292,8 +1298,14 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 ], 400);
             }
 
-            // Générer le contenu via IA pour le mot-clé
-            $aiContent = $this->generateKeywordTemplateContent($keyword, $request->input('ai_prompt'));
+            // Utiliser generateCompleteTemplateContent pour le mot-clé
+            $companyInfo = $this->getCompanyInfo();
+            $aiContent = $this->generateCompleteTemplateContent(
+                $keyword,
+                '',
+                $companyInfo,
+                $request->input('ai_prompt')
+            );
             
             // Créer le template
             $template = AdTemplate::create([
@@ -1553,5 +1565,252 @@ EXEMPLES CONCRETS POUR {$keyword}:
             'success' => true,
             'message' => 'Statut du template mis à jour'
         ]);
+    }
+
+    /**
+     * Récupérer les informations de l'entreprise
+     */
+    private function getCompanyInfo()
+    {
+        return [
+            'company_name' => setting('company_name', 'Notre Entreprise'),
+            'company_city' => setting('company_city', ''),
+            'company_region' => setting('company_region', ''),
+            'company_phone' => setting('company_phone', ''),
+            'company_email' => setting('company_email', ''),
+            'company_address' => setting('company_address', ''),
+        ];
+    }
+
+    /**
+     * Générer un contenu complet de template via IA (inspiré de generateCompleteServiceContent)
+     */
+    private function generateCompleteTemplateContent($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
+    {
+        try {
+            // Construire le prompt pour le template avec placeholders [VILLE], [RÉGION]
+            $prompt = $this->buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt);
+            
+            Log::info('=== DÉBUT GÉNÉRATION IA TEMPLATE ===', [
+                'service_name' => $serviceName,
+                'short_description' => $shortDescription,
+                'chatgpt_enabled' => setting('chatgpt_enabled', true),
+                'chatgpt_api_key_exists' => !empty(setting('chatgpt_api_key')),
+                'groq_api_key_exists' => !empty(setting('groq_api_key', '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'))
+            ]);
+            
+            // Ajouter un identifiant unique pour forcer la génération unique
+            $uniqueId = uniqid();
+            $timestamp = now()->toIso8601String();
+            
+            $promptWithUniqueness = $prompt . "\n\n⚠️ IMPORTANT - GÉNÉRATION UNIQUE REQUISE ⚠️:\n- ID unique: {$uniqueId}\n- Timestamp: {$timestamp}\n- Le contenu DOIT être COMPLÈTEMENT différent de toute génération précédente\n- Personnalise TOUT le contenu spécifiquement pour le service: {$serviceName}\n- Utilise des exemples, techniques, matériaux et prestations UNIQUES à {$serviceName}\n- Ne copie JAMAIS du contenu générique\n- Crée du contenu 100% ORIGINAL et SPÉCIFIQUE à {$serviceName}";
+            
+            // Utiliser le service AI avec fallback automatique
+            $systemMessage = "Tu es un expert technique en {$serviceName} avec une connaissance approfondie du domaine. Tu crées du contenu professionnel, engageant et optimisé SEO pour des templates d'annonces. CRITIQUE ABSOLUE: Chaque service DOIT avoir un contenu UNIQUE et PERSONNALISÉ avec des placeholders [VILLE], [RÉGION], [DÉPARTEMENT] pour personnalisation par ville. Ne génère JAMAIS de contenu générique ou répétitif. Adapte TOUT spécifiquement au service mentionné.";
+            
+            $result = AiService::callAI($promptWithUniqueness, $systemMessage, [
+                'max_tokens' => 4000,
+                'temperature' => 0.9
+            ]);
+            
+            Log::info('Résultat appel AiService pour template', [
+                'service_name' => $serviceName,
+                'has_result' => !is_null($result),
+                'has_content' => isset($result['content']),
+                'provider' => $result['provider'] ?? 'none',
+                'content_length' => isset($result['content']) ? strlen($result['content']) : 0
+            ]);
+            
+            if ($result && isset($result['content'])) {
+                Log::info('Réponse IA reçue pour template', [
+                    'service_name' => $serviceName,
+                    'provider' => $result['provider'],
+                    'content_length' => strlen($result['content']),
+                    'content_preview' => substr($result['content'], 0, 500)
+                ]);
+                
+                // Parser le JSON de manière robuste (réutiliser la méthode de ServicesController)
+                $aiData = $this->parseAIResponseForTemplate($result['content']);
+                
+                if ($aiData && is_array($aiData)) {
+                    // Valider et nettoyer les données
+                    return $this->validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription);
+                } else {
+                    Log::warning('Échec parsing JSON de la réponse IA pour template', [
+                        'service_name' => $serviceName,
+                        'content_preview' => substr($result['content'], 0, 300)
+                    ]);
+                }
+            } else {
+                Log::error('Aucune réponse de l\'IA pour template', [
+                    'service_name' => $serviceName,
+                    'result' => $result
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur génération IA template: ' . $e->getMessage(), [
+                'service_name' => $serviceName,
+                'error' => $e->getTraceAsString()
+            ]);
+        }
+        
+        // Fallback amélioré en cas d'échec
+        return $this->generateFallbackTemplateContent([
+            'name' => $serviceName,
+            'slug' => Str::slug($serviceName),
+            'short_description' => $shortDescription
+        ]);
+    }
+
+    /**
+     * Construire le prompt pour un template de service
+     */
+    private function buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
+    {
+        $basePrompt = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE des prestations, techniques et matériaux spécifiques à ce domaine. Crée un template d'annonce TOTALEMENT personnalisé pour {$serviceName}.
+
+⚠️⚠️⚠️ SERVICE À PERSONNALISER: {$serviceName} ⚠️⚠️⚠️
+
+IMPORTANT: Ce template sera utilisé pour créer des annonces personnalisées par ville. Utilise les placeholders suivants:
+- [VILLE] = sera remplacé par le nom de la ville
+- [RÉGION] = sera remplacé par le nom de la région
+- [DÉPARTEMENT] = sera remplacé par le nom du département
+- [FORM_URL] = URL du formulaire de devis
+- [URL] = URL de l'annonce finale
+- [TITRE] = Titre de l'annonce avec ville
+
+🚫 INTERDICTIONS ABSOLUES:
+- INTERDIT d'utiliser des prestations génériques comme 'Diagnostic', 'Conseil', 'Maintenance générale', 'Installation professionnelle'
+- INTERDIT de copier du contenu générique applicable à tous les services
+- INTERDIT d'utiliser un vocabulaire vague ou général
+
+✅ OBLIGATIONS ABSOLUES POUR {$serviceName}:
+- Chaque prestation DOIT être TECHNIQUE et SPÉCIFIQUE UNIQUEMENT à {$serviceName}
+- Utilise le vocabulaire PROFESSIONNEL du métier de {$serviceName}
+- Les prestations doivent mentionner des techniques, matériaux ou méthodes PRÉCISES liés à {$serviceName}
+- Chaque description doit expliquer QUOI, COMMENT et POURQUOI spécifiquement pour {$serviceName}
+- Utilise [VILLE] et [RÉGION] dans le contenu pour personnalisation future
+
+GÉNÈRE UN JSON AVEC CES CHAMPS:
+
+{
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'>[HTML complet avec structure et prestations spécifiques à {$serviceName}, utilise [VILLE] et [RÉGION] comme placeholders]\",
+  \"short_description\": \"Service professionnel de {$serviceName} à [VILLE] - Devis gratuit et intervention rapide\",
+  \"long_description\": \"Notre entreprise spécialisée en {$serviceName} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants.\",
+  \"icon\": \"fas fa-tools\",
+  \"meta_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
+  \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"og_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
+  \"og_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"twitter_title\": \"{$serviceName} à [VILLE] - Service professionnel\",
+  \"twitter_description\": \"Service professionnel de {$serviceName} à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.\",
+  \"meta_keywords\": \"{$serviceName}, [VILLE], [RÉGION], service professionnel, devis gratuit\"
+}
+
+⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES ⚠️⚠️⚠️:
+- TU DOIS RÉPONDRE UNIQUEMENT AVEC UN JSON VALIDE
+- COMMENCE DIRECTEMENT PAR { (accolade ouvrante)
+- TERMINE DIRECTEMENT PAR } (accolade fermante)
+- PAS de texte avant le JSON
+- PAS de texte après le JSON
+- PAS de ```json ou ``` autour du JSON
+- REMPLACE [GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName}] par 10 prestations TECHNIQUES RÉELLES pour {$serviceName}
+- Chaque prestation doit avoir un NOM TECHNIQUE précis et une DESCRIPTION détaillée avec techniques/matériaux pour {$serviceName}
+";
+
+        if ($aiPrompt) {
+            $basePrompt .= "\n\nINSTRUCTIONS PERSONNALISÉES SUPPLÉMENTAIRES:\n" . $aiPrompt;
+        }
+
+        return $basePrompt;
+    }
+
+    /**
+     * Parser la réponse IA pour template (inspiré de parseAIResponse)
+     */
+    private function parseAIResponseForTemplate($content)
+    {
+        $content = trim($content);
+        
+        // Si le contenu semble être directement du HTML (pas de JSON)
+        if (strpos($content, '<div') !== false && strpos($content, '{') === false) {
+            Log::info('Contenu HTML direct détecté dans template, création de structure JSON');
+            $plainText = strip_tags($content);
+            $shortDesc = Str::limit($plainText, 140);
+            $metaDesc = Str::limit($plainText, 160);
+            
+            return [
+                'description' => $content,
+                'short_description' => $shortDesc,
+                'long_description' => Str::limit($plainText, 500),
+                'icon' => 'fas fa-tools',
+                'meta_title' => '',
+                'meta_description' => $metaDesc,
+                'og_title' => '',
+                'og_description' => $metaDesc,
+                'twitter_title' => '',
+                'twitter_description' => $metaDesc,
+                'meta_keywords' => ''
+            ];
+        }
+        
+        $jsonPatterns = [
+            '/```json\s*(\{[\s\S]*?\})\s*```/s',
+            '/```\s*(\{[\s\S]*?\})\s*```/s',
+            '/\{[\s\S]*\"description\"[\s\S]*\}/s',
+            '/\{.*\}/s',
+        ];
+        
+        foreach ($jsonPatterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $jsonString = $matches[1] ?? $matches[0];
+                $jsonString = trim($jsonString);
+                $data = json_decode($jsonString, true);
+                
+                if ($data && is_array($data) && !empty($data)) {
+                    Log::info('JSON parsé avec succès pour template');
+                    return $data;
+                }
+            }
+        }
+        
+        $data = json_decode($content, true);
+        if ($data && is_array($data) && !empty($data)) {
+            Log::info('JSON parsé directement pour template');
+            return $data;
+        }
+        
+        Log::warning('Impossible de parser la réponse IA pour template', [
+            'content_preview' => substr($content, 0, 500)
+        ]);
+        
+        return null;
+    }
+
+    /**
+     * Valider et nettoyer les données IA pour template
+     */
+    private function validateAndCleanAIDataForTemplate($aiData, $serviceName, $shortDescription)
+    {
+        $description = $aiData['description'] ?? '';
+        $cleanText = function($text, $maxLength = null) {
+            $text = strip_tags($text);
+            $text = trim($text);
+            return $maxLength ? Str::limit($text, $maxLength) : $text;
+        };
+        
+        return [
+            'description' => $description,
+            'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
+            'long_description' => $cleanText($aiData['long_description'] ?? strip_tags($description), 500),
+            'icon' => $aiData['icon'] ?? 'fas fa-tools',
+            'meta_title' => $cleanText($aiData['meta_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
+            'meta_description' => $cleanText($aiData['meta_description'] ?? 'Service professionnel à [VILLE]', 500),
+            'meta_keywords' => $aiData['meta_keywords'] ?? ($serviceName . ', [VILLE], [RÉGION], service professionnel'),
+            'og_title' => $cleanText($aiData['og_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
+            'og_description' => $cleanText($aiData['og_description'] ?? 'Service professionnel à [VILLE]', 500),
+            'twitter_title' => $cleanText($aiData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
+            'twitter_description' => $cleanText($aiData['twitter_description'] ?? 'Service professionnel à [VILLE]', 500),
+        ];
     }
 }
