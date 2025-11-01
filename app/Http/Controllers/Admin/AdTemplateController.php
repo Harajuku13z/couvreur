@@ -1446,13 +1446,33 @@ EXEMPLES CONCRETS POUR {$keyword}:
     private function generateCompleteTemplateContent($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
     {
         try {
+            // VIDER LE CACHE DES SETTINGS pour s'assurer qu'on lit les dernières valeurs
+            \App\Models\Setting::clearCache();
+            
             // Construire le prompt pour le template avec placeholders [VILLE], [RÉGION]
             $basePrompt = $this->buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt);
             
-            // Diagnostic détaillé des clés API
-            $chatgptEnabled = setting('chatgpt_enabled', true);
-            $chatgptApiKey = setting('chatgpt_api_key');
-            $groqApiKey = setting('groq_api_key', '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');
+            // Diagnostic détaillé des clés API - FORCER lecture depuis DB sans cache
+            \Cache::forget('setting_chatgpt_enabled');
+            \Cache::forget('setting_chatgpt_api_key');
+            \Cache::forget('setting_groq_api_key');
+            \Cache::forget('setting_groq_model');
+            \Cache::forget('setting_chatgpt_model');
+            
+            $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->first();
+            $chatgptEnabledValue = $chatgptEnabled ? ($chatgptEnabled->type === 'boolean' ? filter_var($chatgptEnabled->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabled->value) : true;
+            
+            $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
+            $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
+            
+            $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
+            $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : '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';
+            
+            $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
+            $groqModel = $groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant';
+            
+            $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
+            $chatgptModel = $chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4o';
             
             Log::info('=== DÉBUT GÉNÉRATION IA TEMPLATE ===', [
                 'service_name' => $serviceName,
@@ -1516,9 +1536,8 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     'result' => $result
                 ]);
                 
-                // Essayer directement avec Groq
-                $groqApiKey = setting('groq_api_key', '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');
-                $groqModel = setting('groq_model', 'llama-3.1-8b-instant');
+                // Essayer directement avec Groq - utiliser les valeurs déjà récupérées
+                // Les valeurs sont déjà dans $groqApiKey et $groqModel du diagnostic initial
                 
                 Log::info('Tentative directe Groq', [
                     'groq_api_key_exists' => !empty($groqApiKey),
@@ -1570,11 +1589,9 @@ Placeholders autorisés UNIQUEMENT: [VILLE], [RÉGION], [DÉPARTEMENT], [FORM_UR
                     }
                 }
                 
-                // Si toujours pas de résultat, essayer ChatGPT directement
+                // Si toujours pas de résultat, essayer ChatGPT directement - utiliser les valeurs déjà récupérées
                 if (!$result || !isset($result['content'])) {
-                    $chatgptApiKey = setting('chatgpt_api_key');
-                    $chatgptEnabled = setting('chatgpt_enabled', true);
-                    $chatgptModel = setting('chatgpt_model', 'gpt-4o');
+                    // Utiliser les valeurs du diagnostic initial
                     
                     Log::info('Tentative directe ChatGPT', [
                         'chatgpt_enabled' => $chatgptEnabled,
