@@ -127,7 +127,16 @@ class AdTemplateController extends Controller
             $aiContent = $this->generateTemplateContent($service, $request->input('ai_prompt'));
             
             // Copier l'image du service vers le template
-            $featuredImage = $service['featured_image'] ?? null;
+            $featuredImage = $service['featured_image'] ?? $service['og_image'] ?? null;
+            
+            // Log pour debugging
+            Log::info('Copie image service vers template', [
+                'service_name' => $service['name'],
+                'featured_image' => $featuredImage,
+                'service_keys' => array_keys($service),
+                'has_featured_image' => isset($service['featured_image']),
+                'has_og_image' => isset($service['og_image'])
+            ]);
             
             // Créer le template
             $template = AdTemplate::create([
@@ -168,8 +177,15 @@ class AdTemplateController extends Controller
             try {
                 $fallbackContent = $this->generateFallbackTemplateContent($service);
                 
-                // Copier l'image du service même en fallback
-                $featuredImage = $service['featured_image'] ?? null;
+                // Copier l'image du service même en fallback (vérifier aussi og_image comme fallback)
+                $featuredImage = $service['featured_image'] ?? $service['og_image'] ?? null;
+                
+                Log::info('Copie image service vers template (fallback)', [
+                    'service_name' => $service['name'],
+                    'featured_image' => $featuredImage,
+                    'has_featured_image' => isset($service['featured_image']),
+                    'has_og_image' => isset($service['og_image'])
+                ]);
                 
                 $template = AdTemplate::create([
                     'name' => $service['name'],
