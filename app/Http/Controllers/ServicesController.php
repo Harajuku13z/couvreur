@@ -777,7 +777,7 @@ Le contenu DOIT être UNIQUE et DIFFÉRENT de toute génération précédente po
                     'error_message' => 'Aucune réponse de l\'IA. Vérifiez vos clés API ChatGPT ou Groq.',
                     'debug_info' => [
                         'has_result' => !is_null($result),
-                        'has_content' => isset($result['content'] ?? false),
+                        'has_content' => isset($result['content']) ? $result['content'] : false,
                         'provider' => $result['provider'] ?? 'none'
                     ]
                 ];
