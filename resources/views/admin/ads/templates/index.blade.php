@@ -619,10 +619,15 @@ document.getElementById('createKeywordTemplateForm').addEventListener('submit', 
     })
     .then(data => {
         if (data.success) {
+            let message = data.message;
+            if (data.ad_created && data.city_name) {
+                message += '\n\nVille sélectionnée: ' + data.city_name;
+            }
+            
             if (data.warning) {
-                alert('⚠️ ' + data.message);
+                alert('⚠️ ' + message);
             } else {
-                alert('✅ ' + data.message);
+                alert('✅ ' + message);
             }
             // Rediriger vers la page d'édition si l'URL est fournie
             if (data.redirect_url) {
