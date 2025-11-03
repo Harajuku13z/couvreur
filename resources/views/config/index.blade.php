@@ -626,25 +626,56 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Icône du site (favicon)</label>
                             <input type="file" name="favicon" accept="image/png,image/jpeg,image/gif,image/x-icon,image/webp,image/ico" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <p class="text-xs text-gray-500 mt-1">Formats acceptés : PNG, JPG, GIF, ICO, WebP - Max 1 Mo - Format recommandé : PNG 32x32px ou ICO</p>
-                            @if(setting('site_favicon'))
-                            <div class="mt-3">
-                                <p class="text-sm text-gray-600 mb-2">Favicon actuel :</p>
-                                @php
-                                    $faviconPath = setting('site_favicon');
-                                    $faviconUrl = null;
-                                    if ($faviconPath && file_exists(public_path($faviconPath))) {
-                                        $faviconUrl = asset($faviconPath);
-                                    } elseif ($faviconPath && file_exists(public_path('uploads/' . $faviconPath))) {
-                                        $faviconUrl = asset('uploads/' . $faviconPath);
+                            @php
+                                $currentFavicon = setting('site_favicon');
+                                $faviconDisplayUrl = null;
+                                $faviconExists = false;
+                                
+                                if ($currentFavicon) {
+                                    // Vérifier plusieurs emplacements
+                                    $checkPaths = [
+                                        $currentFavicon,
+                                        'uploads/seo/' . basename($currentFavicon)
+                                    ];
+                                    
+                                    foreach ($checkPaths as $checkPath) {
+                                        if (file_exists(public_path($checkPath))) {
+                                            $faviconDisplayUrl = asset($checkPath);
+                                            $faviconExists = true;
+                                            break;
+                                        }
                                     }
-                                @endphp
-                                @if($faviconUrl)
+                                }
+                                
+                                // Fallback: chercher dans public/
+                                if (!$faviconExists) {
+                                    $faviconFiles = glob(public_path('favicon*'));
+                                    if (!empty($faviconFiles)) {
+                                        usort($faviconFiles, function($a, $b) {
+                                            return filemtime($b) - filemtime($a);
+                                        });
+                                        $faviconDisplayUrl = asset(basename($faviconFiles[0]));
+                                        $faviconExists = true;
+                                    }
+                                }
+                            @endphp
+                            
+                            @if($currentFavicon || $faviconDisplayUrl)
+                            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm font-medium text-gray-700 mb-2">Favicon actuel :</p>
+                                @if($faviconDisplayUrl)
                                 <div class="flex items-center gap-3">
-                                    <img src="{{ $faviconUrl }}" alt="Favicon actuel" class="w-8 h-8 border border-gray-200 rounded" onerror="this.style.display='none'">
-                                    <span class="text-sm text-gray-600">{{ $faviconPath }}</span>
+                                    <img src="{{ $faviconDisplayUrl }}" alt="Favicon actuel" class="w-8 h-8 border border-gray-200 rounded" onerror="this.style.display='none'">
+                                    <div>
+                                        <span class="text-sm text-gray-600 block">{{ $currentFavicon ?? basename($faviconDisplayUrl) }}</span>
+                                        <span class="text-xs text-green-600">✓ Fichier trouvé</span>
+                                    </div>
                                 </div>
                                 @else
-                                <p class="text-xs text-orange-600">⚠️ Le fichier favicon n'a pas été trouvé à l'emplacement enregistré.</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600">{{ $currentFavicon }}</span>
+                                    <span class="text-xs text-orange-600">⚠️ Fichier non trouvé à cet emplacement</span>
+                                </div>
                                 @endif
                             </div>
                             @endif

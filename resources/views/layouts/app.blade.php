@@ -71,22 +71,59 @@
     
     <!-- Favicon -->
     @php
-        $faviconPath = setting('site_favicon');
         $faviconUrl = null;
+        $faviconPath = setting('site_favicon');
         
-        if ($faviconPath && file_exists(public_path($faviconPath))) {
-            $faviconUrl = asset($faviconPath);
-        } else {
-            // Fallback: chercher un favicon dans le dossier public
+        // Vérifier plusieurs emplacements possibles
+        $possiblePaths = [];
+        
+        if ($faviconPath) {
+            // Chemin direct depuis la racine public
+            $possiblePaths[] = $faviconPath;
+            // Chemin depuis uploads/seo (ancien système)
+            $possiblePaths[] = 'uploads/seo/' . basename($faviconPath);
+            // Chemin complet si déjà fourni
+            if (strpos($faviconPath, 'uploads/') === 0) {
+                $possiblePaths[] = $faviconPath;
+            }
+        }
+        
+        // Chercher le favicon dans les emplacements possibles
+        foreach ($possiblePaths as $path) {
+            $fullPath = public_path($path);
+            if (file_exists($fullPath)) {
+                $faviconUrl = asset($path);
+                break;
+            }
+        }
+        
+        // Fallback: chercher un favicon dans le dossier public
+        if (!$faviconUrl) {
             $faviconFiles = glob(public_path('favicon*'));
             if (!empty($faviconFiles)) {
+                // Trier par date de modification (le plus récent en premier)
+                usort($faviconFiles, function($a, $b) {
+                    return filemtime($b) - filemtime($a);
+                });
                 $faviconUrl = asset(basename($faviconFiles[0]));
+            }
+        }
+        
+        // Fallback 2: chercher dans uploads/seo
+        if (!$faviconUrl && is_dir(public_path('uploads/seo'))) {
+            $seoFavicons = glob(public_path('uploads/seo/favicon*'));
+            if (!empty($seoFavicons)) {
+                usort($seoFavicons, function($a, $b) {
+                    return filemtime($b) - filemtime($a);
+                });
+                $faviconUrl = asset('uploads/seo/' . basename($seoFavicons[0]));
             }
         }
     @endphp
     
     @if($faviconUrl)
     <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ $faviconUrl }}">
     @endif
     
     <!-- Apple Touch Icon -->

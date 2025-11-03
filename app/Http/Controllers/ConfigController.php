@@ -229,16 +229,46 @@ class ConfigController extends Controller
                 
                 // Déplacer le fichier vers public/
                 if ($favicon->move(public_path(), $faviconName)) {
-                    // Supprimer l'ancien favicon s'il existe
+                    // Vérifier que le fichier a bien été créé
+                    if (!file_exists(public_path($faviconName))) {
+                        return back()->with('error', 'Le fichier favicon n\'a pas pu être créé. Vérifiez les permissions du dossier public.');
+                    }
+                    
+                    // Supprimer l'ancien favicon s'il existe (plusieurs emplacements possibles)
                     $oldFavicon = setting('site_favicon');
-                    if ($oldFavicon && file_exists(public_path($oldFavicon))) {
-                        @unlink(public_path($oldFavicon));
+                    if ($oldFavicon) {
+                        $oldPaths = [
+                            public_path($oldFavicon),
+                            public_path('uploads/seo/' . basename($oldFavicon))
+                        ];
+                        
+                        foreach ($oldPaths as $oldPath) {
+                            if (file_exists($oldPath) && is_file($oldPath)) {
+                                @unlink($oldPath);
+                                \Log::info('Old favicon deleted: ' . $oldPath);
+                            }
+                        }
+                    }
+                    
+                    // Nettoyer les anciens favicons dans public/ (garder seulement les 3 plus récents)
+                    $allFavicons = glob(public_path('favicon-*'));
+                    if (count($allFavicons) > 3) {
+                        usort($allFavicons, function($a, $b) {
+                            return filemtime($b) - filemtime($a);
+                        });
+                        $faviconsToDelete = array_slice($allFavicons, 3);
+                        foreach ($faviconsToDelete as $toDelete) {
+                            if (basename($toDelete) !== $faviconName) {
+                                @unlink($toDelete);
+                            }
+                        }
                     }
                     
                     // Sauvegarder le nouveau favicon
                     Setting::set('site_favicon', $faviconName, 'file', 'branding');
+                    Setting::clearCache(); // Vider le cache immédiatement
                     $faviconUploaded = true;
-                    \Log::info('Favicon uploaded successfully: ' . $faviconName);
+                    \Log::info('Favicon uploaded successfully: ' . $faviconName . ' - Full path: ' . public_path($faviconName));
                 } else {
                     return back()->with('error', 'Erreur lors du déplacement du fichier favicon. Vérifiez les permissions du dossier public.');
                 }
