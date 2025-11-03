@@ -78,6 +78,11 @@ class ManualAdController extends Controller
                 'content_html' => $request->content,
             ]);
             
+            // Déclencher l'événement pour mettre à jour le sitemap et soumettre à Google (si publié)
+            if ($ad->status === 'published') {
+                event(new AdCreated($ad));
+            }
+            
             return back()->with('success', 'Annonce créée avec succès !');
             
         } catch (\Exception $e) {

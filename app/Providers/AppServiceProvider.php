@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Listeners\UpdateSitemapListener;
+use App\Listeners\SubmitToGoogleSearchConsoleListener;
 use App\Events\AdCreated;
 use App\Events\AdUpdated;
 use App\Events\ArticleCreated;
@@ -32,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(AdUpdated::class, UpdateSitemapListener::class);
         Event::listen(ArticleCreated::class, UpdateSitemapListener::class);
         Event::listen(ServiceUpdated::class, UpdateSitemapListener::class);
+        
+        // Enregistrer les événements pour la soumission à Google Search Console
+        Event::listen(AdCreated::class, SubmitToGoogleSearchConsoleListener::class);
         
         // S'assurer que MySQL est toujours utilisé comme connexion par défaut
         // Note: On vérifie seulement la configuration, pas la connexion active

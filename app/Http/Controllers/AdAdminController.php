@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Events\AdCreated;
 
 class AdAdminController extends Controller
 {
@@ -86,6 +87,9 @@ class AdAdminController extends Controller
             'meta_description' => $validated['meta_description'],
             'content_html' => $contentHtml,
         ]);
+
+        // Déclencher l'événement pour mettre à jour le sitemap et soumettre à Google
+        event(new AdCreated($ad));
 
         return response()->json(['success' => true, 'ad_id' => $ad->id]);
     }

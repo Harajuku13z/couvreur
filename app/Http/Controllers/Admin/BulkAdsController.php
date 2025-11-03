@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use App\Services\AiService;
+use App\Events\AdCreated;
 
 class BulkAdsController extends Controller
 {

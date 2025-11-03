@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Services\AiService;
+use App\Events\AdCreated;
 
 class AdTemplateController extends Controller
 {
@@ -403,6 +404,9 @@ class AdTemplateController extends Controller
                         'generated_at' => now()->toISOString()
                     ])
                 ]);
+
+                // Déclencher l'événement pour mettre à jour le sitemap et soumettre à Google
+                event(new \App\Events\AdCreated($ad));
 
                 $createdAds++;
                 
@@ -1356,7 +1360,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                         $metaForCity = $template->getMetaForCity($randomCity);
 
                         // Créer l'annonce avec personnalisation complète
-                        Ad::create([
+                        $ad = Ad::create([
                             'title' => $template->service_name . ' à ' . $randomCity->name,
                             'keyword' => $template->service_name,
                             'city_id' => $randomCity->id,
@@ -1375,6 +1379,9 @@ EXEMPLES CONCRETS POUR {$keyword}:
                                 'auto_generated' => true
                             ])
                         ]);
+
+                        // Déclencher l'événement pour mettre à jour le sitemap et soumettre à Google
+                        event(new AdCreated($ad));
 
                         // Incrémenter le compteur d'utilisation du template
                         $template->incrementUsage();

@@ -26,8 +26,30 @@
         <div class="flex justify-between items-center py-2 header-mobile">
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile" width="300" height="159">
+                    @php
+                        $rawLogo = setting('company_logo');
+                        $logoUrl = null;
+                        if ($rawLogo) {
+                            // Si déjà une URL absolue
+                            if (preg_match('/^https?:\\/\\//', $rawLogo)) {
+                                $logoUrl = $rawLogo;
+                            } else {
+                                // Essayer tel quel depuis public/
+                                $candidate = public_path(ltrim($rawLogo, '/'));
+                                if (file_exists($candidate)) {
+                                    $logoUrl = asset(ltrim($rawLogo, '/'));
+                                } else {
+                                    // Essayer dans uploads/
+                                    $uploadsCandidate = public_path('uploads/' . basename($rawLogo));
+                                    if (file_exists($uploadsCandidate)) {
+                                        $logoUrl = asset('uploads/' . basename($rawLogo));
+                                    }
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile object-contain" width="300" height="159" loading="eager" fetchpriority="high">
                     @else
                         <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
                             {{ setting('company_name', 'Votre Entreprise') }}
