@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion Admin - {{ config('company.name') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Favicon -->
+    @php
+        $faviconPath = setting('site_favicon');
+        $faviconUrl = null;
+        
+        if ($faviconPath && file_exists(public_path($faviconPath))) {
+            $faviconUrl = asset($faviconPath);
+        } else {
+            // Fallback: chercher un favicon dans le dossier public
+            $faviconFiles = glob(public_path('favicon*'));
+            if (!empty($faviconFiles)) {
+                // Trier par date de modification (le plus récent en premier)
+                usort($faviconFiles, function($a, $b) {
+                    return filemtime($b) - filemtime($a);
+                });
+                $faviconUrl = asset(basename($faviconFiles[0]));
+            }
+        }
+    @endphp
+    
+    @if($faviconUrl)
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    @endif
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
