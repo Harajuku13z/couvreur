@@ -178,8 +178,27 @@
                 <div class="hero-gradient relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/376] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden">
                     {{-- Company Logo --}}
                     <div class="flex items-center justify-center h-full">
-                        @if(setting('company_logo'))
-                            <img src="{{ setting('company_logo') }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" class="max-w-full max-h-full object-contain">
+                        @php
+                            $rawLogo = setting('company_logo');
+                            $logoUrl = null;
+                            if ($rawLogo) {
+                                if (preg_match('/^https?:\\/\\//', $rawLogo)) {
+                                    $logoUrl = $rawLogo;
+                                } else {
+                                    $candidate = public_path(ltrim($rawLogo, '/'));
+                                    if (file_exists($candidate)) {
+                                        $logoUrl = asset(ltrim($rawLogo, '/'));
+                                    } else {
+                                        $uploadsCandidate = public_path('uploads/' . basename($rawLogo));
+                                        if (file_exists($uploadsCandidate)) {
+                                            $logoUrl = asset('uploads/' . basename($rawLogo));
+                                        }
+                                    }
+                                }
+                            }
+                        @endphp
+                        @if($logoUrl)
+                            <img src="{{ $logoUrl }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" class="max-w-full max-h-full object-contain" width="300" height="159" loading="eager" fetchpriority="high">
                         @else
                             <div class="text-white text-center">
                                 <div class="text-6xl mb-4">🏠</div>
