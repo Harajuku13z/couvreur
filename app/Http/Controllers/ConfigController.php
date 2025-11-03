@@ -190,27 +190,76 @@ class ConfigController extends Controller
      */
     public function updateBranding(Request $request)
     {
-        // Log pour debug
+        // Log pour debug - AVANT validation
         \Log::info('Branding update request received', [
             'has_favicon' => $request->hasFile('favicon'),
             'has_logo' => $request->hasFile('company_logo'),
-            'all_files' => $request->allFiles()
+            'all_files' => array_keys($request->allFiles()),
+            'favicon_info' => $request->hasFile('favicon') ? [
+                'name' => $request->file('favicon')->getClientOriginalName(),
+                'size' => $request->file('favicon')->getSize(),
+                'mime' => $request->file('favicon')->getMimeType(),
+                'extension' => $request->file('favicon')->getClientOriginalExtension(),
+                'is_valid' => $request->file('favicon')->isValid(),
+                'error' => $request->file('favicon')->getError()
+            ] : null
         ]);
         
-        // Validation sans restriction stricte sur le favicon pour éviter les problèmes de MIME type
+        // Validation simplifiée - favicon accepte tous les fichiers images
+        // On valide d'abord les autres champs, puis on gère le favicon séparément
         $validated = $request->validate([
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
-            'favicon' => 'nullable|file|mimes:png,jpg,jpeg,gif,webp,ico,svg|max:2048', // Augmenté à 2Mo et ajouté svg
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
             'primary_font' => 'nullable|string|max:50',
             'font_size' => 'nullable|string|max:10',
-        ], [
-            'favicon.mimes' => 'Le favicon doit être au format PNG, JPG, GIF, ICO, WebP ou SVG',
-            'favicon.max' => 'Le favicon ne doit pas dépasser 2 Mo',
-            'favicon.file' => 'Le fichier favicon n\'est pas valide'
         ]);
+        
+        // Validation du favicon séparément pour éviter les problèmes de MIME type
+        if ($request->hasFile('favicon')) {
+            $favicon = $request->file('favicon');
+            
+            // Vérifier la taille manuellement (max 5Mo)
+            if ($favicon->getSize() > 5 * 1024 * 1024) {
+                return back()->with('error', 'Le favicon est trop volumineux. Taille maximale : 5 Mo');
+            }
+            
+            // Vérifier l'extension manuellement
+            $extension = strtolower($favicon->getClientOriginalExtension());
+            $allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'svg'];
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                return back()->with('error', 'Format de fichier non supporté. Formats acceptés : ' . implode(', ', $allowedExtensions));
+            }
+            
+            // Vérifier que le fichier est valide
+            if (!$favicon->isValid()) {
+                $errorCode = $favicon->getError();
+                $errorMessages = [
+                    UPLOAD_ERR_INI_SIZE => 'Le fichier dépasse la taille maximale autorisée par PHP',
+                    UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la taille maximale autorisée par le formulaire',
+                    UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement uploadé',
+                    UPLOAD_ERR_NO_FILE => 'Aucun fichier n\'a été uploadé',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                    UPLOAD_ERR_CANT_WRITE => 'Échec de l\'écriture du fichier sur le disque',
+                    UPLOAD_ERR_EXTENSION => 'Une extension PHP a arrêté l\'upload du fichier',
+                ];
+                
+                $errorMessage = $errorMessages[$errorCode] ?? 'Erreur inconnue lors de l\'upload (code: ' . $errorCode . ')';
+                \Log::error('Favicon upload invalid', [
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMessage,
+                    'file_info' => [
+                        'name' => $favicon->getClientOriginalName(),
+                        'size' => $favicon->getSize(),
+                        'mime' => $favicon->getMimeType()
+                    ]
+                ]);
+                
+                return back()->with('error', 'Erreur lors de l\'upload du favicon : ' . $errorMessage);
+            }
+        }
 
         // Handle company logo upload
         if ($request->hasFile('company_logo')) {

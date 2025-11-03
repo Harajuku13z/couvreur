@@ -598,7 +598,7 @@
                 Personnalisez l'apparence de votre site avec votre identité visuelle
             </p>
             
-            <form method="POST" action="{{ route('config.update.branding') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('config.update.branding') }}" enctype="multipart/form-data" id="branding-form">
                 @csrf
                 <div class="space-y-6">
                     <!-- Logo de l'entreprise -->
@@ -1175,6 +1175,71 @@ function escapeHtml(text) {
     };
     return text.replace(/[&<>"']/g, m => map[m]);
 }
+
+// Validation et debug du formulaire branding
+document.addEventListener('DOMContentLoaded', function() {
+    const brandingForm = document.getElementById('branding-form');
+    if (brandingForm) {
+        const faviconInput = brandingForm.querySelector('input[name="favicon"]');
+        
+        if (faviconInput) {
+            // Afficher les infos du fichier sélectionné
+            faviconInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('Favicon sélectionné:', {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: new Date(file.lastModified)
+                    });
+                    
+                    // Afficher un message sous l'input
+                    let infoDiv = faviconInput.parentElement.querySelector('.file-info');
+                    if (!infoDiv) {
+                        infoDiv = document.createElement('div');
+                        infoDiv.className = 'file-info mt-2';
+                        faviconInput.parentElement.appendChild(infoDiv);
+                    }
+                    
+                    const sizeKB = (file.size / 1024).toFixed(2);
+                    infoDiv.innerHTML = `<p class="text-xs text-green-600">✓ Fichier sélectionné : ${file.name} (${sizeKB} Ko)</p>`;
+                }
+            });
+        }
+        
+        // Validation avant soumission
+        brandingForm.addEventListener('submit', function(e) {
+            const faviconInput = this.querySelector('input[name="favicon"]');
+            
+            if (faviconInput && faviconInput.files.length > 0) {
+                const file = faviconInput.files[0];
+                const maxSize = 5 * 1024 * 1024; // 5 Mo
+                
+                if (file.size > maxSize) {
+                    e.preventDefault();
+                    alert('❌ Le fichier favicon est trop volumineux. Taille maximale : 5 Mo\nTaille actuelle : ' + (file.size / 1024 / 1024).toFixed(2) + ' Mo');
+                    return false;
+                }
+                
+                const extension = file.name.split('.').pop().toLowerCase();
+                const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'svg'];
+                
+                if (!allowedExtensions.includes(extension)) {
+                    e.preventDefault();
+                    alert('❌ Format de fichier non supporté. Formats acceptés : ' + allowedExtensions.join(', '));
+                    return false;
+                }
+                
+                console.log('Soumission du formulaire avec favicon:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+            }
+        });
+    }
+});
 
 </script>
 @endsection
