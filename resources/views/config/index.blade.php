@@ -624,8 +624,30 @@
                         <h3 class="text-lg font-semibold mb-3">🌐 Favicon</h3>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Icône du site (favicon)</label>
-                            <input type="file" name="favicon" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Format recommandé : ICO ou PNG 32x32px</p>
+                            <input type="file" name="favicon" accept="image/png,image/jpeg,image/gif,image/x-icon,image/webp,image/ico" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Formats acceptés : PNG, JPG, GIF, ICO, WebP - Max 1 Mo - Format recommandé : PNG 32x32px ou ICO</p>
+                            @if(setting('site_favicon'))
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Favicon actuel :</p>
+                                @php
+                                    $faviconPath = setting('site_favicon');
+                                    $faviconUrl = null;
+                                    if ($faviconPath && file_exists(public_path($faviconPath))) {
+                                        $faviconUrl = asset($faviconPath);
+                                    } elseif ($faviconPath && file_exists(public_path('uploads/' . $faviconPath))) {
+                                        $faviconUrl = asset('uploads/' . $faviconPath);
+                                    }
+                                @endphp
+                                @if($faviconUrl)
+                                <div class="flex items-center gap-3">
+                                    <img src="{{ $faviconUrl }}" alt="Favicon actuel" class="w-8 h-8 border border-gray-200 rounded" onerror="this.style.display='none'">
+                                    <span class="text-sm text-gray-600">{{ $faviconPath }}</span>
+                                </div>
+                                @else
+                                <p class="text-xs text-orange-600">⚠️ Le fichier favicon n'a pas été trouvé à l'emplacement enregistré.</p>
+                                @endif
+                            </div>
+                            @endif
                         </div>
                     </div>
 

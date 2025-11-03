@@ -192,7 +192,7 @@ class ConfigController extends Controller
     {
         $validated = $request->validate([
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
-            'favicon' => 'nullable|image|mimes:ico,png,jpg|max:512',
+            'favicon' => 'nullable|image|mimes:png,jpg,jpeg,gif,ico,webp|max:1024',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
@@ -202,18 +202,50 @@ class ConfigController extends Controller
 
         // Handle company logo upload
         if ($request->hasFile('company_logo')) {
-            $logo = $request->file('company_logo');
-            $logoName = 'company-logo-' . time() . '.' . $logo->getClientOriginalExtension();
-            $logo->move(public_path('uploads'), $logoName);
-            Setting::set('company_logo', 'uploads/' . $logoName, 'file', 'branding');
+            try {
+                $logo = $request->file('company_logo');
+                $logoName = 'company-logo-' . time() . '.' . $logo->getClientOriginalExtension();
+                $logo->move(public_path('uploads'), $logoName);
+                Setting::set('company_logo', 'uploads/' . $logoName, 'file', 'branding');
+            } catch (\Exception $e) {
+                \Log::error('Logo upload error: ' . $e->getMessage());
+                return back()->with('error', 'Erreur lors de l\'upload du logo : ' . $e->getMessage());
+            }
         }
 
         // Handle favicon upload
+        $faviconUploaded = false;
         if ($request->hasFile('favicon')) {
-            $favicon = $request->file('favicon');
-            $faviconName = 'favicon-' . time() . '.' . $favicon->getClientOriginalExtension();
-            $favicon->move(public_path(), $faviconName);
-            Setting::set('site_favicon', $faviconName, 'file', 'branding');
+            try {
+                $favicon = $request->file('favicon');
+                $extension = strtolower($favicon->getClientOriginalExtension());
+                
+                // S'assurer que le fichier a une extension valide
+                if (!in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp'])) {
+                    return back()->with('error', 'Format de fichier non supporté pour le favicon. Formats acceptés : PNG, JPG, GIF, ICO, WebP');
+                }
+                
+                $faviconName = 'favicon-' . time() . '.' . $extension;
+                
+                // Déplacer le fichier vers public/
+                if ($favicon->move(public_path(), $faviconName)) {
+                    // Supprimer l'ancien favicon s'il existe
+                    $oldFavicon = setting('site_favicon');
+                    if ($oldFavicon && file_exists(public_path($oldFavicon))) {
+                        @unlink(public_path($oldFavicon));
+                    }
+                    
+                    // Sauvegarder le nouveau favicon
+                    Setting::set('site_favicon', $faviconName, 'file', 'branding');
+                    $faviconUploaded = true;
+                    \Log::info('Favicon uploaded successfully: ' . $faviconName);
+                } else {
+                    return back()->with('error', 'Erreur lors du déplacement du fichier favicon. Vérifiez les permissions du dossier public.');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Favicon upload error: ' . $e->getMessage());
+                return back()->with('error', 'Erreur lors de l\'upload du favicon : ' . $e->getMessage());
+            }
         }
 
 
@@ -236,7 +268,12 @@ class ConfigController extends Controller
 
         Setting::clearCache();
 
-        return back()->with('success', 'Paramètres de branding mis à jour avec succès !');
+        $message = 'Paramètres de branding mis à jour avec succès !';
+        if ($faviconUploaded) {
+            $message .= ' Le favicon a été enregistré avec succès.';
+        }
+        
+        return back()->with('success', $message);
     }
 
     /**
