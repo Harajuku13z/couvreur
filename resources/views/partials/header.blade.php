@@ -27,7 +27,7 @@
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
                     @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile">
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile" width="300" height="159">
                     @else
                         <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
                             {{ setting('company_name', 'Votre Entreprise') }}
@@ -113,9 +113,25 @@
                 @if(count($activeSocialNetworks) > 0)
                 <div class="flex space-x-3 mr-4">
                     @foreach(array_slice($activeSocialNetworks, 0, 4) as $key => $network)
+                        @php
+                            $socialNames = [
+                                'facebook_url' => 'Facebook',
+                                'instagram_url' => 'Instagram',
+                                'twitter_url' => 'Twitter',
+                                'linkedin_url' => 'LinkedIn',
+                                'youtube_url' => 'YouTube',
+                                'tiktok_url' => 'TikTok',
+                                'pinterest_url' => 'Pinterest',
+                                'snapchat_url' => 'Snapchat',
+                                'whatsapp_url' => 'WhatsApp',
+                                'telegram_url' => 'Telegram',
+                            ];
+                            $socialName = $socialNames[$key] ?? 'Réseau social';
+                        @endphp
                         <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                           class="text-gray-600 {{ $network['color'] }} transition-colors text-lg">
-                            <i class="{{ $network['icon'] }}"></i>
+                           class="text-gray-600 {{ $network['color'] }} transition-colors text-lg"
+                           aria-label="Suivez-nous sur {{ $socialName }}">
+                            <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
                         </a>
                     @endforeach
                 </div>
@@ -140,7 +156,7 @@
             </div>
             
             <!-- Mobile Menu Button -->
-            <button class="md:hidden text-gray-700 hover:text-primary" onclick="toggleMobileMenu()">
+            <button class="md:hidden text-gray-700 hover:text-primary" onclick="toggleMobileMenu()" aria-label="Ouvrir le menu de navigation">
                 <i class="fas fa-bars text-xl"></i>
             </button>
         </div>

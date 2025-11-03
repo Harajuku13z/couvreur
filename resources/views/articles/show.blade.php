@@ -376,8 +376,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
-                                        <i class="fab fa-facebook-f"></i>
+                                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group"
+                                       aria-label="Partager sur Facebook">
+                                        <i class="fab fa-facebook-f" aria-hidden="true"></i>
                                         <span class="hidden sm:inline">Facebook</span>
                                     </a>
                                     
@@ -403,8 +404,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
-                                        <i class="fab fa-whatsapp"></i>
+                                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group"
+                                       aria-label="Partager sur WhatsApp">
+                                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
                                         <span class="hidden sm:inline">WhatsApp</span>
                                     </a>
                                     
@@ -607,8 +609,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="flex flex-col space-y-3">
                 <!-- Bouton principal de partage -->
                 <button onclick="toggleShareButtons()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                    <i class="fas fa-share-alt text-xl"></i>
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                        aria-label="Ouvrir les options de partage">
+                    <i class="fas fa-share-alt text-xl" aria-hidden="true"></i>
                 </button>
                 
                 <!-- Boutons de partage individuels (masqués par défaut) -->
@@ -617,38 +620,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
-                       class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-facebook-f"></i>
+                       class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                       aria-label="Partager sur Facebook">
+                        <i class="fab fa-facebook-f" aria-hidden="true"></i>
                     </a>
                     
                     <!-- Twitter -->
                     <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
-                       class="bg-sky-500 hover:bg-sky-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-twitter"></i>
+                       class="bg-sky-500 hover:bg-sky-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                       aria-label="Partager sur Twitter">
+                        <i class="fab fa-twitter" aria-hidden="true"></i>
                     </a>
                     
                     <!-- WhatsApp -->
                     <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
-                       class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-whatsapp"></i>
+                       class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                       aria-label="Partager sur WhatsApp">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
                     </a>
                     
                     <!-- Telegram -->
                     <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
-                       class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-telegram-plane"></i>
+                       class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                       aria-label="Partager sur Telegram">
+                        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
                     </a>
                     
                     <!-- Copier le lien -->
                     <button onclick="copyToClipboard('{{ request()->url() }}')" 
-                            class="bg-gray-500 hover:bg-gray-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fas fa-copy"></i>
+                            class="bg-gray-500 hover:bg-gray-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110"
+                            aria-label="Copier le lien de l'article">
+                        <i class="fas fa-copy" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>

@@ -4,6 +4,10 @@
 @section('description', setting('company_description', 'Expert en travaux de rénovation'))
 
 @push('head')
+    <!-- Preload LCP image (hero background) for faster loading -->
+    @if($homeConfig['hero']['background_image'] ?? null)
+    <link rel="preload" as="image" href="{{ asset($homeConfig['hero']['background_image']) }}" fetchpriority="high">
+    @endif
 <style>
     :root {
         --primary-color: {{ setting('primary_color', '#3b82f6') }};
@@ -272,6 +276,8 @@
                                  alt="{{ $homeConfig['about']['title'] ?? 'Qui Sommes-Nous' }}" 
                                  class="w-full h-full object-cover object-center mobile-responsive-img about-image-mobile"
                                  style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; max-width: 100%; height: auto; display: block; width: 100%;"
+                                 width="800"
+                                 height="800"
                                  loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                             <div class="w-full h-full bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center" style="display: none;">
@@ -318,6 +324,8 @@
                         <img src="{{ url($service['featured_image']) }}" 
                              alt="{{ $service['name'] }}" 
                              class="w-full h-full object-cover mobile-responsive-img"
+                             width="800"
+                             height="420"
                              style="display: none;"
                              loading="lazy">
                     </div>

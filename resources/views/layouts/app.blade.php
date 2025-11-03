@@ -96,14 +96,34 @@
     
     @yield('head')
     
-    <!-- Tailwind CSS -->
+    <!-- Preconnect to third-party domains for faster resource loading -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Tailwind CSS - Keep blocking but with preconnect for faster connection -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Font Awesome - Load async to avoid blocking render -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
     
-    <!-- Articles CSS -->
-    <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
+    <!-- Articles CSS - Load async -->
+    <link rel="preload" href="{{ asset('css/articles.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ asset('css/articles.css') }}"></noscript>
+    
+    <!-- Font display optimization for Font Awesome webfonts -->
+    <style>
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Font Awesome 6 Brands';
+            font-display: swap;
+        }
+    </style>
     
     <style>
         :root {
@@ -121,13 +141,56 @@
         }
         
         .floating-phone {
+            position: relative;
             animation: pulse-phone 2s infinite;
             background-color: var(--secondary-color) !important;
         }
         
         @keyframes pulse-phone {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--secondary-color); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Use pseudo-element for pulse effect instead of box-shadow to avoid repaints */
+        .floating-phone::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary-color);
+            opacity: 0;
+            animation: pulse-ring 2s infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        
+        /* Improve contrast for text-primary links on white backgrounds */
+        .text-primary {
+            color: var(--primary-color);
+        }
+        
+        /* Ensure sufficient contrast for links - if primary color is too light, use darker variant */
+        a.text-primary {
+            color: var(--primary-color);
+            font-weight: 600; /* Increase font weight for better visibility */
+        }
+        
+        a.text-primary:hover {
+            color: var(--secondary-color);
+        }
+        
+        /* Ensure buttons with primary color have sufficient contrast */
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        /* Ensure text on primary background is white for contrast */
+        .bg-primary.text-white,
+        .bg-primary.text-white:hover {
+            color: #ffffff !important;
         }
     </style>
     
@@ -205,8 +268,9 @@
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
        style="background-color: var(--primary-color);"
+       aria-label="Appeler {{ setting('company_phone') }}"
        onclick="trackPhoneCall()">
-        <i class="fas fa-phone text-2xl"></i>
+        <i class="fas fa-phone text-2xl" aria-hidden="true"></i>
     </a>
     
     <!-- Call Info Tooltip -->

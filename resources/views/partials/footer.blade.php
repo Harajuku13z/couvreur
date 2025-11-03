@@ -53,9 +53,25 @@
                     @if(count($activeSocialNetworks) > 0)
                     <div class="flex space-x-4">
                         @foreach($activeSocialNetworks as $key => $network)
+                            @php
+                                $socialNames = [
+                                    'facebook_url' => 'Facebook',
+                                    'instagram_url' => 'Instagram',
+                                    'twitter_url' => 'Twitter',
+                                    'linkedin_url' => 'LinkedIn',
+                                    'youtube_url' => 'YouTube',
+                                    'tiktok_url' => 'TikTok',
+                                    'pinterest_url' => 'Pinterest',
+                                    'snapchat_url' => 'Snapchat',
+                                    'whatsapp_url' => 'WhatsApp',
+                                    'telegram_url' => 'Telegram',
+                                ];
+                                $socialName = $socialNames[$key] ?? 'Réseau social';
+                            @endphp
                             <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl">
-                                <i class="{{ $network['icon'] }}"></i>
+                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl"
+                               aria-label="Suivez-nous sur {{ $socialName }}">
+                                <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
                             </a>
                         @endforeach
                     </div>
