@@ -78,6 +78,18 @@
 <body class="bg-gray-50 text-gray-900">
     @include('partials.header')
 
+    @php
+        // Sécuriser $visibleServices si non fourni par le contrôleur
+        if (!isset($visibleServices)) {
+            $servicesData = \App\Models\Setting::get('services', '[]');
+            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+            if (!is_array($services)) { $services = []; }
+            $visibleServices = collect($services)->filter(function($service) {
+                return is_array($service) && ($service['is_visible'] ?? true) && ($service['is_active'] ?? true);
+            });
+        }
+    @endphp
+
     <!-- Hero Section -->
     <section class="py-20 bg-primary">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
