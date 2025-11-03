@@ -190,14 +190,26 @@ class ConfigController extends Controller
      */
     public function updateBranding(Request $request)
     {
+        // Log pour debug
+        \Log::info('Branding update request received', [
+            'has_favicon' => $request->hasFile('favicon'),
+            'has_logo' => $request->hasFile('company_logo'),
+            'all_files' => $request->allFiles()
+        ]);
+        
+        // Validation sans restriction stricte sur le favicon pour éviter les problèmes de MIME type
         $validated = $request->validate([
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
-            'favicon' => 'nullable|image|mimes:png,jpg,jpeg,gif,ico,webp|max:1024',
+            'favicon' => 'nullable|file|mimes:png,jpg,jpeg,gif,webp,ico,svg|max:2048', // Augmenté à 2Mo et ajouté svg
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
             'primary_font' => 'nullable|string|max:50',
             'font_size' => 'nullable|string|max:10',
+        ], [
+            'favicon.mimes' => 'Le favicon doit être au format PNG, JPG, GIF, ICO, WebP ou SVG',
+            'favicon.max' => 'Le favicon ne doit pas dépasser 2 Mo',
+            'favicon.file' => 'Le fichier favicon n\'est pas valide'
         ]);
 
         // Handle company logo upload
@@ -218,21 +230,64 @@ class ConfigController extends Controller
         if ($request->hasFile('favicon')) {
             try {
                 $favicon = $request->file('favicon');
+                
+                // Log pour debug
+                \Log::info('Favicon file received', [
+                    'original_name' => $favicon->getClientOriginalName(),
+                    'mime_type' => $favicon->getMimeType(),
+                    'size' => $favicon->getSize(),
+                    'extension' => $favicon->getClientOriginalExtension(),
+                    'is_valid' => $favicon->isValid(),
+                    'error' => $favicon->getError()
+                ]);
+                
+                // Vérifier si le fichier est valide
+                if (!$favicon->isValid()) {
+                    $errorMessage = 'Le fichier favicon n\'est pas valide. Erreur: ' . $favicon->getError();
+                    \Log::error('Favicon upload invalid: ' . $errorMessage);
+                    return back()->with('error', $errorMessage);
+                }
+                
                 $extension = strtolower($favicon->getClientOriginalExtension());
                 
-                // S'assurer que le fichier a une extension valide
-                if (!in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp'])) {
-                    return back()->with('error', 'Format de fichier non supporté pour le favicon. Formats acceptés : PNG, JPG, GIF, ICO, WebP');
+                // S'assurer que le fichier a une extension valide (incluant svg maintenant)
+                if (!in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'svg'])) {
+                    return back()->with('error', 'Format de fichier non supporté pour le favicon. Formats acceptés : PNG, JPG, GIF, ICO, WebP, SVG');
                 }
                 
                 $faviconName = 'favicon-' . time() . '.' . $extension;
+                $destinationPath = public_path($faviconName);
+                
+                // Vérifier les permissions du dossier public avant de déplacer
+                if (!is_writable(public_path())) {
+                    $errorMessage = 'Le dossier public n\'a pas les permissions d\'écriture. Contactez votre administrateur système.';
+                    \Log::error('Public directory not writable: ' . public_path());
+                    return back()->with('error', $errorMessage);
+                }
                 
                 // Déplacer le fichier vers public/
-                if ($favicon->move(public_path(), $faviconName)) {
-                    // Vérifier que le fichier a bien été créé
-                    if (!file_exists(public_path($faviconName))) {
-                        return back()->with('error', 'Le fichier favicon n\'a pas pu être créé. Vérifiez les permissions du dossier public.');
+                try {
+                    $moved = $favicon->move(public_path(), $faviconName);
+                    
+                    if (!$moved) {
+                        throw new \Exception('La méthode move() a retourné false');
                     }
+                    
+                    // Vérifier que le fichier a bien été créé
+                    if (!file_exists($destinationPath)) {
+                        throw new \Exception('Le fichier n\'existe pas après le déplacement: ' . $destinationPath);
+                    }
+                    
+                    // Vérifier les permissions du fichier créé
+                    if (!is_readable($destinationPath)) {
+                        throw new \Exception('Le fichier créé n\'est pas lisible');
+                    }
+                    
+                    \Log::info('Favicon file moved successfully', [
+                        'destination' => $destinationPath,
+                        'file_size' => filesize($destinationPath),
+                        'is_readable' => is_readable($destinationPath)
+                    ]);
                     
                     // Supprimer l'ancien favicon s'il existe (plusieurs emplacements possibles)
                     $oldFavicon = setting('site_favicon');
@@ -268,12 +323,17 @@ class ConfigController extends Controller
                     Setting::set('site_favicon', $faviconName, 'file', 'branding');
                     Setting::clearCache(); // Vider le cache immédiatement
                     $faviconUploaded = true;
-                    \Log::info('Favicon uploaded successfully: ' . $faviconName . ' - Full path: ' . public_path($faviconName));
-                } else {
-                    return back()->with('error', 'Erreur lors du déplacement du fichier favicon. Vérifiez les permissions du dossier public.');
+                    \Log::info('Favicon uploaded successfully: ' . $faviconName . ' - Full path: ' . $destinationPath);
+                } catch (\Exception $e) {
+                    \Log::error('Favicon move error: ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return back()->with('error', 'Erreur lors du déplacement du fichier favicon : ' . $e->getMessage() . '. Vérifiez les permissions du dossier public.');
                 }
             } catch (\Exception $e) {
-                \Log::error('Favicon upload error: ' . $e->getMessage());
+                \Log::error('Favicon upload error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
                 return back()->with('error', 'Erreur lors de l\'upload du favicon : ' . $e->getMessage());
             }
         }

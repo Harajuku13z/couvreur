@@ -624,8 +624,11 @@
                         <h3 class="text-lg font-semibold mb-3">🌐 Favicon</h3>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Icône du site (favicon)</label>
-                            <input type="file" name="favicon" accept="image/png,image/jpeg,image/gif,image/x-icon,image/webp,image/ico" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Formats acceptés : PNG, JPG, GIF, ICO, WebP - Max 1 Mo - Format recommandé : PNG 32x32px ou ICO</p>
+                            <input type="file" name="favicon" accept="image/png,image/jpeg,image/gif,image/x-icon,image/webp,image/ico,image/svg+xml,.ico" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required="{{ !setting('site_favicon') ? 'false' : 'false' }}">
+                            <p class="text-xs text-gray-500 mt-1">Formats acceptés : PNG, JPG, GIF, ICO, WebP, SVG - Max 2 Mo - Format recommandé : PNG 32x32px ou ICO</p>
+                            @error('favicon')
+                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                             @php
                                 $currentFavicon = setting('site_favicon');
                                 $faviconDisplayUrl = null;
