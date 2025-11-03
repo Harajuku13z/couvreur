@@ -17,8 +17,12 @@ class GenerateCompleteSitemap extends Command
     {
         $this->info('🚀 Génération du sitemap complet en cours...');
         
-        // URL de production
-        $baseUrl = 'https://sausercouverture.fr';
+        // URL de base dynamique
+        $seoConfigData = Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        $configured = $seoConfig['site_url'] ?? null;
+        $appUrl = rtrim(config('app.url', ''), '/');
+        $baseUrl = rtrim($configured ?: ($appUrl ?: url('/')), '/');
         
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class SitemapService
 {
-    protected $baseUrl = 'https://sausercouverture.fr';
+    protected $baseUrl;
 
     /**
      * Générer le sitemap complet
@@ -19,6 +19,20 @@ class SitemapService
     {
         try {
             Log::info('🚀 Génération du sitemap en cours...');
+            // Déterminer dynamiquement l'URL de base
+            if (!$this->baseUrl) {
+                try {
+                    $seoConfigData = Setting::get('seo_config', '[]');
+                    $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+                    $configured = $seoConfig['site_url'] ?? null;
+                } catch (\Exception $e) {
+                    $configured = null;
+                }
+                $appUrl = rtrim(config('app.url', ''), '/');
+                $currentHost = url('/');
+                $chosen = $configured ?: ($appUrl ?: $currentHost);
+                $this->baseUrl = rtrim($chosen, '/');
+            }
             
             $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
