@@ -14,7 +14,10 @@ class ArticleController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate(12);
         
-        return view('articles.index', compact('articles'));
+        // Définir la page courante pour le SEO
+        $currentPage = 'blog';
+        
+        return view('articles.index', compact('articles', 'currentPage'));
     }
 
     public function show(Article $article)
@@ -24,12 +27,54 @@ class ArticleController extends Controller
             abort(404);
         }
 
+        // Préparer les métadonnées SEO
+        $pageTitle = $article->meta_title ?: $article->title;
+        $pageDescription = $article->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($article->content), 160);
+        $pageKeywords = $article->meta_keywords ?? '';
+        
+        // Image Open Graph
+        $pageImage = null;
+        if (!empty($article->featured_image)) {
+            $pageImage = asset($article->featured_image);
+        } else {
+            $defaultBlogImage = 'images/og-blog.jpg';
+            if (file_exists(public_path($defaultBlogImage))) {
+                $pageImage = asset($defaultBlogImage);
+            } else {
+                $companyLogo = setting('company_logo');
+                if ($companyLogo) {
+                    $pageImage = asset($companyLogo);
+                }
+            }
+        }
+        
+        $ogTitle = $article->og_title ?? $pageTitle;
+        $ogDescription = $article->og_description ?? $pageDescription;
+        $twitterTitle = $article->twitter_title ?? $ogTitle;
+        $twitterDescription = $article->twitter_description ?? $ogDescription;
+        
+        $currentPage = 'articles';
+        $pageType = 'article';
+
         // Récupérer les avis clients
         $reviews = Review::where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->limit(6)
             ->get();
 
-        return view('articles.show', compact('article', 'reviews'));
+        return view('articles.show', compact(
+            'article', 
+            'reviews', 
+            'pageTitle', 
+            'pageDescription', 
+            'pageKeywords', 
+            'pageImage', 
+            'ogTitle', 
+            'ogDescription', 
+            'twitterTitle', 
+            'twitterDescription', 
+            'currentPage', 
+            'pageType'
+        ));
     }
 }

@@ -28,7 +28,10 @@ class ServicesController extends Controller
             return is_array($service) && ($service['is_visible'] ?? true);
         });
         
-        return view('services.index', compact('services', 'visibleServices'));
+        // Définir la page courante pour le SEO
+        $currentPage = 'services';
+        
+        return view('services.index', compact('services', 'visibleServices', 'currentPage'));
     }
 
     /**

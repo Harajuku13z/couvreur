@@ -1,82 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nos Services - {{ setting('company_name', 'Votre Entreprise') }}</title>
-    <meta name="description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
-    
-    <!-- Open Graph pour les réseaux sociaux -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
-    <meta property="og:description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
-    <meta property="og:url" content="{{ request()->url() }}">
-    <meta property="og:image" content="{{ asset('images/og-services.jpg') }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
-    <meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+@extends('layouts.app')
 
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Nos Services - {{ setting('company_name', 'Sauser Couverture') }}">
-    <meta name="twitter:description" content="Découvrez tous nos services de {{ setting('company_specialization', 'travaux de rénovation') }}. Solutions complètes et professionnelles pour tous vos projets.">
-    <meta name="twitter:image" content="{{ asset('images/og-services.jpg') }}">
+@php
+    $currentPage = 'services';
+    $pageType = 'website';
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    // Récupérer les meta tags depuis SeoHelper
+    $seoData = \App\Helpers\SeoHelper::generateMetaTags('services', [
+        'title' => 'Nos Services',
+        'description' => 'Découvrez tous nos services de ' . setting('company_specialization', 'travaux de rénovation') . '. Solutions complètes et professionnelles pour tous vos projets.',
+        'image' => file_exists(public_path('images/og-services.jpg')) ? asset('images/og-services.jpg') : null,
+    ]);
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        :root {
-            --primary-color: {{ setting('primary_color', '#3b82f6') }};
-            --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-            --accent-color: {{ setting('accent_color', '#f59e0b') }};
-        }
-        
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .bg-secondary {
-            background-color: var(--secondary-color);
-        }
-        
-        .bg-accent {
-            background-color: var(--accent-color);
-        }
-        
-        .text-primary {
-            color: var(--primary-color);
-        }
-        
-        .text-secondary {
-            color: var(--secondary-color);
-        }
-        
-        .text-accent {
-            color: var(--accent-color);
-        }
-        
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-900">
-    @include('partials.header')
+    $pageTitle = $seoData['title'];
+    $pageDescription = $seoData['description'];
+    $pageImage = $seoData['og:image'];
+@endphp
+
+@section('content')
 
     <!-- Hero Section -->
     <section class="py-20 bg-primary">
@@ -172,17 +112,23 @@
         </div>
     </section>
 
-    @include('partials.footer')
-
     <style>
         .glass-effect {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
     </style>
-</body>
-</html>
+@endsection
 
 
 

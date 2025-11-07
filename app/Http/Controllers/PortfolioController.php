@@ -57,7 +57,23 @@ class PortfolioController extends Controller
         // Définir la page courante pour le SEO
         $currentPage = 'portfolio';
         
-        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes', 'seoMeta', 'currentPage'));
+        // Préparer les variables SEO pour le layout
+        $pageTitle = $seoMeta['meta_title'] ?? 'Nos Réalisations';
+        $pageDescription = $seoMeta['meta_description'] ?? 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet';
+        $pageImage = null;
+        
+        // Image par défaut pour le portfolio
+        $defaultPortfolioImage = 'images/og-realisations.jpg';
+        if (file_exists(public_path($defaultPortfolioImage))) {
+            $pageImage = asset($defaultPortfolioImage);
+        } else {
+            $companyLogo = setting('company_logo');
+            if ($companyLogo) {
+                $pageImage = asset($companyLogo);
+            }
+        }
+        
+        return view('portfolio.index', compact('visiblePortfolio', 'serviceTypes', 'seoMeta', 'currentPage', 'pageTitle', 'pageDescription', 'pageImage'));
     }
     
     /**
@@ -94,12 +110,56 @@ class PortfolioController extends Controller
             $portfolioItem = $this->generateMissingSEO($portfolioItem);
         }
         
+        // Préparer les métadonnées SEO pour le layout
+        $pageTitle = $portfolioItem['meta_title'] ?? $portfolioItem['title'] . ' - Nos Réalisations';
+        $pageDescription = $portfolioItem['meta_description'] ?? $portfolioItem['description'] ?? '';
+        $pageKeywords = $portfolioItem['meta_keywords'] ?? '';
+        
+        // Image Open Graph
+        $pageImage = null;
+        if (!empty($portfolioItem['og_image'])) {
+            $pageImage = asset($portfolioItem['og_image']);
+        } elseif (!empty($portfolioItem['images']) && is_array($portfolioItem['images']) && !empty($portfolioItem['images'][0])) {
+            $pageImage = asset($portfolioItem['images'][0]);
+        } else {
+            $defaultPortfolioImage = 'images/og-realisations.jpg';
+            if (file_exists(public_path($defaultPortfolioImage))) {
+                $pageImage = asset($defaultPortfolioImage);
+            } else {
+                $companyLogo = setting('company_logo');
+                if ($companyLogo) {
+                    $pageImage = asset($companyLogo);
+                }
+            }
+        }
+        
+        $ogTitle = $portfolioItem['og_title'] ?? $pageTitle;
+        $ogDescription = $portfolioItem['og_description'] ?? $pageDescription;
+        $twitterTitle = $portfolioItem['twitter_title'] ?? $ogTitle;
+        $twitterDescription = $portfolioItem['twitter_description'] ?? $ogDescription;
+        
+        $currentPage = 'portfolio';
+        $pageType = 'website';
+        
         // Récupérer d'autres réalisations pour la section "Autres projets"
         $otherItems = collect(array_filter($portfolioItems, function($item) use ($portfolioItem) {
             return isset($item['id']) && $item['id'] != $portfolioItem['id'] && (isset($item['is_visible']) ? $item['is_visible'] : true);
         }))->take(3);
         
-        return view('portfolio.show', compact('portfolioItem', 'otherItems'));
+        return view('portfolio.show', compact(
+            'portfolioItem', 
+            'otherItems', 
+            'pageTitle', 
+            'pageDescription', 
+            'pageKeywords', 
+            'pageImage', 
+            'ogTitle', 
+            'ogDescription', 
+            'twitterTitle', 
+            'twitterDescription', 
+            'currentPage', 
+            'pageType'
+        ));
     }
     
     /**

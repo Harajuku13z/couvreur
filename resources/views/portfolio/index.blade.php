@@ -1,12 +1,9 @@
 @extends('layouts.app')
 
-@section('title', !empty($seoMeta['meta_title']) ? $seoMeta['meta_title'] : 'Nos Réalisations - ' . setting('company_name', 'Votre Entreprise'))
-
 @php
-    // Passer les métadonnées personnalisées au layout principal
-    $pageTitle = !empty($seoMeta['meta_title']) ? $seoMeta['meta_title'] : 'Nos Réalisations';
-    $pageDescription = !empty($seoMeta['meta_description']) ? $seoMeta['meta_description'] : 'Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet';
-    $pageImage = !empty($seoMeta['og_image']) ? asset($seoMeta['og_image']) : '';
+    // Les variables SEO sont déjà passées par le contrôleur
+    // Le layout app.blade.php les gère automatiquement
+    $currentPage = $currentPage ?? 'portfolio';
 @endphp
 
 @push('head')

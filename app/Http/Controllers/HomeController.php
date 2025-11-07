@@ -122,6 +122,11 @@ class HomeController extends Controller
             'accent_color' => Setting::get('accent_color', '#f59e0b'),
         ];
         
+        // Préparer les variables SEO pour la page d'accueil
+        $pageTitle = null; // Sera géré par SeoHelper
+        $pageDescription = null; // Sera géré par SeoHelper
+        $pageImage = null; // Sera géré par SeoHelper
+        
         return view('home', compact(
             'homeConfig',
             'services',
@@ -131,7 +136,10 @@ class HomeController extends Controller
             'totalReviews',
             'companySettings',
             'branding',
-            'currentPage'
+            'currentPage',
+            'pageTitle',
+            'pageDescription',
+            'pageImage'
         ));
     }
     

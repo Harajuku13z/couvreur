@@ -9,14 +9,32 @@
         // Si des métadonnées spécifiques sont passées (pour les annonces, articles, etc.), les utiliser directement
         if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords) || isset($pageTitle)) {
             // Utiliser les métadonnées spécifiques pour les annonces et articles
-            $finalTitle = $pageTitle ?? '';
-            $finalDescription = $pageDescription ?? '';
-            $finalKeywords = $pageKeywords ?? '';
-            $finalOgTitle = $ogTitle ?? $finalTitle;
-            $finalOgDescription = $ogDescription ?? $finalDescription;
-            $finalTwitterTitle = $twitterTitle ?? $finalOgTitle ?? $finalTitle;
-            $finalTwitterDescription = $twitterDescription ?? $finalOgDescription ?? $finalDescription;
-            $finalImage = $pageImage ?? '';
+            $finalTitle = trim($pageTitle ?? '');
+            $finalDescription = trim($pageDescription ?? '');
+            $finalKeywords = trim($pageKeywords ?? '');
+            $finalOgTitle = trim($ogTitle ?? '') ?: $finalTitle;
+            $finalOgDescription = trim($ogDescription ?? '') ?: $finalDescription;
+            $finalTwitterTitle = trim($twitterTitle ?? '') ?: $finalOgTitle ?: $finalTitle;
+            $finalTwitterDescription = trim($twitterDescription ?? '') ?: $finalOgDescription ?: $finalDescription;
+            $finalImage = trim($pageImage ?? '');
+            
+            // Si des valeurs sont vides, utiliser SeoHelper comme fallback
+            if (empty($finalTitle) || empty($finalDescription) || empty($finalImage)) {
+                $seoData = \App\Helpers\SeoHelper::generateMetaTags($currentPage, [
+                    'title' => $finalTitle ?: ($pageTitle ?? ''),
+                    'description' => $finalDescription ?: ($pageDescription ?? ''),
+                    'image' => $finalImage ?: ($pageImage ?? ''),
+                    'type' => $pageType ?? 'website'
+                ]);
+                
+                $finalTitle = $finalTitle ?: $seoData['title'];
+                $finalDescription = $finalDescription ?: $seoData['description'];
+                $finalOgTitle = $finalOgTitle ?: $seoData['og:title'];
+                $finalOgDescription = $finalOgDescription ?: $seoData['og:description'];
+                $finalTwitterTitle = $finalTwitterTitle ?: $seoData['twitter:title'];
+                $finalTwitterDescription = $finalTwitterDescription ?: $seoData['twitter:description'];
+                $finalImage = $finalImage ?: $seoData['og:image'];
+            }
         } else {
             // Sinon, utiliser SeoHelper
             $seoData = \App\Helpers\SeoHelper::generateMetaTags($currentPage, [
@@ -35,13 +53,60 @@
             $finalImage = $seoData['og:image'];
         }
         
+        // Vérifier les sections @section('title') et @section('description') si elles existent
+        $sectionTitle = view()->yieldContent('title', '');
+        $sectionDescription = view()->yieldContent('description', '');
+        
+        // Si des sections existent, les utiliser en priorité
+        if (!empty($sectionTitle)) {
+            $finalTitle = trim($sectionTitle);
+        }
+        if (!empty($sectionDescription)) {
+            $finalDescription = trim($sectionDescription);
+        }
+        
+        // Validation finale - GARANTIR qu'aucune valeur n'est vide
+        $companyName = setting('company_name', 'Votre Entreprise');
+        $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+        
+        if (empty($finalTitle)) {
+            $finalTitle = $companyName . ' - ' . $companySpecialization;
+        }
+        if (empty($finalDescription)) {
+            $finalDescription = setting('company_description', 'Expert en ' . $companySpecialization . '. Devis gratuit, intervention rapide, qualité garantie.');
+        }
+        if (empty($finalOgTitle)) {
+            $finalOgTitle = $finalTitle;
+        }
+        if (empty($finalOgDescription)) {
+            $finalOgDescription = $finalDescription;
+        }
+        if (empty($finalTwitterTitle)) {
+            $finalTwitterTitle = $finalOgTitle;
+        }
+        if (empty($finalTwitterDescription)) {
+            $finalTwitterDescription = $finalOgDescription;
+        }
+        if (empty($finalImage)) {
+            $companyLogo = setting('company_logo');
+            $finalImage = $companyLogo ? url($companyLogo) : url('logo/logo.png');
+        }
+        
+        // Limiter la longueur pour respecter les standards SEO
+        $finalTitle = mb_substr($finalTitle, 0, 60);
+        $finalDescription = mb_substr($finalDescription, 0, 160);
+        $finalOgTitle = mb_substr($finalOgTitle, 0, 60);
+        $finalOgDescription = mb_substr($finalOgDescription, 0, 160);
+        $finalTwitterTitle = mb_substr($finalTwitterTitle, 0, 60);
+        $finalTwitterDescription = mb_substr($finalTwitterDescription, 0, 160);
+        
         // Récupérer la configuration SEO pour les tags de tracking
         $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
     @endphp
     
-    <title>{{ $finalTitle }}</title>
-    <meta name="description" content="{{ $finalDescription }}">
+    <title>{{ e($finalTitle) }}</title>
+    <meta name="description" content="{{ e($finalDescription) }}">
     @php
         $keywordsValue = $finalKeywords ?? '';
         if (empty($keywordsValue)) {
@@ -49,25 +114,37 @@
             $yieldKeywords = view()->yieldContent('keywords', '');
             $keywordsValue = !empty($yieldKeywords) ? $yieldKeywords : setting('meta_keywords', 'travaux, rénovation, toiture, façade');
         }
+        // S'assurer que les keywords ne sont jamais vides
+        if (empty($keywordsValue)) {
+            $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+            $keywordsValue = strtolower($companySpecialization) . ', travaux, rénovation, devis gratuit';
+        }
     @endphp
-    <meta name="keywords" content="{{ $keywordsValue }}">
+    <meta name="keywords" content="{{ e($keywordsValue) }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request()->url() }}">
+    
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{{ $finalOgTitle }}">
-    <meta property="og:description" content="{{ $finalOgDescription }}">
-    <meta property="og:image" content="{{ $finalImage }}">
+    <meta property="og:title" content="{{ e($finalOgTitle) }}">
+    <meta property="og:description" content="{{ e($finalOgDescription) }}">
+    <meta property="og:image" content="{{ e($finalImage) }}">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta property="og:type" content="{{ $pageType ?? 'website' }}">
-    <meta property="og:site_name" content="{{ setting('company_name', 'Sauser Couverture') }}">
+    <meta property="og:site_name" content="{{ e(setting('company_name', 'Votre Entreprise')) }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_FR">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $finalTwitterTitle }}">
-    <meta name="twitter:description" content="{{ $finalTwitterDescription }}">
-    <meta name="twitter:image" content="{{ $finalImage }}">
+    <meta name="twitter:title" content="{{ e($finalTwitterTitle) }}">
+    <meta name="twitter:description" content="{{ e($finalTwitterDescription) }}">
+    <meta name="twitter:image" content="{{ e($finalImage) }}">
+    @if(setting('twitter_site'))
+    <meta name="twitter:site" content="{{ e(setting('twitter_site')) }}">
+    @endif
     
     <!-- Favicon -->
     @php

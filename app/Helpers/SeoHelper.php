@@ -48,22 +48,40 @@ class SeoHelper
     }
     
     /**
-     * Générer les balises meta pour une page
+     * Générer les balises meta pour une page avec garantie de valeurs non vides
      */
     public static function generateMetaTags($pageName, $customData = [])
     {
         $seo = self::getPageSeo($pageName, $customData);
         
-        // Fallbacks par défaut
-        $defaultTitle = setting('company_name', 'Sauser Couverture') . ' - ' . setting('company_specialization', 'Expert en Couverture');
-        $defaultDescription = setting('company_description', 'Expert en travaux de couverture et rénovation. Devis gratuit, intervention rapide, qualité garantie.');
+        // Fallbacks par défaut robustes
+        $companyName = setting('company_name', 'Votre Entreprise');
+        $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+        $companyDescription = setting('company_description', '');
+        $companyCity = setting('company_city', '');
+        $companyRegion = setting('company_region', '');
+        
+        // Construire le titre par défaut selon le type de page
+        $defaultTitle = self::getDefaultTitleForPage($pageName, $companyName, $companySpecialization, $companyCity);
+        
+        // Construire la description par défaut
+        $defaultDescription = self::getDefaultDescriptionForPage($pageName, $companyDescription, $companySpecialization, $companyCity, $companyRegion);
+        
         $defaultImage = self::getDefaultImage();
         
-        // Titre final
-        $finalTitle = $seo['meta_title'] ?: $customData['title'] ?: $defaultTitle;
+        // Titre final - GARANTIR qu'il n'est jamais vide
+        $finalTitle = trim($seo['meta_title'] ?? '') 
+                   ?: trim($customData['title'] ?? '') 
+                   ?: $defaultTitle;
         
-        // Description finale
-        $finalDescription = $seo['meta_description'] ?: $customData['description'] ?: $defaultDescription;
+        // Description finale - GARANTIR qu'elle n'est jamais vide
+        $finalDescription = trim($seo['meta_description'] ?? '') 
+                         ?: trim($customData['description'] ?? '') 
+                         ?: $defaultDescription;
+        
+        // Limiter la longueur pour respecter les standards SEO
+        $finalTitle = mb_substr($finalTitle, 0, 60);
+        $finalDescription = mb_substr($finalDescription, 0, 160);
         
         // Image finale (logique selon le type de page)
         if (self::shouldUseDefaultImage($pageName, $customData['image'] ?? null)) {
@@ -77,20 +95,95 @@ class SeoHelper
                          $defaultImage;
         }
         
+        // GARANTIR que l'image n'est jamais vide
+        if (empty($finalImage)) {
+            $finalImage = $defaultImage;
+        }
+        
+        // URL canonique
+        $canonicalUrl = request()->url();
+        
         $meta = [
             'title' => $finalTitle,
             'description' => $finalDescription,
-            'og:title' => $seo['og_title'] ?: $finalTitle,
-            'og:description' => $seo['og_description'] ?: $finalDescription,
+            'og:title' => trim($seo['og_title'] ?? '') ?: $finalTitle,
+            'og:description' => trim($seo['og_description'] ?? '') ?: $finalDescription,
             'og:image' => $finalImage,
-            'og:url' => request()->url(),
+            'og:url' => $canonicalUrl,
             'og:type' => $customData['type'] ?? 'website',
-            'twitter:title' => $seo['twitter_title'] ?: $seo['og_title'] ?: $finalTitle,
-            'twitter:description' => $seo['twitter_description'] ?: $seo['og_description'] ?: $finalDescription,
+            'og:site_name' => $companyName,
+            'twitter:title' => trim($seo['twitter_title'] ?? '') ?: trim($seo['og_title'] ?? '') ?: $finalTitle,
+            'twitter:description' => trim($seo['twitter_description'] ?? '') ?: trim($seo['og_description'] ?? '') ?: $finalDescription,
             'twitter:image' => $finalImage,
+            'canonical' => $canonicalUrl,
         ];
         
+        // Validation finale - s'assurer qu'aucune valeur n'est vide
+        $meta['title'] = $meta['title'] ?: $defaultTitle;
+        $meta['description'] = $meta['description'] ?: $defaultDescription;
+        $meta['og:title'] = $meta['og:title'] ?: $meta['title'];
+        $meta['og:description'] = $meta['og:description'] ?: $meta['description'];
+        $meta['twitter:title'] = $meta['twitter:title'] ?: $meta['og:title'];
+        $meta['twitter:description'] = $meta['twitter:description'] ?: $meta['og:description'];
+        $meta['og:image'] = $meta['og:image'] ?: $defaultImage;
+        $meta['twitter:image'] = $meta['twitter:image'] ?: $defaultImage;
+        
         return $meta;
+    }
+    
+    /**
+     * Obtenir le titre par défaut selon le type de page
+     */
+    private static function getDefaultTitleForPage($pageName, $companyName, $companySpecialization, $companyCity = '')
+    {
+        $titles = [
+            'home' => $companyName . ' - ' . $companySpecialization,
+            'services' => 'Nos Services - ' . $companyName,
+            'blog' => 'Blog - ' . $companyName,
+            'articles' => 'Blog - ' . $companyName,
+            'portfolio' => 'Nos Réalisations - ' . $companyName,
+            'ads' => 'Nos Services par Ville - ' . $companyName,
+            'reviews' => 'Avis Clients - ' . $companyName,
+            'contact' => 'Contact - ' . $companyName,
+            'about' => 'À Propos - ' . $companyName,
+        ];
+        
+        $title = $titles[$pageName] ?? ($companyName . ' - ' . $companySpecialization);
+        
+        if (!empty($companyCity)) {
+            $title .= ' à ' . $companyCity;
+        }
+        
+        return $title;
+    }
+    
+    /**
+     * Obtenir la description par défaut selon le type de page
+     */
+    private static function getDefaultDescriptionForPage($pageName, $companyDescription, $companySpecialization, $companyCity = '', $companyRegion = '')
+    {
+        $location = '';
+        if (!empty($companyCity) && !empty($companyRegion)) {
+            $location = ' à ' . $companyCity . ', ' . $companyRegion;
+        } elseif (!empty($companyCity)) {
+            $location = ' à ' . $companyCity;
+        } elseif (!empty($companyRegion)) {
+            $location = ' en ' . $companyRegion;
+        }
+        
+        $descriptions = [
+            'home' => $companyDescription ?: ('Expert en ' . $companySpecialization . $location . '. Devis gratuit, intervention rapide, qualité garantie.'),
+            'services' => 'Découvrez tous nos services de ' . $companySpecialization . $location . '. Solutions complètes et professionnelles pour tous vos projets.',
+            'blog' => 'Découvrez nos articles et conseils sur la rénovation et les travaux' . $location . '. Guides pratiques et actualités.',
+            'articles' => 'Découvrez nos articles et conseils sur la rénovation et les travaux' . $location . '. Guides pratiques et actualités.',
+            'portfolio' => 'Découvrez quelques-unes de nos réalisations récentes' . $location . '. Laissez-vous inspirer pour votre prochain projet.',
+            'ads' => 'Découvrez nos services par ville' . $location . '. Solutions professionnelles de couverture et rénovation dans toute la région.',
+            'reviews' => 'Découvrez les avis de nos clients satisfaits' . $location . '. Témoignages et retours d\'expérience sur nos services.',
+            'contact' => 'Contactez-nous pour un devis gratuit' . $location . '. Intervention rapide, qualité garantie.',
+            'about' => 'Découvrez notre entreprise spécialisée en ' . $companySpecialization . $location . '. Expertise et professionnalisme à votre service.',
+        ];
+        
+        return $descriptions[$pageName] ?? ($companyDescription ?: ('Expert en ' . $companySpecialization . $location . '. Devis gratuit, intervention rapide, qualité garantie.'));
     }
     
     /**
@@ -153,11 +246,25 @@ class SeoHelper
     {
         // Priorité: logo de l'entreprise > logo par défaut
         $companyLogo = setting('company_logo');
-        if ($companyLogo) {
+        if ($companyLogo && file_exists(public_path($companyLogo))) {
             return url($companyLogo);
         }
         
-        // Fallback: logo par défaut
+        // Vérifier si le logo existe dans différents emplacements
+        $possibleLogos = [
+            'logo/logo.png',
+            'logo.png',
+            'images/logo.png',
+            'uploads/logo.png',
+        ];
+        
+        foreach ($possibleLogos as $logoPath) {
+            if (file_exists(public_path($logoPath))) {
+                return url($logoPath);
+            }
+        }
+        
+        // Fallback: utiliser une image par défaut ou générer une URL
         return url('logo/logo.png');
     }
     
@@ -187,9 +294,13 @@ class SeoHelper
     {
         $defaultImages = [
             'home' => 'images/og-accueil.jpg',
+            'services' => 'images/og-services.jpg',
             'portfolio' => 'images/og-realisations.jpg',
             'blog' => 'images/og-blog.jpg',
+            'articles' => 'images/og-blog.jpg',
+            'ads' => 'images/og-services.jpg',
             'reviews' => 'images/og-avis-clients.jpg',
+            'contact' => 'images/og-accueil.jpg',
             'about' => 'images/og-accueil.jpg',
         ];
         

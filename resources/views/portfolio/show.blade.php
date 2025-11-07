@@ -1,23 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $portfolioItem['meta_title'] ?? $portfolioItem['title'] . ' - Nos Réalisations')
-
-@section('description', $portfolioItem['meta_description'] ?? $portfolioItem['description'])
-
-@section('keywords', $portfolioItem['meta_keywords'] ?? '')
+@php
+    // Les variables SEO sont déjà passées par le contrôleur
+    // Le layout app.blade.php les gère automatiquement
+@endphp
 
 @push('head')
-<!-- Open Graph pour les réseaux sociaux -->
-<meta property="og:type" content="article">
-<meta property="og:title" content="{{ $portfolioItem['og_title'] ?? $portfolioItem['meta_title'] ?? $portfolioItem['title'] }}">
-<meta property="og:description" content="{{ $portfolioItem['og_description'] ?? $portfolioItem['meta_description'] ?? $portfolioItem['description'] }}">
-<meta property="og:url" content="{{ request()->url() }}">
-@if($portfolioItem['og_image'] ?? !empty($portfolioItem['images']))
-<meta property="og:image" content="{{ url($portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-@endif
-<meta property="og:site_name" content="{{ setting('company_name', 'Votre Entreprise') }}">
 
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image">

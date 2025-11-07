@@ -15,7 +15,10 @@ class AdPublicController extends Controller
             ->orderByRaw('COALESCE(published_at, created_at) DESC')
             ->paginate(12);
         
-        return view('ads.index', compact('ads'));
+        // Définir la page courante pour le SEO
+        $currentPage = 'ads';
+        
+        return view('ads.index', compact('ads', 'currentPage'));
     }
 
     public function show(string $slug)

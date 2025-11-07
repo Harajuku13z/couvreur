@@ -1,6 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Blog et Astuces')
+@php
+    // Définir les variables pour le SEO centralisé
+    $currentPage = $currentPage ?? 'blog';
+    $pageType = 'website';
+    
+    // Récupérer les meta tags depuis SeoHelper
+    $seoData = \App\Helpers\SeoHelper::generateMetaTags('blog', [
+        'title' => 'Blog et Astuces',
+        'description' => 'Découvrez nos articles et conseils d\'experts en rénovation et couverture',
+        'image' => file_exists(public_path('images/og-blog.jpg')) ? asset('images/og-blog.jpg') : null,
+    ]);
+    
+    $pageTitle = $seoData['title'];
+    $pageDescription = $seoData['description'];
+    $pageImage = $seoData['og:image'];
+@endphp
 
 @push('head')
 <style>
@@ -12,15 +27,6 @@
     }
 </style>
 @endpush
-
-@php
-    // Définir les variables pour le SEO centralisé
-    $currentPage = 'blog';
-    $pageTitle = 'Blog et Astuces - ' . setting('company_name');
-    $pageDescription = 'Découvrez nos articles et conseils d\'experts en rénovation et couverture';
-    $pageImage = 'images/og-blog.jpg';
-    $pageType = 'website';
-@endphp
 
 @section('head')
 <!-- SEO Meta Tags -->
