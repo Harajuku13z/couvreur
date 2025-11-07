@@ -364,35 +364,51 @@
             csrfToken: '{{ csrf_token() }}'
         };
         
-        function trackPhoneCall(phoneNumber = null) {
-            // Éviter les appels multiples
-            if (window.trackingInProgress) return;
-            window.trackingInProgress = true;
-            
+        // Système de tracking amélioré avec queue et retry
+        window.phoneCallTrackingQueue = window.phoneCallTrackingQueue || [];
+        window.phoneCallTrackingInProgress = window.phoneCallTrackingInProgress || false;
+        
+        function trackPhoneCall(phoneNumber = null, sourcePage = null) {
             const phone = phoneNumber || '{{ setting("company_phone_raw") }}';
+            const page = sourcePage || window.location.pathname;
             
             const payload = {
-                source_page: window.location.pathname,
+                source_page: page,
                 phone_number: phone,
                 referrer_url: document.referrer || window.location.href
             };
             
-            // Utiliser sendBeacon en priorité pour garantir l'envoi même si la page se ferme
+            // Ajouter à la queue si un envoi est en cours
+            if (window.phoneCallTrackingInProgress) {
+                window.phoneCallTrackingQueue.push(payload);
+                return;
+            }
+            
+            // Envoyer immédiatement
+            sendPhoneCallTracking(payload);
+        }
+        
+        function sendPhoneCallTracking(payload) {
+            window.phoneCallTrackingInProgress = true;
             const data = JSON.stringify(payload);
             
-            // Utiliser sendBeacon d'abord (plus fiable pour les liens tel:)
+            // Méthode 1: sendBeacon (le plus fiable pour les liens tel:)
             if (navigator.sendBeacon) {
-                const formData = new FormData();
-                formData.append('data', data);
-                const sent = navigator.sendBeacon('/api/track-phone-call', formData);
-                if (sent) {
-                    console.log('✅ Tracking envoyé via sendBeacon');
-                    window.trackingInProgress = false;
-                    return;
+                try {
+                    const formData = new FormData();
+                    formData.append('data', data);
+                    const sent = navigator.sendBeacon('/api/track-phone-call', formData);
+                    if (sent) {
+                        console.log('✅ Tracking envoyé via sendBeacon');
+                        processQueue();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('sendBeacon failed, trying fetch:', e);
                 }
             }
             
-            // Fallback sur fetch avec keepalive
+            // Méthode 2: fetch avec keepalive
             fetch('/api/track-phone-call', {
                 method: 'POST',
                 headers: {
@@ -402,20 +418,48 @@
                 body: data,
                 keepalive: true
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    console.log('✅ Appel téléphonique tracké avec succès (ID: ' + (data.id || 'N/A') + ')');
+                    console.log('✅ Appel tracké (ID: ' + (data.id || 'N/A') + ')');
                 } else {
                     console.error('❌ Erreur tracking:', data.error);
                 }
             })
             .catch(err => {
                 console.error('❌ Erreur tracking:', err);
+                // Retry avec XMLHttpRequest en dernier recours
+                retryWithXHR(payload);
             })
             .finally(() => {
-                window.trackingInProgress = false;
+                processQueue();
             });
+        }
+        
+        function retryWithXHR(payload) {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/track-phone-call', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('X-CSRF-TOKEN', window.Laravel.csrfToken);
+                xhr.send(JSON.stringify(payload));
+                console.log('🔄 Retry avec XMLHttpRequest');
+            } catch (e) {
+                console.error('❌ Toutes les méthodes ont échoué:', e);
+            }
+        }
+        
+        function processQueue() {
+            window.phoneCallTrackingInProgress = false;
+            if (window.phoneCallTrackingQueue.length > 0) {
+                const nextPayload = window.phoneCallTrackingQueue.shift();
+                sendPhoneCallTracking(nextPayload);
+            }
         }
 
         // Fonction pour attacher le tracking à un lien
@@ -427,25 +471,32 @@
             
             // Extraire le numéro du href
             const phoneNumber = link.getAttribute('href')?.replace('tel:', '') || '';
+            const sourcePage = window.location.pathname;
             
             if (!phoneNumber) {
                 return;
             }
             
-            // Pour mobile (touchstart se déclenche avant click)
-            link.addEventListener('touchstart', function(e) {
-                trackPhoneCall(phoneNumber);
-            }, { passive: true });
+            // Fonction de tracking avec le numéro et la page
+            const trackThisLink = function() {
+                trackPhoneCall(phoneNumber, sourcePage);
+            };
             
-            // Pour desktop (mousedown se déclenche avant click)
-            link.addEventListener('mousedown', function(e) {
-                trackPhoneCall(phoneNumber);
+            // Pour mobile (touchstart se déclenche AVANT click - le plus important)
+            link.addEventListener('touchstart', trackThisLink, { 
+                passive: true,
+                capture: true 
             });
             
-            // Aussi sur le clic en fallback (capture phase)
-            link.addEventListener('click', function(e) {
-                trackPhoneCall(phoneNumber);
-            }, true);
+            // Pour desktop (mousedown se déclenche AVANT click)
+            link.addEventListener('mousedown', trackThisLink, {
+                capture: true
+            });
+            
+            // Aussi sur le clic en fallback (capture phase - très tôt)
+            link.addEventListener('click', trackThisLink, {
+                capture: true
+            });
             
             // Marquer comme attaché
             link.dataset.trackingAttached = 'true';
@@ -453,35 +504,49 @@
         
         // Attacher le tracking à tous les liens existants
         function attachTrackingToAllLinks() {
-            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+            const links = document.querySelectorAll('a[href^="tel:"]');
+            console.log('📞 Trouvé ' + links.length + ' lien(s) téléphone à tracker');
+            links.forEach(link => {
                 attachPhoneTracking(link);
             });
         }
         
         // Attacher le tracking au chargement de la page
-        document.addEventListener('DOMContentLoaded', function() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachTrackingToAllLinks);
+        } else {
+            // Déjà chargé
             attachTrackingToAllLinks();
-        });
+        }
         
         // Observer les changements du DOM pour capturer les liens ajoutés dynamiquement
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(function(mutations) {
+                let foundNewLinks = false;
                 mutations.forEach(function(mutation) {
                     mutation.addedNodes.forEach(function(node) {
                         if (node.nodeType === 1) { // Element node
                             // Vérifier si c'est un lien tel:
                             if (node.tagName === 'A' && node.getAttribute('href')?.startsWith('tel:')) {
                                 attachPhoneTracking(node);
+                                foundNewLinks = true;
                             }
                             // Vérifier les enfants
                             if (node.querySelectorAll) {
-                                node.querySelectorAll('a[href^="tel:"]').forEach(link => {
-                                    attachPhoneTracking(link);
-                                });
+                                const childLinks = node.querySelectorAll('a[href^="tel:"]');
+                                if (childLinks.length > 0) {
+                                    childLinks.forEach(link => {
+                                        attachPhoneTracking(link);
+                                    });
+                                    foundNewLinks = true;
+                                }
                             }
                         }
                     });
                 });
+                if (foundNewLinks) {
+                    console.log('📞 Nouveaux liens téléphone détectés et trackés');
+                }
             });
             
             // Observer les changements dans le body
@@ -491,10 +556,18 @@
             });
         }
         
-        // Attacher aussi après un court délai pour capturer les liens chargés après DOMContentLoaded
+        // Attacher aussi après des délais pour capturer les liens chargés après DOMContentLoaded
+        setTimeout(attachTrackingToAllLinks, 100);
         setTimeout(attachTrackingToAllLinks, 500);
         setTimeout(attachTrackingToAllLinks, 1000);
         setTimeout(attachTrackingToAllLinks, 2000);
+        
+        // Attacher aussi quand la page devient visible (pour les pages chargées en arrière-plan)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                setTimeout(attachTrackingToAllLinks, 100);
+            }
+        });
     </script>
     
     @yield('scripts')

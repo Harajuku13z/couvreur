@@ -188,92 +188,24 @@ class FormControllerSimple extends Controller
     public function trackPhoneCall(Request $request)
     {
         try {
-            $sessionId = Session::getId();
-            $submission = Submission::where('session_id', $sessionId)->first();
-
-            // Capturer l'IP et la géolocalisation
-            $ipAddress = $this->getClientIp($request);
+            $trackingService = new \App\Services\PhoneCallTrackingService();
+            $result = $trackingService->track($request);
             
-            // Récupérer les données (support GET avec query params ET POST avec JSON body ET FormData)
-            $referrerUrl = $request->input('referrer_url') 
-                        ?? $request->query('referrer_url')
-                        ?? $request->header('referer') 
-                        ?? null;
-            
-            $sourcePage = $request->input('source_page') 
-                       ?? $request->query('source_page')
-                       ?? null;
-            
-            $phoneNumber = $request->input('phone_number') 
-                        ?? $request->query('phone_number')
-                        ?? setting('company_phone_raw') 
-                        ?? setting('company_phone');
-            
-            // Nettoyer le numéro (supprimer les caractères non numériques sauf +)
-            $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
-            
-            // Si le numéro commence par +33, le convertir en format local pour l'affichage
-            if (strpos($phoneNumber, '+33') === 0) {
-                $phoneNumberDisplay = '0' . substr($phoneNumber, 3);
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true, 
+                    'id' => $result['id']
+                ]);
             } else {
-                $phoneNumberDisplay = $phoneNumber;
+                return response()->json([
+                    'success' => false, 
+                    'error' => $result['error'] ?? 'Erreur inconnue'
+                ], 500);
             }
-            
-            // Si les données viennent de sendBeacon (FormData), parser le JSON
-            if ($request->has('data')) {
-                $data = json_decode($request->input('data'), true);
-                if (is_array($data)) {
-                    $referrerUrl = $data['referrer_url'] ?? $referrerUrl;
-                    $sourcePage = $data['source_page'] ?? $sourcePage;
-                    $phoneNumber = $data['phone_number'] ?? $phoneNumber;
-                }
-            }
-            
-            // Géolocalisation
-            $geoService = new IpGeolocationService();
-            $location = $geoService->getLocationFromIp($ipAddress);
-            
-            // Déterminer la page source (priorité: paramètre, referer, URL actuelle)
-            if (empty($sourcePage)) {
-                // Si pas de source_page fournie, utiliser le referer ou l'URL actuelle
-                $sourcePage = $referrerUrl ? parse_url($referrerUrl, PHP_URL_PATH) : parse_url(request()->url(), PHP_URL_PATH);
-                // Nettoyer le chemin (enlever le slash initial)
-                $sourcePage = ltrim($sourcePage, '/');
-                if (empty($sourcePage)) {
-                    $sourcePage = 'home';
-                }
-            }
-
-            $phoneCall = PhoneCall::create([
-                'submission_id' => $submission ? $submission->id : null,
-                'session_id' => $sessionId,
-                'phone_number' => $phoneNumberDisplay, // Stocker le format local pour l'affichage
-                'source_page' => $sourcePage,
-                'ip_address' => $ipAddress,
-                'user_agent' => $request->userAgent(),
-                'city' => $location['city'],
-                'country' => $location['country'],
-                'country_code' => $location['country_code'],
-                'referrer_url' => $referrerUrl,
-                'clicked_at' => now(),
-            ]);
-
-            \Log::info('✅ Appel téléphonique tracké avec succès', [
-                'id' => $phoneCall->id,
-                'phone' => $phoneNumber,
-                'source_page' => $sourcePage,
-                'ip' => $ipAddress,
-                'city' => $location['city'],
-                'country' => $location['country']
-            ]);
-
-            return response()->json(['success' => true, 'id' => $phoneCall->id]);
         } catch (\Exception $e) {
             \Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
-                'request_method' => $request->method(),
-                'request_headers' => $request->headers->all()
+                'request_data' => $request->all()
             ]);
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
