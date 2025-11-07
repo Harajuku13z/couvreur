@@ -323,6 +323,9 @@ Route::middleware(['check.setup'])->group(function () {
         Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
         Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
         Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+        Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
+        Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
+        Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
     });
     
     // Routes publiques SEO

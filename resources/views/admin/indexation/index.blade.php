@@ -151,6 +151,130 @@
             </div>
         </div>
 
+        <!-- Google Search Console API -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">🔐 Google Search Console API</h2>
+            <p class="text-sm text-gray-600 mb-4">Configurez l'API Google Search Console pour indexer automatiquement vos pages</p>
+            
+            <div class="mb-4">
+                <label for="site_url" class="block text-sm font-medium mb-2">URL du site</label>
+                <input type="url" id="site_url" name="site_url" 
+                       value="{{ setting('site_url', request()->getSchemeAndHttpHost()) }}"
+                       placeholder="https://votre-site.com"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">URL de base de votre site (sans slash final)</p>
+            </div>
+            
+            <div class="mb-4">
+                <label for="google_search_console_credentials" class="block text-sm font-medium mb-2">
+                    Credentials JSON Google Search Console
+                </label>
+                <textarea id="google_search_console_credentials" name="google_search_console_credentials" 
+                          rows="10"
+                          placeholder='{"type": "service_account", "project_id": "...", ...}'
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs">{{ !empty($googleCredentialsArray) ? json_encode($googleCredentialsArray, JSON_PRETTY_PRINT) : '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">Collez ici le JSON de votre compte de service Google</p>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button type="button" onclick="testGoogleConnection()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-plug mr-2"></i>Tester la connexion
+                </button>
+                @if($isGoogleConfigured)
+                <span class="text-sm text-green-600">
+                    <i class="fas fa-check-circle mr-1"></i>API configurée
+                </span>
+                @else
+                <span class="text-sm text-gray-500">
+                    <i class="fas fa-exclamation-circle mr-1"></i>API non configurée
+                </span>
+                @endif
+            </div>
+        </div>
+
+        <!-- Sitemaps générés -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">📋 Sitemaps générés</h2>
+            <p class="text-sm text-gray-600 mb-4">Liste de tous les sitemaps créés</p>
+            
+            @if(!empty($sitemapInfo))
+            <div class="space-y-2">
+                @foreach($sitemapInfo as $sitemap)
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium">{{ $sitemap['filename'] }}</p>
+                        <p class="text-sm text-gray-600">
+                            {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
+                            Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
+                        </p>
+                    </div>
+                    <a href="{{ $sitemap['url'] }}" target="_blank" 
+                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-external-link-alt mr-2"></i>Voir
+                    </a>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <p class="text-sm text-gray-500">Aucun sitemap généré pour le moment</p>
+            @endif
+        </div>
+
+        <!-- Liste des URLs -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold">🔗 Toutes les URLs du sitemap</h2>
+                    <p class="text-sm text-gray-600">Liste complète des URLs indexées dans vos sitemaps</p>
+                </div>
+                <button type="button" onclick="loadUrls()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Charger les URLs
+                </button>
+            </div>
+            
+            <div id="urls-container" class="hidden">
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <span id="urls-total" class="text-sm font-medium text-gray-700"></span>
+                        <span id="urls-info" class="text-sm text-gray-500 ml-2"></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="previousPage()" id="prev-btn" 
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="page-info" class="text-sm text-gray-700"></span>
+                        <button type="button" onclick="nextPage()" id="next-btn" 
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <button type="button" onclick="indexSelectedUrls()" id="index-btn" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-spider mr-2"></i>Indexer les URLs sélectionnées via Google
+                    </button>
+                    <button type="button" onclick="selectAllUrls()" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition ml-2">
+                        <i class="fas fa-check-square mr-2"></i>Tout sélectionner
+                    </button>
+                </div>
+                
+                <div id="urls-list" class="space-y-2 max-h-96 overflow-y-auto">
+                    <!-- URLs chargées dynamiquement -->
+                </div>
+            </div>
+            
+            <div id="urls-loading" class="hidden text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-500">Chargement des URLs...</p>
+            </div>
+        </div>
+
         <!-- Robots.txt -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">🤖 Robots.txt</h2>
@@ -290,6 +414,185 @@ function showNotification(message, type) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+// Variables pour la pagination des URLs
+let currentPage = 1;
+let totalUrls = 0;
+let lastPage = 1;
+let allUrls = [];
+
+function loadUrls(page = 1) {
+    const container = document.getElementById('urls-container');
+    const loading = document.getElementById('urls-loading');
+    
+    container.classList.add('hidden');
+    loading.classList.remove('hidden');
+    
+    fetch(`{{ route('admin.indexation.urls') }}?page=${page}&per_page=100`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allUrls = data.urls;
+                totalUrls = data.total;
+                currentPage = data.page;
+                lastPage = data.last_page;
+                
+                displayUrls();
+                updatePagination();
+                
+                container.classList.remove('hidden');
+            } else {
+                showNotification('Erreur lors du chargement des URLs: ' + (data.message || 'Erreur inconnue'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors du chargement des URLs', 'error');
+        })
+        .finally(() => {
+            loading.classList.add('hidden');
+        });
+}
+
+function displayUrls() {
+    const container = document.getElementById('urls-list');
+    const totalSpan = document.getElementById('urls-total');
+    const infoSpan = document.getElementById('urls-info');
+    
+    totalSpan.textContent = `${totalUrls} URLs au total`;
+    infoSpan.textContent = `Page ${currentPage} sur ${lastPage}`;
+    
+    container.innerHTML = '';
+    
+    allUrls.forEach((urlData, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
+        div.innerHTML = `
+            <div class="flex items-center flex-1">
+                <input type="checkbox" class="url-checkbox mr-3" value="${urlData.url}" data-url="${urlData.url}">
+                <div class="flex-1">
+                    <a href="${urlData.url}" target="_blank" class="text-blue-600 hover:underline font-medium">
+                        ${urlData.url}
+                    </a>
+                    <div class="text-xs text-gray-500 mt-1">
+                        ${urlData.sitemap} | ${urlData.priority || 'N/A'} | ${urlData.changefreq || 'N/A'}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function updatePagination() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pageInfo = document.getElementById('page-info');
+    
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === lastPage;
+    
+    pageInfo.textContent = `${currentPage} / ${lastPage}`;
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        loadUrls(currentPage - 1);
+    }
+}
+
+function nextPage() {
+    if (currentPage < lastPage) {
+        loadUrls(currentPage + 1);
+    }
+}
+
+function selectAllUrls() {
+    const checkboxes = document.querySelectorAll('.url-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+}
+
+function indexSelectedUrls() {
+    const selectedUrls = Array.from(document.querySelectorAll('.url-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (selectedUrls.length === 0) {
+        showNotification('Veuillez sélectionner au moins une URL', 'error');
+        return;
+    }
+    
+    const button = document.getElementById('index-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Indexation en cours...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.index-urls") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ urls: selectedUrls })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                `Indexation terminée: ${data.success_count} réussies, ${data.failed_count} échouées`,
+                data.failed_count === 0 ? 'success' : 'error'
+            );
+        } else {
+            showNotification('Erreur lors de l\'indexation: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'indexation', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function testGoogleConnection() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.test-google") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Connexion réussie ! ' + (data.message || ''), 'success');
+        } else {
+            showNotification('Erreur de connexion: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors du test de connexion', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
 }
 </script>
 @endpush

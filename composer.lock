@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e24adf7b74551497b392aa3e3405fec0",
+    "content-hash": "fb285818f9f624d4ec3963aeb37f84be",
     "packages": [
         {
             "name": "adnanhussainturki/google-my-business-php",
