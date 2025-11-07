@@ -404,5 +404,121 @@ class IndexationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Envoyer les URLs d'un sitemap spécifique à Google (par batch de 200)
+     */
+    public function submitSitemapToGoogle(Request $request)
+    {
+        try {
+            $request->validate([
+                'filename' => 'required|string'
+            ]);
+
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
+                ], 400);
+            }
+            
+            $filename = $request->input('filename');
+            $sitemapFile = public_path($filename);
+            
+            if (!file_exists($sitemapFile)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le fichier sitemap '{$filename}' n'existe pas."
+                ], 404);
+            }
+            
+            // Lire le sitemap
+            $xml = file_get_contents($sitemapFile);
+            $xml = simplexml_load_string($xml);
+            
+            if (!$xml || !isset($xml->url)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le sitemap '{$filename}' est vide ou invalide."
+                ], 400);
+            }
+            
+            // Extraire les URLs
+            $sitemapUrls = [];
+            foreach ($xml->url as $url) {
+                $sitemapUrls[] = (string)$url->loc;
+            }
+            
+            if (empty($sitemapUrls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Aucune URL trouvée dans le sitemap '{$filename}'."
+                ], 400);
+            }
+            
+            // Taille des batches (200 URLs par batch)
+            $batchSize = 200;
+            $batches = array_chunk($sitemapUrls, $batchSize);
+            $totalSuccess = 0;
+            $totalFailed = 0;
+            
+            \Log::info("Traitement du sitemap {$filename}: " . count($sitemapUrls) . " URLs en " . count($batches) . " batch(s)");
+            
+            // Traiter chaque batch
+            foreach ($batches as $batchIndex => $batch) {
+                \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
+                
+                // Envoyer le batch à Google
+                $batchResult = $googleService->indexUrls($batch, $batchSize);
+                
+                $totalSuccess += $batchResult['success'];
+                $totalFailed += $batchResult['failed'];
+                
+                // Pause entre les batches pour éviter les limites de rate
+                if ($batchIndex < count($batches) - 1) {
+                    sleep(2); // 2 secondes entre chaque batch
+                }
+            }
+            
+            // Sauvegarder l'historique
+            $history = Setting::get('google_indexing_history', '[]');
+            $history = is_string($history) ? json_decode($history, true) : ($history ?? []);
+            
+            $history[] = [
+                'date' => now()->toDateTimeString(),
+                'total' => count($sitemapUrls),
+                'success' => $totalSuccess,
+                'failed' => $totalFailed,
+                'sitemap' => $filename,
+                'timestamp' => time()
+            ];
+            
+            // Garder seulement les 50 derniers envois
+            $history = array_slice($history, -50);
+            
+            Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
+            
+            \Log::info("Indexation sitemap {$filename} terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur " . count($sitemapUrls) . " URLs");
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Sitemap '{$filename}': {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
+                'total' => count($sitemapUrls),
+                'success_count' => $totalSuccess,
+                'failed_count' => $totalFailed,
+                'sitemap' => $filename,
+                'date' => now()->toDateTimeString()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi sitemap à Google: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

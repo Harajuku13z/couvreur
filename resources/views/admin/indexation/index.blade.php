@@ -243,17 +243,27 @@
             <div class="space-y-2">
                 @foreach($sitemapInfo as $sitemap)
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
+                    <div class="flex-1">
                         <p class="font-medium">{{ $sitemap['filename'] }}</p>
                         <p class="text-sm text-gray-600">
                             {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
                             Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
                         </p>
                     </div>
-                    <a href="{{ $sitemap['url'] }}" target="_blank" 
-                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                        <i class="fas fa-external-link-alt mr-2"></i>Voir
-                    </a>
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ $sitemap['url'] }}" target="_blank" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-external-link-alt mr-2"></i>Voir
+                        </a>
+                        @if($isGoogleConfigured)
+                        <button type="button" 
+                                onclick="submitSitemapToGoogle('{{ $sitemap['filename'] }}')" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                                id="submit-sitemap-{{ $loop->index }}">
+                            <i class="fas fa-paper-plane mr-2"></i>Envoyer les liens à Google
+                        </button>
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -680,6 +690,75 @@ function submitAllUrlsToGoogle() {
         button.innerHTML = originalText;
         button.disabled = false;
         button.classList.remove('opacity-75');
+    });
+}
+
+function submitSitemapToGoogle(filename) {
+    if (!confirm(`Êtes-vous sûr de vouloir envoyer toutes les URLs du sitemap "${filename}" à Google ? Cette opération peut prendre plusieurs minutes.`)) {
+        return;
+    }
+    
+    // Trouver le bouton correspondant
+    const buttons = document.querySelectorAll('[id^="submit-sitemap-"]');
+    let button = null;
+    buttons.forEach(btn => {
+        if (btn.onclick && btn.onclick.toString().includes(filename)) {
+            button = btn;
+        }
+    });
+    
+    if (!button) {
+        // Fallback: trouver par le texte
+        buttons.forEach(btn => {
+            if (btn.textContent.includes('Envoyer les liens')) {
+                button = btn;
+            }
+        });
+    }
+    
+    const originalText = button ? button.innerHTML : '';
+    
+    if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
+        button.disabled = true;
+        button.classList.add('opacity-75');
+    }
+    
+    fetch('{{ route("admin.indexation.submit-sitemap-to-google") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ filename: filename })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                `✅ Sitemap "${filename}": ${data.success_count} URLs envoyées avec succès${data.failed_count > 0 ? `, ${data.failed_count} échouées` : ''}`,
+                data.failed_count === 0 ? 'success' : 'error'
+            );
+            
+            // Recharger la page après 2 secondes pour voir l'historique mis à jour
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('Erreur lors de l\'envoi: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'envoi du sitemap à Google', 'error');
+    })
+    .finally(() => {
+        if (button) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('opacity-75');
+        }
     });
 }
 </script>
