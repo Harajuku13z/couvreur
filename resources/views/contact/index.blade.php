@@ -302,24 +302,6 @@
             </h2>
             
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <!-- Lien vers Google Maps -->
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                    <div class="flex items-center">
-                        <i class="fas fa-map-marker-alt text-primary mr-3 text-xl"></i>
-                        <div>
-                            <p class="font-semibold text-gray-800">{{ $fullAddress }}</p>
-                            <p class="text-sm text-gray-600">Cliquez pour ouvrir dans Google Maps</p>
-                        </div>
-                    </div>
-                    <a href="{{ $mapsUrl }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-semibold">
-                        <i class="fas fa-external-link-alt mr-2"></i>
-                        Ouvrir dans Maps
-                    </a>
-                </div>
-                
                 <!-- Carte Google Maps intégrée -->
                 <div class="w-full" style="height: 450px;">
                     <iframe 
@@ -329,7 +311,7 @@
                         loading="lazy" 
                         allowfullscreen
                         referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.google.com/maps/embed/v1/place?key={{ setting('google_maps_api_key', '') }}&q={{ urlencode($fullAddress) }}">
+                        src="https://www.google.com/maps?q={{ urlencode($fullAddress) }}&output=embed">
                     </iframe>
                 </div>
             </div>
