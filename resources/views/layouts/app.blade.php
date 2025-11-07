@@ -71,22 +71,74 @@
     
     <!-- Favicon -->
     @php
-        $faviconPath = setting('site_favicon');
         $faviconUrl = null;
+        $faviconPathForVersion = null;
         
-        if ($faviconPath && file_exists(public_path($faviconPath))) {
-            $faviconUrl = asset($faviconPath);
-        } else {
-            // Fallback: chercher un favicon dans le dossier public
+        // Récupérer la config SEO pour vérifier aussi le favicon
+        $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        
+        // Vérifier d'abord dans site_favicon (ConfigController)
+        $faviconPath = setting('site_favicon');
+        if ($faviconPath) {
+            // Si le chemin commence par uploads/, c'est un chemin relatif depuis public
+            if (strpos($faviconPath, 'uploads/') === 0 || strpos($faviconPath, '/') === 0) {
+                $fullPath = public_path($faviconPath);
+            } else {
+                // Sinon, c'est directement dans public/
+                $fullPath = public_path($faviconPath);
+            }
+            
+            if (file_exists($fullPath)) {
+                $faviconUrl = asset($faviconPath);
+                $faviconPathForVersion = $faviconPath;
+            }
+        }
+        
+        // Si pas trouvé, vérifier dans seo_config (SeoController)
+        if (!$faviconUrl && !empty($seoConfig['favicon'])) {
+            $seoFaviconPath = $seoConfig['favicon'];
+            $fullPath = public_path($seoFaviconPath);
+            
+            if (file_exists($fullPath)) {
+                $faviconUrl = asset($seoFaviconPath);
+                $faviconPathForVersion = $seoFaviconPath;
+            }
+        }
+        
+        // Fallback: chercher un favicon dans le dossier public
+        if (!$faviconUrl) {
             $faviconFiles = glob(public_path('favicon*'));
             if (!empty($faviconFiles)) {
                 $faviconUrl = asset(basename($faviconFiles[0]));
+                $faviconPathForVersion = basename($faviconFiles[0]);
+            }
+        }
+        
+        // Déterminer le type MIME et générer un cache-busting basé sur la date de modification
+        $faviconType = 'image/x-icon';
+        $faviconVersion = '';
+        if ($faviconUrl && $faviconPathForVersion) {
+            $extension = strtolower(pathinfo(parse_url($faviconUrl, PHP_URL_PATH), PATHINFO_EXTENSION));
+            if ($extension === 'png') {
+                $faviconType = 'image/png';
+            } elseif ($extension === 'jpg' || $extension === 'jpeg') {
+                $faviconType = 'image/jpeg';
+            } elseif ($extension === 'svg') {
+                $faviconType = 'image/svg+xml';
+            }
+            
+            // Générer un version basé sur la date de modification du fichier pour le cache-busting
+            $fullPathForVersion = public_path($faviconPathForVersion);
+            if (file_exists($fullPathForVersion)) {
+                $faviconVersion = '?v=' . filemtime($fullPathForVersion);
             }
         }
     @endphp
     
     @if($faviconUrl)
-    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     @endif
     
     <!-- Apple Touch Icon -->
