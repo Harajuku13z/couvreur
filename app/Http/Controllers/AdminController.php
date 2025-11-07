@@ -317,6 +317,52 @@ class AdminController extends Controller
             ->with('error', 'Cette soumission ne peut pas être marquée comme abandonnée.');
     }
 
+    /**
+     * Supprimer toutes les soumissions (avec vérification du mot de passe)
+     */
+    public function deleteAllSubmissions(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        // Vérifier le mot de passe
+        $correctPassword = 'elizo';
+        
+        if ($request->password !== $correctPassword) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mot de passe incorrect.'
+            ], 403);
+        }
+
+        try {
+            // Compter avant suppression pour le message
+            $count = Submission::count();
+            
+            // Supprimer toutes les soumissions
+            Submission::query()->delete();
+            
+            \Log::warning('Toutes les soumissions ont été supprimées', [
+                'count' => $count,
+                'admin' => session()->get('admin_username', 'unknown'),
+                'ip' => $request->ip(),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Toutes les soumissions ({$count}) ont été supprimées avec succès."
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression de toutes les soumissions: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function showAbandonedSubmission($id)
     {
         $abandonedSubmission = Submission::abandoned()->findOrFail($id);

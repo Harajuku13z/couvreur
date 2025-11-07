@@ -164,6 +164,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::middleware(['admin.auth'])->group(function () {
             Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
+            Route::post('/submissions/delete-all', [AdminController::class, 'deleteAllSubmissions'])->name('submissions.delete-all');
             Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
             Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
             Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');

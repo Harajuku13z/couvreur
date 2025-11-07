@@ -71,6 +71,12 @@
                     <i class="fas fa-download mr-2"></i>
                     Exporter
                 </a>
+                
+                <button onclick="showDeleteAllModal()" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    Supprimer tout
+                </button>
             </div>
         </div>
     </div>
@@ -170,4 +176,114 @@
         {{ $submissions->links() }}
     </div>
 </div>
+
+<!-- Modal Supprimer tout -->
+<div id="deleteAllModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Supprimer toutes les soumissions
+                </h3>
+                <button onclick="hideDeleteAllModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-4">
+                    Cette action est <strong>irréversible</strong>. Toutes les soumissions seront définitivement supprimées.
+                </p>
+                <p class="text-sm font-semibold text-red-600 mb-2">
+                    Nombre de soumissions à supprimer : <span id="deleteCount">{{ $submissions->total() }}</span>
+                </p>
+            </div>
+            
+            <form id="deleteAllForm" method="POST" action="{{ route('admin.submissions.delete-all') }}">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Mot de passe requis
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           id="deletePassword" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500" 
+                           placeholder="Entrez le mot de passe"
+                           required
+                           autocomplete="off">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Mot de passe requis pour confirmer cette action
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="hideDeleteAllModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Supprimer tout
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function showDeleteAllModal() {
+    document.getElementById('deleteAllModal').classList.remove('hidden');
+    document.getElementById('deletePassword').focus();
+}
+
+function hideDeleteAllModal() {
+    document.getElementById('deleteAllModal').classList.add('hidden');
+    document.getElementById('deleteAllForm').reset();
+}
+
+// Gestion de la soumission du formulaire
+document.getElementById('deleteAllForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('deletePassword').value;
+    const form = this;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Suppression...';
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ ' + (data.message || 'Erreur lors de la suppression'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('❌ Erreur lors de la suppression');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+</script>
+@endpush
 @endsection
