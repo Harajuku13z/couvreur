@@ -321,6 +321,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/update-page', [App\Http\Controllers\SeoController::class, 'updatePage'])->name('update-page');
         Route::post('/generate-ai', [App\Http\Controllers\SeoController::class, 'generateSeoWithAI'])->name('generate-ai');
         Route::get('/test-seo', [App\Http\Controllers\SeoController::class, 'testSeo'])->name('test');
+        Route::post('/validate', [App\Http\Controllers\SeoController::class, 'validateSeoForGoogle'])->name('validate');
     });
 
     Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {

@@ -205,6 +205,144 @@
 
 @push('scripts')
 <script>
+function validateSeoForGoogle() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validation en cours...';
+    button.disabled = true;
+    
+    const resultsDiv = document.getElementById('validationResults');
+    resultsDiv.classList.remove('hidden');
+    resultsDiv.innerHTML = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><i class="fas fa-spinner fa-spin mr-2"></i>Validation en cours...</div>';
+    
+    fetch('{{ route("admin.seo.validate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            url: window.location.origin
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayValidationResults(data.validation, data.recommendations);
+        } else {
+            resultsDiv.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">Erreur: ' + (data.error || 'Erreur inconnue') + '</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        resultsDiv.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">Erreur lors de la validation</div>';
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function displayValidationResults(validation, recommendations) {
+    const resultsDiv = document.getElementById('validationResults');
+    let html = '<div class="bg-white rounded-lg shadow p-6">';
+    html += '<h3 class="text-lg font-semibold mb-4"><i class="fas fa-search mr-2"></i>Résultats de validation Google</h3>';
+    
+    // Favicon
+    html += '<div class="mb-4 p-4 border rounded-lg ' + (validation.favicon.valid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200') + '">';
+    html += '<h4 class="font-semibold mb-2">📌 Favicon</h4>';
+    html += '<p class="text-sm mb-2">' + (validation.favicon.valid ? '<span class="text-green-600">✅ Valide</span>' : '<span class="text-red-600">❌ Non conforme</span>') + '</p>';
+    
+    if (validation.favicon.errors && validation.favicon.errors.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-red-700 mb-2">';
+        validation.favicon.errors.forEach(error => {
+            html += '<li>' + error + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.favicon.warnings && validation.favicon.warnings.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-yellow-700 mb-2">';
+        validation.favicon.warnings.forEach(warning => {
+            html += '<li>⚠️ ' + warning + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.favicon.info && validation.favicon.info.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-green-700 mb-2">';
+        validation.favicon.info.forEach(info => {
+            html += '<li>' + info + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.favicon.favicon_url) {
+        html += '<p class="text-xs text-gray-600 mt-2">URL: <a href="' + validation.favicon.favicon_url + '" target="_blank" class="text-blue-600 underline">' + validation.favicon.favicon_url + '</a></p>';
+    }
+    html += '</div>';
+    
+    // Image OG
+    html += '<div class="mb-4 p-4 border rounded-lg ' + (validation.og_image.valid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200') + '">';
+    html += '<h4 class="font-semibold mb-2">🖼️ Image Open Graph</h4>';
+    html += '<p class="text-sm mb-2">' + (validation.og_image.valid ? '<span class="text-green-600">✅ Valide</span>' : '<span class="text-red-600">❌ Non conforme</span>') + '</p>';
+    
+    if (validation.og_image.errors && validation.og_image.errors.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-red-700 mb-2">';
+        validation.og_image.errors.forEach(error => {
+            html += '<li>' + error + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.og_image.warnings && validation.og_image.warnings.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-yellow-700 mb-2">';
+        validation.og_image.warnings.forEach(warning => {
+            html += '<li>⚠️ ' + warning + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.og_image.info && validation.og_image.info.length > 0) {
+        html += '<ul class="list-disc list-inside text-sm text-green-700 mb-2">';
+        validation.og_image.info.forEach(info => {
+            html += '<li>' + info + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    if (validation.og_image.image_url) {
+        html += '<p class="text-xs text-gray-600 mt-2">URL: <a href="' + validation.og_image.image_url + '" target="_blank" class="text-blue-600 underline">' + validation.og_image.image_url + '</a></p>';
+        html += '<img src="' + validation.og_image.image_url + '" alt="Image OG" class="mt-2 max-w-xs rounded border">';
+    }
+    html += '</div>';
+    
+    // Recommandations
+    if (recommendations && recommendations.length > 0) {
+        html += '<div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">';
+        html += '<h4 class="font-semibold mb-2">💡 Recommandations</h4>';
+        html += '<ul class="list-disc list-inside text-sm">';
+        recommendations.forEach(rec => {
+            html += '<li class="mb-1"><strong>' + rec.title + ':</strong> ' + rec.message + '</li>';
+        });
+        html += '</ul>';
+        html += '</div>';
+    }
+    
+    html += '<div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">';
+    html += '<p class="font-semibold mb-2">🔗 Outils de test Google:</p>';
+    html += '<ul class="list-disc list-inside space-y-1">';
+    html += '<li><a href="https://search.google.com/test/mobile-friendly" target="_blank" class="text-blue-600 underline">Mobile-Friendly Test</a> - Vérifier le favicon</li>';
+    html += '<li><a href="https://search.google.com/test/rich-results" target="_blank" class="text-blue-600 underline">Rich Results Test</a> - Vérifier les données structurées</li>';
+    html += '<li><a href="https://realfavicongenerator.net/favicon_checker" target="_blank" class="text-blue-600 underline">Favicon Checker</a> - Vérifier le favicon</li>';
+    html += '</ul>';
+    html += '</div>';
+    
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
+
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
         const button = event.target;
