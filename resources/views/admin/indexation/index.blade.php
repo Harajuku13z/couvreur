@@ -250,6 +250,76 @@
                 @endif
             </div>
             @endif
+
+            <!-- Indexation quotidienne automatique -->
+            <div class="border-t pt-4 mt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-md font-semibold text-gray-800">🔄 Indexation Quotidienne Automatique</h3>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Indexe automatiquement 200 URLs par jour pour respecter le quota Google (200/jour)
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            @if($dailyIndexingEnabled)
+                                <span class="text-green-600">✅ Activée</span> - 
+                            @else
+                                <span class="text-gray-500">⏸️ Désactivée</span> - 
+                            @endif
+                            {{ $indexedCount }} URLs déjà indexées sur {{ $totalUrlsInSitemap }} total
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" 
+                                onclick="toggleDailyIndexing({{ $dailyIndexingEnabled ? 'false' : 'true' }})" 
+                                id="toggle-daily-btn"
+                                class="bg-{{ $dailyIndexingEnabled ? 'yellow' : 'green' }}-600 hover:bg-{{ $dailyIndexingEnabled ? 'yellow' : 'green' }}-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-{{ $dailyIndexingEnabled ? 'pause' : 'play' }} mr-2"></i>
+                            {{ $dailyIndexingEnabled ? 'Désactiver' : 'Activer' }}
+                        </button>
+                        <button type="button" 
+                                onclick="runDailyIndexing()" 
+                                id="run-daily-btn"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-play-circle mr-2"></i>Exécuter maintenant
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                @if(!empty($dailyStats))
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">📊 Statistiques des 7 derniers jours</h4>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                        @foreach(array_reverse(array_slice($dailyStats, -7, 7, true)) as $date => $stat)
+                        <div class="flex items-center justify-between text-xs bg-white p-2 rounded">
+                            <div>
+                                <span class="font-medium">{{ date('d/m/Y', strtotime($date)) }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-green-600 font-medium">{{ $stat['success'] ?? 0 }} réussies</span>
+                                @if(($stat['failed'] ?? 0) > 0)
+                                <span class="text-red-600 font-medium">{{ $stat['failed'] ?? 0 }} échouées</span>
+                                @endif
+                                <span class="text-gray-500">({{ $stat['total'] ?? 0 }} traitées)</span>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Actions -->
+                <div class="mt-4 flex items-center space-x-2">
+                    <button type="button" 
+                            onclick="resetIndexedUrls()" 
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-redo mr-2"></i>Réinitialiser la liste
+                    </button>
+                    <p class="text-xs text-gray-500">
+                        💡 La tâche s'exécute automatiquement chaque jour à 2h du matin si activée
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- Sitemaps générés -->
@@ -802,6 +872,117 @@ function submitSitemapToGoogle(filename) {
             button.disabled = false;
             button.classList.remove('opacity-75');
         }
+    });
+}
+
+function toggleDailyIndexing(enabled) {
+    if (!confirm(enabled ? 'Activer l\'indexation quotidienne automatique ?' : 'Désactiver l\'indexation quotidienne automatique ?')) {
+        return;
+    }
+    
+    const button = document.getElementById('toggle-daily-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Chargement...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.toggle-daily-indexing") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ enabled: enabled })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la modification', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function runDailyIndexing() {
+    if (!confirm('Exécuter l\'indexation quotidienne maintenant ? (200 URLs maximum)')) {
+        return;
+    }
+    
+    const button = document.getElementById('run-daily-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Exécution...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.run-daily-indexing") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Indexation quotidienne exécutée avec succès !', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'exécution', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function resetIndexedUrls() {
+    if (!confirm('⚠️ Êtes-vous sûr de vouloir réinitialiser la liste des URLs indexées ?\n\nCela permettra de réindexer toutes les URLs depuis le début.')) {
+        return;
+    }
+    
+    fetch('{{ route("admin.indexation.reset-indexed-urls") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Liste des URLs indexées réinitialisée', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la réinitialisation', 'error');
     });
 }
 </script>

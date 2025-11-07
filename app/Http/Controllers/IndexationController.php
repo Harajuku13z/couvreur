@@ -38,6 +38,18 @@ class IndexationController extends Controller
             $googleCredentialsArray = is_string($googleCredentials) ? json_decode($googleCredentials, true) : $googleCredentials;
         }
         
+        // Récupérer l'état de l'indexation quotidienne
+        $dailyIndexingEnabled = Setting::get('daily_indexing_enabled', false);
+        
+        // Récupérer les statistiques d'indexation quotidienne
+        $dailyStats = Setting::get('daily_indexing_stats', '[]');
+        $dailyStats = is_string($dailyStats) ? json_decode($dailyStats, true) : ($dailyStats ?? []);
+        
+        // Récupérer les URLs déjà indexées
+        $indexedUrls = Setting::get('indexed_urls', '[]');
+        $indexedUrls = is_string($indexedUrls) ? json_decode($indexedUrls, true) : ($indexedUrls ?? []);
+        $indexedCount = is_array($indexedUrls) ? count($indexedUrls) : 0;
+        
         // Récupérer les informations sur les sitemaps
         $sitemapService = new SitemapService();
         $sitemapFiles = glob(public_path('sitemap*.xml'));
@@ -78,7 +90,10 @@ class IndexationController extends Controller
             'sitemapInfo', 
             'isGoogleConfigured',
             'submissionHistory',
-            'totalUrlsInSitemap'
+            'totalUrlsInSitemap',
+            'dailyIndexingEnabled',
+            'dailyStats',
+            'indexedCount'
         ));
     }
 
@@ -523,6 +538,78 @@ class IndexationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Activer/désactiver l'indexation quotidienne
+     */
+    public function toggleDailyIndexing(Request $request)
+    {
+        try {
+            $enabled = $request->boolean('enabled', false);
+            Setting::set('daily_indexing_enabled', $enabled, 'boolean', 'seo');
+            Setting::clearCache();
+            
+            return response()->json([
+                'success' => true,
+                'message' => $enabled ? 'Indexation quotidienne activée' : 'Indexation quotidienne désactivée',
+                'enabled' => $enabled
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur toggle indexation quotidienne: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Réinitialiser la liste des URLs indexées
+     */
+    public function resetIndexedUrls(Request $request)
+    {
+        try {
+            Setting::set('indexed_urls', json_encode([]), 'json', 'seo');
+            Setting::clearCache();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste des URLs indexées réinitialisée'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur réinitialisation URLs indexées: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Exécuter manuellement l'indexation quotidienne
+     */
+    public function runDailyIndexing(Request $request)
+    {
+        try {
+            \Artisan::call('index:urls-daily');
+            $output = \Artisan::output();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Indexation quotidienne exécutée',
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur exécution indexation quotidienne: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
             ], 500);
         }
     }

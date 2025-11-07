@@ -13,3 +13,13 @@ Schedule::command('submissions:mark-abandoned')
     ->hourly() // Exécuter toutes les heures
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->runInBackground(); // Exécuter en arrière-plan
+
+// Indexation quotidienne de 200 URLs via Google Indexing API
+Schedule::command('index:urls-daily')
+    ->dailyAt('02:00') // Exécuter chaque jour à 2h du matin
+    ->withoutOverlapping() // Éviter les exécutions simultanées
+    ->runInBackground() // Exécuter en arrière-plan
+    ->when(function () {
+        // Vérifier si l'indexation quotidienne est activée
+        return \App\Models\Setting::get('daily_indexing_enabled', false);
+    });
