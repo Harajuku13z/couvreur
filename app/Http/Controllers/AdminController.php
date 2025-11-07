@@ -362,6 +362,52 @@ class AdminController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Supprimer tous les appels téléphoniques (avec vérification du mot de passe)
+     */
+    public function deleteAllPhoneCalls(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        // Vérifier le mot de passe
+        $correctPassword = 'elizo';
+        
+        if ($request->password !== $correctPassword) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mot de passe incorrect.'
+            ], 403);
+        }
+
+        try {
+            // Compter avant suppression pour le message
+            $count = PhoneCall::count();
+            
+            // Supprimer tous les appels
+            PhoneCall::query()->delete();
+            
+            \Log::warning('Tous les appels téléphoniques ont été supprimés', [
+                'count' => $count,
+                'admin' => session()->get('admin_username', 'unknown'),
+                'ip' => $request->ip(),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Tous les appels téléphoniques ({$count}) ont été supprimés avec succès."
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression de tous les appels: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function showAbandonedSubmission($id)
     {

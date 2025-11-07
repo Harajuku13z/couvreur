@@ -205,6 +205,13 @@
     function attachPhoneTracking(link) {
         // Vérifier si le tracking est déjà attaché
         if (link.dataset.trackingAttached === 'true') {
+            console.log('⚠️ Tracking déjà attaché à ce lien, ignoré');
+            return;
+        }
+        
+        // Pour le bouton fixe, vérifier aussi par ID
+        if (link.id === 'floatingCallBtn' && link.dataset.trackingAttached === 'true') {
+            console.log('⚠️ Bouton fixe déjà tracké, ignoré');
             return;
         }
         
