@@ -35,6 +35,57 @@ class AdTemplateController extends Controller
     }
 
     /**
+     * Générer tous les liens de tous les templates
+     */
+    public function generateAllLinks()
+    {
+        try {
+            $baseUrl = setting('site_url', config('app.url'));
+            if (!str_starts_with($baseUrl, 'http')) {
+                $baseUrl = 'https://' . $baseUrl;
+            }
+            $baseUrl = rtrim($baseUrl, '/');
+            
+            // Récupérer tous les templates avec leurs annonces
+            $templates = AdTemplate::with(['ads' => function($query) {
+                $query->where('status', 'published')
+                      ->with('city');
+            }])->get();
+            
+            $allLinks = [];
+            
+            foreach ($templates as $template) {
+                foreach ($template->ads as $ad) {
+                    if ($ad->slug) {
+                        $url = $baseUrl . '/annonces/' . $ad->slug;
+                        $allLinks[] = [
+                            'url' => $url,
+                            'template_name' => $template->name,
+                            'template_id' => $template->id,
+                            'ad_id' => $ad->id,
+                            'city' => $ad->city ? $ad->city->name : null,
+                            'slug' => $ad->slug,
+                        ];
+                    }
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'links' => $allLinks,
+                'total' => count($allLinks),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur génération liens templates: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération des liens: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Afficher un template spécifique
      */
     public function show(AdTemplate $template)

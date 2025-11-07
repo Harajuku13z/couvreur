@@ -226,6 +226,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::get('/ads/templates/{template}/edit', [App\Http\Controllers\Admin\AdTemplateController::class, 'edit'])->name('ads.templates.edit');
         Route::put('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'update'])->name('ads.templates.update');
         Route::post('/ads/templates/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('ads.templates.generate-ads');
+        Route::get('/ads/templates/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks'])->name('ads.templates.generate-all-links');
         Route::post('/ads/templates/{template}/toggle-status', [App\Http\Controllers\Admin\AdTemplateController::class, 'toggleStatus'])->name('ads.templates.toggle-status');
         Route::delete('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'destroy'])->name('ads.templates.destroy');
 

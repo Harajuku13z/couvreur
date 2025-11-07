@@ -10,6 +10,10 @@
             <p class="text-gray-600 mt-2">Gérez les templates pour créer des annonces personnalisées via IA</p>
         </div>
         <div class="flex space-x-4">
+            <button onclick="generateAllLinks()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-link"></i>
+                <span>Générer tous les liens</span>
+            </button>
             <a href="{{ route('admin.ads.templates.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
                 <i class="fas fa-plus"></i>
                 <span>Créer un Template</span>
@@ -274,6 +278,29 @@
             
             <div id="citySelectionContainer">
                 <!-- Le contenu sera chargé dynamiquement -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tous les liens -->
+<div id="allLinksModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh]">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-link mr-2 text-purple-600"></i>Tous les liens des templates
+                </h3>
+                <button onclick="hideAllLinksModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="allLinksContainer" class="max-h-[70vh] overflow-y-auto">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-500">Génération des liens en cours...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -587,5 +614,142 @@ function hideCreateTemplateModal() {
 }
 
 // Les formulaires de création via IA ont été supprimés - utiliser la création manuelle
+
+// Fonction pour générer tous les liens
+function generateAllLinks() {
+    document.getElementById('allLinksModal').classList.remove('hidden');
+    
+    fetch('{{ route("admin.ads.templates.generate-all-links") }}', {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayAllLinks(data.links);
+        } else {
+            document.getElementById('allLinksContainer').innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-red-800">Erreur: ${data.message || 'Erreur inconnue'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        document.getElementById('allLinksContainer').innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-800">Erreur lors de la génération des liens</p>
+            </div>
+        `;
+    });
+}
+
+function displayAllLinks(links) {
+    const container = document.getElementById('allLinksContainer');
+    
+    if (!links || links.length === 0) {
+        container.innerHTML = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                <p class="text-yellow-800">Aucun lien trouvé. Créez d'abord des annonces à partir des templates.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Grouper par template
+    const groupedByTemplate = {};
+    links.forEach(link => {
+        const templateName = link.template_name || 'Sans template';
+        if (!groupedByTemplate[templateName]) {
+            groupedByTemplate[templateName] = [];
+        }
+        groupedByTemplate[templateName].push(link);
+    });
+    
+    let html = `
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600">
+                    <strong>${links.length}</strong> lien(s) généré(s) pour <strong>${Object.keys(groupedByTemplate).length}</strong> template(s)
+                </p>
+            </div>
+            <button onclick="copyAllLinks()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-copy mr-2"></i>Copier tous les liens
+            </button>
+        </div>
+    `;
+    
+    // Afficher par template
+    Object.keys(groupedByTemplate).forEach(templateName => {
+        const templateLinks = groupedByTemplate[templateName];
+        html += `
+            <div class="mb-6 border border-gray-200 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-file-alt text-purple-600 mr-2"></i>
+                    ${templateName}
+                    <span class="ml-2 text-sm font-normal text-gray-500">(${templateLinks.length} lien(s))</span>
+                </h4>
+                <div class="space-y-2 max-h-60 overflow-y-auto">
+        `;
+        
+        templateLinks.forEach(link => {
+            html += `
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100">
+                    <div class="flex-1">
+                        <a href="${link.url}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm break-all">
+                            ${link.url}
+                        </a>
+                        ${link.city ? `<p class="text-xs text-gray-500 mt-1">${link.city}</p>` : ''}
+                    </div>
+                    <button onclick="copyLink('${link.url}')" class="ml-4 text-gray-400 hover:text-gray-600" title="Copier le lien">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    // Zone de texte pour copier tous les liens
+    const allLinksText = links.map(l => l.url).join('\n');
+    html += `
+        <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tous les liens (un par ligne)</label>
+            <textarea id="allLinksTextarea" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono" rows="10">${allLinksText}</textarea>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function hideAllLinksModal() {
+    document.getElementById('allLinksModal').classList.add('hidden');
+}
+
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        alert('Lien copié !');
+    }).catch(function(err) {
+        console.error('Erreur copie:', err);
+        alert('Erreur lors de la copie');
+    });
+}
+
+function copyAllLinks() {
+    const textarea = document.getElementById('allLinksTextarea');
+    if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('Tous les liens ont été copiés !');
+    }
+}
 </script>
 @endpush
