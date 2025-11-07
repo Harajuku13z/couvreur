@@ -156,6 +156,7 @@ class ConfigController extends Controller
             'company_email' => 'required|email|max:255',
             'company_address' => 'nullable|string',
             'company_city' => 'nullable|string|max:100',
+            'google_maps_api_key' => 'nullable|string|max:255',
             'company_postal_code' => 'nullable|string|max:10',
             'company_country' => 'nullable|string|max:100',
             'company_siret' => 'nullable|string|max:20',

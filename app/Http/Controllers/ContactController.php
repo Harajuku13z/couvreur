@@ -61,9 +61,28 @@ class ContactController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
+            'callback_time' => 'nullable|string|max:50',
+            'service_interest' => 'nullable|string|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:2000',
+            'recaptcha_token' => 'nullable|string',
         ]);
+
+        // Vérifier reCAPTCHA si activé
+        if (setting('recaptcha_site_key') && setting('recaptcha_secret_key')) {
+            $recaptchaToken = $request->input('recaptcha_token');
+            if (empty($recaptchaToken)) {
+                return back()->with('error', 'Vérification anti-robot requise. Veuillez réessayer.')->withInput();
+            }
+            
+            $recaptchaSecret = setting('recaptcha_secret_key');
+            $recaptchaResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaToken}");
+            $recaptchaData = json_decode($recaptchaResponse, true);
+            
+            if (!isset($recaptchaData['success']) || !$recaptchaData['success']) {
+                return back()->with('error', 'Vérification anti-robot échouée. Veuillez réessayer.')->withInput();
+            }
+        }
 
         try {
             // Envoyer l'email
@@ -71,7 +90,18 @@ class ContactController extends Controller
             $companyName = Setting::get('company_name', 'Votre Entreprise');
             
             if ($companyEmail) {
-                Mail::send([], [], function($message) use ($validated, $companyEmail, $companyName) {
+                $callbackTimeLabels = [
+                    'matin' => 'Matin (9h - 12h)',
+                    'apres-midi' => 'Après-midi (14h - 17h)',
+                    'soir' => 'Soir (17h - 19h)',
+                    'flexible' => 'Flexible'
+                ];
+                
+                $callbackTimeText = isset($validated['callback_time']) && isset($callbackTimeLabels[$validated['callback_time']]) 
+                    ? $callbackTimeLabels[$validated['callback_time']] 
+                    : 'Non spécifié';
+                
+                Mail::send([], [], function($message) use ($validated, $companyEmail, $companyName, $callbackTimeText) {
                     $message->to($companyEmail)
                             ->subject('Nouveau message de contact : ' . $validated['subject'])
                             ->from($validated['email'], $validated['name'])
@@ -81,6 +111,8 @@ class ContactController extends Controller
                                 <p><strong>Nom :</strong> {$validated['name']}</p>
                                 <p><strong>Email :</strong> {$validated['email']}</p>
                                 " . ($validated['phone'] ? "<p><strong>Téléphone :</strong> {$validated['phone']}</p>" : "") . "
+                                " . (isset($validated['callback_time']) && $validated['callback_time'] ? "<p><strong>Quand rappeler :</strong> {$callbackTimeText}</p>" : "") . "
+                                " . (isset($validated['service_interest']) && $validated['service_interest'] ? "<p><strong>Service intéressé :</strong> {$validated['service_interest']}</p>" : "") . "
                                 <p><strong>Sujet :</strong> {$validated['subject']}</p>
                                 <p><strong>Message :</strong></p>
                                 <p>" . nl2br(e($validated['message'])) . "</p>

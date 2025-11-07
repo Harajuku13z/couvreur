@@ -5,17 +5,61 @@
 
 @php
     $pageType = 'website';
+    $contactHeroImage = setting('contact_hero_image');
 @endphp
+
+@push('head')
+<style>
+    .contact-hero {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        min-height: 400px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    @if($contactHeroImage)
+    .contact-hero {
+        background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset($contactHeroImage) }}');
+        background-size: cover;
+        background-position: center;
+    }
+    @endif
+    
+    .contact-card {
+        transition: all 0.3s ease;
+    }
+    
+    .contact-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+</style>
+@endpush
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4">Contactez-nous</h1>
-            <p class="text-xl md:text-2xl max-w-2xl mx-auto">
-                Une question ? Un projet ? Notre équipe est à votre écoute
+    <section class="contact-hero text-white py-20">
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">Contactez-nous</h1>
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto mb-8">
+                Une question ? Un projet ? Notre équipe est à votre écoute pour vous accompagner
             </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ route('form.step', 'propertyType') }}" 
+                   class="bg-white text-primary px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-calculator mr-2"></i>
+                    Demander un devis gratuit
+                </a>
+                <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
+                   class="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
+                    <i class="fas fa-phone mr-2"></i>
+                    {{ $companySettings['phone'] }}
+                </a>
+            </div>
         </div>
     </section>
 
@@ -36,7 +80,7 @@
     @endif
 
     <div class="container mx-auto px-4 py-16">
-        <div class="grid md:grid-cols-2 gap-12">
+        <div class="grid md:grid-cols-2 gap-12 mb-16">
             <!-- Informations de contact -->
             <div>
                 <h2 class="text-3xl font-bold text-gray-800 mb-8">
@@ -45,12 +89,12 @@
                 
                 <div class="space-y-6">
                     <!-- Adresse -->
-                    <div class="flex items-start">
-                        <div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-map-marker-alt"></i>
+                    <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800 mb-1">Adresse</h3>
+                            <h3 class="font-semibold text-gray-800 mb-2 text-lg">Adresse</h3>
                             <p class="text-gray-600">
                                 @if($companySettings['address'])
                                     {{ $companySettings['address'] }}<br>
@@ -65,14 +109,14 @@
                     
                     <!-- Téléphone -->
                     @if($companySettings['phone'])
-                    <div class="flex items-start">
-                        <div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-phone"></i>
+                    <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <i class="fas fa-phone text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800 mb-1">Téléphone</h3>
+                            <h3 class="font-semibold text-gray-800 mb-2 text-lg">Téléphone</h3>
                             <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
-                               class="text-primary hover:text-secondary transition-colors"
+                               class="text-primary hover:text-secondary transition-colors text-lg font-semibold"
                                onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
                                 {{ $companySettings['phone'] }}
                             </a>
@@ -82,14 +126,14 @@
                     
                     <!-- Email -->
                     @if($companySettings['email'])
-                    <div class="flex items-start">
-                        <div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-envelope"></i>
+                    <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
+                        <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <i class="fas fa-envelope text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-800 mb-1">Email</h3>
+                            <h3 class="font-semibold text-gray-800 mb-2 text-lg">Email</h3>
                             <a href="mailto:{{ $companySettings['email'] }}" 
-                               class="text-primary hover:text-secondary transition-colors">
+                               class="text-primary hover:text-secondary transition-colors text-lg font-semibold">
                                 {{ $companySettings['email'] }}
                             </a>
                         </div>
@@ -97,12 +141,18 @@
                     @endif
                 </div>
                 
-                <!-- CTA -->
-                <div class="mt-8">
+                <!-- CTA vers simulateur -->
+                <div class="mt-8 p-6 bg-gradient-to-r from-primary to-secondary rounded-xl text-white">
+                    <h3 class="text-xl font-bold mb-3">
+                        <i class="fas fa-calculator mr-2"></i>Besoin d'un devis ?
+                    </h3>
+                    <p class="mb-4 opacity-90">
+                        Utilisez notre simulateur pour obtenir un devis personnalisé en quelques minutes
+                    </p>
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="inline-flex items-center bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-secondary transition-colors">
-                        <i class="fas fa-calculator mr-2"></i>
-                        Demander un devis gratuit
+                       class="inline-flex items-center bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-arrow-right mr-2"></i>
+                        Accéder au simulateur
                     </a>
                 </div>
             </div>
@@ -113,7 +163,7 @@
                     <i class="fas fa-paper-plane mr-3 text-primary"></i>Envoyez-nous un message
                 </h2>
                 
-                <form action="{{ route('contact.send') }}" method="POST" class="space-y-6">
+                <form action="{{ route('contact.send') }}" method="POST" id="contactForm" class="space-y-6">
                     @csrf
                     
                     <div class="grid md:grid-cols-2 gap-4">
@@ -140,14 +190,60 @@
                         </div>
                     </div>
                     
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone
+                            </label>
+                            <input type="tel" 
+                                   id="phone" 
+                                   name="phone"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        
+                        <div>
+                            <label for="callback_time" class="block text-sm font-medium text-gray-700 mb-2">
+                                Quand vous rappeler ?
+                            </label>
+                            <select id="callback_time" 
+                                    name="callback_time"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="">Sélectionnez un créneau</option>
+                                <option value="matin">Matin (9h - 12h)</option>
+                                <option value="apres-midi">Après-midi (14h - 17h)</option>
+                                <option value="soir">Soir (17h - 19h)</option>
+                                <option value="flexible">Flexible</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div>
-                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
-                            Téléphone
+                        <label for="service_interest" class="block text-sm font-medium text-gray-700 mb-2">
+                            Service qui vous intéresse
                         </label>
-                        <input type="tel" 
-                               id="phone" 
-                               name="phone"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        <select id="service_interest" 
+                                name="service_interest"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Sélectionnez un service (optionnel)</option>
+                            @php
+                                $servicesData = \App\Models\Setting::get('services', '[]');
+                                $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+                                if (!is_array($services)) {
+                                    $services = [];
+                                }
+                                $visibleServices = array_filter($services, function($service) {
+                                    return is_array($service) && ($service['is_visible'] ?? true);
+                                });
+                            @endphp
+                            @foreach($visibleServices as $service)
+                                @if(is_array($service) && isset($service['name']))
+                                <option value="{{ $service['name'] }}">{{ $service['name'] }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Ou <a href="{{ route('form.step', 'propertyType') }}" class="text-primary hover:underline">utilisez notre simulateur</a> pour un devis personnalisé
+                        </p>
                     </div>
                     
                     <div>
@@ -172,7 +268,14 @@
                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"></textarea>
                     </div>
                     
+                    {{-- reCAPTCHA --}}
+                    @if(setting('recaptcha_site_key'))
+                    <div id="recaptcha-container"></div>
+                    <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+                    @endif
+                    
                     <button type="submit" 
+                            id="submitBtn"
                             class="w-full bg-primary text-white px-6 py-4 rounded-lg font-semibold hover:bg-secondary transition-colors">
                         <i class="fas fa-paper-plane mr-2"></i>
                         Envoyer le message
@@ -180,6 +283,57 @@
                 </form>
             </div>
         </div>
+        
+        <!-- Google Maps -->
+        @php
+            $address = $companySettings['address'] ?? '';
+            $city = $companySettings['city'] ?? '';
+            $postalCode = $companySettings['postal_code'] ?? '';
+            $country = $companySettings['country'] ?? 'France';
+            $fullAddress = trim(implode(' ', array_filter([$address, $postalCode, $city, $country])));
+            $mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($fullAddress);
+        @endphp
+        
+        @if($fullAddress)
+        <div class="mt-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">
+                <i class="fas fa-map-marked-alt mr-3 text-primary"></i>Notre Localisation
+            </h2>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <!-- Lien vers Google Maps -->
+                <div class="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-primary mr-3 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-gray-800">{{ $fullAddress }}</p>
+                            <p class="text-sm text-gray-600">Cliquez pour ouvrir dans Google Maps</p>
+                        </div>
+                    </div>
+                    <a href="{{ $mapsUrl }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Ouvrir dans Maps
+                    </a>
+                </div>
+                
+                <!-- Carte Google Maps intégrée -->
+                <div class="w-full" style="height: 450px;">
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        style="border:0" 
+                        loading="lazy" 
+                        allowfullscreen
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="https://www.google.com/maps/embed/v1/place?key={{ setting('google_maps_api_key', '') }}&q={{ urlencode($fullAddress) }}">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+        @endif
         
         <!-- Section FAQ -->
         @if(count($faqs) > 0)
@@ -229,6 +383,38 @@
 </div>
 
 @push('scripts')
+{{-- reCAPTCHA --}}
+@if(setting('recaptcha_site_key'))
+@include('form.partials.recaptcha')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.ready(function() {
+            grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+            });
+        });
+    }
+    
+    // Recharger le token avant la soumission
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
+        
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.ready(function() {
+                grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
+                    document.getElementById('recaptcha_token').value = token;
+                    // Le formulaire se soumettra normalement
+                });
+            });
+        }
+    });
+});
+</script>
+@endif
+
 <script>
 function toggleFaq(index) {
     const answer = document.querySelector(`.faq-answer-${index}`);
@@ -275,4 +461,3 @@ document.getElementById('faqSearch')?.addEventListener('input', function(e) {
 </script>
 @endpush
 @endsection
-
