@@ -18,7 +18,16 @@ class GenerateSitemapManual extends Command
         $this->info('🚀 Génération du sitemap manuel en cours...');
         
         // URL de production
-        $baseUrl = 'https://sausercouverture.fr';
+        // URL depuis la config ou les settings
+        $baseUrl = \App\Models\Setting::get('site_url', null);
+        if (empty($baseUrl)) {
+            $baseUrl = config('app.url', url('/'));
+        }
+        // S'assurer que l'URL a un protocole
+        if (!preg_match('/^https?:\/\//', $baseUrl)) {
+            $baseUrl = 'https://' . $baseUrl;
+        }
+        $baseUrl = rtrim($baseUrl, '/');
         
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";

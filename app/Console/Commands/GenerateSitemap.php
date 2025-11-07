@@ -19,8 +19,16 @@ class GenerateSitemap extends Command
     {
         $this->info('🚀 Génération du sitemap en cours...');
         
-        // URL de production
-        $baseUrl = 'https://sausercouverture.fr';
+        // URL depuis la config ou les settings
+        $baseUrl = \App\Models\Setting::get('site_url', null);
+        if (empty($baseUrl)) {
+            $baseUrl = config('app.url', url('/'));
+        }
+        // S'assurer que l'URL a un protocole
+        if (!preg_match('/^https?:\/\//', $baseUrl)) {
+            $baseUrl = 'https://' . $baseUrl;
+        }
+        $baseUrl = rtrim($baseUrl, '/');
         
         $sitemap = Sitemap::create();
         
