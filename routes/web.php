@@ -285,6 +285,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/portfolio', [ConfigController::class, 'updatePortfolio'])->name('update.portfolio');
         Route::post('/social', [ConfigController::class, 'updateSocial'])->name('update.social');
         Route::post('/security', [ConfigController::class, 'updateSecurity'])->name('update.security');
+        Route::post('/analytics', [ConfigController::class, 'updateAnalytics'])->name('update.analytics');
         
         Route::post('/test-email', [ConfigController::class, 'testEmail'])->name('test.email');
     Route::post('/update-email-template', [ConfigController::class, 'updateEmailTemplate'])->name('update.email-template');

@@ -732,6 +732,58 @@ class ConfigController extends Controller
     }
 
     /**
+     * Update Analytics settings
+     */
+    public function updateAnalytics(Request $request)
+    {
+        $validated = $request->validate([
+            'analytics_view_id' => 'nullable|string|max:255',
+            'analytics_credentials' => 'nullable|file|mimes:json|max:1024',
+        ]);
+
+        // Sauvegarder le View ID
+        if (isset($validated['analytics_view_id'])) {
+            Setting::set('analytics_view_id', $validated['analytics_view_id'], 'string', 'analytics');
+            
+            // Mettre à jour aussi le .env si possible
+            $envFile = base_path('.env');
+            if (file_exists($envFile)) {
+                $envContent = file_get_contents($envFile);
+                
+                // Remplacer ou ajouter ANALYTICS_VIEW_ID
+                if (preg_match('/^ANALYTICS_VIEW_ID=.*$/m', $envContent)) {
+                    $envContent = preg_replace('/^ANALYTICS_VIEW_ID=.*$/m', 'ANALYTICS_VIEW_ID=' . $validated['analytics_view_id'], $envContent);
+                } else {
+                    $envContent .= "\nANALYTICS_VIEW_ID=" . $validated['analytics_view_id'];
+                }
+                
+                file_put_contents($envFile, $envContent);
+            }
+        }
+
+        // Gérer le fichier JSON des credentials
+        if ($request->hasFile('analytics_credentials')) {
+            $file = $request->file('analytics_credentials');
+            
+            // Créer le dossier s'il n'existe pas
+            $analyticsDir = storage_path('app/analytics');
+            if (!file_exists($analyticsDir)) {
+                mkdir($analyticsDir, 0755, true);
+            }
+            
+            // Déplacer le fichier
+            $file->move($analyticsDir, 'service-account-credentials.json');
+            
+            \Log::info('Fichier credentials Analytics téléchargé avec succès');
+        }
+
+        Setting::clearCache();
+        Artisan::call('config:clear');
+
+        return back()->with('success', 'Configuration Analytics mise à jour avec succès !');
+    }
+
+    /**
      * Update social media settings
      */
     public function updateSocial(Request $request)

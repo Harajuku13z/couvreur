@@ -4,7 +4,10 @@ return [
     /*
      * The view id of which you want to display data.
      */
-    'view_id' => env('ANALYTICS_VIEW_ID'),
+    'view_id' => env('ANALYTICS_VIEW_ID', function() {
+        // Fallback sur le setting si le .env n'est pas configuré
+        return \App\Models\Setting::get('analytics_view_id');
+    }),
 
     /*
      * Path to the client secret json file. Take a look at the README of this package

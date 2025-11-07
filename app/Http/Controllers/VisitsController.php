@@ -17,9 +17,10 @@ class VisitsController extends Controller
     {
         try {
             // Vérifier si Google Analytics est configuré
-            $seoConfig = Setting::get('seo_config', []);
-            $seoConfig = is_string($seoConfig) ? json_decode($seoConfig, true) : ($seoConfig ?? []);
-            $isConfigured = !empty($seoConfig['google_analytics']);
+            $analyticsViewId = Setting::get('analytics_view_id') ?: env('ANALYTICS_VIEW_ID');
+            $credentialsPath = storage_path('app/analytics/service-account-credentials.json');
+            $hasCredentials = file_exists($credentialsPath);
+            $isConfigured = !empty($analyticsViewId) && $hasCredentials;
             
             $data = [
                 'isConfigured' => $isConfigured,
