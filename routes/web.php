@@ -15,6 +15,11 @@ Route::get('/test-icons', function () {
     return view('test-icons');
 })->name('test.icons');
 
+// Route de test pour le tracking des appels
+Route::get('/test-phone-tracking', function () {
+    return view('test-phone-tracking');
+})->name('test.phone.tracking');
+
 /**
  * ROUTES ULTRA-SIMPLES
  * Navigation directe, pas de AJAX compliqué
