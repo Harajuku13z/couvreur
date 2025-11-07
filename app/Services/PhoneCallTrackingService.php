@@ -85,11 +85,21 @@ class PhoneCallTrackingService
                 'city' => $location['city'],
                 'country' => $location['country']
             ]);
+            
+            // Envoyer l'événement à Google Analytics via JavaScript (sera exécuté côté client)
+            // Le tracking Analytics sera fait via le JavaScript dans le frontend
 
             return [
                 'success' => true,
                 'id' => $phoneCall->id,
-                'phone_call' => $phoneCall
+                'phone_call' => $phoneCall,
+                'analytics_event' => [
+                    'event_name' => 'phone_call',
+                    'phone_number' => $phoneNumber,
+                    'source_page' => $sourcePage,
+                    'city' => $location['city'],
+                    'country' => $location['country']
+                ]
             ];
         } catch (\Exception $e) {
             Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [

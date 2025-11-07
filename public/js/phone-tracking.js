@@ -79,13 +79,26 @@
             }
             return response.json();
         })
-        .then(data => {
-            if (data.success) {
-                console.log('✅ Appel tracké (ID: ' + (data.id || 'N/A') + ')');
-            } else {
-                console.error('❌ Erreur tracking:', data.error);
-            }
-        })
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Appel tracké (ID: ' + (data.id || 'N/A') + ')');
+                    
+                    // Envoyer l'événement à Google Analytics
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'phone_call', {
+                            'event_category': 'Contact',
+                            'event_label': payload.source_page,
+                            'value': 1,
+                            'phone_number': payload.phone_number,
+                            'source_page': payload.source_page,
+                            'referrer_url': payload.referrer_url
+                        });
+                        console.log('✅ Événement envoyé à Google Analytics');
+                    }
+                } else {
+                    console.error('❌ Erreur tracking:', data.error);
+                }
+            })
         .catch(err => {
             console.error('❌ Erreur tracking:', err);
             // Retry avec XMLHttpRequest en dernier recours

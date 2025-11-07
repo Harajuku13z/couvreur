@@ -79,6 +79,12 @@
                             Appels
                         </a>
                         
+                        <a href="{{ route('admin.visits') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.visits') ? 'active' : '' }}">
+                            <i class="fas fa-chart-line mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Visites
+                        </a>
+                        
                         <a href="{{ route('admin.statistics') }}" 
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.statistics') ? 'active' : '' }}">
                             <i class="fas fa-chart-bar mr-3 text-gray-400 group-hover:text-gray-500"></i>
