@@ -176,6 +176,11 @@ class ConfigController extends Controller
         Setting::set('company_city', $validated['company_city'] ?? '', 'string', 'company');
         Setting::set('company_postal_code', $validated['company_postal_code'] ?? '', 'string', 'company');
         Setting::set('company_country', $validated['company_country'] ?? 'France', 'string', 'company');
+        
+        if (isset($validated['google_maps_api_key'])) {
+            Setting::set('google_maps_api_key', $validated['google_maps_api_key'], 'string', 'company');
+        }
+        
         Setting::set('company_siret', $validated['company_siret'] ?? '', 'string', 'company');
         Setting::set('company_vat', $validated['company_vat'] ?? '', 'string', 'company');
         Setting::set('company_certifications', $validated['company_certifications'] ?? '', 'string', 'company');
@@ -224,7 +229,27 @@ class ConfigController extends Controller
             $favicon->move(public_path(), $faviconName);
             Setting::set('site_favicon', $faviconName, 'file', 'branding');
         }
-
+        
+        // Handle contact hero image upload
+        if ($request->hasFile('contact_hero_image')) {
+            $heroImage = $request->file('contact_hero_image');
+            $heroImageName = 'contact-hero-' . time() . '.' . $heroImage->getClientOriginalExtension();
+            
+            // Créer le dossier uploads s'il n'existe pas
+            $uploadsDir = public_path('uploads');
+            if (!file_exists($uploadsDir)) {
+                mkdir($uploadsDir, 0755, true);
+            }
+            
+            // Supprimer l'ancienne image si elle existe
+            $oldImage = Setting::get('contact_hero_image');
+            if ($oldImage && file_exists(public_path($oldImage))) {
+                @unlink(public_path($oldImage));
+            }
+            
+            $heroImage->move($uploadsDir, $heroImageName);
+            Setting::set('contact_hero_image', 'uploads/' . $heroImageName, 'file', 'branding');
+        }
 
         // Colors and typography
         if (isset($validated['primary_color'])) {

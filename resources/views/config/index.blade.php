@@ -1080,6 +1080,27 @@
                             @endif
                         </div>
                     </div>
+                    
+                    <!-- Image Hero Contact -->
+                    <div class="border-t pt-4">
+                        <h3 class="text-lg font-semibold mb-3">📸 Image Hero Page Contact</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image de fond pour la page Contact</label>
+                            <input type="file" 
+                                   name="contact_hero_image" 
+                                   accept="image/*" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Format recommandé : JPG ou PNG, 1920x600px</p>
+                            @if(setting('contact_hero_image'))
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
+                                <img src="{{ asset(setting('contact_hero_image')) }}" 
+                                     alt="Hero Contact" 
+                                     class="h-32 w-auto border border-gray-200 rounded object-cover">
+                            </div>
+                            @endif
+                        </div>
+                    </div>
 
                     <!-- Couleurs du site -->
                     <div class="border-t pt-4">
