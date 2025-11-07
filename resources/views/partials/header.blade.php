@@ -219,19 +219,31 @@ function toggleMobileMenu() {
 }
 
 function trackPhoneCall(phone, page) {
-    const params = new URLSearchParams({
+    const payload = {
         phone_number: phone || '',
         source_page: page || window.location.pathname,
         referrer_url: document.referrer || window.location.href
-    });
+    };
     
-    fetch('/api/track-phone-call?' + params, {
-        method: 'GET',
+    fetch('/api/track-phone-call', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Appel téléphonique tracké avec succès');
+        } else {
+            console.error('❌ Erreur tracking:', data.error);
         }
-    }).catch(error => console.log('Tracking error:', error));
+    })
+    .catch(error => {
+        console.error('❌ Erreur tracking appel téléphonique:', error);
+    });
 }
 
 function trackFormClick(page) {

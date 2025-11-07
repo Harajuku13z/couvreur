@@ -193,18 +193,27 @@ class FormControllerSimple extends Controller
 
             // Capturer l'IP et la géolocalisation
             $ipAddress = $this->getClientIp($request);
-            // Priorité: body JSON, puis header referer, puis input
+            
+            // Récupérer les données (support GET avec query params ET POST avec JSON body)
             $referrerUrl = $request->input('referrer_url') 
+                        ?? $request->query('referrer_url')
                         ?? $request->header('referer') 
-                        ?? $request->query('referrer_url') 
                         ?? null;
+            
+            $sourcePage = $request->input('source_page') 
+                       ?? $request->query('source_page')
+                       ?? null;
+            
+            $phoneNumber = $request->input('phone_number') 
+                        ?? $request->query('phone_number')
+                        ?? setting('company_phone_raw') 
+                        ?? setting('company_phone');
             
             // Géolocalisation
             $geoService = new IpGeolocationService();
             $location = $geoService->getLocationFromIp($ipAddress);
             
             // Déterminer la page source (priorité: paramètre, referer, URL actuelle)
-            $sourcePage = $request->input('source_page');
             if (empty($sourcePage)) {
                 // Si pas de source_page fournie, utiliser le referer ou l'URL actuelle
                 $sourcePage = $referrerUrl ? parse_url($referrerUrl, PHP_URL_PATH) : parse_url(request()->url(), PHP_URL_PATH);
@@ -218,7 +227,7 @@ class FormControllerSimple extends Controller
             PhoneCall::create([
                 'submission_id' => $submission ? $submission->id : null,
                 'session_id' => $sessionId,
-                'phone_number' => $request->input('phone_number') ?? setting('company_phone_raw') ?? setting('company_phone'),
+                'phone_number' => $phoneNumber,
                 'source_page' => $sourcePage,
                 'ip_address' => $ipAddress,
                 'user_agent' => $request->userAgent(),
@@ -229,9 +238,19 @@ class FormControllerSimple extends Controller
                 'clicked_at' => now(),
             ]);
 
+            \Log::info('Appel téléphonique tracké', [
+                'phone' => $phoneNumber,
+                'source_page' => $sourcePage,
+                'ip' => $ipAddress,
+                'city' => $location['city']
+            ]);
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            \Log::error('Erreur tracking appel téléphonique: ' . $e->getMessage());
+            \Log::error('Erreur tracking appel téléphonique: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
