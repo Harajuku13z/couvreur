@@ -86,6 +86,8 @@
                 
                 <a href="{{ route('blog.index') }}" class="text-gray-700 hover:text-primary font-medium">Blog et Astuces</a>
                 
+                <a href="{{ route('contact') }}" class="text-gray-700 hover:text-primary font-medium">Contact</a>
+                
             </nav>
             
             <!-- Social Media Icons & CTA Buttons -->
@@ -120,6 +122,8 @@
                     @endforeach
                 </div>
                 @endif
+                
+                <a href="{{ route('contact') }}" class="text-gray-700 hover:text-primary font-medium mr-4">Contact</a>
                 
                 <!-- CTA Buttons -->
                 <a href="{{ route('form.step', 'propertyType') }}" 
@@ -174,6 +178,8 @@
                 <a href="{{ route('portfolio.index') }}" class="text-gray-700 hover:text-primary font-medium">Nos Réalisations</a>
                 
                 <a href="{{ route('blog.index') }}" class="text-gray-700 hover:text-primary font-medium">Blog et Astuces</a>
+                
+                <a href="{{ route('contact') }}" class="text-gray-700 hover:text-primary font-medium">Contact</a>
                 
                 <!-- Social Media Icons Mobile -->
                 @if(count($activeSocialNetworks) > 0)

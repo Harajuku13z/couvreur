@@ -50,7 +50,7 @@
                     <i class="fas fa-chart-line mr-2"></i>Analytics
                 </a>
                 <a href="#conversion" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-bullhorn mr-2"></i>Conversion & UX
+                    <i class="fas fa-question-circle mr-2"></i>FAQ
                 </a>
             </nav>
         </div>
@@ -931,143 +931,19 @@
         </div>
     </div>
 
-    <!-- Conversion & UX Settings -->
+    <!-- FAQ Settings -->
     <div id="conversion" class="config-section hidden">
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-bullhorn mr-2 text-purple-600"></i>Conversion & UX
+                <i class="fas fa-question-circle mr-2 text-purple-600"></i>Questions Fréquentes (FAQ)
             </h2>
             <p class="text-sm text-gray-600 mb-6">
                 <i class="fas fa-info-circle text-blue-500 mr-1"></i>
-                Configurez les outils de conversion pour améliorer l'expérience utilisateur et augmenter vos leads
+                Ajoutez des questions fréquentes pour réduire les abandons et améliorer le SEO. Les FAQ s'affichent sur la page Contact.
             </p>
             
             <form method="POST" action="{{ route('config.update.conversion') }}">
                 @csrf
-                
-                <!-- Chat en ligne -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-4 text-blue-800">
-                        <i class="fas fa-comments mr-2"></i>Chat en ligne
-                    </h3>
-                    <p class="text-sm text-gray-700 mb-4">
-                        Intégrez un widget de chat pour répondre rapidement aux questions de vos visiteurs
-                    </p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" 
-                                   name="chat_widget_enabled" 
-                                   id="chat_widget_enabled"
-                                   value="1"
-                                   {{ setting('chat_widget_enabled', false) ? 'checked' : '' }}
-                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <label for="chat_widget_enabled" class="ml-2 text-sm font-medium text-gray-700">
-                                Activer le chat en ligne
-                            </label>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Fournisseur de chat
-                            </label>
-                            <select name="chat_provider" 
-                                    id="chat_provider"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Sélectionnez un fournisseur</option>
-                                <option value="tawk" {{ setting('chat_provider') === 'tawk' ? 'selected' : '' }}>Tawk.to (Gratuit)</option>
-                                <option value="crisp" {{ setting('chat_provider') === 'crisp' ? 'selected' : '' }}>Crisp (Gratuit)</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Tawk.to et Crisp sont gratuits et offrent de nombreuses fonctionnalités
-                            </p>
-                        </div>
-                        
-                        <div id="tawk_config" style="display: {{ setting('chat_provider') === 'tawk' ? 'block' : 'none' }};">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Tawk.to Property ID
-                            </label>
-                            <input type="text" 
-                                   name="chat_tawk_id" 
-                                   value="{{ setting('chat_tawk_id') }}"
-                                   placeholder="Ex: 1234567890abcdef1234567890abcdef"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">
-                                Trouvez votre Property ID dans <a href="https://dashboard.tawk.to/" target="_blank" class="text-blue-600 hover:underline">Tawk.to Dashboard</a> > Administration > Channels
-                            </p>
-                        </div>
-                        
-                        <div id="crisp_config" style="display: {{ setting('chat_provider') === 'crisp' ? 'block' : 'none' }};">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Crisp Website ID
-                            </label>
-                            <input type="text" 
-                                   name="chat_crisp_id" 
-                                   value="{{ setting('chat_crisp_id') }}"
-                                   placeholder="Ex: 12345678-1234-1234-1234-123456789012"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">
-                                Trouvez votre Website ID dans <a href="https://app.crisp.chat/" target="_blank" class="text-blue-600 hover:underline">Crisp Dashboard</a> > Settings > Website Settings
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Popup de sortie -->
-                <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-4 text-green-800">
-                        <i class="fas fa-door-open mr-2"></i>Popup de sortie (Exit Intent)
-                    </h3>
-                    <p class="text-sm text-gray-700 mb-4">
-                        Affichez une popup attractive quand un visiteur s'apprête à quitter votre site pour le convertir en lead
-                    </p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" 
-                                   name="exit_popup_enabled" 
-                                   id="exit_popup_enabled"
-                                   value="1"
-                                   {{ setting('exit_popup_enabled', false) ? 'checked' : '' }}
-                                   class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                            <label for="exit_popup_enabled" class="ml-2 text-sm font-medium text-gray-700">
-                                Activer la popup de sortie
-                            </label>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Titre de la popup
-                            </label>
-                            <input type="text" 
-                                   name="exit_popup_title" 
-                                   value="{{ setting('exit_popup_title', 'Ne partez pas !') }}"
-                                   placeholder="Ex: Ne partez pas !"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Message de la popup
-                            </label>
-                            <textarea name="exit_popup_message" 
-                                      rows="3"
-                                      placeholder="Ex: Obtenez votre devis gratuit en moins de 2 minutes !"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">{{ setting('exit_popup_message', 'Obtenez votre devis gratuit en moins de 2 minutes !') }}</textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Texte du bouton
-                            </label>
-                            <input type="text" 
-                                   name="exit_popup_button_text" 
-                                   value="{{ setting('exit_popup_button_text', 'Demander mon devis gratuit') }}"
-                                   placeholder="Ex: Demander mon devis gratuit"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- FAQ -->
                 <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
@@ -1684,27 +1560,6 @@ function escapeHtml(text) {
     };
     return text.replace(/[&<>"']/g, m => map[m]);
 }
-
-// Gestion de l'affichage conditionnel des configs chat
-document.addEventListener('DOMContentLoaded', function() {
-    const chatProvider = document.getElementById('chat_provider');
-    if (chatProvider) {
-        chatProvider.addEventListener('change', function() {
-            const provider = this.value;
-            const tawkConfig = document.getElementById('tawk_config');
-            const crispConfig = document.getElementById('crisp_config');
-            if (tawkConfig) tawkConfig.style.display = provider === 'tawk' ? 'block' : 'none';
-            if (crispConfig) crispConfig.style.display = provider === 'crisp' ? 'block' : 'none';
-        });
-        
-        // Initialiser l'affichage au chargement
-        const provider = chatProvider.value;
-        const tawkConfig = document.getElementById('tawk_config');
-        const crispConfig = document.getElementById('crisp_config');
-        if (tawkConfig) tawkConfig.style.display = provider === 'tawk' ? 'block' : 'none';
-        if (crispConfig) crispConfig.style.display = provider === 'crisp' ? 'block' : 'none';
-    }
-});
 
 // Ajouter une nouvelle FAQ
 let faqIndex = {{ is_array($faqs ?? []) ? count($faqs) : 1 }};
