@@ -676,5 +676,193 @@ class IndexationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Tester la connexion IndexJump
+     */
+    public function testIndexJumpConnection(Request $request)
+    {
+        try {
+            $indexJumpService = new IndexJumpService();
+            $result = $indexJumpService->getBalance();
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Tester l'indexation d'une seule URL via IndexJump
+     */
+    public function testIndexJumpUrl(Request $request)
+    {
+        try {
+            $request->validate([
+                'url' => 'required|url'
+            ]);
+
+            $url = $request->input('url');
+            $bot = $request->input('bot', 0); // 0 = GoogleBot par défaut
+            
+            $indexJumpService = new IndexJumpService();
+            
+            if (!$indexJumpService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'IndexJump n\'est pas configuré. Veuillez ajouter votre token.'
+                ], 400);
+            }
+
+            $result = $indexJumpService->indexUrl($url, $bot);
+            
+            return response()->json($result);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erreur test IndexJump URL: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Envoyer un sitemap à IndexJump
+     */
+    public function submitSitemapToIndexJump(Request $request)
+    {
+        try {
+            $request->validate([
+                'filename' => 'required|string',
+                'bot' => 'nullable|integer|in:0,1,2'
+            ]);
+
+            $indexJumpService = new IndexJumpService();
+            
+            if (!$indexJumpService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'IndexJump n\'est pas configuré. Veuillez ajouter votre token.'
+                ], 400);
+            }
+            
+            $filename = $request->input('filename');
+            $bot = $request->input('bot', 0);
+            $sitemapFile = public_path($filename);
+            
+            if (!file_exists($sitemapFile)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le fichier sitemap '{$filename}' n'existe pas."
+                ], 404);
+            }
+            
+            $xml = file_get_contents($sitemapFile);
+            $xml = simplexml_load_string($xml);
+            
+            if (!$xml || !isset($xml->url)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le sitemap '{$filename}' est vide ou invalide."
+                ], 400);
+            }
+            
+            $sitemapUrls = [];
+            foreach ($xml->url as $url) {
+                $sitemapUrls[] = (string)$url->loc;
+            }
+            
+            if (empty($sitemapUrls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Aucune URL trouvée dans le sitemap '{$filename}'."
+                ], 400);
+            }
+            
+            // Envoyer par batch de 100 URLs (limite recommandée pour IndexJump)
+            $batchSize = 100;
+            $batches = array_chunk($sitemapUrls, $batchSize);
+            $totalSuccess = 0;
+            $totalFailed = 0;
+            
+            \Log::info("Traitement du sitemap {$filename} avec IndexJump: " . count($sitemapUrls) . " URLs en " . count($batches) . " batch(s)");
+            
+            foreach ($batches as $batchIndex => $batch) {
+                \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
+                
+                $batchResult = $indexJumpService->indexUrls($batch, $bot);
+                
+                if ($batchResult['success']) {
+                    $totalSuccess += count($batch);
+                } else {
+                    $totalFailed += count($batch);
+                    \Log::warning("Échec batch IndexJump: " . ($batchResult['message'] ?? 'Erreur inconnue'));
+                }
+                
+                // Pause entre les batches pour éviter les limites de rate
+                if ($batchIndex < count($batches) - 1) {
+                    sleep(2);
+                }
+            }
+            
+            \Log::info("Indexation IndexJump sitemap {$filename} terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur " . count($sitemapUrls) . " URLs");
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Sitemap '{$filename}': {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
+                'total' => count($sitemapUrls),
+                'success_count' => $totalSuccess,
+                'failed_count' => $totalFailed,
+                'sitemap' => $filename,
+                'date' => now()->toDateTimeString()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi sitemap à IndexJump: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Sauvegarder le token IndexJump
+     */
+    public function updateIndexJumpToken(Request $request)
+    {
+        try {
+            $request->validate([
+                'indexjump_token' => 'nullable|string|max:255'
+            ]);
+
+            if ($request->has('indexjump_token')) {
+                Setting::set('indexjump_token', $request->input('indexjump_token'), 'string', 'seo');
+                Setting::clearCache();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Token IndexJump sauvegardé avec succès'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur sauvegarde token IndexJump: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
