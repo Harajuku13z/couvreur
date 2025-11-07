@@ -19,14 +19,23 @@
      * Fonction principale de tracking
      */
     window.trackPhoneCall = function(phoneNumber = null, sourcePage = null) {
+        console.log('📞 trackPhoneCall appelé', { phoneNumber, sourcePage });
+        
         const phone = phoneNumber || getDefaultPhoneNumber();
         const page = sourcePage || window.location.pathname;
+        
+        if (!phone) {
+            console.error('❌ Pas de numéro de téléphone disponible');
+            return;
+        }
         
         const payload = {
             source_page: page,
             phone_number: phone,
             referrer_url: document.referrer || window.location.href
         };
+        
+        console.log('📞 Payload tracking:', payload);
         
         // Ajouter à la queue si un envoi est en cours
         if (window.phoneCallTrackingInProgress) {
@@ -54,15 +63,20 @@
                 formData.append('phone_number', payload.phone_number);
                 formData.append('source_page', payload.source_page);
                 formData.append('referrer_url', payload.referrer_url);
+                console.log('📤 Tentative sendBeacon vers:', TRACKING_ENDPOINT);
                 const sent = navigator.sendBeacon(TRACKING_ENDPOINT, formData);
                 if (sent) {
                     console.log('✅ Tracking envoyé via sendBeacon (FormData)');
                     processQueue();
                     return;
+                } else {
+                    console.warn('⚠️ sendBeacon retourné false');
                 }
             } catch (e) {
-                console.warn('sendBeacon FormData failed, trying other methods:', e);
+                console.error('❌ sendBeacon FormData failed:', e);
             }
+        } else {
+            console.warn('⚠️ navigator.sendBeacon non disponible');
         }
         
         // Méthode 1b: sendBeacon avec Blob (fallback)

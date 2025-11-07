@@ -25,7 +25,8 @@ Route::get('/setup', [ConfigController::class, 'showSetup'])->name('config.setup
 Route::post('/setup', [ConfigController::class, 'processSetup'])->name('config.setup.process');
 
 // API Routes
-Route::post('/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCall'])->name('api.track.phone');
+// Route pour tracking des appels téléphoniques (POST et GET pour compatibilité)
+Route::match(['get', 'post'], '/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCall'])->name('api.track.phone');
 Route::get('/api/track-form-click', [FormControllerSimple::class, 'trackFormClick'])->name('api.track.form');
 Route::get('/api/track-service-click', [FormControllerSimple::class, 'trackServiceClick'])->name('api.track.service');
 Route::get('/api/reviews/all', function() {

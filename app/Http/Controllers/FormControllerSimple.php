@@ -187,24 +187,58 @@ class FormControllerSimple extends Controller
      */
     public function trackPhoneCall(Request $request)
     {
+        // Logger TOUTES les requêtes pour debug
+        \Log::info('📞 Requête trackPhoneCall reçue', [
+            'method' => $request->method(),
+            'all_data' => $request->all(),
+            'query' => $request->query(),
+            'headers' => $request->headers->all(),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent()
+        ]);
+        
         try {
-            // Accepter les données depuis sendBeacon (query string ou body)
+            // Accepter les données depuis sendBeacon (FormData)
+            $phoneNumber = $request->input('phone_number') 
+                        ?? $request->query('phone_number')
+                        ?? null;
+            
+            $sourcePage = $request->input('source_page')
+                        ?? $request->query('source_page')
+                        ?? $request->header('referer')
+                        ?? 'unknown';
+            
+            $referrerUrl = $request->input('referrer_url')
+                        ?? $request->query('referrer_url')
+                        ?? $request->header('referer')
+                        ?? null;
+            
+            // Si les données viennent de sendBeacon (FormData), parser le JSON
             if ($request->has('data')) {
                 $data = json_decode($request->input('data'), true);
                 if (is_array($data)) {
-                    $request->merge($data);
+                    $phoneNumber = $data['phone_number'] ?? $phoneNumber;
+                    $sourcePage = $data['source_page'] ?? $sourcePage;
+                    $referrerUrl = $data['referrer_url'] ?? $referrerUrl;
                 }
             }
             
-            // Accepter aussi depuis query string (pour sendBeacon avec URL)
-            if ($request->has('phone_number') || $request->query('phone_number')) {
-                // Les données sont déjà dans la requête
+            \Log::info('📞 Données extraites', [
+                'phone_number' => $phoneNumber,
+                'source_page' => $sourcePage,
+                'referrer_url' => $referrerUrl
+            ]);
+            
+            if (empty($phoneNumber)) {
+                \Log::warning('⚠️ Pas de numéro de téléphone dans la requête');
+                return response('OK', 200);
             }
             
             $trackingService = new \App\Services\PhoneCallTrackingService();
-            $result = $trackingService->track($request);
+            $result = $trackingService->track($request, $phoneNumber, $sourcePage, $referrerUrl);
             
             if ($result['success']) {
+                \Log::info('✅ Appel tracké avec succès', ['id' => $result['id'] ?? 'N/A']);
                 // Retourner une réponse simple pour sendBeacon
                 if ($request->wantsJson() || $request->expectsJson()) {
                     return response()->json([
