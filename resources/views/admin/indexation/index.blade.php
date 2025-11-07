@@ -176,7 +176,7 @@
                 <p class="text-xs text-gray-500 mt-1">Collez ici le JSON de votre compte de service Google</p>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4 mb-4">
                 <button type="button" onclick="testGoogleConnection()" 
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                     <i class="fas fa-plug mr-2"></i>Tester la connexion
@@ -191,6 +191,47 @@
                 </span>
                 @endif
             </div>
+            
+            <!-- Envoyer tous les liens à Google -->
+            @if($isGoogleConfigured)
+            <div class="border-t pt-4 mt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-md font-semibold text-gray-800">📤 Envoyer tous les liens à Google</h3>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <span id="total-urls-count">{{ $totalUrlsInSitemap }}</span> URLs disponibles dans le sitemap
+                        </p>
+                    </div>
+                    <button type="button" onclick="submitAllUrlsToGoogle()" id="submit-all-btn"
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>Envoyer tous les liens à Google
+                    </button>
+                </div>
+                
+                <!-- Historique des envois -->
+                @if(!empty($submissionHistory))
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">📊 Historique des envois</h4>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                        @foreach(array_reverse(array_slice($submissionHistory, -10)) as $submission)
+                        <div class="flex items-center justify-between text-xs bg-white p-2 rounded">
+                            <div>
+                                <span class="font-medium">{{ date('d/m/Y H:i', strtotime($submission['date'])) }}</span>
+                                <span class="text-gray-600 ml-2">{{ $submission['total'] }} URLs envoyées</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-green-600 font-medium">{{ $submission['success'] }} réussies</span>
+                                @if($submission['failed'] > 0)
+                                <span class="text-red-600 font-medium">{{ $submission['failed'] }} échouées</span>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endif
         </div>
 
         <!-- Sitemaps générés -->
@@ -592,6 +633,53 @@ function testGoogleConnection() {
     .finally(() => {
         button.innerHTML = originalText;
         button.disabled = false;
+    });
+}
+
+function submitAllUrlsToGoogle() {
+    if (!confirm('Êtes-vous sûr de vouloir envoyer toutes les URLs du sitemap à Google ? Cette opération peut prendre plusieurs minutes.')) {
+        return;
+    }
+    
+    const button = document.getElementById('submit-all-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    fetch('{{ route("admin.indexation.submit-all-to-google") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                `✅ ${data.success_count} URLs envoyées avec succès${data.failed_count > 0 ? `, ${data.failed_count} échouées` : ''}`,
+                data.failed_count === 0 ? 'success' : 'error'
+            );
+            
+            // Recharger la page après 2 secondes pour voir l'historique mis à jour
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('Erreur lors de l\'envoi: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'envoi des URLs à Google', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
     });
 }
 </script>

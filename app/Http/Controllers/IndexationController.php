@@ -59,7 +59,27 @@ class IndexationController extends Controller
         $googleService = new GoogleSearchConsoleService();
         $isGoogleConfigured = $googleService->isConfigured();
         
-        return view('admin.indexation.index', compact('indexationConfig', 'googleCredentialsArray', 'sitemapInfo', 'isGoogleConfigured'));
+        // Récupérer l'historique des envois à Google
+        $submissionHistory = Setting::get('google_indexing_history', '[]');
+        $submissionHistory = is_string($submissionHistory) ? json_decode($submissionHistory, true) : ($submissionHistory ?? []);
+        
+        // Récupérer le nombre total d'URLs dans les sitemaps
+        $totalUrlsInSitemap = 0;
+        try {
+            $allUrls = $sitemapService->getAllUrls();
+            $totalUrlsInSitemap = count($allUrls);
+        } catch (\Exception $e) {
+            \Log::warning('Impossible de compter les URLs: ' . $e->getMessage());
+        }
+        
+        return view('admin.indexation.index', compact(
+            'indexationConfig', 
+            'googleCredentialsArray', 
+            'sitemapInfo', 
+            'isGoogleConfigured',
+            'submissionHistory',
+            'totalUrlsInSitemap'
+        ));
     }
 
     /**
@@ -246,6 +266,75 @@ class IndexationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Envoyer toutes les URLs du sitemap à Google
+     */
+    public function submitAllUrlsToGoogle(Request $request)
+    {
+        try {
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
+                ], 400);
+            }
+            
+            // Récupérer toutes les URLs des sitemaps
+            $sitemapService = new SitemapService();
+            $allUrls = $sitemapService->getAllUrls();
+            
+            if (empty($allUrls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucune URL trouvée dans les sitemaps. Veuillez d\'abord générer le sitemap.'
+                ], 400);
+            }
+            
+            // Extraire uniquement les URLs
+            $urls = array_map(function($urlData) {
+                return $urlData['url'];
+            }, $allUrls);
+            
+            // Envoyer à Google
+            $result = $googleService->indexUrls($urls);
+            
+            // Sauvegarder l'historique
+            $history = Setting::get('google_indexing_history', '[]');
+            $history = is_string($history) ? json_decode($history, true) : ($history ?? []);
+            
+            $history[] = [
+                'date' => now()->toDateTimeString(),
+                'total' => $result['total'],
+                'success' => $result['success'],
+                'failed' => $result['failed'],
+                'timestamp' => time()
+            ];
+            
+            // Garder seulement les 50 derniers envois
+            $history = array_slice($history, -50);
+            
+            Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Indexation terminée: {$result['success']} URLs envoyées avec succès, {$result['failed']} échouées",
+                'total' => $result['total'],
+                'success_count' => $result['success'],
+                'failed_count' => $result['failed'],
+                'date' => now()->toDateTimeString()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi URLs à Google: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
             ], 500);
         }
     }
