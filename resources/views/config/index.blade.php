@@ -1685,5 +1685,75 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+// Gestion de l'affichage conditionnel des configs chat
+document.addEventListener('DOMContentLoaded', function() {
+    const chatProvider = document.getElementById('chat_provider');
+    if (chatProvider) {
+        chatProvider.addEventListener('change', function() {
+            const provider = this.value;
+            const tawkConfig = document.getElementById('tawk_config');
+            const crispConfig = document.getElementById('crisp_config');
+            if (tawkConfig) tawkConfig.style.display = provider === 'tawk' ? 'block' : 'none';
+            if (crispConfig) crispConfig.style.display = provider === 'crisp' ? 'block' : 'none';
+        });
+        
+        // Initialiser l'affichage au chargement
+        const provider = chatProvider.value;
+        const tawkConfig = document.getElementById('tawk_config');
+        const crispConfig = document.getElementById('crisp_config');
+        if (tawkConfig) tawkConfig.style.display = provider === 'tawk' ? 'block' : 'none';
+        if (crispConfig) crispConfig.style.display = provider === 'crisp' ? 'block' : 'none';
+    }
+});
+
+// Ajouter une nouvelle FAQ
+let faqIndex = {{ is_array($faqs ?? []) ? count($faqs) : 1 }};
+function addFaq() {
+    const container = document.getElementById('faq-container');
+    if (!container) return;
+    const newFaq = document.createElement('div');
+    newFaq.className = 'faq-item bg-white p-4 rounded-lg border border-gray-200';
+    newFaq.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700">Question ${faqIndex + 1}</span>
+            <button type="button" onclick="removeFaq(this)" class="text-red-600 hover:text-red-800 text-sm">
+                <i class="fas fa-trash mr-1"></i>Supprimer
+            </button>
+        </div>
+        <input type="text" 
+               name="faqs[${faqIndex}][question]" 
+               placeholder="Ex: Combien de temps prend la réalisation d'un devis ?"
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-purple-500 focus:border-purple-500">
+        <textarea name="faqs[${faqIndex}][answer]" 
+                  rows="2"
+                  placeholder="Ex: Nous vous envoyons un devis gratuit sous 24h..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"></textarea>
+    `;
+    container.appendChild(newFaq);
+    faqIndex++;
+}
+
+// Supprimer une FAQ
+function removeFaq(button) {
+    const item = button.closest('.faq-item');
+    if (!item) return;
+    item.remove();
+    // Réindexer les questions
+    const items = document.querySelectorAll('.faq-item');
+    items.forEach((item, index) => {
+        const span = item.querySelector('span');
+        if (span) {
+            span.textContent = `Question ${index + 1}`;
+        }
+        const inputs = item.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) {
+                input.setAttribute('name', name.replace(/faqs\[\d+\]/, `faqs[${index}]`));
+            }
+        });
+    });
+    faqIndex = items.length;
+}
 </script>
 @endsection

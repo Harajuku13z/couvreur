@@ -1886,6 +1886,66 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
             ]);
         }
     }
+    
+    /**
+     * Update conversion and UX settings (chat, exit popup, FAQ)
+     */
+    public function updateConversion(Request $request)
+    {
+        $validated = $request->validate([
+            'chat_widget_enabled' => 'nullable|boolean',
+            'chat_provider' => 'nullable|string|in:tawk,crisp',
+            'chat_tawk_id' => 'nullable|string|max:255',
+            'chat_crisp_id' => 'nullable|string|max:255',
+            'exit_popup_enabled' => 'nullable|boolean',
+            'exit_popup_title' => 'nullable|string|max:255',
+            'exit_popup_message' => 'nullable|string|max:500',
+            'exit_popup_button_text' => 'nullable|string|max:100',
+            'faqs' => 'nullable|array',
+            'faqs.*.question' => 'nullable|string|max:255',
+            'faqs.*.answer' => 'nullable|string',
+        ]);
+
+        // Chat settings
+        Setting::set('chat_widget_enabled', $request->has('chat_widget_enabled') ? true : false, 'boolean', 'conversion');
+        if (isset($validated['chat_provider'])) {
+            Setting::set('chat_provider', $validated['chat_provider'], 'string', 'conversion');
+        }
+        if (isset($validated['chat_tawk_id'])) {
+            Setting::set('chat_tawk_id', $validated['chat_tawk_id'], 'string', 'conversion');
+        }
+        if (isset($validated['chat_crisp_id'])) {
+            Setting::set('chat_crisp_id', $validated['chat_crisp_id'], 'string', 'conversion');
+        }
+
+        // Exit popup settings
+        Setting::set('exit_popup_enabled', $request->has('exit_popup_enabled') ? true : false, 'boolean', 'conversion');
+        if (isset($validated['exit_popup_title'])) {
+            Setting::set('exit_popup_title', $validated['exit_popup_title'], 'string', 'conversion');
+        }
+        if (isset($validated['exit_popup_message'])) {
+            Setting::set('exit_popup_message', $validated['exit_popup_message'], 'string', 'conversion');
+        }
+        if (isset($validated['exit_popup_button_text'])) {
+            Setting::set('exit_popup_button_text', $validated['exit_popup_button_text'], 'string', 'conversion');
+        }
+
+        // FAQ settings
+        if (isset($validated['faqs'])) {
+            // Filtrer les FAQ vides
+            $faqs = array_filter($validated['faqs'], function($faq) {
+                return !empty($faq['question']) && !empty($faq['answer']);
+            });
+            // Réindexer le tableau
+            $faqs = array_values($faqs);
+            Setting::set('faqs', json_encode($faqs), 'json', 'conversion');
+        }
+
+        Setting::clearCache();
+        Artisan::call('config:clear');
+
+        return back()->with('success', 'Configuration Conversion & UX mise à jour avec succès !');
+    }
 
 }
 
