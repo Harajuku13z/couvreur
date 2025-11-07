@@ -742,6 +742,192 @@
         </div>
     </div>
 
+    <!-- Analytics Settings -->
+    <div id="analytics" class="config-section hidden">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-chart-line mr-2 text-blue-600"></i>Configuration Google Analytics
+            </h2>
+            <p class="text-sm text-gray-600 mb-6">
+                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                Configurez Google Analytics pour suivre les visites et les appels téléphoniques. 
+                Les statistiques seront disponibles dans l'onglet <strong>Visites</strong> de l'admin.
+            </p>
+            
+            <form method="POST" action="{{ route('config.update.analytics') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="space-y-6">
+                    <!-- Google Analytics View ID -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-blue-800">
+                            <i class="fas fa-chart-bar mr-2"></i>Google Analytics View ID
+                        </h3>
+                        <p class="text-sm text-gray-700 mb-4">
+                            Le View ID permet à Spatie Laravel Analytics de récupérer les données de votre propriété Google Analytics.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    View ID (Analytics View ID) *
+                                </label>
+                                <input type="text" 
+                                       name="analytics_view_id" 
+                                       value="{{ setting('analytics_view_id') ?: env('ANALYTICS_VIEW_ID') }}" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                       placeholder="123456789">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Trouvez votre View ID dans <strong>Google Analytics > Admin > View Settings</strong>
+                                </p>
+                            </div>
+                            
+                            @if(setting('analytics_view_id') || env('ANALYTICS_VIEW_ID'))
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-green-800">View ID configuré</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    View ID actuel : <strong>{{ setting('analytics_view_id') ?: env('ANALYTICS_VIEW_ID') }}</strong>
+                                </p>
+                            </div>
+                            @else
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-yellow-800">View ID non configuré</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    Configurez le View ID pour activer les statistiques de visites
+                                </p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Service Account Credentials -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-purple-800">
+                            <i class="fas fa-key mr-2"></i>Service Account Credentials (JSON)
+                        </h3>
+                        <p class="text-sm text-gray-700 mb-4">
+                            Téléchargez le fichier JSON de votre compte de service Google Cloud. 
+                            Ce fichier doit être placé dans <code class="bg-gray-100 px-2 py-1 rounded">storage/app/analytics/service-account-credentials.json</code>
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Fichier JSON du Service Account
+                                </label>
+                                <input type="file" 
+                                       name="analytics_credentials" 
+                                       accept=".json" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Format : fichier JSON téléchargé depuis Google Cloud Console
+                                </p>
+                            </div>
+                            
+                            @php
+                                $credentialsPath = storage_path('app/analytics/service-account-credentials.json');
+                                $hasCredentials = file_exists($credentialsPath);
+                            @endphp
+                            
+                            @if($hasCredentials)
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                        <span class="text-sm font-medium text-green-800">Fichier credentials présent</span>
+                                    </div>
+                                    <span class="text-xs text-gray-600">
+                                        Modifié : {{ date('d/m/Y H:i', filemtime($credentialsPath)) }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    Le fichier est présent dans <code class="bg-gray-100 px-1 rounded">storage/app/analytics/</code>
+                                </p>
+                            </div>
+                            @else
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-red-800">Fichier credentials manquant</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    Téléchargez le fichier JSON depuis Google Cloud Console et placez-le dans le dossier indiqué ci-dessus
+                                </p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                            <i class="fas fa-book mr-2"></i>Instructions de configuration
+                        </h3>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <div class="flex items-start">
+                                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                                <div>
+                                    <p class="font-medium mb-1">Créer un compte de service Google Cloud</p>
+                                    <p class="text-xs text-gray-600">Allez sur <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 hover:underline">Google Cloud Console</a>, créez un projet et activez l'API <strong>Google Analytics Reporting API</strong></p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                                <div>
+                                    <p class="font-medium mb-1">Télécharger le fichier JSON</p>
+                                    <p class="text-xs text-gray-600">Dans <strong>IAM & Admin > Service Accounts</strong>, créez un compte de service et téléchargez le fichier JSON des credentials</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                                <div>
+                                    <p class="font-medium mb-1">Donner les permissions dans Google Analytics</p>
+                                    <p class="text-xs text-gray-600">Dans <strong>Google Analytics > Admin > Property Access Management</strong>, ajoutez l'email du compte de service avec les permissions <strong>Viewer</strong></p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">4</span>
+                                <div>
+                                    <p class="font-medium mb-1">Récupérer le View ID</p>
+                                    <p class="text-xs text-gray-600">Dans <strong>Google Analytics > Admin > View Settings</strong>, notez le <strong>View ID</strong> (format: 123456789)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">5</span>
+                                <div>
+                                    <p class="font-medium mb-1">Configurer ici</p>
+                                    <p class="text-xs text-gray-600">Entrez le View ID ci-dessus et téléchargez le fichier JSON. Une fois configuré, les statistiques seront disponibles dans <strong>/admin/visits</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-sm font-medium text-blue-800 mb-2">
+                                <i class="fas fa-link mr-2"></i>Liens utiles
+                            </p>
+                            <ul class="text-xs text-blue-700 space-y-1">
+                                <li><a href="https://console.cloud.google.com/" target="_blank" class="hover:underline">Google Cloud Console</a></li>
+                                <li><a href="https://analytics.google.com/" target="_blank" class="hover:underline">Google Analytics</a></li>
+                                <li><a href="{{ route('admin.visits') }}" target="_blank" class="hover:underline">Page Statistiques de Visites</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer la configuration Analytics
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Branding Settings -->
     <div id="branding" class="config-section hidden">
         <div class="bg-white rounded-lg shadow p-6">
