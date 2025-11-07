@@ -136,7 +136,7 @@
                 @forelse($topReferrers as $referrer)
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div class="flex-1">
-                        <p class="font-medium text-sm">{{ Str::limit($referrer['url'], 50) }}</p>
+                        <p class="font-medium text-sm">{{ \Illuminate\Support\Str::limit($referrer['url'], 50) }}</p>
                         <p class="text-xs text-gray-500">{{ number_format($referrer['pageViews']) }} visites</p>
                     </div>
                     <div class="text-green-600 font-semibold">

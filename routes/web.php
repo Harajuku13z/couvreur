@@ -173,6 +173,8 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
             Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
             Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+            Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
+            Route::get('/visits/data', [App\Http\Controllers\VisitsController::class, 'getVisitsData'])->name('visits.data');
             // ===== SETTINGS =====
             // Routes déplacées en dehors du groupe admin pour accès sans authentification
             // ===== ADS ADMIN =====
