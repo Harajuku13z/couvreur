@@ -23,7 +23,12 @@ class ServicesController extends Controller
             $services = [];
         }
         
-        return view('services.index', compact('services'));
+        // Filtrer les services visibles
+        $visibleServices = collect($services)->filter(function($service) {
+            return is_array($service) && ($service['is_visible'] ?? true);
+        });
+        
+        return view('services.index', compact('services', 'visibleServices'));
     }
 
     /**
