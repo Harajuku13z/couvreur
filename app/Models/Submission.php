@@ -29,7 +29,15 @@ class Submission extends Model
         'current_step',
         'form_data',
         'completed_at',
-        'abandoned_at'
+        'abandoned_at',
+        'ip_address',
+        'city',
+        'country',
+        'country_code',
+        'referrer_url',
+        'user_agent',
+        'recaptcha_score',
+        'tracking_data'
     ];
 
     protected $casts = [
@@ -38,8 +46,10 @@ class Submission extends Model
         'facade_work_types' => 'array',
         'isolation_work_types' => 'array',
         'form_data' => 'array',
+        'tracking_data' => 'array',
         'completed_at' => 'datetime',
         'abandoned_at' => 'datetime',
+        'recaptcha_score' => 'decimal:2',
     ];
 
     // Scopes

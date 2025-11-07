@@ -183,6 +183,82 @@
                 </dl>
             </div>
 
+            <!-- Informations de tracking -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-map-marker-alt mr-2 text-purple-500"></i>Géolocalisation
+                </h3>
+                <dl class="space-y-3">
+                    @if($submission->ip_address)
+                    <div>
+                        <dt class="text-sm text-gray-500">Adresse IP</dt>
+                        <dd class="text-sm font-medium text-gray-900">{{ $submission->ip_address }}</dd>
+                    </div>
+                    @endif
+                    @if($submission->city)
+                    <div>
+                        <dt class="text-sm text-gray-500">Ville</dt>
+                        <dd class="text-sm font-medium text-gray-900">{{ $submission->city }}</dd>
+                    </div>
+                    @endif
+                    @if($submission->country)
+                    <div>
+                        <dt class="text-sm text-gray-500">Pays</dt>
+                        <dd class="text-sm font-medium text-gray-900">
+                            {{ $submission->country }}
+                            @if($submission->country_code)
+                                <span class="text-xs text-gray-500">({{ $submission->country_code }})</span>
+                            @endif
+                        </dd>
+                    </div>
+                    @endif
+                </dl>
+            </div>
+
+            <!-- Source de trafic -->
+            @if($submission->referrer_url)
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-link mr-2 text-blue-500"></i>Source de trafic
+                </h3>
+                <div>
+                    <dt class="text-sm text-gray-500 mb-2">Page d'origine</dt>
+                    <dd class="text-sm">
+                        <a href="{{ $submission->referrer_url }}" target="_blank" 
+                           class="text-blue-600 hover:text-blue-800 break-all">
+                            <i class="fas fa-external-link-alt mr-1"></i>{{ $submission->referrer_url }}
+                        </a>
+                    </dd>
+                </div>
+            </div>
+            @endif
+
+            <!-- Informations techniques -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-info-circle mr-2 text-gray-500"></i>Informations techniques
+                </h3>
+                <dl class="space-y-3">
+                    @if($submission->user_agent)
+                    <div>
+                        <dt class="text-sm text-gray-500">User Agent</dt>
+                        <dd class="text-xs font-mono text-gray-700 break-all">{{ $submission->user_agent }}</dd>
+                    </div>
+                    @endif
+                    @if($submission->recaptcha_score !== null)
+                    <div>
+                        <dt class="text-sm text-gray-500">Score reCAPTCHA</dt>
+                        <dd class="text-sm font-medium {{ $submission->recaptcha_score >= 0.5 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ number_format($submission->recaptcha_score, 2) }}
+                            <span class="text-xs text-gray-500">
+                                ({{ $submission->recaptcha_score >= 0.5 ? 'Légitime' : 'Suspect' }})
+                            </span>
+                        </dd>
+                    </div>
+                    @endif
+                </dl>
+            </div>
+
             <!-- Actions -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <h3 class="text-lg font-semibold text-blue-900 mb-4">Actions rapides</h3>

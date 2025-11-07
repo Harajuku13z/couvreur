@@ -27,8 +27,9 @@
                 </p>
                 
                 <!-- FORMULAIRE SIMPLE (POST classique) -->
-                <form method="POST" action="{{ route('form.submit', 'email') }}">
+                <form method="POST" action="{{ route('form.submit', 'email') }}" id="emailForm">
                     @csrf
+                    <input type="hidden" name="recaptcha_token" id="recaptcha_token">
                     
                     <div class="max-w-md mx-auto">
                         <!-- Email -->
@@ -46,6 +47,9 @@
                                    autofocus>
                             <p class="text-xs text-gray-500 mt-1">Format : exemple@email.com</p>
                             @error('email')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                            @error('recaptcha')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -71,6 +75,7 @@
                         </a>
                         
                         <button type="submit" 
+                                id="submitBtn"
                                 class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition font-semibold">
                             <i class="fas fa-check mr-2"></i>
                             Terminer ma demande
@@ -134,6 +139,8 @@ console.log('✅ Page chargée : Étape 11 - Email (VERSION SIMPLE) - Dernière 
     border-color: #ef4444 !important;
 }
 </style>
+
+@include('form.partials.recaptcha')
 @endsection
 
 

@@ -9,9 +9,11 @@ use App\Models\Setting;
 use App\Models\PhoneCall;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use App\Mail\SubmissionReceived;
 use App\Mail\SubmissionNotification;
+use App\Services\IpGeolocationService;
 
 /**
  * FormController ULTRA-SIMPLE
@@ -253,11 +255,30 @@ class FormControllerSimple extends Controller
         $submission = Submission::where('session_id', $sessionId)->first();
         
         if (!$submission) {
+            // Capturer toutes les informations de tracking dès la création
+            $ipAddress = $this->getClientIp(request());
+            $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
+            $userAgent = request()->userAgent();
+            
+            // Géolocalisation
+            $geoService = new IpGeolocationService();
+            $location = $geoService->getLocationFromIp($ipAddress);
+            
             $submission = Submission::create([
                 'session_id' => $sessionId,
                 'user_identifier' => $this->generateUserIdentifier(),
                 'status' => 'IN_PROGRESS',
                 'current_step' => $step,
+                'ip_address' => $ipAddress,
+                'city' => $location['city'],
+                'country' => $location['country'],
+                'country_code' => $location['country_code'],
+                'referrer_url' => $referrerUrl,
+                'user_agent' => $userAgent,
+                'tracking_data' => [
+                    'created_at' => now()->toDateTimeString(),
+                    'first_visit' => true,
+                ],
             ]);
         }
 
@@ -285,7 +306,29 @@ class FormControllerSimple extends Controller
             return redirect()->route('form.step', 'propertyType');
         }
 
+        // Vérifier reCAPTCHA pour les étapes sensibles (email, phone)
+        if (in_array($step, ['email', 'phone'])) {
+            $recaptchaResult = $this->verifyRecaptcha($request);
+            if (!$recaptchaResult['success']) {
+                return back()->withErrors(['recaptcha' => 'Vérification anti-robot échouée. Veuillez réessayer.'])->withInput();
+            }
+            
+            // Sauvegarder le score reCAPTCHA
+            $submission->update(['recaptcha_score' => $recaptchaResult['score'] ?? null]);
+        }
+
+        // Enregistrer les données de l'étape
         $this->saveStepData($submission, $request, $step);
+        
+        // Mettre à jour les données de tracking
+        $trackingData = $submission->tracking_data ?? [];
+        $trackingData['last_step'] = $step;
+        $trackingData['last_update'] = now()->toDateTimeString();
+        $trackingData['steps_completed'][] = [
+            'step' => $step,
+            'timestamp' => now()->toDateTimeString(),
+        ];
+        $submission->update(['tracking_data' => $trackingData]);
 
         $nextStep = $this->getNextStep($step, $request->all());
 
@@ -440,6 +483,74 @@ class FormControllerSimple extends Controller
     private function generateUserIdentifier(): string
     {
         return (string) Str::uuid();
+    }
+
+    /**
+     * Obtenir l'adresse IP réelle du client
+     */
+    private function getClientIp($request = null): string
+    {
+        $request = $request ?? request();
+        
+        // Vérifier les headers de proxy
+        $headers = [
+            'HTTP_CF_CONNECTING_IP',     // Cloudflare
+            'HTTP_X_REAL_IP',            // Nginx
+            'HTTP_X_FORWARDED_FOR',       // Proxy standard
+            'HTTP_X_FORWARDED',
+            'HTTP_X_CLUSTER_CLIENT_IP',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+        ];
+        
+        foreach ($headers as $header) {
+            $ip = $request->server($header);
+            if ($ip && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return $ip;
+            }
+        }
+        
+        return $request->ip();
+    }
+
+    /**
+     * Vérifier le reCAPTCHA v3
+     */
+    private function verifyRecaptcha(Request $request): array
+    {
+        $recaptchaSecret = setting('recaptcha_secret_key');
+        $recaptchaToken = $request->input('recaptcha_token') ?? $request->input('g-recaptcha-response');
+        
+        if (empty($recaptchaSecret) || empty($recaptchaToken)) {
+            // Si pas configuré, accepter (mode développement)
+            return ['success' => true, 'score' => 1.0];
+        }
+
+        try {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $recaptchaSecret,
+                'response' => $recaptchaToken,
+                'remoteip' => $this->getClientIp($request),
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                // Score minimum: 0.5 (0.0 = bot, 1.0 = humain)
+                $minScore = 0.5;
+                $score = $data['score'] ?? 0;
+                
+                return [
+                    'success' => $data['success'] && $score >= $minScore,
+                    'score' => $score,
+                    'message' => $data['success'] ? 'Vérification réussie' : 'Score trop faible'
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur vérification reCAPTCHA: ' . $e->getMessage());
+        }
+
+        return ['success' => false, 'score' => 0, 'message' => 'Erreur de vérification'];
     }
 
     private function sendEmails(Submission $submission): void
