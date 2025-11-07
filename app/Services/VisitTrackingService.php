@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 
 class VisitTrackingService
@@ -22,10 +23,16 @@ class VisitTrackingService
     public function track(Request $request)
     {
         try {
+            // Vérifier si la table visits existe
+            if (!\Schema::hasTable('visits')) {
+                // Table n'existe pas encore, on ignore silencieusement
+                return null;
+            }
+            
             // Ignorer les requêtes admin et certaines routes
             $path = $request->path();
             if ($this->shouldIgnore($path)) {
-                return;
+                return null;
             }
 
             // Détecter si c'est un bot
@@ -74,9 +81,18 @@ class VisitTrackingService
             }
 
             return $visit;
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Erreur de base de données (table n'existe pas, etc.)
+            // Ne pas bloquer la requête en cas d'erreur de tracking
+            if (config('app.debug')) {
+                Log::warning('⚠️ Erreur tracking visite (table peut-être absente): ' . $e->getMessage());
+            }
+            return null;
         } catch (\Exception $e) {
             // Ne pas bloquer la requête en cas d'erreur de tracking
-            Log::error('❌ Erreur tracking visite: ' . $e->getMessage());
+            if (config('app.debug')) {
+                Log::error('❌ Erreur tracking visite: ' . $e->getMessage());
+            }
             return null;
         }
     }

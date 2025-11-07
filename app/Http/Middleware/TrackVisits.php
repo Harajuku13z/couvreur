@@ -22,11 +22,15 @@ class TrackVisits
     public function handle(Request $request, Closure $next): Response
     {
         // Tracker la visite en arrière-plan (ne pas bloquer la requête)
+        // On utilise @ pour supprimer les warnings si la table n'existe pas
         try {
-            $this->visitTrackingService->track($request);
+            @$this->visitTrackingService->track($request);
         } catch (\Exception $e) {
-            // Ignorer les erreurs de tracking pour ne pas bloquer la requête
-            \Log::error('Erreur tracking visite middleware: ' . $e->getMessage());
+            // Ignorer silencieusement les erreurs de tracking pour ne pas bloquer la requête
+            // Ne logger que si on est en mode debug
+            if (config('app.debug')) {
+                \Log::warning('Erreur tracking visite middleware: ' . $e->getMessage());
+            }
         }
 
         return $next($request);
