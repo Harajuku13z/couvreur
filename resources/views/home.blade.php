@@ -200,6 +200,34 @@
             </div>
             @endif
 
+            <!-- Compteur de confiance -->
+            @if(isset($trustCounter) || isset($totalReviews))
+            <div class="mb-8 flex justify-center items-center gap-8 flex-wrap">
+                @if(isset($trustCounter))
+                <div class="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ number_format($trustCounter) }}+</div>
+                            <div class="text-sm opacity-90">Devis réalisés</div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                @if(isset($totalReviews))
+                <div class="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-smile text-yellow-400 text-2xl"></i>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ $totalReviews }}+</div>
+                            <div class="text-sm opacity-90">Clients satisfaits</div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endif
+
             <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
                 {{ $homeConfig['hero']['title'] ?? setting('company_name', 'Votre Entreprise') }}
             </h1>

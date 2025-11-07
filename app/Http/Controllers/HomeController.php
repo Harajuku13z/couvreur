@@ -131,6 +131,18 @@ class HomeController extends Controller
         $pageDescription = null; // Sera géré par SeoHelper
         $pageImage = null; // Sera géré par SeoHelper
         
+        // Breadcrumbs pour la page d'accueil
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => route('home')]
+        ];
+        
+        // FAQ (peut être configuré dans les settings)
+        $faqsData = Setting::get('faqs', '[]');
+        $faqs = is_string($faqsData) ? json_decode($faqsData, true) : ($faqsData ?? []);
+        if (!is_array($faqs)) {
+            $faqs = [];
+        }
+        
         return view('home', compact(
             'homeConfig',
             'services',

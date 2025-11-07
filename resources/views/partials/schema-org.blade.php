@@ -41,7 +41,7 @@
     
     // Reviews Schema (si sur la page d'accueil)
     $reviewsSchema = null;
-    if (isset($reviews) && $reviews->count() > 0 && isset($averageRating)) {
+    if (isset($reviews) && is_object($reviews) && method_exists($reviews, 'count') && $reviews->count() > 0 && isset($averageRating)) {
         $reviewItems = [];
         foreach ($reviews->take(5) as $review) {
             $reviewItems[] = [
