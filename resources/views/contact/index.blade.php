@@ -142,15 +142,15 @@
                 </div>
                 
                 <!-- CTA vers simulateur -->
-                <div class="mt-8 p-6 bg-gradient-to-r from-primary to-secondary rounded-xl text-white">
-                    <h3 class="text-xl font-bold mb-3">
+                <div class="mt-8 p-6 bg-gradient-to-r from-primary to-secondary rounded-xl">
+                    <h3 class="text-xl font-bold mb-3 text-white">
                         <i class="fas fa-calculator mr-2"></i>Besoin d'un devis ?
                     </h3>
-                    <p class="mb-4 opacity-90">
+                    <p class="mb-4 text-white opacity-90">
                         Utilisez notre simulateur pour obtenir un devis personnalisé en quelques minutes
                     </p>
                     <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="inline-flex items-center bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                       class="inline-flex items-center bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                         <i class="fas fa-arrow-right mr-2"></i>
                         Accéder au simulateur
                     </a>
