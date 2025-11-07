@@ -116,7 +116,7 @@
                 @forelse($topPages as $page)
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div class="flex-1">
-                        <p class="font-medium text-sm">{{ Str::limit($page['url'], 50) }}</p>
+                        <p class="font-medium text-sm">@php echo \Illuminate\Support\Str::limit($page['url'], 50); @endphp</p>
                         <p class="text-xs text-gray-500">{{ number_format($page['pageViews']) }} vues</p>
                     </div>
                     <div class="text-blue-600 font-semibold">

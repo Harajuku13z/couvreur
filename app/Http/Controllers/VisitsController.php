@@ -37,10 +37,10 @@ class VisitsController extends Controller
                 ]
             ];
             
-            if ($isConfigured) {
+            if ($isConfigured && class_exists(\Spatie\Analytics\Facades\Analytics::class)) {
                 try {
                     // Récupérer les visiteurs et pages vues des 30 derniers jours
-                    $visitorsAndPageViews = Analytics::fetchVisitorsAndPageViews(Period::days(30));
+                    $visitorsAndPageViews = \Spatie\Analytics\Facades\Analytics::fetchVisitorsAndPageViews(\Spatie\Analytics\Period::days(30));
                     $data['visitors'] = $visitorsAndPageViews;
                     
                     // Calculer les statistiques globales
@@ -55,7 +55,7 @@ class VisitsController extends Controller
                     
                     // Top pages
                     try {
-                        $topPages = Analytics::fetchMostVisitedPages(Period::days(30), 10);
+                        $topPages = \Spatie\Analytics\Facades\Analytics::fetchMostVisitedPages(\Spatie\Analytics\Period::days(30), 10);
                         $data['topPages'] = $topPages;
                     } catch (\Exception $e) {
                         Log::warning('Erreur récupération top pages: ' . $e->getMessage());
@@ -63,7 +63,7 @@ class VisitsController extends Controller
                     
                     // Top referrers
                     try {
-                        $topReferrers = Analytics::fetchTopReferrers(Period::days(30), 10);
+                        $topReferrers = \Spatie\Analytics\Facades\Analytics::fetchTopReferrers(\Spatie\Analytics\Period::days(30), 10);
                         $data['topReferrers'] = $topReferrers;
                     } catch (\Exception $e) {
                         Log::warning('Erreur récupération top referrers: ' . $e->getMessage());
@@ -71,7 +71,7 @@ class VisitsController extends Controller
                     
                     // Top browsers
                     try {
-                        $topBrowsers = Analytics::fetchTopBrowsers(Period::days(30), 10);
+                        $topBrowsers = \Spatie\Analytics\Facades\Analytics::fetchTopBrowsers(\Spatie\Analytics\Period::days(30), 10);
                         $data['topBrowsers'] = $topBrowsers;
                     } catch (\Exception $e) {
                         Log::warning('Erreur récupération top browsers: ' . $e->getMessage());
@@ -79,7 +79,7 @@ class VisitsController extends Controller
                     
                     // Top countries
                     try {
-                        $topCountries = Analytics::fetchTopCountries(Period::days(30), 10);
+                        $topCountries = \Spatie\Analytics\Facades\Analytics::fetchTopCountries(\Spatie\Analytics\Period::days(30), 10);
                         $data['topCountries'] = $topCountries;
                     } catch (\Exception $e) {
                         Log::warning('Erreur récupération top countries: ' . $e->getMessage());
@@ -108,13 +108,20 @@ class VisitsController extends Controller
     public function getVisitsData(Request $request)
     {
         try {
+            if (!class_exists(\Spatie\Analytics\Facades\Analytics::class)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Spatie Analytics non disponible'
+                ], 500);
+            }
+            
             $days = $request->input('days', 30);
-            $period = Period::days((int)$days);
+            $period = \Spatie\Analytics\Period::days((int)$days);
             
             $data = [
-                'visitors' => Analytics::fetchVisitorsAndPageViews($period),
-                'topPages' => Analytics::fetchMostVisitedPages($period, 10),
-                'topReferrers' => Analytics::fetchTopReferrers($period, 10),
+                'visitors' => \Spatie\Analytics\Facades\Analytics::fetchVisitorsAndPageViews($period),
+                'topPages' => \Spatie\Analytics\Facades\Analytics::fetchMostVisitedPages($period, 10),
+                'topReferrers' => \Spatie\Analytics\Facades\Analytics::fetchTopReferrers($period, 10),
             ];
             
             return response()->json([
