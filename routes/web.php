@@ -316,8 +316,13 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/update', [App\Http\Controllers\SeoController::class, 'update'])->name('update');
         Route::post('/update-pages', [App\Http\Controllers\SeoController::class, 'updatePages'])->name('update-pages');
         Route::post('/update-page', [App\Http\Controllers\SeoController::class, 'updatePage'])->name('update-page');
-        Route::post('/update-sitemap', [App\Http\Controllers\SeoController::class, 'updateSitemap'])->name('update-sitemap');
         Route::get('/test-seo', [App\Http\Controllers\SeoController::class, 'testSeo'])->name('test');
+    });
+
+    Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
+        Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+        Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
+        Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
     });
     
     // Routes publiques SEO

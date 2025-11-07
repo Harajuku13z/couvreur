@@ -132,6 +132,12 @@
                             <i class="fas fa-search mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             SEO
                         </a>
+                        
+                        <a href="{{ route('admin.indexation.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.indexation.*') ? 'active' : '' }}">
+                            <i class="fas fa-spider mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Indexation
+                        </a>
                     </div>
                 </div>
 

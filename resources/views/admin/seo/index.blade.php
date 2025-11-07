@@ -164,71 +164,6 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Sitemap XML</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="sitemap_enabled" value="1" 
-                               {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'checked' : '' }}
-                               class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <span class="text-sm font-medium text-gray-700">Activer le sitemap XML</span>
-                    </label>
-                    <p class="text-xs text-gray-500 mt-1">Le sitemap sera accessible à /sitemap.xml</p>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="sitemap_priority" class="block text-sm font-medium mb-2">Priorité par défaut</label>
-                    <select name="sitemap_priority" id="sitemap_priority" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        <option value="0.1" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.1 ? 'selected' : '' }}>0.1 (Très faible)</option>
-                        <option value="0.3" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.3 ? 'selected' : '' }}>0.3 (Faible)</option>
-                        <option value="0.5" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.5 ? 'selected' : '' }}>0.5 (Moyenne)</option>
-                        <option value="0.7" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.7 ? 'selected' : '' }}>0.7 (Élevée)</option>
-                        <option value="0.8" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 0.8 ? 'selected' : '' }}>0.8 (Très élevée)</option>
-                        <option value="1.0" {{ ($seoConfig['sitemap_priority'] ?? 0.8) == 1.0 ? 'selected' : '' }}>1.0 (Maximum)</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="sitemap_changefreq" class="block text-sm font-medium mb-2">Fréquence de mise à jour</label>
-                    <select name="sitemap_changefreq" id="sitemap_changefreq" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        <option value="always" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'always' ? 'selected' : '' }}>Toujours</option>
-                        <option value="hourly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'hourly' ? 'selected' : '' }}>Horaire</option>
-                        <option value="daily" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'daily' ? 'selected' : '' }}>Quotidienne</option>
-                        <option value="weekly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'weekly' ? 'selected' : '' }}>Hebdomadaire</option>
-                        <option value="monthly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'monthly' ? 'selected' : '' }}>Mensuelle</option>
-                        <option value="yearly" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'yearly' ? 'selected' : '' }}>Annuelle</option>
-                        <option value="never" {{ ($seoConfig['sitemap_changefreq'] ?? 'weekly') == 'never' ? 'selected' : '' }}>Jamais</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex items-center space-x-4 flex-wrap">
-                        <a href="{{ url('/sitemap.xml') }}" target="_blank" 
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fas fa-external-link-alt mr-2"></i>Voir le sitemap
-                        </a>
-                        
-                        <button type="button" onclick="updateSitemap()" 
-                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fas fa-sync-alt mr-2"></i>Mettre à jour le sitemap
-                        </button>
-                        
-                        <span class="text-sm text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Le sitemap est actuellement 
-                            <span class="font-medium {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'text-green-600' : 'text-red-600' }}">
-                                {{ ($seoConfig['sitemap_enabled'] ?? true) ? 'activé' : 'désactivé' }}
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">Données Structurées</h2>
             
             <div class="mb-4">
@@ -237,73 +172,13 @@
                           class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm">{{ $seoConfig['schema_markup'] ?? '' }}</textarea>
             </div>
         </div>
-
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Sitemap & Robots</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="text-md font-medium mb-3 text-gray-700">Sitemap XML</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium">Sitemap automatique</p>
-                                <p class="text-sm text-gray-600">Généré automatiquement</p>
-                            </div>
-                            <a href="{{ url('/sitemap.xml') }}" target="_blank" 
-                               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Voir le sitemap
-                            </a>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium">Soumettre à Google</p>
-                                <p class="text-sm text-gray-600">URL pour Google Search Console</p>
-                            </div>
-                            <button type="button" onclick="copyToClipboard('{{ url('/sitemap.xml') }}')" 
-                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Copier l'URL
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 class="text-md font-medium mb-3 text-gray-700">Robots.txt</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium">Fichier robots.txt</p>
-                                <p class="text-sm text-gray-600">Configuration des robots</p>
-                            </div>
-                            <a href="{{ url('/robots.txt') }}" target="_blank" 
-                               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Voir robots.txt
-                            </a>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-medium">Soumettre à Google</p>
-                                <p class="text-sm text-gray-600">URL pour Google Search Console</p>
-                            </div>
-                            <button type="button" onclick="copyToClipboard('{{ url('/robots.txt') }}')" 
-                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Copier l'URL
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 class="font-medium text-yellow-800 mb-2">💡 Instructions pour Google Search Console</h4>
-                <ol class="text-sm text-yellow-700 space-y-1">
-                    <li>1. Connectez-vous à <a href="https://search.google.com/search-console" target="_blank" class="text-blue-600 hover:underline">Google Search Console</a></li>
-                    <li>2. Sélectionnez votre propriété</li>
-                    <li>3. Allez dans "Sitemaps" et ajoutez : <code class="bg-yellow-100 px-1 rounded">{{ url('/sitemap.xml') }}</code></li>
-                    <li>4. Vérifiez que votre site respecte le fichier robots.txt</li>
-                </ol>
-            </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-blue-800">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>Note :</strong> Les paramètres d'indexation (Sitemap, Robots.txt, Robots Meta Tags) ont été déplacés dans la section 
+                <a href="{{ route('admin.indexation.index') }}" class="text-blue-600 hover:underline font-semibold">Indexation</a>.
+            </p>
         </div>
 
         <div class="text-center">
@@ -319,7 +194,6 @@
 <script>
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
-        // Afficher une notification de succès
         const button = event.target;
         const originalText = button.textContent;
         button.textContent = 'Copié !';
@@ -335,95 +209,6 @@ function copyToClipboard(text) {
         console.error('Erreur lors de la copie: ', err);
         alert('Erreur lors de la copie. Veuillez copier manuellement: ' + text);
     });
-}
-
-// Fonction pour mettre à jour le sitemap
-function updateSitemap() {
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    // Afficher un indicateur de chargement
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mise à jour...';
-    button.disabled = true;
-    button.classList.add('opacity-75');
-    
-    // Faire la requête AJAX
-    fetch('{{ route("admin.seo.update-sitemap") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        // Vérifier si la réponse est OK
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                throw new Error('Non autorisé. Veuillez vous reconnecter.');
-            } else if (response.status === 404) {
-                throw new Error('Route non trouvée. Vérifiez la configuration.');
-            } else {
-                throw new Error('Erreur serveur: ' + response.status);
-            }
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Afficher un message de succès
-            showNotification('Sitemap mis à jour avec succès !', 'success');
-            
-            // Mettre à jour le statut si fourni
-            if (data.status) {
-                const statusElement = document.querySelector('.sitemap-status');
-                if (statusElement) {
-                    statusElement.textContent = data.status;
-                }
-            }
-        } else {
-            showNotification('Erreur lors de la mise à jour du sitemap: ' + (data.message || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur détaillée:', error);
-        
-        // Vérifier si c'est une erreur d'authentification
-        if (error.message.includes('Non autorisé') || error.message.includes('401')) {
-            showNotification('Session expirée. Veuillez vous reconnecter.', 'error');
-            // Rediriger vers la page de connexion après 2 secondes
-            setTimeout(() => {
-                window.location.href = '{{ route("admin.login") }}';
-            }, 2000);
-        } else {
-            showNotification('Erreur: ' + error.message, 'error');
-        }
-    })
-    .finally(() => {
-        // Restaurer le bouton
-        button.innerHTML = originalText;
-        button.disabled = false;
-        button.classList.remove('opacity-75');
-    });
-}
-
-// Fonction pour afficher les notifications
-function showNotification(message, type) {
-    // Créer l'élément de notification
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    }`;
-    notification.textContent = message;
-    
-    // Ajouter à la page
-    document.body.appendChild(notification);
-    
-    // Supprimer après 3 secondes
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
 }
 </script>
 @endpush
