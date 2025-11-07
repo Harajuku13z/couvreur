@@ -56,7 +56,25 @@ class ServicesController extends Controller
         $twitterTitle = $service['twitter_title'] ?? $ogTitle;
         $twitterDescription = $service['twitter_description'] ?? $ogDescription;
         
-        return view('services.show', compact('service', 'pageTitle', 'pageDescription', 'pageKeywords', 'currentPage', 'ogTitle', 'ogDescription', 'twitterTitle', 'twitterDescription'));
+        // Image Open Graph : utiliser l'image du service si disponible, sinon image par défaut
+        $pageImage = null;
+        if (!empty($service['featured_image'])) {
+            $pageImage = asset($service['featured_image']);
+        } else {
+            // Utiliser l'image par défaut pour les services
+            $defaultServiceImage = 'images/og-services.jpg';
+            if (file_exists(public_path($defaultServiceImage))) {
+                $pageImage = asset($defaultServiceImage);
+            } else {
+                // Fallback sur le logo
+                $companyLogo = setting('company_logo');
+                if ($companyLogo) {
+                    $pageImage = asset($companyLogo);
+                }
+            }
+        }
+        
+        return view('services.show', compact('service', 'pageTitle', 'pageDescription', 'pageKeywords', 'currentPage', 'ogTitle', 'ogDescription', 'twitterTitle', 'twitterDescription', 'pageImage'));
     }
 
     /**
