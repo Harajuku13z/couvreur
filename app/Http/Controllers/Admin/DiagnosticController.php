@@ -208,6 +208,15 @@ class DiagnosticController extends Controller
 }
 
 
+<<<<<<< Updated upstream
 
 
 
+=======
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> ac00c0ea (Mise à jour: modifications DiagnosticController et configuration base de données)
+>>>>>>> Stashed changes

@@ -191,5 +191,29 @@
                 </div>
             </main>
         </div>
+        <footer class="w-full lg:max-w-4xl max-w-[335px] mt-6 text-sm text-[#706f6c] dark:text-[#A1A09A] text-center">
+            @php
+                $address = setting('company_address', '');
+                $city = setting('company_city', '');
+                $postalCode = setting('company_postal_code', '');
+                $country = setting('company_country', 'France');
+                
+                $fullAddress = [];
+                if ($address) $fullAddress[] = $address;
+                if ($postalCode && $city) {
+                    $fullAddress[] = $postalCode . ' ' . $city;
+                } elseif ($city) {
+                    $fullAddress[] = $city;
+                } elseif ($postalCode) {
+                    $fullAddress[] = $postalCode;
+                }
+                if ($country) $fullAddress[] = $country;
+                
+                $fullAddressString = implode(', ', $fullAddress);
+            @endphp
+            @if($fullAddressString)
+                <p>{{ $fullAddressString }}</p>
+            @endif
+        </footer>
     </body>
 </html>
