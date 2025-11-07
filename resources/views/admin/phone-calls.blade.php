@@ -85,7 +85,9 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Heure</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Numéro</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ville</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Page Source</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Page d'origine</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soumission Liée</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
                     </tr>
@@ -103,6 +105,18 @@
                             </a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
+                            @if($call->city)
+                                <div class="text-sm font-medium text-gray-900">
+                                    <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>{{ $call->city }}
+                                </div>
+                                @if($call->country)
+                                    <div class="text-xs text-gray-500">{{ $call->country }}</div>
+                                @endif
+                            @else
+                                <span class="text-sm text-gray-400 italic">Non renseigné</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 {{ $call->source_page === 'home' ? 'bg-blue-100 text-blue-800' : '' }}
                                 {{ $call->source_page === 'success' ? 'bg-green-100 text-green-800' : '' }}
@@ -110,6 +124,23 @@
                                 {{ !in_array($call->source_page, ['home', 'success', 'header']) ? 'bg-gray-100 text-gray-800' : '' }}">
                                 {{ ucfirst($call->source_page) }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            @if($call->referrer_url)
+                                <a href="{{ $call->referrer_url }}" target="_blank" 
+                                   class="text-blue-600 hover:text-blue-800 truncate max-w-xs block" 
+                                   title="{{ $call->referrer_url }}">
+                                    <i class="fas fa-external-link-alt mr-1"></i>
+                                    @php
+                                        $referrerPath = parse_url($call->referrer_url, PHP_URL_PATH);
+                                        $displayUrl = $referrerPath ?: $call->referrer_url;
+                                        $displayUrl = strlen($displayUrl) > 40 ? substr($displayUrl, 0, 40) . '...' : $displayUrl;
+                                    @endphp
+                                    {{ $displayUrl }}
+                                </a>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             @if($call->submission_id)
@@ -126,7 +157,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="7" class="px-6 py-12 text-center">
                             <i class="fas fa-phone-slash text-6xl text-gray-300 mb-4"></i>
                             <p class="text-xl text-gray-600">Aucun appel téléphonique enregistré</p>
                             <p class="text-sm text-gray-500 mt-2">Les clics sur les liens téléphone seront suivis ici</p>

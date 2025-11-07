@@ -16,6 +16,10 @@ class PhoneCall extends Model
         'source_page',
         'user_agent',
         'ip_address',
+        'city',
+        'country',
+        'country_code',
+        'referrer_url',
         'clicked_at',
     ];
 

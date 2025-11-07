@@ -191,18 +191,43 @@ class FormControllerSimple extends Controller
             $sessionId = Session::getId();
             $submission = Submission::where('session_id', $sessionId)->first();
 
+            // Capturer l'IP et la géolocalisation
+            $ipAddress = $this->getClientIp($request);
+            $referrerUrl = $request->header('referer') ?? $request->input('referrer_url') ?? null;
+            
+            // Géolocalisation
+            $geoService = new IpGeolocationService();
+            $location = $geoService->getLocationFromIp($ipAddress);
+            
+            // Déterminer la page source (priorité: paramètre, referer, URL actuelle)
+            $sourcePage = $request->input('source_page');
+            if (empty($sourcePage)) {
+                // Si pas de source_page fournie, utiliser le referer ou l'URL actuelle
+                $sourcePage = $referrerUrl ? parse_url($referrerUrl, PHP_URL_PATH) : parse_url(request()->url(), PHP_URL_PATH);
+                // Nettoyer le chemin (enlever le slash initial)
+                $sourcePage = ltrim($sourcePage, '/');
+                if (empty($sourcePage)) {
+                    $sourcePage = 'home';
+                }
+            }
+
             PhoneCall::create([
                 'submission_id' => $submission ? $submission->id : null,
                 'session_id' => $sessionId,
                 'phone_number' => $request->input('phone_number') ?? setting('company_phone_raw') ?? setting('company_phone'),
-                'source_page' => $request->input('source_page') ?? request()->url(),
-                'ip_address' => $request->ip(),
+                'source_page' => $sourcePage,
+                'ip_address' => $ipAddress,
                 'user_agent' => $request->userAgent(),
+                'city' => $location['city'],
+                'country' => $location['country'],
+                'country_code' => $location['country_code'],
+                'referrer_url' => $referrerUrl,
                 'clicked_at' => now(),
             ]);
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+            \Log::error('Erreur tracking appel téléphonique: ' . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
