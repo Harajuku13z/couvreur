@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Services\SitemapService;
+use App\Services\AiService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SeoController extends Controller
@@ -405,6 +407,123 @@ class SeoController extends Controller
         ];
 
         return response()->json($tests);
+    }
+
+    /**
+     * Générer le contenu SEO avec l'IA basé sur la description de l'entreprise
+     */
+    public function generateSeoWithAI(Request $request)
+    {
+        try {
+            // Récupérer les informations de l'entreprise
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            $companyDescription = Setting::get('company_description', '');
+            $companySpecialization = Setting::get('company_specialization', 'Travaux de Rénovation');
+            $companyCity = Setting::get('company_city', '');
+            $companyRegion = Setting::get('company_region', 'Bretagne');
+            
+            if (empty($companyDescription)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Veuillez d\'abord configurer la description de votre entreprise dans les paramètres.'
+                ], 400);
+            }
+            
+            // Construire le prompt pour l'IA
+            $prompt = "Tu es un expert en SEO et rédaction web. Génère un contenu SEO optimisé pour une entreprise de rénovation.
+
+INFORMATIONS DE L'ENTREPRISE:
+- Nom: {$companyName}
+- Description: {$companyDescription}
+- Spécialisation: {$companySpecialization}
+" . (!empty($companyCity) ? "- Localisation: {$companyCity}, {$companyRegion}\n" : "");
+
+            $prompt .= "
+GÉNÈRE UN CONTENU SEO COMPLET AU FORMAT JSON STRICT avec les champs suivants:
+{
+  \"meta_title\": \"Titre SEO optimisé (max 60 caractères, incluant le nom de l'entreprise et la spécialisation)\",
+  \"meta_description\": \"Description SEO optimisée (max 160 caractères, accrocheuse et incluant des mots-clés pertinents)\",
+  \"meta_keywords\": \"Mots-clés pertinents séparés par des virgules (max 10-15 mots-clés)\",
+  \"og_title\": \"Titre optimisé pour les réseaux sociaux (max 60 caractères)\",
+  \"og_description\": \"Description optimisée pour les réseaux sociaux (max 160 caractères, engageante)\"
+}
+
+IMPORTANT:
+- Le titre meta doit être accrocheur et inclure le nom de l'entreprise
+- La description doit être persuasive et inclure un appel à l'action
+- Les mots-clés doivent être pertinents pour le secteur de la rénovation
+- Le contenu doit être en français
+- Réponds UNIQUEMENT avec le JSON, sans texte avant ou après";
+
+            // Appeler l'IA
+            $result = AiService::callAI($prompt, 'Tu es un expert en SEO et rédaction web pour le secteur du bâtiment et de la rénovation.', [
+                'max_tokens' => 1000,
+                'temperature' => 0.7
+            ]);
+
+            if (!$result || !isset($result['content'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de la génération avec l\'IA. Vérifiez votre configuration API.'
+                ], 500);
+            }
+
+            $content = $result['content'];
+            
+            // Extraire le JSON de la réponse
+            if (preg_match('/```json\s*(.*?)\s*```/s', $content, $matches)) {
+                $content = $matches[1];
+            } elseif (preg_match('/```\s*(.*?)\s*```/s', $content, $matches)) {
+                $content = $matches[1];
+            }
+            
+            // Nettoyer le contenu
+            $content = trim($content);
+            if (strpos($content, '{') !== 0) {
+                $content = substr($content, strpos($content, '{'));
+            }
+            if (strrpos($content, '}') !== false) {
+                $content = substr($content, 0, strrpos($content, '}') + 1);
+            }
+            
+            $generatedContent = json_decode($content, true);
+
+            if (!$generatedContent || json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('Erreur parsing JSON SEO généré', [
+                    'content' => $content,
+                    'json_error' => json_last_error_msg()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors du parsing de la réponse de l\'IA. Réessayez.'
+                ], 500);
+            }
+
+            // Valider et nettoyer les champs
+            $seoContent = [
+                'meta_title' => Str::limit($generatedContent['meta_title'] ?? '', 60, ''),
+                'meta_description' => Str::limit($generatedContent['meta_description'] ?? '', 160, ''),
+                'meta_keywords' => Str::limit($generatedContent['meta_keywords'] ?? '', 255, ''),
+                'og_title' => Str::limit($generatedContent['og_title'] ?? $generatedContent['meta_title'] ?? '', 60, ''),
+                'og_description' => Str::limit($generatedContent['og_description'] ?? $generatedContent['meta_description'] ?? '', 160, '')
+            ];
+
+            return response()->json([
+                'success' => true,
+                'content' => $seoContent
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur génération SEO avec IA: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 

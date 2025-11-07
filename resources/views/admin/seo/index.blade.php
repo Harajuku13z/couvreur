@@ -39,7 +39,13 @@
         @csrf
         
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Meta Tags</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Meta Tags</h2>
+                <button type="button" onclick="generateSeoWithAI()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                </button>
+            </div>
             
             <div class="mb-4">
                 <label for="meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
@@ -209,6 +215,72 @@ function copyToClipboard(text) {
         console.error('Erreur lors de la copie: ', err);
         alert('Erreur lors de la copie. Veuillez copier manuellement: ' + text);
     });
+}
+
+function generateSeoWithAI() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    fetch('{{ route("admin.seo.generate-ai") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remplir les champs avec les données générées
+            if (data.content.meta_title) {
+                document.getElementById('meta_title').value = data.content.meta_title;
+            }
+            if (data.content.meta_description) {
+                document.getElementById('meta_description').value = data.content.meta_description;
+            }
+            if (data.content.meta_keywords) {
+                document.getElementById('meta_keywords').value = data.content.meta_keywords;
+            }
+            if (data.content.og_title) {
+                document.getElementById('og_title').value = data.content.og_title;
+            }
+            if (data.content.og_description) {
+                document.getElementById('og_description').value = data.content.og_description;
+            }
+            
+            showNotification('Contenu SEO généré avec succès !', 'success');
+        } else {
+            showNotification('Erreur lors de la génération: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la génération du contenu SEO', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+    });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 </script>
 @endpush

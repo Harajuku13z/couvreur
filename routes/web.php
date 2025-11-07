@@ -316,6 +316,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/update', [App\Http\Controllers\SeoController::class, 'update'])->name('update');
         Route::post('/update-pages', [App\Http\Controllers\SeoController::class, 'updatePages'])->name('update-pages');
         Route::post('/update-page', [App\Http\Controllers\SeoController::class, 'updatePage'])->name('update-page');
+        Route::post('/generate-ai', [App\Http\Controllers\SeoController::class, 'generateSeoWithAI'])->name('generate-ai');
         Route::get('/test-seo', [App\Http\Controllers\SeoController::class, 'testSeo'])->name('test');
     });
 
