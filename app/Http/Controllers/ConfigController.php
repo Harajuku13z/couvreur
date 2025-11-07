@@ -1374,6 +1374,8 @@ class ConfigController extends Controller
                     ['label' => 'Garantie', 'value' => '10 ans', 'icon' => 'fa-shield-alt'],
                 ],
                 'partners' => [
+                    'enabled' => false,
+                    'title' => 'Nos Partenaires',
                     'logos' => [],
                 ],
             ];
@@ -1524,6 +1526,8 @@ class ConfigController extends Controller
                 ['label' => 'Garantie', 'value' => '10 ans', 'icon' => 'fa-shield-alt'],
             ],
             'partners' => [
+                'enabled' => $request->boolean('partners.enabled'),
+                'title' => $request->input('partners.title', 'Nos Partenaires'),
                 'logos' => $this->handlePartnerLogos($request, $currentConfig),
             ],
         ];

@@ -693,12 +693,19 @@
 
     <!-- Partners Section -->
     @php
+        $partnersEnabled = $homeConfig['partners']['enabled'] ?? false;
         $partners = $homeConfig['partners']['logos'] ?? [];
-        $showPartners = !empty($partners);
+        $partnersTitle = $homeConfig['partners']['title'] ?? 'Nos Partenaires';
+        $showPartners = $partnersEnabled && !empty($partners);
     @endphp
     @if($showPartners)
     <section class="py-12 bg-gray-50">
         <div class="container mx-auto px-4">
+            <!-- Section Title -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ $partnersTitle }}</h2>
+            </div>
+            
             <!-- Toggle Button -->
             <div class="text-center mb-6">
                 <button 
