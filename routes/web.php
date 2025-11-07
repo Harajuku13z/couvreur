@@ -330,6 +330,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
         Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
         Route::post('/submit-all-to-google', [App\Http\Controllers\IndexationController::class, 'submitAllUrlsToGoogle'])->name('submit-all-to-google');
+        Route::post('/submit-sitemap-to-google', [App\Http\Controllers\IndexationController::class, 'submitSitemapToGoogle'])->name('submit-sitemap-to-google');
         Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
     });
     
