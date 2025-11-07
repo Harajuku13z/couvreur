@@ -705,9 +705,6 @@ class ConfigController extends Controller
     }
 
     /**
-     * Update social media settings
-     */
-    /**
      * Update security settings (reCAPTCHA)
      */
     public function updateSecurity(Request $request)
@@ -729,6 +726,9 @@ class ConfigController extends Controller
         return back()->with('success', 'Paramètres de sécurité mis à jour avec succès !');
     }
 
+    /**
+     * Update social media settings
+     */
     public function updateSocial(Request $request)
     {
         $validated = $request->validate([
