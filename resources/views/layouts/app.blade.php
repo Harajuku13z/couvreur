@@ -359,7 +359,8 @@
             
             const payload = {
                 source_page: window.location.pathname,
-                phone_number: '{{ setting("company_phone_raw") }}'
+                phone_number: '{{ setting("company_phone_raw") }}',
+                referrer_url: document.referrer || window.location.href
             };
             
             // Ajouter les paramètres si fournis

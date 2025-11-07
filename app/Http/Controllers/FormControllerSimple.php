@@ -193,7 +193,11 @@ class FormControllerSimple extends Controller
 
             // Capturer l'IP et la géolocalisation
             $ipAddress = $this->getClientIp($request);
-            $referrerUrl = $request->header('referer') ?? $request->input('referrer_url') ?? null;
+            // Priorité: body JSON, puis header referer, puis input
+            $referrerUrl = $request->input('referrer_url') 
+                        ?? $request->header('referer') 
+                        ?? $request->query('referrer_url') 
+                        ?? null;
             
             // Géolocalisation
             $geoService = new IpGeolocationService();

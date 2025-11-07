@@ -792,7 +792,8 @@
         function trackPhoneCall(phone, page) {
             const params = new URLSearchParams({
                 phone_number: phone,
-                source_page: page
+                source_page: page,
+                referrer_url: document.referrer || window.location.href
             });
             
             fetch('/api/track-phone-call?' + params, {

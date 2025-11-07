@@ -219,10 +219,17 @@ function toggleMobileMenu() {
 }
 
 function trackPhoneCall(phone, page) {
-    fetch('/api/track-phone-call', {
+    const params = new URLSearchParams({
+        phone_number: phone || '',
+        source_page: page || window.location.pathname,
+        referrer_url: document.referrer || window.location.href
+    });
+    
+    fetch('/api/track-phone-call?' + params, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         }
     }).catch(error => console.log('Tracking error:', error));
 }
