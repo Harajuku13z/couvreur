@@ -380,25 +380,55 @@
             if (source) payload.source = source;
             if (type) payload.type = type;
             
-            fetch('{{ route("track.phone") }}', {
+            // Utiliser sendBeacon pour garantir l'envoi même si la page se ferme
+            const data = JSON.stringify(payload);
+            const blob = new Blob([data], { type: 'application/json' });
+            
+            // Essayer d'abord avec fetch, puis fallback sur sendBeacon
+            fetch('/api/track-phone-call', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': window.Laravel.csrfToken
                 },
-                body: JSON.stringify(payload)
-            }).catch(err => console.log('Tracking error:', err))
+                body: data,
+                keepalive: true // Important pour garantir l'envoi
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Appel téléphonique tracké avec succès');
+                } else {
+                    console.error('❌ Erreur tracking:', data.error);
+                }
+            })
+            .catch(err => {
+                console.error('❌ Erreur tracking:', err);
+                // Fallback: utiliser sendBeacon si fetch échoue
+                if (navigator.sendBeacon) {
+                    const formData = new FormData();
+                    formData.append('data', data);
+                    navigator.sendBeacon('/api/track-phone-call', formData);
+                }
+            })
             .finally(() => {
                 window.trackingInProgress = false;
             });
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Track all phone links
+            // Track all phone links - utiliser mousedown pour capturer avant le clic
             document.querySelectorAll('a[href^="tel:"]').forEach(link => {
-                link.addEventListener('click', function(e) {
+                // Intercepter le clic AVANT que le navigateur ne lance l'appel
+                link.addEventListener('mousedown', function(e) {
                     trackPhoneCall();
                 });
+                
+                // Aussi sur le clic pour mobile (touch)
+                link.addEventListener('click', function(e) {
+                    // Ne pas empêcher le comportement par défaut, juste tracker
+                    trackPhoneCall();
+                }, true); // Utiliser capture phase pour intercepter tôt
             });
             
             // Floating call button tooltip

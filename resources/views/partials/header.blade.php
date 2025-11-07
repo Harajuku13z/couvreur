@@ -219,30 +219,47 @@ function toggleMobileMenu() {
 }
 
 function trackPhoneCall(phone, page) {
+    // Éviter les appels multiples
+    if (window.trackingInProgress) return;
+    window.trackingInProgress = true;
+    
     const payload = {
         phone_number: phone || '',
         source_page: page || window.location.pathname,
         referrer_url: document.referrer || window.location.href
     };
     
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    
+    // Utiliser fetch avec keepalive pour garantir l'envoi
     fetch('/api/track-phone-call', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            'X-CSRF-TOKEN': csrfToken
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        keepalive: true
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('✅ Appel téléphonique tracké avec succès');
+            console.log('✅ Appel téléphonique tracké avec succès (ID: ' + (data.id || 'N/A') + ')');
         } else {
             console.error('❌ Erreur tracking:', data.error);
         }
     })
     .catch(error => {
         console.error('❌ Erreur tracking appel téléphonique:', error);
+        // Fallback: utiliser sendBeacon
+        if (navigator.sendBeacon) {
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(payload));
+            navigator.sendBeacon('/api/track-phone-call', formData);
+        }
+    })
+    .finally(() => {
+        window.trackingInProgress = false;
     });
 }
 
