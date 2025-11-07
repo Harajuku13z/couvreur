@@ -188,15 +188,34 @@ class FormControllerSimple extends Controller
     public function trackPhoneCall(Request $request)
     {
         try {
+            // Accepter les données depuis sendBeacon (query string ou body)
+            if ($request->has('data')) {
+                $data = json_decode($request->input('data'), true);
+                if (is_array($data)) {
+                    $request->merge($data);
+                }
+            }
+            
+            // Accepter aussi depuis query string (pour sendBeacon avec URL)
+            if ($request->has('phone_number') || $request->query('phone_number')) {
+                // Les données sont déjà dans la requête
+            }
+            
             $trackingService = new \App\Services\PhoneCallTrackingService();
             $result = $trackingService->track($request);
             
             if ($result['success']) {
-                return response()->json([
-                    'success' => true, 
-                    'id' => $result['id']
-                ]);
+                // Retourner une réponse simple pour sendBeacon
+                if ($request->wantsJson() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => true, 
+                        'id' => $result['id']
+                    ]);
+                }
+                // Pour sendBeacon, retourner un simple 200 OK
+                return response('OK', 200);
             } else {
+                \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'));
                 return response()->json([
                     'success' => false, 
                     'error' => $result['error'] ?? 'Erreur inconnue'
@@ -205,9 +224,12 @@ class FormControllerSimple extends Controller
         } catch (\Exception $e) {
             \Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'method' => $request->method(),
+                'content_type' => $request->header('Content-Type')
             ]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            // Retourner quand même 200 pour ne pas bloquer l'appel
+            return response('OK', 200);
         }
     }
 

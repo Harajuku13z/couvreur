@@ -171,25 +171,36 @@
         
         // Fonction de tracking avec le numéro et la page
         const trackThisLink = function(e) {
-            // Empêcher le comportement par défaut temporairement pour garantir le tracking
-            e.stopPropagation();
+            // Ne pas empêcher le comportement par défaut pour ne pas bloquer l'appel
+            // Mais tracker immédiatement
             trackPhoneCall(phoneNumber, sourcePage);
         };
         
         // Pour mobile (touchstart se déclenche AVANT click - le plus important)
-        link.addEventListener('touchstart', trackThisLink, { 
-            passive: false, // Permettre preventDefault si nécessaire
-            capture: true 
+        // Utiliser once: true pour ne tracker qu'une fois
+        link.addEventListener('touchstart', function(e) {
+            // Tracker immédiatement
+            trackPhoneCall(phoneNumber, sourcePage);
+        }, { 
+            passive: true, // Ne pas bloquer le scroll
+            capture: true,
+            once: false // Permettre plusieurs trackings si nécessaire
         });
         
         // Pour desktop (mousedown se déclenche AVANT click)
-        link.addEventListener('mousedown', trackThisLink, {
-            capture: true
+        link.addEventListener('mousedown', function(e) {
+            trackPhoneCall(phoneNumber, sourcePage);
+        }, {
+            capture: true,
+            passive: true
         });
         
         // Aussi sur le clic en fallback (capture phase - très tôt)
-        link.addEventListener('click', trackThisLink, {
-            capture: true
+        link.addEventListener('click', function(e) {
+            trackPhoneCall(phoneNumber, sourcePage);
+        }, {
+            capture: true,
+            passive: true
         });
         
         // Marquer comme attaché
