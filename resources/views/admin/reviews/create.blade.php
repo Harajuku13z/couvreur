@@ -107,6 +107,19 @@
                     </div>
 
                     <div>
+                        <label for="video_url" class="block text-sm font-medium text-gray-700 mb-2">
+                            URL Vidéo (YouTube ou Vimeo)
+                        </label>
+                        <input type="url" 
+                               id="video_url" 
+                               name="video_url" 
+                               value="{{ old('video_url') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/...">
+                        <p class="text-sm text-gray-500 mt-1">Collez l'URL complète d'une vidéo YouTube ou Vimeo (optionnel)</p>
+                    </div>
+
+                    <div>
                         <label for="review_date" class="block text-sm font-medium text-gray-700 mb-2">
                             Date de l'avis *
                         </label>
