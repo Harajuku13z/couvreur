@@ -439,6 +439,65 @@
             <input type="hidden" name="stats_json" id="stats_json" value="">
         </div>
 
+        <!-- Partners Logos -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-handshake text-purple-500 mr-2"></i>Logos des Partenaires
+            </h2>
+            <p class="text-gray-600 mb-4">Ajoutez les logos de vos partenaires. Ils apparaîtront sur la page d'accueil avec un bouton pour les afficher/masquer.</p>
+
+            <div id="partners-container" class="space-y-4">
+                @php
+                    $partners = $config['partners']['logos'] ?? [];
+                @endphp
+                @if(!empty($partners))
+                    @foreach($partners as $index => $partner)
+                    <div class="partner-item p-4 border border-gray-300 rounded-lg hover:border-purple-500 transition">
+                        <div class="grid md:grid-cols-4 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                                @if(!empty($partner['logo']))
+                                <div class="mb-2">
+                                    <img src="{{ asset($partner['logo']) }}" alt="Logo partenaire" class="max-h-16 max-w-32 object-contain border border-gray-200 rounded p-2">
+                                </div>
+                                @endif
+                                <input type="file" name="partner_logos[]" accept="image/*" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <p class="text-xs text-gray-500 mt-1">Format: PNG, JPG (max 2MB)</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nom du partenaire</label>
+                                <input type="text" name="partner_names[]" 
+                                       value="{{ $partner['name'] ?? '' }}" 
+                                       placeholder="Nom du partenaire"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">URL (optionnel)</label>
+                                <input type="url" name="partner_urls[]" 
+                                       value="{{ $partner['url'] ?? '' }}" 
+                                       placeholder="https://..."
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <button type="button" onclick="removePartner(this)" 
+                                        class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                                    <i class="fas fa-trash mr-2"></i>Supprimer
+                                </button>
+                            </div>
+                        </div>
+                        @if(!empty($partner['logo']))
+                        <input type="hidden" name="existing_partner_logos[]" value="{{ $partner['logo'] }}">
+                        @endif
+                    </div>
+                    @endforeach
+                @endif
+            </div>
+
+            <button type="button" onclick="addPartner()" class="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-plus mr-2"></i>Ajouter un Partenaire
+            </button>
+        </div>
 
         <!-- Submit Button -->
         <div class="flex justify-end gap-4 sticky bottom-4 bg-white p-4 rounded-lg shadow-lg">
@@ -494,6 +553,47 @@
             </button>
         `;
         container.appendChild(div);
+    }
+
+    function addPartner() {
+        const container = document.getElementById('partners-container');
+        const div = document.createElement('div');
+        div.className = 'partner-item p-4 border border-gray-300 rounded-lg hover:border-purple-500 transition';
+        div.innerHTML = `
+            <div class="grid md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                    <input type="file" name="partner_logos[]" accept="image/*" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <p class="text-xs text-gray-500 mt-1">Format: PNG, JPG (max 2MB)</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom du partenaire</label>
+                    <input type="text" name="partner_names[]" 
+                           placeholder="Nom du partenaire"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">URL (optionnel)</label>
+                    <input type="url" name="partner_urls[]" 
+                           placeholder="https://..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <button type="button" onclick="removePartner(this)" 
+                            class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-trash mr-2"></i>Supprimer
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function removePartner(btn) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce partenaire ?')) {
+            btn.closest('.partner-item').remove();
+        }
     }
 
     function removeStat(btn) {

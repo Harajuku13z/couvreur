@@ -1361,6 +1361,9 @@ class ConfigController extends Controller
                     ['label' => 'Années d\'Expérience', 'value' => '15+', 'icon' => 'fa-award'],
                     ['label' => 'Garantie', 'value' => '10 ans', 'icon' => 'fa-shield-alt'],
                 ],
+                'partners' => [
+                    'logos' => [],
+                ],
             ];
         }
         
@@ -1534,29 +1537,46 @@ class ConfigController extends Controller
             mkdir($partnersDir, 0755, true);
         }
         
-        // Gérer les nouveaux logos uploadés
-        if ($request->hasFile('partner_logos')) {
-            $logos = $request->file('partner_logos');
-            $names = $request->input('partner_names', []);
-            $urls = $request->input('partner_urls', []);
+        $names = $request->input('partner_names', []);
+        $urls = $request->input('partner_urls', []);
+        $logos = $request->hasFile('partner_logos') ? $request->file('partner_logos') : [];
+        
+        // Parcourir tous les partenaires (basé sur les noms fournis)
+        $maxIndex = max(count($names), count($urls), count($logos), count($existingPartners));
+        
+        for ($index = 0; $index < $maxIndex; $index++) {
+            $logo = $logos[$index] ?? null;
+            $name = $names[$index] ?? '';
+            $url = $urls[$index] ?? '';
             
-            foreach ($logos as $index => $logo) {
-                if ($logo && $logo->isValid()) {
-                    $filename = 'partner-' . time() . '-' . $index . '.' . $logo->getClientOriginalExtension();
-                    $logo->move($partnersDir, $filename);
-                    
+            // Si un nouveau logo est uploadé
+            if ($logo && $logo->isValid()) {
+                $filename = 'partner-' . time() . '-' . $index . '.' . $logo->getClientOriginalExtension();
+                $logo->move($partnersDir, $filename);
+                
+                $partners[] = [
+                    'logo' => 'uploads/partners/' . $filename,
+                    'name' => $name,
+                    'url' => $url,
+                ];
+            } else {
+                // Conserver le logo existant s'il existe
+                $existingPartner = $existingPartners[$index] ?? null;
+                if ($existingPartner && !empty($existingPartner['logo'])) {
                     $partners[] = [
-                        'logo' => 'uploads/partners/' . $filename,
-                        'name' => $names[$index] ?? '',
-                        'url' => $urls[$index] ?? '',
+                        'logo' => $existingPartner['logo'],
+                        'name' => $name ?: ($existingPartner['name'] ?? ''),
+                        'url' => $url ?: ($existingPartner['url'] ?? ''),
+                    ];
+                } elseif ($name || $url) {
+                    // Si seulement le nom ou l'URL est fourni sans logo, on garde quand même
+                    $partners[] = [
+                        'logo' => $existingPartner['logo'] ?? '',
+                        'name' => $name,
+                        'url' => $url,
                     ];
                 }
             }
-        }
-        
-        // Conserver les logos existants si pas de nouveaux uploads
-        if (empty($partners) && !empty($existingPartners)) {
-            $partners = $existingPartners;
         }
         
         return $partners;
