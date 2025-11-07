@@ -130,6 +130,8 @@
     <meta property="og:title" content="{{ e($finalOgTitle) }}">
     <meta property="og:description" content="{{ e($finalOgDescription) }}">
     <meta property="og:image" content="{{ e($finalImage) }}">
+    <meta property="og:image:secure_url" content="{{ e($finalImage) }}">
+    <meta property="og:image:type" content="image/png">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta property="og:type" content="{{ $pageType ?? 'website' }}">
     <meta property="og:site_name" content="{{ e(setting('company_name', 'Votre Entreprise')) }}">
@@ -214,15 +216,17 @@
     @endphp
     
     @if($faviconUrl)
-    <!-- Favicon standard -->
+    <!-- Favicon standard (obligatoire pour Google) -->
     <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     
-    <!-- Favicon pour différentes tailles (requis par Google) -->
+    <!-- Favicon pour différentes tailles (requis par Google - 48x48px minimum) -->
     <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="icon" type="{{ $faviconType }}" sizes="32x32" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="48x48" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="icon" type="{{ $faviconType }}" sizes="96x96" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="icon" type="{{ $faviconType }}" sizes="192x192" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="512x512" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}{{ $faviconVersion }}">

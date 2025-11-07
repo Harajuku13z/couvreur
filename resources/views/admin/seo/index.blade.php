@@ -4,14 +4,21 @@
 
 @section('content')
 <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Gestion SEO</h1>
         <div class="space-x-4">
+            <button type="button" onclick="validateSeoForGoogle()" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                <i class="fas fa-check-circle mr-2"></i>Valider pour Google
+            </button>
             <a href="{{ route('admin.seo.pages') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
                 <i class="fas fa-cog mr-2"></i>Configuration par Page
             </a>
         </div>
     </div>
+    
+    <!-- Zone d'affichage des résultats de validation -->
+    <div id="validationResults" class="hidden mb-6"></div>
     
     @if(session('success'))
     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">

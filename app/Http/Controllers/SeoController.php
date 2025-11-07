@@ -405,6 +405,12 @@ class SeoController extends Controller
     public function testSeo()
     {
         $seoConfig = Setting::get('seo_config', []);
+        $seoConfig = is_string($seoConfig) ? json_decode($seoConfig, true) : ($seoConfig ?? []);
+        
+        // Utiliser le service de validation
+        $validationService = new \App\Services\SeoValidationService();
+        $faviconValidation = $validationService->validateFavicon();
+        $ogImageValidation = $validationService->validateOgImage();
         
         $tests = [
             'meta_title' => [
@@ -418,14 +424,22 @@ class SeoController extends Controller
                 'recommendation' => 'La description doit faire entre 150-160 caractères'
             ],
             'og_image' => [
-                'status' => !empty($seoConfig['og_image']),
-                'message' => !empty($seoConfig['og_image']) ? 'Image OG définie' : 'Image OG manquante',
-                'recommendation' => 'Image recommandée : 1200x630px'
+                'status' => $ogImageValidation['valid'],
+                'message' => $ogImageValidation['valid'] ? 'Image OG valide' : 'Image OG invalide',
+                'recommendation' => 'Image recommandée : 1200x630px, accessible en HTTPS',
+                'errors' => $ogImageValidation['errors'] ?? [],
+                'warnings' => $ogImageValidation['warnings'] ?? [],
+                'info' => $ogImageValidation['info'] ?? [],
+                'image_url' => $ogImageValidation['image_url'] ?? null
             ],
             'favicon' => [
-                'status' => !empty($seoConfig['favicon']),
-                'message' => !empty($seoConfig['favicon']) ? 'Favicon défini' : 'Favicon manquant',
-                'recommendation' => 'Format recommandé : ICO ou PNG 32x32px'
+                'status' => $faviconValidation['valid'],
+                'message' => $faviconValidation['valid'] ? 'Favicon valide' : 'Favicon invalide',
+                'recommendation' => 'Format recommandé : PNG/ICO 48-512px, accessible en HTTPS',
+                'errors' => $faviconValidation['errors'] ?? [],
+                'warnings' => $faviconValidation['warnings'] ?? [],
+                'info' => $faviconValidation['info'] ?? [],
+                'favicon_url' => $faviconValidation['favicon_url'] ?? null
             ],
             'sitemap' => [
                 'status' => $seoConfig['sitemap_enabled'] ?? true,
@@ -435,6 +449,59 @@ class SeoController extends Controller
         ];
 
         return response()->json($tests);
+    }
+    
+    /**
+     * Valider complètement le SEO pour Google
+     */
+    public function validateSeoForGoogle(Request $request)
+    {
+        try {
+            $validationService = new \App\Services\SeoValidationService();
+            $pageUrl = $request->input('url', url('/'));
+            
+            $results = $validationService->validateMetaTags($pageUrl);
+            
+            return response()->json([
+                'success' => true,
+                'validation' => $results,
+                'recommendations' => $this->getRecommendations($results)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur validation SEO: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Obtenir les recommandations basées sur la validation
+     */
+    private function getRecommendations($validation)
+    {
+        $recommendations = [];
+        
+        // Favicon
+        if (!$validation['favicon']['valid']) {
+            $recommendations[] = [
+                'type' => 'error',
+                'title' => 'Favicon non conforme',
+                'message' => 'Votre favicon ne respecte pas les critères Google. ' . implode(' ', $validation['favicon']['errors'])
+            ];
+        }
+        
+        // Image OG
+        if (!$validation['og_image']['valid']) {
+            $recommendations[] = [
+                'type' => 'error',
+                'title' => 'Image Open Graph non conforme',
+                'message' => 'Votre image OG ne respecte pas les critères Google. ' . implode(' ', $validation['og_image']['errors'])
+            ];
+        }
+        
+        return $recommendations;
     }
 
     /**
