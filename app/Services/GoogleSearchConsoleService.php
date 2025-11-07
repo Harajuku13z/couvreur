@@ -79,11 +79,17 @@ class GoogleSearchConsoleService
     protected function getSiteUrl()
     {
         // Essayer de récupérer depuis les settings
-        $siteUrl = Setting::get('site_url', '');
+        $siteUrl = Setting::get('site_url', null);
         
         if (empty($siteUrl)) {
-            // Fallback: utiliser l'URL de la requête actuelle
-            $siteUrl = request()->getSchemeAndHttpHost();
+            // Utiliser APP_URL depuis la config Laravel
+            $siteUrl = config('app.url', url('/'));
+        }
+        
+        // S'assurer que l'URL a un protocole (https:// ou http://)
+        if (!preg_match('/^https?:\/\//', $siteUrl)) {
+            // Si pas de protocole, ajouter https://
+            $siteUrl = 'https://' . $siteUrl;
         }
 
         // S'assurer que l'URL se termine par /

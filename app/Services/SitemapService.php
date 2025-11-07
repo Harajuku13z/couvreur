@@ -15,11 +15,22 @@ class SitemapService
 
     public function __construct()
     {
-        // Récupérer l'URL depuis les settings ou utiliser la valeur par défaut
-        $this->baseUrl = Setting::get('site_url', 'https://sausercouverture.fr');
+        // Récupérer l'URL depuis les settings, puis config('app.url'), puis url('/')
+        $siteUrl = Setting::get('site_url', null);
+        
+        if (empty($siteUrl)) {
+            // Utiliser APP_URL depuis la config Laravel
+            $siteUrl = config('app.url', url('/'));
+        }
+        
+        // S'assurer que l'URL a un protocole (https:// ou http://)
+        if (!preg_match('/^https?:\/\//', $siteUrl)) {
+            // Si pas de protocole, ajouter https://
+            $siteUrl = 'https://' . $siteUrl;
+        }
         
         // S'assurer que l'URL ne se termine pas par /
-        $this->baseUrl = rtrim($this->baseUrl, '/');
+        $this->baseUrl = rtrim($siteUrl, '/');
     }
 
     /**
