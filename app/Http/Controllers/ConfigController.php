@@ -194,6 +194,7 @@ class ConfigController extends Controller
         $validated = $request->validate([
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'favicon' => 'nullable|image|mimes:ico,png,jpg|max:512',
+            'contact_hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
