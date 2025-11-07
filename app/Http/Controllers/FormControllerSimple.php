@@ -199,19 +199,25 @@ class FormControllerSimple extends Controller
         
         try {
             // Accepter les données depuis sendBeacon (FormData)
+            // sendBeacon envoie les données en FormData, donc elles sont dans $request->input()
             $phoneNumber = $request->input('phone_number') 
                         ?? $request->query('phone_number')
                         ?? null;
             
             $sourcePage = $request->input('source_page')
                         ?? $request->query('source_page')
-                        ?? $request->header('referer')
+                        ?? parse_url($request->header('referer', ''), PHP_URL_PATH)
                         ?? 'unknown';
             
             $referrerUrl = $request->input('referrer_url')
                         ?? $request->query('referrer_url')
                         ?? $request->header('referer')
                         ?? null;
+            
+            // Si sourcePage est encore 'unknown', essayer de l'extraire de l'URL
+            if ($sourcePage === 'unknown' && $referrerUrl) {
+                $sourcePage = parse_url($referrerUrl, PHP_URL_PATH) ?: 'unknown';
+            }
             
             // Si les données viennent de sendBeacon (FormData), parser le JSON
             if ($request->has('data')) {

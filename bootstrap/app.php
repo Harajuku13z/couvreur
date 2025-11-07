@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisits::class,
         ]);
+        
+        // Exclure la route de tracking des appels du CSRF (sendBeacon ne peut pas envoyer de token)
+        $middleware->validateCsrfTokens(except: [
+            'api/track-phone-call',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
