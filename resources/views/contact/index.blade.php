@@ -49,7 +49,7 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-white text-primary px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                   class="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-calculator mr-2"></i>
                     Demander un devis gratuit
                 </a>
@@ -240,6 +240,7 @@
                                 <option value="{{ $service['name'] }}">{{ $service['name'] }}</option>
                                 @endif
                             @endforeach
+                            <option value="Autre">Autre</option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">
                             Ou <a href="{{ route('form.step', 'propertyType') }}" class="text-primary hover:underline">utilisez notre simulateur</a> pour un devis personnalisé
