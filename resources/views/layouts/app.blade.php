@@ -343,21 +343,20 @@
     
     <!-- Floating Call Button -->
     @if(setting('company_phone_raw'))
-    <a href="tel:{{ setting('company_phone_raw') }}" 
+    @php
+        // Formater le numéro pour tel: (supprimer les espaces, garder les chiffres)
+        $phoneRaw = preg_replace('/[^0-9+]/', '', setting('company_phone_raw'));
+        // Si le numéro commence par 0, le remplacer par +33 pour les appels internationaux
+        if (strpos($phoneRaw, '0') === 0 && strlen($phoneRaw) == 10) {
+            $phoneRaw = '+33' . substr($phoneRaw, 1);
+        }
+    @endphp
+    <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
-       style="background-color: var(--primary-color);"
-       onclick="trackPhoneCall()">
+       style="background-color: var(--primary-color);">
         <i class="fas fa-phone text-2xl"></i>
     </a>
-    
-    <!-- Call Info Tooltip -->
-    <div class="fixed bottom-24 right-6 bg-white rounded-lg shadow-xl p-4 z-40 hidden" id="callTooltip">
-        <div class="text-center">
-            <p class="text-sm font-semibold text-gray-800">Appelez-nous !</p>
-            <p class="text-xs text-gray-600">{{ setting('company_phone') }}</p>
-        </div>
-    </div>
     @endif
     
     <script>
@@ -365,26 +364,35 @@
             csrfToken: '{{ csrf_token() }}'
         };
         
-        function trackPhoneCall(source = null, type = null) {
+        function trackPhoneCall(phoneNumber = null) {
             // Éviter les appels multiples
             if (window.trackingInProgress) return;
             window.trackingInProgress = true;
             
+            const phone = phoneNumber || '{{ setting("company_phone_raw") }}';
+            
             const payload = {
                 source_page: window.location.pathname,
-                phone_number: '{{ setting("company_phone_raw") }}',
+                phone_number: phone,
                 referrer_url: document.referrer || window.location.href
             };
             
-            // Ajouter les paramètres si fournis
-            if (source) payload.source = source;
-            if (type) payload.type = type;
-            
-            // Utiliser sendBeacon pour garantir l'envoi même si la page se ferme
+            // Utiliser sendBeacon en priorité pour garantir l'envoi même si la page se ferme
             const data = JSON.stringify(payload);
-            const blob = new Blob([data], { type: 'application/json' });
             
-            // Essayer d'abord avec fetch, puis fallback sur sendBeacon
+            // Utiliser sendBeacon d'abord (plus fiable pour les liens tel:)
+            if (navigator.sendBeacon) {
+                const formData = new FormData();
+                formData.append('data', data);
+                const sent = navigator.sendBeacon('/api/track-phone-call', formData);
+                if (sent) {
+                    console.log('✅ Tracking envoyé via sendBeacon');
+                    window.trackingInProgress = false;
+                    return;
+                }
+            }
+            
+            // Fallback sur fetch avec keepalive
             fetch('/api/track-phone-call', {
                 method: 'POST',
                 headers: {
@@ -392,24 +400,18 @@
                     'X-CSRF-TOKEN': window.Laravel.csrfToken
                 },
                 body: data,
-                keepalive: true // Important pour garantir l'envoi
+                keepalive: true
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log('✅ Appel téléphonique tracké avec succès');
+                    console.log('✅ Appel téléphonique tracké avec succès (ID: ' + (data.id || 'N/A') + ')');
                 } else {
                     console.error('❌ Erreur tracking:', data.error);
                 }
             })
             .catch(err => {
                 console.error('❌ Erreur tracking:', err);
-                // Fallback: utiliser sendBeacon si fetch échoue
-                if (navigator.sendBeacon) {
-                    const formData = new FormData();
-                    formData.append('data', data);
-                    navigator.sendBeacon('/api/track-phone-call', formData);
-                }
             })
             .finally(() => {
                 window.trackingInProgress = false;
@@ -417,33 +419,26 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Track all phone links - utiliser mousedown pour capturer avant le clic
+            // Track all phone links - utiliser touchstart pour mobile et mousedown pour desktop
             document.querySelectorAll('a[href^="tel:"]').forEach(link => {
-                // Intercepter le clic AVANT que le navigateur ne lance l'appel
+                // Extraire le numéro du href
+                const phoneNumber = link.getAttribute('href').replace('tel:', '');
+                
+                // Pour mobile (touchstart se déclenche avant click)
+                link.addEventListener('touchstart', function(e) {
+                    trackPhoneCall(phoneNumber);
+                }, { passive: true }); // passive pour ne pas bloquer le scroll
+                
+                // Pour desktop (mousedown se déclenche avant click)
                 link.addEventListener('mousedown', function(e) {
-                    trackPhoneCall();
+                    trackPhoneCall(phoneNumber);
                 });
                 
-                // Aussi sur le clic pour mobile (touch)
+                // Aussi sur le clic en fallback (capture phase)
                 link.addEventListener('click', function(e) {
-                    // Ne pas empêcher le comportement par défaut, juste tracker
-                    trackPhoneCall();
-                }, true); // Utiliser capture phase pour intercepter tôt
+                    trackPhoneCall(phoneNumber);
+                }, true);
             });
-            
-            // Floating call button tooltip
-            const floatingBtn = document.getElementById('floatingCallBtn');
-            const tooltip = document.getElementById('callTooltip');
-            
-            if (floatingBtn && tooltip) {
-                floatingBtn.addEventListener('mouseenter', function() {
-                    tooltip.classList.remove('hidden');
-                });
-                
-                floatingBtn.addEventListener('mouseleave', function() {
-                    tooltip.classList.add('hidden');
-                });
-            }
         });
     </script>
     

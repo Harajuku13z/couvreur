@@ -209,6 +209,16 @@ class FormControllerSimple extends Controller
                         ?? setting('company_phone_raw') 
                         ?? setting('company_phone');
             
+            // Nettoyer le numéro (supprimer les caractères non numériques sauf +)
+            $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+            
+            // Si le numéro commence par +33, le convertir en format local pour l'affichage
+            if (strpos($phoneNumber, '+33') === 0) {
+                $phoneNumberDisplay = '0' . substr($phoneNumber, 3);
+            } else {
+                $phoneNumberDisplay = $phoneNumber;
+            }
+            
             // Si les données viennent de sendBeacon (FormData), parser le JSON
             if ($request->has('data')) {
                 $data = json_decode($request->input('data'), true);
@@ -237,7 +247,7 @@ class FormControllerSimple extends Controller
             $phoneCall = PhoneCall::create([
                 'submission_id' => $submission ? $submission->id : null,
                 'session_id' => $sessionId,
-                'phone_number' => $phoneNumber,
+                'phone_number' => $phoneNumberDisplay, // Stocker le format local pour l'affichage
                 'source_page' => $sourcePage,
                 'ip_address' => $ipAddress,
                 'user_agent' => $request->userAgent(),
