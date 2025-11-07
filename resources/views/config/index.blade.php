@@ -626,6 +626,34 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Icône du site (favicon)</label>
                             <input type="file" name="favicon" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <p class="text-xs text-gray-500 mt-1">Format recommandé : ICO ou PNG 32x32px</p>
+                            @php
+                                $currentFavicon = setting('site_favicon');
+                                $faviconUrl = null;
+                                if ($currentFavicon) {
+                                    $faviconPath = public_path($currentFavicon);
+                                    if (file_exists($faviconPath)) {
+                                        $faviconUrl = asset($currentFavicon);
+                                    }
+                                }
+                                // Vérifier aussi dans seo_config
+                                if (!$faviconUrl) {
+                                    $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+                                    $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+                                    if (!empty($seoConfig['favicon'])) {
+                                        $seoFaviconPath = public_path($seoConfig['favicon']);
+                                        if (file_exists($seoFaviconPath)) {
+                                            $faviconUrl = asset($seoConfig['favicon']);
+                                        }
+                                    }
+                                }
+                            @endphp
+                            @if($faviconUrl)
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Favicon actuel :</p>
+                                <img src="{{ $faviconUrl }}?v={{ time() }}" alt="Favicon actuel" class="w-8 h-8 object-contain border border-gray-200 rounded">
+                                <p class="text-xs text-gray-500 mt-1">Si le favicon ne s'affiche pas, videz le cache de votre navigateur (Ctrl+F5 ou Cmd+Shift+R)</p>
+                            </div>
+                            @endif
                         </div>
                     </div>
 

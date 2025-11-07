@@ -211,6 +211,13 @@ class ConfigController extends Controller
         // Handle favicon upload
         if ($request->hasFile('favicon')) {
             $favicon = $request->file('favicon');
+            
+            // Supprimer l'ancien favicon s'il existe
+            $oldFavicon = Setting::get('site_favicon');
+            if ($oldFavicon && file_exists(public_path($oldFavicon))) {
+                @unlink(public_path($oldFavicon));
+            }
+            
             $faviconName = 'favicon-' . time() . '.' . $favicon->getClientOriginalExtension();
             $favicon->move(public_path(), $faviconName);
             Setting::set('site_favicon', $faviconName, 'file', 'branding');
@@ -235,6 +242,11 @@ class ConfigController extends Controller
         }
 
         Setting::clearCache();
+        
+        // Vider aussi le cache Laravel pour forcer le rechargement du favicon
+        \Artisan::call('cache:clear');
+        \Artisan::call('config:clear');
+        \Artisan::call('view:clear');
 
         return back()->with('success', 'Paramètres de branding mis à jour avec succès !');
     }
