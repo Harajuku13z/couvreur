@@ -106,6 +106,65 @@ class IndexationController extends Controller
     }
 
     /**
+     * Réinitialiser et régénérer tous les sitemaps
+     */
+    public function resetSitemaps(Request $request)
+    {
+        try {
+            // Supprimer tous les anciens sitemaps
+            $sitemapFiles = glob(public_path('sitemap*.xml'));
+            $deletedCount = 0;
+            
+            foreach ($sitemapFiles as $file) {
+                if (unlink($file)) {
+                    $deletedCount++;
+                    \Log::info("🗑️ Sitemap supprimé: " . basename($file));
+                }
+            }
+            
+            // Vérifier que site_url est bien configuré
+            $siteUrl = Setting::get('site_url', null);
+            if (empty($siteUrl)) {
+                // Utiliser APP_URL depuis .env
+                $siteUrl = config('app.url', 'https://normesrenovationbretagne.fr');
+            }
+            
+            // S'assurer que l'URL est correcte
+            if (!preg_match('/^https?:\/\//', $siteUrl)) {
+                $siteUrl = 'https://' . $siteUrl;
+            }
+            $siteUrl = rtrim($siteUrl, '/');
+            
+            // Mettre à jour le setting si nécessaire
+            if (Setting::get('site_url') !== $siteUrl) {
+                Setting::set('site_url', $siteUrl, 'string', 'seo');
+                Setting::clearCache();
+                \Log::info("✅ site_url mis à jour: {$siteUrl}");
+            }
+            
+            // Régénérer tous les sitemaps
+            $sitemapService = new SitemapService();
+            $result = $sitemapService->generateSitemap();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Réinitialisation réussie : {$deletedCount} ancien(s) sitemap(s) supprimé(s), " . count($result['sitemaps']) . " nouveau(x) sitemap(s) généré(s)",
+                'deleted_count' => $deletedCount,
+                'generated_count' => count($result['sitemaps']),
+                'total_urls' => $result['total_urls'],
+                'site_url' => $siteUrl
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur réinitialisation sitemaps: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la réinitialisation: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Sauvegarder la configuration d'indexation
      */
     public function update(Request $request)

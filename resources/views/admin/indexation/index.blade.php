@@ -367,8 +367,17 @@
 
         <!-- Sitemaps générés -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">📋 Sitemaps générés</h2>
-            <p class="text-sm text-gray-600 mb-4">Liste de tous les sitemaps créés</p>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2">📋 Sitemaps générés</h2>
+                    <p class="text-sm text-gray-600">Liste de tous les sitemaps créés</p>
+                </div>
+                <button type="button" 
+                        onclick="resetSitemaps()" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-redo mr-2"></i>Réinitialiser tous les sitemaps
+                </button>
+            </div>
             
             @if(!empty($sitemapInfo))
             <div class="space-y-2">
@@ -1324,6 +1333,48 @@ function testIndexJumpUrl() {
     .finally(() => {
         button.innerHTML = originalText;
         button.disabled = false;
+    });
+}
+
+function resetSitemaps() {
+    if (!confirm('⚠️ Attention : Cette action va supprimer TOUS les sitemaps existants et les régénérer avec la bonne URL.\n\nÊtes-vous sûr de vouloir continuer ?')) {
+        return;
+    }
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Réinitialisation...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    fetch('{{ route("admin.indexation.reset-sitemaps") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ ' + data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('❌ ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la réinitialisation', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
     });
 }
 

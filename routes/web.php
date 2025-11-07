@@ -340,6 +340,7 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/test-indexjump-url', [App\Http\Controllers\IndexationController::class, 'testIndexJumpUrl'])->name('test-indexjump-url');
         Route::post('/submit-sitemap-to-indexjump', [App\Http\Controllers\IndexationController::class, 'submitSitemapToIndexJump'])->name('submit-sitemap-to-indexjump');
         Route::post('/update-indexjump-token', [App\Http\Controllers\IndexationController::class, 'updateIndexJumpToken'])->name('update-indexjump-token');
+        Route::post('/reset-sitemaps', [App\Http\Controllers\IndexationController::class, 'resetSitemaps'])->name('reset-sitemaps');
     });
     
     // Routes publiques SEO
