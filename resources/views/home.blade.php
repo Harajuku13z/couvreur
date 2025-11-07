@@ -165,6 +165,10 @@
              @else
              style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
              @endif>
+        <!-- Overlay sombre pour améliorer la lisibilité du texte -->
+        @if($homeConfig['hero']['background_image'] ?? null)
+        <div class="absolute inset-0 bg-black/40 z-0"></div>
+        @endif
         <div class="container mx-auto px-4 text-center text-white relative z-10 pt-8">
             <!-- Trust Badges -->
             @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
