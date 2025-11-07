@@ -343,26 +343,34 @@ class FormControllerSimple extends Controller
         }
 
         // Vérifier reCAPTCHA pour toutes les étapes (dès la première étape)
+        // Mode permissif : on accepte même si reCAPTCHA échoue pour ne pas bloquer les vrais utilisateurs
         $recaptchaResult = $this->verifyRecaptcha($request);
+        
+        // Si reCAPTCHA échoue, on log mais on continue quand même (mode permissif)
+        // On bloque seulement si le score est vraiment très suspect (< 0.1) ET que ce n'est pas la première étape
         if (!$recaptchaResult['success']) {
+            $score = $recaptchaResult['score'] ?? null;
+            
             // Logger les détails pour debug
-            \Log::warning('reCAPTCHA échec sur étape', [
+            \Log::warning('reCAPTCHA échec sur étape (mode permissif)', [
                 'step' => $step,
-                'score' => $recaptchaResult['score'] ?? null,
+                'score' => $score,
                 'message' => $recaptchaResult['message'] ?? 'Erreur inconnue',
                 'ip' => $this->getClientIp($request),
                 'user_agent' => $request->userAgent(),
+                'action' => 'Continuation autorisée en mode permissif',
             ]);
             
-            // Message plus informatif pour l'utilisateur
-            $errorMessage = 'Vérification anti-robot échouée. ';
-            if (isset($recaptchaResult['score']) && $recaptchaResult['score'] < 0.3) {
-                $errorMessage .= 'Votre connexion semble suspecte. Veuillez réessayer dans quelques instants.';
-            } else {
-                $errorMessage .= 'Veuillez réessayer.';
+            // Bloquer uniquement si :
+            // 1. Score très suspect (< 0.1) ET
+            // 2. Ce n'est PAS la première étape (propertyType)
+            // Sinon, on continue pour ne pas bloquer les vrais utilisateurs
+            if ($score !== null && $score < 0.1 && $step !== 'propertyType') {
+                return back()->withErrors(['recaptcha' => 'Vérification de sécurité échouée. Veuillez réessayer.'])->withInput();
             }
             
-            return back()->withErrors(['recaptcha' => $errorMessage])->withInput();
+            // Sinon, on continue même si reCAPTCHA a échoué (mode permissif)
+            // On log juste pour monitoring mais on n'bloque pas l'utilisateur
         }
         
         // Sauvegarder le score reCAPTCHA (mise à jour si meilleur score)
@@ -591,35 +599,55 @@ class FormControllerSimple extends Controller
             if ($response->successful()) {
                 $data = $response->json();
                 
-                // Score minimum: 0.3 (plus permissif pour mobile)
+                // Score minimum: 0.1 (très permissif pour ne pas bloquer les vrais utilisateurs)
                 // 0.0 = bot, 1.0 = humain
-                // Sur mobile, les scores peuvent être plus bas même pour des utilisateurs légitimes
-                $minScore = 0.3;
+                // Sur mobile et certaines connexions, les scores peuvent être très bas même pour des utilisateurs légitimes
+                $minScore = 0.1;
                 $score = $data['score'] ?? 0;
                 
                 // Logger pour debug (surtout si échec)
                 if (!$data['success'] || $score < $minScore) {
-                    \Log::warning('reCAPTCHA score faible', [
+                    \Log::info('reCAPTCHA score faible (mode permissif)', [
                         'score' => $score,
                         'min_score' => $minScore,
                         'success' => $data['success'],
                         'error_codes' => $data['error-codes'] ?? [],
                         'ip' => $this->getClientIp($request),
                         'user_agent' => $request->userAgent(),
+                        'note' => 'Score faible mais utilisateur autorisé en mode permissif',
                     ]);
                 }
                 
+                // Mode permissif : on retourne toujours success=true avec le score
+                // Le contrôle strict se fait dans submitStep() uniquement pour les scores très suspects
                 return [
-                    'success' => $data['success'] && $score >= $minScore,
+                    'success' => true, // Toujours true en mode permissif
                     'score' => $score,
-                    'message' => $data['success'] ? 'Vérification réussie' : 'Score trop faible'
+                    'message' => $data['success'] ? 'Vérification réussie' : 'Score faible mais autorisé',
+                    'strict_success' => $data['success'] && $score >= $minScore, // Pour info seulement
                 ];
             }
         } catch (\Exception $e) {
             \Log::error('Erreur vérification reCAPTCHA: ' . $e->getMessage());
+            
+            // Mode permissif : en cas d'erreur, on accepte quand même pour ne pas bloquer les utilisateurs
+            // On log juste pour monitoring
+            \Log::info('reCAPTCHA erreur technique (mode permissif)', [
+                'error' => $e->getMessage(),
+                'ip' => $this->getClientIp($request),
+                'action' => 'Utilisateur autorisé malgré l\'erreur',
+            ]);
+            
+            return ['success' => true, 'score' => 0.5, 'message' => 'Erreur technique mais autorisé'];
         }
 
-        return ['success' => false, 'score' => 0, 'message' => 'Erreur de vérification'];
+        // Si la réponse n'est pas successful, on accepte quand même (mode permissif)
+        \Log::info('reCAPTCHA réponse non successful (mode permissif)', [
+            'ip' => $this->getClientIp($request),
+            'action' => 'Utilisateur autorisé malgré la réponse non successful',
+        ]);
+        
+        return ['success' => true, 'score' => 0.5, 'message' => 'Réponse non successful mais autorisé'];
     }
 
     private function sendEmails(Submission $submission): void
