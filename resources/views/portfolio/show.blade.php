@@ -7,14 +7,6 @@
 
 @push('head')
 
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $portfolioItem['twitter_title'] ?? $portfolioItem['og_title'] ?? $portfolioItem['meta_title'] ?? $portfolioItem['title'] }}">
-<meta name="twitter:description" content="{{ $portfolioItem['twitter_description'] ?? $portfolioItem['og_description'] ?? $portfolioItem['meta_description'] ?? $portfolioItem['description'] }}">
-@if($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? !empty($portfolioItem['images']))
-<meta name="twitter:image" content="{{ url($portfolioItem['twitter_image'] ?? $portfolioItem['og_image'] ?? $portfolioItem['images'][0]) }}">
-@endif
-
 <style>
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
