@@ -312,6 +312,11 @@ class SeoController extends Controller
         // Par défaut, permettre l'indexation de tout le site
         $robots .= "Allow: /\n";
         
+        // Autoriser explicitement le favicon et les icônes (important pour Google)
+        $robots .= "Allow: /favicon.ico\n";
+        $robots .= "Allow: /favicon*\n";
+        $robots .= "Allow: /manifest.json\n";
+        
         // Bloquer seulement les dossiers sensibles
         $robots .= "Disallow: /admin/\n";
         $robots .= "Disallow: /storage/\n";

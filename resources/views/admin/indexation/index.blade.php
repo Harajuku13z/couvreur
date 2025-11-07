@@ -217,6 +217,24 @@
             </div>
             @endif
             
+            <!-- Aide Favicon Google -->
+            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                    <i class="fas fa-image mr-1"></i>ℹ️ Favicon dans Google Search
+                </h4>
+                <div class="text-xs text-blue-700 space-y-2">
+                    <p><strong>Pourquoi mon favicon n'apparaît pas dans Google ?</strong></p>
+                    <ul class="list-disc list-inside space-y-1 ml-2">
+                        <li><strong>Délai d'indexation</strong> : Google peut prendre plusieurs jours/semaines pour afficher votre favicon après modification</li>
+                        <li><strong>Taille minimale</strong> : Le favicon doit faire au minimum 48x48 pixels (recommandé : 192x192px)</li>
+                        <li><strong>Format</strong> : Formats acceptés : PNG, SVG, GIF, ICO</li>
+                        <li><strong>Accessibilité</strong> : Le favicon doit être accessible publiquement (pas bloqué par robots.txt)</li>
+                        <li><strong>Manifest.json</strong> : Le fichier manifest.json aide Google à trouver vos icônes</li>
+                    </ul>
+                    <p class="mt-2"><strong>💡 Astuce</strong> : Utilisez l'outil d'inspection d'URL de Google Search Console pour forcer le recrawl de votre page d'accueil.</p>
+                </div>
+            </div>
+
             <!-- Aide et diagnostic -->
             <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h4 class="text-sm font-semibold text-yellow-800 mb-2">
