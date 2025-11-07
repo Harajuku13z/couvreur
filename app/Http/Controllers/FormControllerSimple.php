@@ -306,15 +306,17 @@ class FormControllerSimple extends Controller
             return redirect()->route('form.step', 'propertyType');
         }
 
-        // Vérifier reCAPTCHA pour les étapes sensibles (email, phone)
-        if (in_array($step, ['email', 'phone'])) {
-            $recaptchaResult = $this->verifyRecaptcha($request);
-            if (!$recaptchaResult['success']) {
-                return back()->withErrors(['recaptcha' => 'Vérification anti-robot échouée. Veuillez réessayer.'])->withInput();
-            }
-            
-            // Sauvegarder le score reCAPTCHA
-            $submission->update(['recaptcha_score' => $recaptchaResult['score'] ?? null]);
+        // Vérifier reCAPTCHA pour toutes les étapes (dès la première étape)
+        $recaptchaResult = $this->verifyRecaptcha($request);
+        if (!$recaptchaResult['success']) {
+            return back()->withErrors(['recaptcha' => 'Vérification anti-robot échouée. Veuillez réessayer.'])->withInput();
+        }
+        
+        // Sauvegarder le score reCAPTCHA (mise à jour si meilleur score)
+        $currentScore = $submission->recaptcha_score;
+        $newScore = $recaptchaResult['score'] ?? null;
+        if ($newScore !== null && ($currentScore === null || $newScore > $currentScore)) {
+            $submission->update(['recaptcha_score' => $newScore]);
         }
 
         // Enregistrer les données de l'étape

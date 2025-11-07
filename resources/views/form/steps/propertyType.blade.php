@@ -39,6 +39,7 @@
                 
                 <form method="POST" action="{{ route('form.submit', 'propertyType') }}" id="propertyForm">
                     @csrf
+                    <input type="hidden" name="recaptcha_token" id="recaptcha_token">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Maison -->
                         <label for="property_maison" class="cursor-pointer">
@@ -71,7 +72,7 @@
                     Retour
                 </a>
                 
-                <button type="submit" form="propertyForm" 
+                <button type="submit" form="propertyForm" id="submitBtn"
                         class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
                     Suivant
                     <i class="fas fa-arrow-right ml-2"></i>
@@ -96,6 +97,41 @@ function updateSelection(radio) {
     option.classList.add('border-blue-500', 'bg-blue-50');
 }
 
+// Fonction pour soumettre le formulaire avec reCAPTCHA
+function submitPropertyForm() {
+    const form = document.getElementById('propertyForm');
+    const recaptchaTokenInput = document.getElementById('recaptcha_token');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Vérifier si reCAPTCHA est configuré
+    const recaptchaSiteKey = '{{ setting("recaptcha_site_key") }}';
+    
+    if (recaptchaSiteKey && typeof grecaptcha !== 'undefined') {
+        // Désactiver le bouton pendant la vérification
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vérification...';
+        }
+        
+        grecaptcha.ready(function() {
+            grecaptcha.execute(recaptchaSiteKey, {action: 'submit'}).then(function(token) {
+                recaptchaTokenInput.value = token;
+                form.submit();
+            }).catch(function(error) {
+                console.error('reCAPTCHA error:', error);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Suivant <i class="fas fa-arrow-right ml-2"></i>';
+                }
+                alert('Erreur de vérification. Veuillez réessayer.');
+            });
+        });
+    } else {
+        // Si reCAPTCHA n'est pas configuré, soumettre directement
+        form.submit();
+    }
+}
+
 // Écouteur sur chaque option (label + div)
 document.querySelectorAll('label[for^="property_"]').forEach(function(label) {
     label.addEventListener('click', function(e) {
@@ -103,9 +139,9 @@ document.querySelectorAll('label[for^="property_"]').forEach(function(label) {
         radio.checked = true;
         updateSelection(radio);
         
-        // Auto-submit après un court délai (UX)
+        // Auto-submit après un court délai (UX) avec reCAPTCHA
         setTimeout(function() {
-            document.getElementById('propertyForm').submit();
+            submitPropertyForm();
         }, 300);
     });
 });
@@ -115,11 +151,17 @@ document.querySelectorAll('input[name="property_type"]').forEach(function(radio)
     radio.addEventListener('change', function() {
         updateSelection(this);
         
-        // Auto-submit après un court délai (UX)
+        // Auto-submit après un court délai (UX) avec reCAPTCHA
         setTimeout(function() {
-            document.getElementById('propertyForm').submit();
+            submitPropertyForm();
         }, 300);
     });
+});
+
+// Écouteur sur le bouton de soumission
+document.getElementById('propertyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitPropertyForm();
 });
 
 // Pré-sélectionner si une valeur existe
@@ -134,6 +176,8 @@ if (currentValue) {
 
 console.log('✅ Étape 1 - Type de Bien (VERSION SIMPLE)');
 </script>
+
+@include('form.partials.recaptcha')
 
 <style>
 .property-option {
