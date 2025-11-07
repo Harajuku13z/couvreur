@@ -706,70 +706,34 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ $partnersTitle }}</h2>
             </div>
             
-            <!-- Toggle Button -->
-            <div class="text-center mb-6">
-                <button 
-                    id="togglePartnersBtn"
-                    onclick="togglePartners()"
-                    class="text-gray-600 hover:text-gray-800 transition-colors text-sm font-medium flex items-center justify-center gap-2 mx-auto"
-                    aria-expanded="false">
-                    <span id="partnersBtnText">Afficher nos partenaires</span>
-                    <i id="partnersBtnIcon" class="fas fa-chevron-down transition-transform"></i>
-                </button>
-            </div>
-            
-            <!-- Partners Logos (hidden by default) -->
-            <div id="partnersContainer" class="hidden">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 items-center justify-items-center">
-                    @foreach($partners as $partner)
-                        @if(!empty($partner['logo']))
-                        <div class="partner-logo-container w-full max-w-[120px] h-16 md:h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                            @if(!empty($partner['url']))
-                            <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
-                                <img 
-                                    src="{{ asset($partner['logo']) }}" 
-                                    alt="{{ $partner['name'] ?? 'Partenaire' }}"
-                                    class="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
-                                    loading="lazy"
-                                    onerror="this.style.display='none';">
-                            </a>
-                            @else
+            <!-- Partners Logos -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 items-center justify-items-center">
+                @foreach($partners as $partner)
+                    @if(!empty($partner['logo']))
+                    <div class="partner-logo-container w-full max-w-[120px] h-16 md:h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        @if(!empty($partner['url']))
+                        <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
                             <img 
                                 src="{{ asset($partner['logo']) }}" 
                                 alt="{{ $partner['name'] ?? 'Partenaire' }}"
-                                class="max-w-full max-h-full object-contain filter grayscale opacity-70"
+                                class="max-w-full max-h-full object-contain transition-all duration-300 opacity-100 hover:opacity-90"
                                 loading="lazy"
                                 onerror="this.style.display='none';">
-                            @endif
-                        </div>
+                        </a>
+                        @else
+                        <img 
+                            src="{{ asset($partner['logo']) }}" 
+                            alt="{{ $partner['name'] ?? 'Partenaire' }}"
+                            class="max-w-full max-h-full object-contain opacity-100"
+                            loading="lazy"
+                            onerror="this.style.display='none';">
                         @endif
-                    @endforeach
-                </div>
+                    </div>
+                    @endif
+                @endforeach
             </div>
         </div>
     </section>
-    
-    <script>
-        function togglePartners() {
-            const container = document.getElementById('partnersContainer');
-            const btn = document.getElementById('togglePartnersBtn');
-            const btnText = document.getElementById('partnersBtnText');
-            const btnIcon = document.getElementById('partnersBtnIcon');
-            
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                container.classList.add('animate-fadeIn');
-                btnText.textContent = 'Masquer nos partenaires';
-                btnIcon.classList.add('rotate-180');
-                btn.setAttribute('aria-expanded', 'true');
-            } else {
-                container.classList.add('hidden');
-                btnText.textContent = 'Afficher nos partenaires';
-                btnIcon.classList.remove('rotate-180');
-                btn.setAttribute('aria-expanded', 'false');
-            }
-        }
-    </script>
     @endif
 
     <!-- CTA Section -->
