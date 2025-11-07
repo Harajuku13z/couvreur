@@ -65,7 +65,7 @@
             background-size: cover !important;
             background-position: center center !important;
             background-repeat: no-repeat !important;
-            background-color: #3b82f6 !important; /* Fallback color */
+            background-color: var(--primary-color) !important;
         }
         
         /* Force background image display on mobile */
@@ -136,7 +136,7 @@
     <!-- Hero Section -->
     <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-mobile pt-16 pb-16" 
              @if($homeConfig['hero']['background_image'] ?? null)
-             style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ asset($homeConfig['hero']['background_image']) }}') center/cover; background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
+             style="background-color: var(--primary-color); background-image: url('{{ asset($homeConfig['hero']['background_image']) }}'); background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
              @else
              style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
              @endif>
