@@ -264,6 +264,25 @@ class FormControllerSimple extends Controller
             $geoService = new IpGeolocationService();
             $location = $geoService->getLocationFromIp($ipAddress);
             
+            // Vérifier si le blocage géographique est activé
+            $blockNonFrance = setting('block_non_france', false);
+            
+            if ($blockNonFrance) {
+                // Vérifier si l'accès est autorisé (France uniquement)
+                $allowedCountries = ['FR', 'France'];
+                $countryCode = strtoupper($location['country_code'] ?? '');
+                $countryName = $location['country'] ?? '';
+                
+                // Bloquer si le pays n'est pas la France
+                if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
+                    return view('form.blocked', [
+                        'country' => $countryName ?: 'votre pays',
+                        'countryCode' => $countryCode,
+                        'ipAddress' => $ipAddress
+                    ]);
+                }
+            }
+            
             $submission = Submission::create([
                 'session_id' => $sessionId,
                 'user_identifier' => $this->generateUserIdentifier(),
@@ -280,6 +299,23 @@ class FormControllerSimple extends Controller
                     'first_visit' => true,
                 ],
             ]);
+        } else {
+            // Vérifier aussi pour les soumissions existantes si le blocage est activé
+            $blockNonFrance = setting('block_non_france', false);
+            
+            if ($blockNonFrance) {
+                $allowedCountries = ['FR', 'France'];
+                $countryCode = strtoupper($submission->country_code ?? '');
+                $countryName = $submission->country ?? '';
+                
+                if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
+                    return view('form.blocked', [
+                        'country' => $countryName ?: 'votre pays',
+                        'countryCode' => $countryCode,
+                        'ipAddress' => $submission->ip_address
+                    ]);
+                }
+            }
         }
 
         // Métadonnées SEO pour la page propertyType (simulateur de devis)

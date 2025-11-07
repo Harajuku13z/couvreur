@@ -712,6 +712,7 @@ class ConfigController extends Controller
         $validated = $request->validate([
             'recaptcha_site_key' => 'nullable|string|max:255',
             'recaptcha_secret_key' => 'nullable|string|max:255',
+            'block_non_france' => 'nullable|boolean',
         ]);
 
         if (isset($validated['recaptcha_site_key'])) {
@@ -720,6 +721,10 @@ class ConfigController extends Controller
         if (isset($validated['recaptcha_secret_key'])) {
             Setting::set('recaptcha_secret_key', $validated['recaptcha_secret_key'], 'string', 'security');
         }
+        
+        // Blocage géographique
+        $blockNonFrance = $request->boolean('block_non_france', false);
+        Setting::set('block_non_france', $blockNonFrance, 'boolean', 'security');
 
         Setting::clearCache();
 

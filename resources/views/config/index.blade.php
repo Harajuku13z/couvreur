@@ -682,6 +682,52 @@
                             <li>Collez-les dans les champs ci-dessus et enregistrez</li>
                         </ol>
                     </div>
+                    
+                    <!-- Blocage géographique -->
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-orange-800">
+                            <i class="fas fa-globe mr-2"></i>Blocage géographique
+                        </h3>
+                        <p class="text-sm text-gray-700 mb-4">
+                            Restreignez l'accès au formulaire de devis aux utilisateurs localisés en France uniquement.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" 
+                                       name="block_non_france" 
+                                       id="block_non_france" 
+                                       value="1"
+                                       {{ setting('block_non_france', false) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                                <label for="block_non_france" class="ml-3 text-sm font-medium text-gray-700">
+                                    Bloquer l'accès au formulaire pour les utilisateurs hors de France
+                                </label>
+                            </div>
+                            
+                            @if(setting('block_non_france', false))
+                            <div class="bg-orange-100 border border-orange-300 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-shield-alt text-orange-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-orange-800">Blocage géographique activé</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-2">
+                                    Les utilisateurs localisés hors de France verront une page de blocage avec des options de contact
+                                </p>
+                            </div>
+                            @else
+                            <div class="bg-gray-100 border border-gray-300 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-globe text-gray-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-800">Blocage géographique désactivé</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-2">
+                                    Tous les utilisateurs peuvent accéder au formulaire, quelle que soit leur localisation
+                                </p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mt-6">
