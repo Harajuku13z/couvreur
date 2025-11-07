@@ -30,6 +30,35 @@
                         </a>
                     </div>
                     
+                    <!-- Address -->
+                    @php
+                        $address = setting('company_address', '');
+                        $city = setting('company_city', '');
+                        $postalCode = setting('company_postal_code', '');
+                        $country = setting('company_country', 'France');
+                        
+                        $fullAddress = [];
+                        if ($address) $fullAddress[] = $address;
+                        if ($postalCode && $city) {
+                            $fullAddress[] = $postalCode . ' ' . $city;
+                        } elseif ($city) {
+                            $fullAddress[] = $city;
+                        } elseif ($postalCode) {
+                            $fullAddress[] = $postalCode;
+                        }
+                        if ($country) $fullAddress[] = $country;
+                        
+                        $fullAddressString = implode(', ', $fullAddress);
+                    @endphp
+                    @if($fullAddressString)
+                    <div class="flex items-start space-x-4">
+                        <i class="fas fa-map-marker-alt mt-1 text-gray-400"></i>
+                        <div class="text-gray-400">
+                            {{ $fullAddressString }}
+                        </div>
+                    </div>
+                    @endif
+                    
                     <!-- Social Media Icons -->
                     @php
                         $socialNetworks = [
