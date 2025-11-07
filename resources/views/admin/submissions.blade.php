@@ -83,7 +83,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ville</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -108,10 +108,16 @@
                         <div class="text-sm text-gray-500">{{ $submission->email }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {{ $submission->property_type == 'house' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                            {{ $submission->property_type == 'house' ? 'Maison' : 'Appartement' }}
-                        </span>
+                        @if($submission->city)
+                            <div class="text-sm font-medium text-gray-900">
+                                <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>{{ $submission->city }}
+                            </div>
+                            @if($submission->country)
+                                <div class="text-xs text-gray-500">{{ $submission->country }}</div>
+                            @endif
+                        @else
+                            <span class="text-sm text-gray-400 italic">Non renseigné</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
