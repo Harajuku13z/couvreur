@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use Google_Client;
-use Google_Service_SearchConsole;
-use Google_Service_SearchConsole_UrlNotification;
+use Google\Service\Indexing;
+use Google\Service\Indexing\UrlNotification;
+use Google\Service\SearchConsole;
 use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
 
@@ -12,6 +13,7 @@ class GoogleSearchConsoleService
 {
     protected $client;
     protected $service;
+    protected $indexingService;
     protected $siteUrl;
 
     public function __construct()
@@ -35,10 +37,12 @@ class GoogleSearchConsoleService
 
             $this->client = new Google_Client();
             $this->client->setAuthConfig($credentials);
-            $this->client->addScope(Google_Service_SearchConsole::WEBMASTERS);
+            $this->client->addScope(SearchConsole::WEBMASTERS);
+            $this->client->addScope('https://www.googleapis.com/auth/indexing');
             $this->client->setAccessType('offline');
             
-            $this->service = new Google_Service_SearchConsole($this->client);
+            $this->service = new SearchConsole($this->client);
+            $this->indexingService = new Indexing($this->client);
             
             return true;
         } catch (\Exception $e) {
@@ -101,15 +105,15 @@ class GoogleSearchConsoleService
     }
 
     /**
-     * Indexer une URL via l'API
+     * Indexer une URL via l'API Indexing
      */
     public function indexUrl($url)
     {
         try {
-            if (!$this->service) {
+            if (!$this->indexingService) {
                 return [
                     'success' => false,
-                    'message' => 'Service Google Search Console non initialisé'
+                    'message' => 'Service Google Indexing non initialisé'
                 ];
             }
 
@@ -118,15 +122,13 @@ class GoogleSearchConsoleService
                 $url = rtrim($this->siteUrl, '/') . '/' . ltrim($url, '/');
             }
 
-            $notification = new Google_Service_SearchConsole_UrlNotification();
+            // Créer la notification d'URL
+            $notification = new UrlNotification();
             $notification->setUrl($url);
             $notification->setType('URL_UPDATED');
 
-            $request = new \Google_Service_SearchConsole_UrlNotification();
-            $request->setUrl($url);
-            $request->setType('URL_UPDATED');
-
-            $this->service->urlNotifications->publish($this->siteUrl, $request);
+            // Publier la notification via l'API Indexing
+            $this->indexingService->urlNotifications->publish($notification);
 
             Log::info("URL indexée avec succès: {$url}");
 
@@ -217,7 +219,7 @@ class GoogleSearchConsoleService
     public function isConfigured()
     {
         $credentials = $this->getCredentials();
-        return !empty($credentials) && $this->service !== null;
+        return !empty($credentials) && $this->indexingService !== null;
     }
 
     /**
