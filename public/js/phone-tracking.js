@@ -14,13 +14,12 @@
     window.phoneCallTrackingQueue = window.phoneCallTrackingQueue || [];
     window.phoneCallTrackingInProgress = window.phoneCallTrackingInProgress || false;
     window.phoneCallTrackingInitialized = window.phoneCallTrackingInitialized || false;
+    window.phoneCallTrackingSent = window.phoneCallTrackingSent || new Set(); // Pour éviter les doublons
     
     /**
-     * Fonction principale de tracking
+     * Fonction principale de tracking avec déduplication
      */
     window.trackPhoneCall = function(phoneNumber = null, sourcePage = null) {
-        console.log('📞 trackPhoneCall appelé', { phoneNumber, sourcePage });
-        
         const phone = phoneNumber || getDefaultPhoneNumber();
         const page = sourcePage || window.location.pathname;
         
@@ -29,13 +28,30 @@
             return;
         }
         
+        // Créer une clé unique pour ce tracking (phone + page + timestamp arrondi à la seconde)
+        const trackingKey = `${phone}_${page}_${Math.floor(Date.now() / 1000)}`;
+        
+        // Vérifier si on a déjà envoyé ce tracking dans les 2 dernières secondes
+        if (window.phoneCallTrackingSent.has(trackingKey)) {
+            console.log('⚠️ Tracking déjà envoyé, ignoré (déduplication)');
+            return;
+        }
+        
+        // Marquer comme envoyé
+        window.phoneCallTrackingSent.add(trackingKey);
+        
+        // Nettoyer les anciennes clés (garder seulement les 2 dernières secondes)
+        setTimeout(() => {
+            window.phoneCallTrackingSent.delete(trackingKey);
+        }, 2000);
+        
         const payload = {
             source_page: page,
             phone_number: phone,
             referrer_url: document.referrer || window.location.href
         };
         
-        console.log('📞 Payload tracking:', payload);
+        console.log('📞 trackPhoneCall appelé', { phoneNumber, sourcePage, trackingKey });
         
         // Ajouter à la queue si un envoi est en cours
         if (window.phoneCallTrackingInProgress) {
@@ -200,36 +216,43 @@
             return;
         }
         
-        // Fonction de tracking avec le numéro et la page
+        // Créer une clé unique pour ce lien pour éviter les doubles trackings
+        const linkTrackingKey = `link_${phoneNumber}_${sourcePage}`;
+        let linkTrackingSent = false;
+        
+        // Fonction de tracking avec le numéro et la page (avec protection contre les doubles)
         const trackThisLink = function(e) {
-            // Ne pas empêcher le comportement par défaut pour ne pas bloquer l'appel
-            // Mais tracker immédiatement
+            // Si on a déjà tracké ce lien dans les 2 dernières secondes, ignorer
+            if (linkTrackingSent) {
+                return;
+            }
+            
+            // Marquer comme tracké
+            linkTrackingSent = true;
+            setTimeout(() => {
+                linkTrackingSent = false;
+            }, 2000);
+            
+            // Tracker
             trackPhoneCall(phoneNumber, sourcePage);
         };
         
         // Pour mobile (touchstart se déclenche AVANT click - le plus important)
-        // Utiliser once: true pour ne tracker qu'une fois
-        link.addEventListener('touchstart', function(e) {
-            // Tracker immédiatement
-            trackPhoneCall(phoneNumber, sourcePage);
-        }, { 
+        // Utiliser once: true pour ne tracker qu'une fois par événement
+        link.addEventListener('touchstart', trackThisLink, { 
             passive: true, // Ne pas bloquer le scroll
             capture: true,
-            once: false // Permettre plusieurs trackings si nécessaire
+            once: false
         });
         
         // Pour desktop (mousedown se déclenche AVANT click)
-        link.addEventListener('mousedown', function(e) {
-            trackPhoneCall(phoneNumber, sourcePage);
-        }, {
+        link.addEventListener('mousedown', trackThisLink, {
             capture: true,
             passive: true
         });
         
         // Aussi sur le clic en fallback (capture phase - très tôt)
-        link.addEventListener('click', function(e) {
-            trackPhoneCall(phoneNumber, sourcePage);
-        }, {
+        link.addEventListener('click', trackThisLink, {
             capture: true,
             passive: true
         });

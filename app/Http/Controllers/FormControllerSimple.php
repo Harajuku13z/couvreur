@@ -187,15 +187,15 @@ class FormControllerSimple extends Controller
      */
     public function trackPhoneCall(Request $request)
     {
-        // Logger TOUTES les requêtes pour debug
-        \Log::info('📞 Requête trackPhoneCall reçue', [
-            'method' => $request->method(),
-            'all_data' => $request->all(),
-            'query' => $request->query(),
-            'headers' => $request->headers->all(),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent()
-        ]);
+        // Logger TOUTES les requêtes pour debug (seulement en mode debug pour éviter les logs trop nombreux)
+        if (config('app.debug')) {
+            \Log::info('📞 Requête trackPhoneCall reçue', [
+                'method' => $request->method(),
+                'all_data' => $request->all(),
+                'query' => $request->query(),
+                'ip' => $request->ip(),
+            ]);
+        }
         
         try {
             // Accepter les données depuis sendBeacon (FormData)
@@ -229,11 +229,14 @@ class FormControllerSimple extends Controller
                 }
             }
             
-            \Log::info('📞 Données extraites', [
-                'phone_number' => $phoneNumber,
-                'source_page' => $sourcePage,
-                'referrer_url' => $referrerUrl
-            ]);
+            // Logger seulement en mode debug
+            if (config('app.debug')) {
+                \Log::info('📞 Données extraites', [
+                    'phone_number' => $phoneNumber,
+                    'source_page' => $sourcePage,
+                    'referrer_url' => $referrerUrl
+                ]);
+            }
             
             if (empty($phoneNumber)) {
                 \Log::warning('⚠️ Pas de numéro de téléphone dans la requête');

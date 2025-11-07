@@ -18,7 +18,7 @@ class PhoneCallTrackingService
     }
 
     /**
-     * Tracker un appel téléphonique
+     * Tracker un appel téléphonique avec déduplication
      */
     public function track(Request $request, $phoneNumber = null, $sourcePage = null, $referrerUrl = null)
     {
@@ -58,6 +58,30 @@ class PhoneCallTrackingService
             
             // Nettoyer le numéro
             $phoneNumber = $this->cleanPhoneNumber($phoneNumber);
+            
+            // DÉDUPLICATION : Vérifier si on a déjà tracké cet appel dans les 5 dernières secondes
+            // (même session, même numéro, même page)
+            $recentCall = PhoneCall::where('session_id', $sessionId)
+                ->where('phone_number', $phoneNumber)
+                ->where('source_page', $sourcePage)
+                ->where('clicked_at', '>=', now()->subSeconds(5))
+                ->first();
+            
+            if ($recentCall) {
+                Log::debug('⚠️ Appel déjà tracké récemment (déduplication)', [
+                    'existing_id' => $recentCall->id,
+                    'phone' => $phoneNumber,
+                    'source_page' => $sourcePage,
+                    'time_diff' => now()->diffInSeconds($recentCall->clicked_at)
+                ]);
+                
+                // Retourner le même ID pour éviter les doublons
+                return [
+                    'success' => true,
+                    'id' => $recentCall->id,
+                    'duplicate' => true
+                ];
+            }
             
             // Géolocalisation
             $location = $this->ipGeolocationService->getLocationFromIp($ipAddress);

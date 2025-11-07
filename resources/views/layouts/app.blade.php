@@ -360,9 +360,7 @@
     <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
-       style="background-color: var(--primary-color);"
-       onclick="if(typeof trackPhoneCall === 'function') { trackPhoneCall('{{ $phoneForTracking }}', '{{ $currentPageForTracking }}'); } return true;"
-       ontouchstart="if(typeof trackPhoneCall === 'function') { trackPhoneCall('{{ $phoneForTracking }}', '{{ $currentPageForTracking }}'); } return true;">
+       style="background-color: var(--primary-color);">
         <i class="fas fa-phone text-2xl"></i>
     </a>
     @endif
