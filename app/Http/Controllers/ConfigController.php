@@ -1378,6 +1378,9 @@ class ConfigController extends Controller
             'hero.cta_text' => 'required|string|max:100',
             'hero_background' => 'nullable|image|max:5120', // 5MB max
             'about_image' => 'nullable|image|max:5120', // 5MB max
+            'partner_logos.*' => 'nullable|image|max:2048', // 2MB max per logo
+            'partner_names.*' => 'nullable|string|max:255',
+            'partner_urls.*' => 'nullable|url|max:500',
         ]);
 
         // Get current config
@@ -1505,6 +1508,9 @@ class ConfigController extends Controller
                 ['label' => 'Années d\'Expérience', 'value' => '15+', 'icon' => 'fa-award'],
                 ['label' => 'Garantie', 'value' => '10 ans', 'icon' => 'fa-shield-alt'],
             ],
+            'partners' => [
+                'logos' => $this->handlePartnerLogos($request, $currentConfig),
+            ],
         ];
 
         
@@ -1512,6 +1518,48 @@ class ConfigController extends Controller
         Setting::clearCache();
 
         return redirect()->route('admin.homepage.edit')->with('success', 'Page d\'accueil mise à jour avec succès !');
+    }
+
+    /**
+     * Gérer l'upload et la sauvegarde des logos de partenaires
+     */
+    private function handlePartnerLogos(Request $request, $currentConfig)
+    {
+        $partners = [];
+        $existingPartners = $currentConfig['partners']['logos'] ?? [];
+        
+        // Créer le dossier s'il n'existe pas
+        $partnersDir = public_path('uploads/partners');
+        if (!file_exists($partnersDir)) {
+            mkdir($partnersDir, 0755, true);
+        }
+        
+        // Gérer les nouveaux logos uploadés
+        if ($request->hasFile('partner_logos')) {
+            $logos = $request->file('partner_logos');
+            $names = $request->input('partner_names', []);
+            $urls = $request->input('partner_urls', []);
+            
+            foreach ($logos as $index => $logo) {
+                if ($logo && $logo->isValid()) {
+                    $filename = 'partner-' . time() . '-' . $index . '.' . $logo->getClientOriginalExtension();
+                    $logo->move($partnersDir, $filename);
+                    
+                    $partners[] = [
+                        'logo' => 'uploads/partners/' . $filename,
+                        'name' => $names[$index] ?? '',
+                        'url' => $urls[$index] ?? '',
+                    ];
+                }
+            }
+        }
+        
+        // Conserver les logos existants si pas de nouveaux uploads
+        if (empty($partners) && !empty($existingPartners)) {
+            $partners = $existingPartners;
+        }
+        
+        return $partners;
     }
 
     /**

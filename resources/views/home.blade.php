@@ -56,6 +56,31 @@
         box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
     
+    /* Animation pour les partenaires */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    /* Styles pour les logos partenaires */
+    .partner-logo-container {
+        transition: all 0.3s ease;
+    }
+    
+    .partner-logo-container:hover {
+        transform: scale(1.05);
+    }
+    
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
         /* Hero section mobile */
@@ -665,6 +690,80 @@
     </section>
     @endif
 
+
+    <!-- Partners Section -->
+    @php
+        $partners = $homeConfig['partners']['logos'] ?? [];
+        $showPartners = !empty($partners);
+    @endphp
+    @if($showPartners)
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <!-- Toggle Button -->
+            <div class="text-center mb-6">
+                <button 
+                    id="togglePartnersBtn"
+                    onclick="togglePartners()"
+                    class="text-gray-600 hover:text-gray-800 transition-colors text-sm font-medium flex items-center justify-center gap-2 mx-auto"
+                    aria-expanded="false">
+                    <span id="partnersBtnText">Afficher nos partenaires</span>
+                    <i id="partnersBtnIcon" class="fas fa-chevron-down transition-transform"></i>
+                </button>
+            </div>
+            
+            <!-- Partners Logos (hidden by default) -->
+            <div id="partnersContainer" class="hidden">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 items-center justify-items-center">
+                    @foreach($partners as $partner)
+                        @if(!empty($partner['logo']))
+                        <div class="partner-logo-container w-full max-w-[120px] h-16 md:h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                            @if(!empty($partner['url']))
+                            <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
+                                <img 
+                                    src="{{ asset($partner['logo']) }}" 
+                                    alt="{{ $partner['name'] ?? 'Partenaire' }}"
+                                    class="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                                    loading="lazy"
+                                    onerror="this.style.display='none';">
+                            </a>
+                            @else
+                            <img 
+                                src="{{ asset($partner['logo']) }}" 
+                                alt="{{ $partner['name'] ?? 'Partenaire' }}"
+                                class="max-w-full max-h-full object-contain filter grayscale opacity-70"
+                                loading="lazy"
+                                onerror="this.style.display='none';">
+                            @endif
+                        </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        function togglePartners() {
+            const container = document.getElementById('partnersContainer');
+            const btn = document.getElementById('togglePartnersBtn');
+            const btnText = document.getElementById('partnersBtnText');
+            const btnIcon = document.getElementById('partnersBtnIcon');
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                container.classList.add('animate-fadeIn');
+                btnText.textContent = 'Masquer nos partenaires';
+                btnIcon.classList.add('rotate-180');
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                container.classList.add('hidden');
+                btnText.textContent = 'Afficher nos partenaires';
+                btnIcon.classList.remove('rotate-180');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+    </script>
+    @endif
 
     <!-- CTA Section -->
     @if($homeConfig['sections']['cta']['enabled'] ?? true)
