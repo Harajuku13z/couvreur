@@ -123,8 +123,6 @@
                 </div>
                 @endif
                 
-                <a href="{{ route('contact') }}" class="text-gray-700 hover:text-primary font-medium mr-4">Contact</a>
-                
                 <!-- CTA Buttons -->
                 <a href="{{ route('form.step', 'propertyType') }}" 
                    class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
