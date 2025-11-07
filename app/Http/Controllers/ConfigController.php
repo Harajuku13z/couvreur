@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Models\Review;
+use App\Services\AiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ConfigController extends Controller
@@ -229,7 +231,7 @@ class ConfigController extends Controller
             $favicon->move(public_path(), $faviconName);
             Setting::set('site_favicon', $faviconName, 'file', 'branding');
         }
-        
+
         // Handle contact hero image upload
         if ($request->hasFile('contact_hero_image')) {
             $heroImage = $request->file('contact_hero_image');
@@ -1913,7 +1915,7 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
             ]);
         }
     }
-    
+
     /**
      * Update FAQ settings
      */
@@ -1940,6 +1942,136 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
         Artisan::call('config:clear');
 
         return back()->with('success', 'Configuration FAQ mise à jour avec succès !');
+    }
+
+    /**
+     * Générer 5 questions fréquentes avec l'IA
+     */
+    public function generateFaqsWithAI(Request $request)
+    {
+        try {
+            $companyDescription = Setting::get('company_description', '');
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            
+            if (empty($companyDescription)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Veuillez d\'abord remplir la description de l\'entreprise dans les paramètres.'
+                ], 400);
+            }
+            
+            $prompt = "Génère exactement 5 questions fréquentes (FAQ) pertinentes pour une entreprise de rénovation et de construction.
+
+Informations sur l'entreprise:
+- Nom: {$companyName}
+- Description: {$companyDescription}
+
+Instructions:
+1. Génère exactement 5 questions fréquentes que les clients pourraient se poser
+2. Chaque question doit être spécifique et pertinente pour cette entreprise
+3. Fournis une réponse détaillée et professionnelle pour chaque question (2-3 phrases minimum)
+4. Les questions doivent couvrir différents aspects: services, tarifs, délais, garanties, etc.
+
+Format de réponse JSON strict (sans texte avant ou après):
+{
+  \"faqs\": [
+    {
+      \"question\": \"Question 1?\",
+      \"answer\": \"Réponse détaillée à la question 1.\"
+    },
+    {
+      \"question\": \"Question 2?\",
+      \"answer\": \"Réponse détaillée à la question 2.\"
+    }
+  ]
+}
+
+Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
+
+            $result = AiService::callAI($prompt, 'Tu es un expert en rédaction web pour le secteur du bâtiment et de la rénovation. Tu génères des FAQ pertinentes et professionnelles.', [
+                'max_tokens' => 2000,
+                'temperature' => 0.8
+            ]);
+
+            if ($result && isset($result['content'])) {
+                $content = $result['content'];
+                
+                // Parser le JSON
+                $jsonStart = strpos($content, '{');
+                $jsonEnd = strrpos($content, '}');
+                
+                if ($jsonStart !== false && $jsonEnd !== false) {
+                    $jsonContent = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+                    $aiData = json_decode($jsonContent, true);
+                    
+                    if ($aiData && isset($aiData['faqs']) && is_array($aiData['faqs'])) {
+                        // Limiter à 5 FAQ
+                        $faqs = array_slice($aiData['faqs'], 0, 5);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'faqs' => $faqs,
+                            'message' => count($faqs) . ' questions fréquentes générées avec succès !'
+                        ]);
+                    }
+                }
+                
+                // Si le parsing JSON échoue, essayer d'extraire manuellement
+                Log::warning('Parsing JSON FAQ échoué, tentative extraction manuelle', [
+                    'content_preview' => substr($content, 0, 500)
+                ]);
+                
+                // Fallback: générer des FAQ basiques
+                $fallbackFaqs = $this->generateFallbackFaqs($companyName, $companyDescription);
+                
+                return response()->json([
+                    'success' => true,
+                    'faqs' => $fallbackFaqs,
+                    'message' => '5 questions fréquentes générées (mode fallback)'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération des FAQ. Veuillez réessayer.'
+            ], 500);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur génération FAQ avec IA: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Générer des FAQ de fallback si l'IA échoue
+     */
+    private function generateFallbackFaqs($companyName, $description)
+    {
+        return [
+            [
+                'question' => 'Quels sont vos domaines d\'intervention ?',
+                'answer' => "Nous intervenons dans tous les domaines de la rénovation et de la construction. " . substr($description, 0, 100) . "..."
+            ],
+            [
+                'question' => 'Quels sont vos délais d\'intervention ?',
+                'answer' => 'Nos délais d\'intervention varient selon la nature et l\'ampleur des travaux. Nous nous efforçons de respecter les délais convenus et vous tenons informé de l\'avancement de votre projet.'
+            ],
+            [
+                'question' => 'Proposez-vous un devis gratuit ?',
+                'answer' => 'Oui, nous proposons un devis gratuit et sans engagement pour tous vos projets de rénovation. Contactez-nous pour planifier une visite et obtenir une estimation précise.'
+            ],
+            [
+                'question' => 'Quelles garanties offrez-vous ?',
+                'answer' => 'Nous garantissons tous nos travaux et respectons les normes en vigueur. Tous nos artisans sont qualifiés et assurés pour votre tranquillité d\'esprit.'
+            ],
+            [
+                'question' => 'Intervenez-vous dans toute la région ?',
+                'answer' => 'Nous intervenons dans toute la région Bretagne. N\'hésitez pas à nous contacter pour vérifier notre zone d\'intervention et planifier une intervention.'
+            ]
+        ];
     }
 
 }
