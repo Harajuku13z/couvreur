@@ -707,6 +707,28 @@ class ConfigController extends Controller
     /**
      * Update social media settings
      */
+    /**
+     * Update security settings (reCAPTCHA)
+     */
+    public function updateSecurity(Request $request)
+    {
+        $validated = $request->validate([
+            'recaptcha_site_key' => 'nullable|string|max:255',
+            'recaptcha_secret_key' => 'nullable|string|max:255',
+        ]);
+
+        if (isset($validated['recaptcha_site_key'])) {
+            Setting::set('recaptcha_site_key', $validated['recaptcha_site_key'], 'string', 'security');
+        }
+        if (isset($validated['recaptcha_secret_key'])) {
+            Setting::set('recaptcha_secret_key', $validated['recaptcha_secret_key'], 'string', 'security');
+        }
+
+        Setting::clearCache();
+
+        return back()->with('success', 'Paramètres de sécurité mis à jour avec succès !');
+    }
+
     public function updateSocial(Request $request)
     {
         $validated = $request->validate([

@@ -43,6 +43,9 @@
                 <a href="#social" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-share-alt mr-2"></i>Réseaux Sociaux
                 </a>
+                <a href="#security" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-shield-alt mr-2"></i>Sécurité
+                </a>
             </nav>
         </div>
     </div>
@@ -583,6 +586,107 @@
                 <div class="mt-4">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                         <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div id="security" class="config-section hidden">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-shield-alt mr-2 text-green-600"></i>Paramètres de Sécurité
+            </h2>
+            <p class="text-sm text-gray-600 mb-6">
+                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                Configurez Google reCAPTCHA v3 pour protéger vos formulaires contre les robots et le spam
+            </p>
+            
+            <form method="POST" action="{{ route('config.update.security') }}">
+                @csrf
+                <div class="space-y-6">
+                    <!-- Google reCAPTCHA v3 -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-green-800">
+                            <i class="fas fa-robot mr-2"></i>Google reCAPTCHA v3
+                        </h3>
+                        <p class="text-sm text-gray-700 mb-4">
+                            reCAPTCHA v3 fonctionne en arrière-plan et n'affiche pas de challenge aux utilisateurs. 
+                            Il analyse le comportement des visiteurs et attribue un score de confiance (0.0 = bot, 1.0 = humain).
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Clé publique (Site Key) *
+                                </label>
+                                <input type="text" 
+                                       name="recaptcha_site_key" 
+                                       value="{{ setting('recaptcha_site_key') }}" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" 
+                                       placeholder="6Lc...">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Obtenez vos clés sur <a href="https://www.google.com/recaptcha/admin" target="_blank" class="text-blue-600 hover:underline">Google reCAPTCHA</a>
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Clé secrète (Secret Key) *
+                                </label>
+                                <input type="password" 
+                                       name="recaptcha_secret_key" 
+                                       value="{{ setting('recaptcha_secret_key') }}" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" 
+                                       placeholder="6Lc...">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Cette clé doit rester secrète et ne jamais être exposée côté client
+                                </p>
+                            </div>
+                            
+                            @if(setting('recaptcha_site_key') && setting('recaptcha_secret_key'))
+                            <div class="bg-green-100 border border-green-300 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-green-800">reCAPTCHA est configuré et actif</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-2">
+                                    Les formulaires de contact (téléphone et email) sont protégés par reCAPTCHA v3
+                                </p>
+                            </div>
+                            @else
+                            <div class="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-yellow-800">reCAPTCHA n'est pas configuré</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-2">
+                                    Les formulaires fonctionneront sans protection anti-robot jusqu'à la configuration
+                                </p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                            <i class="fas fa-question-circle mr-2"></i>Comment obtenir vos clés reCAPTCHA ?
+                        </h4>
+                        <ol class="text-xs text-gray-700 space-y-1 list-decimal list-inside">
+                            <li>Allez sur <a href="https://www.google.com/recaptcha/admin" target="_blank" class="text-blue-600 hover:underline">Google reCAPTCHA Admin</a></li>
+                            <li>Créez un nouveau site en sélectionnant "reCAPTCHA v3"</li>
+                            <li>Ajoutez votre domaine (ex: normesrenovationbretagne.fr)</li>
+                            <li>Copiez la "Site Key" et la "Secret Key"</li>
+                            <li>Collez-les dans les champs ci-dessus et enregistrez</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer les paramètres de sécurité
                     </button>
                 </div>
             </form>
