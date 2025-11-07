@@ -117,19 +117,19 @@
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold mb-4">Pages les plus visitées</h2>
             <div class="space-y-3">
-                @forelse($topPages as $page)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex-1">
-                        <p class="font-medium text-sm">{{ Str::limit($page['url'], 50) }}</p>
-                        <p class="text-xs text-gray-500">{{ number_format($page['pageViews']) }} vues</p>
-                    </div>
-                    <div class="text-blue-600 font-semibold">
-                        {{ number_format($page['pageViews']) }}
-                    </div>
-                </div>
-                @empty
-                <p class="text-gray-500 text-sm">Aucune donnée disponible</p>
-                @endforelse
+                       @forelse($topPages as $page)
+                       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                           <div class="flex-1">
+                               <p class="font-medium text-sm">{{ Str::limit($page['url'] ?? $page['path'] ?? 'N/A', 50) }}</p>
+                               <p class="text-xs text-gray-500">{{ number_format($page['visits'] ?? $page['pageViews'] ?? 0) }} vues</p>
+                           </div>
+                           <div class="text-blue-600 font-semibold">
+                               {{ number_format($page['visits'] ?? $page['pageViews'] ?? 0) }}
+                           </div>
+                       </div>
+                       @empty
+                       <p class="text-gray-500 text-sm">Aucune donnée disponible</p>
+                       @endforelse
             </div>
         </div>
         

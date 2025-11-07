@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
             'check.setup' => \App\Http\Middleware\CheckSetup::class,
         ]);
+        
+        // Ajouter le tracking des visites au groupe web
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackVisits::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -11,21 +11,126 @@ use App\Models\Setting;
 class VisitsController extends Controller
 {
     /**
-     * Afficher les statistiques de visites
+     * Afficher les statistiques de visites (depuis la base de données interne)
      */
     public function index()
     {
         try {
-            // Vérifier si Google Analytics est configuré
-            $analyticsViewId = Setting::get('analytics_view_id') ?: env('ANALYTICS_VIEW_ID');
-            $credentialsPath = storage_path('app/analytics/service-account-credentials.json');
-            $hasCredentials = file_exists($credentialsPath);
-            $isConfigured = !empty($analyticsViewId) && $hasCredentials;
+            $days = request()->input('days', 30);
+            $period = now()->subDays($days);
+            
+            // Récupérer les visites depuis la base de données
+            $visits = \App\Models\Visit::excludeBots()
+                ->where('visited_at', '>=', $period)
+                ->orderBy('visited_at', 'desc')
+                ->get();
+            
+            // Statistiques globales
+            $totalVisits = $visits->count();
+            $uniqueVisitors = $visits->pluck('session_id')->unique()->count();
+            $uniquePages = $visits->pluck('path')->unique()->count();
+            
+            // Visites par jour (pour le graphique)
+            $visitsByDay = $visits->groupBy(function($visit) {
+                return $visit->visited_at->format('Y-m-d');
+            })->map(function($dayVisits) {
+                return [
+                    'date' => $dayVisits->first()->visited_at->format('Y-m-d'),
+                    'visits' => $dayVisits->count(),
+                    'visitors' => $dayVisits->pluck('session_id')->unique()->count()
+                ];
+            })->values();
+            
+            // Top pages
+            $topPages = $visits->groupBy('path')
+                ->map(function($pageVisits, $path) {
+                    return [
+                        'url' => $path,
+                        'visits' => $pageVisits->count(),
+                        'visitors' => $pageVisits->pluck('session_id')->unique()->count()
+                    ];
+                })
+                ->sortByDesc('visits')
+                ->take(10)
+                ->values();
+            
+            // Top referrers
+            $topReferrers = $visits->whereNotNull('referrer_url')
+                ->groupBy(function($visit) {
+                    $url = parse_url($visit->referrer_url, PHP_URL_HOST);
+                    return $url ?: 'Direct';
+                })
+                ->map(function($refVisits, $domain) {
+                    return [
+                        'url' => $domain,
+                        'visits' => $refVisits->count()
+                    ];
+                })
+                ->sortByDesc('visits')
+                ->take(10)
+                ->values();
+            
+            // Top browsers
+            $topBrowsers = $visits->whereNotNull('browser')
+                ->groupBy('browser')
+                ->map(function($browserVisits, $browser) {
+                    return [
+                        'browser' => $browser,
+                        'sessions' => $browserVisits->pluck('session_id')->unique()->count()
+                    ];
+                })
+                ->sortByDesc('sessions')
+                ->take(10)
+                ->values();
+            
+            // Top countries
+            $topCountries = $visits->whereNotNull('country')
+                ->groupBy('country')
+                ->map(function($countryVisits, $country) {
+                    return [
+                        'country' => $country,
+                        'sessions' => $countryVisits->pluck('session_id')->unique()->count()
+                    ];
+                })
+                ->sortByDesc('sessions')
+                ->take(10)
+                ->values();
+            
+            // Device types
+            $deviceTypes = $visits->groupBy('device_type')
+                ->map(function($deviceVisits, $device) {
+                    return [
+                        'device_type' => $device ?: 'unknown',
+                        'count' => $deviceVisits->count()
+                    ];
+                })
+                ->values();
             
             $data = [
-                'isConfigured' => $isConfigured,
+                'isConfigured' => true, // Toujours configuré avec le tracking interne
+                'visitors' => $visitsByDay,
+                'topPages' => $topPages,
+                'topReferrers' => $topReferrers,
+                'topBrowsers' => $topBrowsers,
+                'topCountries' => $topCountries,
+                'deviceTypes' => $deviceTypes,
+                'stats' => [
+                    'totalVisitors' => $uniqueVisitors,
+                    'totalPageViews' => $totalVisits,
+                    'uniquePages' => $uniquePages,
+                    'avgPagesPerVisitor' => $uniqueVisitors > 0 ? round($totalVisits / $uniqueVisitors, 2) : 0
+                ],
+                'days' => $days
+            ];
+            
+            return view('admin.visits.index', $data);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur VisitsController: ' . $e->getMessage());
+            return view('admin.visits.index', [
+                'isConfigured' => true,
+                'error' => 'Erreur: ' . $e->getMessage(),
                 'visitors' => [],
-                'pageViews' => [],
                 'topPages' => [],
                 'topReferrers' => [],
                 'topBrowsers' => [],
@@ -33,72 +138,9 @@ class VisitsController extends Controller
                 'stats' => [
                     'totalVisitors' => 0,
                     'totalPageViews' => 0,
-                    'avgSessionDuration' => 0,
-                    'bounceRate' => 0
+                    'uniquePages' => 0,
+                    'avgPagesPerVisitor' => 0
                 ]
-            ];
-            
-            if ($isConfigured && class_exists(\Spatie\Analytics\Facades\Analytics::class)) {
-                try {
-                    // Récupérer les visiteurs et pages vues des 30 derniers jours
-                    $visitorsAndPageViews = \Spatie\Analytics\Facades\Analytics::fetchVisitorsAndPageViews(\Spatie\Analytics\Period::days(30));
-                    $data['visitors'] = $visitorsAndPageViews;
-                    
-                    // Calculer les statistiques globales
-                    $totalVisitors = 0;
-                    $totalPageViews = 0;
-                    foreach ($visitorsAndPageViews as $item) {
-                        $totalVisitors += $item['visitors'];
-                        $totalPageViews += $item['pageViews'];
-                    }
-                    $data['stats']['totalVisitors'] = $totalVisitors;
-                    $data['stats']['totalPageViews'] = $totalPageViews;
-                    
-                    // Top pages
-                    try {
-                        $topPages = \Spatie\Analytics\Facades\Analytics::fetchMostVisitedPages(\Spatie\Analytics\Period::days(30), 10);
-                        $data['topPages'] = $topPages;
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur récupération top pages: ' . $e->getMessage());
-                    }
-                    
-                    // Top referrers
-                    try {
-                        $topReferrers = \Spatie\Analytics\Facades\Analytics::fetchTopReferrers(\Spatie\Analytics\Period::days(30), 10);
-                        $data['topReferrers'] = $topReferrers;
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur récupération top referrers: ' . $e->getMessage());
-                    }
-                    
-                    // Top browsers
-                    try {
-                        $topBrowsers = \Spatie\Analytics\Facades\Analytics::fetchTopBrowsers(\Spatie\Analytics\Period::days(30), 10);
-                        $data['topBrowsers'] = $topBrowsers;
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur récupération top browsers: ' . $e->getMessage());
-                    }
-                    
-                    // Top countries
-                    try {
-                        $topCountries = \Spatie\Analytics\Facades\Analytics::fetchTopCountries(\Spatie\Analytics\Period::days(30), 10);
-                        $data['topCountries'] = $topCountries;
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur récupération top countries: ' . $e->getMessage());
-                    }
-                    
-                } catch (\Exception $e) {
-                    Log::error('Erreur Analytics: ' . $e->getMessage());
-                    $data['error'] = 'Erreur lors de la récupération des données Analytics: ' . $e->getMessage();
-                }
-            }
-            
-            return view('admin.visits.index', $data);
-            
-        } catch (\Exception $e) {
-            Log::error('Erreur VisitsController: ' . $e->getMessage());
-            return view('admin.visits.index', [
-                'isConfigured' => false,
-                'error' => 'Erreur: ' . $e->getMessage()
             ]);
         }
     }
@@ -109,20 +151,56 @@ class VisitsController extends Controller
     public function getVisitsData(Request $request)
     {
         try {
-            if (!class_exists(\Spatie\Analytics\Facades\Analytics::class)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Spatie Analytics non disponible'
-                ], 500);
-            }
-            
             $days = $request->input('days', 30);
-            $period = \Spatie\Analytics\Period::days((int)$days);
+            $period = now()->subDays($days);
+            
+            $visits = \App\Models\Visit::excludeBots()
+                ->where('visited_at', '>=', $period)
+                ->get();
+            
+            // Visites par jour
+            $visitsByDay = $visits->groupBy(function($visit) {
+                return $visit->visited_at->format('Y-m-d');
+            })->map(function($dayVisits) {
+                return [
+                    'date' => $dayVisits->first()->visited_at->format('Y-m-d'),
+                    'visitors' => $dayVisits->pluck('session_id')->unique()->count(),
+                    'pageViews' => $dayVisits->count()
+                ];
+            })->values();
+            
+            // Top pages
+            $topPages = $visits->groupBy('path')
+                ->map(function($pageVisits, $path) {
+                    return [
+                        'url' => $path,
+                        'pageViews' => $pageVisits->count()
+                    ];
+                })
+                ->sortByDesc('pageViews')
+                ->take(10)
+                ->values();
+            
+            // Top referrers
+            $topReferrers = $visits->whereNotNull('referrer_url')
+                ->groupBy(function($visit) {
+                    $url = parse_url($visit->referrer_url, PHP_URL_HOST);
+                    return $url ?: 'Direct';
+                })
+                ->map(function($refVisits, $domain) {
+                    return [
+                        'url' => $domain,
+                        'pageViews' => $refVisits->count()
+                    ];
+                })
+                ->sortByDesc('pageViews')
+                ->take(10)
+                ->values();
             
             $data = [
-                'visitors' => \Spatie\Analytics\Facades\Analytics::fetchVisitorsAndPageViews($period),
-                'topPages' => \Spatie\Analytics\Facades\Analytics::fetchMostVisitedPages($period, 10),
-                'topReferrers' => \Spatie\Analytics\Facades\Analytics::fetchTopReferrers($period, 10),
+                'visitors' => $visitsByDay,
+                'topPages' => $topPages,
+                'topReferrers' => $topReferrers,
             ];
             
             return response()->json([
