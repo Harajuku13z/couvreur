@@ -17,7 +17,6 @@ class GenerateSitemapManual extends Command
     {
         $this->info('🚀 Génération du sitemap manuel en cours...');
         
-        // URL de production
         // URL depuis la config ou les settings
         $baseUrl = \App\Models\Setting::get('site_url', null);
         if (empty($baseUrl)) {
