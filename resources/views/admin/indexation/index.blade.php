@@ -1196,7 +1196,182 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    const indexJumpUrlInput = document.getElementById('test-indexjump-url-input');
+    if (indexJumpUrlInput) {
+        indexJumpUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testIndexJumpUrl();
+            }
+        });
+    }
 });
+
+function testIndexJumpConnection() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.test-indexjump") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ Connexion réussie ! Solde disponible: ' + (data.balance || 0) + ' URLs', 'success');
+        } else {
+            showNotification('❌ Erreur de connexion: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors du test de connexion', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function saveIndexJumpToken() {
+    const token = document.getElementById('indexjump_token').value.trim();
+    
+    if (!token) {
+        showNotification('Veuillez entrer un token', 'error');
+        return;
+    }
+    
+    fetch('{{ route("admin.indexation.update-indexjump-token") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ indexjump_token: token })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Token sauvegardé avec succès', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la sauvegarde', 'error');
+    });
+}
+
+function testIndexJumpUrl() {
+    const urlInput = document.getElementById('test-indexjump-url-input');
+    const botSelect = document.getElementById('test-indexjump-bot');
+    const url = urlInput.value.trim();
+    const bot = botSelect.value;
+    
+    if (!url) {
+        showNotification('Veuillez entrer une URL à tester', 'error');
+        urlInput.focus();
+        return;
+    }
+    
+    try {
+        new URL(url);
+    } catch (e) {
+        showNotification('URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)', 'error');
+        urlInput.focus();
+        return;
+    }
+    
+    const button = document.getElementById('test-indexjump-url-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.test-indexjump-url") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ url: url, bot: bot })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ ' + data.message, 'success');
+        } else {
+            showNotification('❌ ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors du test', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function submitSitemapToIndexJump(filename, index) {
+    if (!confirm('Envoyer le sitemap "' + filename + '" à IndexJump ?')) {
+        return;
+    }
+    
+    const botSelect = document.getElementById('indexjump-bot-' + index);
+    const bot = botSelect.value;
+    const button = document.getElementById('submit-indexjump-sitemap-' + index);
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    fetch('{{ route("admin.indexation.submit-sitemap-to-indexjump") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ filename: filename, bot: bot })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = `✅ Sitemap "${filename}": ${data.success_count} URLs envoyées avec succès`;
+            if (data.failed_count > 0) {
+                message += `, ${data.failed_count} échouées`;
+            }
+            showNotification(message, data.failed_count === 0 ? 'success' : 'error');
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'envoi', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+    });
+}
 </script>
 @endpush
 

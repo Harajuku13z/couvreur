@@ -147,11 +147,9 @@ class IndexJumpService
                 ];
             }
 
-            $response = Http::timeout(30)->post($this->baseUrl . '/index/bulk', [
+            $response = Http::timeout(30)->asJson()->post($this->baseUrl . '/index/bulk?token=' . urlencode($this->token), [
                 'urls' => $urls,
-                'bot' => $bot
-            ], [
-                'token' => $this->token
+                'bot' => (int)$bot
             ]);
 
             if ($response->successful()) {
