@@ -192,6 +192,24 @@
                 @endif
             </div>
             
+            <!-- Aide et diagnostic -->
+            <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-yellow-800 mb-2">
+                    <i class="fas fa-info-circle mr-1"></i>💡 Aide : Résolution des problèmes d'indexation
+                </h4>
+                <div class="text-xs text-yellow-700 space-y-2">
+                    <p><strong>Si toutes les URLs échouent, vérifiez :</strong></p>
+                    <ol class="list-decimal list-inside space-y-1 ml-2">
+                        <li><strong>Le compte de service est propriétaire du site</strong> : Dans Google Search Console, allez dans Paramètres → Utilisateurs et propriétaires, et ajoutez l'email du compte de service (ex: searchconsole-service@search-api-477513.iam.gserviceaccount.com) comme propriétaire.</li>
+                        <li><strong>L'URL du site correspond</strong> : L'URL configurée doit correspondre exactement à celle dans Google Search Console (avec ou sans www, avec https://).</li>
+                        <li><strong>L'API Indexing est activée</strong> : Dans Google Cloud Console, activez l'API "Indexing API" pour votre projet.</li>
+                        <li><strong>Les credentials JSON sont valides</strong> : Vérifiez que le JSON du compte de service est complet et correct.</li>
+                        <li><strong>Les URLs appartiennent au domaine</strong> : Toutes les URLs doivent appartenir au domaine configuré.</li>
+                    </ol>
+                    <p class="mt-2"><strong>Consultez les logs Laravel</strong> pour voir les détails des erreurs spécifiques.</p>
+                </div>
+            </div>
+            
             <!-- Envoyer tous les liens à Google -->
             @if($isGoogleConfigured)
             <div class="border-t pt-4 mt-4">
@@ -631,9 +649,30 @@ function testGoogleConnection() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Connexion réussie ! ' + (data.message || ''), 'success');
+            let message = '✅ Connexion réussie !';
+            if (data.site_found === false) {
+                message += '\n⚠️ ' + (data.warning || 'Le site n\'est pas trouvé dans Google Search Console.');
+            }
+            if (data.indexing_test) {
+                if (data.indexing_test.success) {
+                    message += '\n✅ Test d\'indexation réussi !';
+                } else {
+                    message += '\n❌ Test d\'indexation échoué: ' + (data.indexing_test.message || 'Erreur inconnue');
+                    if (data.indexing_test.error_code) {
+                        message += ' (Code: ' + data.indexing_test.error_code + ')';
+                    }
+                }
+            }
+            showNotification(message, data.site_found && (!data.indexing_test || data.indexing_test.success) ? 'success' : 'error');
         } else {
-            showNotification('Erreur de connexion: ' + (data.message || 'Erreur inconnue'), 'error');
+            let errorMsg = 'Erreur de connexion: ' + (data.message || 'Erreur inconnue');
+            if (data.error_code) {
+                errorMsg += ' (Code: ' + data.error_code + ')';
+            }
+            if (data.error_details && data.error_details.length > 0) {
+                errorMsg += '\nDétails: ' + JSON.stringify(data.error_details[0]);
+            }
+            showNotification(errorMsg, 'error');
         }
     })
     .catch(error => {
@@ -736,17 +775,21 @@ function submitSitemapToGoogle(filename) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(
-                `✅ Sitemap "${filename}": ${data.success_count} URLs envoyées avec succès${data.failed_count > 0 ? `, ${data.failed_count} échouées` : ''}`,
-                data.failed_count === 0 ? 'success' : 'error'
-            );
+            let message = `✅ Sitemap "${filename}": ${data.success_count} URLs envoyées avec succès`;
+            if (data.failed_count > 0) {
+                message += `, ${data.failed_count} échouées`;
+                message += '\n⚠️ Consultez les logs pour plus de détails sur les erreurs.';
+                message += '\n💡 Vérifiez que le compte de service est propriétaire du site dans Google Search Console.';
+            }
+            showNotification(message, data.failed_count === 0 ? 'success' : 'error');
             
-            // Recharger la page après 2 secondes pour voir l'historique mis à jour
+            // Recharger la page après 3 secondes pour voir l'historique mis à jour
             setTimeout(() => {
                 window.location.reload();
-            }, 2000);
+            }, 3000);
         } else {
-            showNotification('Erreur lors de l\'envoi: ' + (data.message || 'Erreur inconnue'), 'error');
+            let errorMsg = 'Erreur lors de l\'envoi: ' + (data.message || 'Erreur inconnue');
+            showNotification(errorMsg, 'error');
         }
     })
     .catch(error => {

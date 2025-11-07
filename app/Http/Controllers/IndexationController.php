@@ -261,6 +261,12 @@ class IndexationController extends Controller
             $googleService = new GoogleSearchConsoleService();
             $result = $googleService->testConnection();
             
+            // Si la connexion réussit, tester aussi l'indexation
+            if ($result['success']) {
+                $indexingTest = $googleService->testIndexing();
+                $result['indexing_test'] = $indexingTest;
+            }
+            
             return response()->json($result);
         } catch (\Exception $e) {
             return response()->json([

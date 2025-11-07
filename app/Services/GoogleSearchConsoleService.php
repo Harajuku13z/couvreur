@@ -113,7 +113,8 @@ class GoogleSearchConsoleService
             if (!$this->indexingService) {
                 return [
                     'success' => false,
-                    'message' => 'Service Google Indexing non initialisé'
+                    'message' => 'Service Google Indexing non initialisé',
+                    'error_code' => 'SERVICE_NOT_INITIALIZED'
                 ];
             }
 
@@ -122,26 +123,76 @@ class GoogleSearchConsoleService
                 $url = rtrim($this->siteUrl, '/') . '/' . ltrim($url, '/');
             }
 
+            // Vérifier que l'URL appartient au domaine configuré
+            $parsedUrl = parse_url($url);
+            $parsedSiteUrl = parse_url($this->siteUrl);
+            
+            if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host']) && 
+                $parsedUrl['host'] !== $parsedSiteUrl['host']) {
+                return [
+                    'success' => false,
+                    'message' => "L'URL n'appartient pas au domaine configuré: {$parsedUrl['host']} vs {$parsedSiteUrl['host']}",
+                    'error_code' => 'DOMAIN_MISMATCH'
+                ];
+            }
+
             // Créer la notification d'URL
             $notification = new UrlNotification();
             $notification->setUrl($url);
             $notification->setType('URL_UPDATED');
 
             // Publier la notification via l'API Indexing
-            $this->indexingService->urlNotifications->publish($notification);
+            $response = $this->indexingService->urlNotifications->publish($notification);
 
             Log::info("URL indexée avec succès: {$url}");
 
             return [
                 'success' => true,
-                'message' => "URL indexée avec succès: {$url}"
+                'message' => "URL indexée avec succès: {$url}",
+                'response' => $response
             ];
-        } catch (\Exception $e) {
-            Log::error("Erreur indexation URL {$url}: " . $e->getMessage());
+        } catch (\Google\Service\Exception $e) {
+            // Erreur spécifique de l'API Google
+            $errorDetails = $e->getErrors();
+            $errorMessage = $e->getMessage();
+            $errorCode = $e->getCode();
+            
+            Log::error("Erreur API Google Indexing pour URL {$url}", [
+                'code' => $errorCode,
+                'message' => $errorMessage,
+                'errors' => $errorDetails,
+                'url' => $url
+            ]);
+            
+            // Extraire le message d'erreur le plus utile
+            $userMessage = $errorMessage;
+            if (!empty($errorDetails) && is_array($errorDetails)) {
+                $firstError = $errorDetails[0] ?? [];
+                if (isset($firstError['message'])) {
+                    $userMessage = $firstError['message'];
+                }
+                if (isset($firstError['reason'])) {
+                    $userMessage .= ' (Reason: ' . $firstError['reason'] . ')';
+                }
+            }
             
             return [
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => $userMessage,
+                'error_code' => $errorCode,
+                'error_details' => $errorDetails
+            ];
+        } catch (\Exception $e) {
+            Log::error("Erreur indexation URL {$url}", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'url' => $url
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage(),
+                'error_code' => 'GENERAL_ERROR'
             ];
         }
     }
@@ -169,9 +220,22 @@ class GoogleSearchConsoleService
                     usleep(50000); // 0.05 seconde
                 }
                 
-                // Log de progression tous les 50 URLs
+                // Log de progression tous les 50 URLs avec détails des erreurs
                 if (($index + 1) % 50 === 0) {
-                    Log::info("Progression: " . ($index + 1) . "/{$totalUrls} URLs traitées");
+                    $successCount = count(array_filter(array_slice($results, 0, $index + 1), function($r) {
+                        return $r['result']['success'] ?? false;
+                    }));
+                    Log::info("Progression: " . ($index + 1) . "/{$totalUrls} URLs traitées ({$successCount} réussies)");
+                }
+                
+                // Log les 5 premières erreurs pour diagnostic
+                if (!$result['success'] && count(array_filter($results, function($r) {
+                    return !($r['result']['success'] ?? false);
+                })) <= 5) {
+                    Log::warning("Échec indexation URL: {$url}", [
+                        'error' => $result['message'] ?? 'Erreur inconnue',
+                        'error_code' => $result['error_code'] ?? null
+                    ]);
                 }
             }
         } else {
@@ -237,16 +301,70 @@ class GoogleSearchConsoleService
 
             // Essayer de récupérer les sites
             $sites = $this->service->sites->listSites();
+            $siteEntries = $sites->getSiteEntry();
+            
+            // Vérifier si le site est dans la liste
+            $siteUrl = rtrim($this->siteUrl, '/');
+            $siteFound = false;
+            $sitePermission = null;
+            
+            foreach ($siteEntries as $site) {
+                if ($site->getSiteUrl() === $siteUrl || $site->getSiteUrl() === $siteUrl . '/') {
+                    $siteFound = true;
+                    $sitePermission = $site->getPermissionLevel();
+                    break;
+                }
+            }
             
             return [
                 'success' => true,
                 'message' => 'Connexion réussie',
-                'sites' => count($sites->getSiteEntry())
+                'sites_count' => count($siteEntries),
+                'site_url' => $siteUrl,
+                'site_found' => $siteFound,
+                'site_permission' => $sitePermission,
+                'warning' => !$siteFound ? "⚠️ Le site {$siteUrl} n'est pas trouvé dans Google Search Console. Assurez-vous que le compte de service est propriétaire du site." : null
+            ];
+        } catch (\Google\Service\Exception $e) {
+            $errorDetails = $e->getErrors();
+            $errorMessage = $e->getMessage();
+            
+            return [
+                'success' => false,
+                'message' => 'Erreur de connexion: ' . $errorMessage,
+                'error_code' => $e->getCode(),
+                'error_details' => $errorDetails
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Erreur de connexion: ' . $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Tester l'indexation d'une URL de test
+     */
+    public function testIndexing()
+    {
+        try {
+            if (!$this->isConfigured()) {
+                return [
+                    'success' => false,
+                    'message' => 'Service non configuré'
+                ];
+            }
+
+            // Tester avec l'URL de base du site
+            $testUrl = rtrim($this->siteUrl, '/');
+            $result = $this->indexUrl($testUrl);
+            
+            return $result;
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors du test: ' . $e->getMessage()
             ];
         }
     }
