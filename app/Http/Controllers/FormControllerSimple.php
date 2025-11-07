@@ -345,7 +345,24 @@ class FormControllerSimple extends Controller
         // Vérifier reCAPTCHA pour toutes les étapes (dès la première étape)
         $recaptchaResult = $this->verifyRecaptcha($request);
         if (!$recaptchaResult['success']) {
-            return back()->withErrors(['recaptcha' => 'Vérification anti-robot échouée. Veuillez réessayer.'])->withInput();
+            // Logger les détails pour debug
+            \Log::warning('reCAPTCHA échec sur étape', [
+                'step' => $step,
+                'score' => $recaptchaResult['score'] ?? null,
+                'message' => $recaptchaResult['message'] ?? 'Erreur inconnue',
+                'ip' => $this->getClientIp($request),
+                'user_agent' => $request->userAgent(),
+            ]);
+            
+            // Message plus informatif pour l'utilisateur
+            $errorMessage = 'Vérification anti-robot échouée. ';
+            if (isset($recaptchaResult['score']) && $recaptchaResult['score'] < 0.3) {
+                $errorMessage .= 'Votre connexion semble suspecte. Veuillez réessayer dans quelques instants.';
+            } else {
+                $errorMessage .= 'Veuillez réessayer.';
+            }
+            
+            return back()->withErrors(['recaptcha' => $errorMessage])->withInput();
         }
         
         // Sauvegarder le score reCAPTCHA (mise à jour si meilleur score)
@@ -574,9 +591,23 @@ class FormControllerSimple extends Controller
             if ($response->successful()) {
                 $data = $response->json();
                 
-                // Score minimum: 0.5 (0.0 = bot, 1.0 = humain)
-                $minScore = 0.5;
+                // Score minimum: 0.3 (plus permissif pour mobile)
+                // 0.0 = bot, 1.0 = humain
+                // Sur mobile, les scores peuvent être plus bas même pour des utilisateurs légitimes
+                $minScore = 0.3;
                 $score = $data['score'] ?? 0;
+                
+                // Logger pour debug (surtout si échec)
+                if (!$data['success'] || $score < $minScore) {
+                    \Log::warning('reCAPTCHA score faible', [
+                        'score' => $score,
+                        'min_score' => $minScore,
+                        'success' => $data['success'],
+                        'error_codes' => $data['error-codes'] ?? [],
+                        'ip' => $this->getClientIp($request),
+                        'user_agent' => $request->userAgent(),
+                    ]);
+                }
                 
                 return [
                     'success' => $data['success'] && $score >= $minScore,

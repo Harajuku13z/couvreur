@@ -112,7 +112,22 @@ function submitPropertyForm() {
     // Vérifier si reCAPTCHA est configuré
     const recaptchaSiteKey = '{{ setting("recaptcha_site_key") }}';
     
-    if (recaptchaSiteKey && typeof grecaptcha !== 'undefined') {
+    if (recaptchaSiteKey) {
+        // Attendre que grecaptcha soit chargé (important sur mobile)
+        if (typeof grecaptcha === 'undefined') {
+            // Si grecaptcha n'est pas encore chargé, attendre un peu
+            setTimeout(function() {
+                if (typeof grecaptcha !== 'undefined') {
+                    submitPropertyForm();
+                } else {
+                    // Si après 3 secondes grecaptcha n'est toujours pas chargé, soumettre sans
+                    console.warn('reCAPTCHA non chargé, soumission sans vérification');
+                    form.submit();
+                }
+            }, 1000);
+            return;
+        }
+        
         // Désactiver le bouton pendant la vérification
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -121,15 +136,28 @@ function submitPropertyForm() {
         
         grecaptcha.ready(function() {
             grecaptcha.execute(recaptchaSiteKey, {action: 'submit'}).then(function(token) {
-                recaptchaTokenInput.value = token;
-                form.submit();
+                if (token) {
+                    recaptchaTokenInput.value = token;
+                    form.submit();
+                } else {
+                    throw new Error('Token reCAPTCHA vide');
+                }
             }).catch(function(error) {
                 console.error('reCAPTCHA error:', error);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Suivant <i class="fas fa-arrow-right ml-2"></i>';
                 }
-                alert('Erreur de vérification. Veuillez réessayer.');
+                // Sur mobile, parfois reCAPTCHA peut échouer, permettre quand même la soumission
+                // mais avec un message d'avertissement
+                if (confirm('Erreur de vérification anti-robot. Souhaitez-vous réessayer ?')) {
+                    setTimeout(function() {
+                        submitPropertyForm();
+                    }, 500);
+                } else {
+                    // Permettre la soumission même sans token (le serveur gérera)
+                    form.submit();
+                }
             });
         });
     } else {
