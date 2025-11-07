@@ -483,7 +483,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="space-y-4 mb-6">
                             <div class="flex items-center">
                                 <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
-                                <span class="text-sm">{{ setting('company_address') }}</span>
+                                <span class="text-sm">
+                                    @php
+                                        $address = setting('company_address', '');
+                                        $city = setting('company_city', '');
+                                        $postalCode = setting('company_postal_code', '');
+                                        $country = setting('company_country', 'France');
+                                        
+                                        $fullAddress = [];
+                                        if ($address) $fullAddress[] = $address;
+                                        if ($postalCode && $city) {
+                                            $fullAddress[] = $postalCode . ' ' . $city;
+                                        } elseif ($city) {
+                                            $fullAddress[] = $city;
+                                        } elseif ($postalCode) {
+                                            $fullAddress[] = $postalCode;
+                                        }
+                                        if ($country) $fullAddress[] = $country;
+                                        
+                                        $fullAddressString = implode(', ', $fullAddress);
+                                    @endphp
+                                    {{ $fullAddressString ?: setting('company_address') }}
+                                </span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-phone text-green-300 mr-3"></i>
@@ -551,7 +572,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="space-y-4 mb-6">
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
-                            <span class="text-sm">{{ setting('company_address') }}</span>
+                            <span class="text-sm">
+                                @php
+                                    $address = setting('company_address', '');
+                                    $city = setting('company_city', '');
+                                    $postalCode = setting('company_postal_code', '');
+                                    $country = setting('company_country', 'France');
+                                    
+                                    $fullAddress = [];
+                                    if ($address) $fullAddress[] = $address;
+                                    if ($postalCode && $city) {
+                                        $fullAddress[] = $postalCode . ' ' . $city;
+                                    } elseif ($city) {
+                                        $fullAddress[] = $city;
+                                    } elseif ($postalCode) {
+                                        $fullAddress[] = $postalCode;
+                                    }
+                                    if ($country) $fullAddress[] = $country;
+                                    
+                                    $fullAddressString = implode(', ', $fullAddress);
+                                @endphp
+                                {{ $fullAddressString ?: setting('company_address') }}
+                            </span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-phone text-green-300 mr-3"></i>
