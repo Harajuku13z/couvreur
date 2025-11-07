@@ -23,22 +23,16 @@
         </div>
     </div>
     
-    @if(!$isConfigured)
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div class="flex items-center">
-            <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mr-4"></i>
+            <i class="fas fa-info-circle text-blue-600 mr-3"></i>
             <div>
-                <h3 class="text-lg font-semibold text-yellow-800 mb-2">Google Analytics non configuré</h3>
-                <p class="text-yellow-700 mb-4">
-                    Pour afficher les statistiques de visites, vous devez configurer Google Analytics.
+                <p class="text-sm text-blue-800">
+                    <strong>Tracking interne activé</strong> - Les statistiques sont collectées directement depuis votre base de données, sans dépendre de Google Analytics.
                 </p>
-                <a href="{{ route('admin.seo.index') }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
-                    <i class="fas fa-cog mr-2"></i>Configurer Google Analytics
-                </a>
             </div>
         </div>
     </div>
-    @endif
     
     @if(isset($error))
     <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
@@ -140,11 +134,11 @@
                 @forelse($topReferrers as $referrer)
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div class="flex-1">
-                        <p class="font-medium text-sm">{{ \Illuminate\Support\Str::limit($referrer['url'], 50) }}</p>
-                        <p class="text-xs text-gray-500">{{ number_format($referrer['pageViews']) }} visites</p>
+                        <p class="font-medium text-sm">{{ Str::limit($referrer['url'] ?? 'Direct', 50) }}</p>
+                        <p class="text-xs text-gray-500">{{ number_format($referrer['visits'] ?? $referrer['pageViews'] ?? 0) }} visites</p>
                     </div>
                     <div class="text-green-600 font-semibold">
-                        {{ number_format($referrer['pageViews']) }}
+                        {{ number_format($referrer['visits'] ?? $referrer['pageViews'] ?? 0) }}
                     </div>
                 </div>
                 @empty
@@ -220,8 +214,8 @@ function initChart() {
         return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
     });
     
-    const visitorsData = visitors.map(item => item['visitors']);
-    const pageViewsData = visitors.map(item => item['pageViews']);
+    const visitorsData = visitors.map(item => item['visitors'] || item['visits'] || 0);
+    const pageViewsData = visitors.map(item => item['pageViews'] || item['visits'] || 0);
     
     visitorsChart = new Chart(ctx, {
         type: 'line',
