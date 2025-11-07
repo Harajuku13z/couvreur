@@ -15,12 +15,26 @@ class SitemapService
 
     public function __construct()
     {
-        // Récupérer l'URL depuis les settings, puis config('app.url'), puis url('/')
-        $siteUrl = Setting::get('site_url', null);
+        // FORCER la bonne URL - priorité à normesrenovationbretagne.fr
+        $siteUrl = null;
         
+        // 1. Vérifier le setting (mais forcer normesrenovationbretagne.fr si c'est l'ancien)
+        $settingUrl = Setting::get('site_url', null);
+        if (!empty($settingUrl) && strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
+            $siteUrl = $settingUrl;
+        }
+        
+        // 2. Vérifier APP_URL depuis .env
         if (empty($siteUrl)) {
-            // Utiliser APP_URL depuis la config Laravel
-            $siteUrl = config('app.url', url('/'));
+            $envUrl = config('app.url', null);
+            if (!empty($envUrl) && strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
+                $siteUrl = $envUrl;
+            }
+        }
+        
+        // 3. Par défaut, utiliser normesrenovationbretagne.fr
+        if (empty($siteUrl)) {
+            $siteUrl = 'https://normesrenovationbretagne.fr';
         }
         
         // S'assurer que l'URL a un protocole (https:// ou http://)
@@ -31,6 +45,9 @@ class SitemapService
         
         // S'assurer que l'URL ne se termine pas par /
         $this->baseUrl = rtrim($siteUrl, '/');
+        
+        // Log pour debug
+        \Log::info("🔗 SitemapService baseUrl: {$this->baseUrl}");
     }
 
     /**

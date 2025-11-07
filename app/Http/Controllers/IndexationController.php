@@ -122,29 +122,46 @@ class IndexationController extends Controller
                 }
             }
             
-            // Vérifier que site_url est bien configuré
-            $siteUrl = Setting::get('site_url', null);
-            if (empty($siteUrl)) {
-                // Utiliser APP_URL depuis .env
-                $siteUrl = config('app.url', 'https://normesrenovationbretagne.fr');
+            // FORCER la bonne URL
+            $siteUrl = 'https://normesrenovationbretagne.fr';
+            
+            // Vérifier aussi depuis .env
+            $envUrl = config('app.url', null);
+            if (!empty($envUrl) && strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
+                if (!preg_match('/^https?:\/\//', $envUrl)) {
+                    $envUrl = 'https://' . $envUrl;
+                }
+                $siteUrl = rtrim($envUrl, '/');
             }
             
-            // S'assurer que l'URL est correcte
-            if (!preg_match('/^https?:\/\//', $siteUrl)) {
-                $siteUrl = 'https://' . $siteUrl;
-            }
-            $siteUrl = rtrim($siteUrl, '/');
+            // FORCER la mise à jour du setting
+            Setting::set('site_url', $siteUrl, 'string', 'seo');
             
-            // Mettre à jour le setting si nécessaire
-            if (Setting::get('site_url') !== $siteUrl) {
-                Setting::set('site_url', $siteUrl, 'string', 'seo');
-                Setting::clearCache();
-                \Log::info("✅ site_url mis à jour: {$siteUrl}");
-            }
+            // Vider TOUS les caches
+            Setting::clearCache();
+            \Artisan::call('cache:clear');
+            \Artisan::call('config:clear');
+            \Artisan::call('view:clear');
             
-            // Régénérer tous les sitemaps
+            \Log::info("✅ site_url FORCÉ à: {$siteUrl}");
+            
+            // Attendre un peu pour que les caches soient bien vidés
+            sleep(1);
+            
+            // Régénérer tous les sitemaps avec un nouveau service (pour forcer la nouvelle URL)
             $sitemapService = new SitemapService();
             $result = $sitemapService->generateSitemap();
+            
+            // Vérifier que le premier sitemap a la bonne URL
+            $firstSitemapPath = public_path('sitemap.xml');
+            if (file_exists($firstSitemapPath)) {
+                $content = file_get_contents($firstSitemapPath);
+                if (strpos($content, 'sausercouverture.fr') !== false) {
+                    \Log::warning("⚠️ Le sitemap contient encore l'ancienne URL, suppression et régénération...");
+                    unlink($firstSitemapPath);
+                    $result = $sitemapService->generateSitemap();
+                }
+            }
             
             return response()->json([
                 'success' => true,
