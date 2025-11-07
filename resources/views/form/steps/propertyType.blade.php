@@ -37,6 +37,12 @@
                     Quel type de bien souhaitez-vous rénover ?
                 </h2>
                 
+                @error('recaptcha')
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                    <i class="fas fa-exclamation-circle mr-2"></i>{{ $message }}
+                </div>
+                @enderror
+                
                 <form method="POST" action="{{ route('form.submit', 'propertyType') }}" id="propertyForm">
                     @csrf
                     <input type="hidden" name="recaptcha_token" id="recaptcha_token">
