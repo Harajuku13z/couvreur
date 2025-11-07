@@ -956,14 +956,24 @@
             <form method="POST" action="{{ route('config.update.conversion') }}">
                 @csrf
                 
-                <!-- FAQ -->
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-800">
-                        <i class="fas fa-question-circle mr-2"></i>Questions Fréquentes (FAQ)
-                    </h3>
-                    <p class="text-sm text-gray-700 mb-4">
-                        Ajoutez des questions fréquentes pour réduire les abandons et améliorer le SEO
-                    </p>
+                    <!-- FAQ -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-purple-800">
+                                    <i class="fas fa-question-circle mr-2"></i>Questions Fréquentes (FAQ)
+                                </h3>
+                                <p class="text-sm text-gray-700 mt-1">
+                                    Ajoutez des questions fréquentes pour réduire les abandons et améliorer le SEO
+                                </p>
+                            </div>
+                            <button type="button" 
+                                    id="generateFaqBtn"
+                                    class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm font-semibold flex items-center whitespace-nowrap">
+                                <i class="fas fa-magic mr-2"></i>
+                                Générer 5 questions avec l'IA
+                            </button>
+                        </div>
                     
                     <div id="faq-container" class="space-y-4">
                         @php
@@ -1641,6 +1651,79 @@ function removeFaq(button) {
         });
     });
     faqIndex = items.length;
+}
+
+// Générer FAQ avec IA
+document.getElementById('generateFaqBtn')?.addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    
+    fetch('{{ route("config.generate.faqs") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.faqs) {
+            // Vider les FAQ existantes
+            const container = document.getElementById('faq-container');
+            container.innerHTML = '';
+            faqIndex = 0;
+            
+            // Ajouter les nouvelles FAQ
+            data.faqs.forEach((faq) => {
+                addFaqWithValues(faq.question, faq.answer);
+            });
+            
+            // Afficher un message de succès
+            alert(data.message || 'FAQ générées avec succès !');
+        } else {
+            alert(data.message || 'Erreur lors de la génération des FAQ');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la génération des FAQ. Veuillez réessayer.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+
+// Fonction pour ajouter une FAQ avec des valeurs
+function addFaqWithValues(question = '', answer = '') {
+    const container = document.getElementById('faq-container');
+    if (!container) return;
+    
+    const newFaq = document.createElement('div');
+    newFaq.className = 'faq-item bg-white p-4 rounded-lg border border-gray-200';
+    newFaq.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700">Question ${faqIndex + 1}</span>
+            <button type="button" onclick="removeFaq(this)" class="text-red-600 hover:text-red-800 text-sm">
+                <i class="fas fa-trash mr-1"></i>Supprimer
+            </button>
+        </div>
+        <input type="text" 
+               name="faqs[${faqIndex}][question]" 
+               value="${question.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}"
+               required
+               placeholder="Ex: Combien de temps prend la réalisation d'un devis ?"
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-purple-500 focus:border-purple-500">
+        <textarea name="faqs[${faqIndex}][answer]" 
+                  rows="3"
+                  required
+                  placeholder="Ex: Nous vous envoyons un devis gratuit sous 24h..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">${answer.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}</textarea>
+    `;
+    container.appendChild(newFaq);
+    faqIndex++;
 }
 </script>
 @endsection

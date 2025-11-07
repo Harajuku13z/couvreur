@@ -371,6 +371,7 @@ Route::middleware(['check.setup'])->group(function () {
     // ===== CONFIGURATION IA =====
     Route::post('/config/update/ai', [ConfigController::class, 'updateAI'])->name('config.update.ai');
     Route::post('/config/update/conversion', [ConfigController::class, 'updateConversion'])->name('config.update.conversion');
+    Route::post('/config/generate/faqs', [ConfigController::class, 'generateFaqsWithAI'])->name('config.generate.faqs');
     Route::post('/config/test-chatgpt', [ConfigController::class, 'testChatGPT'])->name('config.test.chatgpt');
     Route::post('/config/test-groq', [ConfigController::class, 'testGroq'])->name('config.test.groq');
     Route::post('/config/test-chatgpt-generate', [ConfigController::class, 'testChatGPTGenerate'])->name('config.test.chatgpt.generate');
