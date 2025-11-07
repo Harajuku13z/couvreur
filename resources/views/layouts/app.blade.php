@@ -350,15 +350,19 @@
     @php
         // Formater le numéro pour tel: (supprimer les espaces, garder les chiffres)
         $phoneRaw = preg_replace('/[^0-9+]/', '', setting('company_phone_raw'));
+        $phoneForTracking = setting('company_phone_raw');
         // Si le numéro commence par 0, le remplacer par +33 pour les appels internationaux
         if (strpos($phoneRaw, '0') === 0 && strlen($phoneRaw) == 10) {
             $phoneRaw = '+33' . substr($phoneRaw, 1);
         }
+        $currentPageForTracking = $currentPage ?? 'home';
     @endphp
     <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
-       style="background-color: var(--primary-color);">
+       style="background-color: var(--primary-color);"
+       onclick="if(typeof trackPhoneCall === 'function') { trackPhoneCall('{{ $phoneForTracking }}', '{{ $currentPageForTracking }}'); } return true;"
+       ontouchstart="if(typeof trackPhoneCall === 'function') { trackPhoneCall('{{ $phoneForTracking }}', '{{ $currentPageForTracking }}'); } return true;">
         <i class="fas fa-phone text-2xl"></i>
     </a>
     @endif

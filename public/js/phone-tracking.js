@@ -47,19 +47,36 @@
         const data = JSON.stringify(payload);
         const csrfToken = getCsrfToken();
         
-        // Méthode 1: sendBeacon (le plus fiable pour les liens tel:)
+        // Méthode 1: sendBeacon avec FormData (le plus fiable pour les liens tel:)
         if (navigator.sendBeacon) {
             try {
                 const formData = new FormData();
-                formData.append('data', data);
+                formData.append('phone_number', payload.phone_number);
+                formData.append('source_page', payload.source_page);
+                formData.append('referrer_url', payload.referrer_url);
                 const sent = navigator.sendBeacon(TRACKING_ENDPOINT, formData);
                 if (sent) {
-                    console.log('✅ Tracking envoyé via sendBeacon');
+                    console.log('✅ Tracking envoyé via sendBeacon (FormData)');
                     processQueue();
                     return;
                 }
             } catch (e) {
-                console.warn('sendBeacon failed, trying fetch:', e);
+                console.warn('sendBeacon FormData failed, trying other methods:', e);
+            }
+        }
+        
+        // Méthode 1b: sendBeacon avec Blob (fallback)
+        if (navigator.sendBeacon) {
+            try {
+                const blob = new Blob([data], { type: 'application/json' });
+                const sent = navigator.sendBeacon(TRACKING_ENDPOINT, blob);
+                if (sent) {
+                    console.log('✅ Tracking envoyé via sendBeacon (Blob)');
+                    processQueue();
+                    return;
+                }
+            } catch (e) {
+                console.warn('sendBeacon Blob failed, trying fetch:', e);
             }
         }
         
