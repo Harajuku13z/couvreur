@@ -167,7 +167,7 @@
             }
             
             if (file_exists($fullPath)) {
-                $faviconUrl = asset($faviconPath);
+            $faviconUrl = asset($faviconPath);
                 $faviconPathForVersion = $faviconPath;
             }
         }
@@ -183,7 +183,7 @@
             }
         }
         
-        // Fallback: chercher un favicon dans le dossier public
+            // Fallback: chercher un favicon dans le dossier public
         if (!$faviconUrl) {
             $faviconFiles = glob(public_path('favicon*'));
             if (!empty($faviconFiles)) {

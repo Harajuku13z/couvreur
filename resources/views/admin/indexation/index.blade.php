@@ -191,6 +191,31 @@
                 </span>
                 @endif
             </div>
+
+            <!-- Test d'indexation d'une seule URL -->
+            @if($isGoogleConfigured)
+            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                    <i class="fas fa-flask mr-1"></i>Test d'indexation d'une URL
+                </h4>
+                <p class="text-xs text-blue-600 mb-3">
+                    Testez l'indexation d'une seule URL pour vérifier que tout fonctionne correctement
+                </p>
+                <div class="flex items-center space-x-2">
+                    <input type="url" 
+                           id="test-url-input" 
+                           placeholder="https://normesrenovationbretagne.fr/exemple"
+                           value="{{ rtrim(setting('site_url', request()->getSchemeAndHttpHost()), '/') }}/"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm">
+                    <button type="button" 
+                            onclick="testSingleUrl()" 
+                            id="test-single-url-btn"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-paper-plane mr-2"></i>Tester
+                    </button>
+                </div>
+            </div>
+            @endif
             
             <!-- Aide et diagnostic -->
             <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -985,6 +1010,80 @@ function resetIndexedUrls() {
         showNotification('Erreur lors de la réinitialisation', 'error');
     });
 }
+
+function testSingleUrl() {
+    const urlInput = document.getElementById('test-url-input');
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+        showNotification('Veuillez entrer une URL à tester', 'error');
+        urlInput.focus();
+        return;
+    }
+    
+    // Validation basique de l'URL
+    try {
+        new URL(url);
+    } catch (e) {
+        showNotification('URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)', 'error');
+        urlInput.focus();
+        return;
+    }
+    
+    const button = document.getElementById('test-single-url-btn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+    button.disabled = true;
+    
+    fetch('{{ route("admin.indexation.test-single-url") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('✅ ' + data.message, 'success');
+        } else {
+            let errorMsg = '❌ ' + (data.message || 'Erreur inconnue');
+            if (data.error_code) {
+                errorMsg += ' (Code: ' + data.error_code + ')';
+            }
+            if (data.error_details && data.error_details.length > 0) {
+                const firstError = data.error_details[0];
+                if (firstError.reason) {
+                    errorMsg += '\nRaison: ' + firstError.reason;
+                }
+            }
+            showNotification(errorMsg, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors du test', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Permettre d'appuyer sur Entrée dans le champ URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlInput = document.getElementById('test-url-input');
+    if (urlInput) {
+        urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testSingleUrl();
+            }
+        });
+    }
+});
 </script>
 @endpush
 

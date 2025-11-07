@@ -613,5 +613,60 @@ class IndexationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Tester l'indexation d'une seule URL
+     */
+    public function testSingleUrl(Request $request)
+    {
+        try {
+            $request->validate([
+                'url' => 'required|url'
+            ]);
+
+            $url = $request->input('url');
+            
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
+                ], 400);
+            }
+
+            // Indexer l'URL
+            $result = $googleService->indexUrl($url);
+            
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "URL indexée avec succès: {$url}",
+                    'url' => $url
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Erreur lors de l\'indexation',
+                    'error_code' => $result['error_code'] ?? null,
+                    'error_details' => $result['error_details'] ?? null,
+                    'url' => $url
+                ], 400);
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erreur test indexation URL: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

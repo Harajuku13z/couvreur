@@ -55,10 +55,10 @@ class SitemapService
                 $sitemapNumber = $index + 1;
                 $filename = $index === 0 ? 'sitemap.xml' : "sitemap{$sitemapNumber}.xml";
                 $sitemapPath = public_path($filename);
-                
-                $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-                $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-                
+            
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            
                 foreach ($urlChunk as $urlData) {
                     $xml .= $this->generateUrl(
                         $urlData['url'],
@@ -119,19 +119,19 @@ class SitemapService
             'changefreq' => 'daily',
             'lastmod' => Carbon::now()
         ];
-        
-        // Pages statiques
-        $staticPages = [
-            '/services' => ['priority' => 0.9, 'changefreq' => 'weekly'],
-            '/nos-realisations' => ['priority' => 0.8, 'changefreq' => 'monthly'],
-            '/avis' => ['priority' => 0.8, 'changefreq' => 'weekly'],
-            '/blog' => ['priority' => 0.7, 'changefreq' => 'weekly'],
-            '/contact' => ['priority' => 0.6, 'changefreq' => 'monthly'],
-            '/mentions-legales' => ['priority' => 0.3, 'changefreq' => 'yearly'],
-            '/politique-confidentialite' => ['priority' => 0.3, 'changefreq' => 'yearly'],
-            '/cgv' => ['priority' => 0.3, 'changefreq' => 'yearly'],
-        ];
-        
+            
+            // Pages statiques
+            $staticPages = [
+                '/services' => ['priority' => 0.9, 'changefreq' => 'weekly'],
+                '/nos-realisations' => ['priority' => 0.8, 'changefreq' => 'monthly'],
+                '/avis' => ['priority' => 0.8, 'changefreq' => 'weekly'],
+                '/blog' => ['priority' => 0.7, 'changefreq' => 'weekly'],
+                '/contact' => ['priority' => 0.6, 'changefreq' => 'monthly'],
+                '/mentions-legales' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+                '/politique-confidentialite' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+                '/cgv' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+            ];
+            
         foreach ($staticPages as $path => $config) {
             $urls[] = [
                 'url' => $this->baseUrl . $path,
@@ -139,56 +139,56 @@ class SitemapService
                 'changefreq' => $config['changefreq'],
                 'lastmod' => Carbon::now()
             ];
-        }
-        
-        // Services
-        $services = $this->getServices();
-        Log::info("📋 Ajout de " . count($services) . " services...");
-        foreach ($services as $service) {
+            }
+            
+            // Services
+            $services = $this->getServices();
+            Log::info("📋 Ajout de " . count($services) . " services...");
+            foreach ($services as $service) {
             $urls[] = [
                 'url' => $this->baseUrl . '/services/' . $service,
                 'priority' => 0.8,
                 'changefreq' => 'monthly',
                 'lastmod' => Carbon::now()
             ];
-        }
-        
-        // Articles
-        $articles = $this->getArticles();
-        Log::info("📰 Ajout de " . count($articles) . " articles...");
-        foreach ($articles as $article) {
+            }
+            
+            // Articles
+            $articles = $this->getArticles();
+            Log::info("📰 Ajout de " . count($articles) . " articles...");
+            foreach ($articles as $article) {
             $urls[] = [
                 'url' => $this->baseUrl . '/blog/' . $article['slug'],
                 'priority' => 0.7,
                 'changefreq' => 'monthly',
                 'lastmod' => $article['updated_at'] ?? Carbon::now()
             ];
-        }
-        
-        // Annonces
-        $ads = $this->getAds();
-        Log::info("📢 Ajout de " . count($ads) . " annonces...");
-        foreach ($ads as $ad) {
+            }
+            
+            // Annonces
+            $ads = $this->getAds();
+            Log::info("📢 Ajout de " . count($ads) . " annonces...");
+            foreach ($ads as $ad) {
             $urls[] = [
                 'url' => $this->baseUrl . '/annonces/' . $ad['slug'],
                 'priority' => 0.6,
                 'changefreq' => 'monthly',
                 'lastmod' => $ad['updated_at'] ?? Carbon::now()
             ];
-        }
-        
-        // Portfolio
-        $portfolio = $this->getPortfolio();
-        Log::info("🖼️ Ajout de " . count($portfolio) . " éléments de portfolio...");
-        foreach ($portfolio as $item) {
+            }
+            
+            // Portfolio
+            $portfolio = $this->getPortfolio();
+            Log::info("🖼️ Ajout de " . count($portfolio) . " éléments de portfolio...");
+            foreach ($portfolio as $item) {
             $urls[] = [
                 'url' => $this->baseUrl . '/nos-realisations/' . $item,
                 'priority' => 0.5,
                 'changefreq' => 'monthly',
                 'lastmod' => Carbon::now()
             ];
-        }
-        
+            }
+            
         return $urls;
     }
 
