@@ -360,12 +360,35 @@ class SeoController extends Controller
             'icons' => []
         ];
 
-        if (!empty($seoConfig['favicon'])) {
-            $manifest['icons'][] = [
-                'src' => asset($seoConfig['favicon']),
-                'sizes' => '192x192',
-                'type' => 'image/png'
-            ];
+        // Récupérer le favicon depuis site_favicon ou seo_config
+        $faviconPath = Setting::get('site_favicon');
+        if (!$faviconPath && !empty($seoConfig['favicon'])) {
+            $faviconPath = $seoConfig['favicon'];
+        }
+        
+        if ($faviconPath) {
+            $faviconUrl = asset($faviconPath);
+            $extension = strtolower(pathinfo($faviconPath, PATHINFO_EXTENSION));
+            $mimeType = 'image/png';
+            
+            if ($extension === 'ico') {
+                $mimeType = 'image/x-icon';
+            } elseif ($extension === 'jpg' || $extension === 'jpeg') {
+                $mimeType = 'image/jpeg';
+            } elseif ($extension === 'svg') {
+                $mimeType = 'image/svg+xml';
+            }
+            
+            // Ajouter plusieurs tailles d'icônes (requis par Google)
+            $sizes = ['16x16', '32x32', '48x48', '96x96', '192x192', '512x512'];
+            foreach ($sizes as $size) {
+                $manifest['icons'][] = [
+                    'src' => $faviconUrl,
+                    'sizes' => $size,
+                    'type' => $mimeType,
+                    'purpose' => 'any maskable'
+                ];
+            }
         }
 
         return response()->json($manifest);

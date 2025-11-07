@@ -214,14 +214,27 @@
     @endphp
     
     @if($faviconUrl)
+    <!-- Favicon standard -->
     <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    @endif
+    
+    <!-- Favicon pour différentes tailles (requis par Google) -->
+    <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="32x32" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="96x96" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <link rel="icon" type="{{ $faviconType }}" sizes="192x192" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     
     <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    @endif
+    
+    <!-- Apple Touch Icon (fallback si configuré séparément) -->
     @if(setting('apple_touch_icon'))
     <link rel="apple-touch-icon" href="{{ asset(setting('apple_touch_icon')) }}">
     @endif
+    
+    <!-- Manifest pour PWA (aide Google à trouver les icônes) -->
+    <link rel="manifest" href="{{ url('/manifest.json') }}">
     
     @yield('head')
     
