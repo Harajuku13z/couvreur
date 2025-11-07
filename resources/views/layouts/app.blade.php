@@ -373,6 +373,12 @@
     </script>
     <script src="{{ asset('js/phone-tracking.js') }}?v={{ time() }}"></script>
     
+    {{-- Chat Widget --}}
+    @include('partials.chat-widget')
+    
+    {{-- Exit Popup --}}
+    @include('partials.exit-popup')
+    
     @yield('scripts')
 </body>
 </html>

@@ -359,8 +359,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="p-8">
                         <!-- Article Content - HTML généré par ChatGPT avec Tailwind CSS -->
                         <div class="article-content">
-                            {!! $article->content_html !!}
+                            {!! \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article') !!}
                         </div>
+                        
+                        {{-- Liens suggérés --}}
+                        @php
+                            $suggestedLinks = \App\Helpers\InternalLinkingHelper::getSuggestedLinks('article', 5);
+                        @endphp
+                        @if(count($suggestedLinks) > 0)
+                        <div class="mt-12 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                                <i class="fas fa-link mr-2 text-primary"></i>Articles et Services Connexes
+                            </h3>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                @foreach($suggestedLinks as $link)
+                                <a href="{{ $link['url'] }}" class="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
+                                    <i class="fas {{ $link['type'] === 'service' ? 'fa-tools' : 'fa-newspaper' }} text-primary mr-3"></i>
+                                    <span class="text-gray-800 hover:text-primary">{{ $link['title'] }}</span>
+                                    <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
+                                </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                         
                         <!-- Boutons de partage social -->
                         <div class="mt-8 pt-6 border-t border-gray-200">

@@ -16,6 +16,7 @@ class Review extends Model
         'author_location',
         'rating',
         'review_text',
+        'video_url',
         'google_review_id',
         'author_photo_url',
         'review_date',

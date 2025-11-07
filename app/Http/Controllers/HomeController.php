@@ -103,6 +103,10 @@ class HomeController extends Controller
         $averageRating = Review::where('is_active', true)->avg('rating') ?? 5;
         $totalReviews = Review::where('is_active', true)->count();
         
+        // Compteur de confiance : minimum 100 + nombre de submissions réussies
+        $completedSubmissions = \App\Models\Submission::where('status', 'COMPLETED')->count();
+        $trustCounter = max(100, 100 + $completedSubmissions); // Minimum 100, puis + submissions réussies
+        
         // Get company settings
         $companySettings = [
             'name' => Setting::get('company_name', 'Votre Entreprise'),
@@ -139,7 +143,12 @@ class HomeController extends Controller
             'currentPage',
             'pageTitle',
             'pageDescription',
-            'pageImage'
+            'pageImage',
+            'trustCounter',
+            'completedSubmissions',
+            'breadcrumbs',
+            'faqs',
+            'reviews' // Pour Schema.org
         ));
     }
     
