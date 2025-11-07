@@ -500,6 +500,101 @@
             </div>
         </div>
 
+        <!-- IndexJump API -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">🚀 IndexJump API</h2>
+            <p class="text-sm text-gray-600 mb-4">Service d'indexation alternatif pour GoogleBot, OpenAI Bot et BingBot</p>
+            
+            <div class="mb-4">
+                <label for="indexjump_token" class="block text-sm font-medium mb-2">Token API IndexJump</label>
+                <input type="text" id="indexjump_token" name="indexjump_token" 
+                       value="{{ $indexJumpToken }}"
+                       placeholder="3d93dd2657466b97a401e540aaf9c72e"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">Token d'authentification pour l'API IndexJump</p>
+            </div>
+            
+            <div class="flex items-center space-x-4 mb-4">
+                <button type="button" onclick="testIndexJumpConnection()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-plug mr-2"></i>Tester la connexion
+                </button>
+                <button type="button" onclick="saveIndexJumpToken()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-save mr-2"></i>Sauvegarder le token
+                </button>
+                @if($isIndexJumpConfigured)
+                <span class="text-sm text-green-600">
+                    <i class="fas fa-check-circle mr-1"></i>API configurée
+                </span>
+                @else
+                <span class="text-sm text-gray-500">
+                    <i class="fas fa-exclamation-circle mr-1"></i>API non configurée
+                </span>
+                @endif
+            </div>
+
+            <!-- Test d'indexation d'une seule URL -->
+            @if($isIndexJumpConfigured)
+            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                    <i class="fas fa-flask mr-1"></i>Test d'indexation d'une URL
+                </h4>
+                <p class="text-xs text-blue-600 mb-3">
+                    Testez l'indexation d'une seule URL via IndexJump
+                </p>
+                <div class="flex items-center space-x-2 mb-2">
+                    <input type="url" 
+                           id="test-indexjump-url-input" 
+                           placeholder="https://normesrenovationbretagne.fr/exemple"
+                           value="{{ rtrim(setting('site_url', request()->getSchemeAndHttpHost()), '/') }}/"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm">
+                    <select id="test-indexjump-bot" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        <option value="0">GoogleBot</option>
+                        <option value="1">OpenAI Bot</option>
+                        <option value="2">BingBot</option>
+                    </select>
+                    <button type="button" 
+                            onclick="testIndexJumpUrl()" 
+                            id="test-indexjump-url-btn"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-paper-plane mr-2"></i>Tester
+                    </button>
+                </div>
+            </div>
+            @endif
+
+            <!-- Envoyer les sitemaps à IndexJump -->
+            @if($isIndexJumpConfigured && !empty($sitemapInfo))
+            <div class="border-t pt-4 mt-4">
+                <h3 class="text-md font-semibold text-gray-800 mb-3">📤 Envoyer les sitemaps à IndexJump</h3>
+                <div class="space-y-3">
+                    @foreach($sitemapInfo as $sitemap)
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-sm">{{ $sitemap['filename'] }}</p>
+                            <p class="text-xs text-gray-600">{{ number_format($sitemap['size'] / 1024, 2) }} KB</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="indexjump-bot-{{ $loop->index }}" class="px-2 py-1 border border-gray-300 rounded text-xs">
+                                <option value="0">GoogleBot</option>
+                                <option value="1">OpenAI Bot</option>
+                                <option value="2">BingBot</option>
+                            </select>
+                            <button type="button" 
+                                    onclick="submitSitemapToIndexJump('{{ $sitemap['filename'] }}', {{ $loop->index }})" 
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                                    id="submit-indexjump-sitemap-{{ $loop->index }}">
+                                <i class="fas fa-paper-plane mr-2"></i>Envoyer à IndexJump
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+
         <div class="text-center">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg">
                 Sauvegarder la Configuration d'Indexation

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Services\SitemapService;
 use App\Services\GoogleSearchConsoleService;
+use App\Services\IndexJumpService;
 
 class IndexationController extends Controller
 {
@@ -84,6 +85,11 @@ class IndexationController extends Controller
             \Log::warning('Impossible de compter les URLs: ' . $e->getMessage());
         }
         
+        // Vérifier si IndexJump est configuré
+        $indexJumpService = new IndexJumpService();
+        $isIndexJumpConfigured = $indexJumpService->isConfigured();
+        $indexJumpToken = Setting::get('indexjump_token', '3d93dd2657466b97a401e540aaf9c72e');
+        
         return view('admin.indexation.index', compact(
             'indexationConfig', 
             'googleCredentialsArray', 
@@ -93,7 +99,9 @@ class IndexationController extends Controller
             'totalUrlsInSitemap',
             'dailyIndexingEnabled',
             'dailyStats',
-            'indexedCount'
+            'indexedCount',
+            'isIndexJumpConfigured',
+            'indexJumpToken'
         ));
     }
 

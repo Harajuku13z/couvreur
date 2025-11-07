@@ -336,6 +336,10 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/reset-indexed-urls', [App\Http\Controllers\IndexationController::class, 'resetIndexedUrls'])->name('reset-indexed-urls');
         Route::post('/run-daily-indexing', [App\Http\Controllers\IndexationController::class, 'runDailyIndexing'])->name('run-daily-indexing');
         Route::post('/test-single-url', [App\Http\Controllers\IndexationController::class, 'testSingleUrl'])->name('test-single-url');
+        Route::post('/test-indexjump', [App\Http\Controllers\IndexationController::class, 'testIndexJumpConnection'])->name('test-indexjump');
+        Route::post('/test-indexjump-url', [App\Http\Controllers\IndexationController::class, 'testIndexJumpUrl'])->name('test-indexjump-url');
+        Route::post('/submit-sitemap-to-indexjump', [App\Http\Controllers\IndexationController::class, 'submitSitemapToIndexJump'])->name('submit-sitemap-to-indexjump');
+        Route::post('/update-indexjump-token', [App\Http\Controllers\IndexationController::class, 'updateIndexJumpToken'])->name('update-indexjump-token');
     });
     
     // Routes publiques SEO
