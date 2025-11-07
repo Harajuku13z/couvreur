@@ -58,9 +58,19 @@ class IndexUrlsDaily extends Command
         }
 
         // Extraire uniquement les URLs (pas les métadonnées)
-        $urls = array_map(function($item) {
-            return is_array($item) ? ($item['url'] ?? $item) : $item;
-        }, $allUrls);
+        $urls = [];
+        foreach ($allUrls as $item) {
+            if (is_array($item)) {
+                $url = $item['url'] ?? null;
+            } else {
+                $url = $item;
+            }
+            if (!empty($url) && is_string($url)) {
+                $urls[] = $url;
+            }
+        }
+        
+        $urls = array_unique($urls); // Éviter les doublons
 
         // Récupérer les URLs déjà indexées
         $indexedUrls = $this->getIndexedUrls();
