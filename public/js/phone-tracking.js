@@ -136,8 +136,7 @@
      * Obtenir le numéro de téléphone par défaut
      */
     function getDefaultPhoneNumber() {
-        // Le numéro sera fourni par le serveur via Blade
-        return '';
+        return window.Laravel?.defaultPhone || '';
     }
     
     /**
