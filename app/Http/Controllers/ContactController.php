@@ -51,5 +51,48 @@ class ContactController extends Controller
             'currentPage'
         ));
     }
+    
+    /**
+     * Envoyer un message de contact
+     */
+    public function send(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        try {
+            // Envoyer l'email
+            $companyEmail = Setting::get('company_email');
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            
+            if ($companyEmail) {
+                Mail::send([], [], function($message) use ($validated, $companyEmail, $companyName) {
+                    $message->to($companyEmail)
+                            ->subject('Nouveau message de contact : ' . $validated['subject'])
+                            ->from($validated['email'], $validated['name'])
+                            ->replyTo($validated['email'], $validated['name'])
+                            ->html("
+                                <h2>Nouveau message de contact</h2>
+                                <p><strong>Nom :</strong> {$validated['name']}</p>
+                                <p><strong>Email :</strong> {$validated['email']}</p>
+                                " . ($validated['phone'] ? "<p><strong>Téléphone :</strong> {$validated['phone']}</p>" : "") . "
+                                <p><strong>Sujet :</strong> {$validated['subject']}</p>
+                                <p><strong>Message :</strong></p>
+                                <p>" . nl2br(e($validated['message'])) . "</p>
+                            ");
+                });
+            }
+            
+            return back()->with('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi email contact: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de l\'envoi de votre message. Veuillez réessayer ou nous appeler directement.')->withInput();
+        }
+    }
 }
 

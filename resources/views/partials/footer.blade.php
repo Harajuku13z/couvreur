@@ -137,6 +137,7 @@
                     @else
                         <li><a href="{{ route('services.index') }}" class="text-gray-400 hover:text-white transition-colors">Voir tous nos services</a></li>
                     @endif
+                    <li><a href="{{ route('contact') }}" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
                 </ul>
             </div>
         </div>
