@@ -69,6 +69,23 @@
         </div>
     </div>
 
+    <!-- Test du tracking -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-blue-800 mb-1">
+                    <i class="fas fa-flask mr-1"></i>Test du tracking
+                </h3>
+                <p class="text-xs text-blue-600">Testez si le tracking fonctionne correctement</p>
+            </div>
+            <button type="button" 
+                    onclick="testPhoneTracking()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                <i class="fas fa-play mr-2"></i>Tester le tracking
+            </button>
+        </div>
+    </div>
+
     <!-- Calls Table -->
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -237,5 +254,49 @@
             }
         }
     });
+
+    // Fonction de test du tracking
+    function testPhoneTracking() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+        button.disabled = true;
+        
+        const payload = {
+            source_page: window.location.pathname,
+            phone_number: '{{ setting("company_phone_raw") }}',
+            referrer_url: document.referrer || window.location.href
+        };
+        
+        fetch('/api/track-phone-call', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Test réussi ! L\'appel a été tracké avec succès (ID: ' + (data.id || 'N/A') + ')\n\nRechargez la page pour voir l\'appel dans la liste.');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                alert('❌ Erreur: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('❌ Erreur lors du test: ' + error.message);
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
 </script>
 @endsection
