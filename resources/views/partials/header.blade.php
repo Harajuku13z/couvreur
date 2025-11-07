@@ -218,15 +218,8 @@ function toggleMobileMenu() {
     menu.classList.toggle('hidden');
 }
 
-// trackPhoneCall est défini dans layouts/app.blade.php
-// Cette fonction est conservée pour compatibilité mais utilise la fonction globale
-function trackPhoneCall(phone, page) {
-    if (typeof window.trackPhoneCall === 'function') {
-        window.trackPhoneCall(phone, page);
-    } else {
-        console.warn('⚠️ Fonction trackPhoneCall globale non disponible');
-    }
-}
+// trackPhoneCall est géré automatiquement par phone-tracking.js dans layouts/app.blade.php
+// Plus besoin de fonction locale, le script global s'occupe de tout
 
 function trackFormClick(page) {
     fetch('/api/track-form-click', {

@@ -216,45 +216,61 @@
             return;
         }
         
-        // Créer une clé unique pour ce lien pour éviter les doubles trackings
-        const linkTrackingKey = `link_${phoneNumber}_${sourcePage}`;
-        let linkTrackingSent = false;
+        // Utiliser UN SEUL événement pour éviter les doublons
+        // Sur mobile, touchstart est le plus fiable
+        // Sur desktop, mousedown est le plus fiable
+        // On utilise une seule fonction avec un flag pour éviter les doubles appels
         
-        // Fonction de tracking avec le numéro et la page (avec protection contre les doubles)
+        let linkTrackingLock = false;
+        
         const trackThisLink = function(e) {
-            // Si on a déjà tracké ce lien dans les 2 dernières secondes, ignorer
-            if (linkTrackingSent) {
+            // Si déjà en cours de tracking, ignorer
+            if (linkTrackingLock) {
+                e.stopPropagation(); // Empêcher la propagation pour éviter les autres handlers
                 return;
             }
             
-            // Marquer comme tracké
-            linkTrackingSent = true;
-            setTimeout(() => {
-                linkTrackingSent = false;
-            }, 2000);
+            // Verrouiller immédiatement
+            linkTrackingLock = true;
             
             // Tracker
             trackPhoneCall(phoneNumber, sourcePage);
+            
+            // Déverrouiller après 2 secondes
+            setTimeout(() => {
+                linkTrackingLock = false;
+            }, 2000);
         };
         
-        // Pour mobile (touchstart se déclenche AVANT click - le plus important)
-        // Utiliser once: true pour ne tracker qu'une fois par événement
-        link.addEventListener('touchstart', trackThisLink, { 
-            passive: true, // Ne pas bloquer le scroll
+        // Détecter si on est sur mobile ou desktop
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // Mobile : utiliser uniquement touchstart (le plus fiable)
+            link.addEventListener('touchstart', trackThisLink, { 
+                passive: true,
+                capture: true,
+                once: false
+            });
+        } else {
+            // Desktop : utiliser uniquement mousedown (le plus fiable)
+            link.addEventListener('mousedown', trackThisLink, {
+                capture: true,
+                passive: true,
+                once: false
+            });
+        }
+        
+        // Fallback : click uniquement si les autres n'ont pas fonctionné (avec vérification)
+        link.addEventListener('click', function(e) {
+            // Si le lock est toujours actif, c'est que touchstart/mousedown n'a pas fonctionné
+            if (!linkTrackingLock) {
+                trackThisLink(e);
+            }
+        }, {
             capture: true,
+            passive: true,
             once: false
-        });
-        
-        // Pour desktop (mousedown se déclenche AVANT click)
-        link.addEventListener('mousedown', trackThisLink, {
-            capture: true,
-            passive: true
-        });
-        
-        // Aussi sur le clic en fallback (capture phase - très tôt)
-        link.addEventListener('click', trackThisLink, {
-            capture: true,
-            passive: true
         });
         
         // Marquer comme attaché
@@ -330,9 +346,9 @@
         }
         
         // Attacher aussi après des délais pour capturer les liens chargés après DOMContentLoaded
-        RETRY_DELAYS.forEach(delay => {
-            setTimeout(attachTrackingToAllLinks, delay);
-        });
+        // Réduire le nombre de tentatives pour éviter les doublons
+        setTimeout(attachTrackingToAllLinks, 100);
+        setTimeout(attachTrackingToAllLinks, 500);
         
         // Attacher aussi quand la page devient visible (pour les pages chargées en arrière-plan)
         document.addEventListener('visibilitychange', function() {
@@ -342,12 +358,9 @@
         });
     }
     
-    // Initialiser immédiatement
-    initTracking();
-    
-    // Réinitialiser si la page est déjà chargée
-    if (document.readyState === 'complete') {
-        setTimeout(attachTrackingToAllLinks, 100);
+    // Initialiser une seule fois
+    if (!window.phoneCallTrackingInitialized) {
+        initTracking();
     }
 })();
 
