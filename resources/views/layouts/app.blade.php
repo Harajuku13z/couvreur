@@ -418,28 +418,83 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track all phone links - utiliser touchstart pour mobile et mousedown pour desktop
-            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
-                // Extraire le numéro du href
-                const phoneNumber = link.getAttribute('href').replace('tel:', '');
-                
-                // Pour mobile (touchstart se déclenche avant click)
-                link.addEventListener('touchstart', function(e) {
-                    trackPhoneCall(phoneNumber);
-                }, { passive: true }); // passive pour ne pas bloquer le scroll
-                
-                // Pour desktop (mousedown se déclenche avant click)
-                link.addEventListener('mousedown', function(e) {
-                    trackPhoneCall(phoneNumber);
-                });
-                
-                // Aussi sur le clic en fallback (capture phase)
-                link.addEventListener('click', function(e) {
-                    trackPhoneCall(phoneNumber);
-                }, true);
+        // Fonction pour attacher le tracking à un lien
+        function attachPhoneTracking(link) {
+            // Vérifier si le tracking est déjà attaché
+            if (link.dataset.trackingAttached === 'true') {
+                return;
+            }
+            
+            // Extraire le numéro du href
+            const phoneNumber = link.getAttribute('href')?.replace('tel:', '') || '';
+            
+            if (!phoneNumber) {
+                return;
+            }
+            
+            // Pour mobile (touchstart se déclenche avant click)
+            link.addEventListener('touchstart', function(e) {
+                trackPhoneCall(phoneNumber);
+            }, { passive: true });
+            
+            // Pour desktop (mousedown se déclenche avant click)
+            link.addEventListener('mousedown', function(e) {
+                trackPhoneCall(phoneNumber);
             });
+            
+            // Aussi sur le clic en fallback (capture phase)
+            link.addEventListener('click', function(e) {
+                trackPhoneCall(phoneNumber);
+            }, true);
+            
+            // Marquer comme attaché
+            link.dataset.trackingAttached = 'true';
+        }
+        
+        // Attacher le tracking à tous les liens existants
+        function attachTrackingToAllLinks() {
+            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+                attachPhoneTracking(link);
+            });
+        }
+        
+        // Attacher le tracking au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            attachTrackingToAllLinks();
         });
+        
+        // Observer les changements du DOM pour capturer les liens ajoutés dynamiquement
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            // Vérifier si c'est un lien tel:
+                            if (node.tagName === 'A' && node.getAttribute('href')?.startsWith('tel:')) {
+                                attachPhoneTracking(node);
+                            }
+                            // Vérifier les enfants
+                            if (node.querySelectorAll) {
+                                node.querySelectorAll('a[href^="tel:"]').forEach(link => {
+                                    attachPhoneTracking(link);
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Observer les changements dans le body
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Attacher aussi après un court délai pour capturer les liens chargés après DOMContentLoaded
+        setTimeout(attachTrackingToAllLinks, 500);
+        setTimeout(attachTrackingToAllLinks, 1000);
+        setTimeout(attachTrackingToAllLinks, 2000);
     </script>
     
     @yield('scripts')
