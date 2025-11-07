@@ -345,16 +345,16 @@ class FormControllerSimple extends Controller
         // Vérifier reCAPTCHA pour toutes les étapes (dès la première étape)
         // Mode permissif : on accepte même si reCAPTCHA échoue pour ne pas bloquer les vrais utilisateurs
         $recaptchaResult = $this->verifyRecaptcha($request);
+        $score = $recaptchaResult['score'] ?? null;
+        $strictSuccess = $recaptchaResult['strict_success'] ?? true;
         
-        // Si reCAPTCHA échoue, on log mais on continue quand même (mode permissif)
-        // On bloque seulement si le score est vraiment très suspect (< 0.1) ET que ce n'est pas la première étape
-        if (!$recaptchaResult['success']) {
-            $score = $recaptchaResult['score'] ?? null;
-            
-            // Logger les détails pour debug
-            \Log::warning('reCAPTCHA échec sur étape (mode permissif)', [
+        // Mode permissif : on log les scores faibles mais on n'bloque jamais
+        // On bloque uniquement si le score est vraiment très suspect (< 0.05) ET que ce n'est pas la première étape
+        if (!$strictSuccess || ($score !== null && $score < 0.1)) {
+            \Log::info('reCAPTCHA score faible ou échec (mode permissif)', [
                 'step' => $step,
                 'score' => $score,
+                'strict_success' => $strictSuccess,
                 'message' => $recaptchaResult['message'] ?? 'Erreur inconnue',
                 'ip' => $this->getClientIp($request),
                 'user_agent' => $request->userAgent(),
@@ -362,10 +362,15 @@ class FormControllerSimple extends Controller
             ]);
             
             // Bloquer uniquement si :
-            // 1. Score très suspect (< 0.1) ET
+            // 1. Score vraiment très suspect (< 0.05) ET
             // 2. Ce n'est PAS la première étape (propertyType)
             // Sinon, on continue pour ne pas bloquer les vrais utilisateurs
-            if ($score !== null && $score < 0.1 && $step !== 'propertyType') {
+            if ($score !== null && $score < 0.05 && $step !== 'propertyType') {
+                \Log::warning('Blocage utilisateur suspect', [
+                    'step' => $step,
+                    'score' => $score,
+                    'ip' => $this->getClientIp($request),
+                ]);
                 return back()->withErrors(['recaptcha' => 'Vérification de sécurité échouée. Veuillez réessayer.'])->withInput();
             }
             
