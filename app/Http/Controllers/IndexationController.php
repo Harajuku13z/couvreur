@@ -271,7 +271,7 @@ class IndexationController extends Controller
     }
 
     /**
-     * Envoyer toutes les URLs du sitemap à Google
+     * Envoyer toutes les URLs du sitemap à Google (par sitemap et par batch)
      */
     public function submitAllUrlsToGoogle(Request $request)
     {
@@ -285,24 +285,85 @@ class IndexationController extends Controller
                 ], 400);
             }
             
-            // Récupérer toutes les URLs des sitemaps
             $sitemapService = new SitemapService();
-            $allUrls = $sitemapService->getAllUrls();
             
-            if (empty($allUrls)) {
+            // Récupérer tous les fichiers sitemap (sauf l'index)
+            $sitemapFiles = glob(public_path('sitemap*.xml'));
+            $sitemapFiles = array_filter($sitemapFiles, function($file) {
+                return basename($file) !== 'sitemap_index.xml';
+            });
+            
+            if (empty($sitemapFiles)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Aucune URL trouvée dans les sitemaps. Veuillez d\'abord générer le sitemap.'
+                    'message' => 'Aucun sitemap trouvé. Veuillez d\'abord générer le sitemap.'
                 ], 400);
             }
             
-            // Extraire uniquement les URLs
-            $urls = array_map(function($urlData) {
-                return $urlData['url'];
-            }, $allUrls);
+            // Taille des batches (200 URLs par batch pour éviter les limites)
+            $batchSize = 200;
+            $totalSuccess = 0;
+            $totalFailed = 0;
+            $totalProcessed = 0;
+            $sitemapResults = [];
             
-            // Envoyer à Google
-            $result = $googleService->indexUrls($urls);
+            // Traiter chaque sitemap séparément
+            foreach ($sitemapFiles as $sitemapFile) {
+                $filename = basename($sitemapFile);
+                \Log::info("Traitement du sitemap: {$filename}");
+                
+                // Lire le sitemap
+                $xml = file_get_contents($sitemapFile);
+                $xml = simplexml_load_string($xml);
+                
+                if (!$xml || !isset($xml->url)) {
+                    \Log::warning("Sitemap {$filename} vide ou invalide");
+                    continue;
+                }
+                
+                // Extraire les URLs de ce sitemap
+                $sitemapUrls = [];
+                foreach ($xml->url as $url) {
+                    $sitemapUrls[] = (string)$url->loc;
+                }
+                
+                if (empty($sitemapUrls)) {
+                    continue;
+                }
+                
+                // Traiter par batch
+                $batches = array_chunk($sitemapUrls, $batchSize);
+                $sitemapSuccess = 0;
+                $sitemapFailed = 0;
+                
+                foreach ($batches as $batchIndex => $batch) {
+                    \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
+                    
+                    // Envoyer le batch à Google
+                    $batchResult = $googleService->indexUrls($batch, $batchSize);
+                    
+                    $sitemapSuccess += $batchResult['success'];
+                    $sitemapFailed += $batchResult['failed'];
+                    $totalSuccess += $batchResult['success'];
+                    $totalFailed += $batchResult['failed'];
+                    $totalProcessed += count($batch);
+                    
+                    // Pause entre les batches pour éviter les limites de rate
+                    if ($batchIndex < count($batches) - 1) {
+                        sleep(2); // 2 secondes entre chaque batch
+                    }
+                }
+                
+                $sitemapResults[] = [
+                    'sitemap' => $filename,
+                    'total' => count($sitemapUrls),
+                    'success' => $sitemapSuccess,
+                    'failed' => $sitemapFailed
+                ];
+                
+                // Pause entre les sitemaps
+                sleep(1);
+            }
             
             // Sauvegarder l'historique
             $history = Setting::get('google_indexing_history', '[]');
@@ -310,9 +371,10 @@ class IndexationController extends Controller
             
             $history[] = [
                 'date' => now()->toDateTimeString(),
-                'total' => $result['total'],
-                'success' => $result['success'],
-                'failed' => $result['failed'],
+                'total' => $totalProcessed,
+                'success' => $totalSuccess,
+                'failed' => $totalFailed,
+                'sitemaps_processed' => count($sitemapResults),
                 'timestamp' => time()
             ];
             
@@ -321,12 +383,16 @@ class IndexationController extends Controller
             
             Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
             
+            \Log::info("Indexation terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur {$totalProcessed} URLs");
+            
             return response()->json([
                 'success' => true,
-                'message' => "Indexation terminée: {$result['success']} URLs envoyées avec succès, {$result['failed']} échouées",
-                'total' => $result['total'],
-                'success_count' => $result['success'],
-                'failed_count' => $result['failed'],
+                'message' => "Indexation terminée: {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
+                'total' => $totalProcessed,
+                'success_count' => $totalSuccess,
+                'failed_count' => $totalFailed,
+                'sitemaps_processed' => count($sitemapResults),
+                'sitemap_results' => $sitemapResults,
                 'date' => now()->toDateTimeString()
             ]);
         } catch (\Exception $e) {

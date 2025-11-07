@@ -147,28 +147,55 @@ class GoogleSearchConsoleService
     /**
      * Indexer plusieurs URLs en batch
      */
-    public function indexUrls(array $urls, $batchSize = 100)
+    public function indexUrls(array $urls, $batchSize = 200)
     {
         $results = [];
-        $batches = array_chunk($urls, $batchSize);
-
-        foreach ($batches as $batchIndex => $batch) {
-            Log::info("Traitement du batch " . ($batchIndex + 1) . " / " . count($batches) . " (" . count($batch) . " URLs)");
-            
-            foreach ($batch as $url) {
+        $totalUrls = count($urls);
+        
+        // Si le batch est déjà découpé, traiter directement
+        if ($totalUrls <= $batchSize) {
+            // Traiter toutes les URLs du batch
+            foreach ($urls as $index => $url) {
                 $result = $this->indexUrl($url);
                 $results[] = [
                     'url' => $url,
                     'result' => $result
                 ];
                 
-                // Petite pause pour éviter les limites de rate
-                usleep(100000); // 0.1 seconde
+                // Petite pause pour éviter les limites de rate (0.05 seconde entre chaque URL)
+                if ($index < $totalUrls - 1) {
+                    usleep(50000); // 0.05 seconde
+                }
+                
+                // Log de progression tous les 50 URLs
+                if (($index + 1) % 50 === 0) {
+                    Log::info("Progression: " . ($index + 1) . "/{$totalUrls} URLs traitées");
+                }
             }
-            
-            // Pause plus longue entre les batches
-            if ($batchIndex < count($batches) - 1) {
-                sleep(1);
+        } else {
+            // Si plus grand que le batch size, découper
+            $batches = array_chunk($urls, $batchSize);
+
+            foreach ($batches as $batchIndex => $batch) {
+                Log::info("Traitement du batch " . ($batchIndex + 1) . " / " . count($batches) . " (" . count($batch) . " URLs)");
+                
+                foreach ($batch as $index => $url) {
+                    $result = $this->indexUrl($url);
+                    $results[] = [
+                        'url' => $url,
+                        'result' => $result
+                    ];
+                    
+                    // Petite pause pour éviter les limites de rate
+                    if ($index < count($batch) - 1) {
+                        usleep(50000); // 0.05 seconde
+                    }
+                }
+                
+                // Pause plus longue entre les batches
+                if ($batchIndex < count($batches) - 1) {
+                    sleep(2); // 2 secondes entre chaque batch
+                }
             }
         }
 
