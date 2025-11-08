@@ -79,14 +79,24 @@ class Setting extends Model
 
     public static function getAll(): array
     {
-        return Cache::remember('all_settings', 3600, function () {
-            $settings = self::all();
-            $result = [];
-            foreach ($settings as $setting) {
-                $result[$setting->key] = self::castValue($setting->value, $setting->type);
-            }
-            return $result;
-        });
+        try {
+            return Cache::remember('all_settings', 3600, function () {
+                try {
+                    $settings = self::all();
+                    $result = [];
+                    foreach ($settings as $setting) {
+                        $result[$setting->key] = self::castValue($setting->value, $setting->type);
+                    }
+                    return $result;
+                } catch (\Exception $e) {
+                    \Log::warning("Impossible d'accéder à tous les settings: " . $e->getMessage());
+                    return [];
+                }
+            });
+        } catch (\Exception $e) {
+            \Log::warning("Impossible d'accéder au cache pour tous les settings: " . $e->getMessage());
+            return [];
+        }
     }
 
     protected static function castValue(mixed $value, string $type): mixed
