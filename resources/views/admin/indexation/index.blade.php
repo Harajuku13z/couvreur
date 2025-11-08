@@ -898,16 +898,20 @@ function testGoogleConnection() {
                     }
                 }
             }
-            showNotification(message, data.site_found && (!data.indexing_test || data.indexing_test.success) ? 'success' : 'error');
+            showNotification(message.replace(/\n/g, '<br>'), data.warning ? 'warning' : 'success');
         } else {
-            let errorMsg = 'Erreur de connexion: ' + (data.message || 'Erreur inconnue');
+            let errorMsg = '❌ Erreur de connexion: ' + (data.message || 'Erreur inconnue');
             if (data.error_code) {
                 errorMsg += ' (Code: ' + data.error_code + ')';
             }
             if (data.error_details && data.error_details.length > 0) {
                 errorMsg += '\nDétails: ' + JSON.stringify(data.error_details[0]);
             }
-            showNotification(errorMsg, 'error');
+            // Afficher les instructions si présentes dans le message
+            if (data.message && data.message.includes('Solution')) {
+                errorMsg = '❌ ' + data.message;
+            }
+            showNotification(errorMsg.replace(/\n/g, '<br>'), 'error');
         }
     })
     .catch(error => {
