@@ -7,8 +7,12 @@ use App\Models\Client;
 use App\Models\Devis;
 use App\Models\LigneDevis;
 use App\Services\GroqQuotationService;
+use App\Services\PdfService;
+use App\Mail\DevisSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 
 class DevisController extends Controller
 {
@@ -213,26 +217,46 @@ class DevisController extends Controller
     {
         try {
             $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
-            $pdfService = new \App\Services\PdfService();
+            $pdfService = new PdfService();
             
             // Générer le PDF s'il n'existe pas
-            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+            if (!$devis->pdf_path || !Storage::disk('local')->exists($devis->pdf_path)) {
                 $pdfService->generateDevisPdf($devis);
                 $devis->refresh();
             }
             
-            $pdfPath = \Storage::disk('local')->path($devis->pdf_path);
+            // Vérifier que le fichier existe
+            if (!Storage::disk('local')->exists($devis->pdf_path)) {
+                throw new \Exception('Le fichier PDF n\'a pas pu être généré');
+            }
+            
+            $pdfPath = Storage::disk('local')->path($devis->pdf_path);
+            
+            // Vérifier que le fichier existe physiquement
+            if (!file_exists($pdfPath)) {
+                throw new \Exception('Le fichier PDF n\'existe pas sur le serveur');
+            }
             
             return response()->file($pdfPath, [
                 'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
             ]);
         } catch (\Exception $e) {
             Log::error('Erreur génération PDF devis', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'devis_id' => $id,
             ]);
             
-            return back()->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
+            // Si on est dans une requête AJAX ou si on ne peut pas rediriger, retourner une erreur
+            if (request()->expectsJson() || !request()->hasHeader('Referer')) {
+                return response()->json([
+                    'error' => 'Erreur lors de la génération du PDF : ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('admin.devis.show', $id)
+                ->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
         }
     }
 
@@ -243,22 +267,29 @@ class DevisController extends Controller
     {
         try {
             $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
-            $pdfService = new \App\Services\PdfService();
+            $pdfService = new PdfService();
             
             // Générer le PDF s'il n'existe pas
-            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+            if (!$devis->pdf_path || !Storage::disk('local')->exists($devis->pdf_path)) {
                 $pdfService->generateDevisPdf($devis);
                 $devis->refresh();
             }
             
-            return \Storage::disk('local')->download($devis->pdf_path, 'Devis_' . $devis->numero . '.pdf');
+            // Vérifier que le fichier existe
+            if (!Storage::disk('local')->exists($devis->pdf_path)) {
+                throw new \Exception('Le fichier PDF n\'a pas pu être généré');
+            }
+            
+            return Storage::disk('local')->download($devis->pdf_path, 'Devis_' . $devis->numero . '.pdf');
         } catch (\Exception $e) {
             Log::error('Erreur téléchargement PDF devis', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'devis_id' => $id,
             ]);
             
-            return back()->with('error', 'Erreur lors du téléchargement du PDF : ' . $e->getMessage());
+            return redirect()->route('admin.devis.show', $id)
+                ->with('error', 'Erreur lors du téléchargement du PDF : ' . $e->getMessage());
         }
     }
 
@@ -271,27 +302,31 @@ class DevisController extends Controller
             $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
             
             if (!$devis->client->email) {
-                return back()->with('error', 'Le client n\'a pas d\'adresse email.');
+                return redirect()->route('admin.devis.show', $id)
+                    ->with('error', 'Le client n\'a pas d\'adresse email.');
             }
             
-            $pdfService = new \App\Services\PdfService();
+            $pdfService = new PdfService();
             
             // Générer le PDF s'il n'existe pas
-            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+            if (!$devis->pdf_path || !Storage::disk('local')->exists($devis->pdf_path)) {
                 $pdfService->generateDevisPdf($devis);
                 $devis->refresh();
             }
             
-            \Mail::to($devis->client->email)->send(new \App\Mail\DevisSent($devis));
+            Mail::to($devis->client->email)->send(new DevisSent($devis));
             
-            return back()->with('success', 'Devis envoyé par email avec succès à ' . $devis->client->email);
+            return redirect()->route('admin.devis.show', $id)
+                ->with('success', 'Devis envoyé par email avec succès à ' . $devis->client->email);
         } catch (\Exception $e) {
             Log::error('Erreur envoi email devis', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'devis_id' => $id,
             ]);
             
-            return back()->with('error', 'Erreur lors de l\'envoi de l\'email : ' . $e->getMessage());
+            return redirect()->route('admin.devis.show', $id)
+                ->with('error', 'Erreur lors de l\'envoi de l\'email : ' . $e->getMessage());
         }
     }
 
