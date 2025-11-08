@@ -536,6 +536,24 @@
                 <span class="text-sm text-green-600">
                     <i class="fas fa-check-circle mr-1"></i>API configurée
                 </span>
+                @if($indexJumpBalance !== null)
+                <div class="flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <i class="fas fa-link text-blue-600"></i>
+                    <span class="text-sm font-semibold text-blue-800" id="indexjump-balance-display">
+                        {{ number_format($indexJumpBalance, 0, ',', ' ') }} liens restants
+                    </span>
+                    <button type="button" onclick="refreshIndexJumpBalance()" 
+                            class="ml-2 text-blue-600 hover:text-blue-800"
+                            title="Rafraîchir le solde">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                @else
+                <button type="button" onclick="refreshIndexJumpBalance()" 
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Vérifier le solde
+                </button>
+                @endif
                 @else
                 <span class="text-sm text-gray-500">
                     <i class="fas fa-exclamation-circle mr-1"></i>API non configurée
@@ -1288,6 +1306,83 @@ function saveIndexJumpToken() {
     .finally(() => {
         button.innerHTML = originalText;
         button.disabled = false;
+    });
+}
+
+function refreshIndexJumpBalance() {
+    const button = event?.target || document.querySelector('[onclick="refreshIndexJumpBalance()"]');
+    const balanceDisplay = document.getElementById('indexjump-balance-display');
+    
+    if (balanceDisplay) {
+        balanceDisplay.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    
+    if (button && button.classList.contains('fa-sync-alt')) {
+        button.classList.add('fa-spin');
+    } else if (button) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Chargement...';
+        button.disabled = true;
+    }
+    
+    fetch('{{ route("admin.indexation.indexjump-balance") }}', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const balance = data.balance || 0;
+            if (balanceDisplay) {
+                balanceDisplay.textContent = new Intl.NumberFormat('fr-FR').format(balance) + ' liens restants';
+            } else {
+                // Si l'affichage n'existe pas, créer un nouvel élément
+                const parent = document.querySelector('.flex.items-center.space-x-4.mb-4');
+                if (parent) {
+                    const balanceDiv = document.createElement('div');
+                    balanceDiv.className = 'flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg';
+                    balanceDiv.innerHTML = `
+                        <i class="fas fa-link text-blue-600"></i>
+                        <span class="text-sm font-semibold text-blue-800" id="indexjump-balance-display">
+                            ${new Intl.NumberFormat('fr-FR').format(balance)} liens restants
+                        </span>
+                        <button type="button" onclick="refreshIndexJumpBalance()" 
+                                class="ml-2 text-blue-600 hover:text-blue-800"
+                                title="Rafraîchir le solde">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    `;
+                    parent.appendChild(balanceDiv);
+                }
+            }
+            showNotification('Solde mis à jour: ' + new Intl.NumberFormat('fr-FR').format(balance) + ' liens restants', 'success');
+        } else {
+            showNotification('Erreur: ' + (data.message || 'Impossible de récupérer le solde'), 'error');
+            if (balanceDisplay) {
+                balanceDisplay.textContent = 'Erreur';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la récupération du solde', 'error');
+        if (balanceDisplay) {
+            balanceDisplay.textContent = 'Erreur';
+        }
+    })
+    .finally(() => {
+        if (button && button.classList.contains('fa-sync-alt')) {
+            button.classList.remove('fa-spin');
+        } else if (button) {
+            button.disabled = false;
+            if (button.querySelector('.fa-spinner')) {
+                button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Vérifier le solde';
+            }
+        }
     });
 }
 

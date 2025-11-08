@@ -914,6 +914,50 @@ class IndexationController extends Controller
     }
 
     /**
+     * Récupérer le solde IndexJump
+     */
+    public function getIndexJumpBalance(Request $request)
+    {
+        try {
+            $indexJumpService = new IndexJumpService();
+            
+            if (!$indexJumpService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'IndexJump n\'est pas configuré'
+                ], 400);
+            }
+            
+            $result = $indexJumpService->getBalance();
+            
+            if ($result['success']) {
+                // Mettre en cache le solde pour 5 minutes
+                $token = Setting::get('indexjump_token', '');
+                $balanceCacheKey = 'indexjump_balance_' . md5($token);
+                \Cache::put($balanceCacheKey, $result['balance'], 300);
+                
+                return response()->json([
+                    'success' => true,
+                    'balance' => $result['balance'],
+                    'message' => 'Solde récupéré avec succès'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Erreur lors de la récupération du solde'
+            ], 400);
+        } catch (\Exception $e) {
+            \Log::error('Erreur récupération solde IndexJump: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Tester la connexion IndexJump
      */
     public function testIndexJumpConnection(Request $request)
