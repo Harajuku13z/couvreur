@@ -135,7 +135,8 @@ class ContactController extends Controller
                     'phone' => $validated['phone'] ?? null,
                     'property_type' => null,
                     'surface' => null,
-                    'postal_code' => null,
+                    'postal_code' => $validated['postal_code'] ?? null,  // Corrigé : utiliser la valeur du formulaire
+                    'city' => $validated['city'] ?? null,  // Ajouté : sauvegarder la ville
                     'status' => 'COMPLETED',
                     'completed_at' => now(),
                     'ip_address' => $request->ip(),

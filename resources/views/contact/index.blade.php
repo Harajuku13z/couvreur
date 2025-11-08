@@ -563,7 +563,7 @@
                             <i class="fas fa-chevron-down text-white faq-icon-{{ $index }} transition-transform duration-300"></i>
                         </div>
                     </button>
-                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none; opacity: 0;">
+                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none !important; opacity: 0;">
                         <div class="text-gray-700 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color);">
                             <i class="fas fa-reply mr-2" style="color: var(--primary-color);"></i>
                             {!! nl2br(e($faq['answer'] ?? '')) !!}
