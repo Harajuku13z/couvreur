@@ -244,7 +244,9 @@ class DevisController extends Controller
                 $devis->load(['client', 'lignesDevis']);
                 $companySettings = $this->getCompanySettings();
                 
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.devis', [
+                // Utiliser le service container au lieu de la facade
+                $pdf = app('dompdf.wrapper');
+                $pdf->loadView('pdfs.devis', [
                     'devis' => $devis,
                     'companySettings' => $companySettings,
                 ]);

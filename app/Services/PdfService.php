@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Devis;
 use App\Models\Facture;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -37,7 +36,9 @@ class PdfService
                 'lignes_count' => $devis->lignesDevis->count(),
             ]);
 
-            $pdf = Pdf::loadView('pdfs.devis', [
+            // Utiliser le service container au lieu de la facade
+            $pdf = app('dompdf.wrapper');
+            $pdf->loadView('pdfs.devis', [
                 'devis' => $devis,
                 'companySettings' => $companySettings,
             ]);
@@ -91,7 +92,9 @@ class PdfService
     {
         $facture->load(['client', 'devis']);
 
-        $pdf = Pdf::loadView('pdfs.facture', [
+        // Utiliser le service container au lieu de la facade
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('pdfs.facture', [
             'facture' => $facture,
             'companySettings' => $this->getCompanySettings(),
         ]);
