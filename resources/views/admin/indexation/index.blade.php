@@ -300,7 +300,7 @@
                     <div>
                         <h3 class="text-md font-semibold text-gray-800">🔄 Indexation Quotidienne Automatique</h3>
                         <p class="text-sm text-gray-600 mt-1">
-                            Indexe automatiquement 200 URLs par jour pour respecter le quota Google (200/jour)
+                            Indexe automatiquement 150 URLs par jour pour respecter le quota Google
                         </p>
                         <p class="text-xs text-gray-500 mt-1">
                             @if($dailyIndexingEnabled)
@@ -1062,7 +1062,7 @@ function toggleDailyIndexing(enabled) {
 }
 
 function runDailyIndexing() {
-    if (!confirm('Exécuter l\'indexation quotidienne maintenant ? (200 URLs maximum)')) {
+    if (!confirm('Exécuter l\'indexation quotidienne maintenant ? (150 URLs maximum)')) {
         return;
     }
     

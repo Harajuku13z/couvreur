@@ -22,7 +22,7 @@ class IndexUrlsDaily extends Command
      *
      * @var string
      */
-    protected $description = 'Indexe automatiquement 200 URLs par jour via Google Indexing API';
+    protected $description = 'Indexe automatiquement 150 URLs par jour via Google Indexing API';
 
     /**
      * Execute the console command.
@@ -91,8 +91,8 @@ class IndexUrlsDaily extends Command
         $totalUrls = count($urlsToIndex);
         $this->info("📊 {$totalUrls} URLs restantes à indexer");
 
-        // Limite quotidienne : 200 URLs
-        $dailyLimit = 200;
+        // Limite quotidienne : 150 URLs
+        $dailyLimit = 150;
         $urlsForToday = array_slice($urlsToIndex, 0, $dailyLimit);
         
         $this->info("📤 Indexation de " . count($urlsForToday) . " URLs aujourd'hui (limite: {$dailyLimit})");
