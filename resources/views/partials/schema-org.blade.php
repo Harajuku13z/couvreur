@@ -82,15 +82,30 @@
     // Service Schema (si sur une page service)
     $serviceSchema = null;
     if (isset($service) && is_array($service)) {
+        // Créer un provider LocalBusiness complet avec toutes les infos
+        $serviceProvider = [
+            "@type" => "LocalBusiness",
+            "name" => $companyName,
+            "url" => $companyUrl,
+            "telephone" => $companyPhone,
+            "email" => $companyEmail,
+            "address" => $addressSchema, // TOUJOURS inclure l'adresse
+            "priceRange" => "€€",
+            "image" => $logoUrl,
+            "logo" => $logoUrl
+        ];
+        
+        // Ajouter les réseaux sociaux si disponibles
+        if (!empty($sameAs)) {
+            $serviceProvider["sameAs"] = $sameAs;
+        }
+        
         $serviceSchema = [
             "@context" => "https://schema.org",
             "@type" => "Service",
             "serviceType" => $service['name'] ?? '',
             "description" => $service['description'] ?? '',
-            "provider" => [
-                "@type" => "LocalBusiness",
-                "name" => $companyName
-            ],
+            "provider" => $serviceProvider,
             "areaServed" => [
                 "@type" => "Country",
                 "name" => $companyCountry
