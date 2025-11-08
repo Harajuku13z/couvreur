@@ -12,8 +12,9 @@ class JobController extends Controller
      */
     public function index()
     {
-        // Offres d'emploi légitimes pour une entreprise de couverture
-        $jobs = [
+        try {
+            // Offres d'emploi légitimes pour une entreprise de couverture
+            $jobs = [
             [
                 'id' => 1,
                 'title' => 'Couvreur / Zingueur H/F',
