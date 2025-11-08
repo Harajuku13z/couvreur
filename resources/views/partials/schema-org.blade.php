@@ -15,13 +15,22 @@
     $logoUrl = $companyLogo ? (strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo)) : url('logo/logo.png');
     
     // Construire l'adresse complète (toujours inclure même si vide pour éviter les erreurs)
+    // Google exige au moins un champ d'adresse rempli pour LocalBusiness
     $addressSchema = [
         "@type" => "PostalAddress",
-        "streetAddress" => $companyAddress ?: '',
-        "addressLocality" => $companyCity ?: '',
-        "postalCode" => $companyPostalCode ?: '',
-        "addressCountry" => $companyCountry
+        "addressCountry" => $companyCountry ?: "FR"  // Toujours au moins le pays
     ];
+    
+    // Ajouter les autres champs s'ils existent
+    if (!empty($companyAddress)) {
+        $addressSchema["streetAddress"] = $companyAddress;
+    }
+    if (!empty($companyCity)) {
+        $addressSchema["addressLocality"] = $companyCity;
+    }
+    if (!empty($companyPostalCode)) {
+        $addressSchema["postalCode"] = $companyPostalCode;
+    }
     
     // Préparer les reviews si disponibles
     $reviewItems = [];
