@@ -315,7 +315,7 @@
                         <button type="button" 
                                 onclick="toggleDailyIndexing({{ $dailyIndexingEnabled ? 'false' : 'true' }})" 
                                 id="toggle-daily-btn"
-                                class="bg-{{ $dailyIndexingEnabled ? 'yellow' : 'green' }}-600 hover:bg-{{ $dailyIndexingEnabled ? 'yellow' : 'green' }}-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                                class="text-white px-4 py-2 rounded-lg text-sm font-medium transition {{ $dailyIndexingEnabled ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' }}">
                             <i class="fas fa-{{ $dailyIndexingEnabled ? 'pause' : 'play' }} mr-2"></i>
                             {{ $dailyIndexingEnabled ? 'Désactiver' : 'Activer' }}
                         </button>
