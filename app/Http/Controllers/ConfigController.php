@@ -101,26 +101,55 @@ class ConfigController extends Controller
      */
     public function index()
     {
-        if (!Setting::isSetupCompleted()) {
-            return redirect()->route('config.setup');
-        }
+        try {
+            if (!Setting::isSetupCompleted()) {
+                return redirect()->route('config.setup');
+            }
 
-        $allSettings = Setting::all();
-        
-        // Grouper par 'group' et s'assurer que tous les groupes existent
-        $settings = [
-            'company' => $allSettings->where('group', 'company'),
-            'branding' => $allSettings->where('group', 'branding'),
-            'email' => $allSettings->where('group', 'email'),
-            'social' => $allSettings->where('group', 'social'),
-            'seo' => $allSettings->where('group', 'seo'),
-            'reviews' => $allSettings->where('group', 'reviews'),
-            'general' => $allSettings->where('group', 'general'),
-        ];
-        
-        $reviews = Review::orderBy('display_order')->get();
-        
-        return view('config.index', compact('settings', 'reviews'));
+            // Gérer le cas où la base de données n'est pas encore configurée
+            try {
+                $allSettings = Setting::all();
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la récupération des settings: ' . $e->getMessage());
+                // Si la table n'existe pas, rediriger vers le setup
+                return redirect()->route('config.setup')->with('error', 'La base de données n\'est pas encore configurée. Veuillez exécuter les migrations.');
+            }
+            
+            // Grouper par 'group' et s'assurer que tous les groupes existent
+            $settings = [
+                'company' => $allSettings->where('group', 'company'),
+                'branding' => $allSettings->where('group', 'branding'),
+                'email' => $allSettings->where('group', 'email'),
+                'social' => $allSettings->where('group', 'social'),
+                'seo' => $allSettings->where('group', 'seo'),
+                'reviews' => $allSettings->where('group', 'reviews'),
+                'general' => $allSettings->where('group', 'general'),
+            ];
+            
+            // Gérer le cas où la table reviews n'existe pas
+            try {
+                $reviews = Review::orderBy('display_order')->get();
+            } catch (\Exception $e) {
+                Log::warning('Erreur lors de la récupération des reviews: ' . $e->getMessage());
+                $reviews = collect([]); // Utiliser une collection vide si la table n'existe pas
+            }
+            
+            return view('config.index', compact('settings', 'reviews'));
+        } catch (\Exception $e) {
+            Log::error('Erreur dans ConfigController@index: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Si c'est une erreur de base de données, rediriger vers le setup
+            if (strpos($e->getMessage(), 'SQLSTATE') !== false || strpos($e->getMessage(), 'table') !== false) {
+                return redirect()->route('config.setup')->with('error', 'Erreur de base de données. Veuillez vérifier votre configuration et exécuter les migrations.');
+            }
+            
+            // Sinon, afficher une erreur générique
+            return response()->view('errors.500', [
+                'message' => 'Une erreur est survenue lors du chargement de la page de configuration. Veuillez vérifier les logs pour plus de détails.'
+            ], 500);
+        }
     }
 
     /**
