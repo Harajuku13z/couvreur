@@ -44,19 +44,30 @@
     }
     
     // Construire le schéma d'organisation (UN SEUL LocalBusiness avec toutes les infos)
+    // L'adresse est OBLIGATOIRE pour LocalBusiness
     $organizationSchema = [
         "@context" => "https://schema.org",
         "@type" => "LocalBusiness",
         "name" => $companyName,
-        "description" => $companyDescription,
         "url" => $companyUrl,
-        "telephone" => $companyPhone,
-        "email" => $companyEmail,
-        "address" => $addressSchema, // TOUJOURS inclure l'adresse pour éviter l'erreur
-        "priceRange" => "€€",
-        "image" => $logoUrl,
-        "logo" => $logoUrl  // Logo pour affichage dans Google (requis pour favicon dans résultats)
+        "address" => $addressSchema  // OBLIGATOIRE - toujours présent
     ];
+    
+    // Ajouter les champs optionnels seulement s'ils ont une valeur
+    if (!empty($companyDescription)) {
+        $organizationSchema["description"] = $companyDescription;
+    }
+    if (!empty($companyPhone)) {
+        $organizationSchema["telephone"] = $companyPhone;
+    }
+    if (!empty($companyEmail)) {
+        $organizationSchema["email"] = $companyEmail;
+    }
+    $organizationSchema["priceRange"] = "€€";
+    if ($logoUrl && $logoUrl !== url('logo/logo.png')) { // Éviter le logo par défaut
+        $organizationSchema["image"] = $logoUrl;
+        $organizationSchema["logo"] = $logoUrl;  // Logo pour affichage dans Google (requis pour favicon dans résultats)
+    }
     
     // Ajouter les réseaux sociaux si disponibles
     $sameAs = [];
@@ -83,17 +94,26 @@
     $serviceSchema = null;
     if (isset($service) && is_array($service)) {
         // Créer un provider LocalBusiness complet avec toutes les infos
+        // L'adresse est OBLIGATOIRE pour LocalBusiness
         $serviceProvider = [
             "@type" => "LocalBusiness",
             "name" => $companyName,
             "url" => $companyUrl,
-            "telephone" => $companyPhone,
-            "email" => $companyEmail,
-            "address" => $addressSchema, // TOUJOURS inclure l'adresse
-            "priceRange" => "€€",
-            "image" => $logoUrl,
-            "logo" => $logoUrl
+            "address" => $addressSchema  // OBLIGATOIRE - toujours présent
         ];
+        
+        // Ajouter les champs optionnels seulement s'ils ont une valeur
+        if (!empty($companyPhone)) {
+            $serviceProvider["telephone"] = $companyPhone;
+        }
+        if (!empty($companyEmail)) {
+            $serviceProvider["email"] = $companyEmail;
+        }
+        $serviceProvider["priceRange"] = "€€";
+        if ($logoUrl && $logoUrl !== url('logo/logo.png')) {
+            $serviceProvider["image"] = $logoUrl;
+            $serviceProvider["logo"] = $logoUrl;
+        }
         
         // Ajouter les réseaux sociaux si disponibles
         if (!empty($sameAs)) {
