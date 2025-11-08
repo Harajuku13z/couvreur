@@ -39,16 +39,23 @@ class ResetSitemap extends Command
         }
         
         try {
-            // 1. Supprimer tous les anciens sitemaps
+            // 1. Supprimer tous les anciens sitemaps (y compris sitemap_index.xml)
             $this->info('🗑️  Suppression des anciens sitemaps...');
             $sitemapFiles = glob(public_path('sitemap*.xml'));
             $deletedCount = 0;
             
             foreach ($sitemapFiles as $file) {
-                if (unlink($file)) {
+                $filename = basename($file);
+                // Forcer la suppression de sitemap_index.xml
+                if ($filename === 'sitemap_index.xml') {
+                    @unlink($file); // Supprimer même si unlink() échoue
                     $deletedCount++;
-                    $this->line("   ✓ Supprimé: " . basename($file));
-                    Log::info("🗑️ Sitemap supprimé: " . basename($file));
+                    $this->line("   ✓ Supprimé: " . $filename);
+                    Log::info("🗑️ Sitemap index supprimé: " . $filename);
+                } else if (unlink($file)) {
+                    $deletedCount++;
+                    $this->line("   ✓ Supprimé: " . $filename);
+                    Log::info("🗑️ Sitemap supprimé: " . $filename);
                 } else {
                     $this->error("   ✗ Erreur lors de la suppression: " . basename($file));
                 }
@@ -110,16 +117,35 @@ class ResetSitemap extends Command
             $deletedForOldUrl = 0;
             
             foreach ($allSitemaps as $sitemapFile) {
+                $filename = basename($sitemapFile);
                 $content = file_get_contents($sitemapFile);
+                
+                // Supprimer sitemap_index.xml (on n'en veut plus)
+                if ($filename === 'sitemap_index.xml') {
+                    $this->warn("⚠️  Suppression de sitemap_index.xml (désactivé)");
+                    @unlink($sitemapFile);
+                    $hasOldUrl = true;
+                    $deletedForOldUrl++;
+                    continue;
+                }
+                
+                // Vérifier les URLs incorrectes
                 if (strpos($content, 'sausercouverture.fr') !== false) {
-                    $this->warn("⚠️  Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr - SUPPRESSION");
+                    $this->warn("⚠️  Le sitemap " . $filename . " contient encore l'ancienne URL sausercouverture.fr - SUPPRESSION");
                     unlink($sitemapFile);
                     $hasOldUrl = true;
                     $deletedForOldUrl++;
-                    Log::warning("⚠️ Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr, suppression...");
+                    Log::warning("⚠️ Le sitemap " . $filename . " contient encore l'ancienne URL sausercouverture.fr, suppression...");
+                } else if (strpos($content, 'localhost') !== false) {
+                    // Vérifier aussi les URLs avec localhost
+                    $this->warn("⚠️  Le sitemap " . $filename . " contient localhost - SUPPRESSION");
+                    unlink($sitemapFile);
+                    $hasOldUrl = true;
+                    $deletedForOldUrl++;
+                    Log::warning("⚠️ Le sitemap " . $filename . " contient localhost, suppression...");
                 } else if (strpos($content, 'normesrenovationbretagne.fr') === false) {
                     // Vérifier aussi qu'il contient bien la bonne URL
-                    $this->warn("⚠️  Le sitemap " . basename($sitemapFile) . " ne contient pas normesrenovationbretagne.fr - SUPPRESSION");
+                    $this->warn("⚠️  Le sitemap " . $filename . " ne contient pas normesrenovationbretagne.fr - SUPPRESSION");
                     unlink($sitemapFile);
                     $hasOldUrl = true;
                     $deletedForOldUrl++;
