@@ -104,41 +104,81 @@ class PdfService
      */
     public function generateFacturePdf(Facture $facture): string
     {
-        $facture->load(['client', 'devis']);
+        try {
+            $facture->load(['client', 'devis']);
 
-        // Générer le HTML depuis la vue
-        $html = view('pdfs.facture', [
-            'facture' => $facture,
-            'companySettings' => $this->getCompanySettings(),
-        ])->render();
+            // Vérifier que le client existe
+            if (!$facture->client) {
+                throw new \Exception('Le client associé à la facture n\'existe pas.');
+            }
 
-        // Vérifier que DomPDF est disponible
-        if (!class_exists('Dompdf\Dompdf')) {
-            throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez: composer require dompdf/dompdf');
+            $companySettings = $this->getCompanySettings();
+
+            Log::info('Génération PDF facture', [
+                'facture_id' => $facture->id,
+                'facture_numero' => $facture->numero,
+                'client_id' => $facture->client_id,
+            ]);
+
+            // Générer le HTML depuis la vue
+            $html = view('pdfs.facture', [
+                'facture' => $facture,
+                'companySettings' => $companySettings,
+            ])->render();
+
+            // Vérifier que DomPDF est disponible
+            if (!class_exists('Dompdf\Dompdf')) {
+                throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez: composer require dompdf/dompdf');
+            }
+
+            // Créer une instance DomPDF directement
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', false);
+            $options->set('enableLocalFileAccess', true);
+            $options->set('defaultFont', 'DejaVu Sans');
+            
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            $filename = 'facture_' . $facture->numero . '_' . time() . '.pdf';
+            $path = 'factures/' . $filename;
+
+            // S'assurer que le dossier existe
+            $directory = dirname(Storage::disk('local')->path($path));
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Sauvegarder le PDF
+            $pdfContent = $dompdf->output();
+            Storage::disk('local')->put($path, $pdfContent);
+
+            // Vérifier que le fichier a bien été créé
+            if (!Storage::disk('local')->exists($path)) {
+                throw new \Exception('Le fichier PDF n\'a pas pu être sauvegardé');
+            }
+
+            // Mettre à jour la facture avec le chemin du PDF
+            $facture->update(['pdf_path' => $path]);
+
+            Log::info('PDF facture généré avec succès', [
+                'facture_id' => $facture->id,
+                'path' => $path,
+                'size' => Storage::disk('local')->size($path),
+            ]);
+
+            return $path;
+        } catch (\Exception $e) {
+            Log::error('Erreur génération PDF facture', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'facture_id' => $facture->id ?? null,
+            ]);
+            throw $e;
         }
-
-        // Créer une instance DomPDF directement
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', false);
-        $options->set('enableLocalFileAccess', true);
-        $options->set('defaultFont', 'DejaVu Sans');
-        
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        $filename = 'facture_' . $facture->numero . '_' . time() . '.pdf';
-        $path = 'factures/' . $filename;
-
-        // Sauvegarder le PDF
-        Storage::disk('local')->put($path, $dompdf->output());
-
-        // Mettre à jour la facture avec le chemin du PDF
-        $facture->update(['pdf_path' => $path]);
-
-        return $path;
     }
 
     /**

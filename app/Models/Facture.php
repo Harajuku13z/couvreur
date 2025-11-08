@@ -114,14 +114,37 @@ class Facture extends Model
     {
         $this->montant_paye = ($this->montant_paye ?? 0) + $montant;
         
-        if ($this->montant_paye >= $this->prix_total_ttc) {
+        // Arrondir pour éviter les problèmes de comparaison de float
+        $montantPaye = round($this->montant_paye, 2);
+        $prixTotalTTC = round($this->prix_total_ttc, 2);
+        
+        if ($montantPaye >= $prixTotalTTC) {
             $this->statut = 'Payée';
             $this->date_paiement = now();
+            $this->montant_paye = $prixTotalTTC; // S'assurer que le montant payé = total
         } else {
             $this->statut = 'Partiellement payée';
         }
         
         $this->save();
+        
+        // Régénérer le PDF après mise à jour
+        try {
+            if ($this->pdf_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($this->pdf_path)) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($this->pdf_path);
+            }
+            $this->pdf_path = null;
+            $this->save();
+            
+            $pdfService = new \App\Services\PdfService();
+            $pdfService->generateFacturePdf($this);
+        } catch (\Exception $pdfError) {
+            \Illuminate\Support\Facades\Log::warning('Erreur régénération PDF après paiement', [
+                'facture_id' => $this->id,
+                'error' => $pdfError->getMessage(),
+            ]);
+            // On continue même si le PDF n'a pas pu être généré
+        }
     }
     
     /**

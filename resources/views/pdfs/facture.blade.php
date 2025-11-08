@@ -2,63 +2,58 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Devis {{ $devis->numero }}</title>
+    <title>Facture {{ $facture->numero }}</title>
     <style>
-        @page {
-            margin: 20mm;
-        }
         body {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 12px;
             color: #333;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
         .logo-container {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            margin-bottom: 20px;
         }
         .logo-container img {
-            max-height: 60px;
-            max-width: 200px;
+            max-width: 150px;
+            height: auto;
         }
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            margin-bottom: 30px;
+            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#333' }};
+            padding-bottom: 20px;
         }
         .company-info {
             flex: 1;
         }
         .company-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 8px;
-            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            margin-bottom: 10px;
+            color: {{ $companySettings['primary_color'] ?? '#333' }};
         }
-        .devis-info {
+        .facture-info {
             text-align: right;
         }
-        .devis-number {
-            font-size: 16px;
+        .facture-number {
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 8px;
-            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            margin-bottom: 10px;
+            color: {{ $companySettings['secondary_color'] ?? '#333' }};
         }
         .section {
             margin-bottom: 20px;
         }
         .section-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
             padding-bottom: 5px;
-            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
-            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            color: {{ $companySettings['primary_color'] ?? '#333' }};
         }
         table {
             width: 100%;
@@ -66,17 +61,16 @@
             margin-bottom: 20px;
         }
         th {
-            background-color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
-            color: white;
-            padding: 10px 8px;
+            background-color: #f5f5f5;
+            padding: 8px;
             text-align: left;
+            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#333' }};
             font-weight: bold;
-            font-size: 11px;
+            color: {{ $companySettings['primary_color'] ?? '#333' }};
         }
         td {
             padding: 8px;
             border-bottom: 1px solid #ddd;
-            font-size: 11px;
         }
         .text-right {
             text-align: right;
@@ -86,30 +80,34 @@
             background-color: #f9f9f9;
         }
         .total-ttc {
-            background-color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
-            color: white;
+            background-color: {{ $companySettings['secondary_color'] ?? '#f9f9f9' }};
+            color: #fff;
         }
         .total-ttc td {
-            color: white;
-            font-size: 13px;
-            padding: 10px 8px;
+            color: #fff;
+            border-bottom: none;
+        }
+        .acompte-row {
+            background-color: #e3f2fd;
+        }
+        .reste-row {
+            background-color: #fff3e0;
+            font-weight: bold;
         }
         .footer {
             margin-top: 40px;
-            padding-top: 15px;
-            border-top: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
-            font-size: 9px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 10px;
             color: #666;
-            line-height: 1.6;
         }
         .footer-title {
             font-weight: bold;
-            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
-            margin-bottom: 8px;
-            font-size: 10px;
+            margin-bottom: 5px;
+            color: {{ $companySettings['primary_color'] ?? '#333' }};
         }
         .footer-info {
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
     </style>
 </head>
@@ -136,88 +134,98 @@
             <div>Email: {{ $companySettings['email'] }}</div>
             @endif
         </div>
-        <div class="devis-info">
-            <div class="devis-number">DEVIS N° {{ $devis->numero ?? 'N/A' }}</div>
-            <div>Date d'émission: {{ $devis->date_emission ? $devis->date_emission->format('d/m/Y') : date('d/m/Y') }}</div>
-            @if($devis->date_validite)
-            <div>Valable jusqu'au: {{ $devis->date_validite->format('d/m/Y') }}</div>
+        <div class="facture-info">
+            <div class="facture-number">FACTURE N° {{ $facture->numero ?? 'N/A' }}</div>
+            <div>Date d'émission: {{ $facture->date_emission ? $facture->date_emission->format('d/m/Y') : date('d/m/Y') }}</div>
+            @if($facture->date_echeance)
+            <div>Date d'échéance: {{ $facture->date_echeance->format('d/m/Y') }}</div>
             @endif
         </div>
     </div>
 
     <div class="section">
         <div class="section-title">Client</div>
-        @if($devis->client)
-        <div><strong>{{ $devis->client->nom_complet ?? 'Client non renseigné' }}</strong></div>
-        @if($devis->client->adresse)
-        <div>{{ $devis->client->adresse }}</div>
+        @if($facture->client)
+        <div><strong>{{ $facture->client->nom_complet ?? 'Client non renseigné' }}</strong></div>
+        @if($facture->client->adresse)
+        <div>{{ $facture->client->adresse }}</div>
         @endif
-        @if($devis->client->code_postal || $devis->client->ville)
-        <div>{{ trim(($devis->client->code_postal ?? '') . ' ' . ($devis->client->ville ?? '')) }}</div>
+        @if($facture->client->code_postal || $facture->client->ville)
+        <div>{{ trim(($facture->client->code_postal ?? '') . ' ' . ($facture->client->ville ?? '')) }}</div>
         @endif
-        @if($devis->client->email)
-        <div>Email: {{ $devis->client->email }}</div>
+        @if($facture->client->email)
+        <div>Email: {{ $facture->client->email }}</div>
         @endif
-        @if($devis->client->telephone)
-        <div>Tél: {{ $devis->client->telephone }}</div>
+        @if($facture->client->telephone)
+        <div>Tél: {{ $facture->client->telephone }}</div>
         @endif
         @else
         <div><strong>Client non renseigné</strong></div>
         @endif
     </div>
 
+    @if($facture->devis && $facture->devis->acompte_pourcentage && $facture->devis->acompte_pourcentage > 0)
     <div class="section">
-        <div class="section-title">Détail des prestations</div>
+        <div class="section-title">Acompte</div>
+        <table>
+            <tr class="acompte-row">
+                <td colspan="3" class="text-right">Acompte payé ({{ $facture->devis->acompte_pourcentage }}%)</td>
+                <td class="text-right"><strong>{{ number_format($facture->devis->acompte_montant ?? 0, 2, ',', ' ') }} €</strong></td>
+            </tr>
+        </table>
+    </div>
+    @endif
+
+    <div class="section">
+        <div class="section-title">Détail de la facture</div>
         <table>
             <thead>
                 <tr>
                     <th>Description</th>
-                    <th class="text-right">Quantité</th>
-                    <th class="text-right">Prix unitaire</th>
-                    <th class="text-right">Total</th>
+                    <th class="text-right">Total HT</th>
+                    <th class="text-right">TVA</th>
+                    <th class="text-right">Total TTC</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($devis->lignesDevis as $ligne)
                 <tr>
-                    <td>{{ $ligne->description }}</td>
-                    <td class="text-right">{{ number_format($ligne->quantite, 2, ',', ' ') }} {{ $ligne->unite }}</td>
-                    <td class="text-right">{{ number_format($ligne->prix_unitaire, 2, ',', ' ') }} €</td>
-                    <td class="text-right">{{ number_format($ligne->total_ligne, 2, ',', ' ') }} €</td>
+                    <td>Facture pour devis {{ $facture->devis->numero ?? 'N/A' }}</td>
+                    <td class="text-right">{{ number_format($facture->prix_total_ht ?? 0, 2, ',', ' ') }} €</td>
+                    <td class="text-right">{{ number_format(($facture->prix_total_ttc ?? 0) - ($facture->prix_total_ht ?? 0), 2, ',', ' ') }} €</td>
+                    <td class="text-right">{{ number_format($facture->prix_total_ttc ?? 0, 2, ',', ' ') }} €</td>
                 </tr>
-                @endforeach
             </tbody>
             <tfoot>
                 <tr class="total-row">
                     <td colspan="3" class="text-right">Total HT</td>
-                    <td class="text-right">{{ number_format($devis->total_ht ?? 0, 2, ',', ' ') }} €</td>
+                    <td class="text-right">{{ number_format($facture->prix_total_ht ?? 0, 2, ',', ' ') }} €</td>
                 </tr>
                 <tr>
-                    <td colspan="3" class="text-right">TVA ({{ $devis->taux_tva ?? 20 }}%)</td>
-                    <td class="text-right">{{ number_format(($devis->total_ttc ?? 0) - ($devis->total_ht ?? 0), 2, ',', ' ') }} €</td>
+                    <td colspan="3" class="text-right">TVA ({{ $facture->taux_tva ?? 20 }}%)</td>
+                    <td class="text-right">{{ number_format(($facture->prix_total_ttc ?? 0) - ($facture->prix_total_ht ?? 0), 2, ',', ' ') }} €</td>
                 </tr>
                 <tr class="total-ttc">
                     <td colspan="3" class="text-right"><strong>TOTAL TTC</strong></td>
-                    <td class="text-right"><strong>{{ number_format($devis->total_ttc ?? 0, 2, ',', ' ') }} €</strong></td>
+                    <td class="text-right"><strong>{{ number_format($facture->prix_total_ttc ?? 0, 2, ',', ' ') }} €</strong></td>
                 </tr>
-                @if($devis->acompte_pourcentage && $devis->acompte_pourcentage > 0)
-                <tr style="background-color: #e3f2fd;">
-                    <td colspan="3" class="text-right">Acompte ({{ $devis->acompte_pourcentage }}%)</td>
-                    <td class="text-right"><strong>{{ number_format($devis->acompte_montant ?? 0, 2, ',', ' ') }} €</strong></td>
+                @if($facture->montant_paye > 0)
+                <tr class="acompte-row">
+                    <td colspan="3" class="text-right">Montant déjà payé</td>
+                    <td class="text-right"><strong>{{ number_format($facture->montant_paye, 2, ',', ' ') }} €</strong></td>
                 </tr>
-                <tr style="background-color: #fff3e0; font-weight: bold;">
-                    <td colspan="3" class="text-right">Reste à payer</td>
-                    <td class="text-right"><strong>{{ number_format($devis->reste_a_payer ?? $devis->total_ttc, 2, ',', ' ') }} €</strong></td>
+                <tr class="reste-row">
+                    <td colspan="3" class="text-right"><strong>RESTE À PAYER</strong></td>
+                    <td class="text-right"><strong>{{ number_format($facture->montant_restant, 2, ',', ' ') }} €</strong></td>
                 </tr>
                 @endif
             </tfoot>
         </table>
     </div>
 
-    @if($devis->conditions_particulieres)
+    @if($facture->notes)
     <div class="section">
-        <div class="section-title">Conditions particulières</div>
-        <div style="white-space: pre-line;">{{ $devis->conditions_particulieres }}</div>
+        <div class="section-title">Notes</div>
+        <div style="white-space: pre-line;">{{ $facture->notes }}</div>
     </div>
     @endif
 
@@ -228,7 +236,7 @@
             <div style="white-space: pre-line; color: #333; font-size: 10px; line-height: 1.6;">{{ $companySettings['rib'] }}</div>
         </div>
         @endif
-        
+
         <div class="footer-title">Informations Légales</div>
         <div class="footer-info">
             <strong>{{ $companySettings['name'] }}</strong>
@@ -260,8 +268,9 @@
         <div class="footer-info">Hébergeur : {{ $companySettings['hosting_provider'] }}</div>
         @endif
         <div style="margin-top: 10px; font-style: italic;">
-            Ce devis est établi à titre informatif et n'engage pas l'entreprise tant qu'il n'a pas été accepté par le client.
+            Cette facture est établie conformément aux conditions générales de vente.
         </div>
     </div>
 </body>
 </html>
+
