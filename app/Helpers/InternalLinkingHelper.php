@@ -16,8 +16,8 @@ class InternalLinkingHelper
         $servicesData = Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
-        // Récupérer les articles
-        $articles = Article::where('is_published', true)->get();
+        // Récupérer les articles publiés
+        $articles = Article::where('status', 'published')->get();
         
         // Créer un tableau de mots-clés et leurs liens
         $links = [];
@@ -85,7 +85,7 @@ class InternalLinkingHelper
         }
         
         // Articles récents
-        $articles = Article::where('is_published', true)
+        $articles = Article::where('status', 'published')
             ->orderBy('created_at', 'desc')
             ->take(2)
             ->get();
