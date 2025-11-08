@@ -72,8 +72,9 @@ class SeoController extends Controller
             'twitter_site' => 'nullable|string|max:50',
             'twitter_creator' => 'nullable|string|max:50',
             'canonical_url' => 'nullable|url',
-            'favicon' => 'nullable|image|max:512',
-            'apple_touch_icon' => 'nullable|image|max:512',
+            'favicon' => 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
+            'favicon_svg' => 'nullable|file|mimes:svg|max:512',
+            'apple_touch_icon' => 'nullable|image|mimes:png,jpg,jpeg|max:512',
             'manifest' => 'nullable|file|mimes:json|max:1024',
             'google_analytics' => 'nullable|string|max:50',
             'google_search_console' => 'nullable|string|max:500',
@@ -120,16 +121,49 @@ class SeoController extends Controller
 
         if ($request->hasFile('favicon')) {
             $file = $request->file('favicon');
-            $filename = 'favicon-' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = 'favicon-source-' . time() . '.' . $file->getClientOriginalExtension();
+            $sourcePath = public_path('uploads/seo/' . $filename);
             $file->move(public_path('uploads/seo'), $filename);
             $config['favicon'] = 'uploads/seo/' . $filename;
+            
+            // Générer toutes les tailles de favicon
+            try {
+                $faviconService = new \App\Services\FaviconService();
+                $results = $faviconService->generateFavicons($sourcePath);
+                
+                if ($results['success']) {
+                    \Log::info('Favicons générés avec succès', ['files' => $results['files']]);
+                    // Sauvegarder les chemins des favicons générés
+                    $config['favicon_16x16'] = 'favicons/favicon-16x16.png';
+                    $config['favicon_32x32'] = 'favicons/favicon-32x32.png';
+                    $config['favicon_48x48'] = 'favicons/favicon-48x48.png';
+                    $config['favicon_96x96'] = 'favicons/favicon-96x96.png';
+                    $config['favicon_192x192'] = 'favicons/favicon-192x192.png';
+                    $config['favicon_512x512'] = 'favicons/favicon-512x512.png';
+                    $config['apple_touch_icon'] = 'favicons/apple-touch-icon.png';
+                } else {
+                    \Log::warning('Erreurs lors de la génération des favicons', ['errors' => $results['errors']]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Erreur génération favicons: ' . $e->getMessage());
+            }
+        }
+        
+        // Gestion du SVG favicon
+        if ($request->hasFile('favicon_svg')) {
+            $file = $request->file('favicon_svg');
+            $filename = 'favicon-' . time() . '.svg';
+            $file->move(public_path('favicons'), $filename);
+            $config['favicon_svg'] = 'favicons/' . $filename;
         }
 
+        // Apple Touch Icon est maintenant généré automatiquement depuis le favicon
+        // Mais on garde la possibilité d'en uploader un manuellement
         if ($request->hasFile('apple_touch_icon')) {
             $file = $request->file('apple_touch_icon');
             $filename = 'apple-touch-icon-' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/seo'), $filename);
-            $config['apple_touch_icon'] = 'uploads/seo/' . $filename;
+            $file->move(public_path('favicons'), $filename);
+            $config['apple_touch_icon'] = 'favicons/' . $filename;
         }
 
         if ($request->hasFile('manifest')) {
@@ -371,28 +405,42 @@ class SeoController extends Controller
             $faviconPath = $seoConfig['favicon'];
         }
         
-        if ($faviconPath) {
-            $faviconUrl = asset($faviconPath);
-            $extension = strtolower(pathinfo($faviconPath, PATHINFO_EXTENSION));
-            $mimeType = 'image/png';
-            
-            if ($extension === 'ico') {
-                $mimeType = 'image/x-icon';
-            } elseif ($extension === 'jpg' || $extension === 'jpeg') {
-                $mimeType = 'image/jpeg';
-            } elseif ($extension === 'svg') {
-                $mimeType = 'image/svg+xml';
+        // Utiliser les favicons générés si disponibles
+        $faviconService = new \App\Services\FaviconService();
+        $manifestIcons = $faviconService->generateManifestIcons();
+        
+        if (!empty($manifestIcons)) {
+            $manifest['icons'] = $manifestIcons;
+        } else {
+            // Fallback: utiliser le favicon source
+            $faviconPath = Setting::get('site_favicon');
+            if (!$faviconPath && !empty($seoConfig['favicon'])) {
+                $faviconPath = $seoConfig['favicon'];
             }
             
-            // Ajouter plusieurs tailles d'icônes (requis par Google)
-            $sizes = ['16x16', '32x32', '48x48', '96x96', '192x192', '512x512'];
-            foreach ($sizes as $size) {
-                $manifest['icons'][] = [
-                    'src' => $faviconUrl,
-                    'sizes' => $size,
-                    'type' => $mimeType,
-                    'purpose' => 'any maskable'
-                ];
+            if ($faviconPath) {
+                $faviconUrl = asset($faviconPath);
+                $extension = strtolower(pathinfo($faviconPath, PATHINFO_EXTENSION));
+                $mimeType = 'image/png';
+                
+                if ($extension === 'ico') {
+                    $mimeType = 'image/x-icon';
+                } elseif ($extension === 'jpg' || $extension === 'jpeg') {
+                    $mimeType = 'image/jpeg';
+                } elseif ($extension === 'svg') {
+                    $mimeType = 'image/svg+xml';
+                }
+                
+                // Ajouter les tailles requises pour le manifest
+                $sizes = ['192x192', '512x512'];
+                foreach ($sizes as $size) {
+                    $manifest['icons'][] = [
+                        'src' => $faviconUrl,
+                        'sizes' => $size,
+                        'type' => $mimeType,
+                        'purpose' => 'any maskable'
+                    ];
+                }
             }
         }
 

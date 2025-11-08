@@ -230,23 +230,63 @@
         }
     @endphp
     
+    @php
+        // Vérifier les favicons générés
+        $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        
+        // SVG favicon
+        $svgFavicon = $seoConfig['favicon_svg'] ?? null;
+        if ($svgFavicon && file_exists(public_path($svgFavicon))) {
+            $svgFaviconUrl = asset($svgFavicon);
+        }
+        
+        // Favicons générés
+        $favicon16 = $seoConfig['favicon_16x16'] ?? 'favicons/favicon-16x16.png';
+        $favicon32 = $seoConfig['favicon_32x32'] ?? 'favicons/favicon-32x32.png';
+        $favicon48 = $seoConfig['favicon_48x48'] ?? 'favicons/favicon-48x48.png';
+        $favicon96 = $seoConfig['favicon_96x96'] ?? 'favicons/favicon-96x96.png';
+        
+        // Apple Touch Icon
+        $appleIcon = $seoConfig['apple_touch_icon'] ?? 'favicons/apple-touch-icon.png';
+    @endphp
+    
+    @if($svgFaviconUrl ?? false)
+    <!-- SVG Favicon (pour navigateurs modernes) -->
+    <link rel="icon" type="image/svg+xml" href="{{ $svgFaviconUrl }}">
+    @endif
+    
     @if($faviconUrl)
     <!-- Favicon standard (obligatoire pour Google - doit être accessible en HTTPS) -->
     <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    @endif
     
-    <!-- Favicon pour différentes tailles (requis par Google - 48x48px minimum) -->
-    <link rel="icon" type="{{ $faviconType }}" sizes="16x16" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="icon" type="{{ $faviconType }}" sizes="32x32" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="icon" type="{{ $faviconType }}" sizes="48x48" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="icon" type="{{ $faviconType }}" sizes="96x96" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="icon" type="{{ $faviconType }}" sizes="192x192" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="icon" type="{{ $faviconType }}" sizes="512x512" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    <!-- Favicons générés avec tailles spécifiques (requis par Google) -->
+    @if(file_exists(public_path($favicon16)))
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset($favicon16) }}">
+    @endif
+    @if(file_exists(public_path($favicon32)))
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset($favicon32) }}">
+    @endif
+    @if(file_exists(public_path($favicon48)))
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset($favicon48) }}">
+    @endif
+    @if(file_exists(public_path($favicon96)))
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset($favicon96) }}">
+    @endif
     
-    <!-- Apple Touch Icon (pour iOS) -->
+    <!-- Apple Touch Icon (pour iOS - 180x180px) -->
+    @if(file_exists(public_path($appleIcon)))
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset($appleIcon) }}">
+    @elseif($faviconUrl)
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    @endif
     
-    <!-- Favicon alternatif pour compatibilité maximale -->
+    <!-- Favicon ICO (fallback pour anciens navigateurs) -->
+    @if(file_exists(public_path('favicon.ico')))
+    <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
+    @elseif($faviconUrl)
     <link rel="icon" href="{{ $faviconUrl }}{{ $faviconVersion }}" type="{{ $faviconType }}">
     @else
     <!-- Fallback: favicon par défaut si aucun n'est configuré -->

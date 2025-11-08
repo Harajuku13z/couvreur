@@ -102,25 +102,93 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Configuration Technique</h2>
+            <h2 class="text-lg font-semibold mb-4">🌐 Favicons et Icônes</h2>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p class="text-sm text-blue-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Génération automatique :</strong> En uploadant une image source, toutes les tailles nécessaires seront générées automatiquement (16x16, 32x32, 48x48, 96x96, 192x192, 512x512, Apple Touch Icon 180x180).
+                </p>
+            </div>
             
             <div class="mb-4">
-                <label for="favicon" class="block text-sm font-medium mb-2">Favicon</label>
-                <input type="file" id="favicon" name="favicon" accept="image/*"
+                <label for="favicon" class="block text-sm font-medium mb-2">
+                    Favicon Source (PNG, JPG, GIF)
+                    <span class="text-xs text-gray-500">- Toutes les tailles seront générées automatiquement</span>
+                </label>
+                <input type="file" id="favicon" name="favicon" accept="image/png,image/jpeg,image/jpg,image/gif"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">Format recommandé : PNG carré, minimum 512x512px</p>
                 @if(!empty($seoConfig['favicon']))
-                <img src="{{ asset($seoConfig['favicon']) }}" alt="Favicon" class="mt-2 w-8 h-8 object-cover rounded">
+                <div class="mt-3 flex items-center gap-4">
+                    <img src="{{ asset($seoConfig['favicon']) }}" alt="Favicon source" class="w-16 h-16 object-cover rounded border border-gray-200">
+                    <div class="text-sm text-gray-600">
+                        <p class="font-medium">Favicon source actuel</p>
+                        <p class="text-xs text-gray-500">Toutes les tailles sont générées depuis cette image</p>
+                    </div>
+                </div>
                 @endif
             </div>
             
             <div class="mb-4">
-                <label for="apple_touch_icon" class="block text-sm font-medium mb-2">Apple Touch Icon</label>
-                <input type="file" id="apple_touch_icon" name="apple_touch_icon" accept="image/*"
+                <label for="favicon_svg" class="block text-sm font-medium mb-2">
+                    Favicon SVG (optionnel)
+                    <span class="text-xs text-gray-500">- Pour les navigateurs modernes</span>
+                </label>
+                <input type="file" id="favicon_svg" name="favicon_svg" accept="image/svg+xml"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                @if(!empty($seoConfig['apple_touch_icon']))
-                <img src="{{ asset($seoConfig['apple_touch_icon']) }}" alt="Apple Touch Icon" class="mt-2 w-12 h-12 object-cover rounded">
+                <p class="text-xs text-gray-500 mt-1">Format SVG pour une meilleure qualité sur tous les écrans</p>
+                @if(!empty($seoConfig['favicon_svg']))
+                <div class="mt-3">
+                    <img src="{{ asset($seoConfig['favicon_svg']) }}" alt="Favicon SVG" class="w-16 h-16 object-cover rounded border border-gray-200">
+                    <p class="text-xs text-gray-500 mt-1">Favicon SVG actuel</p>
+                </div>
                 @endif
             </div>
+            
+            <div class="mb-4">
+                <label for="apple_touch_icon" class="block text-sm font-medium mb-2">
+                    Apple Touch Icon (optionnel - 180x180px)
+                    <span class="text-xs text-gray-500">- Généré automatiquement depuis le favicon source</span>
+                </label>
+                <input type="file" id="apple_touch_icon" name="apple_touch_icon" accept="image/png,image/jpeg"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">Si non fourni, sera généré automatiquement en 180x180px</p>
+                @php
+                    $appleIcon = $seoConfig['apple_touch_icon'] ?? 'favicons/apple-touch-icon.png';
+                @endphp
+                @if(file_exists(public_path($appleIcon)))
+                <div class="mt-3">
+                    <img src="{{ asset($appleIcon) }}" alt="Apple Touch Icon" class="w-20 h-20 object-cover rounded border border-gray-200">
+                    <p class="text-xs text-gray-500 mt-1">Apple Touch Icon actuel (180x180px)</p>
+                </div>
+                @endif
+            </div>
+            
+            <!-- Aperçu des favicons générés -->
+            @php
+                $generatedSizes = ['16x16', '32x32', '48x48', '96x96', '192x192', '512x512'];
+            @endphp
+            @if(!empty($seoConfig['favicon_96x96']) || file_exists(public_path('favicons/favicon-96x96.png')))
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <h3 class="text-sm font-semibold mb-3">Aperçu des favicons générés :</h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    @foreach($generatedSizes as $size)
+                        @php
+                            $iconPath = $seoConfig["favicon_{$size}"] ?? "favicons/favicon-{$size}.png";
+                        @endphp
+                        @if(file_exists(public_path($iconPath)))
+                        <div class="text-center">
+                            <img src="{{ asset($iconPath) }}" alt="Favicon {{ $size }}" 
+                                 class="w-full h-auto border border-gray-200 rounded mx-auto mb-1"
+                                 style="max-width: {{ explode('x', $size)[0] }}px;">
+                            <p class="text-xs text-gray-500">{{ $size }}</p>
+                        </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
