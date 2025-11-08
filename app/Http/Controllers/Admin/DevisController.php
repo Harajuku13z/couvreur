@@ -318,6 +318,20 @@ class DevisController extends Controller
      */
     private function getCompanySettings(): array
     {
+        $logoPath = \App\Models\Setting::get('company_logo');
+        $logoBase64 = null;
+        
+        // Convertir le logo en base64 pour l'inclure dans le PDF
+        if ($logoPath) {
+            $fullPath = public_path($logoPath);
+            if (file_exists($fullPath)) {
+                $imageData = file_get_contents($fullPath);
+                $imageInfo = getimagesize($fullPath);
+                $mimeType = $imageInfo['mime'] ?? 'image/png';
+                $logoBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+            }
+        }
+        
         return [
             'name' => \App\Models\Setting::get('company_name', 'Votre Entreprise'),
             'address' => \App\Models\Setting::get('company_address', ''),
@@ -326,7 +340,14 @@ class DevisController extends Controller
             'phone' => \App\Models\Setting::get('company_phone', ''),
             'email' => \App\Models\Setting::get('company_email', ''),
             'siret' => \App\Models\Setting::get('company_siret', ''),
+            'rcs' => \App\Models\Setting::get('company_rcs', ''),
+            'capital' => \App\Models\Setting::get('company_capital', ''),
             'tva' => \App\Models\Setting::get('company_tva', ''),
+            'director' => \App\Models\Setting::get('company_director', ''),
+            'hosting_provider' => \App\Models\Setting::get('hosting_provider', ''),
+            'logo_base64' => $logoBase64,
+            'primary_color' => \App\Models\Setting::get('primary_color', '#3b82f6'),
+            'secondary_color' => \App\Models\Setting::get('secondary_color', '#10b981'),
         ];
     }
 

@@ -4,45 +4,61 @@
     <meta charset="utf-8">
     <title>Devis {{ $devis->numero }}</title>
     <style>
+        @page {
+            margin: 20mm;
+        }
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+        }
+        .logo-container img {
+            max-height: 60px;
+            max-width: 200px;
         }
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
         }
         .company-info {
             flex: 1;
         }
         .company-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
         }
         .devis-info {
             text-align: right;
         }
         .devis-number {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
         }
         .section {
             margin-bottom: 20px;
         }
         .section-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ccc;
+            margin-bottom: 8px;
             padding-bottom: 5px;
+            border-bottom: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
         }
         table {
             width: 100%;
@@ -50,15 +66,17 @@
             margin-bottom: 20px;
         }
         th {
-            background-color: #f5f5f5;
-            padding: 8px;
+            background-color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            color: white;
+            padding: 10px 8px;
             text-align: left;
-            border-bottom: 2px solid #333;
             font-weight: bold;
+            font-size: 11px;
         }
         td {
             padding: 8px;
             border-bottom: 1px solid #ddd;
+            font-size: 11px;
         }
         .text-right {
             text-align: right;
@@ -67,16 +85,42 @@
             font-weight: bold;
             background-color: #f9f9f9;
         }
+        .total-ttc {
+            background-color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            color: white;
+        }
+        .total-ttc td {
+            color: white;
+            font-size: 13px;
+            padding: 10px 8px;
+        }
         .footer {
             margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ccc;
-            font-size: 10px;
+            padding-top: 15px;
+            border-top: 2px solid {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            font-size: 9px;
             color: #666;
+            line-height: 1.6;
+        }
+        .footer-title {
+            font-weight: bold;
+            color: {{ $companySettings['primary_color'] ?? '#3b82f6' }};
+            margin-bottom: 8px;
+            font-size: 10px;
+        }
+        .footer-info {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
+    <!-- Logo en haut -->
+    @if($companySettings['logo_base64'])
+    <div class="logo-container">
+        <img src="{{ $companySettings['logo_base64'] }}" alt="{{ $companySettings['name'] }}">
+    </div>
+    @endif
+
     <div class="header">
         <div class="company-info">
             <div class="company-name">{{ $companySettings['name'] }}</div>
@@ -91,9 +135,6 @@
             @endif
             @if($companySettings['email'])
             <div>Email: {{ $companySettings['email'] }}</div>
-            @endif
-            @if($companySettings['siret'])
-            <div>SIRET: {{ $companySettings['siret'] }}</div>
             @endif
         </div>
         <div class="devis-info">
@@ -126,13 +167,6 @@
         @endif
     </div>
 
-    @if($devis->description_globale)
-    <div class="section">
-        <div class="section-title">Description du projet</div>
-        <div>{{ $devis->description_globale }}</div>
-    </div>
-    @endif
-
     <div class="section">
         <div class="section-title">Détail des prestations</div>
         <table>
@@ -163,7 +197,7 @@
                     <td colspan="3" class="text-right">TVA ({{ $devis->taux_tva ?? 20 }}%)</td>
                     <td class="text-right">{{ number_format(($devis->total_ttc ?? 0) - ($devis->total_ht ?? 0), 2, ',', ' ') }} €</td>
                 </tr>
-                <tr class="total-row">
+                <tr class="total-ttc">
                     <td colspan="3" class="text-right"><strong>TOTAL TTC</strong></td>
                     <td class="text-right"><strong>{{ number_format($devis->total_ttc ?? 0, 2, ',', ' ') }} €</strong></td>
                 </tr>
@@ -179,11 +213,40 @@
     @endif
 
     <div class="footer">
-        <div>Ce devis est établi à titre informatif et n'engage pas l'entreprise tant qu'il n'a pas été accepté par le client.</div>
-        @if($companySettings['siret'])
-        <div style="margin-top: 10px;">Assurance décennale en cours de validité - SIRET: {{ $companySettings['siret'] }}</div>
+        <div class="footer-title">Informations Légales</div>
+        <div class="footer-info">
+            <strong>{{ $companySettings['name'] }}</strong>
+        </div>
+        @if($companySettings['address'])
+        <div class="footer-info">{{ $companySettings['address'] }}</div>
         @endif
+        @if($companySettings['postal_code'] || $companySettings['city'])
+        <div class="footer-info">{{ $companySettings['postal_code'] }} {{ $companySettings['city'] }}</div>
+        @endif
+        @if($companySettings['siret'])
+        <div class="footer-info">SIRET : {{ $companySettings['siret'] }}</div>
+        @endif
+        @if($companySettings['rcs'])
+        <div class="footer-info">RCS : {{ $companySettings['rcs'] }}</div>
+        @endif
+        @if($companySettings['capital'])
+        <div class="footer-info">Capital social : {{ $companySettings['capital'] }}</div>
+        @endif
+        @if($companySettings['tva'])
+        <div class="footer-info">TVA intracommunautaire : {{ $companySettings['tva'] }}</div>
+        @endif
+        @if($companySettings['director'])
+        <div class="footer-info">Directeur de publication : {{ $companySettings['director'] }}</div>
+        @endif
+        @if($companySettings['hosting_provider'])
+        <div class="footer-info">Hébergeur : {{ $companySettings['hosting_provider'] }}</div>
+        @endif
+        <div style="margin-top: 10px; font-style: italic;">
+            Ce devis est établi à titre informatif et n'engage pas l'entreprise tant qu'il n'a pas été accepté par le client.
+        </div>
+        <div style="margin-top: 8px;">
+            Assurance décennale en cours de validité.
+        </div>
     </div>
 </body>
 </html>
-

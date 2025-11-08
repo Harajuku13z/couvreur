@@ -43,11 +43,6 @@
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h3 class="font-semibold mb-4">Actions</h3>
         <div class="flex flex-wrap gap-3">
-            <a href="{{ route('admin.devis.pdf', $devis->id) }}" 
-               target="_blank"
-               class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-                <i class="fas fa-file-pdf mr-2"></i>Voir le PDF
-            </a>
             <a href="{{ route('admin.devis.download-pdf', $devis->id) }}" 
                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
                 <i class="fas fa-download mr-2"></i>Télécharger le PDF
