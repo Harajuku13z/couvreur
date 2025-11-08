@@ -14,40 +14,18 @@
     $companyLogo = setting('company_logo');
     $logoUrl = $companyLogo ? (strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo)) : url('logo/logo.png');
     
-    $organizationSchema = [
-        "@context" => "https://schema.org",
-        "@type" => "LocalBusiness",
-        "name" => $companyName,
-        "description" => $companyDescription,
-        "url" => $companyUrl,
-        "telephone" => $companyPhone,
-        "email" => $companyEmail,
-        "address" => [
-            "@type" => "PostalAddress",
-            "streetAddress" => $companyAddress,
-            "addressLocality" => $companyCity,
-            "postalCode" => $companyPostalCode,
-            "addressCountry" => $companyCountry
-        ],
-        "priceRange" => "€€",
-        "image" => $logoUrl,
-        "logo" => $logoUrl  // Logo pour affichage dans Google (requis pour favicon dans résultats)
+    // Construire l'adresse complète (toujours inclure même si vide pour éviter les erreurs)
+    $addressSchema = [
+        "@type" => "PostalAddress",
+        "streetAddress" => $companyAddress ?: '',
+        "addressLocality" => $companyCity ?: '',
+        "postalCode" => $companyPostalCode ?: '',
+        "addressCountry" => $companyCountry
     ];
     
-    // Ajouter les réseaux sociaux si disponibles
-    $sameAs = [];
-    if (setting('facebook_url')) $sameAs[] = setting('facebook_url');
-    if (setting('instagram_url')) $sameAs[] = setting('instagram_url');
-    if (setting('linkedin_url')) $sameAs[] = setting('linkedin_url');
-    if (!empty($sameAs)) {
-        $organizationSchema["sameAs"] = $sameAs;
-    }
-    
-    // Reviews Schema (si sur la page d'accueil) - Fusionner avec l'organisation pour éviter les doublons
-    $hasReviews = false;
+    // Préparer les reviews si disponibles
+    $reviewItems = [];
     if (isset($reviews) && is_object($reviews) && method_exists($reviews, 'count') && $reviews->count() > 0 && isset($averageRating)) {
-        $hasReviews = true;
-        $reviewItems = [];
         foreach ($reviews->take(5) as $review) {
             $reviewItems[] = [
                 "@type" => "Review",
@@ -63,8 +41,34 @@
                 "reviewBody" => $review->review_text
             ];
         }
-        
-        // Ajouter les reviews directement dans l'organisation pour éviter les doublons
+    }
+    
+    // Construire le schéma d'organisation (UN SEUL LocalBusiness avec toutes les infos)
+    $organizationSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "LocalBusiness",
+        "name" => $companyName,
+        "description" => $companyDescription,
+        "url" => $companyUrl,
+        "telephone" => $companyPhone,
+        "email" => $companyEmail,
+        "address" => $addressSchema, // TOUJOURS inclure l'adresse pour éviter l'erreur
+        "priceRange" => "€€",
+        "image" => $logoUrl,
+        "logo" => $logoUrl  // Logo pour affichage dans Google (requis pour favicon dans résultats)
+    ];
+    
+    // Ajouter les réseaux sociaux si disponibles
+    $sameAs = [];
+    if (setting('facebook_url')) $sameAs[] = setting('facebook_url');
+    if (setting('instagram_url')) $sameAs[] = setting('instagram_url');
+    if (setting('linkedin_url')) $sameAs[] = setting('linkedin_url');
+    if (!empty($sameAs)) {
+        $organizationSchema["sameAs"] = $sameAs;
+    }
+    
+    // Ajouter les reviews directement dans l'organisation (fusion pour éviter les doublons)
+    if (!empty($reviewItems)) {
         $organizationSchema["aggregateRating"] = [
             "@type" => "AggregateRating",
             "ratingValue" => number_format($averageRating, 1),
