@@ -104,6 +104,21 @@ class IndexationController extends Controller
         $isIndexJumpConfigured = $indexJumpService->isConfigured();
         $indexJumpToken = Setting::get('indexjump_token', '3d93dd2657466b97a401e540aaf9c72e');
         
+        // Récupérer le solde IndexJump (mettre en cache pour éviter trop de requêtes)
+        $indexJumpBalance = null;
+        if ($isIndexJumpConfigured) {
+            try {
+                // Utiliser le cache pour éviter trop de requêtes API
+                $balanceCacheKey = 'indexjump_balance_' . md5($indexJumpToken);
+                $indexJumpBalance = \Cache::remember($balanceCacheKey, 300, function () use ($indexJumpService) {
+                    $result = $indexJumpService->getBalance();
+                    return $result['success'] ? $result['balance'] : null;
+                });
+            } catch (\Exception $e) {
+                \Log::warning('Impossible de récupérer le solde IndexJump: ' . $e->getMessage());
+            }
+        }
+        
         return view('admin.indexation.index', compact(
             'indexationConfig', 
             'googleCredentialsArray', 
@@ -115,7 +130,8 @@ class IndexationController extends Controller
             'dailyStats',
             'indexedCount',
             'isIndexJumpConfigured',
-            'indexJumpToken'
+            'indexJumpToken',
+            'indexJumpBalance'
         ));
     }
 
