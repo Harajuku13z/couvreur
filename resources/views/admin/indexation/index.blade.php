@@ -352,15 +352,17 @@
                 @endif
 
                 <!-- Actions -->
-                <div class="mt-4 flex items-center space-x-2">
-                    <button type="button" 
-                            onclick="resetIndexedUrls()" 
-                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                        <i class="fas fa-redo mr-2"></i>Réinitialiser la liste
-                    </button>
-                    <p class="text-xs text-gray-500">
-                        💡 La tâche s'exécute automatiquement chaque jour à 2h du matin si activée
-                    </p>
+                <div class="mt-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <button type="button" 
+                                onclick="resetIndexedUrls()" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-redo mr-2"></i>Réinitialiser la liste des URLs indexées
+                        </button>
+                        <p class="text-xs text-gray-500">
+                            💡 La tâche s'exécute automatiquement chaque jour à 2h du matin si activée (150 liens/jour)
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
