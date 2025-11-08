@@ -70,11 +70,68 @@ class GroqQuotationService
         // Valider et normaliser les lignes
         $validatedLines = $this->validateAndNormalizeLines($lines, $prixFinalEstime);
 
+        // Ajouter les lignes standard à la fin
+        $standardLines = $this->getStandardLines($prixFinalEstime, count($validatedLines));
+        $validatedLines = array_merge($validatedLines, $standardLines);
+
         Log::info('GroqQuotationService: Lignes générées avec succès', [
             'count' => count($validatedLines),
+            'standard_lines' => count($standardLines),
         ]);
 
         return $validatedLines;
+    }
+
+    /**
+     * Obtenir les lignes standard à ajouter à tous les devis
+     */
+    private function getStandardLines(?float $prixFinalEstime, int $existingLinesCount): array
+    {
+        $standardLines = [
+            [
+                'description' => 'Nettoyage et remise en état du chantier - Chantier rendu propre',
+                'quantite' => 1,
+                'unite' => 'lot',
+                'prix_unitaire' => 150.00,
+                'total_ligne' => 150.00,
+                'ordre' => $existingLinesCount + 1,
+            ],
+            [
+                'description' => 'Évacuation des déchets et gravats vers déchetterie agréée',
+                'quantite' => 1,
+                'unite' => 'lot',
+                'prix_unitaire' => 200.00,
+                'total_ligne' => 200.00,
+                'ordre' => $existingLinesCount + 2,
+            ],
+            [
+                'description' => 'Assurance décennale et garantie de parfait achèvement',
+                'quantite' => 1,
+                'unite' => 'lot',
+                'prix_unitaire' => 0.00, // Inclus dans le devis
+                'total_ligne' => 0.00,
+                'ordre' => $existingLinesCount + 3,
+            ],
+        ];
+
+        // Si un prix final est fourni, ajuster les lignes standard proportionnellement
+        // mais garder un montant raisonnable (max 5% du total)
+        if ($prixFinalEstime && $prixFinalEstime > 0) {
+            $maxStandardAmount = $prixFinalEstime * 0.05; // 5% max pour les lignes standard
+            $currentStandardAmount = 350.00; // 150 + 200
+            
+            if ($currentStandardAmount > $maxStandardAmount) {
+                $ratio = $maxStandardAmount / $currentStandardAmount;
+                foreach ($standardLines as &$line) {
+                    if ($line['prix_unitaire'] > 0) {
+                        $line['prix_unitaire'] = round($line['prix_unitaire'] * $ratio, 2);
+                        $line['total_ligne'] = round($line['quantite'] * $line['prix_unitaire'], 2);
+                    }
+                }
+            }
+        }
+
+        return $standardLines;
     }
 
     /**
@@ -85,7 +142,8 @@ class GroqQuotationService
         ?string $superficie,
         ?float $prixFinalEstime
     ): string {
-        $prompt = "Description du Client : \"$description\"\n\n";
+        $prompt = "Tu es un expert en chiffrage de travaux de rénovation et bâtiment en France.\n\n";
+        $prompt .= "Description du Client : \"$description\"\n\n";
 
         if ($superficie) {
             $prompt .= "Superficie Totale : \"$superficie\"\n";
@@ -95,6 +153,14 @@ class GroqQuotationService
             $prompt .= "Prix Final Estimé (Global) : \"$prixFinalEstime EUR\"\n";
         }
 
+        $prompt .= "\nINSTRUCTIONS IMPORTANTES :\n";
+        $prompt .= "1. Décompose les travaux en lignes détaillées et professionnelles\n";
+        $prompt .= "2. Chaque description doit être précise, technique et professionnelle (ex: \"Fourniture et pose de tuiles en terre cuite modèle XX avec liteaux neufs\" plutôt que \"Pose tuiles\")\n";
+        $prompt .= "3. Utilise un vocabulaire professionnel du bâtiment (fourniture, pose, dépose, mise en œuvre, etc.)\n";
+        $prompt .= "4. Inclus les détails techniques importants (matériaux, dimensions, finitions)\n";
+        $prompt .= "5. Les quantités doivent être réalistes et précises\n";
+        $prompt .= "6. Les prix unitaires doivent correspondre aux tarifs du marché français en 2025\n";
+        
         $prompt .= "\nContrainte : ";
         
         if ($prixFinalEstime) {
@@ -104,13 +170,19 @@ class GroqQuotationService
             }
             $prompt .= ".";
         } else {
-            $prompt .= "Génère des prix unitaires réalistes pour le marché français.";
+            $prompt .= "Génère des prix unitaires réalistes pour le marché français du bâtiment en 2025.";
         }
+
+        $prompt .= "\n\nEXEMPLES DE BONNES DESCRIPTIONS :\n";
+        $prompt .= "- \"Dépose et mise en décharge des anciennes tuiles et éléments de zinguerie existants\"\n";
+        $prompt .= "- \"Fourniture et pose de tuiles en terre cuite (modèle XX) avec liteaux neufs et fixation mécanique\"\n";
+        $prompt .= "- \"Isolation de la toiture par l'extérieur (Sarking) avec panneaux isolants haute performance 140mm\"\n";
+        $prompt .= "- \"Fourniture et installation de fenêtre de toit Velux standard 114x118 avec finition intérieure\"\n";
 
         $prompt .= "\n\nIMPORTANT : Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après. Format attendu :\n";
         $prompt .= "[\n";
-        $prompt .= "  {\"description\": \"...\", \"quantite\": 150, \"unite\": \"m²\", \"prix_unitaire\": 15},\n";
-        $prompt .= "  {\"description\": \"...\", \"quantite\": 2, \"unite\": \"unité\", \"prix_unitaire\": 1200}\n";
+        $prompt .= "  {\"description\": \"Description détaillée et professionnelle\", \"quantite\": 150, \"unite\": \"m²\", \"prix_unitaire\": 15},\n";
+        $prompt .= "  {\"description\": \"Autre description détaillée\", \"quantite\": 2, \"unite\": \"unité\", \"prix_unitaire\": 1200}\n";
         $prompt .= "]";
 
         return $prompt;

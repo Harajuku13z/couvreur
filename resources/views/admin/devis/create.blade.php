@@ -98,11 +98,23 @@
             <div id="lignes-container" class="space-y-4">
                 <!-- Les lignes seront ajoutées ici dynamiquement -->
             </div>
-            <button type="button" 
-                    onclick="addLigne()" 
-                    class="mt-4 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                <i class="fas fa-plus mr-2"></i>Ajouter une ligne
-            </button>
+            <div class="mt-4 flex gap-2">
+                <button type="button" 
+                        onclick="addLigne()" 
+                        class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                    <i class="fas fa-plus mr-2"></i>Ajouter une ligne
+                </button>
+                <button type="button" 
+                        onclick="addStandardLines()" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                        title="Ajouter les lignes standard (nettoyage, évacuation, assurance)">
+                    <i class="fas fa-magic mr-2"></i>Ajouter lignes standard
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">
+                <i class="fas fa-info-circle mr-1"></i>
+                Les lignes standard (nettoyage, évacuation, assurance) sont automatiquement ajoutées lors de la génération IA.
+            </p>
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -271,9 +283,38 @@ async function generateLinesWithAI() {
     }
 }
 
+// Ajouter les lignes standard
+function addStandardLines() {
+    const standardLines = [
+        {
+            description: 'Nettoyage et remise en état du chantier - Chantier rendu propre',
+            quantite: 1,
+            unite: 'lot',
+            prix_unitaire: 150.00
+        },
+        {
+            description: 'Évacuation des déchets et gravats vers déchetterie agréée',
+            quantite: 1,
+            unite: 'lot',
+            prix_unitaire: 200.00
+        },
+        {
+            description: 'Assurance décennale et garantie de parfait achèvement',
+            quantite: 1,
+            unite: 'lot',
+            prix_unitaire: 0.00
+        }
+    ];
+    
+    standardLines.forEach(ligne => {
+        addLigne(ligne);
+    });
+}
+
 // Ajouter une ligne vide au chargement
 document.addEventListener('DOMContentLoaded', function() {
-    addLigne();
+    // Ne pas ajouter de ligne vide si on vient de générer avec l'IA
+    // Les lignes standard seront ajoutées automatiquement par l'IA
 });
 </script>
 @endpush
