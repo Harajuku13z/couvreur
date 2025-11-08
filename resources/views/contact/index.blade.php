@@ -19,6 +19,18 @@
         justify-content: center;
     }
     
+    .contact-hero h1,
+    .contact-hero p,
+    .contact-hero a:not(.bg-white) {
+        color: white !important;
+    }
+    
+    .contact-hero .fas,
+    .contact-hero .fab,
+    .contact-hero i {
+        color: white !important;
+    }
+    
     @if($contactHeroImage)
     .contact-hero {
         background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset($contactHeroImage) }}');
@@ -43,8 +55,8 @@
     <!-- Hero Section -->
     <section class="contact-hero text-white py-20">
         <div class="container mx-auto px-4 text-center relative z-10">
-            <h1 class="text-4xl md:text-6xl font-bold mb-4">Contactez-nous</h1>
-            <p class="text-xl md:text-2xl max-w-3xl mx-auto mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4" style="color: white;">Contactez-nous</h1>
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto mb-8" style="color: white;">
                 Une question ? Un projet ? Notre équipe est à votre écoute pour vous accompagner
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -54,9 +66,10 @@
                     Demander un devis gratuit
                 </a>
                 <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
-                   class="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   class="bg-white/20 backdrop-blur-sm px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   style="color: white;"
                    onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
-                    <i class="fas fa-phone mr-2"></i>
+                    <i class="fas fa-phone mr-2" style="color: white;"></i>
                     {{ $companySettings['phone'] }}
                 </a>
             </div>
@@ -143,10 +156,10 @@
                 
                 <!-- CTA vers simulateur -->
                 <div class="mt-8 p-6 bg-gradient-to-r from-primary to-secondary rounded-xl">
-                    <h3 class="text-xl font-bold mb-3 text-white">
+                    <h3 class="text-xl font-bold mb-3" style="color: white;">
                         <i class="fas fa-calculator mr-2"></i>Besoin d'un devis ?
                     </h3>
-                    <p class="mb-4 text-white opacity-90">
+                    <p class="mb-4 opacity-90" style="color: white;">
                         Utilisez notre simulateur pour obtenir un devis personnalisé en quelques minutes
                     </p>
                     <a href="{{ route('form.step', 'propertyType') }}" 
