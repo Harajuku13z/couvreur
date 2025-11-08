@@ -20,10 +20,11 @@ return new class extends Migration
             $table->string('ip_address')->nullable();
             
             // Colonnes ajoutées directement ici pour éviter les migrations qui échouent
-            $table->string('city')->nullable()->after('ip_address');
-            $table->string('country')->nullable()->after('city');
-            $table->string('country_code', 10)->nullable()->after('country');
-            $table->text('referrer_url')->nullable()->after('country_code');
+            // Note: ->after() ne fonctionne pas dans Schema::create(), seulement dans Schema::table()
+            $table->string('city')->nullable();
+            $table->string('country')->nullable();
+            $table->string('country_code', 10)->nullable();
+            $table->text('referrer_url')->nullable();
             
             $table->text('user_agent')->nullable();
             $table->timestamp('clicked_at');

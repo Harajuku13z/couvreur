@@ -17,14 +17,15 @@ return new class extends Migration
             $table->string('user_identifier')->nullable();
             
             // Tracking fields (ajoutés directement ici pour éviter les migrations qui échouent)
-            $table->string('ip_address', 45)->nullable()->after('user_identifier');
-            $table->string('city')->nullable()->after('ip_address');
-            $table->string('country')->nullable()->after('city');
-            $table->string('country_code', 2)->nullable()->after('country');
-            $table->text('referrer_url')->nullable()->after('country_code');
-            $table->text('user_agent')->nullable()->after('referrer_url');
-            $table->decimal('recaptcha_score', 3, 2)->nullable()->after('user_agent');
-            $table->json('tracking_data')->nullable()->after('recaptcha_score');
+            // Note: ->after() ne fonctionne pas dans Schema::create(), seulement dans Schema::table()
+            $table->string('ip_address', 45)->nullable();
+            $table->string('city')->nullable();
+            $table->string('country')->nullable();
+            $table->string('country_code', 2)->nullable();
+            $table->text('referrer_url')->nullable();
+            $table->text('user_agent')->nullable();
+            $table->decimal('recaptcha_score', 3, 2)->nullable();
+            $table->json('tracking_data')->nullable();
             
             $table->enum('status', ['IN_PROGRESS', 'COMPLETED', 'ABANDONED'])->default('IN_PROGRESS');
             $table->string('current_step')->nullable();
