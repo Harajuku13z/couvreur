@@ -60,11 +60,25 @@ class IndexationController extends Controller
             if ($filename === 'sitemap_index.xml') {
                 continue;
             }
+            
+            // Compter le nombre d'URLs dans le sitemap
+            $urlsCount = 0;
+            try {
+                $xml = file_get_contents($file);
+                $xmlObj = simplexml_load_string($xml);
+                if ($xmlObj && isset($xmlObj->url)) {
+                    $urlsCount = count($xmlObj->url);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Impossible de compter les URLs dans le sitemap: ' . $e->getMessage());
+            }
+            
             $sitemapInfo[] = [
                 'filename' => $filename,
                 'url' => url($filename),
                 'size' => filesize($file),
-                'last_modified' => filemtime($file)
+                'last_modified' => filemtime($file),
+                'urls_count' => $urlsCount
             ];
         }
         

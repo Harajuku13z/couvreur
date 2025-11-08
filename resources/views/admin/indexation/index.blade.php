@@ -378,7 +378,14 @@
                         <p class="font-medium">{{ $sitemap['filename'] }}</p>
                         <p class="text-sm text-gray-600">
                             {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
+                            @if(isset($sitemap['urls_count']))
+                                <span class="font-semibold text-blue-600">{{ $sitemap['urls_count'] }} URLs</span> - 
+                            @endif
                             Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Maximum 2000 URLs par sitemap (limite Google)
                         </p>
                     </div>
                     <div class="flex items-center space-x-2">
