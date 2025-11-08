@@ -139,6 +139,7 @@ Route::middleware(['check.setup'])->group(function () {
     })->name('devis.gratuit');
     Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
+    Route::get('/contact/success', [App\Http\Controllers\ContactController::class, 'success'])->name('contact.success');
     // Route de succès AVANT les routes avec paramètres
     Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
     // Route pour tous les avis

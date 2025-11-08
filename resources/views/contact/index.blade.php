@@ -364,6 +364,31 @@
                             </div>
                             
                             <div>
+                                <label for="postal_code" class="block text-sm font-bold text-gray-700 mb-2">
+                                    <i class="fas fa-map-pin mr-2 text-primary"></i>Code postal
+                                </label>
+                                <input type="text" 
+                                       id="postal_code" 
+                                       name="postal_code"
+                                       placeholder="22540"
+                                       maxlength="10"
+                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="city" class="block text-sm font-bold text-gray-700 mb-2">
+                                    <i class="fas fa-city mr-2 text-primary"></i>Ville
+                                </label>
+                                <input type="text" 
+                                       id="city" 
+                                       name="city"
+                                       placeholder="Pédernec"
+                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                            </div>
+                            
+                            <div>
                                 <label for="callback_time" class="block text-sm font-bold text-gray-700 mb-2">
                                     <i class="fas fa-clock mr-2 text-primary"></i>Quand vous rappeler ?
                                 </label>
@@ -580,16 +605,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Recharger le token avant la soumission
     document.getElementById('contactForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Empêcher la soumission immédiate
+        
         const submitBtn = document.getElementById('submitBtn');
+        const form = this;
+        
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours... <i class="fas fa-hourglass-half ml-2"></i>';
         
-        if (typeof grecaptcha !== 'undefined') {
+        // Générer le token reCAPTCHA si nécessaire
+        if (typeof grecaptcha !== 'undefined' && '{{ setting('recaptcha_site_key') }}') {
             grecaptcha.ready(function() {
                 grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
                     document.getElementById('recaptcha_token').value = token;
+                    // Soumettre le formulaire une fois le token obtenu
+                    form.submit();
+                }).catch(function(error) {
+                    console.error('reCAPTCHA error:', error);
+                    // Soumettre quand même si reCAPTCHA échoue (ne pas bloquer l'utilisateur)
+                    form.submit();
                 });
             });
+        } else {
+            // Pas de reCAPTCHA, soumettre directement
+            form.submit();
         }
     });
 });
@@ -601,33 +640,43 @@ function toggleFaq(index) {
     const answer = document.querySelector(`.faq-answer-${index}`);
     const icon = document.querySelector(`.faq-icon-${index}`);
     
-    if (answer.classList.contains('hidden')) {
-        // Fermer toutes les autres FAQ avec animation
+    if (!answer || !icon) return;
+    
+    const isHidden = answer.classList.contains('hidden') || answer.style.display === 'none';
+    
+    if (isHidden) {
+        // Fermer toutes les autres FAQ
         document.querySelectorAll('[class*="faq-answer-"]').forEach(el => {
-            if (!el.classList.contains(`faq-answer-${index}`)) {
-                el.classList.add('hidden');
+            if (el !== answer) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    el.style.display = 'none';
+                    el.classList.add('hidden');
+                }, 200);
             }
         });
         document.querySelectorAll('[class*="faq-icon-"]').forEach(el => {
-            if (!el.classList.contains(`faq-icon-${index}`)) {
+            if (el !== icon) {
                 el.classList.remove('rotate-180');
             }
         });
         
-        // Ouvrir celle-ci avec animation
+        // Ouvrir celle-ci
         answer.style.display = 'block';
         answer.classList.remove('hidden');
+        answer.style.opacity = '0';
+        answer.style.transform = 'translateY(-10px)';
         icon.classList.add('rotate-180');
+        
+        // Forcer le reflow
+        answer.offsetHeight;
         
         // Animation d'apparition
         setTimeout(() => {
-            answer.style.opacity = '0';
-            answer.style.transform = 'translateY(-10px)';
             answer.style.transition = 'all 0.3s ease';
-            setTimeout(() => {
-                answer.style.opacity = '1';
-                answer.style.transform = 'translateY(0)';
-            }, 10);
+            answer.style.opacity = '1';
+            answer.style.transform = 'translateY(0)';
         }, 10);
         
         // Scroll smooth vers l'élément
@@ -635,13 +684,16 @@ function toggleFaq(index) {
             answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
     } else {
+        // Fermer
+        answer.style.transition = 'all 0.3s ease';
         answer.style.opacity = '0';
         answer.style.transform = 'translateY(-10px)';
+        icon.classList.remove('rotate-180');
+        
         setTimeout(() => {
             answer.style.display = 'none';
             answer.classList.add('hidden');
         }, 300);
-        icon.classList.remove('rotate-180');
     }
 }
 

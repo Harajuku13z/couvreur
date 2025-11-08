@@ -57,6 +57,18 @@
                                         </td>
                                     </tr>
                                     @endif
+                                    @if(isset($data['postal_code']) && $data['postal_code'])
+                                    <tr>
+                                        <td style="color: #666666; font-size: 14px; padding: 8px 0;"><strong>Code postal :</strong></td>
+                                        <td style="color: #333333; font-size: 14px; padding: 8px 0;">{{ $data['postal_code'] }}</td>
+                                    </tr>
+                                    @endif
+                                    @if(isset($data['city']) && $data['city'])
+                                    <tr>
+                                        <td style="color: #666666; font-size: 14px; padding: 8px 0;"><strong>Ville :</strong></td>
+                                        <td style="color: #333333; font-size: 14px; padding: 8px 0;">{{ $data['city'] }}</td>
+                                    </tr>
+                                    @endif
                                     @if(isset($data['callback_time']) && $data['callback_time'])
                                     <tr>
                                         <td style="color: #666666; font-size: 14px; padding: 8px 0;"><strong>Quand rappeler :</strong></td>

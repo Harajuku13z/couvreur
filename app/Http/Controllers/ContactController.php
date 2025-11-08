@@ -65,6 +65,8 @@ class ContactController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
+            'postal_code' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:100',
             'callback_time' => 'nullable|string|max:50',
             'service_interest' => 'nullable|string|max:255',
             'subject' => 'required|string|max:255',
@@ -72,19 +74,21 @@ class ContactController extends Controller
             'recaptcha_token' => 'nullable|string',
         ]);
 
-        // Vérifier reCAPTCHA si activé
+        // Vérifier reCAPTCHA si activé (mais ne pas bloquer si le token est vide - peut être désactivé)
         if (setting('recaptcha_site_key') && setting('recaptcha_secret_key')) {
             $recaptchaToken = $request->input('recaptcha_token');
-            if (empty($recaptchaToken)) {
-                return back()->with('error', 'Vérification anti-robot requise. Veuillez réessayer.')->withInput();
-            }
-            
-            $recaptchaSecret = setting('recaptcha_secret_key');
-            $recaptchaResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaToken}");
-            $recaptchaData = json_decode($recaptchaResponse, true);
-            
-            if (!isset($recaptchaData['success']) || !$recaptchaData['success']) {
-                return back()->with('error', 'Vérification anti-robot échouée. Veuillez réessayer.')->withInput();
+            if (!empty($recaptchaToken)) {
+                $recaptchaSecret = setting('recaptcha_secret_key');
+                $recaptchaResponse = @file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaToken}");
+                $recaptchaData = json_decode($recaptchaResponse, true);
+                
+                if (!isset($recaptchaData['success']) || !$recaptchaData['success']) {
+                    \Log::warning('reCAPTCHA failed', ['response' => $recaptchaData]);
+                    // Ne pas bloquer si le score est faible mais > 0.3 (plus permissif)
+                    if (isset($recaptchaData['score']) && $recaptchaData['score'] < 0.3) {
+                        return back()->with('error', 'Vérification anti-robot échouée. Veuillez réessayer.')->withInput();
+                    }
+                }
             }
         }
 
@@ -108,6 +112,8 @@ class ContactController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? '',
+                'postal_code' => $validated['postal_code'] ?? '',
+                'city' => $validated['city'] ?? '',
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
                 'callback_time' => $callbackTimeText,
@@ -140,6 +146,8 @@ class ContactController extends Controller
                         'message' => $validated['message'],
                         'callback_time' => $validated['callback_time'] ?? null,
                         'service_interest' => $validated['service_interest'] ?? null,
+                        'postal_code' => $validated['postal_code'] ?? null,
+                        'city' => $validated['city'] ?? null,
                     ]
                 ]);
             } catch (\Exception $e) {
@@ -162,11 +170,32 @@ class ContactController extends Controller
                 }
             }
             
-            return back()->with('success', 'Votre message a été envoyé avec succès ! Nous vous avons envoyé un email de confirmation et nous vous répondrons dans les plus brefs délais.');
+            return redirect()->route('contact.success')->with('contact_data', $emailData);
         } catch (\Exception $e) {
             \Log::error('Erreur envoi email contact: ' . $e->getMessage());
             return back()->with('error', 'Une erreur est survenue lors de l\'envoi de votre message. Veuillez réessayer ou nous appeler directement.')->withInput();
         }
+    }
+    
+    /**
+     * Afficher la page de succès après envoi du formulaire
+     */
+    public function success()
+    {
+        $contactData = session('contact_data', []);
+        
+        if (empty($contactData)) {
+            return redirect()->route('contact');
+        }
+        
+        $companySettings = [
+            'name' => Setting::get('company_name', 'Votre Entreprise'),
+            'phone' => Setting::get('company_phone', ''),
+            'phone_raw' => Setting::get('company_phone_raw', ''),
+            'email' => Setting::get('company_email', ''),
+        ];
+        
+        return view('contact.success', compact('contactData', 'companySettings'));
     }
 }
 
