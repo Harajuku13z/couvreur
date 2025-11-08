@@ -382,31 +382,21 @@ class SeoController extends Controller
      */
     public function generateSitemap()
     {
-        $seoConfigData = Setting::get('seo_config', '[]');
-        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        // NE PAS régénérer à chaque requête - juste servir le fichier existant
+        // La régénération doit être faite manuellement via sitemap:reset ou l'interface admin
+        $sitemapPath = public_path('sitemap.xml');
         
-        // Valeurs par défaut pour le sitemap - FORCER L'ACTIVATION
-        $defaults = [
-            'sitemap_enabled' => true,
-            'sitemap_priority' => 0.8,
-            'sitemap_changefreq' => 'weekly'
-        ];
-        
-        $seoConfig = array_merge($defaults, $seoConfig);
-        
-        // Vérifier si le sitemap est activé
-        if (!$seoConfig['sitemap_enabled']) {
-            return response('Sitemap désactivé', 404);
+        if (file_exists($sitemapPath)) {
+            $content = file_get_contents($sitemapPath);
+            return response($content, 200)->header('Content-Type', 'application/xml');
         }
         
-        // Utiliser le service de sitemap
+        // Si le fichier n'existe pas, le générer une seule fois
         try {
             $sitemapService = new SitemapService();
-            $sitemapService->generateSitemap();
+            $result = $sitemapService->generateSitemap();
             
-            // Lire le fichier généré
-            $sitemapPath = public_path('sitemap.xml');
-            if (file_exists($sitemapPath)) {
+            if ($result['success'] && file_exists($sitemapPath)) {
                 $content = file_get_contents($sitemapPath);
                 return response($content, 200)->header('Content-Type', 'application/xml');
             } else {
