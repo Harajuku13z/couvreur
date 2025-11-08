@@ -273,6 +273,20 @@ class IndexationController extends Controller
             
             Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
             Setting::clearCache(); // Vider le cache pour que les nouvelles credentials soient prises en compte
+            
+            // Vérifier immédiatement si la configuration est correcte
+            try {
+                $googleService = new GoogleSearchConsoleService();
+                $isConfigured = $googleService->isConfigured();
+                
+                if ($isConfigured) {
+                    \Log::info('✅ Google Search Console configuré avec succès après sauvegarde');
+                } else {
+                    \Log::warning('⚠️ Google Search Console non configuré après sauvegarde - vérifiez le format des credentials');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de la vérification de la configuration Google Search Console: ' . $e->getMessage());
+            }
         }
         
         // Sauvegarder l'URL du site
