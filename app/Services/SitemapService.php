@@ -29,12 +29,11 @@ class SitemapService
                     $siteUrl = $settingUrl;
                 }
             } else if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') !== false) {
-                // Si l'ancienne URL est trouvée, la corriger automatiquement
-                \Log::warning('⚠️ Ancienne URL sausercouverture.fr détectée dans site_url, correction automatique...');
+                // Si l'ancienne URL est trouvée, utiliser la bonne URL SANS modifier le setting
+                // (pour éviter de modifier le setting à chaque instanciation)
+                // La correction du setting doit être faite manuellement via la commande sitemap:reset
+                \Log::warning('⚠️ Ancienne URL sausercouverture.fr détectée dans site_url, utilisation de la bonne URL (sans modification du setting)');
                 $siteUrl = 'https://normesrenovationbretagne.fr';
-                // Mettre à jour le setting
-                Setting::set('site_url', $siteUrl, 'string', 'seo');
-                Setting::clearCache();
             }
         } catch (\Exception $e) {
             // Si la base de données n'est pas accessible, ignorer et continuer
