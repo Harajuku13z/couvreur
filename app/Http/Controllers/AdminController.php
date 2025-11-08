@@ -208,40 +208,60 @@ class AdminController extends Controller
 
     public function submissions(Request $request)
     {
-        // Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
-        $this->markOldSubmissionsAsAbandoned();
+        try {
+            // Marquer automatiquement les submissions en cours depuis plus de 3h comme abandonnées
+            $this->markOldSubmissionsAsAbandoned();
 
-        $query = Submission::query();
+            $query = Submission::query();
 
-        // Filtres
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            // Filtres
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            $submissions = $query->orderBy('created_at', 'desc')->paginate(20);
+            
+            // Compter les leads abandonnés pour afficher dans la page
+            $abandonedCount = Submission::abandoned()->count();
+            
+            // Log pour debug
+            \Log::info('Récupération des soumissions', [
+                'total' => $submissions->total(),
+                'count' => $submissions->count(),
+                'status_filter' => $request->status ?? 'all'
+            ]);
+
+            return view('admin.submissions', compact('submissions', 'abandonedCount'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des soumissions', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Retourner une vue vide en cas d'erreur
+            $submissions = collect([])->paginate(20);
+            $abandonedCount = 0;
+            return view('admin.submissions', compact('submissions', 'abandonedCount'))
+                ->with('error', 'Erreur lors du chargement des soumissions. Vérifiez les logs pour plus de détails.');
         }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        $submissions = $query->orderBy('created_at', 'desc')->paginate(20);
-        
-        // Compter les leads abandonnés pour afficher dans la page
-        $abandonedCount = Submission::abandoned()->count();
-
-        return view('admin.submissions', compact('submissions', 'abandonedCount'));
     }
 
     public function abandonedSubmissions(Request $request)

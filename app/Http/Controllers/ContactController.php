@@ -127,7 +127,7 @@ class ContactController extends Controller
                 $firstName = $nameParts[0] ?? $validated['name'];
                 $lastName = $nameParts[1] ?? '';
                 
-                $submission = Submission::create([
+                $submissionData = [
                     'session_id' => session()->getId(),
                     'first_name' => $firstName,
                     'last_name' => $lastName,
@@ -135,8 +135,8 @@ class ContactController extends Controller
                     'phone' => $validated['phone'] ?? null,
                     'property_type' => null,
                     'surface' => null,
-                    'postal_code' => $validated['postal_code'] ?? null,  // Corrigé : utiliser la valeur du formulaire
-                    'city' => $validated['city'] ?? null,  // Ajouté : sauvegarder la ville
+                    'postal_code' => $validated['postal_code'] ?? null,
+                    'city' => $validated['city'] ?? null,
                     'status' => 'COMPLETED',
                     'completed_at' => now(),
                     'ip_address' => $request->ip(),
@@ -150,9 +150,26 @@ class ContactController extends Controller
                         'postal_code' => $validated['postal_code'] ?? null,
                         'city' => $validated['city'] ?? null,
                     ]
+                ];
+                
+                \Log::info('Création d\'une soumission depuis le formulaire de contact', [
+                    'email' => $validated['email'],
+                    'name' => $validated['name']
+                ]);
+                
+                $submission = Submission::create($submissionData);
+                
+                \Log::info('Soumission créée avec succès', [
+                    'submission_id' => $submission->id,
+                    'email' => $submission->email
                 ]);
             } catch (\Exception $e) {
-                \Log::warning('Impossible de créer le submission: ' . $e->getMessage());
+                \Log::error('Erreur lors de la création du submission depuis le formulaire de contact', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'email' => $validated['email'] ?? 'N/A',
+                    'name' => $validated['name'] ?? 'N/A'
+                ]);
             }
             
             // Envoyer l'email de confirmation à l'utilisateur
