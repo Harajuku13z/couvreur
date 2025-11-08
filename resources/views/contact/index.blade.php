@@ -700,6 +700,15 @@ function toggleFaq(index) {
     }
 }
 
+// S'assurer que toutes les FAQ sont fermées au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[class*="faq-answer-"]').forEach(answer => {
+        answer.style.display = 'none';
+        answer.classList.add('hidden');
+        answer.style.opacity = '0';
+    });
+});
+
 // Recherche dans les FAQ avec mise en évidence
 document.getElementById('faqSearch')?.addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
