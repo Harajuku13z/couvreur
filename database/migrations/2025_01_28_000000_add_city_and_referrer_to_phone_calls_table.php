@@ -11,11 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Vérifier si la table existe avant de la modifier
+        if (!Schema::hasTable('phone_calls')) {
+            // Si la table n'existe pas, les colonnes seront créées dans la migration de création
+            return;
+        }
+        
         Schema::table('phone_calls', function (Blueprint $table) {
-            $table->string('city')->nullable()->after('ip_address');
-            $table->string('country')->nullable()->after('city');
-            $table->string('country_code', 10)->nullable()->after('country');
-            $table->text('referrer_url')->nullable()->after('country_code');
+            // Vérifier si les colonnes existent déjà avant de les ajouter
+            if (!Schema::hasColumn('phone_calls', 'city')) {
+                $table->string('city')->nullable()->after('ip_address');
+            }
+            if (!Schema::hasColumn('phone_calls', 'country')) {
+                $table->string('country')->nullable()->after('city');
+            }
+            if (!Schema::hasColumn('phone_calls', 'country_code')) {
+                $table->string('country_code', 10)->nullable()->after('country');
+            }
+            if (!Schema::hasColumn('phone_calls', 'referrer_url')) {
+                $table->text('referrer_url')->nullable()->after('country_code');
+            }
         });
     }
 

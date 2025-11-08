@@ -18,6 +18,13 @@ return new class extends Migration
             $table->string('phone_number');
             $table->string('source_page'); // Page où le clic a eu lieu (home, success, etc.)
             $table->string('ip_address')->nullable();
+            
+            // Colonnes ajoutées directement ici pour éviter les migrations qui échouent
+            $table->string('city')->nullable()->after('ip_address');
+            $table->string('country')->nullable()->after('city');
+            $table->string('country_code', 10)->nullable()->after('country');
+            $table->text('referrer_url')->nullable()->after('country_code');
+            
             $table->text('user_agent')->nullable();
             $table->timestamp('clicked_at');
             $table->timestamps();
