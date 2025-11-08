@@ -18,6 +18,10 @@ class VisitsController extends Controller
         try {
             $days = request()->input('days', 30);
             $showAll = request()->input('all', false); // Paramètre pour afficher tous les pays
+            // Convertir en booléen si c'est une chaîne
+            if (is_string($showAll)) {
+                $showAll = in_array(strtolower($showAll), ['1', 'true', 'yes', 'on']);
+            }
             $period = now()->subDays($days);
             
             // Récupérer les visites depuis la base de données

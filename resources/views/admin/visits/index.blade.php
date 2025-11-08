@@ -22,7 +22,7 @@
                 <i class="fas fa-globe mr-2"></i>Tous les visiteurs
             </a>
             @endif
-            <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg">
+            <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="changePeriod()">
                 <option value="7" {{ ($days ?? 30) == 7 ? 'selected' : '' }}>7 derniers jours</option>
                 <option value="30" {{ ($days ?? 30) == 30 ? 'selected' : '' }}>30 derniers jours</option>
                 <option value="90" {{ ($days ?? 30) == 90 ? 'selected' : '' }}>90 derniers jours</option>
@@ -306,6 +306,14 @@ function initChart() {
             }
         }
     });
+}
+
+function changePeriod() {
+    const days = document.getElementById('periodSelect').value;
+    const urlParams = new URLSearchParams(window.location.search);
+    const allParam = urlParams.get('all');
+    const url = '{{ route("admin.visits") }}?days=' + days + (allParam ? '&all=1' : '');
+    window.location.href = url;
 }
 
 function refreshData() {
