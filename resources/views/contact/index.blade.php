@@ -642,7 +642,10 @@ function toggleFaq(index) {
     
     if (!answer || !icon) return;
     
-    const isHidden = answer.classList.contains('hidden') || answer.style.display === 'none';
+    // Vérifier si l'élément est actuellement caché (plus robuste)
+    const isHidden = answer.classList.contains('hidden') || 
+                     answer.style.display === 'none' || 
+                     getComputedStyle(answer).display === 'none';
     
     if (isHidden) {
         // Fermer toutes les autres FAQ
@@ -663,14 +666,14 @@ function toggleFaq(index) {
         });
         
         // Ouvrir celle-ci
-        answer.style.display = 'block';
         answer.classList.remove('hidden');
+        answer.style.display = 'block';
         answer.style.opacity = '0';
         answer.style.transform = 'translateY(-10px)';
         icon.classList.add('rotate-180');
         
-        // Forcer le reflow
-        answer.offsetHeight;
+        // Forcer le reflow pour que l'animation fonctionne
+        void answer.offsetHeight;
         
         // Animation d'apparition
         setTimeout(() => {
