@@ -257,7 +257,22 @@ class IndexationController extends Controller
         // Sauvegarder les credentials Google Search Console
         if ($request->has('google_search_console_credentials')) {
             $credentials = $request->input('google_search_console_credentials');
+            
+            // Valider que c'est un JSON valide
+            if (!empty($credentials)) {
+                $decoded = json_decode($credentials, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return back()->with('error', 'Le JSON des credentials Google Search Console est invalide: ' . json_last_error_msg());
+                }
+                
+                // Vérifier que c'est bien un service account
+                if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
+                    return back()->with('error', 'Les credentials doivent être de type "service_account"');
+                }
+            }
+            
             Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
+            Setting::clearCache(); // Vider le cache pour que les nouvelles credentials soient prises en compte
         }
         
         // Sauvegarder l'URL du site

@@ -35,6 +35,17 @@ class GoogleSearchConsoleService
                 return false;
             }
 
+            // Vérifier que les credentials sont valides (doivent contenir au moins 'type' et 'project_id' ou 'client_email')
+            if (!isset($credentials['type'])) {
+                Log::error('Google Search Console: Format de credentials invalide (type manquant)');
+                return false;
+            }
+            
+            // Vérifier que c'est bien un service account
+            if ($credentials['type'] !== 'service_account') {
+                Log::warning('Google Search Console: Le type de credentials doit être "service_account"');
+            }
+
             $this->client = new Google_Client();
             $this->client->setAuthConfig($credentials);
             $this->client->addScope(SearchConsole::WEBMASTERS);
@@ -44,9 +55,12 @@ class GoogleSearchConsoleService
             $this->service = new SearchConsole($this->client);
             $this->indexingService = new Indexing($this->client);
             
+            Log::info('✅ Google Search Console client initialisé avec succès');
             return true;
         } catch (\Exception $e) {
-            Log::error('Erreur initialisation Google Search Console: ' . $e->getMessage());
+            Log::error('Erreur initialisation Google Search Console: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }
@@ -282,8 +296,24 @@ class GoogleSearchConsoleService
      */
     public function isConfigured()
     {
+        // Vérifier d'abord si les credentials existent
         $credentials = $this->getCredentials();
-        return !empty($credentials) && $this->indexingService !== null;
+        if (empty($credentials)) {
+            return false;
+        }
+        
+        // Si les credentials existent mais que le service n'est pas initialisé, essayer de l'initialiser
+        if ($this->indexingService === null || $this->client === null) {
+            Log::info('Réinitialisation du client Google Search Console...');
+            $initialized = $this->initializeClient();
+            if (!$initialized) {
+                Log::warning('Impossible d\'initialiser le client Google Search Console malgré la présence de credentials');
+                return false;
+            }
+        }
+        
+        // Vérifier que le service est bien initialisé
+        return $this->indexingService !== null && $this->client !== null;
     }
 
     /**
