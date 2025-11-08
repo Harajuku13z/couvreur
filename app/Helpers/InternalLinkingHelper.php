@@ -51,12 +51,51 @@ class InternalLinkingHelper
             if ($linkCount >= $maxLinks) break;
             
             // Éviter de lier si déjà dans un lien
-            $pattern = '/(?<!<a[^>]*>)\b' . preg_quote($keyword, '/') . '\b(?!<\/a>)/i';
+            // Utiliser une approche simple : remplacer le texte qui n'est pas déjà dans une balise <a>
+            $escapedKeyword = preg_quote($keyword, '/');
             
+            // Pattern simple pour trouver le mot-clé
+            $pattern = '/\b' . $escapedKeyword . '\b/i';
+            
+            // Vérifier d'abord si le mot-clé existe
             if (preg_match($pattern, $content)) {
-                $replacement = '<a href="' . $url . '" class="text-primary hover:underline font-semibold">' . $keyword . '</a>';
-                $content = preg_replace($pattern, $replacement, $content, 1);
-                $linkCount++;
+                // Extraire toutes les positions du mot-clé
+                $matches = [];
+                preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
+                
+                foreach ($matches[0] as $match) {
+                    $position = $match[1];
+                    $matchLength = strlen($match[0]);
+                    
+                    // Extraire le contexte avant et après pour vérifier si on est dans un lien
+                    $contextBefore = substr($content, max(0, $position - 500), 500);
+                    $contextAfter = substr($content, $position, 500);
+                    
+                    // Trouver la dernière balise <a> ouvrante avant notre position
+                    $lastOpenTagPos = strrpos($contextBefore, '<a');
+                    $lastCloseTagPos = strrpos($contextBefore, '</a>');
+                    
+                    // Si on trouve un <a> ouvert (après le dernier </a>), on est probablement dans un lien
+                    $isInLink = false;
+                    if ($lastOpenTagPos !== false) {
+                        // Vérifier si le <a> est après le dernier </a> (ou s'il n'y a pas de </a>)
+                        if ($lastCloseTagPos === false || $lastOpenTagPos > $lastCloseTagPos) {
+                            // On est dans un <a>, vérifier qu'il se ferme après notre position
+                            $closeAfterPos = strpos($contextAfter, '</a>');
+                            if ($closeAfterPos !== false) {
+                                $isInLink = true;
+                            }
+                        }
+                    }
+                    
+                    // Si on n'est pas dans un lien, on peut créer le lien
+                    if (!$isInLink) {
+                        $replacement = '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" class="text-primary hover:underline font-semibold">' . htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') . '</a>';
+                        $content = substr_replace($content, $replacement, $position, $matchLength);
+                        $linkCount++;
+                        break; // On ne remplace que la première occurrence valide
+                    }
+                }
             }
         }
         
