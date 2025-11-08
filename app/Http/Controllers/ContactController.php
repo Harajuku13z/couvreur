@@ -114,23 +114,33 @@ class ContactController extends Controller
                 'service_interest' => $validated['service_interest'] ?? ''
             ];
             
-            // Créer un lead/submission avec status "completed"
+            // Créer un lead/submission avec status "COMPLETED"
             try {
+                // Extraire prénom et nom depuis le nom complet
+                $nameParts = explode(' ', $validated['name'], 2);
+                $firstName = $nameParts[0] ?? $validated['name'];
+                $lastName = $nameParts[1] ?? '';
+                
                 $submission = Submission::create([
                     'session_id' => session()->getId(),
-                    'name' => $validated['name'],
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'email' => $validated['email'],
                     'phone' => $validated['phone'] ?? null,
                     'property_type' => null,
                     'surface' => null,
-                    'work_type' => $validated['service_interest'] ?? null,
                     'postal_code' => null,
-                    'status' => 'completed',
-                    'submitted_at' => now(),
-                    'callback_time' => $validated['callback_time'] ?? null,
-                    'service_interest' => $validated['service_interest'] ?? null,
-                    'message' => $validated['message'],
-                    'subject' => $validated['subject']
+                    'status' => 'COMPLETED',
+                    'completed_at' => now(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'referrer_url' => $request->header('referer'),
+                    'form_data' => [
+                        'subject' => $validated['subject'],
+                        'message' => $validated['message'],
+                        'callback_time' => $validated['callback_time'] ?? null,
+                        'service_interest' => $validated['service_interest'] ?? null,
+                    ]
                 ]);
             } catch (\Exception $e) {
                 \Log::warning('Impossible de créer le submission: ' . $e->getMessage());

@@ -247,7 +247,7 @@
                         
                         <!-- Téléphone -->
                         @if($companySettings['phone'])
-                        <div class="contact-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-phone-alt text-2xl" style="color: white;"></i>
                             </div>
@@ -268,7 +268,7 @@
                         
                         <!-- Email -->
                         @if($companySettings['email'])
-                        <div class="contact-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-envelope text-2xl" style="color: white;"></i>
                             </div>
