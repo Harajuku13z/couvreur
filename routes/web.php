@@ -209,6 +209,9 @@ Route::middleware(['check.setup'])->group(function () {
                 Route::get('/{id}/edit', [DevisController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [DevisController::class, 'update'])->name('update');
                 Route::post('/{id}/validate', [DevisController::class, 'validate'])->name('validate');
+                Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
+                Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
+                Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
                 Route::delete('/{id}', [DevisController::class, 'destroy'])->name('destroy');
             });
             

@@ -9,7 +9,7 @@
         <a href="{{ route('admin.devis.index') }}" class="text-blue-600 hover:text-blue-900">
             <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
         </a>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
             @if($devis->statut === 'En Attente')
             <form action="{{ route('admin.devis.validate', $devis->id) }}" method="POST" class="inline">
                 @csrf
@@ -24,6 +24,55 @@
                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                 <i class="fas fa-edit mr-2"></i>Modifier
             </a>
+        </div>
+    </div>
+
+    @if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ session('error') }}
+    </div>
+    @endif
+
+    <!-- Actions PDF et Envoi -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 class="font-semibold mb-4">Actions</h3>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ route('admin.devis.pdf', $devis->id) }}" 
+               target="_blank"
+               class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-file-pdf mr-2"></i>Voir le PDF
+            </a>
+            <a href="{{ route('admin.devis.download-pdf', $devis->id) }}" 
+               class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-download mr-2"></i>Télécharger le PDF
+            </a>
+            @if($devis->client->email)
+            <form action="{{ route('admin.devis.send-email', $devis->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" 
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                        onclick="return confirm('Envoyer le devis par email à {{ $devis->client->email }} ?')">
+                    <i class="fas fa-envelope mr-2"></i>Envoyer par email
+                </button>
+            </form>
+            <a href="mailto:{{ $devis->client->email }}?subject=Devis {{ $devis->numero }}&body=Bonjour,%0D%0A%0D%0AVeuillez trouver ci-joint notre devis {{ $devis->numero }}.%0D%0A%0D%0ACordialement" 
+               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-envelope-open-text mr-2"></i>Écrire un email
+            </a>
+            @endif
+            @if($devis->client->telephone)
+            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $devis->client->telephone) }}?text={{ urlencode('Bonjour, voici votre devis ' . $devis->numero . ' : ' . url(route('admin.devis.pdf', $devis->id))) }}" 
+               target="_blank"
+               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                <i class="fab fa-whatsapp mr-2"></i>Envoyer sur WhatsApp
+            </a>
+            @endif
         </div>
     </div>
 

@@ -207,6 +207,95 @@ class DevisController extends Controller
     }
 
     /**
+     * Générer et voir le PDF du devis
+     */
+    public function pdf($id)
+    {
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            $pdfService = new \App\Services\PdfService();
+            
+            // Générer le PDF s'il n'existe pas
+            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+                $pdfService->generateDevisPdf($devis);
+                $devis->refresh();
+            }
+            
+            $pdfPath = \Storage::disk('local')->path($devis->pdf_path);
+            
+            return response()->file($pdfPath, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur génération PDF devis', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Télécharger le PDF du devis
+     */
+    public function downloadPdf($id)
+    {
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            $pdfService = new \App\Services\PdfService();
+            
+            // Générer le PDF s'il n'existe pas
+            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+                $pdfService->generateDevisPdf($devis);
+                $devis->refresh();
+            }
+            
+            return \Storage::disk('local')->download($devis->pdf_path, 'Devis_' . $devis->numero . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Erreur téléchargement PDF devis', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors du téléchargement du PDF : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoyer le devis par email
+     */
+    public function sendEmail($id)
+    {
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            
+            if (!$devis->client->email) {
+                return back()->with('error', 'Le client n\'a pas d\'adresse email.');
+            }
+            
+            $pdfService = new \App\Services\PdfService();
+            
+            // Générer le PDF s'il n'existe pas
+            if (!$devis->pdf_path || !\Storage::disk('local')->exists($devis->pdf_path)) {
+                $pdfService->generateDevisPdf($devis);
+                $devis->refresh();
+            }
+            
+            \Mail::to($devis->client->email)->send(new \App\Mail\DevisSent($devis));
+            
+            return back()->with('success', 'Devis envoyé par email avec succès à ' . $devis->client->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur envoi email devis', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors de l\'envoi de l\'email : ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Formulaire d'édition
      */
     public function edit($id)
