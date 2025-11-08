@@ -17,13 +17,36 @@ class VisitsController extends Controller
     {
         try {
             $days = request()->input('days', 30);
+            $showAll = request()->input('all', false); // Paramètre pour afficher tous les pays
             $period = now()->subDays($days);
             
             // Récupérer les visites depuis la base de données
-            $visits = \App\Models\Visit::excludeBots()
+            $query = \App\Models\Visit::excludeBots()
+                ->where('visited_at', '>=', $period);
+            
+            // Filtrer par pays (France) par défaut, sauf si "all" est activé
+            if (!$showAll) {
+                $query->where(function($q) {
+                    $q->where('country', 'France')
+                      ->orWhere('country', 'FR')
+                      ->orWhere('country_code', 'FR')
+                      ->orWhereNull('country'); // Inclure les visites sans pays défini
+                });
+            }
+            
+            $visits = $query->orderBy('visited_at', 'desc')->get();
+            
+            // Calculer le total pour la France uniquement (même si on affiche tous les pays)
+            $franceVisits = \App\Models\Visit::excludeBots()
                 ->where('visited_at', '>=', $period)
-                ->orderBy('visited_at', 'desc')
+                ->where(function($q) {
+                    $q->where('country', 'France')
+                      ->orWhere('country', 'FR')
+                      ->orWhere('country_code', 'FR');
+                })
                 ->get();
+            
+            $totalFranceVisitors = $franceVisits->pluck('session_id')->unique()->count();
             
             // Statistiques globales
             $totalVisits = $visits->count();
@@ -118,9 +141,11 @@ class VisitsController extends Controller
                     'totalVisitors' => $uniqueVisitors,
                     'totalPageViews' => $totalVisits,
                     'uniquePages' => $uniquePages,
-                    'avgPagesPerVisitor' => $uniqueVisitors > 0 ? round($totalVisits / $uniqueVisitors, 2) : 0
+                    'avgPagesPerVisitor' => $uniqueVisitors > 0 ? round($totalVisits / $uniqueVisitors, 2) : 0,
+                    'totalFranceVisitors' => $totalFranceVisitors
                 ],
-                'days' => $days
+                'days' => $days,
+                'showAll' => $showAll
             ];
             
             return view('admin.visits.index', $data);

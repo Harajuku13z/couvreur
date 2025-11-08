@@ -11,17 +11,52 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">📊 Statistiques de Visites</h1>
         <div class="flex items-center space-x-4">
+            @if($showAll ?? false)
+            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}" 
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center">
+                <i class="fas fa-flag mr-2"></i>France uniquement
+            </a>
+            @else
+            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}&all=1" 
+               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition flex items-center">
+                <i class="fas fa-globe mr-2"></i>Tous les visiteurs
+            </a>
+            @endif
             <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg">
-                <option value="7">7 derniers jours</option>
-                <option value="30" selected>30 derniers jours</option>
-                <option value="90">90 derniers jours</option>
-                <option value="365">1 an</option>
+                <option value="7" {{ ($days ?? 30) == 7 ? 'selected' : '' }}>7 derniers jours</option>
+                <option value="30" {{ ($days ?? 30) == 30 ? 'selected' : '' }}>30 derniers jours</option>
+                <option value="90" {{ ($days ?? 30) == 90 ? 'selected' : '' }}>90 derniers jours</option>
+                <option value="365" {{ ($days ?? 30) == 365 ? 'selected' : '' }}>1 an</option>
             </select>
             <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
                 <i class="fas fa-sync-alt mr-2"></i>Actualiser
             </button>
         </div>
     </div>
+    
+    @if(!($showAll ?? false))
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-green-600 mr-3"></i>
+            <div>
+                <p class="text-sm text-green-800">
+                    <strong>Filtre actif : France uniquement</strong> - Affichage des statistiques pour les visiteurs de France uniquement.
+                </p>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-purple-600 mr-3"></i>
+            <div>
+                <p class="text-sm text-purple-800">
+                    <strong>Affichage : Tous les pays</strong> - Statistiques pour tous les visiteurs, toutes origines confondues.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
     
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div class="flex items-center">
@@ -52,8 +87,25 @@
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Visiteurs totaux</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ number_format($stats['totalVisitors']) }}</p>
+                    <p class="text-sm text-gray-600 mb-1">
+                        @if($showAll ?? false)
+                            Visiteurs totaux (tous pays)
+                        @else
+                            Visiteurs France
+                        @endif
+                    </p>
+                    <p class="text-3xl font-bold text-gray-900">
+                        @if($showAll ?? false)
+                            {{ number_format($stats['totalVisitors']) }}
+                        @else
+                            {{ number_format($stats['totalFranceVisitors'] ?? $stats['totalVisitors']) }}
+                        @endif
+                    </p>
+                    @if($showAll ?? false && isset($stats['totalFranceVisitors']))
+                    <p class="text-xs text-gray-500 mt-1">
+                        Dont {{ number_format($stats['totalFranceVisitors']) }} de France
+                    </p>
+                    @endif
                 </div>
                 <div class="bg-blue-100 rounded-full p-3">
                     <i class="fas fa-users text-blue-600 text-2xl"></i>
@@ -263,30 +315,13 @@ function refreshData() {
     button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Actualisation...';
     button.disabled = true;
     
-    fetch('{{ route("admin.visits.data") }}?days=' + days, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Recharger la page pour afficher les nouvelles données
-            window.location.reload();
-        } else {
-            alert('Erreur: ' + (data.error || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        alert('Erreur lors de l\'actualisation');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
+    // Conserver le paramètre "all" si présent
+    const urlParams = new URLSearchParams(window.location.search);
+    const allParam = urlParams.get('all');
+    const url = '{{ route("admin.visits") }}?days=' + days + (allParam ? '&all=1' : '');
+    
+    // Recharger la page avec les nouveaux paramètres
+    window.location.href = url;
 }
 
 // Initialiser le graphique au chargement
