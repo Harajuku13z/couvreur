@@ -20,13 +20,25 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        return Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
-            $setting = self::where('key', $key)->first();
-            if (!$setting) {
-                return $default;
-            }
-            return self::castValue($setting->value, $setting->type);
-        });
+        try {
+            return Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
+                try {
+                    $setting = self::where('key', $key)->first();
+                    if (!$setting) {
+                        return $default;
+                    }
+                    return self::castValue($setting->value, $setting->type);
+                } catch (\Exception $e) {
+                    // Si la base de données n'est pas accessible, retourner la valeur par défaut
+                    \Log::warning("Impossible d'accéder au setting '{$key}': " . $e->getMessage());
+                    return $default;
+                }
+            });
+        } catch (\Exception $e) {
+            // Si le cache n'est pas accessible (ex: cache DB), retourner la valeur par défaut
+            \Log::warning("Impossible d'accéder au cache pour le setting '{$key}': " . $e->getMessage());
+            return $default;
+        }
     }
 
     public static function set(string $key, mixed $value, string $type = 'string', string $group = 'general', ?string $description = null): void
@@ -45,14 +57,24 @@ class Setting extends Model
 
     public static function getGroup(string $group): array
     {
-        return Cache::remember("settings_group_{$group}", 3600, function () use ($group) {
-            $settings = self::where('group', $group)->get();
-            $result = [];
-            foreach ($settings as $setting) {
-                $result[$setting->key] = self::castValue($setting->value, $setting->type);
-            }
-            return $result;
-        });
+        try {
+            return Cache::remember("settings_group_{$group}", 3600, function () use ($group) {
+                try {
+                    $settings = self::where('group', $group)->get();
+                    $result = [];
+                    foreach ($settings as $setting) {
+                        $result[$setting->key] = self::castValue($setting->value, $setting->type);
+                    }
+                    return $result;
+                } catch (\Exception $e) {
+                    \Log::warning("Impossible d'accéder aux settings du groupe '{$group}': " . $e->getMessage());
+                    return [];
+                }
+            });
+        } catch (\Exception $e) {
+            \Log::warning("Impossible d'accéder au cache pour le groupe '{$group}': " . $e->getMessage());
+            return [];
+        }
     }
 
     public static function getAll(): array

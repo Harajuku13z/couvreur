@@ -19,9 +19,15 @@ class SitemapService
         $siteUrl = null;
         
         // 1. Vérifier le setting (mais forcer normesrenovationbretagne.fr si c'est l'ancien)
-        $settingUrl = Setting::get('site_url', null);
-        if (!empty($settingUrl) && strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
-            $siteUrl = $settingUrl;
+        // Utiliser try-catch pour éviter les erreurs si la base de données n'est pas accessible
+        try {
+            $settingUrl = Setting::get('site_url', null);
+            if (!empty($settingUrl) && strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
+                $siteUrl = $settingUrl;
+            }
+        } catch (\Exception $e) {
+            // Si la base de données n'est pas accessible, ignorer et continuer
+            \Log::warning('Impossible d\'accéder au setting site_url: ' . $e->getMessage());
         }
         
         // 2. Vérifier APP_URL depuis .env
@@ -46,8 +52,12 @@ class SitemapService
         // S'assurer que l'URL ne se termine pas par /
         $this->baseUrl = rtrim($siteUrl, '/');
         
-        // Log pour debug
-        \Log::info("🔗 SitemapService baseUrl: {$this->baseUrl}");
+        // Log pour debug (seulement si pas d'erreur)
+        try {
+            \Log::info("🔗 SitemapService baseUrl: {$this->baseUrl}");
+        } catch (\Exception $e) {
+            // Ignorer les erreurs de log
+        }
     }
 
     /**

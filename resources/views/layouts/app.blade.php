@@ -315,12 +315,11 @@
     <!-- Articles CSS (critique, chargé en premier) -->
     <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
     
-    <!-- Font Awesome (déferré pour ne pas bloquer le rendu) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Tailwind CSS (déferré pour ne pas bloquer le rendu) -->
-    <script src="https://cdn.tailwindcss.com" defer></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         :root {
