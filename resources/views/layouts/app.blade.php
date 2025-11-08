@@ -467,7 +467,7 @@
     <script>
         window.Laravel = {
             csrfToken: '{{ csrf_token() }}',
-            defaultPhone: '{{ setting("company_phone_raw") }}'
+            defaultPhone: '{{ @setting("company_phone_raw", "") }}'
             };
     </script>
     <script src="{{ asset('js/phone-tracking.js') }}?v={{ time() }}"></script>
