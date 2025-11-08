@@ -246,17 +246,11 @@
         @if($companySettings['tva'])
         <div class="footer-info">TVA intracommunautaire : {{ $companySettings['tva'] }}</div>
         @endif
-        @if($companySettings['director'])
-        <div class="footer-info">Directeur de publication : {{ $companySettings['director'] }}</div>
-        @endif
         @if($companySettings['hosting_provider'])
         <div class="footer-info">Hébergeur : {{ $companySettings['hosting_provider'] }}</div>
         @endif
         <div style="margin-top: 10px; font-style: italic;">
             Ce devis est établi à titre informatif et n'engage pas l'entreprise tant qu'il n'a pas été accepté par le client.
-        </div>
-        <div style="margin-top: 8px;">
-            Assurance décennale en cours de validité.
         </div>
     </div>
 </body>
