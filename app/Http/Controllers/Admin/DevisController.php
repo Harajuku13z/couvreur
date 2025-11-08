@@ -217,30 +217,68 @@ class DevisController extends Controller
     {
         try {
             $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
-            $pdfService = new PdfService();
             
-            // Générer le PDF s'il n'existe pas
-            if (!$devis->pdf_path || !Storage::disk('local')->exists($devis->pdf_path)) {
+            // Vérifications préliminaires
+            if (!$devis->client) {
+                throw new \Exception('Le client associé au devis n\'existe pas.');
+            }
+            
+            if ($devis->lignesDevis->isEmpty()) {
+                throw new \Exception('Le devis n\'a pas de lignes. Impossible de générer le PDF.');
+            }
+            
+            // Essayer d'abord de récupérer le PDF existant
+            if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+                $pdfPath = Storage::disk('local')->path($devis->pdf_path);
+                if (file_exists($pdfPath)) {
+                    return response()->file($pdfPath, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
+                    ]);
+                }
+            }
+            
+            // Si le PDF n'existe pas, le générer directement sans le sauvegarder
+            // Méthode alternative plus robuste
+            try {
+                $devis->load(['client', 'lignesDevis']);
+                $companySettings = $this->getCompanySettings();
+                
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.devis', [
+                    'devis' => $devis,
+                    'companySettings' => $companySettings,
+                ]);
+                
+                $pdf->setPaper('a4', 'portrait');
+                $pdf->setOption('enable-local-file-access', true);
+                $pdf->setOption('isHtml5ParserEnabled', true);
+                $pdf->setOption('isRemoteEnabled', false);
+                
+                return $pdf->stream('Devis_' . $devis->numero . '.pdf');
+                
+            } catch (\Exception $pdfError) {
+                Log::error('Erreur génération PDF directe', [
+                    'error' => $pdfError->getMessage(),
+                    'trace' => $pdfError->getTraceAsString(),
+                    'devis_id' => $id,
+                ]);
+                
+                // Essayer avec le service
+                $pdfService = new PdfService();
                 $pdfService->generateDevisPdf($devis);
                 $devis->refresh();
+                
+                if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+                    $pdfPath = Storage::disk('local')->path($devis->pdf_path);
+                    return response()->file($pdfPath, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
+                    ]);
+                }
+                
+                throw $pdfError;
             }
             
-            // Vérifier que le fichier existe
-            if (!Storage::disk('local')->exists($devis->pdf_path)) {
-                throw new \Exception('Le fichier PDF n\'a pas pu être généré');
-            }
-            
-            $pdfPath = Storage::disk('local')->path($devis->pdf_path);
-            
-            // Vérifier que le fichier existe physiquement
-            if (!file_exists($pdfPath)) {
-                throw new \Exception('Le fichier PDF n\'existe pas sur le serveur');
-            }
-            
-            return response()->file($pdfPath, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
-            ]);
         } catch (\Exception $e) {
             Log::error('Erreur génération PDF devis', [
                 'error' => $e->getMessage(),
@@ -258,6 +296,23 @@ class DevisController extends Controller
             return redirect()->route('admin.devis.show', $id)
                 ->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Obtenir les paramètres de l'entreprise (méthode helper)
+     */
+    private function getCompanySettings(): array
+    {
+        return [
+            'name' => \App\Models\Setting::get('company_name', 'Votre Entreprise'),
+            'address' => \App\Models\Setting::get('company_address', ''),
+            'postal_code' => \App\Models\Setting::get('company_postal_code', ''),
+            'city' => \App\Models\Setting::get('company_city', ''),
+            'phone' => \App\Models\Setting::get('company_phone', ''),
+            'email' => \App\Models\Setting::get('company_email', ''),
+            'siret' => \App\Models\Setting::get('company_siret', ''),
+            'tva' => \App\Models\Setting::get('company_tva', ''),
+        ];
     }
 
     /**

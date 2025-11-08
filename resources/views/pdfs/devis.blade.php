@@ -97,8 +97,8 @@
             @endif
         </div>
         <div class="devis-info">
-            <div class="devis-number">DEVIS N° {{ $devis->numero }}</div>
-            <div>Date d'émission: {{ $devis->date_emission->format('d/m/Y') }}</div>
+            <div class="devis-number">DEVIS N° {{ $devis->numero ?? 'N/A' }}</div>
+            <div>Date d'émission: {{ $devis->date_emission ? $devis->date_emission->format('d/m/Y') : date('d/m/Y') }}</div>
             @if($devis->date_validite)
             <div>Valable jusqu'au: {{ $devis->date_validite->format('d/m/Y') }}</div>
             @endif
@@ -107,18 +107,22 @@
 
     <div class="section">
         <div class="section-title">Client</div>
-        <div><strong>{{ $devis->client->nom_complet }}</strong></div>
+        @if($devis->client)
+        <div><strong>{{ $devis->client->nom_complet ?? 'Client non renseigné' }}</strong></div>
         @if($devis->client->adresse)
         <div>{{ $devis->client->adresse }}</div>
         @endif
         @if($devis->client->code_postal || $devis->client->ville)
-        <div>{{ $devis->client->code_postal }} {{ $devis->client->ville }}</div>
+        <div>{{ trim(($devis->client->code_postal ?? '') . ' ' . ($devis->client->ville ?? '')) }}</div>
         @endif
         @if($devis->client->email)
         <div>Email: {{ $devis->client->email }}</div>
         @endif
         @if($devis->client->telephone)
         <div>Tél: {{ $devis->client->telephone }}</div>
+        @endif
+        @else
+        <div><strong>Client non renseigné</strong></div>
         @endif
     </div>
 
@@ -153,15 +157,15 @@
             <tfoot>
                 <tr class="total-row">
                     <td colspan="3" class="text-right">Total HT</td>
-                    <td class="text-right">{{ number_format($devis->total_ht, 2, ',', ' ') }} €</td>
+                    <td class="text-right">{{ number_format($devis->total_ht ?? 0, 2, ',', ' ') }} €</td>
                 </tr>
                 <tr>
-                    <td colspan="3" class="text-right">TVA ({{ $devis->taux_tva }}%)</td>
-                    <td class="text-right">{{ number_format($devis->total_ttc - $devis->total_ht, 2, ',', ' ') }} €</td>
+                    <td colspan="3" class="text-right">TVA ({{ $devis->taux_tva ?? 20 }}%)</td>
+                    <td class="text-right">{{ number_format(($devis->total_ttc ?? 0) - ($devis->total_ht ?? 0), 2, ',', ' ') }} €</td>
                 </tr>
                 <tr class="total-row">
                     <td colspan="3" class="text-right"><strong>TOTAL TTC</strong></td>
-                    <td class="text-right"><strong>{{ number_format($devis->total_ttc, 2, ',', ' ') }} €</strong></td>
+                    <td class="text-right"><strong>{{ number_format($devis->total_ttc ?? 0, 2, ',', ' ') }} €</strong></td>
                 </tr>
             </tfoot>
         </table>
