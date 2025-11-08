@@ -10,46 +10,46 @@
     <!-- Données structurées JSON-LD pour chaque offre d'emploi -->
     @foreach($jobs as $job)
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "JobPosting",
-        "title": "{{ $job['title'] }}",
-        "description": "{{ $job['description'] }}",
-        "identifier": {
-            "@type": "PropertyValue",
-            "name": "Normes Rénovation Bretagne",
-            "value": "{{ $job['id'] }}"
-        },
-        "datePosted": "{{ $job['datePosted'] }}",
-        "validThrough": "{{ $job['validThrough'] }}",
-        "employmentType": "{{ $job['employmentType'] }}",
-        "hiringOrganization": {
-            "@type": "Organization",
-            "name": "{{ $job['hiringOrganization']['name'] }}",
-            "sameAs": "{{ $job['hiringOrganization']['sameAs'] }}"
-        },
-        "jobLocation": {
-            "@type": "Place",
-            "address": {
-                "@type": "PostalAddress",
-                "addressLocality": "{{ $job['jobLocation']['address']['addressLocality'] }}",
-                "addressRegion": "{{ $job['jobLocation']['address']['addressRegion'] }}",
-                "addressCountry": "{{ $job['jobLocation']['address']['addressCountry'] }}"
-            }
-        },
-        "baseSalary": {
-            "@type": "MonetaryAmount",
-            "currency": "{{ $job['baseSalary']['currency'] }}",
-            "value": {
-                "@type": "QuantitativeValue",
-                "minValue": {{ $job['baseSalary']['value']['minValue'] }},
-                "maxValue": {{ $job['baseSalary']['value']['maxValue'] }},
-                "unitText": "MONTH"
-            }
-        },
-        "workHours": "{{ $job['workHours'] }}",
-        "qualifications": "{{ $job['qualifications'] }}"
-    }
+    {!! json_encode([
+        "@context" => "https://schema.org",
+        "@type" => "JobPosting",
+        "title" => $job['title'],
+        "description" => $job['description'],
+        "identifier" => [
+            "@type" => "PropertyValue",
+            "name" => "Normes Rénovation Bretagne",
+            "value" => (string)$job['id']
+        ],
+        "datePosted" => $job['datePosted'],
+        "validThrough" => $job['validThrough'],
+        "employmentType" => $job['employmentType'],
+        "hiringOrganization" => [
+            "@type" => "Organization",
+            "name" => $job['hiringOrganization']['name'],
+            "sameAs" => $job['hiringOrganization']['sameAs']
+        ],
+        "jobLocation" => [
+            "@type" => "Place",
+            "address" => [
+                "@type" => "PostalAddress",
+                "addressLocality" => $job['jobLocation']['address']['addressLocality'],
+                "addressRegion" => $job['jobLocation']['address']['addressRegion'],
+                "addressCountry" => $job['jobLocation']['address']['addressCountry']
+            ]
+        ],
+        "baseSalary" => [
+            "@type" => "MonetaryAmount",
+            "currency" => $job['baseSalary']['currency'],
+            "value" => [
+                "@type" => "QuantitativeValue",
+                "minValue" => $job['baseSalary']['value']['minValue'],
+                "maxValue" => $job['baseSalary']['value']['maxValue'],
+                "unitText" => "MONTH"
+            ]
+        ],
+        "workHours" => $job['workHours'],
+        "qualifications" => $job['qualifications']
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     @endforeach
     
@@ -212,7 +212,7 @@
                     <span>📅 Publié le {{ \Carbon\Carbon::parse($job['datePosted'])->format('d/m/Y') }}</span>
                 </div>
                 
-                <p class="job-description">{{ $job['description'] }}</p>
+                <p class="job-description">{!! nl2br(e($job['description'])) !!}</p>
                 
                 <div class="job-salary">
                     {{ number_format($job['baseSalary']['value']['minValue'], 0, ',', ' ') }}€ - {{ number_format($job['baseSalary']['value']['maxValue'], 0, ',', ' ') }}€ / mois
@@ -223,7 +223,7 @@
                     <p>{{ $job['workHours'] }}</p>
                     
                     <h3 style="margin-top: 15px;">Qualifications requises</h3>
-                    <p>{{ $job['qualifications'] }}</p>
+                    <p>{!! nl2br(e($job['qualifications'])) !!}</p>
                 </div>
             </article>
             @endforeach
