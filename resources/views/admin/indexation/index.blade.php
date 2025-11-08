@@ -1238,7 +1238,11 @@ function testSingleUrl() {
                     errorMsg += '\nRaison: ' + firstError.reason;
                 }
             }
-            showNotification(errorMsg, 'error');
+            // Afficher les instructions si présentes dans le message
+            if (data.message && data.message.includes('Solution')) {
+                errorMsg = '❌ ' + data.message;
+            }
+            showNotification(errorMsg.replace(/\n/g, '<br>'), 'error');
         }
     })
     .catch(error => {
