@@ -66,7 +66,7 @@ class VisitsController extends Controller
                     'visits' => $dayVisits->count(),
                     'visitors' => $dayVisits->pluck('session_id')->unique()->count()
                 ];
-            })->values();
+            })->sortBy('date')->values();
             
             // Top pages
             $topPages = $visits->groupBy('path')
@@ -196,7 +196,7 @@ class VisitsController extends Controller
                     'visitors' => $dayVisits->pluck('session_id')->unique()->count(),
                     'pageViews' => $dayVisits->count()
                 ];
-            })->values();
+            })->sortBy('date')->values();
             
             // Top pages
             $topPages = $visits->groupBy('path')
