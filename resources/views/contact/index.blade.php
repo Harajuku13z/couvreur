@@ -227,7 +227,7 @@
                     
                     <div class="space-y-6">
                         <!-- Adresse -->
-                        <div class="contact-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-map-marker-alt text-2xl" style="color: white;"></i>
                             </div>
@@ -311,8 +311,8 @@
             </div>
             
             <!-- Formulaire de contact - 3 colonnes -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
+            <div class="lg:col-span-3 form-section">
+                <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
                     <h2 class="text-4xl font-bold text-gray-800 mb-3">
                         <i class="fas fa-paper-plane mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
                         Envoyez un message
@@ -534,12 +534,12 @@
                             <i class="fas fa-comment-dots mr-3 text-primary"></i>
                             {{ $faq['question'] ?? '' }}
                         </span>
-                        <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
                             <i class="fas fa-chevron-down text-white faq-icon-{{ $index }} transition-transform duration-300"></i>
                         </div>
                     </button>
-                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none;">
-                        <div class="text-gray-600 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color); opacity: 0.3;">
+                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none; opacity: 0;">
+                        <div class="text-gray-700 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color);">
                             <i class="fas fa-reply mr-2" style="color: var(--primary-color);"></i>
                             {!! nl2br(e($faq['answer'] ?? '')) !!}
                         </div>
