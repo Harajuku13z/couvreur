@@ -28,7 +28,19 @@
 
     @if(session('error'))
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <i class="fas fa-exclamation-circle mr-2"></i>
         {{ session('error') }}
+    </div>
+    @endif
+
+    @if(session('bimi_error'))
+    <div class="bg-orange-100 border border-orange-400 text-orange-800 px-4 py-3 rounded mb-4">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <strong>Erreur upload logo BIMI :</strong> {{ session('bimi_error') }}
+        <p class="text-sm mt-2">
+            <i class="fas fa-info-circle mr-1"></i>
+            Vérifiez les logs Laravel pour plus de détails : <code>storage/logs/laravel.log</code>
+        </p>
     </div>
     @endif
 

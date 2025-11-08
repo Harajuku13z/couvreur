@@ -159,38 +159,106 @@ class SeoController extends Controller
         }
 
         // Gestion du logo BIMI
+        $bimiUploadError = null;
+        $bimiUploadSuccess = false;
+        
         if ($request->hasFile('bimi_logo')) {
-            $file = $request->file('bimi_logo');
-            // Créer le dossier logo s'il n'existe pas
-            $logoDir = public_path('logo');
-            if (!file_exists($logoDir)) {
-                mkdir($logoDir, 0755, true);
-            }
-            // Sauvegarder comme logo.svg (écraser l'ancien si existe)
-            $filename = 'logo.svg';
-            $targetPath = $logoDir . '/' . $filename;
-            
-            // Supprimer l'ancien fichier s'il existe
-            if (file_exists($targetPath)) {
-                unlink($targetPath);
-            }
-            
-            // Déplacer le nouveau fichier
-            $file->move($logoDir, $filename);
-            
-            // Vérifier que le fichier a bien été créé
-            if (file_exists($targetPath)) {
-                // Définir les permissions correctes (644 = rw-r--r--)
-                chmod($targetPath, 0644);
-                $config['bimi_logo'] = 'logo/' . $filename;
-                \Log::info('Logo BIMI uploadé avec succès', [
-                    'path' => 'logo/' . $filename,
-                    'size' => filesize($targetPath),
-                    'url' => asset('logo/' . $filename)
+            try {
+                $file = $request->file('bimi_logo');
+                
+                \Log::info('Tentative upload logo BIMI', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'is_valid' => $file->isValid(),
+                    'error' => $file->getError(),
                 ]);
-            } else {
-                \Log::error('Erreur lors de l\'upload du logo BIMI : fichier non créé');
+                
+                // Vérifier que le fichier est valide
+                if (!$file->isValid()) {
+                    $bimiUploadError = 'Fichier invalide. Erreur : ' . $file->getError();
+                    \Log::error('Logo BIMI invalide', ['error' => $file->getError()]);
+                } else {
+                    // Vérifier le type MIME
+                    $mimeType = $file->getMimeType();
+                    $allowedMimes = ['image/svg+xml', 'image/svg', 'text/xml', 'application/xml'];
+                    
+                    if (!in_array($mimeType, $allowedMimes)) {
+                        $bimiUploadError = 'Format de fichier invalide. Format reçu : ' . $mimeType . '. Format attendu : SVG (image/svg+xml)';
+                        \Log::error('Logo BIMI format invalide', ['mime_type' => $mimeType]);
+                    } else {
+                        // Créer le dossier logo s'il n'existe pas
+                        $logoDir = public_path('logo');
+                        if (!file_exists($logoDir)) {
+                            if (!mkdir($logoDir, 0755, true)) {
+                                $bimiUploadError = 'Impossible de créer le dossier logo. Vérifiez les permissions.';
+                                \Log::error('Impossible de créer le dossier logo', ['path' => $logoDir]);
+                            }
+                        }
+                        
+                        if (!$bimiUploadError) {
+                            // Vérifier que le dossier est accessible en écriture
+                            if (!is_writable($logoDir)) {
+                                $bimiUploadError = 'Le dossier logo n\'est pas accessible en écriture. Permissions : ' . substr(sprintf('%o', fileperms($logoDir)), -4);
+                                \Log::error('Dossier logo non accessible en écriture', ['path' => $logoDir, 'perms' => substr(sprintf('%o', fileperms($logoDir)), -4)]);
+                            } else {
+                                // Sauvegarder comme logo.svg (écraser l'ancien si existe)
+                                $filename = 'logo.svg';
+                                $targetPath = $logoDir . '/' . $filename;
+                                
+                                // Supprimer l'ancien fichier s'il existe
+                                if (file_exists($targetPath)) {
+                                    if (!unlink($targetPath)) {
+                                        $bimiUploadError = 'Impossible de supprimer l\'ancien logo. Vérifiez les permissions.';
+                                        \Log::error('Impossible de supprimer l\'ancien logo', ['path' => $targetPath]);
+                                    }
+                                }
+                                
+                                if (!$bimiUploadError) {
+                                    // Déplacer le nouveau fichier
+                                    try {
+                                        $file->move($logoDir, $filename);
+                                        
+                                        // Vérifier que le fichier a bien été créé
+                                        if (file_exists($targetPath)) {
+                                            // Définir les permissions correctes (644 = rw-r--r--)
+                                            chmod($targetPath, 0644);
+                                            $config['bimi_logo'] = 'logo/' . $filename;
+                                            $bimiUploadSuccess = true;
+                                            \Log::info('Logo BIMI uploadé avec succès', [
+                                                'path' => 'logo/' . $filename,
+                                                'size' => filesize($targetPath),
+                                                'url' => asset('logo/' . $filename),
+                                                'permissions' => substr(sprintf('%o', fileperms($targetPath)), -4)
+                                            ]);
+                                        } else {
+                                            $bimiUploadError = 'Le fichier n\'a pas été créé après le déplacement. Vérifiez les permissions du dossier.';
+                                            \Log::error('Logo BIMI non créé après déplacement', ['target_path' => $targetPath]);
+                                        }
+                                    } catch (\Exception $e) {
+                                        $bimiUploadError = 'Erreur lors du déplacement du fichier : ' . $e->getMessage();
+                                        \Log::error('Erreur déplacement logo BIMI', [
+                                            'error' => $e->getMessage(),
+                                            'trace' => $e->getTraceAsString()
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                $bimiUploadError = 'Erreur inattendue : ' . $e->getMessage();
+                \Log::error('Exception lors de l\'upload logo BIMI', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
             }
+        } else {
+            \Log::info('Aucun fichier logo BIMI dans la requête', [
+                'has_file' => $request->hasFile('bimi_logo'),
+                'all_files' => array_keys($request->allFiles())
+            ]);
         }
 
         // Apple Touch Icon est maintenant généré automatiquement depuis le favicon
@@ -225,11 +293,30 @@ class SeoController extends Controller
             
             \Log::info('SEO Config saved successfully');
             
-            return redirect()->route('admin.seo.index')->with('success', 'Configuration SEO sauvegardée avec succès !');
+            // Préparer le message de succès avec info sur le logo BIMI
+            $successMessage = 'Configuration SEO sauvegardée avec succès !';
+            if ($bimiUploadSuccess) {
+                $successMessage .= ' Logo BIMI uploadé avec succès.';
+            } elseif ($bimiUploadError) {
+                $successMessage .= ' ⚠️ Erreur logo BIMI : ' . $bimiUploadError;
+            }
+            
+            $redirect = redirect()->route('admin.seo.index')->with('success', $successMessage);
+            
+            // Ajouter un message d'erreur séparé si nécessaire
+            if ($bimiUploadError) {
+                $redirect->with('bimi_error', $bimiUploadError);
+            }
+            
+            return $redirect;
             
         } catch (\Exception $e) {
             \Log::error('SEO Config save error: ' . $e->getMessage());
-            return redirect()->route('admin.seo.index')->with('error', 'Erreur lors de la sauvegarde : ' . $e->getMessage());
+            $errorMessage = 'Erreur lors de la sauvegarde : ' . $e->getMessage();
+            if ($bimiUploadError) {
+                $errorMessage .= ' | Erreur logo BIMI : ' . $bimiUploadError;
+            }
+            return redirect()->route('admin.seo.index')->with('error', $errorMessage);
         }
     }
 
