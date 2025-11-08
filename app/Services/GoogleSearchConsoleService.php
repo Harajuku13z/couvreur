@@ -299,6 +299,23 @@ class GoogleSearchConsoleService
         // Vérifier d'abord si les credentials existent
         $credentials = $this->getCredentials();
         if (empty($credentials)) {
+            Log::debug('Google Search Console: Aucune credentials trouvée');
+            return false;
+        }
+        
+        // Vérifier que les credentials ont le format correct
+        if (!is_array($credentials)) {
+            Log::error('Google Search Console: Les credentials ne sont pas un tableau');
+            return false;
+        }
+        
+        if (!isset($credentials['type'])) {
+            Log::error('Google Search Console: Le type de credentials est manquant');
+            return false;
+        }
+        
+        if ($credentials['type'] !== 'service_account') {
+            Log::warning('Google Search Console: Le type de credentials n\'est pas "service_account" (type: ' . $credentials['type'] . ')');
             return false;
         }
         
@@ -313,7 +330,13 @@ class GoogleSearchConsoleService
         }
         
         // Vérifier que le service est bien initialisé
-        return $this->indexingService !== null && $this->client !== null;
+        $isConfigured = $this->indexingService !== null && $this->client !== null;
+        
+        if (!$isConfigured) {
+            Log::warning('Google Search Console: Le service n\'est pas initialisé (indexingService: ' . ($this->indexingService === null ? 'null' : 'ok') . ', client: ' . ($this->client === null ? 'null' : 'ok') . ')');
+        }
+        
+        return $isConfigured;
     }
 
     /**
