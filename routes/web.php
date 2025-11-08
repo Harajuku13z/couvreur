@@ -353,37 +353,53 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/reset-sitemaps', [App\Http\Controllers\IndexationController::class, 'resetSitemaps'])->name('reset-sitemaps');
     });
     
-    // Routes publiques SEO
-    Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'generateSitemap'])->name('sitemap.xml');
-    Route::get('/robots.txt', [App\Http\Controllers\SeoController::class, 'generateRobots'])->name('robots.txt');
-    
-    // Route pour servir le favicon.ico (pour Google)
+    // Route pour servir le favicon.ico (pour Google) - DOIT être avant les autres routes
     Route::get('/favicon.ico', function() {
+        // D'abord, vérifier si favicon.ico existe directement
+        $icoPath = public_path('favicon.ico');
+        if (file_exists($icoPath)) {
+            $mimeType = @mime_content_type($icoPath) ?: 'image/x-icon';
+            return response()->file($icoPath, ['Content-Type' => $mimeType]);
+        }
+        
+        // Sinon, chercher le favicon configuré
         $faviconPath = \App\Models\Setting::get('site_favicon');
         
         // Si un favicon est configuré, le servir
-        if ($faviconPath && file_exists(public_path($faviconPath))) {
+        if ($faviconPath) {
             $fullPath = public_path($faviconPath);
-            $mimeType = mime_content_type($fullPath);
-            return response()->file($fullPath, ['Content-Type' => $mimeType]);
+            if (file_exists($fullPath)) {
+                $mimeType = @mime_content_type($fullPath) ?: 'image/png';
+                return response()->file($fullPath, ['Content-Type' => $mimeType]);
+            }
         }
         
-        // Sinon, vérifier si favicon.ico existe directement
-        if (file_exists(public_path('favicon.ico'))) {
-            return response()->file(public_path('favicon.ico'), ['Content-Type' => 'image/x-icon']);
+        // Vérifier aussi dans seo_config
+        $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        if (!empty($seoConfig['favicon'])) {
+            $fullPath = public_path($seoConfig['favicon']);
+            if (file_exists($fullPath)) {
+                $mimeType = @mime_content_type($fullPath) ?: 'image/png';
+                return response()->file($fullPath, ['Content-Type' => $mimeType]);
+            }
         }
         
         // Fallback: chercher n'importe quel favicon dans public
         $faviconFiles = glob(public_path('favicon*'));
         if (!empty($faviconFiles)) {
             $faviconFile = $faviconFiles[0];
-            $mimeType = mime_content_type($faviconFile);
+            $mimeType = @mime_content_type($faviconFile) ?: 'image/png';
             return response()->file($faviconFile, ['Content-Type' => $mimeType]);
         }
         
         // Si aucun favicon trouvé, retourner 204 No Content (au lieu de 404)
         return response('', 204);
-    });
+    })->name('favicon.ico');
+    
+    // Routes publiques SEO
+    Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'generateSitemap'])->name('sitemap.xml');
+    Route::get('/robots.txt', [App\Http\Controllers\SeoController::class, 'generateRobots'])->name('robots.txt');
     Route::get('/manifest.json', [App\Http\Controllers\SeoController::class, 'generateManifest'])->name('manifest.json');
     
     // ===== PUBLIC PAGES =====
