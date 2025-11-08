@@ -646,7 +646,12 @@ class IndexationController extends Controller
     public function toggleDailyIndexing(Request $request)
     {
         try {
-            $enabled = $request->boolean('enabled', false);
+            // Récupérer enabled depuis le body JSON ou les paramètres
+            $enabled = $request->input('enabled', false);
+            if (is_string($enabled)) {
+                $enabled = $enabled === 'true' || $enabled === '1' || $enabled === 1;
+            }
+            $enabled = (bool) $enabled;
             Setting::set('daily_indexing_enabled', $enabled, 'boolean', 'seo');
             Setting::clearCache();
             
