@@ -285,8 +285,6 @@
     <!-- Favicon ICO (fallback pour anciens navigateurs) - UN SEUL -->
     @if(file_exists(public_path('favicon.ico')))
     <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
-    @elseif($faviconUrl)
-    <link rel="icon" href="{{ $faviconUrl }}{{ $faviconVersion }}" type="{{ $faviconType }}">
     @endif
     
     <!-- Apple Touch Icon (fallback si configuré séparément) -->
