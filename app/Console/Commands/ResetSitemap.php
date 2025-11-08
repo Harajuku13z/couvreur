@@ -60,21 +60,18 @@ class ResetSitemap extends Command
                 $this->info("ℹ️  Aucun sitemap à supprimer");
             }
             
-            // 2. FORCER la bonne URL
-            $this->info('🔗 Configuration de l\'URL du site...');
-            $siteUrl = 'https://normesrenovationbretagne.fr';
+            // 2. FORCER la bonne URL (utiliser la commande site-url:fix)
+            $this->info('🔗 Correction de l\'URL du site...');
+            $this->call('site-url:fix');
             
-            // Vérifier aussi depuis .env
-            $envUrl = config('app.url', null);
-            if (!empty($envUrl) && strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
-                if (!preg_match('/^https?:\/\//', $envUrl)) {
-                    $envUrl = 'https://' . $envUrl;
-                }
-                $siteUrl = rtrim($envUrl, '/');
+            // Récupérer l'URL corrigée
+            $siteUrl = Setting::get('site_url', 'https://normesrenovationbretagne.fr');
+            if (strpos($siteUrl, 'sausercouverture.fr') !== false) {
+                $this->error("❌ ERREUR: L'URL contient encore sausercouverture.fr après correction !");
+                $siteUrl = 'https://normesrenovationbretagne.fr';
+                Setting::set('site_url', $siteUrl, 'string', 'seo');
             }
             
-            // FORCER la mise à jour du setting
-            Setting::set('site_url', $siteUrl, 'string', 'seo');
             $this->line("   ✓ URL configurée: {$siteUrl}");
             Log::info("✅ site_url FORCÉ à: {$siteUrl}");
             
