@@ -1176,10 +1176,6 @@ function resetIndexedUrls() {
         console.error('Erreur:', error);
         showNotification('❌ Erreur lors de la réinitialisation: ' + error.message, 'error');
     })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de la réinitialisation: ' + error.message, 'error');
-    })
     .finally(() => {
         // S'assurer que le bouton est réactivé même en cas d'erreur
         const button = document.querySelector('[onclick="resetIndexedUrls()"]');
