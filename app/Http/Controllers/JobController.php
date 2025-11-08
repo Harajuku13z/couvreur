@@ -128,7 +128,7 @@ class JobController extends Controller
             ]
         ];
 
-            return view('jobs.index', compact('jobs'));
+        return view('jobs.index', compact('jobs'));
         } catch (\Exception $e) {
             \Log::error('Erreur JobController: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
