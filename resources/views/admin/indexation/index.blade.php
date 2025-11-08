@@ -8,6 +8,39 @@
         <h1 class="text-2xl font-bold">🔍 Indexation Google Search Console</h1>
     </div>
     
+    <!-- Section CTA Contact -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-xl p-8 mb-6 text-white">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex-1 text-center md:text-left">
+                <h2 class="text-3xl font-bold mb-3">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Prêt à Démarrer Votre Projet ?
+                </h2>
+                <p class="text-lg opacity-90 mb-4">
+                    Contactez-nous dès maintenant pour obtenir un devis personnalisé et gratuit
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{{ route('contact') }}" 
+                   class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Contact
+                </a>
+                <a href="{{ route('form.step', 'propertyType') }}" 
+                   class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center">
+                    <i class="fas fa-calculator mr-2"></i>
+                    Simulateur
+                </a>
+                <a href="tel:{{ setting('company_phone_raw', setting('company_phone', '')) }}" 
+                   class="bg-white text-green-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
+                   onclick="trackPhoneCall('{{ setting('company_phone_raw', setting('company_phone', '')) }}', 'indexation')">
+                    <i class="fas fa-phone mr-2"></i>
+                    Appeler
+                </a>
+            </div>
+        </div>
+    </div>
+    
     <!-- Informations sur les limites API -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4 text-blue-800">

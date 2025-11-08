@@ -385,7 +385,8 @@ class SeoController extends Controller
      */
     public function generateManifest()
     {
-        $seoConfig = Setting::get('seo_config', []);
+        $seoConfigData = Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
         $companyName = Setting::get('company_name', 'Votre Entreprise');
         
         $manifest = [
@@ -444,7 +445,10 @@ class SeoController extends Controller
             }
         }
 
-        return response()->json($manifest);
+        return response()->json($manifest, 200, [
+            'Content-Type' => 'application/json',
+            'Cache-Control' => 'public, max-age=3600'
+        ]);
     }
 
     /**

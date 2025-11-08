@@ -301,6 +301,12 @@
     <!-- Manifest pour PWA (aide Google à trouver les icônes) -->
     <link rel="manifest" href="{{ url('/manifest.json') }}">
     
+    <!-- Meta pour Web App -->
+    <meta name="application-name" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ Str::limit(setting('company_name', 'Votre Entreprise'), 12) }}">
+    
     @yield('head')
     
     <!-- Tailwind CSS -->
