@@ -210,20 +210,15 @@ class GenerateCompleteSitemap extends Command
         
         $xml .= '</urlset>';
         
-        // Sauvegarder le sitemap
-        $sitemapPath = public_path('sitemap.xml');
-        file_put_contents($sitemapPath, $xml);
+        // DÉSACTIVÉ : Cette commande entre en conflit avec SitemapService
+        // Utiliser 'sitemap:reset' à la place pour générer les sitemaps correctement
+        $this->warn("⚠️  Cette commande est désactivée car elle entre en conflit avec SitemapService.");
+        $this->warn("⚠️  Utilisez 'php artisan sitemap:reset --force' à la place.");
+        $this->warn("⚠️  SitemapService génère des sitemaps avec 2000 URLs par fichier.");
         
-        $this->info("✅ Sitemap complet généré avec succès : {$sitemapPath}");
-        $this->info("🌐 URL du sitemap : {$baseUrl}/sitemap.xml");
-        
-        // Compter les URLs
-        $lines = explode("\n", $xml);
-        $urlLines = array_filter($lines, function($line) {
-            return strpos($line, '<loc>') !== false;
-        });
-        
-        $this->info("📊 Total d'URLs : " . count($urlLines));
+        // NE PAS écraser sitemap.xml
+        // $sitemapPath = public_path('sitemap.xml');
+        // file_put_contents($sitemapPath, $xml);
         
         return 0;
     }

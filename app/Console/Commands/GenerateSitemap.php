@@ -150,12 +150,15 @@ class GenerateSitemap extends Command
             }
         }
         
-        // Sauvegarder le sitemap
-        $sitemapPath = public_path('sitemap.xml');
-        $sitemap->writeToFile($sitemapPath);
+        // DÉSACTIVÉ : Cette commande entre en conflit avec SitemapService
+        // Utiliser 'sitemap:reset' à la place pour générer les sitemaps correctement
+        $this->warn("⚠️  Cette commande est désactivée car elle entre en conflit avec SitemapService.");
+        $this->warn("⚠️  Utilisez 'php artisan sitemap:reset --force' à la place.");
+        $this->warn("⚠️  SitemapService génère des sitemaps avec 2000 URLs par fichier.");
         
-        $this->info("✅ Sitemap généré avec succès : {$sitemapPath}");
-        $this->info("🌐 URL du sitemap : {$baseUrl}/sitemap.xml");
+        // NE PAS écraser sitemap.xml
+        // $sitemapPath = public_path('sitemap.xml');
+        // $sitemap->writeToFile($sitemapPath);
         
         return 0;
     }
