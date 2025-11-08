@@ -40,8 +40,16 @@ class SeoHelper
         ];
         
         $seo = [];
-        foreach ($defaults as $key => $default) {
-            $seo[$key] = Setting::get("seo_page_{$pageName}_{$key}", $fallback[$key] ?? $default);
+        try {
+            foreach ($defaults as $key => $default) {
+                $seo[$key] = Setting::get("seo_page_{$pageName}_{$key}", $fallback[$key] ?? $default);
+            }
+        } catch (\Exception $e) {
+            // Si la base de données n'est pas accessible, utiliser les fallbacks
+            \Log::warning("Erreur lors de la récupération des SEO pour la page '{$pageName}': " . $e->getMessage());
+            foreach ($defaults as $key => $default) {
+                $seo[$key] = $fallback[$key] ?? $default;
+            }
         }
         
         return $seo;
@@ -52,14 +60,28 @@ class SeoHelper
      */
     public static function generateMetaTags($pageName, $customData = [])
     {
-        $seo = self::getPageSeo($pageName, $customData);
+        try {
+            $seo = self::getPageSeo($pageName, $customData);
+        } catch (\Exception $e) {
+            \Log::warning("Erreur lors de getPageSeo pour '{$pageName}': " . $e->getMessage());
+            $seo = [];
+        }
         
-        // Fallbacks par défaut robustes
-        $companyName = setting('company_name', 'Votre Entreprise');
-        $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
-        $companyDescription = setting('company_description', '');
-        $companyCity = setting('company_city', '');
-        $companyRegion = setting('company_region', '');
+        // Fallbacks par défaut robustes - avec protection try-catch
+        try {
+            $companyName = setting('company_name', 'Votre Entreprise');
+            $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
+            $companyDescription = setting('company_description', '');
+            $companyCity = setting('company_city', '');
+            $companyRegion = setting('company_region', '');
+        } catch (\Exception $e) {
+            \Log::warning("Erreur lors de la récupération des settings dans generateMetaTags: " . $e->getMessage());
+            $companyName = 'Votre Entreprise';
+            $companySpecialization = 'Travaux de Rénovation';
+            $companyDescription = '';
+            $companyCity = '';
+            $companyRegion = '';
+        }
         
         // Construire le titre par défaut selon le type de page
         $defaultTitle = self::getDefaultTitleForPage($pageName, $companyName, $companySpecialization, $companyCity);
@@ -245,9 +267,13 @@ class SeoHelper
     private static function getDefaultImage()
     {
         // Priorité: logo de l'entreprise > logo par défaut
-        $companyLogo = setting('company_logo');
-        if ($companyLogo && file_exists(public_path($companyLogo))) {
-            return url($companyLogo);
+        try {
+            $companyLogo = setting('company_logo');
+            if ($companyLogo && file_exists(public_path($companyLogo))) {
+                return url($companyLogo);
+            }
+        } catch (\Exception $e) {
+            // Ignorer l'erreur et continuer avec les logos par défaut
         }
         
         // Vérifier si le logo existe dans différents emplacements
