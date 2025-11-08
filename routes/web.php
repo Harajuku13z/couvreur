@@ -6,6 +6,10 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\ReviewsController;
+use App\Http\Controllers\Admin\DevisController;
+use App\Http\Controllers\Admin\FactureController;
+use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\QuotationStatsController;
 
 // Inclure les routes des avis
 require __DIR__.'/reviews.php';
@@ -182,6 +186,40 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
             Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
             Route::get('/visits/data', [App\Http\Controllers\VisitsController::class, 'getVisitsData'])->name('visits.data');
+            
+            // ===== DEVIS & FACTURATION =====
+            Route::prefix('quotations')->name('quotations.')->group(function () {
+                Route::get('/dashboard', [QuotationStatsController::class, 'dashboard'])->name('dashboard');
+            });
+            
+            // Clients
+            Route::prefix('clients')->name('clients.')->group(function () {
+                Route::get('/', [ClientController::class, 'index'])->name('index');
+                Route::post('/', [ClientController::class, 'store'])->name('store');
+                Route::get('/search', [ClientController::class, 'search'])->name('search');
+            });
+            
+            // Devis
+            Route::prefix('devis')->name('devis.')->group(function () {
+                Route::get('/', [DevisController::class, 'index'])->name('index');
+                Route::get('/create', [DevisController::class, 'create'])->name('create');
+                Route::post('/generate-lines', [DevisController::class, 'generateLines'])->name('generate-lines');
+                Route::post('/', [DevisController::class, 'store'])->name('store');
+                Route::get('/{id}', [DevisController::class, 'show'])->name('show');
+                Route::get('/{id}/edit', [DevisController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [DevisController::class, 'update'])->name('update');
+                Route::post('/{id}/validate', [DevisController::class, 'validate'])->name('validate');
+                Route::delete('/{id}', [DevisController::class, 'destroy'])->name('destroy');
+            });
+            
+            // Factures
+            Route::prefix('factures')->name('factures.')->group(function () {
+                Route::get('/', [FactureController::class, 'index'])->name('index');
+                Route::get('/{id}', [FactureController::class, 'show'])->name('show');
+                Route::post('/{id}/mark-paid', [FactureController::class, 'markAsPaid'])->name('mark-paid');
+                Route::delete('/{id}', [FactureController::class, 'destroy'])->name('destroy');
+            });
+            
             // ===== SETTINGS =====
             // Routes déplacées en dehors du groupe admin pour accès sans authentification
             // ===== ADS ADMIN =====

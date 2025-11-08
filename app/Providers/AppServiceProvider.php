@@ -47,5 +47,35 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             Log::error('Erreur lors de la configuration MySQL: ' . $e->getMessage());
         }
+
+        // Configurer dynamiquement le mailer SMTP depuis les settings
+        try {
+            if (class_exists('\App\Models\Setting')) {
+                $mailHost = \App\Models\Setting::get('mail_host');
+                $mailPort = \App\Models\Setting::get('mail_port', 587);
+                $mailEncryption = \App\Models\Setting::get('mail_encryption', 'tls');
+                $mailUsername = \App\Models\Setting::get('mail_username');
+                $mailPassword = \App\Models\Setting::get('mail_password');
+                $mailFromAddress = \App\Models\Setting::get('mail_from_address');
+                $mailFromName = \App\Models\Setting::get('mail_from_name');
+                $emailEnabled = \App\Models\Setting::get('email_enabled', false);
+
+                // Si la configuration email existe et est activée, utiliser SMTP
+                if ($emailEnabled && $mailHost && $mailUsername && $mailPassword) {
+                    config([
+                        'mail.default' => 'smtp',
+                        'mail.mailers.smtp.host' => $mailHost,
+                        'mail.mailers.smtp.port' => $mailPort,
+                        'mail.mailers.smtp.encryption' => $mailEncryption,
+                        'mail.mailers.smtp.username' => $mailUsername,
+                        'mail.mailers.smtp.password' => $mailPassword,
+                        'mail.from.address' => $mailFromAddress ?: env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                        'mail.from.name' => $mailFromName ?: env('MAIL_FROM_NAME', 'Example'),
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la configuration email: ' . $e->getMessage());
+        }
     }
 }
