@@ -784,12 +784,12 @@
                 </a>
                 <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}" 
                    class="text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                   style="background-color: var(--accent-color);"
+                   onmouseover="this.style.backgroundColor='var(--secondary-color)';"
+                   onmouseout="this.style.backgroundColor='var(--accent-color)';"
                    onclick="trackPhoneCall('{{ setting('company_phone_raw', setting('company_phone')) }}', 'home-cta')">
-                   style="background-color: var(--secondary-color);"
-                   onmouseover="this.style.backgroundColor='var(--accent-color)';"
-                   onmouseout="this.style.backgroundColor='var(--secondary-color)';">
                     <i class="fas fa-phone mr-2"></i>
-                    {{ setting('company_phone') }}
+                    Appeler
                 </a>
             </div>
         </div>
