@@ -104,7 +104,7 @@
                     <!-- Adresse -->
                     <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
                         <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-map-marker-alt text-xl"></i>
+                            <i class="fas fa-map-marker-alt text-xl" style="color: white;"></i>
                         </div>
                         <div>
                             <h3 class="font-semibold text-gray-800 mb-2 text-lg">Adresse</h3>
