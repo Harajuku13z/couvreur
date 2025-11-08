@@ -141,6 +141,16 @@
                     <td colspan="3" class="px-4 py-3 text-right font-bold text-lg">Total TTC</td>
                     <td class="px-4 py-3 text-right font-bold text-lg">{{ number_format($devis->total_ttc, 2, ',', ' ') }} €</td>
                 </tr>
+                @if($devis->acompte_pourcentage && $devis->acompte_pourcentage > 0)
+                <tr class="bg-blue-50">
+                    <td colspan="3" class="px-4 py-3 text-right font-semibold text-blue-800">Acompte ({{ $devis->acompte_pourcentage }}%)</td>
+                    <td class="px-4 py-3 text-right font-semibold text-blue-800">{{ number_format($devis->acompte_montant ?? 0, 2, ',', ' ') }} €</td>
+                </tr>
+                <tr class="bg-blue-50">
+                    <td colspan="3" class="px-4 py-3 text-right font-bold text-blue-900">Reste à payer</td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-900">{{ number_format($devis->reste_a_payer ?? $devis->total_ttc, 2, ',', ' ') }} €</td>
+                </tr>
+                @endif
             </tfoot>
         </table>
     </div>

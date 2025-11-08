@@ -219,7 +219,12 @@ Route::middleware(['check.setup'])->group(function () {
             Route::prefix('factures')->name('factures.')->group(function () {
                 Route::get('/', [FactureController::class, 'index'])->name('index');
                 Route::get('/{id}', [FactureController::class, 'show'])->name('show');
+                Route::get('/{id}/pdf', [FactureController::class, 'pdf'])->name('pdf');
+                Route::get('/{id}/download-pdf', [FactureController::class, 'downloadPdf'])->name('download-pdf');
+                Route::post('/{id}/send-email', [FactureController::class, 'sendEmail'])->name('send-email');
+                Route::post('/{id}/send-reminder', [FactureController::class, 'sendReminder'])->name('send-reminder');
                 Route::post('/{id}/mark-paid', [FactureController::class, 'markAsPaid'])->name('mark-paid');
+                Route::post('/{id}/record-payment', [FactureController::class, 'recordPayment'])->name('record-payment');
                 Route::delete('/{id}', [FactureController::class, 'destroy'])->name('destroy');
             });
             

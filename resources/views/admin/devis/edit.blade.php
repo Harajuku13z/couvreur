@@ -59,6 +59,7 @@
                            name="taux_tva"
                            value="{{ $devis->taux_tva }}"
                            step="0.01"
+                           onchange="calculateAcompte()"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                 </div>
                 <div>
@@ -68,6 +69,50 @@
                            name="date_validite"
                            value="{{ $devis->date_validite ? $devis->date_validite->format('Y-m-d') : '' }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+            </div>
+
+            <!-- Acompte -->
+            <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-md font-semibold mb-3 text-blue-800">💳 Acompte</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="acompte_pourcentage" class="block text-sm font-medium mb-2">Pourcentage d'acompte (%)</label>
+                        <input type="number" 
+                               id="acompte_pourcentage" 
+                               name="acompte_pourcentage"
+                               value="{{ $devis->acompte_pourcentage }}"
+                               step="0.01"
+                               min="0"
+                               max="100"
+                               onchange="calculateAcompte()"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <p class="text-xs text-gray-500 mt-1">Ex: 30 pour 30%</p>
+                    </div>
+                    <div>
+                        <label for="acompte_montant" class="block text-sm font-medium mb-2">Montant acompte (€)</label>
+                        <input type="number" 
+                               id="acompte_montant" 
+                               name="acompte_montant"
+                               value="{{ $devis->acompte_montant }}"
+                               step="0.01"
+                               min="0"
+                               readonly
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                        <p class="text-xs text-gray-500 mt-1">Calculé automatiquement</p>
+                    </div>
+                    <div>
+                        <label for="reste_a_payer" class="block text-sm font-medium mb-2">Reste à payer (€)</label>
+                        <input type="number" 
+                               id="reste_a_payer" 
+                               name="reste_a_payer"
+                               value="{{ $devis->reste_a_payer }}"
+                               step="0.01"
+                               min="0"
+                               readonly
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                        <p class="text-xs text-gray-500 mt-1">Calculé automatiquement</p>
+                    </div>
                 </div>
             </div>
 
@@ -203,6 +248,50 @@ function addLigne() {
     `;
     
     container.insertAdjacentHTML('beforeend', ligneHtml);
+    
+    // Ajouter les listeners pour recalculer l'acompte
+    updateAcompteOnLigneChange();
+}
+
+// Calculer l'acompte et le reste à payer
+function calculateAcompte() {
+    const pourcentage = parseFloat(document.getElementById('acompte_pourcentage').value) || 0;
+    
+    // Calculer le total TTC depuis les lignes
+    let totalHT = 0;
+    const lignes = document.querySelectorAll('.ligne-item');
+    lignes.forEach(ligne => {
+        const quantite = parseFloat(ligne.querySelector('input[name*="[quantite]"]').value) || 0;
+        const prixUnitaire = parseFloat(ligne.querySelector('input[name*="[prix_unitaire]"]').value) || 0;
+        totalHT += quantite * prixUnitaire;
+    });
+    
+    const tauxTVA = parseFloat(document.getElementById('taux_tva').value) || 20;
+    const totalTTC = totalHT * (1 + tauxTVA / 100);
+    
+    if (pourcentage > 0 && totalTTC > 0) {
+        const acompteMontant = totalTTC * (pourcentage / 100);
+        const resteAPayer = totalTTC - acompteMontant;
+        
+        document.getElementById('acompte_montant').value = acompteMontant.toFixed(2);
+        document.getElementById('reste_a_payer').value = resteAPayer.toFixed(2);
+    } else {
+        document.getElementById('acompte_montant').value = '';
+        document.getElementById('reste_a_payer').value = totalTTC > 0 ? totalTTC.toFixed(2) : '';
+    }
+}
+
+// Recalculer l'acompte quand les lignes changent
+function updateAcompteOnLigneChange() {
+    const lignes = document.querySelectorAll('.ligne-item');
+    lignes.forEach(ligne => {
+        ['quantite', 'prix_unitaire'].forEach(field => {
+            const input = ligne.querySelector(`input[name*="[${field}]"]`);
+            if (input) {
+                input.addEventListener('input', calculateAcompte);
+            }
+        });
+    });
 }
 
 function removeLigne(index) {

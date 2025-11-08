@@ -25,6 +25,9 @@ class Devis extends Model
         'total_ht',
         'taux_tva',
         'total_ttc',
+        'acompte_pourcentage',
+        'acompte_montant',
+        'reste_a_payer',
         'conditions_particulieres',
         'pdf_path',
     ];
@@ -36,6 +39,9 @@ class Devis extends Model
         'total_ht' => 'decimal:2',
         'taux_tva' => 'decimal:2',
         'total_ttc' => 'decimal:2',
+        'acompte_pourcentage' => 'decimal:2',
+        'acompte_montant' => 'decimal:2',
+        'reste_a_payer' => 'decimal:2',
     ];
 
     /**
@@ -90,6 +96,15 @@ class Devis extends Model
         $totalHT = $this->lignesDevis()->sum('total_ligne');
         $this->total_ht = $totalHT;
         $this->total_ttc = $totalHT * (1 + ($this->taux_tva / 100));
+        
+        // Recalculer l'acompte et le reste à payer
+        if ($this->acompte_pourcentage && $this->acompte_pourcentage > 0) {
+            $this->acompte_montant = $this->total_ttc * ($this->acompte_pourcentage / 100);
+            $this->reste_a_payer = $this->total_ttc - $this->acompte_montant;
+        } else {
+            $this->acompte_montant = 0;
+            $this->reste_a_payer = $this->total_ttc;
+        }
     }
 
     /**

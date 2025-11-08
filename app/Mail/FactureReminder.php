@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Setting;
 
-class FactureSent extends Mailable
+class FactureReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -36,7 +36,7 @@ class FactureSent extends Mailable
         
         return new Envelope(
             from: new \Illuminate\Mail\Mailables\Address($fromAddress, $fromName),
-            subject: 'Votre facture ' . $this->facture->numero,
+            subject: 'Rappel - Facture ' . $this->facture->numero . ' en attente de paiement',
         );
     }
 
@@ -46,7 +46,7 @@ class FactureSent extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.facture_sent',
+            view: 'emails.facture_reminder',
             with: [
                 'facture' => $this->facture,
             ],

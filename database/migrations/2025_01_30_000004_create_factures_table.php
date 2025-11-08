@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('devis_id')->nullable()->constrained('devis')->onDelete('set null');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->string('numero')->unique();
-            $table->enum('statut', ['Impayée', 'Payée', 'Annulée'])->default('Impayée');
+            $table->enum('statut', ['Impayée', 'Payée', 'Partiellement payée', 'Annulée'])->default('Impayée');
             $table->date('date_emission');
             $table->date('date_echeance')->nullable();
             $table->date('date_paiement')->nullable();

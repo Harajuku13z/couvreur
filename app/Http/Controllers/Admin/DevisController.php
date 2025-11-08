@@ -156,6 +156,9 @@ class DevisController extends Controller
                 'superficie_totale' => $request->superficie_totale,
                 'prix_final_estime' => $request->prix_final_estime,
                 'taux_tva' => $request->taux_tva ?? 20.00,
+                'acompte_pourcentage' => $request->acompte_pourcentage,
+                'acompte_montant' => $request->acompte_montant,
+                'reste_a_payer' => $request->reste_a_payer,
                 'conditions_particulieres' => $request->conditions_particulieres,
             ]);
 
@@ -500,6 +503,9 @@ class DevisController extends Controller
                 'date_validite' => $request->date_validite,
                 'description_globale' => $request->description_globale,
                 'taux_tva' => $request->taux_tva ?? 20.00,
+                'acompte_pourcentage' => $request->acompte_pourcentage,
+                'acompte_montant' => $request->acompte_montant,
+                'reste_a_payer' => $request->reste_a_payer,
                 'conditions_particulieres' => $request->conditions_particulieres,
             ]);
 

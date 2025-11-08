@@ -22,6 +22,9 @@ class Facture extends Model
         'prix_total_ht',
         'taux_tva',
         'prix_total_ttc',
+        'montant_paye',
+        'nombre_relances',
+        'derniere_relance',
         'notes',
         'pdf_path',
     ];
@@ -30,9 +33,11 @@ class Facture extends Model
         'date_emission' => 'date',
         'date_echeance' => 'date',
         'date_paiement' => 'date',
+        'derniere_relance' => 'date',
         'prix_total_ht' => 'decimal:2',
         'taux_tva' => 'decimal:2',
         'prix_total_ttc' => 'decimal:2',
+        'montant_paye' => 'decimal:2',
     ];
 
     /**
@@ -98,7 +103,43 @@ class Facture extends Model
         $this->update([
             'statut' => 'Payée',
             'date_paiement' => now(),
+            'montant_paye' => $this->prix_total_ttc,
         ]);
+    }
+    
+    /**
+     * Enregistrer un paiement partiel
+     */
+    public function recordPayment(float $montant): void
+    {
+        $this->montant_paye = ($this->montant_paye ?? 0) + $montant;
+        
+        if ($this->montant_paye >= $this->prix_total_ttc) {
+            $this->statut = 'Payée';
+            $this->date_paiement = now();
+        } else {
+            $this->statut = 'Partiellement payée';
+        }
+        
+        $this->save();
+    }
+    
+    /**
+     * Envoyer une relance
+     */
+    public function sendReminder(): void
+    {
+        $this->increment('nombre_relances');
+        $this->derniere_relance = now();
+        $this->save();
+    }
+    
+    /**
+     * Obtenir le montant restant à payer
+     */
+    public function getMontantRestantAttribute(): float
+    {
+        return max(0, $this->prix_total_ttc - ($this->montant_paye ?? 0));
     }
 
     /**
