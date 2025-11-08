@@ -309,6 +309,9 @@
     
     @yield('head')
     
+    {{-- Schema.org Structured Data (inclus dans toutes les pages) --}}
+    @include('partials.schema-org')
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
