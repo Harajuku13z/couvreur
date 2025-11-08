@@ -212,6 +212,13 @@
     @endif
 
     <div class="footer">
+        @if($companySettings['rib'])
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+            <div class="footer-title">Coordonnées Bancaires</div>
+            <div style="white-space: pre-line; color: #333; font-size: 10px; line-height: 1.6;">{{ $companySettings['rib'] }}</div>
+        </div>
+        @endif
+        
         <div class="footer-title">Informations Légales</div>
         <div class="footer-info">
             <strong>{{ $companySettings['name'] }}</strong>

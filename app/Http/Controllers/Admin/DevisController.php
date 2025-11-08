@@ -345,6 +345,7 @@ class DevisController extends Controller
             'tva' => \App\Models\Setting::get('company_tva', ''),
             'director' => \App\Models\Setting::get('company_director', ''),
             'hosting_provider' => \App\Models\Setting::get('hosting_provider', ''),
+            'rib' => \App\Models\Setting::get('company_rib', ''),
             'logo_base64' => $logoBase64,
             'primary_color' => \App\Models\Setting::get('primary_color', '#3b82f6'),
             'secondary_color' => \App\Models\Setting::get('secondary_color', '#10b981'),
