@@ -126,7 +126,7 @@ class JobController extends Controller
                 'workHours' => 'Temps plein, 35h/semaine',
                 'qualifications' => 'Formation en étanchéité ou expérience équivalente, permis B'
             ]
-            ];
+        ];
 
             return view('jobs.index', compact('jobs'));
         } catch (\Exception $e) {
