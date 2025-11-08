@@ -91,6 +91,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ville</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Suivi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
@@ -141,28 +142,61 @@
                             } }}
                         </span>
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @php
+                            $devisCount = $submission->devis_count;
+                            $facturesPayeesCount = $submission->factures_payees_count;
+                        @endphp
+                        <div class="flex flex-col gap-1">
+                            @if($devisCount > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-file-invoice mr-1"></i>
+                                    {{ $devisCount }} devis
+                                </span>
+                            @else
+                                <span class="text-xs text-gray-400">Aucun devis</span>
+                            @endif
+                            @if($facturesPayeesCount > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    {{ $facturesPayeesCount }} facture(s) payée(s)
+                                </span>
+                            @endif
+                        </div>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $submission->created_at->format('d/m/Y H:i') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('admin.submission.show', $submission->id) }}" 
-                           class="text-blue-600 hover:text-blue-900 mr-3">
-                            Voir
-                        </a>
-                        @if($submission->status === 'IN_PROGRESS')
-                        <form method="POST" action="{{ route('admin.submission.mark-abandoned', $submission->id) }}" class="inline">
-                            @csrf
-                            <button type="submit" class="text-red-600 hover:text-red-900" 
-                                    onclick="return confirm('Marquer comme abandonné ?')">
-                                Abandonner
-                            </button>
-                        </form>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.submission.show', $submission->id) }}" 
+                               class="text-blue-600 hover:text-blue-900"
+                               title="Voir les détails">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            @if($submission->status === 'COMPLETED')
+                                <a href="{{ route('admin.submission.create-client', $submission->id) }}" 
+                                   class="text-green-600 hover:text-green-900"
+                                   title="Créer un devis">
+                                    <i class="fas fa-file-invoice"></i>
+                                </a>
+                            @endif
+                            @if($submission->status === 'IN_PROGRESS')
+                                <form method="POST" action="{{ route('admin.submission.mark-abandoned', $submission->id) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-red-600 hover:text-red-900" 
+                                            onclick="return confirm('Marquer comme abandonné ?')"
+                                            title="Abandonner">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                         Aucune soumission trouvée.
                     </td>
                 </tr>

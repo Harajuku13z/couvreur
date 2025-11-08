@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Submission;
 use App\Models\AbandonedSubmission;
 use App\Models\PhoneCall;
+use App\Models\Client;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Response;
@@ -433,6 +434,71 @@ class AdminController extends Controller
     {
         $abandonedSubmission = Submission::abandoned()->findOrFail($id);
         return view('admin.abandoned-submission-detail', compact('abandonedSubmission'));
+    }
+
+    /**
+     * Créer un client depuis une soumission et rediriger vers la création de devis
+     */
+    public function createClientFromSubmission($id)
+    {
+        try {
+            $submission = Submission::findOrFail($id);
+            
+            if ($submission->status !== 'COMPLETED') {
+                return back()->with('error', 'Seules les soumissions complétées peuvent être converties en client.');
+            }
+            
+            if (!$submission->email) {
+                return back()->with('error', 'La soumission doit avoir un email pour créer un client.');
+            }
+            
+            // Vérifier si un client existe déjà avec cet email
+            $existingClient = Client::where('email', $submission->email)->first();
+            
+            if ($existingClient) {
+                // Client existe déjà, rediriger vers la création de devis avec ce client
+                \Log::info('Client existant trouvé pour la soumission', [
+                    'submission_id' => $submission->id,
+                    'client_id' => $existingClient->id,
+                    'email' => $submission->email
+                ]);
+                
+                return redirect()->route('admin.devis.create', ['client_id' => $existingClient->id])
+                    ->with('success', 'Client existant trouvé. Création d\'un nouveau devis.');
+            }
+            
+            // Créer un nouveau client
+            $client = Client::create([
+                'nom' => $submission->last_name ?: 'N/A',
+                'prenom' => $submission->first_name,
+                'email' => $submission->email,
+                'telephone' => $submission->phone,
+                'adresse' => null, // Pas d'adresse dans submission
+                'code_postal' => $submission->postal_code,
+                'ville' => $submission->city,
+                'pays' => $submission->country ?? 'France',
+                'notes' => 'Créé depuis la soumission #' . $submission->id . ' le ' . now()->format('d/m/Y H:i'),
+            ]);
+            
+            \Log::info('Client créé depuis une soumission', [
+                'submission_id' => $submission->id,
+                'client_id' => $client->id,
+                'email' => $client->email
+            ]);
+            
+            // Rediriger vers la création de devis avec le client pré-rempli
+            return redirect()->route('admin.devis.create', ['client_id' => $client->id])
+                ->with('success', 'Client créé avec succès. Vous pouvez maintenant créer un devis.');
+                
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la création du client depuis la soumission', [
+                'submission_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la création du client : ' . $e->getMessage());
+        }
     }
 
     public function exportSubmissions(Request $request)

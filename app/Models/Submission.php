@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Submission extends Model
 {
@@ -109,6 +111,76 @@ class Submission extends Model
         }
 
         return round(($steps[$currentStep] / $totalSteps) * 100, 2);
+    }
+
+    /**
+     * Relation avec le client (via email)
+     */
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class, 'email', 'email');
+    }
+
+    /**
+     * Obtenir le client associé (via email) ou null
+     */
+    public function getClientAttribute()
+    {
+        if (!$this->email) {
+            return null;
+        }
+        // Utiliser un cache pour éviter les requêtes répétées
+        static $clientCache = [];
+        if (!isset($clientCache[$this->email])) {
+            $clientCache[$this->email] = Client::where('email', $this->email)->first();
+        }
+        return $clientCache[$this->email];
+    }
+
+    /**
+     * Obtenir le nombre de devis pour ce lead
+     */
+    public function getDevisCountAttribute(): int
+    {
+        if (!$this->email) {
+            return 0;
+        }
+        $client = $this->client;
+        if (!$client) {
+            return 0;
+        }
+        return $client->devis()->count();
+    }
+
+    /**
+     * Obtenir le nombre de factures payées pour ce lead
+     */
+    public function getFacturesPayeesCountAttribute(): int
+    {
+        if (!$this->email) {
+            return 0;
+        }
+        $client = $this->client;
+        if (!$client) {
+            return 0;
+        }
+        return $client->factures()->where('statut', 'Payée')->count();
+    }
+
+    /**
+     * Vérifier si un devis existe pour ce lead
+     */
+    public function hasDevis(): bool
+    {
+        return $this->devis_count > 0;
+    }
+
+    /**
+     * Vérifier si une facture validée existe pour ce lead
+     */
+    public function hasFactureValidee(): bool
+    {
+        return $this->factures_payees_count > 0;
     }
 }
 
