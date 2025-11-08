@@ -1107,10 +1107,13 @@ function runDailyIndexing() {
             if (data.success_count > 0) {
                 message += ` (${data.success_count} URLs indexées)`;
             }
+            if (data.failed_count > 0) {
+                message += `, ${data.failed_count} échouées`;
+            }
             if (data.indexed_count !== undefined) {
                 message += ` - Total: ${data.indexed_count} URLs indexées`;
             }
-            showNotification(message, 'success');
+            showNotification(message, data.failed_count > 0 ? 'warning' : 'success');
             
             // Attendre un peu pour que les statistiques soient bien sauvegardées
             setTimeout(() => {
@@ -1121,12 +1124,13 @@ function runDailyIndexing() {
             if (data.output) {
                 // Afficher les détails de l'erreur depuis la sortie
                 const lines = data.output.split('\n');
-                const errorLine = lines.find(line => line.includes('❌') || line.includes('Erreur') || line.includes('error'));
+                const errorLine = lines.find(line => line.includes('❌') || line.includes('Erreur') || line.includes('error') || line.includes('Permission denied'));
                 if (errorLine) {
                     errorMsg += ': ' + errorLine.trim();
                 }
             }
-            showNotification('Erreur: ' + errorMsg, 'error');
+            // Afficher le message d'erreur complet (peut contenir des instructions)
+            showNotification(errorMsg.replace(/\n/g, '<br>'), 'error');
             button.innerHTML = originalText;
             button.disabled = false;
         }
@@ -1152,17 +1156,33 @@ function resetIndexedUrls() {
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur HTTP: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            showNotification('Liste des URLs indexées réinitialisée', 'success');
+            showNotification('✅ ' + (data.message || 'Liste des URLs indexées réinitialisée'), 'success');
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
         } else {
-            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
         }
     })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('❌ Erreur lors de la réinitialisation: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // S'assurer que le bouton est réactivé même en cas d'erreur
+        const button = document.querySelector('[onclick="resetIndexedUrls()"]');
+        if (button) {
+            button.disabled = false;
+        }
+    });
     .catch(error => {
         console.error('Erreur:', error);
         showNotification('Erreur lors de la réinitialisation', 'error');

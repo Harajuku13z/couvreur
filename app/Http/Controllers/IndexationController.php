@@ -744,15 +744,25 @@ class IndexationController extends Controller
     public function resetIndexedUrls(Request $request)
     {
         try {
+            // Réinitialiser la liste des URLs indexées
             Setting::set('indexed_urls', json_encode([]), 'json', 'seo');
+            
+            // Réinitialiser aussi les statistiques quotidiennes
+            Setting::set('daily_indexing_stats', json_encode([]), 'json', 'seo');
+            
+            // Vider le cache
             Setting::clearCache();
+            
+            \Log::info('Liste des URLs indexées réinitialisée');
             
             return response()->json([
                 'success' => true,
-                'message' => 'Liste des URLs indexées réinitialisée'
+                'message' => 'Liste des URLs indexées réinitialisée avec succès'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur réinitialisation URLs indexées: ' . $e->getMessage());
+            \Log::error('Erreur réinitialisation URLs indexées: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false,

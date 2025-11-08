@@ -204,6 +204,18 @@ class GoogleSearchConsoleService
                 }
             }
             
+            // Améliorer le message pour les erreurs de permission
+            if ($errorCode == 403 || (isset($firstError['reason']) && $firstError['reason'] === 'forbidden')) {
+                $serviceAccountEmail = $this->getCredentials()['client_email'] ?? 'votre-compte-service@...';
+                $userMessage .= "\n\n💡 Solution : Le compte de service doit être ajouté comme propriétaire dans Google Search Console.\n";
+                $userMessage .= "1. Allez sur https://search.google.com/search-console\n";
+                $userMessage .= "2. Sélectionnez votre propriété (site)\n";
+                $userMessage .= "3. Allez dans Paramètres > Utilisateurs et permissions\n";
+                $userMessage .= "4. Cliquez sur 'Ajouter un utilisateur'\n";
+                $userMessage .= "5. Ajoutez l'email du compte de service : {$serviceAccountEmail}\n";
+                $userMessage .= "6. Donnez-lui le rôle 'Propriétaire'";
+            }
+            
             return [
                 'success' => false,
                 'message' => $userMessage,
@@ -383,6 +395,23 @@ class GoogleSearchConsoleService
                 }
             }
             
+            $serviceAccountEmail = $this->getCredentials()['client_email'] ?? 'votre-compte-service@...';
+            $warningMessage = null;
+            
+            if (!$siteFound) {
+                $warningMessage = "⚠️ Le site {$siteUrl} n'est pas trouvé dans Google Search Console.\n\n";
+                $warningMessage .= "💡 Solution : Ajoutez le compte de service comme propriétaire :\n";
+                $warningMessage .= "1. Allez sur https://search.google.com/search-console\n";
+                $warningMessage .= "2. Sélectionnez votre propriété (site)\n";
+                $warningMessage .= "3. Allez dans Paramètres > Utilisateurs et permissions\n";
+                $warningMessage .= "4. Cliquez sur 'Ajouter un utilisateur'\n";
+                $warningMessage .= "5. Ajoutez l'email : {$serviceAccountEmail}\n";
+                $warningMessage .= "6. Donnez-lui le rôle 'Propriétaire'";
+            } elseif ($sitePermission && $sitePermission !== 'siteOwner' && $sitePermission !== 'siteFullUser') {
+                $warningMessage = "⚠️ Le compte de service n'a pas les permissions suffisantes (permission actuelle: {$sitePermission}).\n\n";
+                $warningMessage .= "💡 Solution : Donnez le rôle 'Propriétaire' ou 'Utilisateur complet' au compte de service dans Google Search Console.";
+            }
+            
             return [
                 'success' => true,
                 'message' => 'Connexion réussie',
@@ -390,7 +419,7 @@ class GoogleSearchConsoleService
                 'site_url' => $siteUrl,
                 'site_found' => $siteFound,
                 'site_permission' => $sitePermission,
-                'warning' => !$siteFound ? "⚠️ Le site {$siteUrl} n'est pas trouvé dans Google Search Console. Assurez-vous que le compte de service est propriétaire du site." : null
+                'warning' => $warningMessage
             ];
         } catch (\Google\Service\Exception $e) {
             $errorDetails = $e->getErrors();

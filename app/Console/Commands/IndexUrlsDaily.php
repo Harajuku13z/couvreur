@@ -121,6 +121,24 @@ class IndexUrlsDaily extends Command
         // Mettre à jour les statistiques (même si successCount = 0, pour tracer les tentatives)
         $this->updateStatistics($successCount, $failedCount, count($urlsForToday));
         
+        // Sauvegarder l'historique même en cas d'échec
+        $history = Setting::get('google_indexing_history', '[]');
+        $history = is_string($history) ? json_decode($history, true) : ($history ?? []);
+        
+        $history[] = [
+            'date' => now()->toDateTimeString(),
+            'total' => count($urlsForToday),
+            'success' => $successCount,
+            'failed' => $failedCount,
+            'type' => 'daily_indexing',
+            'timestamp' => time()
+        ];
+        
+        // Garder seulement les 50 derniers envois
+        $history = array_slice($history, -50);
+        
+        Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
+        
         // Vider le cache pour que les nouvelles données soient visibles immédiatement
         Setting::clearCache();
 
