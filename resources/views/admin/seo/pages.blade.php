@@ -73,7 +73,13 @@
         <!-- Page Accueil -->
         <div id="page-home" class="page-content">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">🏠 Page d'Accueil</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">🏠 Page d'Accueil</h2>
+                    <button type="button" onclick="generateSeoWithAI('home')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -117,7 +123,13 @@
         <!-- Page Services -->
         <div id="page-services" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">🔧 Page Services</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">🔧 Page Services</h2>
+                    <button type="button" onclick="generateSeoWithAI('services')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -161,7 +173,13 @@
         <!-- Page Réalisations -->
         <div id="page-portfolio" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">🏗️ Page Réalisations</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">🏗️ Page Réalisations</h2>
+                    <button type="button" onclick="generateSeoWithAI('portfolio')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -205,7 +223,13 @@
         <!-- Page Blog -->
         <div id="page-blog" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">📝 Page Blog</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">📝 Page Blog</h2>
+                    <button type="button" onclick="generateSeoWithAI('blog')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -249,7 +273,13 @@
         <!-- Page Annonces -->
         <div id="page-ads" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">📢 Page Annonces</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">📢 Page Annonces</h2>
+                    <button type="button" onclick="generateSeoWithAI('ads')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -293,7 +323,13 @@
         <!-- Page Avis -->
         <div id="page-reviews" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">⭐ Page Avis</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">⭐ Page Avis</h2>
+                    <button type="button" onclick="generateSeoWithAI('reviews')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -337,7 +373,13 @@
         <!-- Page Contact -->
         <div id="page-contact" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">📞 Page Contact</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">📞 Page Contact</h2>
+                    <button type="button" onclick="generateSeoWithAI('contact')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -381,7 +423,13 @@
         <!-- Page Mentions Légales -->
         <div id="page-mentions-legales" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">⚖️ Page Mentions Légales</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">⚖️ Page Mentions Légales</h2>
+                    <button type="button" onclick="generateSeoWithAI('mentions-legales')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -425,7 +473,13 @@
         <!-- Page Politique de Confidentialité -->
         <div id="page-politique-confidentialite" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">🔒 Page Politique de Confidentialité</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">🔒 Page Politique de Confidentialité</h2>
+                    <button type="button" onclick="generateSeoWithAI('politique-confidentialite')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -469,7 +523,13 @@
         <!-- Page CGV -->
         <div id="page-cgv" class="page-content hidden">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">📋 Page CGV</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">📋 Page CGV</h2>
+                    <button type="button" onclick="generateSeoWithAI('cgv')" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-magic mr-2"></i>Générer avec l'IA
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -539,6 +599,74 @@ function showPage(pageName) {
     // Activer l'onglet sélectionné
     event.target.classList.remove('bg-gray-100', 'text-gray-800');
     event.target.classList.add('bg-blue-100', 'text-blue-800');
+}
+
+function generateSeoWithAI(pageName) {
+    // Désactiver le bouton et afficher un loader
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    
+    // Appeler l'API
+    fetch('{{ route("admin.seo.generate-page-ai") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            page: pageName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.seo_content) {
+            // Remplir les champs avec le contenu généré
+            // Convertir le nom de page en préfixe de champ (remplacer tous les tirets par des underscores)
+            const pagePrefix = pageName.replace(/-/g, '_');
+            
+            // Remplir les champs meta
+            const metaTitleField = document.getElementById(pagePrefix + '_meta_title');
+            const metaDescField = document.getElementById(pagePrefix + '_meta_description');
+            const ogTitleField = document.getElementById(pagePrefix + '_og_title');
+            const ogDescField = document.getElementById(pagePrefix + '_og_description');
+            
+            if (metaTitleField) metaTitleField.value = data.seo_content.meta_title || '';
+            if (metaDescField) metaDescField.value = data.seo_content.meta_description || '';
+            if (ogTitleField) ogTitleField.value = data.seo_content.og_title || '';
+            if (ogDescField) ogDescField.value = data.seo_content.og_description || '';
+            
+            // Afficher un message de succès
+            showNotification('✅ Contenu SEO généré avec succès !', 'success');
+        } else {
+            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('❌ Erreur lors de la génération: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Réactiver le bouton
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function showNotification(message, type) {
+    // Créer une notification temporaire
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Supprimer après 5 secondes
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
 }
 </script>
 @endpush
