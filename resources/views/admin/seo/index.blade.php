@@ -228,15 +228,24 @@
                     $bimiLogoPath = 'logo/logo.svg';
                 @endphp
                 @if(file_exists(public_path($bimiLogoPath)))
+                @php
+                    $logoFilemtime = filemtime(public_path($bimiLogoPath));
+                    $logoUrl = asset($bimiLogoPath) . '?v=' . $logoFilemtime;
+                @endphp
                 <div class="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-4">
                         <div class="flex-shrink-0">
-                            <img src="{{ asset($bimiLogoPath) }}" alt="Logo BIMI" class="w-20 h-20 object-contain rounded border border-gray-300 bg-white p-2">
+                            <img src="{{ $logoUrl }}" alt="Logo BIMI" class="w-20 h-20 object-contain rounded border border-gray-300 bg-white p-2" onerror="this.src='{{ asset($bimiLogoPath) }}?v=' + Date.now()">
                         </div>
                         <div class="flex-1">
                             <p class="font-medium text-sm text-gray-700">Logo BIMI actuel</p>
                             <p class="text-xs text-gray-500 mt-1">Chemin : <code class="bg-gray-100 px-1 rounded">public/{{ $bimiLogoPath }}</code></p>
-                            <p class="text-xs text-gray-500 mt-1">URL : <a href="{{ asset($bimiLogoPath) }}" target="_blank" class="text-blue-600 hover:underline">{{ asset($bimiLogoPath) }}</a></p>
+                            <p class="text-xs text-gray-500 mt-1">Taille : {{ number_format(filesize(public_path($bimiLogoPath))) }} octets</p>
+                            <p class="text-xs text-gray-500 mt-1">Modifié : {{ date('d/m/Y H:i:s', $logoFilemtime) }}</p>
+                            <p class="text-xs text-gray-500 mt-1">URL : <a href="{{ $logoUrl }}" target="_blank" class="text-blue-600 hover:underline" onclick="this.href += '&refresh=' + Date.now(); return true;">{{ asset($bimiLogoPath) }}</a></p>
+                            <button type="button" onclick="location.reload()" class="mt-2 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">
+                                <i class="fas fa-sync-alt mr-1"></i>Actualiser l'aperçu
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -46,19 +46,21 @@ class ContactConfirmation extends Mailable
         $this->withSymfonyMessage(function ($message) {
             // Utiliser asset() pour générer l'URL correcte
             $logoPath = 'logo/logo.svg';
-            $logoUrl = asset($logoPath);
             
             // Vérifier si le fichier SVG existe
             if (!file_exists(public_path($logoPath))) {
                 // Fallback sur PNG si SVG n'existe pas
                 $logoPath = 'logo/logo.png';
-                if (file_exists(public_path($logoPath))) {
-                    $logoUrl = asset($logoPath);
-                } else {
+                if (!file_exists(public_path($logoPath))) {
                     // Pas de logo disponible
                     return;
                 }
             }
+            
+            // Générer l'URL avec un paramètre de version basé sur la date de modification
+            // pour forcer le rechargement et éviter le cache
+            $filemtime = file_exists(public_path($logoPath)) ? filemtime(public_path($logoPath)) : time();
+            $logoUrl = asset($logoPath) . '?v=' . $filemtime;
             
             // S'assurer que l'URL est en HTTPS (requis pour BIMI)
             $logoUrl = str_replace('http://', 'https://', $logoUrl);
