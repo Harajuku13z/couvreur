@@ -70,23 +70,37 @@ class GoogleSearchConsoleService
      */
     protected function getCredentials()
     {
-        $credentialsJson = Setting::get('google_search_console_credentials', '');
-        
-        if (empty($credentialsJson)) {
-            return null;
-        }
-
         try {
-            $credentials = is_string($credentialsJson) ? json_decode($credentialsJson, true) : $credentialsJson;
+            $credentialsJson = Setting::get('google_search_console_credentials', '');
+            
+            if (empty($credentialsJson)) {
+                Log::debug('Google Search Console: Aucune credentials JSON trouvée dans les settings');
+                return null;
+            }
+
+            // Si c'est déjà un tableau, le retourner directement
+            if (is_array($credentialsJson)) {
+                return $credentialsJson;
+            }
+
+            // Sinon, essayer de décoder le JSON
+            $credentials = json_decode($credentialsJson, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('Erreur parsing JSON credentials Google Search Console');
+                Log::error('Erreur parsing JSON credentials Google Search Console: ' . json_last_error_msg());
+                return null;
+            }
+
+            if (!is_array($credentials)) {
+                Log::error('Google Search Console: Les credentials décodées ne sont pas un tableau');
                 return null;
             }
 
             return $credentials;
         } catch (\Exception $e) {
-            Log::error('Erreur récupération credentials: ' . $e->getMessage());
+            Log::error('Erreur récupération credentials: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return null;
         }
     }
