@@ -521,10 +521,29 @@ class DevisController extends Controller
             $devis->recalculateTotals();
             $devis->save();
 
+            // Supprimer l'ancien PDF s'il existe pour forcer la régénération
+            if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+                Storage::disk('local')->delete($devis->pdf_path);
+            }
+            $devis->pdf_path = null;
+            $devis->save();
+
+            // Régénérer le PDF avec les nouvelles données
+            try {
+                $pdfService = new \App\Services\PdfService();
+                $pdfService->generateDevisPdf($devis);
+            } catch (\Exception $pdfError) {
+                Log::warning('Erreur régénération PDF après mise à jour devis', [
+                    'devis_id' => $devis->id,
+                    'error' => $pdfError->getMessage(),
+                ]);
+                // On continue même si le PDF n'a pas pu être généré
+            }
+
             \DB::commit();
 
             return redirect()->route('admin.devis.show', $devis->id)
-                ->with('success', 'Devis mis à jour avec succès');
+                ->with('success', 'Devis mis à jour avec succès. Le PDF a été régénéré.');
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Erreur mise à jour devis', [
