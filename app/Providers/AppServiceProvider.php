@@ -27,6 +27,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Vérifier si la table sessions existe, sinon utiliser les sessions fichiers
+        try {
+            if (config('session.driver') === 'database') {
+                $connection = DB::connection(config('session.connection'));
+                $table = config('session.table', 'sessions');
+                
+                // Vérifier si la table existe
+                $tables = $connection->select("SHOW TABLES LIKE '{$table}'");
+                if (empty($tables)) {
+                    Log::warning('Table sessions n\'existe pas, basculement vers sessions fichiers');
+                    config(['session.driver' => 'file']);
+                }
+            }
+        } catch (\Exception $e) {
+            // En cas d'erreur de connexion DB, utiliser les sessions fichiers
+            Log::warning('Erreur lors de la vérification de la table sessions, basculement vers sessions fichiers: ' . $e->getMessage());
+            config(['session.driver' => 'file']);
+        }
+        
         // Enregistrer les événements pour la mise à jour automatique du sitemap
         Event::listen(AdCreated::class, UpdateSitemapListener::class);
         Event::listen(AdUpdated::class, UpdateSitemapListener::class);
