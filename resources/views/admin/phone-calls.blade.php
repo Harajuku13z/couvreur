@@ -426,6 +426,98 @@ document.getElementById('deleteAllForm').addEventListener('submit', function(e) 
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     });
-    });
+});
+</script>
+
+<!-- Modal correction ville -->
+<div id="editCityModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>
+                    Corriger la ville
+                </h3>
+                <button onclick="hideEditCityModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="editCityForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="mb-4">
+                    <label for="city" class="block text-sm font-medium mb-2">Ville</label>
+                    <input type="text" 
+                           name="city" 
+                           id="editCityInput" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Ex: Dijon"
+                           required>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Entrez la ville correcte pour cet appel téléphonique
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="hideEditCityModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        <i class="fas fa-save mr-2"></i>
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showEditCityModal(callId, currentCity) {
+    document.getElementById('editCityInput').value = currentCity || '';
+    document.getElementById('editCityForm').action = '{{ route("admin.phone-calls.update-city", ":id") }}'.replace(':id', callId);
+    document.getElementById('editCityModal').classList.remove('hidden');
+    document.getElementById('editCityInput').focus();
+}
+
+function hideEditCityModal() {
+    document.getElementById('editCityModal').classList.add('hidden');
+    document.getElementById('editCityForm').reset();
+}
+
+document.getElementById('editCityForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const url = this.action;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-HTTP-Method-Override': 'PUT'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ Ville corrigée avec succès');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            alert('❌ Erreur: ' + (data.message || 'Erreur inconnue'));
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('❌ Erreur lors de la correction');
+    }
+});
 </script>
 @endsection
