@@ -93,61 +93,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Contenu -->
-                <div class="mb-6">
-                    <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Contenu</div>
-                    <div class="space-y-1">
-                        <a href="{{ route('portfolio.admin.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('portfolio.admin.*') ? 'active' : '' }}">
-                            <i class="fas fa-images mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Réalisations
-                        </a>
-                        
-                        <a href="{{ route('services.admin.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('services.admin.*') ? 'active' : '' }}">
-                            <i class="fas fa-tools mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Services
-                        </a>
-                        
-                        <a href="{{ route('admin.homepage.edit') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.homepage.*') ? 'active' : '' }}">
-                            <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Page d'Accueil
-                        </a>
-                        
-                        <a href="{{ route('admin.reviews.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
-                            <i class="fas fa-star mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Avis
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 3. Blog & SEO -->
-                <div class="mb-6">
-                    <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Blog & SEO</div>
-                    <div class="space-y-1">
-                        <a href="{{ route('admin.articles.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">
-                            <i class="fas fa-newspaper mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Articles
-                        </a>
-                        
-                        <a href="{{ route('admin.seo.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.seo.*') ? 'active' : '' }}">
-                            <i class="fas fa-search mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            SEO
-                        </a>
-                        
-                        <a href="{{ route('admin.indexation.index') }}" 
-                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.indexation.*') ? 'active' : '' }}">
-                            <i class="fas fa-spider mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                            Indexation
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 4. Devis & Facturation -->
+                <!-- 2. Devis & Facturation -->
                 <div class="mb-6">
                     <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Devis & Facturation</div>
                     <div class="space-y-1">
@@ -179,6 +125,60 @@
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
                             <i class="fas fa-users mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             Clients
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. Contenu -->
+                <div class="mb-6">
+                    <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Contenu</div>
+                    <div class="space-y-1">
+                        <a href="{{ route('portfolio.admin.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('portfolio.admin.*') ? 'active' : '' }}">
+                            <i class="fas fa-images mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Réalisations
+                        </a>
+                        
+                        <a href="{{ route('services.admin.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('services.admin.*') ? 'active' : '' }}">
+                            <i class="fas fa-tools mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Services
+                        </a>
+                        
+                        <a href="{{ route('admin.homepage.edit') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.homepage.*') ? 'active' : '' }}">
+                            <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Page d'Accueil
+                        </a>
+                        
+                        <a href="{{ route('admin.reviews.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+                            <i class="fas fa-star mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Avis
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4. Blog & SEO -->
+                <div class="mb-6">
+                    <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Blog & SEO</div>
+                    <div class="space-y-1">
+                        <a href="{{ route('admin.articles.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">
+                            <i class="fas fa-newspaper mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Articles
+                        </a>
+                        
+                        <a href="{{ route('admin.seo.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.seo.*') ? 'active' : '' }}">
+                            <i class="fas fa-search mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            SEO
+                        </a>
+                        
+                        <a href="{{ route('admin.indexation.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.indexation.*') ? 'active' : '' }}">
+                            <i class="fas fa-spider mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Indexation
                         </a>
                     </div>
                 </div>
