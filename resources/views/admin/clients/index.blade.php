@@ -47,7 +47,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ville</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Adresse</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -63,8 +63,21 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">{{ $client->telephone ?? '-' }}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ $client->ville ?? '-' }}</div>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">
+                            @if($client->adresse || $client->code_postal || $client->ville)
+                                @if($client->adresse)
+                                    <div>{{ $client->adresse }}</div>
+                                @endif
+                                @if($client->code_postal || $client->ville)
+                                    <div class="text-gray-600">
+                                        {{ trim(($client->code_postal ?? '') . ' ' . ($client->ville ?? '')) }}
+                                    </div>
+                                @endif
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <a href="{{ route('admin.devis.create', ['client_id' => $client->id]) }}" 
@@ -112,6 +125,24 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">Téléphone</label>
                     <input type="tel" name="telephone" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Adresse</label>
+                    <input type="text" name="adresse" class="w-full px-3 py-2 border rounded-lg" placeholder="Numéro et nom de rue">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Code postal</label>
+                        <input type="text" name="code_postal" class="w-full px-3 py-2 border rounded-lg" placeholder="35000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Ville</label>
+                        <input type="text" name="ville" class="w-full px-3 py-2 border rounded-lg" placeholder="Rennes">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Pays</label>
+                    <input type="text" name="pays" class="w-full px-3 py-2 border rounded-lg" placeholder="France" value="France">
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
