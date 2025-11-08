@@ -722,16 +722,89 @@ class IndexationController extends Controller
     public function runDailyIndexing(Request $request)
     {
         try {
-            \Artisan::call('index:urls-daily');
+            // Vérifier que Google Search Console est configuré
+            $googleService = new GoogleSearchConsoleService();
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré. Veuillez configurer les identifiants dans les paramètres.'
+                ], 400);
+            }
+            
+            // Vérifier que l'indexation quotidienne est activée (ou forcer l'exécution manuelle)
+            $dailyIndexingEnabled = Setting::get('daily_indexing_enabled', false);
+            if (!$dailyIndexingEnabled) {
+                // Pour l'exécution manuelle, on peut quand même exécuter
+                // Mais on va temporairement activer pour la commande
+                Setting::set('daily_indexing_enabled', true, 'boolean', 'seo');
+            }
+            
+            // Exécuter la commande
+            $exitCode = \Artisan::call('index:urls-daily');
             $output = \Artisan::output();
             
+            // Si on avait désactivé temporairement, remettre l'état original
+            if (!$dailyIndexingEnabled) {
+                Setting::set('daily_indexing_enabled', false, 'boolean', 'seo');
+            }
+            
+            // Vider le cache pour que les nouvelles statistiques soient visibles
+            Setting::clearCache();
+            
+            // Parser la sortie pour extraire les informations
+            $successCount = 0;
+            $failedCount = 0;
+            $totalProcessed = 0;
+            
+            // Essayer d'extraire les nombres depuis la sortie
+            if (preg_match('/(\d+)\s+URLs?\s+indexées?\s+avec\s+succès/i', $output, $matches)) {
+                $successCount = (int)$matches[1];
+            }
+            if (preg_match('/(\d+)\s+URLs?\s+échouées?/i', $output, $matches)) {
+                $failedCount = (int)$matches[1];
+            }
+            
+            // Récupérer les statistiques mises à jour
+            $dailyStats = Setting::get('daily_indexing_stats', '[]');
+            $dailyStats = is_string($dailyStats) ? json_decode($dailyStats, true) : ($dailyStats ?? []);
+            $today = date('Y-m-d');
+            $todayStats = $dailyStats[$today] ?? null;
+            
+            // Récupérer le nombre d'URLs indexées
+            $indexedUrls = Setting::get('indexed_urls', '[]');
+            $indexedUrls = is_string($indexedUrls) ? json_decode($indexedUrls, true) : ($indexedUrls ?? []);
+            $indexedCount = is_array($indexedUrls) ? count($indexedUrls) : 0;
+            
+            $message = 'Indexation quotidienne exécutée';
+            if ($successCount > 0) {
+                $message .= " : {$successCount} URLs indexées avec succès";
+            } else if ($exitCode === 0 && strpos($output, 'déjà été indexées') !== false) {
+                $message = 'Toutes les URLs ont déjà été indexées';
+            } else if ($exitCode !== 0) {
+                $message = 'Erreur lors de l\'exécution de l\'indexation';
+            }
+            
+            \Log::info("Indexation quotidienne exécutée manuellement", [
+                'exit_code' => $exitCode,
+                'success_count' => $successCount,
+                'failed_count' => $failedCount,
+                'indexed_count' => $indexedCount
+            ]);
+            
             return response()->json([
-                'success' => true,
-                'message' => 'Indexation quotidienne exécutée',
-                'output' => $output
+                'success' => $exitCode === 0,
+                'message' => $message,
+                'output' => $output,
+                'exit_code' => $exitCode,
+                'success_count' => $successCount,
+                'failed_count' => $failedCount,
+                'indexed_count' => $indexedCount,
+                'today_stats' => $todayStats
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur exécution indexation quotidienne: ' . $e->getMessage());
+            \Log::error('Erreur exécution indexation quotidienne: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false,

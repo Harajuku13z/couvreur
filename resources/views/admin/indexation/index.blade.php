@@ -1085,12 +1085,30 @@ function runDailyIndexing() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Indexation quotidienne exécutée avec succès !', 'success');
+            let message = data.message || 'Indexation quotidienne exécutée avec succès !';
+            if (data.success_count > 0) {
+                message += ` (${data.success_count} URLs indexées)`;
+            }
+            if (data.indexed_count !== undefined) {
+                message += ` - Total: ${data.indexed_count} URLs indexées`;
+            }
+            showNotification(message, 'success');
+            
+            // Attendre un peu pour que les statistiques soient bien sauvegardées
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
         } else {
-            showNotification('Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+            let errorMsg = data.message || 'Erreur inconnue';
+            if (data.output) {
+                // Afficher les détails de l'erreur depuis la sortie
+                const lines = data.output.split('\n');
+                const errorLine = lines.find(line => line.includes('❌') || line.includes('Erreur') || line.includes('error'));
+                if (errorLine) {
+                    errorMsg += ': ' + errorLine.trim();
+                }
+            }
+            showNotification('Erreur: ' + errorMsg, 'error');
             button.innerHTML = originalText;
             button.disabled = false;
         }
