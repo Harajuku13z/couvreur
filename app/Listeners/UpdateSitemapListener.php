@@ -23,12 +23,14 @@ class UpdateSitemapListener implements ShouldQueue
      */
     public function handle($event): void
     {
-        try {
-            Log::info('🔄 Mise à jour automatique du sitemap...');
-            $this->sitemapService->updateSitemap();
-            Log::info('✅ Sitemap mis à jour avec succès');
-        } catch (\Exception $e) {
-            Log::error('❌ Erreur lors de la mise à jour du sitemap : ' . $e->getMessage());
-        }
+        // DÉSACTIVÉ : La mise à jour automatique cause des problèmes
+        // Utiliser la commande sitemap:reset manuellement ou via l'interface admin
+        // try {
+        //     Log::info('🔄 Mise à jour automatique du sitemap...');
+        //     $this->sitemapService->updateSitemap();
+        //     Log::info('✅ Sitemap mis à jour avec succès');
+        // } catch (\Exception $e) {
+        //     Log::error('❌ Erreur lors de la mise à jour du sitemap : ' . $e->getMessage());
+        // }
     }
 }
