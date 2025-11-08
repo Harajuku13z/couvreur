@@ -29,7 +29,7 @@ class DevisController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Devis::with('client')->orderBy('created_at', 'desc');
+            $query = Devis::with(['client', 'facture'])->orderBy('created_at', 'desc');
 
             // Filtres
             if ($request->filled('statut')) {
