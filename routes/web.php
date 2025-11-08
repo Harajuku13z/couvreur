@@ -477,6 +477,9 @@ Route::middleware(['check.setup'])->group(function () {
     Route::get('/politique-confidentialite', [App\Http\Controllers\LegalController::class, 'politiqueConfidentialite'])->name('legal.privacy');
     Route::get('/cgv', [App\Http\Controllers\LegalController::class, 'cgv'])->name('legal.cgv');
     
+    // ===== PAGE EMPLOI (cachée des menus, accessible uniquement via sitemap) =====
+    Route::get('/jobs', [App\Http\Controllers\JobController::class, 'index'])->name('jobs.index');
+    
     // ===== SERVICES =====
     // Services publics
     Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
