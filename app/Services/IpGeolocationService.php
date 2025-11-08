@@ -31,20 +31,34 @@ class IpGeolocationService
             // Essayer plusieurs services et comparer les résultats
             // 1. ip-api.com (gratuit, 45 requêtes/min, souvent plus précis pour la France)
             try {
-                $response = Http::timeout(5)->get("http://ip-api.com/json/{$ip}?fields=status,message,city,regionName,country,countryCode");
+                $response = Http::timeout(5)->get("http://ip-api.com/json/{$ip}?fields=status,message,city,regionName,country,countryCode,lat,lon");
                 
                 if ($response->successful()) {
                     $data = $response->json();
                     
                     if ($data['status'] === 'success') {
                         $city = $data['city'] ?? null;
-                        // Si la ville est "Paris" mais qu'on est en Bourgogne, vérifier la région
-                        if ($city === 'Paris' && isset($data['regionName'])) {
-                            $region = $data['regionName'] ?? '';
-                            // Si la région indique Bourgogne, utiliser la région comme ville
-                            if (stripos($region, 'Bourgogne') !== false || stripos($region, 'Dijon') !== false) {
-                                $city = 'Dijon'; // Ou utiliser la région
+                        $region = $data['regionName'] ?? '';
+                        $lat = $data['lat'] ?? null;
+                        $lon = $data['lon'] ?? null;
+                        
+                        // Correction pour la Bourgogne-Franche-Comté
+                        // Si la ville est "Paris" mais qu'on est en Bourgogne, vérifier la région ou les coordonnées
+                        if ($city === 'Paris') {
+                            // Vérifier la région
+                            if (!empty($region) && (stripos($region, 'Bourgogne') !== false || 
+                                stripos($region, 'Franche-Comté') !== false || 
+                                stripos($region, 'Dijon') !== false)) {
+                                $city = 'Dijon';
                                 Log::info("Correction géolocalisation: Paris -> Dijon (région: {$region})");
+                            }
+                            // Vérifier les coordonnées (Dijon: ~47.32°N, 5.04°E)
+                            elseif ($lat !== null && $lon !== null) {
+                                // Si les coordonnées sont proches de Dijon (environ 47.3°N, 5.0°E)
+                                if ($lat >= 47.0 && $lat <= 47.5 && $lon >= 4.5 && $lon <= 5.5) {
+                                    $city = 'Dijon';
+                                    Log::info("Correction géolocalisation: Paris -> Dijon (coordonnées: {$lat}, {$lon})");
+                                }
                             }
                         }
                         
