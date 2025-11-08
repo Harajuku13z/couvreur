@@ -271,16 +271,44 @@ class DevisController extends Controller
             
             // Générer le PDF s'il n'existe pas
             if (!$devis->pdf_path || !Storage::disk('local')->exists($devis->pdf_path)) {
-                $pdfService->generateDevisPdf($devis);
-                $devis->refresh();
+                try {
+                    $pdfService->generateDevisPdf($devis);
+                    $devis->refresh();
+                } catch (\Exception $genError) {
+                    Log::error('Erreur génération PDF lors du téléchargement', [
+                        'error' => $genError->getMessage(),
+                        'trace' => $genError->getTraceAsString(),
+                        'devis_id' => $id,
+                    ]);
+                    throw new \Exception('Impossible de générer le PDF : ' . $genError->getMessage());
+                }
             }
             
             // Vérifier que le fichier existe
             if (!Storage::disk('local')->exists($devis->pdf_path)) {
-                throw new \Exception('Le fichier PDF n\'a pas pu être généré');
+                throw new \Exception('Le fichier PDF n\'a pas pu être généré ou n\'existe pas');
             }
             
-            return Storage::disk('local')->download($devis->pdf_path, 'Devis_' . $devis->numero . '.pdf');
+            $filePath = Storage::disk('local')->path($devis->pdf_path);
+            
+            // Vérifier que le fichier existe physiquement
+            if (!file_exists($filePath)) {
+                throw new \Exception('Le fichier PDF n\'existe pas sur le serveur : ' . $filePath);
+            }
+            
+            // Essayer d'abord avec Storage::download
+            try {
+                return Storage::disk('local')->download($devis->pdf_path, 'Devis_' . $devis->numero . '.pdf');
+            } catch (\Exception $downloadError) {
+                // Fallback : utiliser response()->download
+                Log::warning('Storage::download a échoué, utilisation de response()->download', [
+                    'error' => $downloadError->getMessage(),
+                ]);
+                
+                return response()->download($filePath, 'Devis_' . $devis->numero . '.pdf', [
+                    'Content-Type' => 'application/pdf',
+                ]);
+            }
         } catch (\Exception $e) {
             Log::error('Erreur téléchargement PDF devis', [
                 'error' => $e->getMessage(),

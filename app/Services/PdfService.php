@@ -15,23 +15,73 @@ class PdfService
      */
     public function generateDevisPdf(Devis $devis): string
     {
-        $devis->load(['client', 'lignesDevis']);
+        try {
+            $devis->load(['client', 'lignesDevis']);
 
-        $pdf = Pdf::loadView('pdfs.devis', [
-            'devis' => $devis,
-            'companySettings' => $this->getCompanySettings(),
-        ]);
+            // Vérifier que le devis a des lignes
+            if ($devis->lignesDevis->isEmpty()) {
+                throw new \Exception('Le devis n\'a pas de lignes. Impossible de générer le PDF.');
+            }
 
-        $filename = 'devis_' . $devis->numero . '_' . time() . '.pdf';
-        $path = 'devis/' . $filename;
+            // Vérifier que le client existe
+            if (!$devis->client) {
+                throw new \Exception('Le client associé au devis n\'existe pas.');
+            }
 
-        // Sauvegarder le PDF
-        Storage::disk('local')->put($path, $pdf->output());
+            $companySettings = $this->getCompanySettings();
 
-        // Mettre à jour le devis avec le chemin du PDF
-        $devis->update(['pdf_path' => $path]);
+            Log::info('Génération PDF devis', [
+                'devis_id' => $devis->id,
+                'devis_numero' => $devis->numero,
+                'client_id' => $devis->client_id,
+                'lignes_count' => $devis->lignesDevis->count(),
+            ]);
 
-        return $path;
+            $pdf = Pdf::loadView('pdfs.devis', [
+                'devis' => $devis,
+                'companySettings' => $companySettings,
+            ]);
+
+            // Options PDF
+            $pdf->setPaper('a4', 'portrait');
+            $pdf->setOption('enable-local-file-access', true);
+
+            $filename = 'devis_' . $devis->numero . '_' . time() . '.pdf';
+            $path = 'devis/' . $filename;
+
+            // S'assurer que le dossier existe
+            $directory = dirname(Storage::disk('local')->path($path));
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Sauvegarder le PDF
+            $pdfContent = $pdf->output();
+            Storage::disk('local')->put($path, $pdfContent);
+
+            // Vérifier que le fichier a bien été créé
+            if (!Storage::disk('local')->exists($path)) {
+                throw new \Exception('Le fichier PDF n\'a pas pu être sauvegardé');
+            }
+
+            // Mettre à jour le devis avec le chemin du PDF
+            $devis->update(['pdf_path' => $path]);
+
+            Log::info('PDF devis généré avec succès', [
+                'devis_id' => $devis->id,
+                'path' => $path,
+                'size' => Storage::disk('local')->size($path),
+            ]);
+
+            return $path;
+        } catch (\Exception $e) {
+            Log::error('Erreur génération PDF devis', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'devis_id' => $devis->id ?? null,
+            ]);
+            throw $e;
+        }
     }
 
     /**
