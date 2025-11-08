@@ -450,6 +450,16 @@ Route::middleware(['check.setup'])->group(function () {
     
     // Routes publiques SEO
     Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'generateSitemap'])->name('sitemap.xml');
+    // Route pour sitemap_index.xml - rediriger vers sitemap.xml (on n'utilise plus sitemap_index.xml)
+    Route::get('/sitemap_index.xml', function() {
+        // Supprimer le fichier s'il existe
+        $indexPath = public_path('sitemap_index.xml');
+        if (file_exists($indexPath)) {
+            @unlink($indexPath);
+        }
+        // Rediriger vers sitemap.xml
+        return redirect('/sitemap.xml', 301);
+    })->name('sitemap_index.xml');
     Route::get('/robots.txt', [App\Http\Controllers\SeoController::class, 'generateRobots'])->name('robots.txt');
     Route::get('/manifest.json', [App\Http\Controllers\SeoController::class, 'generateManifest'])->name('manifest.json');
     
