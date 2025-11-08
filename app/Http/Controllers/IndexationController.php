@@ -166,15 +166,38 @@ class IndexationController extends Controller
             $sitemapService = new SitemapService();
             $result = $sitemapService->generateSitemap();
             
-            // Vérifier que le premier sitemap a la bonne URL
-            $firstSitemapPath = public_path('sitemap.xml');
-            if (file_exists($firstSitemapPath)) {
-                $content = file_get_contents($firstSitemapPath);
+            // Vérifier que TOUS les sitemaps ont la bonne URL
+            $allSitemaps = glob(public_path('sitemap*.xml'));
+            $hasOldUrl = false;
+            foreach ($allSitemaps as $sitemapFile) {
+                $content = file_get_contents($sitemapFile);
                 if (strpos($content, 'sausercouverture.fr') !== false) {
-                    \Log::warning("⚠️ Le sitemap contient encore l'ancienne URL, suppression et régénération...");
-                    unlink($firstSitemapPath);
-                    $result = $sitemapService->generateSitemap();
+                    \Log::warning("⚠️ Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr, suppression...");
+                    unlink($sitemapFile);
+                    $hasOldUrl = true;
                 }
+            }
+            
+            // Si des sitemaps avec l'ancienne URL ont été supprimés, régénérer
+            if ($hasOldUrl) {
+                \Log::info("🔄 Régénération des sitemaps avec la bonne URL...");
+                $result = $sitemapService->generateSitemap();
+            }
+            
+            // Vérification finale : s'assurer qu'aucun sitemap ne contient sausercouverture.fr
+            $finalCheck = glob(public_path('sitemap*.xml'));
+            foreach ($finalCheck as $sitemapFile) {
+                $content = file_get_contents($sitemapFile);
+                if (strpos($content, 'sausercouverture.fr') !== false) {
+                    \Log::error("❌ ERREUR: Le sitemap " . basename($sitemapFile) . " contient encore sausercouverture.fr après régénération !");
+                    // Supprimer et régénérer une dernière fois
+                    unlink($sitemapFile);
+                }
+            }
+            
+            // Si des sitemaps ont été supprimés lors de la vérification finale, régénérer
+            if (count($finalCheck) !== count(glob(public_path('sitemap*.xml')))) {
+                $result = $sitemapService->generateSitemap();
             }
             
             return response()->json([
