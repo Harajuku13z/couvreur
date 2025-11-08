@@ -89,7 +89,17 @@
         }
         if (empty($finalImage)) {
             $companyLogo = setting('company_logo');
-            $finalImage = $companyLogo ? url($companyLogo) : url('logo/logo.png');
+            if ($companyLogo) {
+                // S'assurer que l'URL est complète (HTTPS)
+                $finalImage = strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo);
+            } else {
+                $finalImage = url('logo/logo.png');
+            }
+        }
+        
+        // S'assurer que l'image est en HTTPS et accessible
+        if (!empty($finalImage) && strpos($finalImage, 'http://') === 0) {
+            $finalImage = str_replace('http://', 'https://', $finalImage);
         }
         
         // Limiter la longueur pour respecter les standards SEO
