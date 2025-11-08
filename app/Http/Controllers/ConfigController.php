@@ -243,13 +243,17 @@ class ConfigController extends Controller
                 $sourcePath = public_path($faviconName);
                 $icoPath = public_path('favicon.ico');
                 
-                // Si c'est déjà un .ico, copier directement
-                if (strtolower($extension) === 'ico') {
-                    copy($sourcePath, $icoPath);
+                // Supprimer l'ancien favicon.ico s'il existe
+                if (file_exists($icoPath)) {
+                    @unlink($icoPath);
+                }
+                
+                // Copier le fichier vers favicon.ico
+                // (les navigateurs modernes acceptent PNG comme favicon.ico)
+                if (copy($sourcePath, $icoPath)) {
+                    \Log::info('favicon.ico créé avec succès à partir de ' . $faviconName);
                 } else {
-                    // Sinon, copier le fichier PNG/JPG comme favicon.ico
-                    // (les navigateurs modernes acceptent PNG comme favicon.ico)
-                    copy($sourcePath, $icoPath);
+                    \Log::warning('Impossible de copier le favicon vers favicon.ico');
                 }
             } catch (\Exception $e) {
                 \Log::warning('Impossible de créer favicon.ico: ' . $e->getMessage());
