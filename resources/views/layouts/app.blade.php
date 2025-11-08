@@ -283,14 +283,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     @endif
     
-    <!-- Favicon ICO (fallback pour anciens navigateurs) -->
+    <!-- Favicon ICO (fallback pour anciens navigateurs) - UN SEUL -->
     @if(file_exists(public_path('favicon.ico')))
     <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
     @elseif($faviconUrl)
     <link rel="icon" href="{{ $faviconUrl }}{{ $faviconVersion }}" type="{{ $faviconType }}">
-    @else
-    <!-- Fallback: favicon par défaut si aucun n'est configuré -->
-    <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
     @endif
     
     <!-- Apple Touch Icon (fallback si configuré séparément) -->

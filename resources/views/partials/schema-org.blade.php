@@ -43,9 +43,10 @@
         $organizationSchema["sameAs"] = $sameAs;
     }
     
-    // Reviews Schema (si sur la page d'accueil)
-    $reviewsSchema = null;
+    // Reviews Schema (si sur la page d'accueil) - Fusionner avec l'organisation pour éviter les doublons
+    $hasReviews = false;
     if (isset($reviews) && is_object($reviews) && method_exists($reviews, 'count') && $reviews->count() > 0 && isset($averageRating)) {
+        $hasReviews = true;
         $reviewItems = [];
         foreach ($reviews->take(5) as $review) {
             $reviewItems[] = [
@@ -63,19 +64,15 @@
             ];
         }
         
-        $reviewsSchema = [
-            "@context" => "https://schema.org",
-            "@type" => "LocalBusiness",
-            "name" => $companyName,
-            "aggregateRating" => [
-                "@type" => "AggregateRating",
-                "ratingValue" => number_format($averageRating, 1),
-                "reviewCount" => $totalReviews ?? $reviews->count(),
-                "bestRating" => "5",
-                "worstRating" => "1"
-            ],
-            "review" => $reviewItems
+        // Ajouter les reviews directement dans l'organisation pour éviter les doublons
+        $organizationSchema["aggregateRating"] = [
+            "@type" => "AggregateRating",
+            "ratingValue" => number_format($averageRating, 1),
+            "reviewCount" => $totalReviews ?? $reviews->count(),
+            "bestRating" => "5",
+            "worstRating" => "1"
         ];
+        $organizationSchema["review"] = $reviewItems;
     }
     
     // Service Schema (si sur une page service)
@@ -129,12 +126,7 @@
 {!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 
-{{-- Reviews Schema (Rich Snippets) --}}
-@if($reviewsSchema)
-<script type="application/ld+json">
-{!! json_encode($reviewsSchema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
-</script>
-@endif
+{{-- Reviews sont maintenant incluses dans l'organisation pour éviter les doublons --}}
 
 {{-- Service Schema --}}
 @if($serviceSchema)
