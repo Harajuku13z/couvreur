@@ -13,21 +13,31 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Client::orderBy('nom');
+        try {
+            $query = Client::orderBy('nom');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nom', 'like', "%{$search}%")
-                  ->orWhere('prenom', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('telephone', 'like', "%{$search}%");
-            });
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('nom', 'like', "%{$search}%")
+                      ->orWhere('prenom', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('telephone', 'like', "%{$search}%");
+                });
+            }
+
+            $clients = $query->paginate(20);
+
+            return view('admin.clients.index', compact('clients'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur ClientController::index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('admin.clients.index', ['clients' => collect([])->paginate(20)])
+                ->with('error', 'Erreur lors du chargement des clients. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
         }
-
-        $clients = $query->paginate(20);
-
-        return view('admin.clients.index', compact('clients'));
     }
 
     /**

@@ -24,28 +24,38 @@ class DevisController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Devis::with('client')->orderBy('created_at', 'desc');
+        try {
+            $query = Devis::with('client')->orderBy('created_at', 'desc');
 
-        // Filtres
-        if ($request->filled('statut')) {
-            $query->where('statut', $request->statut);
+            // Filtres
+            if ($request->filled('statut')) {
+                $query->where('statut', $request->statut);
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('numero', 'like', "%{$search}%")
+                      ->orWhereHas('client', function($q) use ($search) {
+                          $q->where('nom', 'like', "%{$search}%")
+                            ->orWhere('prenom', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            $devis = $query->paginate(20);
+
+            return view('admin.devis.index', compact('devis'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur DevisController::index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('admin.devis.index', ['devis' => collect([])->paginate(20)])
+                ->with('error', 'Erreur lors du chargement des devis. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
         }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('numero', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($q) use ($search) {
-                      $q->where('nom', 'like', "%{$search}%")
-                        ->orWhere('prenom', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $devis = $query->paginate(20);
-
-        return view('admin.devis.index', compact('devis'));
     }
 
     /**
@@ -53,8 +63,18 @@ class DevisController extends Controller
      */
     public function create()
     {
-        $clients = Client::orderBy('nom')->get();
-        return view('admin.devis.create', compact('clients'));
+        try {
+            $clients = Client::orderBy('nom')->get();
+            return view('admin.devis.create', compact('clients'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur DevisController::create', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('admin.devis.create', ['clients' => collect([])])
+                ->with('error', 'Erreur lors du chargement. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
+        }
     }
 
     /**
@@ -165,8 +185,18 @@ class DevisController extends Controller
      */
     public function show($id)
     {
-        $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
-        return view('admin.devis.show', compact('devis'));
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            return view('admin.devis.show', compact('devis'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur DevisController::show', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.devis.index')
+                ->with('error', 'Erreur lors du chargement. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
+        }
     }
 
     /**
@@ -174,9 +204,19 @@ class DevisController extends Controller
      */
     public function edit($id)
     {
-        $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
-        $clients = Client::orderBy('nom')->get();
-        return view('admin.devis.edit', compact('devis', 'clients'));
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            $clients = Client::orderBy('nom')->get();
+            return view('admin.devis.edit', compact('devis', 'clients'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur DevisController::edit', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.devis.index')
+                ->with('error', 'Erreur lors du chargement. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
+        }
     }
 
     /**

@@ -13,28 +13,38 @@ class FactureController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Facture::with(['client', 'devis'])->orderBy('created_at', 'desc');
+        try {
+            $query = Facture::with(['client', 'devis'])->orderBy('created_at', 'desc');
 
-        // Filtres
-        if ($request->filled('statut')) {
-            $query->where('statut', $request->statut);
+            // Filtres
+            if ($request->filled('statut')) {
+                $query->where('statut', $request->statut);
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('numero', 'like', "%{$search}%")
+                      ->orWhereHas('client', function($q) use ($search) {
+                          $q->where('nom', 'like', "%{$search}%")
+                            ->orWhere('prenom', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            $factures = $query->paginate(20);
+
+            return view('admin.factures.index', compact('factures'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur FactureController::index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('admin.factures.index', ['factures' => collect([])->paginate(20)])
+                ->with('error', 'Erreur lors du chargement des factures. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
         }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('numero', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($q) use ($search) {
-                      $q->where('nom', 'like', "%{$search}%")
-                        ->orWhere('prenom', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $factures = $query->paginate(20);
-
-        return view('admin.factures.index', compact('factures'));
     }
 
     /**
@@ -42,8 +52,18 @@ class FactureController extends Controller
      */
     public function show($id)
     {
-        $facture = Facture::with(['client', 'devis'])->findOrFail($id);
-        return view('admin.factures.show', compact('facture'));
+        try {
+            $facture = Facture::with(['client', 'devis'])->findOrFail($id);
+            return view('admin.factures.show', compact('facture'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur FactureController::show', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.factures.index')
+                ->with('error', 'Erreur lors du chargement. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
+        }
     }
 
     /**
