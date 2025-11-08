@@ -30,6 +30,13 @@
             font-size: 28px;
             font-weight: bold;
         }
+        .logo-wrapper {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
         .content {
             padding: 40px 30px;
         }
@@ -143,7 +150,9 @@
         <!-- Header -->
         <div class="header">
             @if(setting('company_logo'))
-                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; margin-bottom: 20px;">
+                <div class="logo-wrapper">
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; max-width: 200px;">
+                </div>
             @endif
             <h1>📄 Votre Facture</h1>
             <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">Facture N° {{ $facture->numero }}</p>

@@ -20,7 +20,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#1e40af') }} 100%);
             color: #ffffff;
             padding: 40px 30px;
             text-align: center;
@@ -29,6 +29,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: bold;
+        }
+        .logo-wrapper {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
         }
         .content {
             padding: 40px 30px;
@@ -45,7 +52,7 @@
             font-size: 16px;
         }
         .urgent-box {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#1e40af') }} 100%);
             color: #ffffff;
             padding: 30px;
             margin: 30px 0;
@@ -112,6 +119,10 @@
             font-size: 14px;
             color: #666666;
         }
+        .footer a {
+            color: {{ setting('primary_color', '#3b82f6') }};
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -119,7 +130,9 @@
         <!-- Header -->
         <div class="header">
             @if(setting('company_logo'))
-                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; margin-bottom: 20px;">
+                <div class="logo-wrapper">
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; max-width: 200px;">
+                </div>
             @endif
             <h1>⚠️ Rappel de Paiement</h1>
             <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">Facture N° {{ $facture->numero }}</p>
@@ -214,7 +227,7 @@
             <p>Tél : {{ setting('company_phone') }}</p>
             @endif
             @if(setting('company_email'))
-            <p>Email : <a href="mailto:{{ setting('company_email') }}" style="color: #3b82f6;">{{ setting('company_email') }}</a></p>
+            <p>Email : <a href="mailto:{{ setting('company_email') }}">{{ setting('company_email') }}</a></p>
             @endif
             <p style="font-size: 12px; color: #999999; margin-top: 15px;">
                 Cet email est un rappel automatique concernant votre facture impayée.

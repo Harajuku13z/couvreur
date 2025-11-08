@@ -20,7 +20,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#10b981') }} 100%);
+            background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#1e40af') }} 100%);
             color: #ffffff;
             padding: 40px 30px;
             text-align: center;
@@ -34,6 +34,13 @@
             margin: 10px 0 0;
             font-size: 16px;
             opacity: 0.9;
+        }
+        .logo-wrapper {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
         }
         .content {
             padding: 40px 30px;
@@ -77,7 +84,7 @@
             color: #333333;
         }
         .urgent-box {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#1e40af') }} 100%);
             color: #ffffff;
             padding: 30px;
             margin: 30px 0;
@@ -160,7 +167,9 @@
         <!-- Header -->
         <div class="header">
             @if(setting('company_logo'))
-                <img src="{{ asset(setting('company_logo')) }}" alt="{{ company('name') }}" style="height: 60px; margin-bottom: 20px;">
+                <div class="logo-wrapper">
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ company('name') }}" style="height: 60px; max-width: 200px;">
+                </div>
             @endif
             <h1>✅ Demande Reçue !</h1>
             <p>Nous avons bien reçu votre demande de devis</p>

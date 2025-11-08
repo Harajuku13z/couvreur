@@ -30,6 +30,13 @@
             font-size: 28px;
             font-weight: bold;
         }
+        .logo-wrapper {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
         .content {
             padding: 40px 30px;
         }
@@ -144,7 +151,9 @@
         <!-- Header -->
         <div class="header">
             @if(setting('company_logo'))
-                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; margin-bottom: 20px;">
+                <div class="logo-wrapper">
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; max-width: 200px;">
+                </div>
             @endif
             <h1>📄 Votre Devis</h1>
             <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">Devis N° {{ $devis->numero }}</p>
@@ -176,12 +185,6 @@
                 <div class="devis-info">
                     <span class="info-label">Valable jusqu'au :</span>
                     <span class="info-value">{{ $devis->date_validite->format('d/m/Y') }}</span>
-                </div>
-                @endif
-                @if($devis->description_globale)
-                <div class="devis-info">
-                    <span class="info-label">Description :</span>
-                    <span class="info-value">{{ $devis->description_globale }}</span>
                 </div>
                 @endif
             </div>

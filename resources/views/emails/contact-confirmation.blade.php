@@ -13,6 +13,11 @@
                     <!-- Header avec couleur principale -->
                     <tr>
                         <td style="background: linear-gradient(135deg, {{ setting('primary_color', '#3b82f6') }} 0%, {{ setting('secondary_color', '#1e40af') }} 100%); padding: 40px 30px; text-align: center;">
+                            @if(setting('company_logo'))
+                            <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">
+                                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name', 'Votre Entreprise') }}" style="height: 60px; max-width: 200px;">
+                            </div>
+                            @endif
                             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
                                 ✅ Message reçu !
                             </h1>
