@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
-        $currentPage = $currentPage ?? 'home';
-        
-        // Si des métadonnées spécifiques sont passées (pour les annonces, articles, etc.), les utiliser directement
-        if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords) || isset($pageTitle)) {
+        try {
+            $currentPage = $currentPage ?? 'home';
+            
+            // Si des métadonnées spécifiques sont passées (pour les annonces, articles, etc.), les utiliser directement
+            if (isset($ogTitle) || isset($twitterTitle) || isset($pageKeywords) || isset($pageTitle)) {
             // Utiliser les métadonnées spécifiques pour les annonces et articles
             $finalTitle = trim($pageTitle ?? '');
             $finalDescription = trim($pageDescription ?? '');
@@ -113,6 +114,18 @@
         // Récupérer la configuration SEO pour les tags de tracking
         $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        } catch (\Exception $e) {
+            // En cas d'erreur (ex: base de données inaccessible), utiliser des valeurs par défaut
+            \Log::warning('Erreur lors du chargement des settings dans app.blade.php: ' . $e->getMessage());
+            $finalTitle = $finalTitle ?? 'Votre Entreprise';
+            $finalDescription = $finalDescription ?? 'Expert en travaux de rénovation';
+            $finalOgTitle = $finalOgTitle ?? $finalTitle;
+            $finalOgDescription = $finalOgDescription ?? $finalDescription;
+            $finalTwitterTitle = $finalTwitterTitle ?? $finalOgTitle;
+            $finalTwitterDescription = $finalTwitterDescription ?? $finalOgDescription;
+            $finalImage = $finalImage ?? url('logo/logo.png');
+            $seoConfig = [];
+        }
     @endphp
     
     <title>{{ e($finalTitle) }}</title>
@@ -306,12 +319,6 @@
     {{-- Schema.org Structured Data (inclus dans toutes les pages) --}}
     @include('partials.schema-org')
     
-    <!-- Preconnect pour améliorer les performances des CDN -->
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    
     <!-- Articles CSS (critique, chargé en premier) -->
     <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
     
@@ -323,9 +330,9 @@
     
     <style>
         :root {
-            --primary-color: {{ setting('primary_color', '#3b82f6') }};
-            --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-            --accent-color: {{ setting('accent_color', '#f59e0b') }};
+            --primary-color: {{ @setting('primary_color', '#3b82f6') }};
+            --secondary-color: {{ @setting('secondary_color', '#1e40af') }};
+            --accent-color: {{ @setting('accent_color', '#f59e0b') }};
         }
         
         .btn-primary {
