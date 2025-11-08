@@ -131,16 +131,20 @@
     <title>{{ e($finalTitle) }}</title>
     <meta name="description" content="{{ e($finalDescription) }}">
     @php
-        $keywordsValue = $finalKeywords ?? '';
-        if (empty($keywordsValue)) {
-            // Utiliser view()->yieldContent() au lieu de @yield() dans un bloc PHP
-            $yieldKeywords = view()->yieldContent('keywords', '');
-            $keywordsValue = !empty($yieldKeywords) ? $yieldKeywords : setting('meta_keywords', 'travaux, rénovation, toiture, façade');
-        }
-        // S'assurer que les keywords ne sont jamais vides
-        if (empty($keywordsValue)) {
-            $companySpecialization = setting('company_specialization', 'Travaux de Rénovation');
-            $keywordsValue = strtolower($companySpecialization) . ', travaux, rénovation, devis gratuit';
+        try {
+            $keywordsValue = $finalKeywords ?? '';
+            if (empty($keywordsValue)) {
+                // Utiliser view()->yieldContent() au lieu de @yield() dans un bloc PHP
+                $yieldKeywords = view()->yieldContent('keywords', '');
+                $keywordsValue = !empty($yieldKeywords) ? $yieldKeywords : @setting('meta_keywords', 'travaux, rénovation, toiture, façade');
+            }
+            // S'assurer que les keywords ne sont jamais vides
+            if (empty($keywordsValue)) {
+                $companySpecialization = @setting('company_specialization', 'Travaux de Rénovation');
+                $keywordsValue = strtolower($companySpecialization) . ', travaux, rénovation, devis gratuit';
+            }
+        } catch (\Exception $e) {
+            $keywordsValue = 'travaux, rénovation, toiture, façade';
         }
     @endphp
     <meta name="keywords" content="{{ e($keywordsValue) }}">
@@ -158,7 +162,7 @@
     <meta property="og:image:alt" content="{{ e($finalOgTitle) }}">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta property="og:type" content="{{ $pageType ?? 'website' }}">
-    <meta property="og:site_name" content="{{ e(setting('company_name', 'Votre Entreprise')) }}">
+    <meta property="og:site_name" content="{{ e(@setting('company_name', 'Votre Entreprise')) }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="fr_FR">
@@ -172,8 +176,8 @@
     <meta name="twitter:title" content="{{ e($finalTwitterTitle) }}">
     <meta name="twitter:description" content="{{ e($finalTwitterDescription) }}">
     <meta name="twitter:image" content="{{ e($finalImage) }}">
-    @if(setting('twitter_site'))
-    <meta name="twitter:site" content="{{ e(setting('twitter_site')) }}">
+    @if(@setting('twitter_site'))
+    <meta name="twitter:site" content="{{ e(@setting('twitter_site')) }}">
     @endif
     
     <!-- Favicon -->
@@ -309,10 +313,10 @@
     <link rel="manifest" href="{{ url('/manifest.json') }}">
     
     <!-- Meta pour Web App -->
-    <meta name="application-name" content="{{ setting('company_name', 'Votre Entreprise') }}">
+    <meta name="application-name" content="{{ @setting('company_name', 'Votre Entreprise') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="{{ Str::limit(setting('company_name', 'Votre Entreprise'), 12) }}">
+    <meta name="apple-mobile-web-app-title" content="{{ Str::limit(@setting('company_name', 'Votre Entreprise'), 12) }}">
     
     @yield('head')
     
@@ -375,12 +379,12 @@
     @endif
     
     <!-- Google Tag Manager -->
-    @if(setting('google_tag_manager_id'))
+    @if(@setting('google_tag_manager_id'))
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','{{ setting('google_tag_manager_id') }}');</script>
+    })(window,document,'script','dataLayer','{{ @setting('google_tag_manager_id') }}');</script>
     @endif
     
     <!-- Facebook Pixel -->
@@ -430,25 +434,34 @@
     @include('partials.footer')
     
     <!-- Floating Call Button -->
-    @if(setting('company_phone_raw'))
+    @if(@setting('company_phone_raw'))
     @php
-        // Formater le numéro pour tel: (supprimer les espaces, garder les chiffres)
-        $phoneRaw = preg_replace('/[^0-9+]/', '', setting('company_phone_raw'));
-        $phoneForTracking = setting('company_phone_raw');
-        // Si le numéro commence par 0, le remplacer par +33 pour les appels internationaux
-        if (strpos($phoneRaw, '0') === 0 && strlen($phoneRaw) == 10) {
-            $phoneRaw = '+33' . substr($phoneRaw, 1);
+        try {
+            // Formater le numéro pour tel: (supprimer les espaces, garder les chiffres)
+            $phoneRaw = preg_replace('/[^0-9+]/', '', @setting('company_phone_raw', ''));
+            $phoneForTracking = @setting('company_phone_raw', '');
+            $companyPhone = @setting('company_phone', @setting('company_phone_raw', ''));
+            // Si le numéro commence par 0, le remplacer par +33 pour les appels internationaux
+            if (strpos($phoneRaw, '0') === 0 && strlen($phoneRaw) == 10) {
+                $phoneRaw = '+33' . substr($phoneRaw, 1);
+            }
+            $currentPageForTracking = $currentPage ?? 'home';
+        } catch (\Exception $e) {
+            $phoneRaw = '';
+            $phoneForTracking = '';
+            $companyPhone = '';
         }
-        $currentPageForTracking = $currentPage ?? 'home';
     @endphp
+    @if(!empty($phoneRaw))
     <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
        style="background-color: var(--primary-color);"
-       aria-label="Appeler {{ $companyPhone }}"
-       title="Appeler {{ $companyPhone }}">
+       aria-label="Appeler {{ $companyPhone ?: $phoneForTracking }}"
+       title="Appeler {{ $companyPhone ?: $phoneForTracking }}">
         <i class="fas fa-phone text-2xl" aria-hidden="true"></i>
     </a>
+    @endif
     @endif
     
     <script>
