@@ -259,7 +259,6 @@
     @if($faviconUrl)
     <!-- Favicon standard (obligatoire pour Google - doit être accessible en HTTPS) -->
     <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
-    <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     @endif
     
     <!-- Favicons générés avec tailles spécifiques (requis par Google) -->
