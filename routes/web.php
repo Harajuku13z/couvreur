@@ -356,6 +356,34 @@ Route::middleware(['check.setup'])->group(function () {
     // Routes publiques SEO
     Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'generateSitemap'])->name('sitemap.xml');
     Route::get('/robots.txt', [App\Http\Controllers\SeoController::class, 'generateRobots'])->name('robots.txt');
+    
+    // Route pour servir le favicon.ico (pour Google)
+    Route::get('/favicon.ico', function() {
+        $faviconPath = \App\Models\Setting::get('site_favicon');
+        
+        // Si un favicon est configuré, le servir
+        if ($faviconPath && file_exists(public_path($faviconPath))) {
+            $fullPath = public_path($faviconPath);
+            $mimeType = mime_content_type($fullPath);
+            return response()->file($fullPath, ['Content-Type' => $mimeType]);
+        }
+        
+        // Sinon, vérifier si favicon.ico existe directement
+        if (file_exists(public_path('favicon.ico'))) {
+            return response()->file(public_path('favicon.ico'), ['Content-Type' => 'image/x-icon']);
+        }
+        
+        // Fallback: chercher n'importe quel favicon dans public
+        $faviconFiles = glob(public_path('favicon*'));
+        if (!empty($faviconFiles)) {
+            $faviconFile = $faviconFiles[0];
+            $mimeType = mime_content_type($faviconFile);
+            return response()->file($faviconFile, ['Content-Type' => $mimeType]);
+        }
+        
+        // Si aucun favicon trouvé, retourner 204 No Content (au lieu de 404)
+        return response('', 204);
+    });
     Route::get('/manifest.json', [App\Http\Controllers\SeoController::class, 'generateManifest'])->name('manifest.json');
     
     // ===== PUBLIC PAGES =====

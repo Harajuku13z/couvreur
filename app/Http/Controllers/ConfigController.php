@@ -227,9 +227,33 @@ class ConfigController extends Controller
                 @unlink(public_path($oldFavicon));
             }
             
-            $faviconName = 'favicon-' . time() . '.' . $favicon->getClientOriginalExtension();
+            // Supprimer aussi l'ancien favicon.ico si présent
+            $oldFaviconIco = public_path('favicon.ico');
+            if (file_exists($oldFaviconIco)) {
+                @unlink($oldFaviconIco);
+            }
+            
+            $extension = $favicon->getClientOriginalExtension();
+            $faviconName = 'favicon-' . time() . '.' . $extension;
             $favicon->move(public_path(), $faviconName);
             Setting::set('site_favicon', $faviconName, 'file', 'branding');
+            
+            // Créer aussi un favicon.ico pour Google (copie ou conversion)
+            try {
+                $sourcePath = public_path($faviconName);
+                $icoPath = public_path('favicon.ico');
+                
+                // Si c'est déjà un .ico, copier directement
+                if (strtolower($extension) === 'ico') {
+                    copy($sourcePath, $icoPath);
+                } else {
+                    // Sinon, copier le fichier PNG/JPG comme favicon.ico
+                    // (les navigateurs modernes acceptent PNG comme favicon.ico)
+                    copy($sourcePath, $icoPath);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Impossible de créer favicon.ico: ' . $e->getMessage());
+            }
         }
 
         // Handle contact hero image upload
