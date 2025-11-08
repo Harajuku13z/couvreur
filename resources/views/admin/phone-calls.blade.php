@@ -93,9 +93,9 @@
                 <i class="fas fa-list mr-2 text-blue-500"></i>Historique des appels
             </h2>
             <div class="flex items-center space-x-4">
-                @if($phoneCalls->total() > 0)
-                <span class="text-sm text-gray-600">{{ $phoneCalls->total() }} appel(s)</span>
-                @endif
+            @if($phoneCalls->total() > 0)
+            <span class="text-sm text-gray-600">{{ $phoneCalls->total() }} appel(s)</span>
+            @endif
                 @if($phoneCalls->total() > 0)
                 <button onclick="showDeleteAllModal()" 
                         class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center text-sm">
@@ -418,6 +418,6 @@ document.getElementById('deleteAllForm').addEventListener('submit', function(e) 
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     });
-});
+    });
 </script>
 @endsection

@@ -126,18 +126,23 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="{{ request()->url() }}">
     
-    <!-- Open Graph Meta Tags -->
+    <!-- Open Graph Meta Tags (améliorés pour Google) -->
     <meta property="og:title" content="{{ e($finalOgTitle) }}">
     <meta property="og:description" content="{{ e($finalOgDescription) }}">
     <meta property="og:image" content="{{ e($finalImage) }}">
     <meta property="og:image:secure_url" content="{{ e($finalImage) }}">
     <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="{{ e($finalOgTitle) }}">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta property="og:type" content="{{ $pageType ?? 'website' }}">
     <meta property="og:site_name" content="{{ e(setting('company_name', 'Votre Entreprise')) }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="fr_FR">
+    
+    <!-- Meta tags supplémentaires pour améliorer l'affichage dans Google -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -216,7 +221,7 @@
     @endphp
     
     @if($faviconUrl)
-    <!-- Favicon standard (obligatoire pour Google) -->
+    <!-- Favicon standard (obligatoire pour Google - doit être accessible en HTTPS) -->
     <link rel="icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="shortcut icon" type="{{ $faviconType }}" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     
@@ -228,8 +233,14 @@
     <link rel="icon" type="{{ $faviconType }}" sizes="192x192" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     <link rel="icon" type="{{ $faviconType }}" sizes="512x512" href="{{ $faviconUrl }}{{ $faviconVersion }}">
     
-    <!-- Apple Touch Icon -->
+    <!-- Apple Touch Icon (pour iOS) -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}{{ $faviconVersion }}">
+    
+    <!-- Favicon alternatif pour compatibilité maximale -->
+    <link rel="icon" href="{{ $faviconUrl }}{{ $faviconVersion }}" type="{{ $faviconType }}">
+    @else
+    <!-- Fallback: favicon par défaut si aucun n'est configuré -->
+    <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
     @endif
     
     <!-- Apple Touch Icon (fallback si configuré séparément) -->
@@ -369,7 +380,7 @@
         window.Laravel = {
             csrfToken: '{{ csrf_token() }}',
             defaultPhone: '{{ setting("company_phone_raw") }}'
-        };
+            };
     </script>
     <script src="{{ asset('js/phone-tracking.js') }}?v={{ time() }}"></script>
     

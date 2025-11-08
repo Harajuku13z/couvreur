@@ -11,6 +11,9 @@
     $companyUrl = url('/');
     
     // Organisation Schema
+    $companyLogo = setting('company_logo');
+    $logoUrl = $companyLogo ? (strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo)) : url('logo/logo.png');
+    
     $organizationSchema = [
         "@context" => "https://schema.org",
         "@type" => "LocalBusiness",
@@ -27,7 +30,8 @@
             "addressCountry" => $companyCountry
         ],
         "priceRange" => "€€",
-        "image" => asset(setting('company_logo', 'images/logo.png'))
+        "image" => $logoUrl,
+        "logo" => $logoUrl  // Logo pour affichage dans Google (requis pour favicon dans résultats)
     ];
     
     // Ajouter les réseaux sociaux si disponibles
