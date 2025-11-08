@@ -114,11 +114,15 @@ class IndexUrlsDaily extends Command
             
             if (!empty($successfulUrls)) {
                 $this->markUrlsAsIndexed($successfulUrls);
+                Log::info("✅ " . count($successfulUrls) . " URLs marquées comme indexées");
             }
         }
 
-        // Mettre à jour les statistiques
+        // Mettre à jour les statistiques (même si successCount = 0, pour tracer les tentatives)
         $this->updateStatistics($successCount, $failedCount, count($urlsForToday));
+        
+        // Vider le cache pour que les nouvelles données soient visibles immédiatement
+        Setting::clearCache();
 
         // Afficher le résumé
         $this->info("✅ Indexation terminée:");
