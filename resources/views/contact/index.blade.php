@@ -536,17 +536,6 @@
                 </p>
             </div>
             
-            {{-- Barre de recherche FAQ --}}
-            <div class="max-w-2xl mx-auto mb-12">
-                <div class="relative">
-                    <input type="text" 
-                           id="faqSearch" 
-                           placeholder="Rechercher une question..." 
-                           class="w-full px-6 py-5 pl-14 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-lg shadow-md">
-                    <i class="fas fa-search absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
-                </div>
-            </div>
-            
             {{-- Liste des FAQ --}}
             <div class="max-w-4xl mx-auto space-y-4" id="faqList">
                 @foreach($faqs as $index => $faq)
@@ -630,59 +619,6 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 
 <script>
-// Recherche dans les FAQ avec mise en évidence
-document.getElementById('faqSearch')?.addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const faqItems = document.querySelectorAll('.faq-item');
-    let visibleCount = 0;
-    
-    faqItems.forEach(item => {
-        const question = item.getAttribute('data-question') || '';
-        const answer = item.getAttribute('data-answer') || '';
-        
-        if (searchTerm === '' || question.includes(searchTerm) || answer.includes(searchTerm)) {
-            item.style.display = 'block';
-            visibleCount++;
-            
-            // Animation d'apparition
-            item.style.opacity = '0';
-            item.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                item.style.transition = 'all 0.3s ease';
-                item.style.opacity = '1';
-                item.style.transform = 'translateY(0)';
-            }, 50);
-        } else {
-            item.style.display = 'none';
-        }
-    });
-    
-    // Afficher un message si aucun résultat
-    let noResultMsg = document.getElementById('noResultMsg');
-    if (visibleCount === 0 && searchTerm !== '') {
-        if (!noResultMsg) {
-            noResultMsg = document.createElement('div');
-            noResultMsg.id = 'noResultMsg';
-            noResultMsg.className = 'text-center py-12 bg-white rounded-2xl shadow-md';
-            noResultMsg.innerHTML = `
-                <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-600 text-lg">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    Aucune question ne correspond à votre recherche
-                </p>
-                <p class="text-gray-500 mt-2">
-                    Essayez avec d'autres mots-clés ou 
-                    <a href="#contactForm" class="text-primary hover:underline font-semibold">contactez-nous directement</a>
-                </p>
-            `;
-            document.getElementById('faqList').appendChild(noResultMsg);
-        }
-        noResultMsg.style.display = 'block';
-    } else if (noResultMsg) {
-        noResultMsg.style.display = 'none';
-    }
-});
-
 // Animation au scroll pour les éléments
 const observerOptions = {
     threshold: 0.1,
