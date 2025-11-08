@@ -1086,6 +1086,14 @@
                                 <p class="text-sm text-gray-600 mb-2">Favicon actuel :</p>
                                 <img src="{{ $faviconUrl }}?v={{ time() }}" alt="Favicon actuel" class="w-8 h-8 object-contain border border-gray-200 rounded">
                                 <p class="text-xs text-gray-500 mt-1">Si le favicon ne s'affiche pas, videz le cache de votre navigateur (Ctrl+F5 ou Cmd+Shift+R)</p>
+                                <p class="text-xs text-blue-600 mt-2">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Le fichier <code class="bg-gray-100 px-1 rounded">favicon.ico</code> sera automatiquement créé à la racine pour Google.
+                                </p>
+                                <p class="text-xs text-purple-600 mt-2">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Vérifiez que le favicon est détecté par Google avec l'<a href="https://search.google.com/search-console" target="_blank" class="underline">outil d'inspection d'URL</a> de Search Console.
+                                </p>
                             </div>
                             @endif
                         </div>
