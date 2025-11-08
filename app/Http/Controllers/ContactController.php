@@ -127,6 +127,7 @@ class ContactController extends Controller
                 $firstName = $nameParts[0] ?? $validated['name'];
                 $lastName = $nameParts[1] ?? '';
                 
+                // Préparer les données de soumission
                 $submissionData = [
                     'session_id' => session()->getId(),
                     'first_name' => $firstName,
@@ -142,15 +143,25 @@ class ContactController extends Controller
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'referrer_url' => $request->header('referer'),
-                    'form_data' => [
-                        'subject' => $validated['subject'],
-                        'message' => $validated['message'],
-                        'callback_time' => $validated['callback_time'] ?? null,
-                        'service_interest' => $validated['service_interest'] ?? null,
-                        'postal_code' => $validated['postal_code'] ?? null,
-                        'city' => $validated['city'] ?? null,
-                    ]
                 ];
+                
+                // Ajouter form_data seulement si la colonne existe
+                try {
+                    // Vérifier si la colonne form_data existe
+                    $columns = \Schema::getColumnListing('submissions');
+                    if (in_array('form_data', $columns)) {
+                        $submissionData['form_data'] = [
+                            'subject' => $validated['subject'],
+                            'message' => $validated['message'],
+                            'callback_time' => $validated['callback_time'] ?? null,
+                            'service_interest' => $validated['service_interest'] ?? null,
+                            'postal_code' => $validated['postal_code'] ?? null,
+                            'city' => $validated['city'] ?? null,
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Impossible de vérifier la colonne form_data: ' . $e->getMessage());
+                }
                 
                 \Log::info('Création d\'une soumission depuis le formulaire de contact', [
                     'email' => $validated['email'],
