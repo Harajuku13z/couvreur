@@ -118,7 +118,7 @@ class SitemapService
                 file_put_contents($sitemapPath, $xml);
                 $sitemapFiles[] = [
                     'filename' => $filename,
-                    'url' => url($filename),
+                    'url' => $this->baseUrl . '/' . $filename, // Utiliser baseUrl au lieu de url() pour éviter localhost
                     'urls_count' => count($urlChunk)
                 ];
                 
