@@ -19,16 +19,43 @@ class GenerateSitemap extends Command
     {
         $this->info('🚀 Génération du sitemap en cours...');
         
-        // URL depuis la config ou les settings
-        $baseUrl = \App\Models\Setting::get('site_url', null);
-        if (empty($baseUrl)) {
-            $baseUrl = config('app.url', url('/'));
+        // URL depuis la config ou les settings - FORCER normesrenovationbretagne.fr
+        $baseUrl = null;
+        
+        // 1. Vérifier le setting (mais REJETER sausercouverture.fr)
+        $settingUrl = \App\Models\Setting::get('site_url', null);
+        if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') === false) {
+            if (strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
+                $baseUrl = $settingUrl;
+            }
         }
+        
+        // 2. Vérifier APP_URL depuis .env (mais REJETER sausercouverture.fr)
+        if (empty($baseUrl)) {
+            $envUrl = config('app.url', null);
+            if (!empty($envUrl) && strpos($envUrl, 'sausercouverture.fr') === false) {
+                if (strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
+                    $baseUrl = $envUrl;
+                }
+            }
+        }
+        
+        // 3. Par défaut, utiliser normesrenovationbretagne.fr (TOUJOURS)
+        if (empty($baseUrl)) {
+            $baseUrl = 'https://normesrenovationbretagne.fr';
+        }
+        
         // S'assurer que l'URL a un protocole
         if (!preg_match('/^https?:\/\//', $baseUrl)) {
             $baseUrl = 'https://' . $baseUrl;
         }
         $baseUrl = rtrim($baseUrl, '/');
+        
+        // VÉRIFICATION FINALE : Rejeter sausercouverture.fr
+        if (strpos($baseUrl, 'sausercouverture.fr') !== false) {
+            $this->error('❌ ERREUR: sausercouverture.fr détectée, correction forcée !');
+            $baseUrl = 'https://normesrenovationbretagne.fr';
+        }
         
         $sitemap = Sitemap::create();
         
