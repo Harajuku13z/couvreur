@@ -8,6 +8,7 @@
     <meta name="robots" content="index, follow">
     
     <!-- Données structurées JSON-LD pour chaque offre d'emploi -->
+    @if(isset($jobs) && is_array($jobs))
     @foreach($jobs as $job)
     <script type="application/ld+json">
     {!! json_encode([
