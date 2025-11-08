@@ -308,7 +308,7 @@
                             @else
                                 <span class="text-gray-500">⏸️ Désactivée</span> - 
                             @endif
-                            {{ $indexedCount }} URLs déjà indexées sur {{ $totalUrlsInSitemap }} total
+                            {{ $indexedCount }} liens déjà indexés sur {{ $totalUrlsInSitemap }} total (150 liens/jour)
                         </p>
                     </div>
                     <div class="flex items-center space-x-2">
