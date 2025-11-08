@@ -1,7 +1,7 @@
 # Installation du package PDF sur le serveur
 
 ## Problème
-L'erreur `Class "Barryvdh\DomPDF\Facade\Pdf" not found` indique que le package `barryvdh/laravel-dompdf` n'est pas installé ou que l'autoloader n'a pas été régénéré.
+L'erreur `Target class [dompdf.wrapper] does not exist` ou `Class "Dompdf\Dompdf" not found` indique que le package DomPDF n'est pas installé ou que l'autoloader n'a pas été régénéré.
 
 ## Solution
 
@@ -17,26 +17,28 @@ cd /home/u570136219/domains/normesrenovationbretagne.fr/public_html
 composer install --no-dev --optimize-autoloader
 ```
 
-### 4. Publier la configuration du package (si nécessaire)
+**OU si le package n'est pas dans composer.json, l'installer directement :**
 ```bash
-php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
+composer require barryvdh/laravel-dompdf --no-dev
 ```
 
-### 5. Vérifier que le package est installé
+### 4. Vérifier que le package est installé
 ```bash
 composer show barryvdh/laravel-dompdf
+composer show dompdf/dompdf
 ```
 
-### 6. Régénérer l'autoloader
+### 5. Régénérer l'autoloader
 ```bash
 composer dump-autoload --optimize
 ```
 
-### 7. Vider les caches Laravel
+### 6. Vider les caches Laravel
 ```bash
 php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
+php artisan optimize:clear
 ```
 
 ## Vérification
@@ -47,5 +49,18 @@ Après installation, testez la génération PDF :
 
 ## Note importante
 
-Le code a été modifié pour utiliser `app('dompdf.wrapper')` au lieu de la facade `Pdf::`, ce qui est plus robuste et fonctionne même si la facade n'est pas enregistrée.
+Le code utilise maintenant directement `new \Dompdf\Dompdf()` au lieu du wrapper Laravel, ce qui est plus robuste et fonctionne même si le service provider n'est pas enregistré. Cependant, le package `dompdf/dompdf` doit être installé (il est une dépendance de `barryvdh/laravel-dompdf`).
+
+## Si l'erreur persiste
+
+Vérifiez que le package est bien installé :
+```bash
+composer show | grep dompdf
+```
+
+Si rien n'apparaît, installez-le :
+```bash
+composer require dompdf/dompdf --no-dev
+composer dump-autoload
+```
 
