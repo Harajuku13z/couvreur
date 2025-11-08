@@ -222,6 +222,20 @@
     @endif
 
     <div class="footer">
+        @if($devis->acompte_pourcentage && $devis->acompte_pourcentage > 0)
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+            <div class="footer-title">Conditions de Paiement</div>
+            <div style="color: #333; font-size: 10px; line-height: 1.6;">
+                <div style="margin-bottom: 8px;">
+                    <strong>Acompte ({{ number_format($devis->acompte_pourcentage, 2, ',', ' ') }}% - {{ number_format($devis->acompte_montant ?? 0, 2, ',', ' ') }} €) :</strong> Condition de lancement du chantier
+                </div>
+                <div>
+                    <strong>Reste à payer ({{ number_format($devis->reste_a_payer ?? $devis->total_ttc, 2, ',', ' ') }} €) :</strong> Livraison des travaux
+                </div>
+            </div>
+        </div>
+        @endif
+        
         @if($companySettings['rib'])
         <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
             <div class="footer-title">Coordonnées Bancaires</div>
