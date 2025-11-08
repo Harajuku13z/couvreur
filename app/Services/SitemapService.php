@@ -16,29 +16,42 @@ class SitemapService
     public function __construct()
     {
         // FORCER la bonne URL - priorité à normesrenovationbretagne.fr
+        // REJETER explicitement sausercouverture.fr
         $siteUrl = null;
         
-        // 1. Vérifier le setting (mais forcer normesrenovationbretagne.fr si c'est l'ancien)
+        // 1. Vérifier le setting (mais REJETER sausercouverture.fr)
         // Utiliser try-catch pour éviter les erreurs si la base de données n'est pas accessible
         try {
             $settingUrl = Setting::get('site_url', null);
-            if (!empty($settingUrl) && strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
-                $siteUrl = $settingUrl;
+            // REJETER l'ancienne URL sausercouverture.fr
+            if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') === false) {
+                if (strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
+                    $siteUrl = $settingUrl;
+                }
+            } else if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') !== false) {
+                // Si l'ancienne URL est trouvée, la corriger automatiquement
+                \Log::warning('⚠️ Ancienne URL sausercouverture.fr détectée dans site_url, correction automatique...');
+                $siteUrl = 'https://normesrenovationbretagne.fr';
+                // Mettre à jour le setting
+                Setting::set('site_url', $siteUrl, 'string', 'seo');
+                Setting::clearCache();
             }
         } catch (\Exception $e) {
             // Si la base de données n'est pas accessible, ignorer et continuer
             \Log::warning('Impossible d\'accéder au setting site_url: ' . $e->getMessage());
         }
         
-        // 2. Vérifier APP_URL depuis .env
+        // 2. Vérifier APP_URL depuis .env (mais REJETER sausercouverture.fr)
         if (empty($siteUrl)) {
             $envUrl = config('app.url', null);
-            if (!empty($envUrl) && strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
-                $siteUrl = $envUrl;
+            if (!empty($envUrl) && strpos($envUrl, 'sausercouverture.fr') === false) {
+                if (strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
+                    $siteUrl = $envUrl;
+                }
             }
         }
         
-        // 3. Par défaut, utiliser normesrenovationbretagne.fr
+        // 3. Par défaut, utiliser normesrenovationbretagne.fr (TOUJOURS)
         if (empty($siteUrl)) {
             $siteUrl = 'https://normesrenovationbretagne.fr';
         }
@@ -51,6 +64,12 @@ class SitemapService
         
         // S'assurer que l'URL ne se termine pas par /
         $this->baseUrl = rtrim($siteUrl, '/');
+        
+        // VÉRIFICATION FINALE : Rejeter sausercouverture.fr même si elle a passé les vérifications
+        if (strpos($this->baseUrl, 'sausercouverture.fr') !== false) {
+            \Log::error('❌ ERREUR: sausercouverture.fr détectée dans baseUrl, correction forcée !');
+            $this->baseUrl = 'https://normesrenovationbretagne.fr';
+        }
         
         // Log pour debug (seulement si pas d'erreur)
         try {
