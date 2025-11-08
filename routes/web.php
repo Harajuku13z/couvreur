@@ -198,6 +198,7 @@ Route::middleware(['check.setup'])->group(function () {
                 Route::get('/', [ClientController::class, 'index'])->name('index');
                 Route::post('/', [ClientController::class, 'store'])->name('store');
                 Route::get('/search', [ClientController::class, 'search'])->name('search');
+                Route::delete('/{id}', [ClientController::class, 'destroy'])->name('destroy');
             });
             
             // Devis

@@ -80,10 +80,18 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('admin.devis.create', ['client_id' => $client->id]) }}" 
-                           class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-file-invoice mr-1"></i>Créer devis
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.devis.create', ['client_id' => $client->id]) }}" 
+                               class="text-blue-600 hover:text-blue-900"
+                               title="Créer un devis">
+                                <i class="fas fa-file-invoice"></i>
+                            </a>
+                            <button onclick="showDeleteClientModal({{ $client->id }}, '{{ $client->nom_complet }}')" 
+                                    class="text-red-600 hover:text-red-900"
+                                    title="Supprimer le client">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -157,6 +165,62 @@
     </div>
 </div>
 
+<!-- Modal suppression client -->
+<div id="deleteClientModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Supprimer le client
+                </h3>
+                <button onclick="hideDeleteClientModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-4">
+                    Cette action est <strong>irréversible</strong>. Le client <strong id="clientNameToDelete"></strong> sera définitivement supprimé.
+                </p>
+                <p class="text-sm font-semibold text-red-600 mb-2">
+                    Mot de passe requis
+                </p>
+            </div>
+            
+            <form id="deleteClientForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="mb-4">
+                    <input type="password" 
+                           name="password" 
+                           id="deleteClientPassword" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500" 
+                           placeholder="Entrez le mot de passe"
+                           required
+                           autocomplete="off">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Mot de passe requis pour confirmer cette action
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="hideDeleteClientModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 function showCreateClientModal() {
@@ -165,6 +229,18 @@ function showCreateClientModal() {
 
 function hideCreateClientModal() {
     document.getElementById('createClientModal').classList.add('hidden');
+}
+
+function showDeleteClientModal(clientId, clientName) {
+    document.getElementById('clientNameToDelete').textContent = clientName;
+    document.getElementById('deleteClientForm').action = '{{ route("admin.clients.destroy", ":id") }}'.replace(':id', clientId);
+    document.getElementById('deleteClientModal').classList.remove('hidden');
+    document.getElementById('deleteClientPassword').focus();
+}
+
+function hideDeleteClientModal() {
+    document.getElementById('deleteClientModal').classList.add('hidden');
+    document.getElementById('deleteClientForm').reset();
 }
 
 document.getElementById('createClientForm').addEventListener('submit', async function(e) {

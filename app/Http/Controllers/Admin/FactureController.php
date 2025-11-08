@@ -278,18 +278,49 @@ class FactureController extends Controller
     /**
      * Supprimer une facture
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $facture = Facture::findOrFail($id);
-
-        if ($facture->statut === 'Payée') {
-            return back()->with('error', 'Impossible de supprimer une facture payée');
+        
+        // Déterminer si un mot de passe est requis
+        $requiresPassword = in_array($facture->statut, ['Payée', 'Partiellement payée']);
+        
+        if ($requiresPassword) {
+            $request->validate([
+                'password' => 'required|string',
+            ]);
+            
+            $correctPassword = 'elizo';
+            
+            if ($request->password !== $correctPassword) {
+                return back()->with('error', 'Mot de passe incorrect');
+            }
         }
 
-        $facture->delete();
-
-        return redirect()->route('admin.factures.index')
-            ->with('success', 'Facture supprimée avec succès');
+        try {
+            // Supprimer le PDF si existe
+            if ($facture->pdf_path && Storage::disk('local')->exists($facture->pdf_path)) {
+                Storage::disk('local')->delete($facture->pdf_path);
+            }
+            
+            $facture->delete();
+            
+            \Log::info('Facture supprimée', [
+                'facture_id' => $id,
+                'statut' => $facture->statut,
+                'admin' => session()->get('admin_username', 'unknown'),
+            ]);
+            
+            return redirect()->route('admin.factures.index')
+                ->with('success', 'Facture supprimée avec succès');
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression de la facture', [
+                'facture_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }
 

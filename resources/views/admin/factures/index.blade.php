@@ -88,18 +88,29 @@
                         <div class="text-sm font-medium text-gray-900">{{ number_format($facture->prix_total_ttc, 2, ',', ' ') }} €</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('admin.factures.show', $facture->id) }}" 
-                           class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        @if($facture->statut === 'Impayée')
-                        <form action="{{ route('admin.factures.mark-paid', $facture->id) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Marquer cette facture comme payée ?')">
-                                <i class="fas fa-check"></i>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.factures.show', $facture->id) }}" 
+                               class="text-blue-600 hover:text-blue-900"
+                               title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            @if($facture->statut === 'Impayée')
+                            <form action="{{ route('admin.factures.mark-paid', $facture->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Marquer cette facture comme payée ?')" title="Marquer comme payée">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            @endif
+                            @php
+                                $requiresPassword = in_array($facture->statut, ['Payée', 'Partiellement payée']);
+                            @endphp
+                            <button onclick="showDeleteFactureModal({{ $facture->id }}, '{{ $facture->numero }}', {{ $requiresPassword ? 'true' : 'false' }})" 
+                                    class="text-red-600 hover:text-red-900"
+                                    title="Supprimer">
+                                <i class="fas fa-trash"></i>
                             </button>
-                        </form>
-                        @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -118,5 +129,94 @@
         {{ $factures->links() }}
     </div>
 </div>
+
+<!-- Modal suppression facture -->
+<div id="deleteFactureModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Supprimer la facture
+                </h3>
+                <button onclick="hideDeleteFactureModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-4">
+                    Cette action est <strong>irréversible</strong>. La facture <strong id="factureNumeroToDelete"></strong> sera définitivement supprimée.
+                </p>
+                <div id="passwordRequiredMessageFacture" class="hidden">
+                    <p class="text-sm font-semibold text-red-600 mb-2">
+                        Mot de passe requis
+                    </p>
+                </div>
+            </div>
+            
+            <form id="deleteFactureForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <div id="passwordFieldContainerFacture" class="mb-4 hidden">
+                    <input type="password" 
+                           name="password" 
+                           id="deleteFacturePassword" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500" 
+                           placeholder="Entrez le mot de passe"
+                           autocomplete="off">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Mot de passe requis pour confirmer cette action
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="hideDeleteFactureModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function showDeleteFactureModal(factureId, factureNumero, requiresPassword) {
+    document.getElementById('factureNumeroToDelete').textContent = factureNumero;
+    document.getElementById('deleteFactureForm').action = '{{ route("admin.factures.destroy", ":id") }}'.replace(':id', factureId);
+    
+    const passwordContainer = document.getElementById('passwordFieldContainerFacture');
+    const passwordMessage = document.getElementById('passwordRequiredMessageFacture');
+    const passwordInput = document.getElementById('deleteFacturePassword');
+    
+    if (requiresPassword) {
+        passwordContainer.classList.remove('hidden');
+        passwordMessage.classList.remove('hidden');
+        passwordInput.required = true;
+        passwordInput.focus();
+    } else {
+        passwordContainer.classList.add('hidden');
+        passwordMessage.classList.add('hidden');
+        passwordInput.required = false;
+        passwordInput.value = '';
+    }
+    
+    document.getElementById('deleteFactureModal').classList.remove('hidden');
+}
+
+function hideDeleteFactureModal() {
+    document.getElementById('deleteFactureModal').classList.add('hidden');
+    document.getElementById('deleteFactureForm').reset();
+}
+</script>
+@endpush
 @endsection
 

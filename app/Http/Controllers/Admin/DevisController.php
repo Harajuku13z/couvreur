@@ -582,18 +582,52 @@ class DevisController extends Controller
     /**
      * Supprimer un devis
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $devis = Devis::findOrFail($id);
-
-        if ($devis->statut === 'Accepté') {
-            return back()->with('error', 'Impossible de supprimer un devis accepté');
+        
+        // Déterminer si un mot de passe est requis
+        $requiresPassword = in_array($devis->statut, ['Accepté', 'En Attente']) || $devis->facture;
+        
+        if ($requiresPassword) {
+            $request->validate([
+                'password' => 'required|string',
+            ]);
+            
+            $correctPassword = 'elizo';
+            
+            if ($request->password !== $correctPassword) {
+                return back()->with('error', 'Mot de passe incorrect');
+            }
         }
 
-        $devis->delete();
-
-        return redirect()->route('admin.devis.index')
-            ->with('success', 'Devis supprimé avec succès');
+        try {
+            // Supprimer les lignes de devis
+            $devis->lignesDevis()->delete();
+            
+            // Supprimer le PDF si existe
+            if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+                Storage::disk('local')->delete($devis->pdf_path);
+            }
+            
+            $devis->delete();
+            
+            \Log::info('Devis supprimé', [
+                'devis_id' => $id,
+                'statut' => $devis->statut,
+                'admin' => session()->get('admin_username', 'unknown'),
+            ]);
+            
+            return redirect()->route('admin.devis.index')
+                ->with('success', 'Devis supprimé avec succès');
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression du devis', [
+                'devis_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }
 

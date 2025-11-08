@@ -94,14 +94,26 @@
                         <div class="text-sm font-medium text-gray-900">{{ number_format($devi->total_ttc, 2, ',', ' ') }} €</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('admin.devis.show', $devi->id) }}" 
-                           class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{{ route('admin.devis.edit', $devi->id) }}" 
-                           class="text-green-600 hover:text-green-900 mr-3">
-                            <i class="fas fa-edit"></i>
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.devis.show', $devi->id) }}" 
+                               class="text-blue-600 hover:text-blue-900"
+                               title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('admin.devis.edit', $devi->id) }}" 
+                               class="text-green-600 hover:text-green-900"
+                               title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            @php
+                                $requiresPassword = in_array($devi->statut, ['Accepté', 'En Attente']) || $devi->facture;
+                            @endphp
+                            <button onclick="showDeleteDevisModal({{ $devi->id }}, '{{ $devi->numero }}', {{ $requiresPassword ? 'true' : 'false' }})" 
+                                    class="text-red-600 hover:text-red-900"
+                                    title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -120,5 +132,94 @@
         {{ $devis->links() }}
     </div>
 </div>
+
+<!-- Modal suppression devis -->
+<div id="deleteDevisModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Supprimer le devis
+                </h3>
+                <button onclick="hideDeleteDevisModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-4">
+                    Cette action est <strong>irréversible</strong>. Le devis <strong id="devisNumeroToDelete"></strong> sera définitivement supprimé.
+                </p>
+                <div id="passwordRequiredMessage" class="hidden">
+                    <p class="text-sm font-semibold text-red-600 mb-2">
+                        Mot de passe requis
+                    </p>
+                </div>
+            </div>
+            
+            <form id="deleteDevisForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <div id="passwordFieldContainer" class="mb-4 hidden">
+                    <input type="password" 
+                           name="password" 
+                           id="deleteDevisPassword" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500" 
+                           placeholder="Entrez le mot de passe"
+                           autocomplete="off">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Mot de passe requis pour confirmer cette action
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="hideDeleteDevisModal()" 
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function showDeleteDevisModal(devisId, devisNumero, requiresPassword) {
+    document.getElementById('devisNumeroToDelete').textContent = devisNumero;
+    document.getElementById('deleteDevisForm').action = '{{ route("admin.devis.destroy", ":id") }}'.replace(':id', devisId);
+    
+    const passwordContainer = document.getElementById('passwordFieldContainer');
+    const passwordMessage = document.getElementById('passwordRequiredMessage');
+    const passwordInput = document.getElementById('deleteDevisPassword');
+    
+    if (requiresPassword) {
+        passwordContainer.classList.remove('hidden');
+        passwordMessage.classList.remove('hidden');
+        passwordInput.required = true;
+        passwordInput.focus();
+    } else {
+        passwordContainer.classList.add('hidden');
+        passwordMessage.classList.add('hidden');
+        passwordInput.required = false;
+        passwordInput.value = '';
+    }
+    
+    document.getElementById('deleteDevisModal').classList.remove('hidden');
+}
+
+function hideDeleteDevisModal() {
+    document.getElementById('deleteDevisModal').classList.add('hidden');
+    document.getElementById('deleteDevisForm').reset();
+}
+</script>
+@endpush
 @endsection
 

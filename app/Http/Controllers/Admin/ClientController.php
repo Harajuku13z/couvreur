@@ -83,5 +83,50 @@ class ClientController extends Controller
 
         return response()->json($clients);
     }
+
+    /**
+     * Supprimer un client (avec protection par mot de passe)
+     */
+    public function destroy(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $correctPassword = 'elizo';
+        
+        if ($request->password !== $correctPassword) {
+            return back()->with('error', 'Mot de passe incorrect');
+        }
+
+        try {
+            $client = Client::findOrFail($id);
+            
+            // Vérifier si le client a des devis ou factures
+            $devisCount = $client->devis()->count();
+            $facturesCount = $client->factures()->count();
+            
+            if ($devisCount > 0 || $facturesCount > 0) {
+                return back()->with('error', 'Impossible de supprimer ce client car il a ' . ($devisCount + $facturesCount) . ' devis/facture(s) associé(s).');
+            }
+            
+            $client->delete();
+            
+            \Log::info('Client supprimé', [
+                'client_id' => $id,
+                'admin' => session()->get('admin_username', 'unknown'),
+            ]);
+            
+            return redirect()->route('admin.clients.index')
+                ->with('success', 'Client supprimé avec succès');
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la suppression du client', [
+                'client_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
+    }
 }
 
