@@ -11,7 +11,7 @@
 @push('head')
 <style>
     .contact-hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         min-height: 500px;
         position: relative;
         display: flex;
@@ -45,9 +45,10 @@
     
     @if($contactHeroImage)
     .contact-hero {
-        background-image: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)), url('{{ asset($contactHeroImage) }}');
+        background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%), url('{{ asset($contactHeroImage) }}');
         background-size: cover;
         background-position: center;
+        background-blend-mode: overlay;
     }
     @endif
     
@@ -441,7 +442,8 @@
                         
                         <button type="submit" 
                                 id="submitBtn"
-                                class="w-full bg-gradient-to-r from-primary to-secondary text-white px-6 py-5 rounded-xl font-bold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg">
+                                class="w-full text-white px-6 py-5 rounded-xl font-bold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
+                                style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
                             <i class="fas fa-paper-plane mr-2"></i>
                             Envoyer le message
                             <i class="fas fa-arrow-right ml-2"></i>
@@ -536,9 +538,9 @@
                             <i class="fas fa-chevron-down text-white faq-icon-{{ $index }} transition-transform duration-300"></i>
                         </div>
                     </button>
-                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6">
-                        <div class="text-gray-600 leading-relaxed pl-10 text-lg border-l-4 border-primary/20 ml-2">
-                            <i class="fas fa-reply mr-2 text-primary"></i>
+                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none;">
+                        <div class="text-gray-600 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color); opacity: 0.3;">
+                            <i class="fas fa-reply mr-2" style="color: var(--primary-color);"></i>
                             {!! nl2br(e($faq['answer'] ?? '')) !!}
                         </div>
                     </div>
@@ -613,15 +615,32 @@ function toggleFaq(index) {
         });
         
         // Ouvrir celle-ci avec animation
+        answer.style.display = 'block';
         answer.classList.remove('hidden');
         icon.classList.add('rotate-180');
+        
+        // Animation d'apparition
+        setTimeout(() => {
+            answer.style.opacity = '0';
+            answer.style.transform = 'translateY(-10px)';
+            answer.style.transition = 'all 0.3s ease';
+            setTimeout(() => {
+                answer.style.opacity = '1';
+                answer.style.transform = 'translateY(0)';
+            }, 10);
+        }, 10);
         
         // Scroll smooth vers l'élément
         setTimeout(() => {
             answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
     } else {
-        answer.classList.add('hidden');
+        answer.style.opacity = '0';
+        answer.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+            answer.style.display = 'none';
+            answer.classList.add('hidden');
+        }, 300);
         icon.classList.remove('rotate-180');
     }
 }

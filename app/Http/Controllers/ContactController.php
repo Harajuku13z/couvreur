@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactConfirmation;
+use App\Mail\ContactNotification;
 
 class ContactController extends Controller
 {
@@ -86,42 +89,70 @@ class ContactController extends Controller
         }
 
         try {
-            // Envoyer l'email
             $companyEmail = Setting::get('company_email');
             $companyName = Setting::get('company_name', 'Votre Entreprise');
             
-            if ($companyEmail) {
-                $callbackTimeLabels = [
-                    'matin' => 'Matin (9h - 12h)',
-                    'apres-midi' => 'Après-midi (14h - 17h)',
-                    'soir' => 'Soir (17h - 19h)',
-                    'flexible' => 'Flexible'
-                ];
-                
-                $callbackTimeText = isset($validated['callback_time']) && isset($callbackTimeLabels[$validated['callback_time']]) 
-                    ? $callbackTimeLabels[$validated['callback_time']] 
-                    : 'Non spécifié';
-                
-                Mail::send([], [], function($message) use ($validated, $companyEmail, $companyName, $callbackTimeText) {
-                    $message->to($companyEmail)
-                            ->subject('Nouveau message de contact : ' . $validated['subject'])
-                            ->from($validated['email'], $validated['name'])
-                            ->replyTo($validated['email'], $validated['name'])
-                            ->html("
-                                <h2>Nouveau message de contact</h2>
-                                <p><strong>Nom :</strong> {$validated['name']}</p>
-                                <p><strong>Email :</strong> {$validated['email']}</p>
-                                " . ($validated['phone'] ? "<p><strong>Téléphone :</strong> {$validated['phone']}</p>" : "") . "
-                                " . (isset($validated['callback_time']) && $validated['callback_time'] ? "<p><strong>Quand rappeler :</strong> {$callbackTimeText}</p>" : "") . "
-                                " . (isset($validated['service_interest']) && $validated['service_interest'] ? "<p><strong>Service intéressé :</strong> {$validated['service_interest']}</p>" : "") . "
-                                <p><strong>Sujet :</strong> {$validated['subject']}</p>
-                                <p><strong>Message :</strong></p>
-                                <p>" . nl2br(e($validated['message'])) . "</p>
-                            ");
-                });
+            // Préparer les données pour les emails
+            $callbackTimeLabels = [
+                'matin' => 'Matin (9h - 12h)',
+                'apres-midi' => 'Après-midi (14h - 17h)',
+                'soir' => 'Soir (17h - 19h)',
+                'flexible' => 'Flexible'
+            ];
+            
+            $callbackTimeText = isset($validated['callback_time']) && isset($callbackTimeLabels[$validated['callback_time']]) 
+                ? $callbackTimeLabels[$validated['callback_time']] 
+                : ($validated['callback_time'] ?? 'Non spécifié');
+            
+            $emailData = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? '',
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'callback_time' => $callbackTimeText,
+                'service_interest' => $validated['service_interest'] ?? ''
+            ];
+            
+            // Créer un lead/submission avec status "completed"
+            try {
+                $submission = Submission::create([
+                    'session_id' => session()->getId(),
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'] ?? null,
+                    'property_type' => null,
+                    'surface' => null,
+                    'work_type' => $validated['service_interest'] ?? null,
+                    'postal_code' => null,
+                    'status' => 'completed',
+                    'submitted_at' => now(),
+                    'callback_time' => $validated['callback_time'] ?? null,
+                    'service_interest' => $validated['service_interest'] ?? null,
+                    'message' => $validated['message'],
+                    'subject' => $validated['subject']
+                ]);
+            } catch (\Exception $e) {
+                \Log::warning('Impossible de créer le submission: ' . $e->getMessage());
             }
             
-            return back()->with('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
+            // Envoyer l'email de confirmation à l'utilisateur
+            try {
+                Mail::to($validated['email'])->send(new ContactConfirmation($emailData));
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi email confirmation: ' . $e->getMessage());
+            }
+            
+            // Envoyer l'email de notification à l'admin
+            if ($companyEmail) {
+                try {
+                    Mail::to($companyEmail)->send(new ContactNotification($emailData));
+                } catch (\Exception $e) {
+                    \Log::error('Erreur envoi email notification admin: ' . $e->getMessage());
+                }
+            }
+            
+            return back()->with('success', 'Votre message a été envoyé avec succès ! Nous vous avons envoyé un email de confirmation et nous vous répondrons dans les plus brefs délais.');
         } catch (\Exception $e) {
             \Log::error('Erreur envoi email contact: ' . $e->getMessage());
             return back()->with('error', 'Une erreur est survenue lors de l\'envoi de votre message. Veuillez réessayer ou nous appeler directement.')->withInput();
