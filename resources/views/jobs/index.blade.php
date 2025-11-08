@@ -52,6 +52,7 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     @endforeach
+    @endif
     
     <style>
         * {
@@ -198,6 +199,7 @@
         </header>
         
         <div class="jobs-grid">
+            @if(isset($jobs) && is_array($jobs) && count($jobs) > 0)
             @foreach($jobs as $job)
             <article class="job-card">
                 <h2 class="job-title">{{ $job['title'] }}</h2>
@@ -209,7 +211,7 @@
                         </span>
                     </span>
                     <span>📍 {{ $job['jobLocation']['address']['addressLocality'] }}</span>
-                    <span>📅 Publié le {{ \Carbon\Carbon::parse($job['datePosted'])->format('d/m/Y') }}</span>
+                    <span>📅 Publié le {{ date('d/m/Y', strtotime($job['datePosted'])) }}</span>
                 </div>
                 
                 <p class="job-description">{!! nl2br(e($job['description'])) !!}</p>
@@ -227,6 +229,11 @@
                 </div>
             </article>
             @endforeach
+            @else
+            <div class="job-card">
+                <p>Aucune offre d'emploi disponible pour le moment.</p>
+            </div>
+            @endif
         </div>
     </div>
 </body>
