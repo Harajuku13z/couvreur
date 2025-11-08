@@ -55,6 +55,59 @@
         </div>
     </div>
     
+    <!-- Vérification Favicon et Meta Tags -->
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4 text-purple-800">
+            <i class="fas fa-search mr-2"></i>Vérifier le Favicon et les Meta Tags
+        </h2>
+        <div class="space-y-4">
+            <div>
+                <h3 class="font-semibold text-purple-900 mb-2">🔍 Utiliser l'outil d'inspection d'URL de Google</h3>
+                <p class="text-sm text-purple-800 mb-3">
+                    L'outil d'inspection d'URL de Google Search Console vous permet de vérifier si votre favicon et vos meta tags sont correctement détectés par Google.
+                </p>
+                <ol class="text-sm text-purple-800 list-decimal list-inside space-y-2 mb-4">
+                    <li>Allez sur <a href="https://search.google.com/search-console" target="_blank" class="underline font-semibold">Google Search Console</a></li>
+                    <li>Utilisez la barre de recherche en haut et entrez l'URL de votre page d'accueil : <code class="bg-purple-100 px-2 py-1 rounded">{{ url('/') }}</code></li>
+                    <li>Cliquez sur "Tester l'URL en ligne" pour voir la version actuelle</li>
+                    <li>Vérifiez dans "Améliorations et expérience" → "Résultats enrichis" si vos données structurées sont détectées</li>
+                    <li>Cliquez sur "Afficher la page explorée" pour voir le code HTML tel que Google le voit</li>
+                </ol>
+            </div>
+            
+            <div class="bg-white p-4 rounded border border-purple-200">
+                <h4 class="font-semibold mb-2">✅ Ce que vous devez vérifier :</h4>
+                <ul class="text-sm text-purple-800 space-y-1 list-disc list-inside">
+                    <li><strong>Favicon :</strong> Vérifiez que <code class="bg-purple-100 px-1 rounded">&lt;link rel="icon"&gt;</code> est présent dans le HTML</li>
+                    <li><strong>Meta Tags Open Graph :</strong> Vérifiez <code class="bg-purple-100 px-1 rounded">og:image</code>, <code class="bg-purple-100 px-1 rounded">og:title</code>, <code class="bg-purple-100 px-1 rounded">og:description</code></li>
+                    <li><strong>Schema.org :</strong> Vérifiez que les données structurées (LocalBusiness, Review, etc.) sont détectées</li>
+                    <li><strong>Canonical URL :</strong> Vérifiez que l'URL canonique est correcte</li>
+                </ul>
+            </div>
+            
+            <div class="flex gap-3 flex-wrap">
+                <a href="https://search.google.com/search-console" 
+                   target="_blank"
+                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition inline-flex items-center">
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    Ouvrir Search Console
+                </a>
+                <a href="https://search.google.com/test/rich-results?url={{ urlencode(url('/')) }}" 
+                   target="_blank"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition inline-flex items-center">
+                    <i class="fas fa-code mr-2"></i>
+                    Tester les résultats enrichis
+                </a>
+                <a href="https://search.google.com/test/mobile-friendly?url={{ urlencode(url('/')) }}" 
+                   target="_blank"
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition inline-flex items-center">
+                    <i class="fas fa-mobile-alt mr-2"></i>
+                    Test Mobile-Friendly
+                </a>
+            </div>
+        </div>
+    </div>
+    
     <!-- Alternatives d'indexation -->
     <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4 text-green-800">
