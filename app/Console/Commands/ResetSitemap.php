@@ -103,40 +103,70 @@ class ResetSitemap extends Command
                 $this->line("   ✓ {$sitemap['filename']} ({$sitemap['urls_count']} URLs)");
             }
             
-            // 6. Vérifier que TOUS les sitemaps ont la bonne URL
-            $this->info('🔍 Vérification des URLs dans les sitemaps...');
+            // 6. Vérifier que TOUS les sitemaps ont la bonne URL (vérification stricte)
+            $this->info('🔍 Vérification stricte des URLs dans les sitemaps...');
             $allSitemaps = glob(public_path('sitemap*.xml'));
             $hasOldUrl = false;
+            $deletedForOldUrl = 0;
             
             foreach ($allSitemaps as $sitemapFile) {
                 $content = file_get_contents($sitemapFile);
                 if (strpos($content, 'sausercouverture.fr') !== false) {
-                    $this->warn("⚠️  Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr");
+                    $this->warn("⚠️  Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr - SUPPRESSION");
                     unlink($sitemapFile);
                     $hasOldUrl = true;
+                    $deletedForOldUrl++;
                     Log::warning("⚠️ Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr, suppression...");
+                } else if (strpos($content, 'normesrenovationbretagne.fr') === false) {
+                    // Vérifier aussi qu'il contient bien la bonne URL
+                    $this->warn("⚠️  Le sitemap " . basename($sitemapFile) . " ne contient pas normesrenovationbretagne.fr - SUPPRESSION");
+                    unlink($sitemapFile);
+                    $hasOldUrl = true;
+                    $deletedForOldUrl++;
                 }
             }
             
             // Si des sitemaps avec l'ancienne URL ont été supprimés, régénérer
             if ($hasOldUrl) {
-                $this->warn('🔄 Régénération des sitemaps avec la bonne URL...');
+                $this->warn("🔄 Régénération des sitemaps avec la bonne URL ({$deletedForOldUrl} sitemap(s) supprimé(s))...");
                 $result = $sitemapService->generateSitemap();
-                $this->info("✅ " . count($result['sitemaps']) . " sitemap(s) régénéré(s)");
+                if ($result['success']) {
+                    $this->info("✅ " . count($result['sitemaps']) . " sitemap(s) régénéré(s)");
+                } else {
+                    $this->error("❌ Erreur lors de la régénération: " . ($result['error'] ?? 'Erreur inconnue'));
+                }
             }
             
-            // 7. Vérification finale
-            $this->info('🔍 Vérification finale...');
+            // 7. Vérification finale STRICTE (vérifier chaque sitemap)
+            $this->info('🔍 Vérification finale stricte...');
             $finalCheck = glob(public_path('sitemap*.xml'));
             $finalDeleted = 0;
             
             foreach ($finalCheck as $sitemapFile) {
                 $content = file_get_contents($sitemapFile);
+                $filename = basename($sitemapFile);
+                
                 if (strpos($content, 'sausercouverture.fr') !== false) {
-                    $this->error("❌ ERREUR: Le sitemap " . basename($sitemapFile) . " contient encore sausercouverture.fr !");
+                    $this->error("❌ ERREUR: Le sitemap {$filename} contient encore sausercouverture.fr !");
                     unlink($sitemapFile);
                     $finalDeleted++;
-                    Log::error("❌ ERREUR: Le sitemap " . basename($sitemapFile) . " contient encore sausercouverture.fr après régénération !");
+                    Log::error("❌ ERREUR: Le sitemap {$filename} contient encore sausercouverture.fr après régénération !");
+                } else if (strpos($content, 'normesrenovationbretagne.fr') === false) {
+                    $this->error("❌ ERREUR: Le sitemap {$filename} ne contient pas normesrenovationbretagne.fr !");
+                    unlink($sitemapFile);
+                    $finalDeleted++;
+                    Log::error("❌ ERREUR: Le sitemap {$filename} ne contient pas normesrenovationbretagne.fr !");
+                } else {
+                    // Compter combien d'URLs contiennent la bonne URL
+                    $goodUrlCount = substr_count($content, 'normesrenovationbretagne.fr');
+                    $badUrlCount = substr_count($content, 'sausercouverture.fr');
+                    if ($badUrlCount > 0) {
+                        $this->error("❌ ERREUR: Le sitemap {$filename} contient {$badUrlCount} URL(s) avec sausercouverture.fr !");
+                        unlink($sitemapFile);
+                        $finalDeleted++;
+                    } else {
+                        $this->line("   ✓ {$filename}: {$goodUrlCount} URL(s) avec normesrenovationbretagne.fr");
+                    }
                 }
             }
             
@@ -144,7 +174,12 @@ class ResetSitemap extends Command
             if ($finalDeleted > 0) {
                 $this->warn("🔄 Régénération finale ({$finalDeleted} sitemap(s) supprimé(s))...");
                 $result = $sitemapService->generateSitemap();
-                $this->info("✅ " . count($result['sitemaps']) . " sitemap(s) généré(s)");
+                if ($result['success']) {
+                    $this->info("✅ " . count($result['sitemaps']) . " sitemap(s) généré(s)");
+                } else {
+                    $this->error("❌ Erreur lors de la régénération finale: " . ($result['error'] ?? 'Erreur inconnue'));
+                    return 1;
+                }
             }
             
             // Résumé final
