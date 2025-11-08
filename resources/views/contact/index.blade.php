@@ -553,17 +553,11 @@
                 <div class="faq-item bg-white border-2 border-gray-100 rounded-2xl shadow-md hover:shadow-xl transition-all" 
                      data-question="{{ strtolower($faq['question'] ?? '') }}" 
                      data-answer="{{ strtolower($faq['answer'] ?? '') }}">
-                    <button class="w-full px-8 py-6 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl group" 
-                            onclick="toggleFaq({{ $index }})">
-                        <span class="font-bold text-gray-800 pr-4 text-lg group-hover:text-primary transition-colors">
+                    <div class="px-8 py-6">
+                        <div class="font-bold text-gray-800 mb-4 text-lg">
                             <i class="fas fa-comment-dots mr-3 text-primary"></i>
                             {{ $faq['question'] ?? '' }}
-                        </span>
-                        <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-                            <i class="fas fa-chevron-down text-white faq-icon-{{ $index }} transition-transform duration-300"></i>
                         </div>
-                    </button>
-                    <div class="faq-answer-{{ $index }} hidden px-8 pb-6" style="display: none !important; opacity: 0;">
                         <div class="text-gray-700 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color);">
                             <i class="fas fa-reply mr-2" style="color: var(--primary-color);"></i>
                             {!! nl2br(e($faq['answer'] ?? '')) !!}
@@ -636,79 +630,6 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 
 <script>
-function toggleFaq(index) {
-    const answer = document.querySelector(`.faq-answer-${index}`);
-    const icon = document.querySelector(`.faq-icon-${index}`);
-    
-    if (!answer || !icon) return;
-    
-    // Vérifier si l'élément est actuellement caché (plus robuste)
-    const isHidden = answer.classList.contains('hidden') || 
-                     answer.style.display === 'none' || 
-                     getComputedStyle(answer).display === 'none';
-    
-    if (isHidden) {
-        // Fermer toutes les autres FAQ
-        document.querySelectorAll('[class*="faq-answer-"]').forEach(el => {
-            if (el !== answer) {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    el.style.display = 'none';
-                    el.classList.add('hidden');
-                }, 200);
-            }
-        });
-        document.querySelectorAll('[class*="faq-icon-"]').forEach(el => {
-            if (el !== icon) {
-                el.classList.remove('rotate-180');
-            }
-        });
-        
-        // Ouvrir celle-ci
-        answer.classList.remove('hidden');
-        answer.style.display = 'block';
-        answer.style.opacity = '0';
-        answer.style.transform = 'translateY(-10px)';
-        icon.classList.add('rotate-180');
-        
-        // Forcer le reflow pour que l'animation fonctionne
-        void answer.offsetHeight;
-        
-        // Animation d'apparition
-        setTimeout(() => {
-            answer.style.transition = 'all 0.3s ease';
-            answer.style.opacity = '1';
-            answer.style.transform = 'translateY(0)';
-        }, 10);
-        
-        // Scroll smooth vers l'élément
-        setTimeout(() => {
-            answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    } else {
-        // Fermer
-        answer.style.transition = 'all 0.3s ease';
-        answer.style.opacity = '0';
-        answer.style.transform = 'translateY(-10px)';
-        icon.classList.remove('rotate-180');
-        
-        setTimeout(() => {
-            answer.style.display = 'none';
-            answer.classList.add('hidden');
-        }, 300);
-    }
-}
-
-// S'assurer que toutes les FAQ sont fermées au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[class*="faq-answer-"]').forEach(answer => {
-        answer.style.display = 'none';
-        answer.classList.add('hidden');
-        answer.style.opacity = '0';
-    });
-});
-
 // Recherche dans les FAQ avec mise en évidence
 document.getElementById('faqSearch')?.addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase();
