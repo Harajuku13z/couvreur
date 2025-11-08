@@ -61,8 +61,8 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    <i class="fas fa-calculator mr-2"></i>
+                   class="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg inline-flex items-center">
+                    <i class="fas fa-calculator mr-2" style="color: #1f2937;"></i>
                     Demander un devis gratuit
                 </a>
                 <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
@@ -124,7 +124,7 @@
                     @if($companySettings['phone'])
                     <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
                         <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-phone text-xl"></i>
+                            <i class="fas fa-phone text-xl" style="color: white;"></i>
                         </div>
                         <div>
                             <h3 class="font-semibold text-gray-800 mb-2 text-lg">Téléphone</h3>
@@ -141,7 +141,7 @@
                     @if($companySettings['email'])
                     <div class="contact-card flex items-start bg-white p-6 rounded-xl shadow-lg">
                         <div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <i class="fas fa-envelope text-xl"></i>
+                            <i class="fas fa-envelope text-xl" style="color: white;"></i>
                         </div>
                         <div>
                             <h3 class="font-semibold text-gray-800 mb-2 text-lg">Email</h3>
