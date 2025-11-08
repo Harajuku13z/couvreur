@@ -95,16 +95,16 @@
                 <!-- Social Media Icons -->
                 @php
                     $socialNetworks = [
-                        'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-600'],
-                        'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-600'],
-                        'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-400'],
-                        'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-700'],
-                        'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-600'],
-                        'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-800'],
-                        'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-700'],
-                        'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-500'],
-                        'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-600'],
-                        'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-500'],
+                        'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-600', 'label' => 'Suivez-nous sur Facebook'],
+                        'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-600', 'label' => 'Suivez-nous sur Instagram'],
+                        'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-400', 'label' => 'Suivez-nous sur Twitter'],
+                        'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-700', 'label' => 'Suivez-nous sur LinkedIn'],
+                        'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-600', 'label' => 'Suivez-nous sur YouTube'],
+                        'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-800', 'label' => 'Suivez-nous sur TikTok'],
+                        'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-700', 'label' => 'Suivez-nous sur Pinterest'],
+                        'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-500', 'label' => 'Suivez-nous sur Snapchat'],
+                        'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-600', 'label' => 'Contactez-nous sur WhatsApp'],
+                        'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-500', 'label' => 'Contactez-nous sur Telegram'],
                     ];
                     
                     $activeSocialNetworks = array_filter($socialNetworks, function($key) {
@@ -116,8 +116,9 @@
                 <div class="flex space-x-3 mr-4">
                     @foreach(array_slice($activeSocialNetworks, 0, 4) as $key => $network)
                         <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                           class="text-gray-600 {{ $network['color'] }} transition-colors text-lg">
-                            <i class="{{ $network['icon'] }}"></i>
+                           class="text-gray-600 {{ $network['color'] }} transition-colors text-lg"
+                           aria-label="{{ $network['label'] }}">
+                            <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
                         </a>
                     @endforeach
                 </div>
@@ -142,8 +143,8 @@
             </div>
             
             <!-- Mobile Menu Button -->
-            <button class="md:hidden text-gray-700 hover:text-primary" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars text-xl"></i>
+            <button class="md:hidden text-gray-700 hover:text-primary" onclick="toggleMobileMenu()" aria-label="Ouvrir le menu de navigation" aria-expanded="false" id="mobileMenuButton">
+                <i class="fas fa-bars text-xl" aria-hidden="true"></i>
             </button>
         </div>
         
@@ -219,7 +220,14 @@
 <script>
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
+    const button = document.getElementById('mobileMenuButton');
+    const isHidden = menu.classList.contains('hidden');
+    
     menu.classList.toggle('hidden');
+    if (button) {
+        button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        button.setAttribute('aria-label', isHidden ? 'Fermer le menu de navigation' : 'Ouvrir le menu de navigation');
+    }
 }
 
 // trackPhoneCall est géré automatiquement par phone-tracking.js dans layouts/app.blade.php

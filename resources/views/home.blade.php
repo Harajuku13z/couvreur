@@ -349,6 +349,8 @@
                              alt="{{ $service['name'] }}" 
                              class="w-full h-full object-cover mobile-responsive-img"
                              style="display: none;"
+                             width="667"
+                             height="350"
                              loading="lazy">
                     </div>
                     @else
@@ -361,9 +363,12 @@
                         <h3 class="text-xl font-bold text-gray-800 mb-3">{{ $service['name'] }}</h3>
                         <p class="text-gray-600 mb-4">{{ $service['short_description'] ?? Str::limit($service['description'], 120) }}</p>
                         <a href="{{ route('services.show', $service['slug']) }}" 
-                           class="inline-flex items-center text-primary font-semibold hover:text-secondary transition"
+                           class="inline-flex items-center font-semibold transition"
+                           style="color: var(--primary-color);"
+                           onmouseover="this.style.color='var(--secondary-color)';"
+                           onmouseout="this.style.color='var(--primary-color)';"
                            onclick="trackServiceClick('{{ $service['name'] }}', '{{ request()->url() }}')">
-                            En savoir plus <i class="fas fa-arrow-right ml-2"></i>
+                            En savoir plus <i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>

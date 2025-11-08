@@ -62,16 +62,16 @@
                     <!-- Social Media Icons -->
                     @php
                         $socialNetworks = [
-                            'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-400'],
-                            'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-400'],
-                            'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-300'],
-                            'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-500'],
-                            'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-400'],
-                            'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-300'],
-                            'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-500'],
-                            'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-400'],
-                            'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-400'],
-                            'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-400'],
+                            'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-400', 'label' => 'Suivez-nous sur Facebook'],
+                            'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-400', 'label' => 'Suivez-nous sur Instagram'],
+                            'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-300', 'label' => 'Suivez-nous sur Twitter'],
+                            'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-500', 'label' => 'Suivez-nous sur LinkedIn'],
+                            'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-400', 'label' => 'Suivez-nous sur YouTube'],
+                            'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-300', 'label' => 'Suivez-nous sur TikTok'],
+                            'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-500', 'label' => 'Suivez-nous sur Pinterest'],
+                            'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-400', 'label' => 'Suivez-nous sur Snapchat'],
+                            'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-400', 'label' => 'Contactez-nous sur WhatsApp'],
+                            'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-400', 'label' => 'Contactez-nous sur Telegram'],
                         ];
                         
                         $activeSocialNetworks = array_filter($socialNetworks, function($key) {
@@ -83,8 +83,9 @@
                     <div class="flex space-x-4">
                         @foreach($activeSocialNetworks as $key => $network)
                             <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl">
-                                <i class="{{ $network['icon'] }}"></i>
+                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl"
+                               aria-label="{{ $network['label'] }}">
+                                <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
                             </a>
                         @endforeach
                     </div>

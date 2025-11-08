@@ -306,14 +306,21 @@
     {{-- Schema.org Structured Data (inclus dans toutes les pages) --}}
     @include('partials.schema-org')
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preconnect pour améliorer les performances des CDN -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Articles CSS -->
+    <!-- Articles CSS (critique, chargé en premier) -->
     <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
+    
+    <!-- Font Awesome (déferré pour ne pas bloquer le rendu) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+    
+    <!-- Tailwind CSS (déferré pour ne pas bloquer le rendu) -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
     
     <style>
         :root {
@@ -333,11 +340,18 @@
         .floating-phone {
             animation: pulse-phone 2s infinite;
             background-color: var(--secondary-color) !important;
+            will-change: transform;
         }
         
         @keyframes pulse-phone {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--secondary-color); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
         }
     </style>
     
@@ -424,8 +438,10 @@
     <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
        class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
-       style="background-color: var(--primary-color);">
-        <i class="fas fa-phone text-2xl"></i>
+       style="background-color: var(--primary-color);"
+       aria-label="Appeler {{ $companyPhone }}"
+       title="Appeler {{ $companyPhone }}">
+        <i class="fas fa-phone text-2xl" aria-hidden="true"></i>
     </a>
     @endif
     
