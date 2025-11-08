@@ -74,6 +74,7 @@ class SeoController extends Controller
             'canonical_url' => 'nullable|url',
             'favicon' => 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
             'favicon_svg' => 'nullable|file|mimes:svg|max:512',
+            'bimi_logo' => 'nullable|file|mimes:svg|max:512',
             'apple_touch_icon' => 'nullable|image|mimes:png,jpg,jpeg|max:512',
             'manifest' => 'nullable|file|mimes:json|max:1024',
             'google_analytics' => 'nullable|string|max:50',
@@ -155,6 +156,21 @@ class SeoController extends Controller
             $filename = 'favicon-' . time() . '.svg';
             $file->move(public_path('favicons'), $filename);
             $config['favicon_svg'] = 'favicons/' . $filename;
+        }
+
+        // Gestion du logo BIMI
+        if ($request->hasFile('bimi_logo')) {
+            $file = $request->file('bimi_logo');
+            // Créer le dossier logo s'il n'existe pas
+            $logoDir = public_path('logo');
+            if (!file_exists($logoDir)) {
+                mkdir($logoDir, 0755, true);
+            }
+            // Sauvegarder comme logo.svg
+            $filename = 'logo.svg';
+            $file->move($logoDir, $filename);
+            $config['bimi_logo'] = 'logo/' . $filename;
+            \Log::info('Logo BIMI uploadé avec succès', ['path' => 'logo/' . $filename]);
         }
 
         // Apple Touch Icon est maintenant généré automatiquement depuis le favicon

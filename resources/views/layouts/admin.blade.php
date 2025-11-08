@@ -147,7 +147,43 @@
                     </div>
                 </div>
 
-                <!-- 4. Annonces Locales -->
+                <!-- 4. Devis & Facturation -->
+                <div class="mb-6">
+                    <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Devis & Facturation</div>
+                    <div class="space-y-1">
+                        <a href="{{ route('admin.quotations.dashboard') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}">
+                            <i class="fas fa-chart-pie mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Tableau de bord
+                        </a>
+                        
+                        <a href="{{ route('admin.devis.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.devis.*') ? 'active' : '' }}">
+                            <i class="fas fa-file-invoice mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Devis
+                        </a>
+                        
+                        <a href="{{ route('admin.devis.create') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.devis.create') ? 'active' : '' }}">
+                            <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Créer un devis
+                        </a>
+                        
+                        <a href="{{ route('admin.factures.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.factures.*') ? 'active' : '' }}">
+                            <i class="fas fa-receipt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Factures
+                        </a>
+                        
+                        <a href="{{ route('admin.clients.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+                            <i class="fas fa-users mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Clients
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 5. Annonces Locales -->
                 <div class="mb-6">
                     <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Annonces Locales</div>
                     <div class="space-y-1">
@@ -165,7 +201,7 @@
                     </div>
                 </div>
 
-                <!-- 5. Paramètres -->
+                <!-- 6. Paramètres -->
                 <div class="mb-6">
                     <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Paramètres</div>
                     <div class="space-y-1">

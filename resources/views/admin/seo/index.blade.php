@@ -192,6 +192,65 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">📧 Logo BIMI (Email)</h2>
+            
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                <p class="text-sm text-purple-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Logo BIMI :</strong> Le logo affiché à côté de vos emails dans Gmail et autres clients de messagerie. 
+                    Le logo doit être en format SVG et respecter les contraintes BIMI.
+                </p>
+            </div>
+            
+            <div class="mb-4">
+                <label for="bimi_logo" class="block text-sm font-medium mb-2">
+                    Logo SVG BIMI
+                    <span class="text-xs text-gray-500">- Format SVG requis (200x200px recommandé)</span>
+                </label>
+                <input type="file" id="bimi_logo" name="bimi_logo" accept="image/svg+xml"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">
+                    Format SVG 1.1 ou SVG Tiny 1.2. Pas de scripts, animations ou références externes.
+                </p>
+                @php
+                    $bimiLogoPath = 'logo/logo.svg';
+                @endphp
+                @if(file_exists(public_path($bimiLogoPath)))
+                <div class="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0">
+                            <img src="{{ asset($bimiLogoPath) }}" alt="Logo BIMI" class="w-20 h-20 object-contain rounded border border-gray-300 bg-white p-2">
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-sm text-gray-700">Logo BIMI actuel</p>
+                            <p class="text-xs text-gray-500 mt-1">Chemin : <code class="bg-gray-100 px-1 rounded">public/{{ $bimiLogoPath }}</code></p>
+                            <p class="text-xs text-gray-500 mt-1">URL : <a href="{{ asset($bimiLogoPath) }}" target="_blank" class="text-blue-600 hover:underline">{{ asset($bimiLogoPath) }}</a></p>
+                        </div>
+                    </div>
+                </div>
+                @else
+                <div class="mt-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Aucun logo BIMI trouvé. Le logo doit être placé dans <code class="bg-yellow-100 px-1 rounded">public/logo/logo.svg</code>
+                    </p>
+                </div>
+                @endif
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm text-blue-800">
+                    <i class="fas fa-link mr-2"></i>
+                    <strong>Configuration DNS BIMI requise :</strong> Pour que le logo s'affiche dans Gmail, vous devez configurer un enregistrement DNS TXT :
+                    <code class="block mt-2 bg-blue-100 px-2 py-1 rounded text-xs">default._bimi.normesrenovationbretagne.fr. TXT "v=BIMI1; l=https://normesrenovationbretagne.fr/logo/logo.svg;"</code>
+                    <a href="{{ url('/BIMI_SETUP.md') }}" target="_blank" class="text-blue-600 hover:underline mt-2 inline-block">
+                        Voir la documentation complète →
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">Analytics & Tracking</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
