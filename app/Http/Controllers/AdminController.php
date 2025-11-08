@@ -796,4 +796,41 @@ class AdminController extends Controller
 
         return view('admin.phone-calls', compact('phoneCalls', 'stats', 'callsByPage', 'callsTrend'));
     }
+
+    /**
+     * Mettre à jour la ville d'un appel téléphonique
+     */
+    public function updatePhoneCallCity(Request $request, $id)
+    {
+        $request->validate([
+            'city' => 'required|string|max:255',
+        ]);
+
+        try {
+            $phoneCall = PhoneCall::findOrFail($id);
+            $phoneCall->city = $request->city;
+            $phoneCall->save();
+
+            \Log::info('Ville corrigée pour un appel téléphonique', [
+                'call_id' => $id,
+                'old_city' => $phoneCall->getOriginal('city'),
+                'new_city' => $request->city,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ville corrigée avec succès',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la correction de la ville', [
+                'call_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la correction : ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

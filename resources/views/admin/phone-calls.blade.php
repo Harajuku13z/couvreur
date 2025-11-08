@@ -116,6 +116,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Page d'origine</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soumission Liée</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -180,10 +181,17 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $call->ip_address ?? '-' }}
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                                    class="text-blue-600 hover:text-blue-900"
+                                    title="Corriger la ville">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <i class="fas fa-phone-slash text-6xl text-gray-300 mb-4"></i>
                             <p class="text-xl text-gray-600">Aucun appel téléphonique enregistré</p>
                             <p class="text-sm text-gray-500 mt-2">Les clics sur les liens téléphone seront suivis ici</p>
