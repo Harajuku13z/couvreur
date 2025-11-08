@@ -6,6 +6,7 @@ use App\Models\Setting;
 use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use App\Mail\ContactConfirmation;
 use App\Mail\ContactNotification;
 
@@ -148,7 +149,7 @@ class ContactController extends Controller
                 // Ajouter form_data seulement si la colonne existe
                 try {
                     // Vérifier si la colonne form_data existe
-                    $columns = \Schema::getColumnListing('submissions');
+                    $columns = Schema::getColumnListing('submissions');
                     if (in_array('form_data', $columns)) {
                         $submissionData['form_data'] = [
                             'subject' => $validated['subject'],
