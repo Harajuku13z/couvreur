@@ -20,15 +20,29 @@ class GenerateSitemap extends Command
         $this->info('🚀 Génération du sitemap en cours...');
         
         // URL depuis la config ou les settings
+        // ⚠️ ATTENTION: Cette commande est DÉPRÉCIÉE - Utilisez sitemap:reset ou SitemapService
         $baseUrl = \App\Models\Setting::get('site_url', null);
         if (empty($baseUrl)) {
             $baseUrl = config('app.url', url('/'));
         }
+        
+        // REJETER sausercouverture.fr
+        if (strpos($baseUrl, 'sausercouverture.fr') !== false) {
+            $this->warn("⚠️  Ancienne URL sausercouverture.fr détectée, correction automatique...");
+            $baseUrl = 'https://normesrenovationbretagne.fr';
+        }
+        
         // S'assurer que l'URL a un protocole
         if (!preg_match('/^https?:\/\//', $baseUrl)) {
             $baseUrl = 'https://' . $baseUrl;
         }
         $baseUrl = rtrim($baseUrl, '/');
+        
+        // VÉRIFICATION FINALE
+        if (strpos($baseUrl, 'sausercouverture.fr') !== false) {
+            $this->error("❌ ERREUR: sausercouverture.fr détectée après correction !");
+            $baseUrl = 'https://normesrenovationbretagne.fr';
+        }
         
         $sitemap = Sitemap::create();
         
