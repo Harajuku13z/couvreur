@@ -244,19 +244,32 @@ class DevisController extends Controller
                 $devis->load(['client', 'lignesDevis']);
                 $companySettings = $this->getCompanySettings();
                 
-                // Utiliser le service container au lieu de la facade
-                $pdf = app('dompdf.wrapper');
-                $pdf->loadView('pdfs.devis', [
+                // Générer le HTML depuis la vue
+                $html = view('pdfs.devis', [
                     'devis' => $devis,
                     'companySettings' => $companySettings,
-                ]);
+                ])->render();
+
+                // Vérifier que DomPDF est disponible
+                if (!class_exists('Dompdf\Dompdf')) {
+                    throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez sur le serveur: composer require dompdf/dompdf');
+                }
+
+                // Créer une instance DomPDF directement
+                $options = new \Dompdf\Options();
+                $options->set('isHtml5ParserEnabled', true);
+                $options->set('isRemoteEnabled', false);
+                $options->set('enableLocalFileAccess', true);
+                $options->set('defaultFont', 'DejaVu Sans');
                 
-                $pdf->setPaper('a4', 'portrait');
-                $pdf->setOption('enable-local-file-access', true);
-                $pdf->setOption('isHtml5ParserEnabled', true);
-                $pdf->setOption('isRemoteEnabled', false);
+                $dompdf = new \Dompdf\Dompdf($options);
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
                 
-                return $pdf->stream('Devis_' . $devis->numero . '.pdf');
+                return response($dompdf->output(), 200)
+                    ->header('Content-Type', 'application/pdf')
+                    ->header('Content-Disposition', 'inline; filename="Devis_' . $devis->numero . '.pdf"');
                 
             } catch (\Exception $pdfError) {
                 Log::error('Erreur génération PDF directe', [

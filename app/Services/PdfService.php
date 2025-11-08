@@ -6,6 +6,8 @@ use App\Models\Devis;
 use App\Models\Facture;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class PdfService
 {
@@ -36,16 +38,28 @@ class PdfService
                 'lignes_count' => $devis->lignesDevis->count(),
             ]);
 
-            // Utiliser le service container au lieu de la facade
-            $pdf = app('dompdf.wrapper');
-            $pdf->loadView('pdfs.devis', [
+            // Générer le HTML depuis la vue
+            $html = view('pdfs.devis', [
                 'devis' => $devis,
                 'companySettings' => $companySettings,
-            ]);
+            ])->render();
 
-            // Options PDF
-            $pdf->setPaper('a4', 'portrait');
-            $pdf->setOption('enable-local-file-access', true);
+            // Vérifier que DomPDF est disponible
+            if (!class_exists('Dompdf\Dompdf')) {
+                throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez: composer require dompdf/dompdf');
+            }
+
+            // Créer une instance DomPDF directement
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', false);
+            $options->set('enableLocalFileAccess', true);
+            $options->set('defaultFont', 'DejaVu Sans');
+            
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
 
             $filename = 'devis_' . $devis->numero . '_' . time() . '.pdf';
             $path = 'devis/' . $filename;
@@ -57,7 +71,7 @@ class PdfService
             }
 
             // Sauvegarder le PDF
-            $pdfContent = $pdf->output();
+            $pdfContent = $dompdf->output();
             Storage::disk('local')->put($path, $pdfContent);
 
             // Vérifier que le fichier a bien été créé
@@ -92,18 +106,34 @@ class PdfService
     {
         $facture->load(['client', 'devis']);
 
-        // Utiliser le service container au lieu de la facade
-        $pdf = app('dompdf.wrapper');
-        $pdf->loadView('pdfs.facture', [
+        // Générer le HTML depuis la vue
+        $html = view('pdfs.facture', [
             'facture' => $facture,
             'companySettings' => $this->getCompanySettings(),
-        ]);
+        ])->render();
+
+        // Vérifier que DomPDF est disponible
+        if (!class_exists('Dompdf\Dompdf')) {
+            throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez: composer require dompdf/dompdf');
+        }
+
+        // Créer une instance DomPDF directement
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('enableLocalFileAccess', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
 
         $filename = 'facture_' . $facture->numero . '_' . time() . '.pdf';
         $path = 'factures/' . $filename;
 
         // Sauvegarder le PDF
-        Storage::disk('local')->put($path, $pdf->output());
+        Storage::disk('local')->put($path, $dompdf->output());
 
         // Mettre à jour la facture avec le chemin du PDF
         $facture->update(['pdf_path' => $path]);
