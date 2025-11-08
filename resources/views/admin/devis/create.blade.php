@@ -17,12 +17,34 @@
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4">Informations Client</h2>
             
+            @if($selectedClient)
+            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-semibold text-blue-900">{{ $selectedClient->nom_complet }}</p>
+                        <p class="text-sm text-blue-700">{{ $selectedClient->email }}</p>
+                        @if($selectedClient->telephone)
+                        <p class="text-sm text-blue-700">{{ $selectedClient->telephone }}</p>
+                        @endif
+                        @if($selectedClient->adresse_complete)
+                        <p class="text-sm text-blue-700 mt-1">{{ $selectedClient->adresse_complete }}</p>
+                        @endif
+                    </div>
+                    <button type="button" onclick="document.getElementById('client_id').value = ''; this.closest('.bg-blue-50').remove();" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            @endif
+            
             <div class="mb-4">
                 <label for="client_id" class="block text-sm font-medium mb-2">Client *</label>
                 <select id="client_id" name="client_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                     <option value="">Sélectionner un client</option>
                     @foreach($clients as $client)
-                    <option value="{{ $client->id }}">{{ $client->nom_complet }} - {{ $client->email }}</option>
+                    <option value="{{ $client->id }}" {{ (isset($selectedClientId) && $selectedClientId == $client->id) ? 'selected' : '' }}>
+                        {{ $client->nom_complet }} - {{ $client->email }}
+                    </option>
                     @endforeach
                 </select>
                 <a href="{{ route('admin.clients.index') }}" class="text-sm text-blue-600 hover:underline mt-1 inline-block">

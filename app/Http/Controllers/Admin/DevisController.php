@@ -61,18 +61,25 @@ class DevisController extends Controller
     /**
      * Formulaire de création
      */
-    public function create()
+    public function create(Request $request)
     {
         try {
             $clients = Client::orderBy('nom')->get();
-            return view('admin.devis.create', compact('clients'));
+            $selectedClientId = $request->get('client_id');
+            $selectedClient = null;
+            
+            if ($selectedClientId) {
+                $selectedClient = Client::find($selectedClientId);
+            }
+            
+            return view('admin.devis.create', compact('clients', 'selectedClient', 'selectedClientId'));
         } catch (\Exception $e) {
             \Log::error('Erreur DevisController::create', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return view('admin.devis.create', ['clients' => collect([])])
+            return view('admin.devis.create', ['clients' => collect([]), 'selectedClient' => null, 'selectedClientId' => null])
                 ->with('error', 'Erreur lors du chargement. Vérifiez que les migrations ont été exécutées : ' . $e->getMessage());
         }
     }
