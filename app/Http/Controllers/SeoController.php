@@ -166,11 +166,31 @@ class SeoController extends Controller
             if (!file_exists($logoDir)) {
                 mkdir($logoDir, 0755, true);
             }
-            // Sauvegarder comme logo.svg
+            // Sauvegarder comme logo.svg (écraser l'ancien si existe)
             $filename = 'logo.svg';
+            $targetPath = $logoDir . '/' . $filename;
+            
+            // Supprimer l'ancien fichier s'il existe
+            if (file_exists($targetPath)) {
+                unlink($targetPath);
+            }
+            
+            // Déplacer le nouveau fichier
             $file->move($logoDir, $filename);
-            $config['bimi_logo'] = 'logo/' . $filename;
-            \Log::info('Logo BIMI uploadé avec succès', ['path' => 'logo/' . $filename]);
+            
+            // Vérifier que le fichier a bien été créé
+            if (file_exists($targetPath)) {
+                // Définir les permissions correctes (644 = rw-r--r--)
+                chmod($targetPath, 0644);
+                $config['bimi_logo'] = 'logo/' . $filename;
+                \Log::info('Logo BIMI uploadé avec succès', [
+                    'path' => 'logo/' . $filename,
+                    'size' => filesize($targetPath),
+                    'url' => asset('logo/' . $filename)
+                ]);
+            } else {
+                \Log::error('Erreur lors de l\'upload du logo BIMI : fichier non créé');
+            }
         }
 
         // Apple Touch Icon est maintenant généré automatiquement depuis le favicon

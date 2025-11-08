@@ -44,11 +44,25 @@ class ContactConfirmation extends Mailable
 
         // Ajouter le header BIMI pour afficher le logo dans Gmail
         $this->withSymfonyMessage(function ($message) {
-            $logoUrl = url('/logo/logo.svg');
-            // Vérifier si le fichier SVG existe, sinon utiliser PNG
-            if (!file_exists(public_path('logo/logo.svg'))) {
-                $logoUrl = url('/logo/logo.png');
+            // Utiliser asset() pour générer l'URL correcte
+            $logoPath = 'logo/logo.svg';
+            $logoUrl = asset($logoPath);
+            
+            // Vérifier si le fichier SVG existe
+            if (!file_exists(public_path($logoPath))) {
+                // Fallback sur PNG si SVG n'existe pas
+                $logoPath = 'logo/logo.png';
+                if (file_exists(public_path($logoPath))) {
+                    $logoUrl = asset($logoPath);
+                } else {
+                    // Pas de logo disponible
+                    return;
+                }
             }
+            
+            // S'assurer que l'URL est en HTTPS (requis pour BIMI)
+            $logoUrl = str_replace('http://', 'https://', $logoUrl);
+            
             // BIMI header - Gmail affichera le logo si le DNS BIMI est configuré
             $message->getHeaders()->addTextHeader('X-BIMI-Logo', $logoUrl);
         });
