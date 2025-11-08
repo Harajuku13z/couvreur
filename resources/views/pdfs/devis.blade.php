@@ -126,9 +126,8 @@
             <div class="company-name">{{ $companySettings['name'] }}</div>
             @if($companySettings['address'])
             <div>{{ $companySettings['address'] }}</div>
-            @endif
-            @if($companySettings['postal_code'] || $companySettings['city'])
-            <div>{{ $companySettings['postal_code'] }} {{ $companySettings['city'] }}</div>
+            @elseif($companySettings['postal_code'] || $companySettings['city'])
+            <div>{{ trim(($companySettings['postal_code'] ?? '') . ' ' . ($companySettings['city'] ?? '')) }}</div>
             @endif
             @if($companySettings['phone'])
             <div>Tél: {{ $companySettings['phone'] }}</div>
@@ -219,9 +218,14 @@
         </div>
         @if($companySettings['address'])
         <div class="footer-info">{{ $companySettings['address'] }}</div>
+        @elseif($companySettings['postal_code'] || $companySettings['city'])
+        <div class="footer-info">{{ trim(($companySettings['postal_code'] ?? '') . ' ' . ($companySettings['city'] ?? '')) }}</div>
         @endif
-        @if($companySettings['postal_code'] || $companySettings['city'])
-        <div class="footer-info">{{ $companySettings['postal_code'] }} {{ $companySettings['city'] }}</div>
+        @if($companySettings['phone'])
+        <div class="footer-info">Tél : {{ $companySettings['phone'] }}</div>
+        @endif
+        @if($companySettings['email'])
+        <div class="footer-info">Email : {{ $companySettings['email'] }}</div>
         @endif
         @if($companySettings['siret'])
         <div class="footer-info">SIRET : {{ $companySettings['siret'] }}</div>
