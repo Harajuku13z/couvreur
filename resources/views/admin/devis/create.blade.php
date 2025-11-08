@@ -311,10 +311,13 @@ function addStandardLines() {
     });
 }
 
-// Ajouter une ligne vide au chargement
+// Ajouter une ligne vide au chargement pour permettre la saisie manuelle
 document.addEventListener('DOMContentLoaded', function() {
-    // Ne pas ajouter de ligne vide si on vient de générer avec l'IA
-    // Les lignes standard seront ajoutées automatiquement par l'IA
+    // Ajouter une ligne vide pour permettre la saisie manuelle
+    // Si l'utilisateur utilise l'IA, les lignes seront remplacées
+    if (document.getElementById('lignes-container').children.length === 0) {
+        addLigne();
+    }
 });
 </script>
 @endpush
