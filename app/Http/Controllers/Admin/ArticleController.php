@@ -103,6 +103,30 @@ class ArticleController extends Controller
             ->with('success', 'Article supprimé avec succès');
     }
 
+    public function destroyAll(Request $request)
+    {
+        $request->validate([
+            'ids' => 'nullable|array',
+            'ids.*' => 'exists:articles,id'
+        ]);
+
+        $ids = $request->input('ids', []);
+        
+        if (empty($ids)) {
+            // Si aucun ID n'est fourni, supprimer tous les articles
+            $count = Article::count();
+            Article::truncate();
+            return redirect()->route('admin.articles.index')
+                ->with('success', "Tous les articles ({$count}) ont été supprimés avec succès");
+        } else {
+            // Supprimer les articles sélectionnés
+            $count = Article::whereIn('id', $ids)->count();
+            Article::whereIn('id', $ids)->delete();
+            return redirect()->route('admin.articles.index')
+                ->with('success', "{$count} article(s) supprimé(s) avec succès");
+        }
+    }
+
     /**
      * Génération de titres d'articles avec IA
      */
