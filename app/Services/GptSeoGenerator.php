@@ -306,8 +306,9 @@ Tu t'appuies sur les meilleures sources issues des premiers résultats Google po
 
 Mot-clé principal : {$keyword} à {$cityName}
 
+(Exemple : rénovation à Dijon, couvreur à Chalon-sur-Saône, isolation thermique en Bretagne, etc.)
+
 {$sourcesList}
-**Requêtes associées à intégrer naturellement :** {$related}
 
 Ta mission :
 
@@ -317,66 +318,92 @@ Identifie les points communs, les informations les plus pertinentes et les avant
 
 Crée une synthèse améliorée : un article original, plus complet, mieux structuré et mieux rédigé que la concurrence.
 
-**STRUCTURE OBLIGATOIRE EN HTML :**
+Structure de l'article demandée :
 
-1. **INTRODUCTION** - 1 paragraphe <p> MAXIMUM :
-   - Commencer DIRECTEMENT par le service/mot-clé principal ({$keyword})
-   - Aller droit au but : présenter le service, pas la ville
+Titre principal (H1) : accrocheur, contenant le mot-clé principal, incitant au clic.
+
+Meta description (150–160 caractères) : claire, attractive et optimisée SEO.
+
+Introduction : contexte local ou sectoriel, mise en valeur du sujet.
+
+Corps de texte :
+
+Sections avec titres H2 et H3 pertinents et bien hiérarchisés.
+
+Informations techniques (matériaux, étapes, conseils d'entretien, normes RGE, etc.)
+
+" . ($relatedServicesText ? "Services liés à mentionner naturellement dans le contexte du sujet : {$relatedServicesText}\n" : "") . "Avantages d'un professionnel local.
+
+Appel à l'action (contact, devis gratuit, etc.).
+
+Conclusion : résumé + incitation à passer à l'action.
+
+**STRUCTURE HTML OBLIGATOIRE :**
+
+1. **INTRODUCTION** - 1-2 paragraphes <p> :
+   - Commencer DIRECTEMENT par le sujet/mot-clé principal ({$keyword})
+   - Aller droit au but : présenter le sujet, pas la ville
    - Éviter les descriptions longues de la ville ou du contexte local
-   - Mentionner brièvement {$companyName} comme expert
    - Utiliser \"vous\" pour s'adresser directement au lecteur
-   - **IMPORTANT : Pas de description de la ville au début, aller directement au service**
+   - **IMPORTANT : Pas de description de la ville au début, aller directement au sujet**
 
 2. **SECTIONS PRINCIPALES (H2)** - Minimum 4-5 sections pour un contenu complet :
    - Chaque section doit avoir un titre clair et descriptif lié au mot-clé principal ({$keyword})
    - Chaque section doit contenir 3-5 paragraphes de contenu détaillé et informatif
-   - **CRITIQUE : Les sections doivent correspondre aux services réellement proposés par {$companyName}**
-   " . ($servicesList ? "- Services à couvrir : {$servicesList}\n" : "") . "   - **NE PAS créer de sections sur des services non proposés** (ex: pas d'isolation si ce n'est pas un service proposé, pas de matériaux si ce n'est pas pertinent au mot-clé)
-   - Inclure des détails techniques précis uniquement pour les services proposés (matériaux, normes RGE, processus, étapes, conseils d'entretien)
+   - **CRITIQUE : Se concentrer sur le sujet ({$keyword}), pas sur les services de l'entreprise**
+   - **Si le sujet est \"rénovation toiture\", mentionner naturellement les services liés : hydrofuge, demoussage, réparation, zinguerie, etc.**
+   - **Si le sujet est \"isolation\", mentionner naturellement tout ce qui est lié à l'isolation : isolation thermique, isolation phonique, matériaux isolants, etc.**
+   - Inclure des détails techniques précis (matériaux, normes RGE, processus, étapes, conseils d'entretien)
    - Mentionner {$cityName} et le département (Côte-d'Or) dans plusieurs sections naturellement
-   - Inclure des informations sur les avantages d'un professionnel local
+   - **NE PAS faire référence aux services de l'entreprise de manière répétitive ou commerciale**
 
 3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
-   - Créer 1-2 sous-sections avec des titres spécifiques liés au service de la section
-   - **IMPORTANT : Les sous-sections doivent être pertinentes au mot-clé et aux services proposés**
-   - **NE PAS utiliser d'exemples génériques** comme \"Les Matériaux de Couverture Maîtrisés\" ou \"Isolation Thermique\" si ces sujets ne sont pas directement liés au mot-clé principal
-   - Exemples de sous-sections pertinentes : \"Les Étapes de [Service]\", \"Les Avantages de [Service]\", \"Comment [Service] à {$cityName}\"
+   - Créer 1-2 sous-sections avec des titres spécifiques liés au sujet de la section
+   - **IMPORTANT : Les sous-sections doivent être pertinentes au mot-clé et au sujet traité**
+   - Exemples de sous-sections pertinentes : \"Les Étapes de [Sujet]\", \"Les Avantages de [Sujet]\", \"Comment [Sujet] à {$cityName}\"
 
-4. **LISTES À PUCES** :
-   - Utiliser des listes à puces pour détailler les services, matériaux, avantages
-   - Format: \"• Service 1 : Description détaillée\"
+4. **LISTES À PUCES (<ul><li>)** :
+   - Utiliser des listes à puces pour détailler les informations, matériaux, avantages
+   - Format HTML: <ul><li>Élément 1 : Description détaillée</li><li>Élément 2 : Description détaillée</li></ul>
    - Minimum 2-3 listes dans l'article
 
-5. **LISTES NUMÉROTÉES** :
+5. **LISTES NUMÉROTÉES (<ol><li>)** :
    - Utiliser pour les processus étape par étape
-   - Format: \"1. Étape 1 : Description\"
+   - Format HTML: <ol><li>Étape 1 : Description</li><li>Étape 2 : Description</li></ol>
    - Au moins une liste numérotée si le sujet s'y prête
 
-6. **SECTION \"POURQUOI CHOISIR [ENTREPRISE]\"** :
-   - Section dédiée mettant en avant l'entreprise
-   - Liste des avantages/garanties
-   - Mention de la localisation et de la réactivité
-
-7. **CONCLUSION** :
+6. **CONCLUSION (<h2> ou <p>)** :
    - Paragraphe final de conclusion qui résume les points clés de l'article
    - **IMPORTANT : NE PAS inclure d'appel à l'action avec coordonnées (téléphone, email, adresse)**
    - **IMPORTANT : NE PAS mentionner de numéro de téléphone, email ou adresse dans le contenu**
    - Le CTA est déjà présent ailleurs sur la page, donc se contenter d'une conclusion informative
    - **INTERDICTION STRICTE** : Ne JAMAIS inclure de phrases comme \"Contactez-nous au...\", \"Appelez-nous au...\", \"Pour toute demande de devis...\" avec des coordonnées
 
+Règles SEO :
+
+Respecte la densité naturelle du mot-clé principal (1 % à 2 %).
+
+Intègre des mots-clés secondaires et sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, etc.).
+
+Utilise des listes à puces, des phrases courtes, et des CTA impactants.
+
+Optimise la lisibilité (style professionnel et fluide).
+
+Ne copie aucun contenu, crée un texte 100 % original.
+
 **RÈGLES SEO STRICTES (Score minimum 90/100 requis) :**
 
 - **Densité du mot-clé principal :** 1% à 2% naturellement intégré (ni trop, ni trop peu)
 - **Mots-clés secondaires :** Intégrer des variantes et mots-clés sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, etc.)
-- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\" et \"notre\", adapté à une entreprise de rénovation locale
+- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\", adapté au secteur du bâtiment
 - **Longueur :** Entre 2000 et 3000 mots pour un contenu complet et détaillé (minimum 2000 mots)
 - **Paragraphes :** Courts (3-5 phrases max), aérés, faciles à lire
 - **Phrases :** Claires, 15-20 mots max, style fluide et professionnel
 - **Mots-clés :** Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes et expressions sémantiques
 - **Détails techniques :** Inclure des informations précises (matériaux, normes RGE, processus, étapes, conseils d'entretien)
 - **Localisation :** Mentionner {$cityName}, le département (Côte-d'Or), et le contexte local naturellement
-- **Entreprise :** Mettre en avant {$companyName} comme acteur local de confiance, expert, réactif
-- **Originalité :** Ne copie AUCUN contenu, crée un texte 100% original basé sur une synthèse des meilleures informations
+- **Services liés :** " . ($relatedServicesText ? "Si le sujet le permet, mentionner naturellement les services liés : {$relatedServicesText}. Par exemple, si on parle de rénovation toiture, mentionner hydrofuge, demoussage, réparation, zinguerie, etc. Si on parle d'isolation, mentionner tout ce qui est lié à l'isolation : isolation thermique, isolation phonique, matériaux isolants, etc.\n" : "") . "- **Originalité :** Ne copie AUCUN contenu, crée un texte 100% original basé sur une synthèse des meilleures informations
+- **IMPORTANT :** Ne pas faire référence aux services de l'entreprise de manière répétitive ou commerciale. Se concentrer sur le sujet ({$keyword}) et mentionner les services liés naturellement dans le contexte
 
 **IMPORTANT - COHÉRENCE TITRE/CONTENU :**
 - Si le titre mentionne \"conseils\", le contenu DOIT contenir des conseils pratiques détaillés
@@ -392,20 +419,13 @@ Crée une synthèse améliorée : un article original, plus complet, mieux struc
 - Originalité : 100% original, synthèse améliorée des meilleures sources
 - Lisibilité : Phrases courtes, paragraphes aérés, listes à puces
 
-**EXEMPLE DE STRUCTURE :**
+🧩 Exemple de commande à donner à l'IA :
 
-Introduction (2-3 paragraphes)
-[Section H2: Titre principal]
-  Paragraphe d'introduction de la section
-  [Sous-section H3: Titre sous-section]
-    Contenu détaillé avec listes à puces si nécessaire
-  [Sous-section H3: Autre sous-section]
-    Contenu détaillé
-[Section H2: Autre section principale]
-  Contenu avec processus numéroté si applicable
-[Section H2: Pourquoi Choisir [Entreprise]]
-  Liste des avantages
-[Appel à l'action et contact]
+Génère un article SEO complet à partir du mot-clé \"{$keyword}\", en t'appuyant sur les meilleurs éléments issus de ces pages concurrentes.
+
+Fais une synthèse des meilleures informations pour créer un article de 2000 à 3000 mots, avec un titre fort, une meta description percutante, une structure H2/H3 claire, et un appel à l'action professionnel.
+
+Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation.
 
 **Format de sortie :**
 Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide. Assure-toi que TOUT le contenu est en HTML (pas de texte brut).
