@@ -93,6 +93,13 @@ class GptSeoGenerator
         
         $htmlContent = trim($htmlContent);
         
+        // Supprimer le H1 du contenu généré car il est déjà affiché dans la section Hero
+        // Supprimer les balises <h1> et leur contenu
+        $htmlContent = preg_replace('/<h1[^>]*>.*?<\/h1>/is', '', $htmlContent);
+        // Supprimer aussi les variantes avec des classes Tailwind
+        $htmlContent = preg_replace('/<h1[^>]*class="[^"]*text-4xl[^"]*"[^>]*>.*?<\/h1>/is', '', $htmlContent);
+        $htmlContent = trim($htmlContent);
+        
         Log::info('GptSeoGenerator: Contenu HTML généré', [
             'length' => strlen($htmlContent)
         ]);
@@ -378,7 +385,7 @@ Crée un article qui :
 
 Structure de l'article demandée :
 
-Titre principal (H1) : accrocheur, contenant le mot-clé principal, incitant au clic.
+**IMPORTANT : NE PAS inclure de balise <h1> dans le contenu HTML généré. Le titre est déjà affiché séparément sur la page.**
 
 Meta description (150–160 caractères) : claire, attractive et optimisée SEO.
 
@@ -397,6 +404,8 @@ Appel à l'action (contact, devis gratuit, etc.).
 Conclusion : résumé + incitation à passer à l'action.
 
 **STRUCTURE HTML OBLIGATOIRE :**
+
+**CRITIQUE : NE PAS inclure de balise <h1> dans le contenu HTML. Commencer directement par l'introduction avec des balises <p> ou <h2>.**
 
 1. **INTRODUCTION** - 1-2 paragraphes <p> :
    - Commencer DIRECTEMENT par le sujet/mot-clé principal ({$keyword})
