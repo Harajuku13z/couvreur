@@ -34,41 +34,46 @@ class GptSeoGenerator
     ): ?array {
         $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
         
-        // Étape 1: Générer le texte brut de qualité (SANS HTML) - AVANT le titre pour garantir la cohérence
+        // Étape 1: Générer le contenu en HTML directement (ou markdown bien formaté)
         if ($progressCallback) {
             $progressCallback([
                 'step' => 'article_generation',
-                'message' => 'Génération du texte de qualité...'
+                'message' => 'Génération du contenu HTML...'
             ]);
         }
         
-        $textPrompt = $this->buildTextPrompt($keyword, $cityName, $relatedQueries, $competitors);
+        $htmlPrompt = $this->buildHtmlContentPrompt($keyword, $cityName, $relatedQueries, $competitors);
         
-        Log::info('GptSeoGenerator: Début génération texte brut', [
+        Log::info('GptSeoGenerator: Début génération contenu HTML', [
             'keyword' => $keyword,
             'city' => $cityName,
-            'prompt_length' => strlen($textPrompt),
+            'prompt_length' => strlen($htmlPrompt),
             'related_queries_count' => count($relatedQueries),
             'competitors_count' => count($competitors)
         ]);
         
-        $textResult = AiService::callAI($textPrompt, $systemMessage, [
-            'max_tokens' => 3000,
-            'temperature' => 0.3, // Plus créatif pour un texte de qualité
+        $htmlResult = AiService::callAI($htmlPrompt, $systemMessage, [
+            'max_tokens' => 4000,
+            'temperature' => 0.3,
             'timeout' => 120
         ]);
         
-        if (!$textResult || !isset($textResult['content']) || empty($textResult['content'])) {
-            Log::error('GptSeoGenerator: Échec génération texte brut');
+        if (!$htmlResult || !isset($htmlResult['content']) || empty($htmlResult['content'])) {
+            Log::error('GptSeoGenerator: Échec génération contenu HTML');
             return null;
         }
         
-        $rawText = trim($textResult['content']);
-        Log::info('GptSeoGenerator: Texte brut généré', [
-            'length' => strlen($rawText)
+        $htmlContent = trim($htmlResult['content']);
+        // Nettoyer le HTML (enlever markdown code blocks si présents)
+        $htmlContent = preg_replace('/```html\s*/', '', $htmlContent);
+        $htmlContent = preg_replace('/```\s*/', '', $htmlContent);
+        $htmlContent = trim($htmlContent);
+        
+        Log::info('GptSeoGenerator: Contenu HTML généré', [
+            'length' => strlen($htmlContent)
         ]);
         
-        // Étape 2: Générer le titre BASÉ sur le contenu généré (pour garantir la cohérence)
+        // Étape 2: Générer le titre BASÉ sur le contenu généré
         if ($progressCallback) {
             $progressCallback([
                 'step' => 'title_generation',
@@ -76,18 +81,21 @@ class GptSeoGenerator
             ]);
         }
         
-        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé (60-70 caractères max) qui correspond EXACTEMENT au contenu. Le titre doit refléter fidèlement ce qui est écrit dans l'article.\n\n**Contenu de l'article :**\n\n" . substr($rawText, 0, 2000) . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\nRetourne UNIQUEMENT le titre, sans formatage, sans JSON, juste le titre.";
+        // Extraire un extrait du contenu pour générer le titre
+        $contentText = strip_tags($htmlContent);
+        $contentPreview = substr($contentText, 0, 2000);
+        
+        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé (60-70 caractères max) qui correspond EXACTEMENT au contenu. Le titre doit refléter fidèlement ce qui est écrit dans l'article.\n\n**Contenu de l'article :**\n\n" . $contentPreview . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\nRetourne UNIQUEMENT le titre, sans formatage, sans JSON, juste le titre.";
         
         $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
             'max_tokens' => 100,
-            'temperature' => 0.2, // Plus bas pour un titre précis
+            'temperature' => 0.2,
             'timeout' => 30
         ]);
         
         $generatedTitle = null;
         if ($titleResult && isset($titleResult['content']) && !empty($titleResult['content'])) {
             $generatedTitle = trim($titleResult['content']);
-            // Nettoyer le titre (enlever guillemets, markdown, etc.)
             $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
             $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
             $generatedTitle = trim($generatedTitle);
@@ -101,36 +109,30 @@ class GptSeoGenerator
                     ]);
                 }
                 
-                Log::info('GptSeoGenerator: Titre généré avec succès basé sur le contenu', [
+                Log::info('GptSeoGenerator: Titre généré avec succès', [
                     'keyword' => $keyword,
                     'city' => $cityName,
                     'title' => $generatedTitle
                 ]);
-            } else {
-                Log::warning('GptSeoGenerator: Titre généré mais vide après nettoyage', [
-                    'original' => $titleResult['content'] ?? 'N/A'
-                ]);
             }
-        } else {
-            Log::warning('GptSeoGenerator: Échec génération titre, utilisation titre par défaut', [
-                'has_result' => !empty($titleResult),
-                'has_content' => isset($titleResult['content']),
-                'content_preview' => isset($titleResult['content']) ? substr($titleResult['content'], 0, 100) : 'N/A'
+        }
+        
+        // Étape 3: Générer la meta description BASÉE sur le titre et le contenu
+        if ($progressCallback) {
+            $progressCallback([
+                'step' => 'meta_description',
+                'message' => 'Génération de la meta description...'
             ]);
         }
         
-        // Utiliser directement le texte brut (sans formatage HTML)
-        // Le texte brut de ChatGPT est de qualité et sera affiché tel quel dans la vue
-        Log::info('GptSeoGenerator: Utilisation du texte brut sans formatage HTML', [
-            'text_length' => strlen($rawText)
-        ]);
+        $metaDescription = $this->generateMetaDescriptionFromTitle($generatedTitle ?? $keyword . ' à ' . $cityName, $htmlContent);
         
-        // Construire directement le tableau décodé avec le texte brut
+        // Construire le tableau décodé
         $decoded = [
             'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
-            'meta_description' => $this->generateMetaDescription($rawText),
-            'contenu_html' => $rawText, // Texte brut directement (sera formaté dans la vue avec nl2br)
-            'mots_cles' => $this->extractKeywords($rawText, $keyword),
+            'meta_description' => $metaDescription,
+            'contenu_html' => $htmlContent, // HTML directement depuis ChatGPT
+            'mots_cles' => $this->extractKeywords($contentText, $keyword),
             'faq' => []
         ];
 
@@ -208,9 +210,9 @@ class GptSeoGenerator
     }
 
     /**
-     * Construire le prompt pour générer un texte brut de qualité (SANS HTML)
+     * Construire le prompt pour générer le contenu directement en HTML
      */
-    protected function buildTextPrompt(
+    protected function buildHtmlContentPrompt(
         string $keyword,
         string $cityName,
         array $relatedQueries,
@@ -428,19 +430,73 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
     }
 
     /**
-     * Générer une meta description depuis le texte
+     * Générer une meta description BASÉE sur le titre et le contenu
      */
-    protected function generateMetaDescription(string $text): string
+    protected function generateMetaDescriptionFromTitle(string $title, string $htmlContent): string
     {
-        $text = strip_tags($text);
-        $text = preg_replace('/\s+/', ' ', $text);
-        $text = trim($text);
+        // Extraire le texte du contenu HTML
+        $contentText = strip_tags($htmlContent);
+        $contentText = preg_replace('/\s+/', ' ', $contentText);
+        $contentText = trim($contentText);
         
-        if (strlen($text) <= 155) {
-            return $text;
+        // Utiliser ChatGPT pour générer une vraie meta description basée sur le titre
+        $prompt = "Génère une meta description SEO optimisée (150-160 caractères) pour cet article.\n\n";
+        $prompt .= "**Titre de l'article :** {$title}\n\n";
+        $prompt .= "**Extrait du contenu (premiers 500 caractères) :** " . substr($contentText, 0, 500) . "\n\n";
+        $prompt .= "**Instructions :**\n";
+        $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
+        $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
+        $prompt .= "- Longueur : entre 150 et 160 caractères (optimal pour Google)\n";
+        $prompt .= "- Inclure le mot-clé principal si possible\n";
+        $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
+        $prompt .= "- Utiliser un ton professionnel et rassurant\n\n";
+        $prompt .= "Retourne UNIQUEMENT la meta description, sans guillemets, sans formatage.";
+        
+        $systemMessage = 'Tu es un expert SEO spécialisé dans la rédaction de meta descriptions optimisées.';
+        
+        $result = AiService::callAI($prompt, $systemMessage, [
+            'max_tokens' => 200,
+            'temperature' => 0.3,
+            'timeout' => 30
+        ]);
+        
+        if ($result && isset($result['content']) && !empty($result['content'])) {
+            $metaDesc = trim($result['content']);
+            // Nettoyer la meta description
+            $metaDesc = preg_replace('/^["\']|["\']$/', '', $metaDesc);
+            $metaDesc = trim($metaDesc);
+            
+            // S'assurer que c'est entre 150-160 caractères
+            if (strlen($metaDesc) > 160) {
+                $metaDesc = Str::limit($metaDesc, 157) . '...';
+            } elseif (strlen($metaDesc) < 120) {
+                // Si trop courte, compléter avec un extrait du contenu
+                $excerpt = Str::limit($contentText, 160 - strlen($metaDesc) - 3);
+                $metaDesc = $metaDesc . ' - ' . $excerpt;
+                if (strlen($metaDesc) > 160) {
+                    $metaDesc = Str::limit($metaDesc, 157) . '...';
+                }
+            }
+            
+            Log::info('GptSeoGenerator: Meta description générée via GPT', [
+                'title' => $title,
+                'meta_length' => strlen($metaDesc)
+            ]);
+            
+            return $metaDesc;
         }
         
-        return Str::limit($text, 152) . '...';
+        // Fallback : générer depuis le titre et le début du contenu
+        $fallback = "Découvrez tout ce que vous devez savoir sur {$title}. Guide complet avec conseils pratiques et solutions professionnelles.";
+        if (strlen($fallback) > 160) {
+            $fallback = Str::limit($fallback, 157) . '...';
+        }
+        
+        Log::warning('GptSeoGenerator: Utilisation meta description fallback', [
+            'title' => $title
+        ]);
+        
+        return $fallback;
     }
 
     /**
