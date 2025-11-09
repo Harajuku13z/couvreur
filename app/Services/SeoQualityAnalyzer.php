@@ -95,9 +95,13 @@ class SeoQualityAnalyzer
             $ulCount = substr_count($content, '<ul');
             $olCount = substr_count($content, '<ol');
             
-            if ($h2Count >= 3) {
+            // Pour score 90+, minimum 4 sections H2
+            if ($h2Count >= 4) {
                 $score += 5;
                 $strengths[] = 'Structure bien organisée (' . $h2Count . ' sections H2)';
+            } elseif ($h2Count >= 3) {
+                $score += 3;
+                $issues[] = 'Sections H2 insuffisantes (' . $h2Count . ' sections, recommandé 4+ pour score 90+)';
             } else {
                 $score += 2;
                 $issues[] = 'Peu de sections principales (H2)';
