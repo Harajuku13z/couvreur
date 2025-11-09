@@ -555,6 +555,38 @@ class SeoAutomationController extends Controller
                         // Tester la connexion avec l'API Google
                         $testResult = $googleService->testConnection();
                         
+                        // Tester différents protocoles et domaines
+                        $siteUrl = config('app.url', 'https://couvreur-chevigny-saint-sauveur.fr');
+                        $domain = parse_url($siteUrl, PHP_URL_HOST) ?: 'couvreur-chevigny-saint-sauveur.fr';
+                        
+                        $testUrls = [
+                            'https://' . $domain,
+                            'http://' . $domain,
+                            'https://' . $domain . '/',
+                            'http://' . $domain . '/',
+                            'sc-domain:' . $domain,
+                        ];
+                        
+                        $urlTests = [];
+                        foreach ($testUrls as $testUrl) {
+                            try {
+                                $indexResult = $googleService->indexUrl($testUrl);
+                                $urlTests[] = [
+                                    'url' => $testUrl,
+                                    'success' => $indexResult['success'] ?? false,
+                                    'message' => $indexResult['message'] ?? 'Aucun message',
+                                    'error_code' => $indexResult['error_code'] ?? null
+                                ];
+                            } catch (\Exception $e) {
+                                $urlTests[] = [
+                                    'url' => $testUrl,
+                                    'success' => false,
+                                    'message' => 'Exception: ' . $e->getMessage(),
+                                    'error_code' => 'EXCEPTION'
+                                ];
+                            }
+                        }
+                        
                         if ($testResult['success'] ?? false) {
                             $message = 'Connexion Google Indexing réussie.';
                             if (isset($testResult['warning']) && !empty($testResult['warning'])) {
@@ -565,7 +597,9 @@ class SeoAutomationController extends Controller
                                     'data' => [
                                         'sites_count' => $testResult['sites_count'] ?? 0,
                                         'site_found' => $testResult['site_found'] ?? false,
-                                        'site_permission' => $testResult['site_permission'] ?? null
+                                        'site_permission' => $testResult['site_permission'] ?? null,
+                                        'site_url' => $testResult['site_url'] ?? null,
+                                        'url_tests' => $urlTests
                                     ]
                                 ];
                             } else {
@@ -575,14 +609,19 @@ class SeoAutomationController extends Controller
                                     'data' => [
                                         'sites_count' => $testResult['sites_count'] ?? 0,
                                         'site_found' => $testResult['site_found'] ?? false,
-                                        'site_permission' => $testResult['site_permission'] ?? null
+                                        'site_permission' => $testResult['site_permission'] ?? null,
+                                        'site_url' => $testResult['site_url'] ?? null,
+                                        'url_tests' => $urlTests
                                     ]
                                 ];
                             }
                         } else {
                             $results = [
                                 'status' => 'error',
-                                'message' => 'Erreur de connexion: ' . ($testResult['message'] ?? 'Erreur inconnue')
+                                'message' => 'Erreur de connexion: ' . ($testResult['message'] ?? 'Erreur inconnue'),
+                                'data' => [
+                                    'url_tests' => $urlTests
+                                ]
                             ];
                         }
                     } catch (\Exception $e) {
