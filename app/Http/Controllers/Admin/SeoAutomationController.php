@@ -425,8 +425,12 @@ class SeoAutomationController extends Controller
                             break;
                         }
                         
+                        Log::info('Test SerpAPI - Clé API trouvée', ['key_length' => strlen($apiKey)]);
+                        
                         $serpService = new SerpApiService();
                         $keywords = $serpService->getTrendingKeywords('FR', 3);
+                        
+                        Log::info('Test SerpAPI - Résultats', ['keywords_count' => count($keywords)]);
                         
                         if (!empty($keywords)) {
                             $results = [
