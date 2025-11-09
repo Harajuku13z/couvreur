@@ -63,9 +63,14 @@
             </form>
             @php
                 $publicPdfUrl = $devis->getPublicPdfUrl();
-                $emailBody = 'Bonjour,%0D%0A%0D%0AVeuillez trouver ci-joint notre devis ' . $devis->numero . '.%0D%0A%0D%0AVous pouvez le consulter en ligne : ' . $publicPdfUrl . '%0D%0A%0D%0ACordialement';
+                $emailBody = 'Bonjour,' . "\n\n" . 
+                             'Veuillez trouver ci-joint notre devis ' . $devis->numero . '.' . "\n\n" . 
+                             'Vous pouvez le consulter en ligne : ' . $publicPdfUrl . "\n\n" . 
+                             'Cordialement';
+                $emailBodyEncoded = rawurlencode($emailBody);
+                $subjectEncoded = rawurlencode('Devis ' . $devis->numero);
             @endphp
-            <a href="mailto:{{ $devis->client->email }}?subject=Devis {{ $devis->numero }}&body={{ $emailBody }}" 
+            <a href="mailto:{{ $devis->client->email }}?subject={{ $subjectEncoded }}&body={{ $emailBodyEncoded }}" 
                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-center w-full sm:w-auto">
                 <i class="fas fa-envelope-open-text mr-2"></i>Écrire un email
             </a>
