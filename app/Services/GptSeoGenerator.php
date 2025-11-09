@@ -53,7 +53,7 @@ class GptSeoGenerator
         ]);
         
         $htmlResult = AiService::callAI($htmlPrompt, $systemMessage, [
-            'model' => 'gpt-4-turbo', // Utiliser gpt-4-turbo qui supporte 128k tokens (idéal pour articles longs)
+            'model' => 'gpt-4-turbo-preview', // Nom exact de l'API OpenAI pour gpt-4-turbo (support 128k tokens)
             'max_tokens' => 8000, // Pour générer 2500-3500 mots (environ 6000-8000 tokens)
             'temperature' => 0.3,
             'timeout' => 180 // Timeout augmenté pour contenu plus long

@@ -45,31 +45,34 @@ class AiService
         if (isset($options['model']) && !empty($options['model'])) {
             $model = $options['model'];
         } 
-        // PRIORITÉ 2: Si max_tokens > 4096, FORCER gpt-4-turbo (support 128k tokens)
-        elseif ($maxTokens > 4096) {
-            $model = 'gpt-4-turbo';
-            Log::info('AiService: max_tokens > 4096, utilisation forcée de gpt-4-turbo', [
-                'max_tokens' => $maxTokens
-            ]);
-        }
-        // PRIORITÉ 3: Utiliser le modèle de la DB
+        // PRIORITÉ 2: Utiliser le modèle de la DB
         elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
             $model = $chatgptModelSetting->value;
         } 
-        // PRIORITÉ 4: Par défaut gpt-4-turbo
+        // PRIORITÉ 3: Par défaut gpt-4-turbo-preview (nom exact de l'API)
         else {
-            $model = 'gpt-4-turbo';
+            $model = 'gpt-4-turbo-preview';
         }
         
-        // Vérification finale : si max_tokens > 4096, s'assurer qu'on utilise un modèle compatible
+        // CRITIQUE: Si max_tokens > 4096, FORCER un modèle compatible (AVANT l'appel API)
         if ($maxTokens > 4096) {
-            $compatibleModels = ['gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview', 'gpt-4o', 'gpt-4o-2024-08-06'];
+            // Modèles compatibles avec tokens longs (noms exacts de l'API OpenAI)
+            $compatibleModels = [
+                'gpt-4-turbo-preview',      // Nom exact pour gpt-4-turbo
+                'gpt-4-0125-preview',      // Variante
+                'gpt-4-1106-preview',      // Variante
+                'gpt-4o',                  // GPT-4o
+                'gpt-4o-2024-08-06'        // GPT-4o avec date
+            ];
+            
             if (!in_array($model, $compatibleModels)) {
-                Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4-turbo', [
-                    'original_model' => $model,
+                $originalModel = $model;
+                $model = 'gpt-4-turbo-preview'; // Nom exact de l'API
+                Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4-turbo-preview', [
+                    'original_model' => $originalModel,
+                    'new_model' => $model,
                     'max_tokens' => $maxTokens
                 ]);
-                $model = 'gpt-4-turbo';
             }
         }
         
@@ -91,6 +94,16 @@ class AiService
         // Essayer ChatGPT d'abord si activé et clé disponible
         if ($chatgptEnabled && $chatgptApiKey) {
             try {
+                // S'assurer que le modèle est correct pour max_tokens élevé
+                if ($maxTokens > 4096) {
+                    // Utiliser gpt-4-turbo avec le nom exact de l'API OpenAI
+                    $model = 'gpt-4-turbo-preview'; // Nom exact de l'API pour gpt-4-turbo
+                    Log::info('AiService: max_tokens > 4096, utilisation de gpt-4-turbo-preview', [
+                        'max_tokens' => $maxTokens,
+                        'model_force' => $model
+                    ]);
+                }
+                
                 Log::info('Tentative appel ChatGPT', [
                     'model' => $model,
                     'max_tokens' => $maxTokens,
@@ -100,15 +113,23 @@ class AiService
                     'api_key_length' => strlen($chatgptApiKey)
                 ]);
                 
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $chatgptApiKey,
-                    'Content-Type' => 'application/json',
-                ])->timeout($timeout)->post('https://api.openai.com/v1/chat/completions', [
+                $requestBody = [
                     'model' => $model,
                     'messages' => $messages,
                     'temperature' => $temperature,
                     'max_tokens' => $maxTokens,
+                ];
+                
+                Log::info('AiService: Requête OpenAI', [
+                    'model' => $model,
+                    'max_tokens' => $maxTokens,
+                    'request_body' => json_encode($requestBody)
                 ]);
+                
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $chatgptApiKey,
+                    'Content-Type' => 'application/json',
+                ])->timeout($timeout)->post('https://api.openai.com/v1/chat/completions', $requestBody);
                 
                 Log::info('Réponse ChatGPT reçue', [
                     'status' => $response->status(),
