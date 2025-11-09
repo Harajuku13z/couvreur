@@ -476,158 +476,102 @@ class SeoAutomationController extends Controller
                 ], 400);
             }
             
-            // Vérifier que SerpAPI est configuré
-            $serpApiKey = \App\Models\Setting::where('key', 'serp_api_key')->value('value');
-            if (empty($serpApiKey)) {
+            // Vérifier que ChatGPT est configuré
+            $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
+            $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+            $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+            
+            if (empty($chatgptApiKey) || !$chatgptEnabled) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'SerpAPI n\'est pas configuré. Veuillez configurer votre clé API SerpAPI dans la section "Configuration des APIs".'
+                    'message' => 'ChatGPT n\'est pas configuré ou désactivé. Veuillez configurer votre clé API ChatGPT dans la section "Configuration des APIs".'
                 ], 400);
             }
             
-            Log::info('Génération mots-clés via SerpAPI', [
+            Log::info('Génération mots-clés via ChatGPT', [
                 'description_length' => strlen($companyDescription)
             ]);
             
-            $serpService = new \App\Services\SerpApiService();
+            // Construire le prompt pour ChatGPT
+            $prompt = "À partir de la description suivante d'une entreprise de couvreur/rénovation, génère une liste de 20 à 30 mots-clés SEO pertinents et spécifiques pour le secteur du bâtiment et de la rénovation.
+
+Description de l'entreprise :
+{$companyDescription}
+
+**Instructions :**
+- Génère des mots-clés spécifiques au secteur (ex: 'rénovation de toiture', 'couverture en tuiles', 'isolation thermique', etc.)
+- Inclus des mots-clés avec localisation (ex: 'couvreur à [ville]', 'rénovation toiture [ville]')
+- Inclus des mots-clés de services (ex: 'réparation toiture', 'charpente traditionnelle', 'isolation combles')
+- Inclus des mots-clés de matériaux (ex: 'tuiles ardoise', 'zinc', 'isolation laine de verre')
+- Les mots-clés doivent être pertinents, recherchés et adaptés au secteur
+- Évite les mots-clés trop génériques ou hors sujet
+- Retourne UNIQUEMENT une liste de mots-clés, un par ligne, sans numérotation, sans puces, sans formatage
+
+Format de sortie :
+mot-clé 1
+mot-clé 2
+mot-clé 3
+...";
+
+            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation.';
+            
+            $result = AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 1000,
+                'temperature' => 0.3,
+                'timeout' => 60
+            ]);
+            
+            if (!$result || !isset($result['content']) || empty($result['content'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Erreur lors de la génération des mots-clés par ChatGPT. Vérifiez votre clé API et vos quotas.'
+                ], 500);
+            }
+            
+            // Parser les mots-clés (un par ligne)
+            $content = trim($result['content']);
             $keywords = [];
             
-            // Extraire les mots-clés principaux de la description
-            // Prendre les 3-5 premiers mots significatifs
-            $words = preg_split('/\s+/', $companyDescription);
-            $mainKeywords = array_filter($words, function($word) {
-                return strlen($word) > 3 && !in_array(strtolower($word), ['pour', 'avec', 'dans', 'sont', 'cette', 'notre', 'votre', 'leurs', 'leurs']);
-            });
-            $mainKeywords = array_slice(array_values($mainKeywords), 0, 5);
-            
-            // Méthode 1: Google Autocomplete pour chaque mot-clé principal
-            foreach ($mainKeywords as $mainKeyword) {
-                try {
-                    $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
-                        'engine' => 'google_autocomplete',
-                        'q' => $mainKeyword,
-                        'hl' => 'fr',
-                        'api_key' => $serpApiKey,
-                    ]);
-                    
-                    if ($response->successful()) {
-                        $json = $response->json();
-                        if (isset($json['suggestions']) && is_array($json['suggestions'])) {
-                            foreach ($json['suggestions'] as $suggestion) {
-                                $keyword = $suggestion['value'] ?? null;
-                                if ($keyword && !in_array($keyword, $keywords)) {
-                                    $keywords[] = $keyword;
-                                }
-                                if (count($keywords) >= 30) break 2; // Limiter à 30 mots-clés
-                            }
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::warning('Erreur SerpAPI Autocomplete', [
-                        'keyword' => $mainKeyword,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-            
-            // Méthode 2: Google Search avec related queries pour les mots-clés principaux
-            if (count($keywords) < 20) {
-                foreach (array_slice($mainKeywords, 0, 3) as $mainKeyword) {
-                    try {
-                        $related = $serpService->getRelatedQueries($mainKeyword, 10);
-                        foreach ($related as $query) {
-                            if (!in_array($query, $keywords)) {
-                                $keywords[] = $query;
-                            }
-                            if (count($keywords) >= 30) break 2;
-                        }
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur SerpAPI Related Queries', [
-                            'keyword' => $mainKeyword,
-                            'error' => $e->getMessage()
-                        ]);
+            // Séparer par lignes
+            $lines = preg_split('/\r?\n/', $content);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // Enlever les numéros, puces, tirets en début de ligne
+                $line = preg_replace('/^[\d\.\-\*\+\s]+/', '', $line);
+                $line = trim($line);
+                
+                if (!empty($line) && strlen($line) >= 3 && strlen($line) <= 100) {
+                    // Enlever les guillemets si présents
+                    $line = trim($line, '"\'');
+                    if (!empty($line) && !in_array($line, $keywords)) {
+                        $keywords[] = $line;
                     }
                 }
             }
             
-            // Méthode 3: Recherche Google standard pour obtenir related_searches et people_also_ask
-            if (count($keywords) < 20 && !empty($mainKeywords)) {
-                $searchQuery = implode(' ', array_slice($mainKeywords, 0, 3));
-                try {
-                    $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
-                        'engine' => 'google',
-                        'q' => $searchQuery,
-                        'hl' => 'fr',
-                        'api_key' => $serpApiKey,
-                        'num' => 5, // Juste pour récupérer les sections related
-                    ]);
-                    
-                    if ($response->successful()) {
-                        $json = $response->json();
-                        
-                        // Récupérer depuis related_searches
-                        if (isset($json['related_searches']) && is_array($json['related_searches'])) {
-                            foreach ($json['related_searches'] as $search) {
-                                $query = $search['query'] ?? null;
-                                if ($query && !in_array($query, $keywords)) {
-                                    $keywords[] = $query;
-                                }
-                                if (count($keywords) >= 30) break;
-                            }
-                        }
-                        
-                        // Récupérer depuis people_also_ask
-                        if (count($keywords) < 30 && isset($json['people_also_ask']) && is_array($json['people_also_ask'])) {
-                            foreach ($json['people_also_ask'] as $ask) {
-                                $question = $ask['question'] ?? null;
-                                if ($question && !in_array($question, $keywords)) {
-                                    // Extraire le mot-clé principal de la question
-                                    $keyword = preg_replace('/\?$/', '', $question);
-                                    $keyword = preg_replace('/^(comment|quand|où|pourquoi|combien|quel|quelle|quels|quelles)\s+/i', '', $keyword);
-                                    if ($keyword && !in_array($keyword, $keywords)) {
-                                        $keywords[] = $keyword;
-                                    }
-                                }
-                                if (count($keywords) >= 30) break;
-                            }
-                        }
+            // Si pas assez de mots-clés, essayer de parser différemment
+            if (count($keywords) < 10) {
+                // Essayer de trouver des mots-clés séparés par virgules
+                $commaSeparated = preg_split('/[,;]/', $content);
+                foreach ($commaSeparated as $item) {
+                    $item = trim($item);
+                    if (!empty($item) && strlen($item) >= 3 && strlen($item) <= 100 && !in_array($item, $keywords)) {
+                        $keywords[] = $item;
                     }
-                } catch (\Exception $e) {
-                    Log::warning('Erreur SerpAPI Google Search', [
-                        'query' => $searchQuery,
-                        'error' => $e->getMessage()
-                    ]);
                 }
             }
             
-            // Nettoyer et formater les mots-clés
-            $keywords = array_map(function($keyword) {
-                // Enlever les caractères spéciaux en début/fin
-                $keyword = trim($keyword);
-                // Limiter la longueur
-                if (strlen($keyword) > 80) {
-                    $keyword = substr($keyword, 0, 77) . '...';
-                }
-                return $keyword;
-            }, $keywords);
-            
-            // Supprimer les doublons et les mots-clés trop courts
-            $keywords = array_filter($keywords, function($keyword) {
-                return strlen($keyword) >= 3 && strlen($keyword) <= 80;
-            });
-            $keywords = array_values(array_unique($keywords));
-            
-            // Limiter à 30 mots-clés maximum
-            $keywords = array_slice($keywords, 0, 30);
+            // Nettoyer et limiter
+            $keywords = array_slice(array_unique($keywords), 0, 30);
             
             if (empty($keywords)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Aucun mot-clé généré. Vérifiez votre clé API SerpAPI et que la description de l\'entreprise contient des mots-clés pertinents.'
+                    'message' => 'Aucun mot-clé généré. ChatGPT n\'a pas retourné de mots-clés valides. Essayez de reformuler votre description d\'entreprise.'
                 ], 500);
             }
             
-            Log::info('Mots-clés générés via SerpAPI', [
+            Log::info('Mots-clés générés via ChatGPT', [
                 'count' => count($keywords),
                 'keywords_preview' => array_slice($keywords, 0, 5)
             ]);
@@ -635,7 +579,7 @@ class SeoAutomationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'keywords' => $keywords,
-                'message' => count($keywords) . ' mots-clés générés avec succès via SerpAPI.'
+                'message' => count($keywords) . ' mots-clés générés avec succès via ChatGPT.'
             ]);
             
         } catch (\Exception $e) {
@@ -652,24 +596,75 @@ class SeoAutomationController extends Controller
     }
 
     /**
-     * Sauvegarder les mots-clés personnalisés
+     * Sauvegarder les mots-clés personnalisés avec leurs images associées
      */
     public function saveKeywords(Request $request)
     {
         $validated = $request->validate([
             'keywords' => 'required|array',
             'keywords.*' => 'string|max:255',
+            'keyword_images' => 'nullable|array',
+            'keyword_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
         
         $keywords = array_filter(array_map('trim', $validated['keywords']));
         $keywords = array_values(array_unique($keywords)); // Supprimer les doublons
         
+        // Créer le dossier pour les images de mots-clés s'il n'existe pas
+        $uploadDir = public_path('images/keywords');
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // Traiter les images associées aux mots-clés
+        $keywordImages = $validated['keyword_images'] ?? [];
+        $savedImages = [];
+        
+        foreach ($keywords as $index => $keyword) {
+            // Si une image est fournie pour ce mot-clé
+            if (isset($keywordImages[$index]) && $keywordImages[$index]->isValid()) {
+                $image = $keywordImages[$index];
+                $filename = 'keyword-' . Str::slug($keyword) . '-' . time() . '-' . $index . '.' . $image->getClientOriginalExtension();
+                $imagePath = 'images/keywords/' . $filename;
+                
+                // Déplacer l'image
+                $image->move($uploadDir, $filename);
+                
+                // Créer ou mettre à jour l'entrée dans keyword_images
+                $keywordImageModel = KeywordImage::updateOrCreate(
+                    ['keyword' => $keyword],
+                    [
+                        'image_path' => $imagePath,
+                        'title' => $keyword,
+                        'is_active' => true,
+                        'display_order' => $index,
+                    ]
+                );
+                
+                $savedImages[] = $keywordImageModel->id;
+            } else {
+                // Vérifier si une image existe déjà pour ce mot-clé
+                $existingImage = KeywordImage::where('keyword', $keyword)->first();
+                if ($existingImage) {
+                    // Mettre à jour l'ordre d'affichage
+                    $existingImage->update(['display_order' => $index]);
+                }
+            }
+        }
+        
+        // Sauvegarder la liste des mots-clés
         \App\Models\Setting::set('seo_custom_keywords', json_encode($keywords), 'json', 'seo');
+        
+        $message = count($keywords) . ' mots-clés sauvegardés avec succès.';
+        if (count($savedImages) > 0) {
+            $message .= ' ' . count($savedImages) . ' image(s) associée(s).';
+        }
         
         return response()->json([
             'status' => 'success',
-            'message' => count($keywords) . ' mots-clés sauvegardés avec succès.',
-            'keywords' => $keywords
+            'message' => $message,
+            'keywords' => $keywords,
+            'images_saved' => count($savedImages)
         ]);
     }
 
