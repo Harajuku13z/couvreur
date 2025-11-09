@@ -36,34 +36,41 @@
     @endif
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-4 md:px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Liste des Articles</h3>
         </div>
         <div class="divide-y divide-gray-200">
             @forelse($articles as $article)
-                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                    <div class="flex-1">
-                        <h4 class="text-lg font-medium text-gray-900">{{ $article->title }}</h4>
-                        <p class="text-sm text-gray-500">{{ $article->slug }}</p>
+                <div class="px-4 md:px-6 py-4 hover:bg-gray-50">
+                    <!-- Ligne 1: Titre -->
+                    <div class="mb-2">
+                        <h4 class="text-base md:text-lg font-medium text-gray-900">{{ $article->title }}</h4>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                            @if($article->status === 'published') bg-green-100 text-green-800
-                            @elseif($article->status === 'draft') bg-yellow-100 text-yellow-800
-                            @else bg-gray-100 text-gray-800 @endif">
-                            {{ ucfirst($article->status) }}
-                        </span>
-                        <div class="flex space-x-2">
-                            <a href="{{ route('admin.articles.show', $article) }}" class="text-blue-600 hover:text-blue-900 p-2" title="Voir">
+                    <!-- Ligne 2: Slug -->
+                    <div class="mb-3">
+                        <p class="text-xs md:text-sm text-gray-500 break-all">{{ $article->slug }}</p>
+                    </div>
+                    <!-- Ligne 3: Statut et Actions -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                        <div class="flex items-center">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                @if($article->status === 'published') bg-green-100 text-green-800
+                                @elseif($article->status === 'draft') bg-yellow-100 text-yellow-800
+                                @else bg-gray-100 text-gray-800 @endif">
+                                {{ ucfirst($article->status) }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 sm:gap-0 sm:space-x-2">
+                            <a href="{{ route('admin.articles.show', $article) }}" class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('admin.articles.edit', $article) }}" class="text-green-600 hover:text-green-900 p-2" title="Modifier">
+                            <a href="{{ route('admin.articles.edit', $article) }}" class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" action="{{ route('admin.articles.destroy', $article) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900 p-2" title="Supprimer">
+                                <button type="submit" class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -71,7 +78,7 @@
                     </div>
                 </div>
             @empty
-                <div class="px-6 py-8 text-center">
+                <div class="px-4 md:px-6 py-8 text-center">
                     <p class="text-gray-500">Aucun article trouvé.</p>
                     <a href="{{ route('admin.articles.create') }}" class="text-blue-600 hover:text-blue-800">Créer le premier article</a>
                 </div>
