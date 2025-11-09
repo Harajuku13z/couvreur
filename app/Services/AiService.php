@@ -37,7 +37,28 @@ class AiService
         
         $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
         // Par défaut, utiliser gpt-4-turbo qui supporte 128k tokens (idéal pour articles longs SEO)
-        $model = $options['model'] ?? ($chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4-turbo');
+        // Si un modèle est spécifié dans les options, l'utiliser en priorité
+        if (isset($options['model'])) {
+            $model = $options['model'];
+        } elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
+            $model = $chatgptModelSetting->value;
+        } else {
+            $model = 'gpt-4-turbo';
+        }
+        
+        // S'assurer qu'on utilise un modèle qui supporte les tokens longs
+        // Si max_tokens > 4096, forcer gpt-4-turbo ou gpt-4o
+        $maxTokens = $options['max_tokens'] ?? 4000;
+        if ($maxTokens > 4096) {
+            // Forcer un modèle qui supporte les tokens longs
+            if (!in_array($model, ['gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview', 'gpt-4o', 'gpt-4o-2024-08-06'])) {
+                Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4-turbo', [
+                    'original_model' => $model,
+                    'max_tokens' => $maxTokens
+                ]);
+                $model = 'gpt-4-turbo';
+            }
+        }
         
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
