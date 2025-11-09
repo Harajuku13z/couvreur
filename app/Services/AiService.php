@@ -35,26 +35,36 @@ class AiService
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
         $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
-        $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
-        // Par défaut, utiliser gpt-4-turbo qui supporte 128k tokens (idéal pour articles longs SEO)
-        // Si un modèle est spécifié dans les options, l'utiliser en priorité
-        if (isset($options['model'])) {
-            $model = $options['model'];
-        } elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
-            $model = $chatgptModelSetting->value;
-        } else {
-            $model = 'gpt-4-turbo';
-        }
-        
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
         $timeout = $options['timeout'] ?? 60;
         
-        // S'assurer qu'on utilise un modèle qui supporte les tokens longs
-        // Si max_tokens > 4096, forcer gpt-4-turbo ou gpt-4o
+        $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
+        
+        // PRIORITÉ 1: Si un modèle est spécifié dans les options, l'utiliser
+        if (isset($options['model']) && !empty($options['model'])) {
+            $model = $options['model'];
+        } 
+        // PRIORITÉ 2: Si max_tokens > 4096, FORCER gpt-4-turbo (support 128k tokens)
+        elseif ($maxTokens > 4096) {
+            $model = 'gpt-4-turbo';
+            Log::info('AiService: max_tokens > 4096, utilisation forcée de gpt-4-turbo', [
+                'max_tokens' => $maxTokens
+            ]);
+        }
+        // PRIORITÉ 3: Utiliser le modèle de la DB
+        elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
+            $model = $chatgptModelSetting->value;
+        } 
+        // PRIORITÉ 4: Par défaut gpt-4-turbo
+        else {
+            $model = 'gpt-4-turbo';
+        }
+        
+        // Vérification finale : si max_tokens > 4096, s'assurer qu'on utilise un modèle compatible
         if ($maxTokens > 4096) {
-            // Forcer un modèle qui supporte les tokens longs
-            if (!in_array($model, ['gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview', 'gpt-4o', 'gpt-4o-2024-08-06'])) {
+            $compatibleModels = ['gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview', 'gpt-4o', 'gpt-4o-2024-08-06'];
+            if (!in_array($model, $compatibleModels)) {
                 Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4-turbo', [
                     'original_model' => $model,
                     'max_tokens' => $maxTokens
