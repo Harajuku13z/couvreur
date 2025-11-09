@@ -79,57 +79,132 @@
                 <div class="flex-1">
                     <p class="font-semibold">{{ session('success') }}</p>
                     @if(session('seo_results'))
-                        <div class="mt-3 space-y-2">
-                            @foreach(session('seo_results') as $result)
-                                <div class="bg-white rounded p-3 border border-green-300">
-                                    <div class="flex items-start justify-between">
+                        <div class="mt-3 space-y-4">
+                            @foreach(session('seo_results') as $resultIndex => $result)
+                                <div class="bg-white rounded-lg p-4 border-2 {{ $result['status'] === 'success' ? 'border-green-300' : 'border-red-300' }}">
+                                    <!-- En-tête -->
+                                    <div class="flex items-start justify-between mb-4">
                                         <div class="flex-1">
-                                            <div class="font-medium text-gray-900">
-                                                <i class="fas fa-map-marker-alt mr-1 text-blue-600"></i>{{ $result['city'] }}
+                                            <div class="font-semibold text-lg text-gray-900">
+                                                <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>{{ $result['city'] }}
                                             </div>
                                             @if(isset($result['keyword']))
                                                 <div class="text-sm text-gray-600 mt-1">
                                                     <i class="fas fa-tag mr-1"></i>Mot-clé: <strong>{{ $result['keyword'] }}</strong>
                                                 </div>
                                             @endif
-                                            @if($result['status'] === 'success' && isset($result['url']))
-                                                <div class="mt-2 space-y-1">
-                                                    <a href="{{ $result['url'] }}" target="_blank" 
-                                                       class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                        <i class="fas fa-external-link-alt mr-1"></i>
-                                                        Voir l'article publié
-                                                    </a>
-                                                    @if(isset($result['indexed']))
-                                                        <div class="text-xs {{ $result['indexed'] ? 'text-green-600' : 'text-yellow-600' }}">
-                                                            <i class="fas {{ $result['indexed'] ? 'fa-check-circle' : 'fa-clock' }} mr-1"></i>
-                                                            {{ $result['indexed'] ? 'Indexé par Google' : 'En attente d\'indexation' }}
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @elseif($result['status'] === 'failed' || $result['status'] === 'error')
-                                                <div class="mt-2 text-sm text-red-600">
-                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                                                    {{ $result['error'] ?? 'Erreur lors de la génération' }}
-                                                </div>
-                                            @endif
                                         </div>
                                         @if($result['status'] === 'success')
                                             <div class="ml-2 flex flex-col items-end gap-1">
-                                                <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
+                                                <span class="px-3 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
                                                     <i class="fas fa-check mr-1"></i>Publié
                                                 </span>
                                                 @if(isset($result['indexed']) && $result['indexed'])
-                                                    <span class="px-2 py-1 bg-blue-200 text-blue-800 text-xs font-semibold rounded">
+                                                    <span class="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-semibold rounded">
                                                         <i class="fab fa-google mr-1"></i>Indexé
                                                     </span>
                                                 @endif
                                             </div>
                                         @else
-                                            <span class="ml-2 px-2 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded">
+                                            <span class="ml-2 px-3 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded">
                                                 <i class="fas fa-times mr-1"></i>Échec
                                             </span>
                                         @endif
                                     </div>
+                                    
+                                    <!-- Étapes du processus -->
+                                    @if(isset($result['steps']) && is_array($result['steps']) && count($result['steps']) > 0)
+                                        <div class="mt-4 border-t border-gray-200 pt-4">
+                                            <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                                                <i class="fas fa-list-ol mr-1"></i>Détails du processus:
+                                            </h4>
+                                            <div class="space-y-3">
+                                                @foreach($result['steps'] as $stepIndex => $step)
+                                                    <div class="flex items-start gap-3 p-3 rounded-lg border {{ 
+                                                        $step['status'] === 'success' ? 'bg-green-50 border-green-200' : 
+                                                        ($step['status'] === 'failed' ? 'bg-red-50 border-red-200' : 
+                                                        'bg-blue-50 border-blue-200') 
+                                                    }}">
+                                                        <div class="flex-shrink-0 mt-0.5">
+                                                            @if($step['status'] === 'success')
+                                                                <i class="fas fa-check-circle text-green-600 text-lg"></i>
+                                                            @elseif($step['status'] === 'failed')
+                                                                <i class="fas fa-times-circle text-red-600 text-lg"></i>
+                                                            @elseif($step['status'] === 'warning')
+                                                                <i class="fas fa-exclamation-triangle text-yellow-600 text-lg"></i>
+                                                            @else
+                                                                <i class="fas fa-spinner fa-spin text-blue-600 text-lg"></i>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="font-medium text-sm text-gray-900">
+                                                                {{ $step['title'] ?? 'Étape ' . ($stepIndex + 1) }}
+                                                            </div>
+                                                            <div class="text-xs text-gray-600 mt-1">
+                                                                {{ $step['message'] ?? '' }}
+                                                            </div>
+                                                            @if(isset($step['data']) && is_array($step['data']) && !empty($step['data']))
+                                                                <div class="mt-2 text-xs">
+                                                                    @if(isset($step['data']['keywords']) && is_array($step['data']['keywords']))
+                                                                        <div class="text-gray-600">
+                                                                            <strong>Mots-clés:</strong> {{ implode(', ', array_slice($step['data']['keywords'], 0, 3)) }}
+                                                                            @if(isset($step['data']['total']) && $step['data']['total'] > 3)
+                                                                                (+ {{ $step['data']['total'] - 3 }} autres)
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(isset($step['data']['related_queries']) && is_array($step['data']['related_queries']))
+                                                                        <div class="text-gray-600 mt-1">
+                                                                            <strong>Requêtes associées:</strong> {{ implode(', ', $step['data']['related_queries']) }}
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(isset($step['data']['competitors_titles']) && is_array($step['data']['competitors_titles']))
+                                                                        <div class="text-gray-600 mt-1">
+                                                                            <strong>Concurrents analysés:</strong> {{ count($step['data']['competitors_titles']) }} titres extraits
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(isset($step['data']['title']))
+                                                                        <div class="text-gray-600 mt-1">
+                                                                            <strong>Titre généré:</strong> {{ $step['data']['title'] }}
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(isset($step['data']['url']))
+                                                                        <div class="text-gray-600 mt-1">
+                                                                            <strong>URL:</strong> <a href="{{ $step['data']['url'] }}" target="_blank" class="text-blue-600 hover:underline break-all">{{ $step['data']['url'] }}</a>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Lien vers l'article -->
+                                    @if($result['status'] === 'success' && isset($result['url']))
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <a href="{{ $result['url'] }}" target="_blank" 
+                                               class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                <i class="fas fa-external-link-alt mr-2"></i>
+                                                Voir l'article publié
+                                            </a>
+                                            @if(isset($result['indexed']))
+                                                <div class="text-xs mt-2 {{ $result['indexed'] ? 'text-green-600' : 'text-yellow-600' }}">
+                                                    <i class="fas {{ $result['indexed'] ? 'fa-check-circle' : 'fa-clock' }} mr-1"></i>
+                                                    {{ $result['indexed'] ? 'Indexé par Google' : 'En attente d\'indexation' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @elseif($result['status'] === 'failed' || $result['status'] === 'error')
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="text-sm text-red-600 bg-red-50 p-2 rounded">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                <strong>Erreur:</strong> {{ $result['error'] ?? 'Erreur lors de la génération' }}
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

@@ -32,7 +32,7 @@ class SeoAutomationManager
      * @param string|null $customKeyword Mot-clé personnalisé (optionnel)
      * @return SeoAutomation Instance du log créé
      */
-    public function runForCity(City $city, ?string $customKeyword = null): SeoAutomation
+    public function runForCity(City $city, ?string $customKeyword = null, ?callable $progressCallback = null): SeoAutomation
     {
         $log = SeoAutomation::create([
             'city_id' => $city->id,
@@ -40,15 +40,34 @@ class SeoAutomationManager
         ]);
 
         try {
+            $steps = [];
+            
             // Si un mot-clé personnalisé est fourni, l'utiliser directement
             if ($customKeyword) {
                 $keyword = trim($customKeyword);
+                $steps[] = [
+                    'step' => 'keyword_selection',
+                    'title' => 'Sélection du mot-clé',
+                    'status' => 'success',
+                    'message' => "Mot-clé personnalisé utilisé: {$keyword}",
+                    'data' => ['keyword' => $keyword]
+                ];
+                if ($progressCallback) $progressCallback($steps);
                 Log::info('SeoAutomationManager: Utilisation du mot-clé personnalisé', [
                     'city' => $city->name,
                     'keyword' => $keyword
                 ]);
             } else {
                 // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
+                $steps[] = [
+                    'step' => 'trending_keywords',
+                    'title' => 'Récupération des mots-clés tendances (SerpAPI)',
+                    'status' => 'processing',
+                    'message' => 'Analyse des tendances locales...',
+                    'data' => []
+                ];
+                if ($progressCallback) $progressCallback($steps);
+                
                 $geo = $city->region ?? 'FR';
                 // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
                 if (strpos($geo, '-') !== false) {
@@ -58,42 +77,122 @@ class SeoAutomationManager
                 $keywords = $this->serp->getTrendingKeywords($geo, 12);
                 
                 if (empty($keywords)) {
+                    $steps[count($steps) - 1]['status'] = 'failed';
+                    $steps[count($steps) - 1]['message'] = 'Aucun mot-clé récupéré depuis SerpAPI';
+                    if ($progressCallback) $progressCallback($steps);
                     $log->update([
                         'status' => 'failed',
-                        'error_message' => 'Aucun mot-clé récupéré depuis SerpAPI'
+                        'error_message' => 'Aucun mot-clé récupéré depuis SerpAPI',
+                        'metadata' => ['steps' => $steps]
                     ]);
                     return $log;
                 }
+                
+                $steps[count($steps) - 1]['status'] = 'success';
+                $steps[count($steps) - 1]['message'] = count($keywords) . ' mots-clés tendances récupérés';
+                $steps[count($steps) - 1]['data'] = ['keywords' => array_slice($keywords, 0, 5), 'total' => count($keywords)];
+                if ($progressCallback) $progressCallback($steps);
 
                 // 2. Choisir mot-clé : priorité = mot non déjà utilisé récemment pour cette ville
+                $steps[] = [
+                    'step' => 'keyword_selection',
+                    'title' => 'Sélection du mot-clé optimal',
+                    'status' => 'processing',
+                    'message' => 'Recherche d\'un mot-clé non utilisé récemment...',
+                    'data' => []
+                ];
+                if ($progressCallback) $progressCallback($steps);
+                
                 $keyword = $this->selectKeywordForCity($keywords, $city);
                 
                 if (!$keyword) {
+                    $steps[count($steps) - 1]['status'] = 'failed';
+                    $steps[count($steps) - 1]['message'] = 'Aucun mot-clé disponible (tous déjà utilisés récemment)';
+                    if ($progressCallback) $progressCallback($steps);
                     $log->update([
                         'status' => 'failed',
-                        'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)'
+                        'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)',
+                        'metadata' => ['steps' => $steps]
                     ]);
                     return $log;
                 }
+                
+                $steps[count($steps) - 1]['status'] = 'success';
+                $steps[count($steps) - 1]['message'] = "Mot-clé sélectionné: {$keyword}";
+                $steps[count($steps) - 1]['data'] = ['keyword' => $keyword];
+                if ($progressCallback) $progressCallback($steps);
             }
 
             // 3. Related + competitors
+            $steps[] = [
+                'step' => 'serp_analysis',
+                'title' => 'Analyse des concurrents (SerpAPI)',
+                'status' => 'processing',
+                'message' => 'Récupération des requêtes associées...',
+                'data' => []
+            ];
+            if ($progressCallback) $progressCallback($steps);
+            
             $related = $this->serp->getRelatedQueries($keyword, 6);
+            
+            $steps[count($steps) - 1]['message'] = 'Récupération des 5 premiers résultats Google (Top SERP)...';
+            if ($progressCallback) $progressCallback($steps);
+            
             $competitors = $this->serp->getTopSERP($keyword, 5);
+            
+            $steps[count($steps) - 1]['status'] = 'success';
+            $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés';
+            $steps[count($steps) - 1]['data'] = [
+                'related_queries' => array_slice($related, 0, 3),
+                'competitors_count' => count($competitors),
+                'competitors_titles' => array_slice(array_map(fn($c) => $c['title'] ?? 'N/A', $competitors), 0, 3)
+            ];
+            if ($progressCallback) $progressCallback($steps);
 
             // 4. Génération GPT
+            $steps[] = [
+                'step' => 'gpt_generation',
+                'title' => 'Génération du contenu (GPT)',
+                'status' => 'processing',
+                'message' => 'Création du contenu optimisé avec GPT...',
+                'data' => []
+            ];
+            if ($progressCallback) $progressCallback($steps);
+            
             $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors);
 
             if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
+                $steps[count($steps) - 1]['status'] = 'failed';
+                $steps[count($steps) - 1]['message'] = 'Génération GPT échouée ou réponse invalide';
+                if ($progressCallback) $progressCallback($steps);
                 $log->update([
                     'status' => 'failed',
                     'error_message' => 'Génération GPT échouée ou réponse invalide',
-                    'metadata' => $gptData
+                    'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
                 ]);
                 return $log;
             }
+            
+            $steps[count($steps) - 1]['status'] = 'success';
+            $steps[count($steps) - 1]['message'] = 'Contenu généré avec succès (' . strlen($gptData['contenu_html']) . ' caractères)';
+            $steps[count($steps) - 1]['data'] = [
+                'title' => $gptData['titre'],
+                'meta_description' => $gptData['meta_description'] ?? null,
+                'keywords_count' => count($gptData['mots_cles'] ?? []),
+                'faq_count' => count($gptData['faq'] ?? [])
+            ];
+            if ($progressCallback) $progressCallback($steps);
 
             // 5. Créer l'article
+            $steps[] = [
+                'step' => 'article_creation',
+                'title' => 'Publication de l\'article',
+                'status' => 'processing',
+                'message' => 'Création de l\'article dans la base de données...',
+                'data' => []
+            ];
+            if ($progressCallback) $progressCallback($steps);
+            
             $slug = Str::slug($gptData['titre'] . '-' . $city->name);
             
             // Vérifier si le slug existe déjà
@@ -113,11 +212,30 @@ class SeoAutomationManager
                 'published_at' => now(),
                 'city_id' => $city->id,
             ]);
+            
+            $steps[count($steps) - 1]['status'] = 'success';
+            $steps[count($steps) - 1]['message'] = 'Article publié avec succès';
+            $steps[count($steps) - 1]['data'] = ['article_id' => $article->id, 'slug' => $slug];
+            if ($progressCallback) $progressCallback($steps);
 
             // 6. Indexation Google
+            $steps[] = [
+                'step' => 'google_indexing',
+                'title' => 'Indexation Google',
+                'status' => 'processing',
+                'message' => 'Envoi de la notification à Google Indexing API...',
+                'data' => []
+            ];
+            if ($progressCallback) $progressCallback($steps);
+            
             // Utiliser la route blog.show pour les articles publics
             $url = route('blog.show', $article);
             $indexed = $this->indexer->indexUrl($url);
+            
+            $steps[count($steps) - 1]['status'] = $indexed ? 'success' : 'warning';
+            $steps[count($steps) - 1]['message'] = $indexed ? 'URL notifiée à Google avec succès' : 'Notification envoyée, en attente d\'indexation';
+            $steps[count($steps) - 1]['data'] = ['url' => $url, 'indexed' => $indexed];
+            if ($progressCallback) $progressCallback($steps);
 
             // 7. Update log
             $log->update([
@@ -130,6 +248,7 @@ class SeoAutomationManager
                     'related_queries' => $related,
                     'competitors' => $competitors,
                     'indexed' => $indexed,
+                    'steps' => $steps,
                 ],
                 'error_message' => null,
             ]);

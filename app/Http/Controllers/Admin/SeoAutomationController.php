@@ -206,7 +206,10 @@ class SeoAutomationController extends Controller
             // Créer le nombre d'articles demandé pour chaque ville
             for ($articleIndex = 0; $articleIndex < $numberOfArticles; $articleIndex++) {
                 try {
-                    $log = $manager->runForCity($city, $customKeyword);
+                    $citySteps = [];
+                    $log = $manager->runForCity($city, $customKeyword, function($steps) use (&$citySteps) {
+                        $citySteps = $steps;
+                    });
                     
                     if ($log->status === 'indexed' || $log->status === 'published') {
                         $successCount++;
@@ -217,6 +220,7 @@ class SeoAutomationController extends Controller
                             'indexed' => $log->status === 'indexed',
                             'url' => $log->article_url,
                             'article_id' => $log->article_id,
+                            'steps' => $citySteps,
                         ];
                     } else {
                         $failedCount++;
@@ -226,6 +230,7 @@ class SeoAutomationController extends Controller
                             'status' => 'failed',
                             'indexed' => false,
                             'error' => $log->error_message ?? 'Erreur inconnue',
+                            'steps' => $citySteps,
                         ];
                     }
                 } catch (\Exception $e) {
@@ -235,6 +240,7 @@ class SeoAutomationController extends Controller
                         'keyword' => $customKeyword ?? 'N/A',
                         'status' => 'error',
                         'error' => $e->getMessage(),
+                        'steps' => [],
                     ];
                     Log::error('Erreur génération article SEO', [
                         'city_id' => $city->id,
