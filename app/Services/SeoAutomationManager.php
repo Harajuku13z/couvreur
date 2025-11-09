@@ -292,6 +292,12 @@ class SeoAutomationManager
                 $contentHtml .= $realizationsSection;
             }
             
+            // Utiliser l'image générée comme featured_image si disponible
+            $featuredImage = null;
+            if (isset($gptData['images']['generated']) && !empty($gptData['images']['generated'])) {
+                $featuredImage = $gptData['images']['generated'];
+            }
+            
             $article = Article::create([
                 'title' => $gptData['titre'],
                 'slug' => $slug,
@@ -299,6 +305,7 @@ class SeoAutomationManager
                 'meta_description' => $gptData['meta_description'] ?? null,
                 'meta_keywords' => !empty($gptData['mots_cles']) ? implode(', ', $gptData['mots_cles']) : null,
                 'focus_keyword' => $keyword,
+                'featured_image' => $featuredImage,
                 'status' => 'published',
                 'published_at' => now(),
                 'city_id' => $city->id,

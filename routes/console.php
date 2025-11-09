@@ -26,7 +26,12 @@ Schedule::command('index:urls-daily')
 
 // Automatisation SEO : génération d'articles quotidiens pour les villes favorites
 Schedule::command('seo:run-automations')
-    ->dailyAt('04:00') // Exécuter chaque jour à 4h du matin
+    ->dailyAt(\App\Models\Setting::get('seo_automation_time', '04:00')) // Heure configurable depuis l'admin
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
-    ->runInBackground(); // Exécuter en arrière-plan
+    ->runInBackground() // Exécuter en arrière-plan
+    ->when(function () {
+        // Vérifier si l'automatisation est activée
+        $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
+        return filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+    });

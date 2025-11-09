@@ -173,6 +173,151 @@
     list-style-position: inside;
 }
 
+/* Styles pour les titres et éléments HTML de base */
+.article-content h1 {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.article-content h2 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.article-content h3 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.article-content h4 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: #374151;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.article-content p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+    color: #374151;
+}
+
+.article-content ul,
+.article-content ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.article-content ul {
+    list-style-type: disc;
+}
+
+.article-content ol {
+    list-style-type: decimal;
+}
+
+.article-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.75;
+}
+
+.article-content strong {
+    font-weight: 700;
+    color: #111827;
+}
+
+.article-content em {
+    font-style: italic;
+}
+
+.article-content a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.article-content a:hover {
+    color: #2563eb;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.article-content blockquote {
+    border-left: 4px solid #3b82f6;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #6b7280;
+}
+
+.article-content code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.875em;
+}
+
+.article-content pre {
+    background-color: #1f2937;
+    color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.article-content pre code {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+}
+
+.article-content hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 2rem 0;
+}
+
+.article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+.article-content th,
+.article-content td {
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+.article-content th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #111827;
+}
+
 .article-content .list-decimal {
     list-style-type: decimal;
 }

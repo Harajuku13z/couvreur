@@ -290,11 +290,28 @@ class SeoAutomationController extends Controller
         $newStatus = !$currentStatus;
         \App\Models\Setting::set('seo_automation_enabled', $newStatus ? '1' : '0', 'boolean', 'seo');
         
+        $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
+        
         $message = $newStatus 
-            ? '✅ Automatisation SEO activée. Les articles seront générés automatiquement chaque jour à 04:00.'
+            ? "✅ Automatisation SEO activée. Les articles seront générés automatiquement chaque jour à {$automationTime}."
             : '⏸️ Automatisation SEO mise en pause. Les générations automatiques sont désactivées.';
         
         return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Sauvegarder l'heure de publication automatique
+     */
+    public function saveTime(Request $request)
+    {
+        $validated = $request->validate([
+            'time' => 'required|regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/',
+        ]);
+        
+        \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
+        
+        return redirect()->back()
+            ->with('success', "✅ Heure de publication automatique mise à jour : {$validated['time']}");
     }
 
     /**

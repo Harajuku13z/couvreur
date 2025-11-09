@@ -29,14 +29,32 @@
     </div>
     
     <!-- Statut automatisation -->
+    @php
+        $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
+    @endphp
     @if($automationEnabled)
         <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle text-green-600 mr-2"></i>
-                <div>
-                    <p class="text-sm font-medium text-green-900">Automatisation activée</p>
-                    <p class="text-xs text-green-700 mt-1">Les articles seront générés automatiquement chaque jour à 04:00 pour toutes les villes favorites.</p>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                    <div>
+                        <p class="text-sm font-medium text-green-900">Automatisation activée</p>
+                        <p class="text-xs text-green-700 mt-1">Les articles seront générés automatiquement chaque jour à <strong>{{ $automationTime }}</strong> pour toutes les villes favorites.</p>
+                    </div>
                 </div>
+                <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2">
+                    @csrf
+                    <label for="automation_time" class="text-xs text-gray-600">Heure:</label>
+                    <input type="time" 
+                           id="automation_time" 
+                           name="time" 
+                           value="{{ $automationTime }}"
+                           class="px-2 py-1 border border-gray-300 rounded text-sm">
+                    <button type="submit" 
+                            class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
+                        <i class="fas fa-save mr-1"></i>Enregistrer
+                    </button>
+                </form>
             </div>
         </div>
     @else
