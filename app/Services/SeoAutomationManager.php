@@ -123,7 +123,7 @@ class SeoAutomationManager
                 if ($progressCallback) $progressCallback($steps);
             }
 
-            // 3. Related + competitors
+            // 3. Related + competitors (10 résultats pour meilleure analyse)
             $steps[] = [
                 'step' => 'serp_analysis',
                 'title' => 'Analyse des concurrents (SerpAPI)',
@@ -135,10 +135,12 @@ class SeoAutomationManager
             
             $related = $this->serp->getRelatedQueries($keyword, 6);
             
-            $steps[count($steps) - 1]['message'] = 'Récupération des 5 premiers résultats Google (Top SERP)...';
+            // Recherche avec la ville pour des résultats plus pertinents
+            $searchQuery = $keyword . ' ' . $city->name;
+            $steps[count($steps) - 1]['message'] = 'Récupération des 10 premiers résultats Google pour "' . $searchQuery . '"...';
             if ($progressCallback) $progressCallback($steps);
             
-            $competitors = $this->serp->getTopSERP($keyword, 5);
+            $competitors = $this->serp->getTopSERP($searchQuery, 10);
             
             $steps[count($steps) - 1]['status'] = 'success';
             $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés';
@@ -150,7 +152,7 @@ class SeoAutomationManager
             $steps[count($steps) - 1]['data'] = [
                 'related_queries' => array_slice($related, 0, 3),
                 'competitors_count' => count($competitors),
-                'competitors_titles' => array_slice($competitorTitles, 0, 3)
+                'competitors_titles' => array_slice($competitorTitles, 0, 5)
             ];
             if ($progressCallback) $progressCallback($steps);
 

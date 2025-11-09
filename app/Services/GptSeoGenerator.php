@@ -76,21 +76,34 @@ class GptSeoGenerator
         array $relatedQueries,
         array $competitors
     ): string {
-        $related = empty($relatedQueries) ? '' : implode(', ', array_slice($relatedQueries, 0, 5));
-        $compet = empty($competitors) ? '' : collect($competitors)
-            ->pluck('title')
-            ->filter()
-            ->take(3)
-            ->join('; ');
-
         // Récupérer les informations de l'entreprise
         $companyName = \App\Models\Setting::where('key', 'company_name')->value('value') ?? 'notre entreprise';
         $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
         $companyCity = \App\Models\Setting::where('key', 'company_city')->value('value') ?? '';
+        $companyPhone = \App\Models\Setting::where('key', 'company_phone')->value('value') ?? '';
+        
+        // Construire la liste des sources (titres + liens)
+        $sourcesList = '';
+        if (!empty($competitors)) {
+            $sourcesList = "\n\n**Sources à utiliser** - Voici " . count($competitors) . " titres d'articles existants + liens pour comprendre le sujet :\n\n";
+            foreach ($competitors as $index => $competitor) {
+                $title = $competitor['title'] ?? 'Article sans titre';
+                $link = $competitor['link'] ?? '#';
+                $snippet = $competitor['snippet'] ?? '';
+                $sourcesList .= ($index + 1) . ". **{$title}**\n";
+                $sourcesList .= "   Lien: {$link}\n";
+                if ($snippet) {
+                    $sourcesList .= "   Extrait: " . substr($snippet, 0, 150) . "...\n";
+                }
+                $sourcesList .= "\n";
+            }
+        }
+        
+        $related = empty($relatedQueries) ? '' : implode(', ', array_slice($relatedQueries, 0, 6));
         
         $companyInfo = '';
         if ($companyName && $companyName !== 'notre entreprise') {
-            $companyInfo = "\n\nINFORMATIONS DE L'ENTREPRISE À METTRE EN AVANT:\n";
+            $companyInfo = "\n\n**INFORMATIONS DE L'ENTREPRISE À METTRE EN AVANT:**\n";
             $companyInfo .= "- Nom: {$companyName}\n";
             if ($companyDescription) {
                 $companyInfo .= "- Description: {$companyDescription}\n";
@@ -98,40 +111,55 @@ class GptSeoGenerator
             if ($companyCity) {
                 $companyInfo .= "- Localisation: {$companyCity}\n";
             }
-            $companyInfo .= "\nIMPORTANT: Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance.";
+            if ($companyPhone) {
+                $companyInfo .= "- Téléphone: {$companyPhone}\n";
+            }
+            $companyInfo .= "\n**IMPORTANT:** Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance. Ajoute un appel à l'action à la fin pour inviter les lecteurs à contacter {$companyName}.";
         }
         
         return trim("
-Tu es un expert SEO local. Rédige un article optimisé pour le mot-clé principal: \"{$keyword}\" ciblant la ville {$cityName}.
+Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de rédiger un article web de qualité supérieure, structuré, engageant et optimisé pour le référencement Google.
 
-CONTRAINTES STRICTES:
-- Longueur: entre 900 et 1200 mots.
-- Structure HTML: H1 (titre) + intro + 3 à 5 H2 + paragraphes courts + FAQ 3-5 questions.
-- Inclure un paragraphe parlant de la ville {$cityName} (proximité, acteurs locaux, aide pratique).
-- Fournir META description (max 155 caractères).
-- Fournir une liste de 5 mots-clés secondaires.
-- Fournir FAQ (question/réponse).
-- Ton: professionnel, utile, optimiste.
-- Base-toi sur ces requêtes associées: {$related}
-- Exemples de titres/snippets concurrents: {$compet}
+**1. Mot-clé principal :** {$keyword} à {$cityName}
+
+{$sourcesList}
+**Requêtes associées à intégrer naturellement :** {$related}
 {$companyInfo}
 
-STRATÉGIE DE CONTENU:
-- Analyse les meilleurs éléments des concurrents (titres, structure, angles)
-- Crée un contenu ORIGINAL et de meilleure qualité qui surpasse les concurrents
-- Intègre naturellement les requêtes associées pour une meilleure couverture SEO
-- Mets en avant l'expertise locale et la proximité avec {$cityName}
+**Objectifs de l'article :**
 
-FORMAT DE SORTIE STRICTEMENT EN JSON (pas de markdown, pas de code block):
+- Créer un contenu **unique**, qui n'est pas dupliqué par rapport aux sources.
+- Fournir une **introduction captivante** et un **résumé/conclusion** clairs.
+- Structurer l'article avec des **sous-titres H2 et H3 pertinents**.
+- Inclure le **mot-clé principal** et des variantes naturelles tout au long de l'article.
+- Utiliser des phrases claires, engageantes et faciles à lire.
+- Proposer des **listes, exemples, statistiques ou conseils** si possible.
+- Longueur: **entre 1500 et 2500 mots** pour un contenu complet et détaillé.
+- HTML propre avec des balises sémantiques: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+- Inclure des retours à la ligne appropriés pour une meilleure lisibilité.
+- Ajouter un **appel à l'action** à la fin (ex : \"Découvrez nos services\", \"Contactez-nous pour un devis gratuit\", etc.)
+- Inclure une **FAQ de 5 à 8 questions** pertinentes avec réponses détaillées.
+
+**Format de sortie STRICTEMENT EN JSON (pas de markdown, pas de code block):**
+
 {
-  \"titre\": \"\",
-  \"meta_description\": \"\",
-  \"contenu_html\": \"\",
-  \"mots_cles\": [\"\", \"\", \"\", \"\", \"\"],
-  \"faq\": [{\"question\":\"\",\"reponse\":\"\"}, ...]
+  \"titre\": \"Titre optimisé SEO (60-70 caractères max)\",
+  \"meta_description\": \"Description SEO optimisée (155 caractères max)\",
+  \"contenu_html\": \"Article complet en HTML avec structure propre (H1, H2, H3, paragraphes, listes, etc.)\",
+  \"mots_cles\": [\"mot-clé 1\", \"mot-clé 2\", \"mot-clé 3\", \"mot-clé 4\", \"mot-clé 5\"],
+  \"faq\": [
+    {\"question\": \"Question 1\", \"reponse\": \"Réponse détaillée 1\"},
+    {\"question\": \"Question 2\", \"reponse\": \"Réponse détaillée 2\"},
+    ...
+  ]
 }
 
-IMPORTANT: Le contenu_html doit être du HTML valide avec des balises <h1>, <h2>, <p>, etc. Inclure au moins un paragraphe mentionnant explicitement {$cityName}.
+**IMPORTANT :**
+- Le contenu_html doit être du HTML valide et propre avec des retours à la ligne appropriés.
+- Ne te contente pas de reformuler les titres, synthétise les informations, ajoute des exemples, et rends l'article plus complet que les sources existantes.
+- L'article doit être significativement plus long et détaillé que les sources (1500-2500 mots).
+- Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
+- Structure HTML recommandée: <h1>Titre</h1> <p>Introduction</p> <h2>Sous-titre 1</h2> <p>Contenu...</p> <h3>Sous-sous-titre</h3> <p>Contenu...</p> <h2>Conclusion</h2> <p>Conclusion...</p> <h2>FAQ</h2> <div class=\"faq\">...</div>
 ");
     }
 }
