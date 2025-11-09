@@ -304,9 +304,11 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
    - Liste des avantages/garanties
    - Mention de la localisation et de la réactivité
 
-7. **APPEL À L'ACTION ET CONTACT** :
-   - Paragraphe final invitant à contacter l'entreprise
-   - Mention des coordonnées (téléphone, email, adresse) si disponibles
+7. **CONCLUSION** :
+   - Paragraphe final de conclusion qui résume les points clés de l'article
+   - **IMPORTANT : NE PAS inclure d'appel à l'action avec coordonnées (téléphone, email, adresse)**
+   - **IMPORTANT : NE PAS mentionner de numéro de téléphone, email ou adresse dans le contenu**
+   - Le CTA est déjà présent ailleurs sur la page, donc se contenter d'une conclusion informative
 
 **RÈGLES DE RÉDACTION :**
 
