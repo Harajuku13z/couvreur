@@ -1395,6 +1395,72 @@ function testApi(apiName, button) {
                 document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
             });
         });
+        
+        // Tester le scheduler
+        document.getElementById('testSchedulerBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+            
+            const resultDiv = document.getElementById('schedulerTestResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><i class="fas fa-spinner fa-spin mr-2"></i>Test du scheduler en cours...</div>';
+            
+            fetch('{{ route("admin.seo-automation.test-scheduler") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success') {
+                    const info = data.info;
+                    let html = '<div class="bg-white border border-gray-200 rounded-lg p-4">';
+                    html += '<h3 class="font-bold text-gray-900 mb-3"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Résultat du test scheduler</h3>';
+                    html += '<div class="space-y-2 text-sm">';
+                    html += `<p><strong>Heure actuelle :</strong> ${info.current_time} (${info.timezone})</p>`;
+                    html += `<p><strong>Heure configurée :</strong> ${info.automation_time}</p>`;
+                    html += `<p><strong>Scheduler exécuté :</strong> <span class="${info.scheduler_executed ? 'text-green-600' : 'text-red-600'}">${info.scheduler_executed ? '✅ Oui' : '❌ Non'}</span></p>`;
+                    html += `<p><strong>Déclenchement prévu :</strong> <span class="${info.will_trigger ? 'text-green-600 font-bold' : 'text-gray-600'}">${info.will_trigger ? '✅ Oui, maintenant' : '❌ Non, attendre ' + info.automation_time}</span></p>`;
+                    if (info.output) {
+                        html += '<details class="mt-3"><summary class="cursor-pointer text-blue-600 hover:underline">Voir la sortie complète</summary>';
+                        html += '<pre class="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-40">' + escapeHtml(info.output) + '</pre>';
+                        html += '</details>';
+                    }
+                    html += '</div>';
+                    html += '<div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">';
+                    html += '<p class="font-semibold mb-2">💡 Si le scheduler ne s\'exécute pas automatiquement :</p>';
+                    html += '<ol class="list-decimal list-inside space-y-1">';
+                    html += '<li>Vérifiez que le cron Laravel est configuré : <code class="bg-gray-200 px-1 rounded">crontab -l</code></li>';
+                    html += '<li>Si absent, ajoutez : <code class="bg-gray-200 px-1 rounded">* * * * * cd /chemin-projet && php artisan schedule:run</code></li>';
+                    html += '<li>Vérifiez les logs : <code class="bg-gray-200 px-1 rounded">tail -f storage/logs/laravel.log</code></li>';
+                    html += '</ol>';
+                    html += '</div>';
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-exclamation-circle mr-2"></i>' + (data.message || 'Erreur lors du test') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-times-circle mr-2"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
         </script>
         @endsection
 
