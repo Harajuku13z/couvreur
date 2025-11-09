@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI;
+use OpenAI\Laravel\Facades\OpenAI as OpenAIFacade;
 
 class AiService
 {
@@ -138,7 +138,7 @@ class AiService
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                $response = OpenAI::chat()->create([
+                $response = OpenAIFacade::chat()->create([
                     'model' => $model,
                     'messages' => $messages,
                     'temperature' => $temperature,
@@ -187,7 +187,7 @@ class AiService
                         ]);
                         
                         try {
-                            $response = OpenAI::chat()->create([
+                            $response = OpenAIFacade::chat()->create([
                                 'model' => 'gpt-4o',
                                 'messages' => $messages,
                                 'temperature' => $temperature,
