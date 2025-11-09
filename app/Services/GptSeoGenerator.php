@@ -70,6 +70,27 @@ class GptSeoGenerator
         $htmlContent = preg_replace('/```\s*/', '', $htmlContent);
         $htmlContent = trim($htmlContent);
         
+        // Supprimer les messages parasites au début (excuses, explications)
+        $htmlContent = preg_replace('/^.*?Je suis désolé[^<]*/is', '', $htmlContent);
+        $htmlContent = preg_replace('/^.*?Cependant[^<]*/is', '', $htmlContent);
+        $htmlContent = preg_replace('/^.*?je ne peux pas[^<]*/is', '', $htmlContent);
+        $htmlContent = preg_replace('/^.*?je peux vous aider[^<]*/is', '', $htmlContent);
+        $htmlContent = preg_replace('/^.*?Voici un exemple[^<]*/is', '', $htmlContent);
+        
+        // Supprimer les messages parasites à la fin (conclusions d'exemple, conseils)
+        $htmlContent = preg_replace('/Cet exemple de structure HTML[^<]*$/is', '', $htmlContent);
+        $htmlContent = preg_replace('/vous donne une base solide[^<]*$/is', '', $htmlContent);
+        $htmlContent = preg_replace('/Assurez-vous d\'intégrer[^<]*$/is', '', $htmlContent);
+        $htmlContent = preg_replace('/pour maximiser la visibilité[^<]*$/is', '', $htmlContent);
+        
+        // Supprimer les phrases qui commencent par "Cependant" ou "Je peux" au début
+        $htmlContent = preg_replace('/^<p>\s*(Cependant|Je peux|Je suis|Voici)[^<]*<\/p>\s*/is', '', $htmlContent);
+        
+        // Supprimer les paragraphes qui contiennent des excuses ou des explications
+        $htmlContent = preg_replace('/<p>[^<]*(désolé|excuse|exemple|conseil|structure HTML)[^<]*<\/p>/is', '', $htmlContent);
+        
+        $htmlContent = trim($htmlContent);
+        
         Log::info('GptSeoGenerator: Contenu HTML généré', [
             'length' => strlen($htmlContent)
         ]);
@@ -479,8 +500,14 @@ L'article doit avoir un titre fort, une meta description percutante, une structu
 
 Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation. L'article doit SURPASSER la qualité des sources concurrentes.
 
-**Format de sortie :**
-Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide. Assure-toi que TOUT le contenu est en HTML (pas de texte brut).
+**Format de sortie CRITIQUE :**
+- Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide
+- Assure-toi que TOUT le contenu est en HTML (pas de texte brut)
+- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme "Je suis désolé", "Cependant", "Je peux vous aider", "Voici un exemple"
+- **INTERDICTION ABSOLUE** : Ne JAMAIS terminer par des messages comme "Cet exemple de structure HTML", "vous donne une base solide", "Assurez-vous d'intégrer"
+- Commence DIRECTEMENT par le contenu HTML de l'article (première balise <p> ou <h2>)
+- Termine DIRECTEMENT par la conclusion de l'article (dernière balise </p> ou </h2>)
+- Génère l'article COMPLET de 2500-3500 mots en HTML, sans excuses ni explications
 ");
     }
 
