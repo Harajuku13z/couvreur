@@ -966,16 +966,30 @@ EOT;
             foreach (array_slice($services, 0, 8) as $service) {
                 $serviceName = $service['name'] ?? 'Service';
                 $serviceSlug = \Illuminate\Support\Str::slug($serviceName);
-                $linksContext .= "- **{$serviceName}** : <a href=\"/services/{$serviceSlug}\">{$serviceName} à {$city}</a>\n";
+                try {
+                    $serviceUrl = route('services.show', ['slug' => $serviceSlug]);
+                } catch (\Exception $e) {
+                    $serviceUrl = url('/services/' . $serviceSlug);
+                }
+                $linksContext .= "- **{$serviceName}** : <a href=\"{$serviceUrl}\">{$serviceName} à {$city}</a>\n";
             }
             $linksContext .= "\n";
         }
         
         $linksContext .= "**Pages principales du site :**\n";
         // Utiliser les routes Laravel pour garantir que les liens fonctionnent
-        $linksContext .= "- Contact : <a href=\"" . route('contact') . "\">Demandez votre devis gratuit personnalisé</a>\n";
-        $linksContext .= "- Réalisations : <a href=\"" . route('portfolio.index') . "\">Consultez nos projets récents</a>\n";
-        $linksContext .= "- Blog : <a href=\"" . route('blog.index') . "\">Tous nos conseils d'experts</a>\n";
+        try {
+            $contactUrl = route('contact');
+            $portfolioUrl = route('portfolio.index');
+            $blogUrl = route('blog.index');
+        } catch (\Exception $e) {
+            $contactUrl = url('/contact');
+            $portfolioUrl = url('/nos-realisations');
+            $blogUrl = url('/blog');
+        }
+        $linksContext .= "- Contact : <a href=\"{$contactUrl}\">Demandez votre devis gratuit personnalisé</a>\n";
+        $linksContext .= "- Réalisations : <a href=\"{$portfolioUrl}\">Consultez nos projets récents</a>\n";
+        $linksContext .= "- Blog : <a href=\"{$blogUrl}\">Tous nos conseils d'experts</a>\n";
         
         $linksContext .= "\n**🎯 Règles d'intégration des liens :**\n";
         $linksContext .= "1. Les ancres doivent être **descriptives et naturelles** (jamais \"cliquez ici\" ou \"en savoir plus\")\n";
@@ -985,9 +999,14 @@ EOT;
         $linksContext .= "5. Varier les ancres : ne pas utiliser le même texte d'ancre plusieurs fois\n";
         
         $linksContext .= "\n**Exemples d'intégration réussie :**\n";
-        $linksContext .= "✅ \"Pour compléter votre projet, découvrez nos <a href=\"/services/isolation-combles\">solutions d'isolation des combles à {$city}</a>.\"\n";
-        $linksContext .= "✅ \"Notre équipe réalise également des <a href=\"/services/charpente\">travaux de charpente traditionnelle</a> dans toute la région.\"\n";
-        $linksContext .= "✅ \"Consultez <a href=\"/realisations\">nos dernières réalisations de {$keyword}</a> pour vous inspirer.\"\n";
+        try {
+            $servicesIndexUrl = route('services.index');
+        } catch (\Exception $e) {
+            $servicesIndexUrl = url('/services');
+        }
+        $linksContext .= "✅ \"Pour compléter votre projet, découvrez nos <a href=\"{$servicesIndexUrl}\">solutions d'isolation des combles à {$city}</a>.\"\n";
+        $linksContext .= "✅ \"Notre équipe réalise également des <a href=\"{$servicesIndexUrl}\">travaux de charpente traditionnelle</a> dans toute la région.\"\n";
+        $linksContext .= "✅ \"Consultez <a href=\"{$portfolioUrl}\">nos dernières réalisations de {$keyword}</a> pour vous inspirer.\"\n";
         
         $linksContext .= "\n❌ À éviter :\n";
         $linksContext .= "❌ \"Pour en savoir plus, <a href=\"/services\">cliquez ici</a>.\"\n";
