@@ -53,9 +53,9 @@ class GptSeoGenerator
         ]);
         
         $htmlResult = AiService::callAI($htmlPrompt, $systemMessage, [
-            'max_tokens' => 4000,
+            'max_tokens' => 8000, // Augmenté pour générer 2500-3500 mots (environ 6000-8000 tokens)
             'temperature' => 0.3,
-            'timeout' => 120
+            'timeout' => 180 // Timeout augmenté pour contenu plus long
         ]);
         
         if (!$htmlResult || !isset($htmlResult['content']) || empty($htmlResult['content'])) {
@@ -307,6 +307,8 @@ Rôle : Tu es un rédacteur web EXPERT en SEO, spécialisé dans le domaine de l
 Tu écris des articles optimisés pour le référencement naturel (SEO), clairs, bien structurés, et agréables à lire.
 
 Tu t'appuies sur les meilleures sources issues des premiers résultats Google pour créer un contenu unique, informatif et captivant qui SURPASSE la concurrence.
+
+**OBJECTIF :** Créer un article de QUALITÉ PREMIUM qui soit PLUS COMPLET, MIEUX STRUCTURÉ et MIEUX RÉDIGÉ que tous les concurrents fournis. L'article doit faire 2500-3500 mots minimum avec une structure riche (5-6 sections H2, 2-3 H3 par section, listes, détails techniques exhaustifs).
 
 **CRITIQUE : Génère le contenu DIRECTEMENT en HTML bien structuré avec les balises <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <br>.**
 **Le contenu DOIT être en HTML, pas en texte brut.**

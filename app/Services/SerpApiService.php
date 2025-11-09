@@ -241,33 +241,61 @@ class SerpApiService
                 if ($response->successful()) {
                     $json = $response->json();
                     
-                    // Récupérer depuis related_questions
+                    // Fonction pour filtrer les requêtes inutiles (pronunciation, meaning, whisky, etc.)
+                    $isRelevantQuery = function($query) use ($q) {
+                        if (empty($query)) return false;
+                        $queryLower = strtolower($query);
+                        $keywordLower = strtolower($q);
+                        
+                        // Mots-clés à exclure (requêtes non pertinentes pour SEO)
+                        $excludeWords = ['pronunciation', 'meaning', 'whisky', 'whiskey', 'synonym', 'sentence', 'definition', 'dictionary', 'translate', 'traduction'];
+                        foreach ($excludeWords as $exclude) {
+                            if (strpos($queryLower, $exclude) !== false) {
+                                return false;
+                            }
+                        }
+                        
+                        // La requête doit contenir le mot-clé principal ou être liée au domaine (couvreur, toiture, etc.)
+                        $domainWords = ['couvreur', 'toiture', 'couverture', 'charpente', 'rénovation', 'réparation', 'isolation', 'zinguerie', 'demoussage', 'hydrofuge'];
+                        $hasDomainWord = false;
+                        foreach ($domainWords as $domainWord) {
+                            if (strpos($queryLower, $domainWord) !== false) {
+                                $hasDomainWord = true;
+                                break;
+                            }
+                        }
+                        
+                        // Si la requête contient le mot-clé principal ou un mot du domaine, elle est pertinente
+                        return strpos($queryLower, $keywordLower) !== false || $hasDomainWord;
+                    };
+                    
+                    // Récupérer depuis related_questions (FILTRÉES)
                     if (isset($json['related_questions']) && is_array($json['related_questions'])) {
                         foreach ($json['related_questions'] as $item) {
                             $question = $item['question'] ?? $item['query'] ?? null;
-                            if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                            if ($question && !empty(trim($question)) && $isRelevantQuery($question) && !in_array(trim($question), $questions)) {
                                 $questions[] = trim($question);
                             }
                             if (count($questions) >= $limit) break;
                         }
                     }
                     
-                    // Récupérer depuis related_searches
+                    // Récupérer depuis related_searches (FILTRÉES)
                     if (count($questions) < $limit && isset($json['related_searches']) && is_array($json['related_searches'])) {
                         foreach ($json['related_searches'] as $item) {
                             $query = $item['query'] ?? null;
-                            if ($query && !empty(trim($query)) && !in_array(trim($query), $questions)) {
+                            if ($query && !empty(trim($query)) && $isRelevantQuery($query) && !in_array(trim($query), $questions)) {
                                 $questions[] = trim($query);
                             }
                             if (count($questions) >= $limit) break;
                         }
                     }
                     
-                    // Récupérer depuis people_also_ask
+                    // Récupérer depuis people_also_ask (FILTRÉES)
                     if (count($questions) < $limit && isset($json['people_also_ask']) && is_array($json['people_also_ask'])) {
                         foreach ($json['people_also_ask'] as $item) {
                             $question = $item['question'] ?? $item['query'] ?? null;
-                            if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                            if ($question && !empty(trim($question)) && $isRelevantQuery($question) && !in_array(trim($question), $questions)) {
                                 $questions[] = trim($question);
                             }
                             if (count($questions) >= $limit) break;
@@ -301,9 +329,36 @@ class SerpApiService
                     $json = $response->json();
                     $items = $json['related_questions'] ?? [];
                     
+                    // Fonction pour filtrer les requêtes inutiles
+                    $isRelevantQuery = function($query) use ($q) {
+                        if (empty($query)) return false;
+                        $queryLower = strtolower($query);
+                        $keywordLower = strtolower($q);
+                        
+                        // Mots-clés à exclure
+                        $excludeWords = ['pronunciation', 'meaning', 'whisky', 'whiskey', 'synonym', 'sentence', 'definition', 'dictionary', 'translate', 'traduction'];
+                        foreach ($excludeWords as $exclude) {
+                            if (strpos($queryLower, $exclude) !== false) {
+                                return false;
+                            }
+                        }
+                        
+                        // La requête doit contenir le mot-clé principal ou être liée au domaine
+                        $domainWords = ['couvreur', 'toiture', 'couverture', 'charpente', 'rénovation', 'réparation', 'isolation', 'zinguerie', 'demoussage', 'hydrofuge'];
+                        $hasDomainWord = false;
+                        foreach ($domainWords as $domainWord) {
+                            if (strpos($queryLower, $domainWord) !== false) {
+                                $hasDomainWord = true;
+                                break;
+                            }
+                        }
+                        
+                        return strpos($queryLower, $keywordLower) !== false || $hasDomainWord;
+                    };
+                    
                     foreach ($items as $item) {
                         $question = $item['question'] ?? $item['query'] ?? null;
-                        if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                        if ($question && !empty(trim($question)) && $isRelevantQuery($question) && !in_array(trim($question), $questions)) {
                             $questions[] = trim($question);
                         }
                         if (count($questions) >= $limit) {
