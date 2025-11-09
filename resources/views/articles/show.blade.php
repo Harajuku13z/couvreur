@@ -1,8 +1,43 @@
 @extends('layouts.app')
 
-@section('title', $article->meta_title ?: $article->title)
-@section('description', $article->meta_description)
-@section('keywords', $article->meta_keywords)
+@php
+    // S'assurer que le titre est complet (max 65 caractères pour éviter troncature)
+    $pageTitle = $article->meta_title ?: $article->title;
+    if (strlen($pageTitle) > 65) {
+        $lastSpace = strrpos(substr($pageTitle, 0, 65), ' ');
+        if ($lastSpace !== false && $lastSpace > 50) {
+            $pageTitle = substr($pageTitle, 0, $lastSpace);
+        } else {
+            $pageTitle = \Illuminate\Support\Str::limit($pageTitle, 62);
+        }
+    }
+    
+    // S'assurer que la meta description est complète (max 160 caractères)
+    $pageDescription = $article->meta_description;
+    if ($pageDescription && strlen($pageDescription) > 160) {
+        $lastSpace = strrpos(substr($pageDescription, 0, 160), ' ');
+        if ($lastSpace !== false && $lastSpace > 140) {
+            $pageDescription = substr($pageDescription, 0, $lastSpace) . '...';
+        } else {
+            $pageDescription = \Illuminate\Support\Str::limit($pageDescription, 157) . '...';
+        }
+    }
+    
+    // Filtrer les mots-clés pour enlever les mots vides
+    $metaKeywords = $article->meta_keywords;
+    if ($metaKeywords) {
+        $keywordsArray = array_map('trim', explode(',', $metaKeywords));
+        $stopWords = ['votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange', 'le', 'la', 'les'];
+        $filteredKeywords = array_filter($keywordsArray, function($kw) use ($stopWords) {
+            $kwLower = strtolower(trim($kw));
+            return !empty($kw) && strlen($kw) >= 3 && !in_array($kwLower, $stopWords);
+        });
+        $metaKeywords = !empty($filteredKeywords) ? implode(', ', $filteredKeywords) : null;
+    }
+@endphp
+@section('title', $pageTitle)
+@section('description', $pageDescription)
+@section('keywords', $metaKeywords)
 
 @php
     // Passer les métadonnées spécifiques à l'article au layout principal
