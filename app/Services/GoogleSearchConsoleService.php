@@ -394,16 +394,47 @@ class GoogleSearchConsoleService
             $siteEntries = $sites->getSiteEntry();
             
             // Vérifier si le site est dans la liste
+            // Tester différents formats d'URL
             $siteUrl = rtrim($this->siteUrl, '/');
+            $siteVariations = [
+                $siteUrl,
+                $siteUrl . '/',
+                str_replace('https://', 'http://', $siteUrl),
+                str_replace('http://', 'https://', $siteUrl),
+                str_replace('https://', 'sc-domain:', $siteUrl),
+                str_replace('http://', 'sc-domain:', $siteUrl),
+            ];
+            
+            // Extraire le domaine pour tester aussi sc-domain:
+            $parsed = parse_url($siteUrl);
+            if (isset($parsed['host'])) {
+                $domain = $parsed['host'];
+                $siteVariations[] = 'sc-domain:' . $domain;
+                $siteVariations[] = 'https://' . $domain;
+                $siteVariations[] = 'http://' . $domain;
+            }
+            
             $siteFound = false;
             $sitePermission = null;
+            $foundSiteUrl = null;
             
             foreach ($siteEntries as $site) {
-                if ($site->getSiteUrl() === $siteUrl || $site->getSiteUrl() === $siteUrl . '/') {
-                    $siteFound = true;
-                    $sitePermission = $site->getPermissionLevel();
-                    break;
+                $siteEntryUrl = $site->getSiteUrl();
+                foreach ($siteVariations as $variation) {
+                    if ($siteEntryUrl === $variation || 
+                        rtrim($siteEntryUrl, '/') === rtrim($variation, '/')) {
+                        $siteFound = true;
+                        $sitePermission = $site->getPermissionLevel();
+                        $foundSiteUrl = $siteEntryUrl;
+                        break 2; // Sortir des deux boucles
+                    }
                 }
+            }
+            
+            // Si pas trouvé, lister tous les sites disponibles pour debug
+            $availableSites = [];
+            foreach ($siteEntries as $site) {
+                $availableSites[] = $site->getSiteUrl();
             }
             
             $serviceAccountEmail = $this->getCredentials()['client_email'] ?? 'votre-compte-service@...';
@@ -411,13 +442,15 @@ class GoogleSearchConsoleService
             
             if (!$siteFound) {
                 $warningMessage = "⚠️ Le site {$siteUrl} n'est pas trouvé dans Google Search Console.\n\n";
-                $warningMessage .= "💡 Solution : Ajoutez le compte de service comme propriétaire :\n";
-                $warningMessage .= "1. Allez sur https://search.google.com/search-console\n";
-                $warningMessage .= "2. Sélectionnez votre propriété (site)\n";
-                $warningMessage .= "3. Allez dans Paramètres > Utilisateurs et permissions\n";
-                $warningMessage .= "4. Cliquez sur 'Ajouter un utilisateur'\n";
-                $warningMessage .= "5. Ajoutez l'email : {$serviceAccountEmail}\n";
-                $warningMessage .= "6. Donnez-lui le rôle 'Propriétaire'";
+                $warningMessage .= "Sites disponibles dans votre compte :\n";
+                foreach ($availableSites as $availableSite) {
+                    $warningMessage .= "- {$availableSite}\n";
+                }
+                $warningMessage .= "\n💡 Solutions possibles :\n";
+                $warningMessage .= "1. Vérifiez que le site est bien enregistré dans Search Console\n";
+                $warningMessage .= "2. Le compte de service ({$serviceAccountEmail}) doit être ajouté comme propriétaire\n";
+                $warningMessage .= "3. Essayez d'ajouter le site avec le format exact trouvé ci-dessus\n";
+                $warningMessage .= "\nNote : L'indexation peut fonctionner même si le site n'est pas trouvé dans cette liste.";
             } elseif ($sitePermission && $sitePermission !== 'siteOwner' && $sitePermission !== 'siteFullUser') {
                 $warningMessage = "⚠️ Le compte de service n'a pas les permissions suffisantes (permission actuelle: {$sitePermission}).\n\n";
                 $warningMessage .= "💡 Solution : Donnez le rôle 'Propriétaire' ou 'Utilisateur complet' au compte de service dans Google Search Console.";
@@ -430,6 +463,8 @@ class GoogleSearchConsoleService
                 'site_url' => $siteUrl,
                 'site_found' => $siteFound,
                 'site_permission' => $sitePermission,
+                'found_site_url' => $foundSiteUrl,
+                'available_sites' => $availableSites,
                 'warning' => $warningMessage
             ];
         } catch (\Google\Service\Exception $e) {
