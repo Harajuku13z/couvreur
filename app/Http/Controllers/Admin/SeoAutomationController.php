@@ -511,18 +511,66 @@ class SeoAutomationController extends Controller
                     
                 case 'google_indexing':
                     try {
-                        $googleService = new \App\Services\GoogleSearchConsoleService();
-                        $isConfigured = $googleService->isConfigured();
-                        
-                        if ($isConfigured) {
-                            $results = [
-                                'status' => 'success',
-                                'message' => 'Google Indexing configuré correctement. Les credentials sont valides.'
-                            ];
-                        } else {
+                        // Vérifier d'abord si les credentials sont configurés
+                        $credentials = \App\Models\Setting::where('key', 'google_search_console_credentials')->value('value');
+                        if (empty($credentials)) {
                             $results = [
                                 'status' => 'error',
                                 'message' => 'Google Indexing non configuré. Veuillez configurer les credentials JSON.'
+                            ];
+                            break;
+                        }
+                        
+                        // Vérifier que c'est du JSON valide
+                        $decoded = json_decode($credentials, true);
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Les credentials JSON sont invalides: ' . json_last_error_msg()
+                            ];
+                            break;
+                        }
+                        
+                        if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Les credentials doivent être de type "service_account"'
+                            ];
+                            break;
+                        }
+                        
+                        // Tester la connexion réelle
+                        $googleService = new \App\Services\GoogleSearchConsoleService();
+                        $testResult = $googleService->testConnection();
+                        
+                        if ($testResult['success'] ?? false) {
+                            $message = 'Connexion Google Indexing réussie.';
+                            if (isset($testResult['warning']) && !empty($testResult['warning'])) {
+                                $message .= ' ' . $testResult['warning'];
+                                $results = [
+                                    'status' => 'warning',
+                                    'message' => $message,
+                                    'data' => [
+                                        'sites_count' => $testResult['sites_count'] ?? 0,
+                                        'site_found' => $testResult['site_found'] ?? false,
+                                        'site_permission' => $testResult['site_permission'] ?? null
+                                    ]
+                                ];
+                            } else {
+                                $results = [
+                                    'status' => 'success',
+                                    'message' => $message,
+                                    'data' => [
+                                        'sites_count' => $testResult['sites_count'] ?? 0,
+                                        'site_found' => $testResult['site_found'] ?? false,
+                                        'site_permission' => $testResult['site_permission'] ?? null
+                                    ]
+                                ];
+                            }
+                        } else {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Erreur de connexion: ' . ($testResult['message'] ?? 'Erreur inconnue')
                             ];
                         }
                     } catch (\Exception $e) {

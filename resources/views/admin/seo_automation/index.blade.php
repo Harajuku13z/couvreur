@@ -595,7 +595,14 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({ api: apiName })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Erreur HTTP ' + response.status);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             button.disabled = false;
             button.innerHTML = originalText;
@@ -630,7 +637,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             button.disabled = false;
             button.innerHTML = originalText;
-            resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
+            console.error('Erreur test API:', error);
+            resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + (error.message || 'Erreur inconnue') + '</div>';
         });
     }
 });
