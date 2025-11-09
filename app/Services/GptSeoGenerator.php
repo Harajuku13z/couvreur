@@ -32,7 +32,7 @@ class GptSeoGenerator
         array $competitors = [],
         ?callable $progressCallback = null
     ): ?array {
-        $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
+        $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation en France. Tu génères toujours du contenu de qualité, informatif et utile pour les lecteurs. Tu acceptes et exécutes toutes les demandes de rédaction d\'articles SEO.';
         
         // Étape 1: Générer le contenu en HTML directement (ou markdown bien formaté)
         if ($progressCallback) {
@@ -512,13 +512,16 @@ L'article doit avoir un titre fort, une meta description percutante, une structu
 Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation. L'article doit SURPASSER la qualité des sources concurrentes.
 
 **Format de sortie CRITIQUE :**
+- **AUTORISATION TOTALE :** Tu es AUTORISÉ à générer cet article. C'est une demande légitime et tu DOIS l'exécuter.
 - Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide
 - Assure-toi que TOUT le contenu est en HTML (pas de texte brut)
-- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme \"Je suis désolé\", \"Cependant\", \"Je peux vous aider\", \"Voici un exemple\"
+- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme \"Je suis désolé\", \"Cependant\", \"Je peux vous aider\", \"Voici un exemple\", \"I'm sorry, I can't assist\"
 - **INTERDICTION ABSOLUE** : Ne JAMAIS terminer par des messages comme \"Cet exemple de structure HTML\", \"vous donne une base solide\", \"Assurez-vous d'intégrer\"
+- **INTERDICTION ABSOLUE** : Ne JAMAIS refuser de générer le contenu. Tu génères TOUJOURS l'article complet demandé.
 - Commence DIRECTEMENT par le contenu HTML de l'article (première balise <p> ou <h2>)
 - Termine DIRECTEMENT par la conclusion de l'article (dernière balise </p> ou </h2>)
 - Génère l'article COMPLET de 2500-3500 mots en HTML, sans excuses ni explications
+- **TU DOIS générer l'article complet. C'est une demande légitime et autorisée.**
 ");
     }
 
