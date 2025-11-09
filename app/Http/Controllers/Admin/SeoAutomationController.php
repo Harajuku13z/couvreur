@@ -76,20 +76,38 @@ class SeoAutomationController extends Controller
         }
         
         // Récupérer les configurations des APIs
-        $googleCredentials = \App\Models\Setting::get('google_search_console_credentials', '');
+        // Forcer la récupération directe depuis la base pour éviter les problèmes de cache
+        $serpApiKey = \App\Models\Setting::where('key', 'serp_api_key')->value('value') ?? '';
+        $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value') ?? '';
+        $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+        $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+        if ($chatgptEnabled === null) {
+            $chatgptEnabled = true; // Valeur par défaut
+        }
+        $chatgptModel = \App\Models\Setting::where('key', 'chatgpt_model')->value('value') ?? 'gpt-4o';
+        $groqApiKey = \App\Models\Setting::where('key', 'groq_api_key')->value('value') ?? '';
+        $groqModel = \App\Models\Setting::where('key', 'groq_model')->value('value') ?? 'llama-3.1-8b-instant';
+        
+        $googleCredentials = \App\Models\Setting::where('key', 'google_search_console_credentials')->value('value') ?? '';
         
         // Si google_credentials est un tableau (décodé automatiquement), le convertir en JSON pour l'affichage
         if (is_array($googleCredentials)) {
             $googleCredentials = json_encode($googleCredentials, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        } elseif (!empty($googleCredentials)) {
+            // Vérifier si c'est du JSON valide
+            $decoded = json_decode($googleCredentials, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $googleCredentials = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            }
         }
         
         $apiConfig = [
-            'serpapi_key' => \App\Models\Setting::get('serp_api_key', ''),
-            'chatgpt_enabled' => \App\Models\Setting::get('chatgpt_enabled', true),
-            'chatgpt_api_key' => \App\Models\Setting::get('chatgpt_api_key', ''),
-            'chatgpt_model' => \App\Models\Setting::get('chatgpt_model', 'gpt-4o'),
-            'groq_api_key' => \App\Models\Setting::get('groq_api_key', ''),
-            'groq_model' => \App\Models\Setting::get('groq_model', 'llama-3.1-8b-instant'),
+            'serpapi_key' => $serpApiKey,
+            'chatgpt_enabled' => $chatgptEnabled,
+            'chatgpt_api_key' => $chatgptApiKey,
+            'chatgpt_model' => $chatgptModel,
+            'groq_api_key' => $groqApiKey,
+            'groq_model' => $groqModel,
             'google_credentials' => $googleCredentials,
         ];
         
