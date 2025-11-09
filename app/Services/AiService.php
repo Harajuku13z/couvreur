@@ -46,9 +46,12 @@ class AiService
             $model = 'gpt-4-turbo';
         }
         
+        $temperature = $options['temperature'] ?? 0.7;
+        $maxTokens = $options['max_tokens'] ?? 4000;
+        $timeout = $options['timeout'] ?? 60;
+        
         // S'assurer qu'on utilise un modèle qui supporte les tokens longs
         // Si max_tokens > 4096, forcer gpt-4-turbo ou gpt-4o
-        $maxTokens = $options['max_tokens'] ?? 4000;
         if ($maxTokens > 4096) {
             // Forcer un modèle qui supporte les tokens longs
             if (!in_array($model, ['gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview', 'gpt-4o', 'gpt-4o-2024-08-06'])) {
@@ -59,10 +62,6 @@ class AiService
                 $model = 'gpt-4-turbo';
             }
         }
-        
-        $temperature = $options['temperature'] ?? 0.7;
-        $maxTokens = $options['max_tokens'] ?? 4000;
-        $timeout = $options['timeout'] ?? 60;
         
         Log::info('AiService::callAI - Clés API récupérées', [
             'chatgpt_enabled' => $chatgptEnabled,
