@@ -59,7 +59,7 @@
             <i class="fas fa-globe mr-2 text-blue-600"></i>Route HTTP Alternative (si le cron ne fonctionne pas)
         </h2>
         <p class="text-sm text-gray-600 mb-4">
-            Si le cron via hPanel ne fonctionne pas, vous pouvez utiliser un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL toutes les minutes.
+            Si le cron via hPanel ne fonctionne pas, vous pouvez utiliser un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL <strong>une fois par jour</strong> à l'heure configurée. Chaque appel génère directement les articles pour toutes les villes favorites.
         </p>
         
         <div class="space-y-4">
@@ -91,11 +91,15 @@
             <p class="font-semibold text-blue-900 mb-2">📋 Instructions pour configurer un service externe :</p>
             <ol class="list-decimal list-inside space-y-1 text-blue-800">
                 <li>Cliquez sur "Afficher le token et l'URL" pour obtenir votre URL complète</li>
-                <li>Créez un compte sur <a href="https://cron-job.org" target="_blank" class="underline font-semibold">cron-job.org</a> (gratuit)</li>
+                <li>Créez un compte sur <a href="https://cron-job.org" target="_blank" class="underline font-semibold">cron-job.org</a> (gratuit) ou utilisez un autre service (UptimeRobot, etc.)</li>
                 <li>Créez un nouveau cron job avec cette URL</li>
-                <li>Configurez la fréquence : <code class="bg-blue-100 px-1 rounded">Toutes les minutes</code></li>
-                <li>Sauvegardez et le service appellera automatiquement votre URL chaque minute</li>
+                <li>Configurez la fréquence : <code class="bg-blue-100 px-1 rounded">Une fois par jour</code> à l'heure configurée ci-dessus (ex: {{ $automationTime ?? '20:24' }})</li>
+                <li>Sauvegardez et le service appellera automatiquement votre URL une fois par jour</li>
             </ol>
+            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                <p class="font-semibold mb-1">💡 Note importante :</p>
+                <p>La route exécute directement la génération d'articles (mode exécution directe). Chaque appel génère les articles pour toutes les villes favorites configurées. Pas besoin d'appeler toutes les minutes, une fois par jour suffit.</p>
+            </div>
         </div>
     </div>
     
