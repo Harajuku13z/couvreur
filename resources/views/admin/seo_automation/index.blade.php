@@ -453,6 +453,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestionnaire pour "Sélectionner toutes"
+    const selectAllCheckbox = document.getElementById('select_all_cities');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const cityCheckboxes = document.querySelectorAll('input[name="city_ids[]"]');
+            cityCheckboxes.forEach(function(cb) {
+                cb.checked = this.checked;
+            }.bind(this));
+        });
+    }
+    
     const testBtn = document.getElementById('testConnectionsBtn');
     const testModal = document.getElementById('testModal');
     const closeModal = document.getElementById('closeTestModal');
