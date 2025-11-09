@@ -218,13 +218,7 @@ class GptSeoGenerator
         array $relatedQueries,
         array $competitors
     ): string {
-        // Récupérer les informations de l'entreprise
-        $companyName = \App\Models\Setting::where('key', 'company_name')->value('value') ?? 'notre entreprise';
-        $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
-        $companyCity = \App\Models\Setting::where('key', 'company_city')->value('value') ?? '';
-        $companyPhone = \App\Models\Setting::where('key', 'company_phone')->value('value') ?? '';
-        
-        // Récupérer les services réels de l'entreprise
+        // Récupérer les services réels de l'entreprise (pour identifier les services liés au mot-clé)
         $servicesData = \App\Models\Setting::where('key', 'services')->value('value');
         $services = [];
         if ($servicesData) {
@@ -237,7 +231,6 @@ class GptSeoGenerator
                 }
             }
         }
-        $servicesList = !empty($services) ? implode(', ', $services) : '';
         
         // Construire la liste des sources concurrentes (format du prompt fourni)
         $sourcesList = '';
