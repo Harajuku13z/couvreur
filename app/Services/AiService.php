@@ -36,7 +36,8 @@ class AiService
         $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
         $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
-        $model = $options['model'] ?? ($chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4o');
+        // Par défaut, utiliser gpt-4-turbo qui supporte 128k tokens (idéal pour articles longs SEO)
+        $model = $options['model'] ?? ($chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4-turbo');
         
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
