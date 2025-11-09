@@ -50,14 +50,18 @@ Schedule::command('seo:run-automations')
         // Vérifier qu'il y a des villes favorites
         $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
         
-        // Log pour déboguer
-        \Illuminate\Support\Facades\Log::info('SeoAutomation: Vérification horaire', [
-            'current_time' => $currentTime,
-            'automation_time' => $automationTime,
-            'timezone' => config('app.timezone'),
-            'matches' => $currentTime === $automationTime,
-            'favorite_cities_count' => $favoriteCitiesCount
-        ]);
+        // Log pour déboguer (seulement si on est proche de l'heure pour éviter trop de logs)
+        $timeDiff = abs((int)str_replace(':', '', $currentTime) - (int)str_replace(':', '', $automationTime));
+        if ($timeDiff <= 5 || $currentTime === $automationTime) {
+            \Illuminate\Support\Facades\Log::info('SeoAutomation: Vérification horaire', [
+                'current_time' => $currentTime,
+                'automation_time' => $automationTime,
+                'timezone' => config('app.timezone'),
+                'matches' => $currentTime === $automationTime,
+                'favorite_cities_count' => $favoriteCitiesCount,
+                'time_diff_minutes' => $timeDiff
+            ]);
+        }
         
         // Vérifier les conditions
         if ($currentTime !== $automationTime) {
@@ -68,6 +72,13 @@ Schedule::command('seo:run-automations')
             \Illuminate\Support\Facades\Log::warning('SeoAutomation: Aucune ville favorite configurée');
             return false; // Pas de villes favorites
         }
+        
+        // Log de succès avant exécution
+        \Illuminate\Support\Facades\Log::info('SeoAutomation: Conditions remplies, exécution prévue', [
+            'current_time' => $currentTime,
+            'automation_time' => $automationTime,
+            'favorite_cities_count' => $favoriteCitiesCount
+        ]);
         
         // Exécuter si toutes les conditions sont remplies
         return true;

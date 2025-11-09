@@ -27,6 +27,11 @@ class RunSeoAutomations extends Command
      */
     public function handle()
     {
+        \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Commande exécutée', [
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'timezone' => config('app.timezone')
+        ]);
+        
         // Vérifier si l'automatisation est activée
         $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
         $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
@@ -38,6 +43,7 @@ class RunSeoAutomations extends Command
         
         if (!$automationEnabled) {
             $this->info('Automatisation SEO désactivée. Utilisez le bouton dans l\'admin pour l\'activer.');
+            \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Automatisation désactivée');
             return 0;
         }
         
