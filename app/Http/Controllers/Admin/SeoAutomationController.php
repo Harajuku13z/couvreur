@@ -76,6 +76,13 @@ class SeoAutomationController extends Controller
         }
         
         // Récupérer les configurations des APIs
+        $googleCredentials = \App\Models\Setting::get('google_search_console_credentials', '');
+        
+        // Si google_credentials est un tableau (décodé automatiquement), le convertir en JSON pour l'affichage
+        if (is_array($googleCredentials)) {
+            $googleCredentials = json_encode($googleCredentials, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+        
         $apiConfig = [
             'serpapi_key' => \App\Models\Setting::get('serp_api_key', ''),
             'chatgpt_enabled' => \App\Models\Setting::get('chatgpt_enabled', true),
@@ -83,7 +90,7 @@ class SeoAutomationController extends Controller
             'chatgpt_model' => \App\Models\Setting::get('chatgpt_model', 'gpt-4o'),
             'groq_api_key' => \App\Models\Setting::get('groq_api_key', ''),
             'groq_model' => \App\Models\Setting::get('groq_model', 'llama-3.1-8b-instant'),
-            'google_credentials' => \App\Models\Setting::get('google_search_console_credentials', ''),
+            'google_credentials' => $googleCredentials,
         ];
         
         return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig'));
