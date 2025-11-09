@@ -298,7 +298,7 @@ class SeoAutomationController extends Controller
     }
 
     /**
-     * Générer des mots-clés depuis la description de l'entreprise
+     * Générer des mots-clés depuis la description de l'entreprise en utilisant SerpAPI
      */
     public function generateKeywords(Request $request)
     {
@@ -312,48 +312,170 @@ class SeoAutomationController extends Controller
                 ], 400);
             }
             
-            $prompt = "À partir de la description suivante de l'entreprise, génère une liste de 20 à 30 mots-clés SEO pertinents pour le secteur du bâtiment et de la rénovation. Les mots-clés doivent être variés, inclure des termes techniques, des services, et être optimisés pour le référencement local.\n\nDescription de l'entreprise:\n{$companyDescription}\n\nRetourne UNIQUEMENT un JSON avec ce format:\n{\"keywords\": [\"mot-clé 1\", \"mot-clé 2\", \"mot-clé 3\", ...]}\n\nNe retourne rien d'autre que le JSON.";
-            
-            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation.';
-            
-            $result = \App\Services\AiService::callAI($prompt, $systemMessage, [
-                'max_tokens' => 1000,
-                'temperature' => 0.3,
-                'timeout' => 60
-            ]);
-            
-            if (!$result || !isset($result['content'])) {
+            // Vérifier que SerpAPI est configuré
+            $serpApiKey = \App\Models\Setting::where('key', 'serp_api_key')->value('value');
+            if (empty($serpApiKey)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Erreur lors de la génération des mots-clés. Vérifiez votre configuration ChatGPT.'
-                ], 500);
+                    'message' => 'SerpAPI n\'est pas configuré. Veuillez configurer votre clé API SerpAPI dans la section "Configuration des APIs".'
+                ], 400);
             }
             
-            $content = $result['content'];
-            $decoded = json_decode($content, true);
+            Log::info('Génération mots-clés via SerpAPI', [
+                'description_length' => strlen($companyDescription)
+            ]);
             
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                // Essayer d'extraire le JSON
-                if (preg_match('/\{.*\}/s', $content, $matches)) {
-                    $decoded = json_decode($matches[0], true);
+            $serpService = new \App\Services\SerpApiService();
+            $keywords = [];
+            
+            // Extraire les mots-clés principaux de la description
+            // Prendre les 3-5 premiers mots significatifs
+            $words = preg_split('/\s+/', $companyDescription);
+            $mainKeywords = array_filter($words, function($word) {
+                return strlen($word) > 3 && !in_array(strtolower($word), ['pour', 'avec', 'dans', 'sont', 'cette', 'notre', 'votre', 'leurs', 'leurs']);
+            });
+            $mainKeywords = array_slice(array_values($mainKeywords), 0, 5);
+            
+            // Méthode 1: Google Autocomplete pour chaque mot-clé principal
+            foreach ($mainKeywords as $mainKeyword) {
+                try {
+                    $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
+                        'engine' => 'google_autocomplete',
+                        'q' => $mainKeyword,
+                        'hl' => 'fr',
+                        'api_key' => $serpApiKey,
+                    ]);
+                    
+                    if ($response->successful()) {
+                        $json = $response->json();
+                        if (isset($json['suggestions']) && is_array($json['suggestions'])) {
+                            foreach ($json['suggestions'] as $suggestion) {
+                                $keyword = $suggestion['value'] ?? null;
+                                if ($keyword && !in_array($keyword, $keywords)) {
+                                    $keywords[] = $keyword;
+                                }
+                                if (count($keywords) >= 30) break 2; // Limiter à 30 mots-clés
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Erreur SerpAPI Autocomplete', [
+                        'keyword' => $mainKeyword,
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
             
-            if (!$decoded || !isset($decoded['keywords']) || !is_array($decoded['keywords'])) {
+            // Méthode 2: Google Search avec related queries pour les mots-clés principaux
+            if (count($keywords) < 20) {
+                foreach (array_slice($mainKeywords, 0, 3) as $mainKeyword) {
+                    try {
+                        $related = $serpService->getRelatedQueries($mainKeyword, 10);
+                        foreach ($related as $query) {
+                            if (!in_array($query, $keywords)) {
+                                $keywords[] = $query;
+                            }
+                            if (count($keywords) >= 30) break 2;
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Erreur SerpAPI Related Queries', [
+                            'keyword' => $mainKeyword,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+            
+            // Méthode 3: Recherche Google standard pour obtenir related_searches et people_also_ask
+            if (count($keywords) < 20 && !empty($mainKeywords)) {
+                $searchQuery = implode(' ', array_slice($mainKeywords, 0, 3));
+                try {
+                    $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
+                        'engine' => 'google',
+                        'q' => $searchQuery,
+                        'hl' => 'fr',
+                        'api_key' => $serpApiKey,
+                        'num' => 5, // Juste pour récupérer les sections related
+                    ]);
+                    
+                    if ($response->successful()) {
+                        $json = $response->json();
+                        
+                        // Récupérer depuis related_searches
+                        if (isset($json['related_searches']) && is_array($json['related_searches'])) {
+                            foreach ($json['related_searches'] as $search) {
+                                $query = $search['query'] ?? null;
+                                if ($query && !in_array($query, $keywords)) {
+                                    $keywords[] = $query;
+                                }
+                                if (count($keywords) >= 30) break;
+                            }
+                        }
+                        
+                        // Récupérer depuis people_also_ask
+                        if (count($keywords) < 30 && isset($json['people_also_ask']) && is_array($json['people_also_ask'])) {
+                            foreach ($json['people_also_ask'] as $ask) {
+                                $question = $ask['question'] ?? null;
+                                if ($question && !in_array($question, $keywords)) {
+                                    // Extraire le mot-clé principal de la question
+                                    $keyword = preg_replace('/\?$/', '', $question);
+                                    $keyword = preg_replace('/^(comment|quand|où|pourquoi|combien|quel|quelle|quels|quelles)\s+/i', '', $keyword);
+                                    if ($keyword && !in_array($keyword, $keywords)) {
+                                        $keywords[] = $keyword;
+                                    }
+                                }
+                                if (count($keywords) >= 30) break;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Erreur SerpAPI Google Search', [
+                        'query' => $searchQuery,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Nettoyer et formater les mots-clés
+            $keywords = array_map(function($keyword) {
+                // Enlever les caractères spéciaux en début/fin
+                $keyword = trim($keyword);
+                // Limiter la longueur
+                if (strlen($keyword) > 80) {
+                    $keyword = substr($keyword, 0, 77) . '...';
+                }
+                return $keyword;
+            }, $keywords);
+            
+            // Supprimer les doublons et les mots-clés trop courts
+            $keywords = array_filter($keywords, function($keyword) {
+                return strlen($keyword) >= 3 && strlen($keyword) <= 80;
+            });
+            $keywords = array_values(array_unique($keywords));
+            
+            // Limiter à 30 mots-clés maximum
+            $keywords = array_slice($keywords, 0, 30);
+            
+            if (empty($keywords)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Format de réponse invalide. Réessayez.'
+                    'message' => 'Aucun mot-clé généré. Vérifiez votre clé API SerpAPI et que la description de l\'entreprise contient des mots-clés pertinents.'
                 ], 500);
             }
             
+            Log::info('Mots-clés générés via SerpAPI', [
+                'count' => count($keywords),
+                'keywords_preview' => array_slice($keywords, 0, 5)
+            ]);
+            
             return response()->json([
                 'status' => 'success',
-                'keywords' => $decoded['keywords'],
-                'message' => count($decoded['keywords']) . ' mots-clés générés avec succès.'
+                'keywords' => $keywords,
+                'message' => count($keywords) . ' mots-clés générés avec succès via SerpAPI.'
             ]);
             
         } catch (\Exception $e) {
-            Log::error('Erreur génération mots-clés', [
+            Log::error('Erreur génération mots-clés SerpAPI', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
