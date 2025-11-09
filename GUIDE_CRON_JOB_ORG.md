@@ -26,16 +26,49 @@ Utiliser le service gratuit **cron-job.org** pour appeler votre route HTTP `/sch
 
 1. Une fois connecté, cliquez sur **"Create cronjob"**
 
-2. Remplissez le formulaire :
-   - **Title** : `Laravel Scheduler` (ou un nom de votre choix)
-   - **Address (URL)** : Collez l'URL que vous avez copiée
-     ```
-     https://votredomaine.com/schedule/run?token=VOTRE_TOKEN_SECRET
-     ```
-   - **Schedule** : Sélectionnez **"Every minute"** (toutes les minutes)
-   - **Notifications** : Optionnel (pour recevoir des alertes en cas d'erreur)
+2. Remplissez le formulaire avec ces valeurs exactes :
 
-3. Cliquez sur **"Create cronjob"**
+   **📝 Titre :**
+   ```
+   Laravel Scheduler
+   ```
+   (ou un nom de votre choix, ex: "SEO Automation Scheduler")
+
+   **🔗 URL :**
+   ```
+   https://votredomaine.com/schedule/run?token=VOTRE_TOKEN_SECRET
+   ```
+   ⚠️ **Important** : Remplacez `votredomaine.com` par votre vrai domaine et `VOTRE_TOKEN_SECRET` par le token que vous avez copié depuis l'interface admin.
+
+   **⏰ Calendrier d'exécution :**
+   - Cliquez sur **"Personnalisé"** (Custom)
+   - Dans le champ **"Expression Crontab"**, entrez :
+     ```
+     * * * * *
+     ```
+     Cela signifie : toutes les minutes, toutes les heures, tous les jours, tous les mois, tous les jours de la semaine.
+   
+   **Alternativement**, vous pouvez utiliser l'interface :
+   - Sélectionnez **"Chaque"**
+   - Dans le premier champ, entrez : `1`
+   - Dans le menu déroulant, sélectionnez : **"minute(s)"**
+   
+   **✅ Activer la tâche :**
+   - Cochez la case **"Activer tâche"** (Enable job)
+
+   **📊 Sauvegarder les réponses :**
+   - Cochez **"Sauvegarder les réponses dans l'historique des tâches"** (Save responses in job history) - utile pour le débogage
+
+   **🔔 Avertissez-moi lorsque... (Notifications optionnelles) :**
+   - ✅ **"l'exécution du cronjob échoue"** (Notify when job execution fails) - **Recommandé**
+   - Optionnel : **"l'exécution du cronjob réussit après avoir échoué auparavant"** (Notify when job succeeds after previous failure)
+   - Optionnel : **"le cronjob sera désactivé en raison d'un trop grand nombre d'échecs"** (Notify when job will be disabled due to too many failures)
+
+3. Vérifiez les **"Prochaines exécutions"** :
+   - Vous devriez voir : `dimanche 9 novembre 2025 19:00`, `19:01`, `19:02`, etc.
+   - Le fuseau horaire doit être : **Europe/Paris** (ou votre fuseau horaire)
+
+4. Cliquez sur **"Create cronjob"** (ou "Sauvegarder")
 
 ### 4. Vérifier que le cron job fonctionne
 
@@ -62,8 +95,13 @@ Utiliser le service gratuit **cron-job.org** pour appeler votre route HTTP `/sch
 ### Changer la fréquence
 
 Par défaut, le cron s'exécute toutes les minutes. Vous pouvez changer la fréquence dans cron-job.org :
-- **Every minute** : Recommandé (comme le cron système)
-- **Every 5 minutes** : Moins fréquent, mais peut manquer l'heure exacte configurée
+
+**⚠️ IMPORTANT :** Pour que le scheduler Laravel fonctionne correctement, il doit être appelé **toutes les minutes** (`* * * * *`). C'est le scheduler Laravel lui-même qui décide si une tâche doit s'exécuter ou non selon l'heure configurée.
+
+**Options disponibles :**
+- **Toutes les minutes** (`* * * * *`) : ✅ **Recommandé** - Le scheduler vérifie chaque minute si l'heure configurée est arrivée
+- **Toutes les 5 minutes** : ⚠️ Non recommandé - Peut manquer l'heure exacte configurée
+- **Toutes les heures** : ❌ Non recommandé - Ne fonctionnera pas correctement
 
 ### Notifications
 
