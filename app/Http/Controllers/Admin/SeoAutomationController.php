@@ -336,6 +336,9 @@ class SeoAutomationController extends Controller
         $newStatus = !$currentStatus;
         \App\Models\Setting::set('seo_automation_enabled', $newStatus ? '1' : '0', 'boolean', 'seo');
         
+        // Vider le cache pour que le changement soit immédiat
+        \App\Models\Setting::clearCache();
+        
         $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
         
         $message = $newStatus 

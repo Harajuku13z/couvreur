@@ -169,8 +169,8 @@ class GptSeoGenerator
         Log::info('GptSeoGenerator: Article généré avec succès', [
             'keyword' => $keyword,
             'city' => $cityName,
-            'html_length' => strlen($rawText),
-            'text_length' => strlen($rawText)
+            'html_length' => strlen($htmlContent),
+            'title' => $generatedTitle ?? 'N/A'
         ]);
 
         // Récupérer les images de réalisations
