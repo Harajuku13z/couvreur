@@ -13,8 +13,14 @@ class SerpApiService
 
     public function __construct()
     {
-        $this->apiKey = setting('serp_api_key');
+        // Récupérer directement depuis la base pour éviter les problèmes de cache
+        $setting = \App\Models\Setting::where('key', 'serp_api_key')->first();
+        $this->apiKey = $setting ? $setting->value : null;
         $this->rateLimitSleep = 2;
+        
+        if (empty($this->apiKey)) {
+            Log::warning('SerpAPI: Clé API non configurée');
+        }
     }
 
     /**
@@ -27,16 +33,26 @@ class SerpApiService
     public function getTrendingKeywords(string $geo = 'FR', int $limit = 12): array
     {
         try {
+            // Vérifier que la clé API est configurée
+            if (empty($this->apiKey)) {
+                Log::error('SerpAPI: Clé API manquante');
+                throw new \Exception('Clé API SerpAPI non configurée');
+            }
+            
             // Pour Google Trends, on doit fournir soit 'q' (query) soit 'cat' (category)
             // Le paramètre est 'cat' (pas 'category') et utilise des IDs numériques
             // Pour obtenir des mots-clés tendances, on utilise RELATED_QUERIES avec un mot-clé générique
-            $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
+            $params = [
                 'engine' => 'google_trends',
                 'geo' => $geo,
                 'q' => 'couvreur', // Mot-clé générique pour le secteur
                 'data_type' => 'RELATED_QUERIES', // Pour obtenir des requêtes liées (mots-clés tendances)
                 'api_key' => $this->apiKey,
-            ]);
+            ];
+            
+            Log::info('SerpAPI Trends request', ['params' => array_merge($params, ['api_key' => '***']), 'geo' => $geo]);
+            
+            $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
 
             if (!$response->successful()) {
                 Log::error('SerpAPI Trends error', [
