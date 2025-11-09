@@ -41,10 +41,32 @@ class GptSeoGenerator
         ]);
 
         if (!$result || !isset($result['content'])) {
-            Log::error('GptSeoGenerator: Échec génération article', [
+            // Vérifier les clés API pour donner un message d'erreur plus précis
+            $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
+            $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+            $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+            $groqApiKey = \App\Models\Setting::where('key', 'groq_api_key')->value('value');
+            
+            $errorDetails = [
                 'keyword' => $keyword,
-                'city' => $cityName
-            ]);
+                'city' => $cityName,
+                'chatgpt_enabled' => $chatgptEnabled,
+                'chatgpt_api_key_exists' => !empty($chatgptApiKey),
+                'groq_api_key_exists' => !empty($groqApiKey),
+            ];
+            
+            // Message d'erreur plus détaillé
+            if ($chatgptEnabled && empty($chatgptApiKey)) {
+                $errorDetails['suggestion'] = 'Clé API ChatGPT manquante. Configurez-la dans la section "Configuration des APIs".';
+            } elseif ($chatgptEnabled && !empty($chatgptApiKey) && empty($groqApiKey)) {
+                $errorDetails['suggestion'] = 'Clé API ChatGPT invalide ou quota dépassé. Vérifiez votre clé API ou configurez Groq en fallback.';
+            } elseif (empty($groqApiKey)) {
+                $errorDetails['suggestion'] = 'Aucune clé API configurée. Configurez ChatGPT ou Groq dans la section "Configuration des APIs".';
+            } else {
+                $errorDetails['suggestion'] = 'Erreur lors de l\'appel aux APIs. Vérifiez vos clés API et vos quotas.';
+            }
+            
+            Log::error('GptSeoGenerator: Échec génération article', $errorDetails);
             return null;
         }
 

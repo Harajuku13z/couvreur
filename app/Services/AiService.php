@@ -85,12 +85,29 @@ class AiService
                     ];
                 } else {
                     $errorBody = $response->json();
+                    $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
+                    $errorType = $errorBody['error']['type'] ?? 'unknown';
+                    $errorCode = $errorBody['error']['code'] ?? null;
+                    
                     Log::warning('Erreur API OpenAI, tentative avec Groq', [
                         'status' => $response->status(),
-                        'error_message' => $errorBody['error']['message'] ?? 'Unknown error',
-                        'error_type' => $errorBody['error']['type'] ?? 'unknown',
+                        'error_message' => $errorMessage,
+                        'error_type' => $errorType,
+                        'error_code' => $errorCode,
                         'response_preview' => substr($response->body(), 0, 500)
                     ]);
+                    
+                    // Si c'est une erreur de clé API invalide, ne pas essayer Groq
+                    if ($response->status() === 401 || 
+                        strpos(strtolower($errorMessage), 'invalid api key') !== false ||
+                        strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
+                        ($errorCode && strpos(strtolower($errorCode), 'invalid_api_key') !== false)) {
+                        Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
+                            'error_message' => $errorMessage
+                        ]);
+                        // Ne pas continuer vers Groq si ChatGPT a une clé invalide
+                        // (probablement que Groq a aussi une clé invalide)
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('Erreur appel ChatGPT', [
@@ -154,16 +171,30 @@ class AiService
                     $status = $groqResponse->status();
                     $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
                     $errorType = $errorBody['error']['type'] ?? 'unknown';
+                    $errorCode = $errorBody['error']['code'] ?? null;
                     
                     Log::error('Erreur API Groq', [
                         'status' => $status,
                         'error_message' => $errorMessage,
                         'error_type' => $errorType,
+                        'error_code' => $errorCode,
                         'estimated_input_tokens' => $estimatedInputTokens ?? 0,
                         'groq_max_tokens' => $groqMaxTokens ?? 0,
                         'response_preview' => substr($groqResponse->body(), 0, 500),
                         'full_response' => config('app.debug') ? $groqResponse->body() : null
                     ]);
+                    
+                    // Si c'est une erreur de clé API invalide, arrêter les tentatives
+                    if ($status === 401 || 
+                        strpos(strtolower($errorMessage), 'invalid api key') !== false ||
+                        strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
+                        ($errorCode && strpos(strtolower($errorCode), 'invalid_api_key') !== false)) {
+                        Log::error('Groq: Clé API invalide, arrêt des tentatives', [
+                            'error_message' => $errorMessage
+                        ]);
+                        // Ne pas continuer avec les retries si la clé est invalide
+                        return null;
+                    }
                     
                     // Gérer spécifiquement l'erreur 413 (Request too large)
                     if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {

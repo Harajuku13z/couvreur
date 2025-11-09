@@ -192,12 +192,30 @@ class SeoAutomationManager
             $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors);
 
             if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
+                $errorMessage = 'Génération GPT échouée ou réponse invalide';
+                
+                // Vérifier les clés API pour un message plus précis
+                $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
+                $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+                $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+                $groqApiKey = \App\Models\Setting::where('key', 'groq_api_key')->value('value');
+                
+                if ($chatgptEnabled && empty($chatgptApiKey)) {
+                    $errorMessage = 'Clé API ChatGPT manquante. Configurez-la dans "Configuration des APIs".';
+                } elseif ($chatgptEnabled && !empty($chatgptApiKey) && empty($groqApiKey)) {
+                    $errorMessage = 'Clé API ChatGPT invalide ou quota dépassé. Vérifiez votre clé ou configurez Groq.';
+                } elseif (empty($chatgptApiKey) && empty($groqApiKey)) {
+                    $errorMessage = 'Aucune clé API configurée. Configurez ChatGPT ou Groq dans "Configuration des APIs".';
+                } elseif (!empty($chatgptApiKey) && !empty($groqApiKey)) {
+                    $errorMessage = 'Erreur lors de l\'appel aux APIs. Vérifiez vos clés API et vos quotas (ChatGPT et Groq).';
+                }
+                
                 $steps[count($steps) - 1]['status'] = 'failed';
-                $steps[count($steps) - 1]['message'] = 'Génération GPT échouée ou réponse invalide';
+                $steps[count($steps) - 1]['message'] = $errorMessage;
                 if ($progressCallback) $progressCallback($steps);
                 $log->update([
                     'status' => 'failed',
-                    'error_message' => 'Génération GPT échouée ou réponse invalide',
+                    'error_message' => $errorMessage,
                     'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
                 ]);
                 return $log;
