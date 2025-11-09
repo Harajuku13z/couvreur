@@ -9,6 +9,7 @@ use App\Jobs\ProcessSeoCityJob;
 use App\Services\SerpApiService;
 use App\Services\GptSeoGenerator;
 use App\Services\GoogleIndexingService;
+use App\Services\AiService;
 use App\Models\KeywordImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
