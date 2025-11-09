@@ -682,17 +682,21 @@ function testApi(apiName, button) {
                 
                 // Afficher les tests d'URL
                 if (data.data.url_tests && Array.isArray(data.data.url_tests)) {
-                    html += '<div class="mt-2 font-semibold">Tests d\'indexation:</div>';
-                    data.data.url_tests.forEach(function(test) {
-                        const testBgClass = test.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700';
+                    html += '<div class="mt-3 font-semibold border-t pt-2">Tests d\'indexation par protocole:</div>';
+                    data.data.url_tests.forEach(function(test, index) {
+                        const testBgClass = test.success ? 'bg-green-50 text-green-700 border-green-300' : 'bg-red-50 text-red-700 border-red-300';
                         const testIcon = test.success ? 'check-circle' : 'times-circle';
-                        html += '<div class="' + testBgClass + ' border rounded p-1 mt-1">';
-                        html += '<i class="fas fa-' + testIcon + ' mr-1"></i>';
-                        html += '<strong>' + test.url + '</strong>: ';
-                        html += test.message;
+                        html += '<div class="' + testBgClass + ' border rounded-lg p-2 mt-2">';
+                        html += '<div class="flex items-start">';
+                        html += '<i class="fas fa-' + testIcon + ' mr-2 mt-0.5"></i>';
+                        html += '<div class="flex-1">';
+                        html += '<div class="font-mono text-sm font-bold mb-1">' + test.url + '</div>';
+                        html += '<div class="text-xs">' + test.message + '</div>';
                         if (test.error_code) {
-                            html += ' (Code: ' + test.error_code + ')';
+                            html += '<div class="text-xs mt-1 opacity-75">Code d\'erreur: ' + test.error_code + '</div>';
                         }
+                        html += '</div>';
+                        html += '</div>';
                         html += '</div>';
                     });
                 } else if (typeof data.data === 'object') {
