@@ -56,14 +56,25 @@ class SerpApiService
                 throw new \Exception('Paramètre q ou cat requis pour Google Trends');
             }
             
+            // Vérifier que la clé API est bien présente
+            if (empty($params['api_key'])) {
+                Log::error('SerpAPI: Clé API vide dans les paramètres');
+                throw new \Exception('Clé API SerpAPI vide');
+            }
+            
             Log::info('SerpAPI Trends request', [
                 'engine' => $params['engine'],
                 'q' => $params['q'] ?? null,
                 'cat' => $params['cat'] ?? null,
                 'geo' => $geo,
                 'data_type' => $params['data_type'] ?? null,
-                'has_api_key' => !empty($this->apiKey)
+                'has_api_key' => !empty($this->apiKey),
+                'api_key_length' => strlen($this->apiKey ?? '')
             ]);
+            
+            // Construire l'URL manuellement pour vérifier que les paramètres sont bien passés
+            $url = 'https://serpapi.com/search.json?' . http_build_query($params);
+            Log::debug('SerpAPI URL construite', ['url' => preg_replace('/api_key=[^&]+/', 'api_key=***', $url)]);
             
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
 
