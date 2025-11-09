@@ -129,104 +129,115 @@ class AiService
                     }
                 }
                 
-                Log::info('Tentative appel ChatGPT', [
+                Log::info('Tentative appel ChatGPT via openai-php/laravel', [
                     'model' => $model,
                     'max_tokens' => $maxTokens,
                     'temperature' => $temperature,
                     'messages_count' => count($messages),
-                    'total_prompt_length' => strlen($prompt),
-                    'api_key_length' => strlen($chatgptApiKey)
+                    'total_prompt_length' => strlen($prompt)
                 ]);
                 
-                $requestBody = [
+                // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
+                $response = OpenAI::chat()->create([
                     'model' => $model,
                     'messages' => $messages,
                     'temperature' => $temperature,
                     'max_tokens' => $maxTokens,
+                ]);
+                
+                $content = $response->choices[0]->message->content ?? '';
+                
+                if (empty($content)) {
+                    Log::warning('ChatGPT: Réponse vide', [
+                        'choices_count' => count($response->choices ?? [])
+                    ]);
+                    return null;
+                }
+                
+                Log::info('Réponse ChatGPT réussie via openai-php/laravel', [
+                    'content_length' => strlen($content),
+                    'model' => $model,
+                    'provider' => 'chatgpt'
+                ]);
+                
+                return [
+                    'content' => $content,
+                    'provider' => 'chatgpt',
+                    'model' => $model
                 ];
                 
-                Log::info('AiService: Requête OpenAI', [
+            } catch (\OpenAI\Exceptions\ErrorException $e) {
+                $errorMessage = $e->getMessage();
+                $errorCode = $e->getCode();
+                
+                Log::error('Erreur API OpenAI (openai-php/laravel)', [
+                    'error_message' => $errorMessage,
+                    'error_code' => $errorCode,
                     'model' => $model,
                     'max_tokens' => $maxTokens,
-                    'request_body' => json_encode($requestBody)
+                    'chatgpt_enabled' => $chatgptEnabled
                 ]);
                 
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $chatgptApiKey,
-                    'Content-Type' => 'application/json',
-                ])->timeout($timeout)->post('https://api.openai.com/v1/chat/completions', $requestBody);
+                // Si c'est une erreur de max_tokens, essayer avec gpt-4o
+                if (strpos(strtolower($errorMessage), 'max_tokens') !== false && strpos(strtolower($errorMessage), 'too large') !== false) {
+                    if ($model !== 'gpt-4o') {
+                        Log::warning('AiService: Erreur max_tokens, tentative avec gpt-4o', [
+                            'original_model' => $model,
+                            'max_tokens' => $maxTokens
+                        ]);
+                        
+                        try {
+                            $response = OpenAI::chat()->create([
+                                'model' => 'gpt-4o',
+                                'messages' => $messages,
+                                'temperature' => $temperature,
+                                'max_tokens' => $maxTokens,
+                            ]);
+                            
+                            $content = $response->choices[0]->message->content ?? '';
+                            
+                            if (!empty($content)) {
+                                Log::info('Réponse ChatGPT réussie avec gpt-4o après erreur', [
+                                    'content_length' => strlen($content)
+                                ]);
+                                
+                                return [
+                                    'content' => $content,
+                                    'provider' => 'chatgpt',
+                                    'model' => 'gpt-4o'
+                                ];
+                            }
+                        } catch (\Exception $retryException) {
+                            Log::error('Erreur lors de la tentative avec gpt-4o', [
+                                'error' => $retryException->getMessage()
+                            ]);
+                        }
+                    }
+                }
                 
-                Log::info('Réponse ChatGPT reçue', [
-                    'status' => $response->status(),
-                    'successful' => $response->successful()
-                ]);
+                // Si c'est une erreur de clé API invalide, arrêter les tentatives
+                if (strpos(strtolower($errorMessage), 'invalid api key') !== false ||
+                    strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
+                    $errorCode === 401) {
+                    Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
+                        'error_message' => $errorMessage
+                    ]);
+                    return null;
+                }
                 
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $content = $data['choices'][0]['message']['content'] ?? '';
-                    
-                    if (empty($content)) {
-                        Log::warning('ChatGPT: Réponse vide', [
-                            'data_keys' => array_keys($data ?? []),
-                            'choices_count' => isset($data['choices']) ? count($data['choices']) : 0
-                        ]);
-                        return null;
-                    }
-                    
-                    Log::info('Réponse ChatGPT réussie', [
-                        'content_length' => strlen($content),
-                        'model' => $model,
-                        'provider' => 'chatgpt'
+                // Si c'est une erreur de quota ou rate limit, logger mais continuer
+                if (strpos(strtolower($errorMessage), 'rate limit') !== false ||
+                    strpos(strtolower($errorMessage), 'quota') !== false ||
+                    strpos(strtolower($errorMessage), 'billing') !== false ||
+                    $errorCode === 429) {
+                    Log::error('ChatGPT: Quota ou rate limit dépassé', [
+                        'error_message' => $errorMessage
                     ]);
-                    
-                    return [
-                        'content' => $content,
-                        'provider' => 'chatgpt'
-                    ];
-                } else {
-                    $errorBody = $response->json();
-                    $errorMessage = $errorBody['error']['message'] ?? 'Unknown error';
-                    $errorType = $errorBody['error']['type'] ?? 'unknown';
-                    $errorCode = $errorBody['error']['code'] ?? null;
-                    
-                    // Logger l'erreur complète pour diagnostic
-                    $errorBodyFull = $response->body();
-                    Log::error('Erreur API OpenAI', [
-                        'status' => $response->status(),
-                        'error_message' => $errorMessage,
-                        'error_type' => $errorType,
-                        'error_code' => $errorCode,
-                        'response_body' => substr($errorBodyFull, 0, 1000),
-                        'chatgpt_enabled' => $chatgptEnabled,
-                        'api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0
-                    ]);
-                    
-                    // Si c'est une erreur de clé API invalide, ne pas essayer Groq
-                    if ($response->status() === 401 || 
-                        strpos(strtolower($errorMessage), 'invalid api key') !== false ||
-                        strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
-                        ($errorCode && strpos(strtolower($errorCode), 'invalid_api_key') !== false)) {
-                        Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
-                            'error_message' => $errorMessage,
-                            'status' => $response->status()
-                        ]);
-                        return null;
-                    }
-                    
-                    // Si c'est une erreur de quota ou rate limit, logger mais continuer
-                    if ($response->status() === 429 || 
-                        strpos(strtolower($errorMessage), 'rate limit') !== false ||
-                        strpos(strtolower($errorMessage), 'quota') !== false ||
-                        strpos(strtolower($errorMessage), 'billing') !== false) {
-                        Log::error('ChatGPT: Quota ou rate limit dépassé', [
-                            'error_message' => $errorMessage,
-                            'status' => $response->status()
-                        ]);
-                        return null;
-                    }
-                    
-                    // Si ChatGPT est activé, ne pas utiliser Groq en fallback
-                    // Forcer l'utilisation de ChatGPT uniquement
+                    return null;
+                }
+                
+                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
+                // Forcer l'utilisation de ChatGPT uniquement
                     Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
                         'error_message' => $errorMessage,
                         'status' => $response->status(),
