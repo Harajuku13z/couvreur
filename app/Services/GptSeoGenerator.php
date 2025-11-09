@@ -379,7 +379,7 @@ Conclusion : résumé + incitation à passer à l'action.
    - Utiliser \"vous\" pour s'adresser directement au lecteur
    - **IMPORTANT : Pas de description de la ville au début, aller directement au sujet**
 
-2. **SECTIONS PRINCIPALES (H2)** - Minimum 4-5 sections pour un contenu complet :
+2. **SECTIONS PRINCIPALES (H2)** - Minimum 5-6 sections pour un contenu PREMIUM :
    - Chaque section doit avoir un titre clair et descriptif lié au mot-clé principal ({$keyword})
    - Chaque section doit contenir 3-5 paragraphes de contenu détaillé et informatif
    - **CRITIQUE : Se concentrer sur le sujet ({$keyword}), pas sur les services de l'entreprise**
@@ -390,14 +390,14 @@ Conclusion : résumé + incitation à passer à l'action.
    - **NE PAS faire référence aux services de l'entreprise de manière répétitive ou commerciale**
 
 3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
-   - Créer 1-2 sous-sections avec des titres spécifiques liés au sujet de la section
+   - Créer 2-3 sous-sections avec des titres spécifiques liés au sujet de la section
    - **IMPORTANT : Les sous-sections doivent être pertinentes au mot-clé et au sujet traité**
    - Exemples de sous-sections pertinentes : \"Les Étapes de [Sujet]\", \"Les Avantages de [Sujet]\", \"Comment [Sujet] à {$cityName}\"
 
 4. **LISTES À PUCES (<ul><li>)** :
    - Utiliser des listes à puces pour détailler les informations, matériaux, avantages
    - Format HTML: <ul><li>Élément 1 : Description détaillée</li><li>Élément 2 : Description détaillée</li></ul>
-   - Minimum 2-3 listes dans l'article
+   - Minimum 4-5 listes dans l'article (une par section H2 principale)
 
 5. **LISTES NUMÉROTÉES (<ol><li>)** :
    - Utiliser pour les processus étape par étape
@@ -423,19 +423,20 @@ Optimise la lisibilité (style professionnel et fluide).
 
 Ne copie aucun contenu, crée un texte 100 % original.
 
-**RÈGLES SEO STRICTES (Score minimum 90/100 requis) :**
+**RÈGLES SEO STRICTES (Score minimum 90/100 OBLIGATOIRE) :**
 
-- **Densité du mot-clé principal :** 1% à 2% naturellement intégré (ni trop, ni trop peu)
-- **Mots-clés secondaires :** Intégrer des variantes et mots-clés sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, etc.)
-- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\", adapté au secteur du bâtiment
-- **Longueur :** Entre 2000 et 3000 mots pour un contenu complet et détaillé (minimum 2000 mots)
-- **Paragraphes :** Courts (3-5 phrases max), aérés, faciles à lire
-- **Phrases :** Claires, 15-20 mots max, style fluide et professionnel
-- **Mots-clés :** Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes et expressions sémantiques
-- **Détails techniques :** Inclure des informations précises (matériaux, normes RGE, processus, étapes, conseils d'entretien)
-- **Localisation :** Mentionner {$cityName}, le département (Côte-d'Or), et le contexte local naturellement
+- **Densité du mot-clé principal :** 1.5% à 2% naturellement intégré (optimal pour SEO)
+- **Mots-clés secondaires :** Intégrer 10-15 variantes et mots-clés sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, matériaux, normes RGE, etc.)
+- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\", adapté au secteur du bâtiment, avec une touche d'autorité
+- **Longueur :** Entre 2500 et 3500 mots pour un contenu PREMIUM et exhaustif (minimum 2500 mots, idéal 3000+)
+- **Paragraphes :** Courts (3-5 phrases max), aérés, faciles à lire, avec transitions fluides
+- **Phrases :** Claires, 12-18 mots max, style fluide et professionnel, variété dans la longueur
+- **Mots-clés :** Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes et expressions sémantiques dans les titres H2/H3 ET dans le corps
+- **Détails techniques :** Inclure des informations PRÉCISES et EXHAUSTIVES (matériaux avec caractéristiques, normes RGE détaillées, processus étape par étape, conseils d'entretien pratiques, prix indicatifs si pertinent)
+- **Localisation :** Mentionner {$cityName}, le département (Côte-d'Or), et le contexte local naturellement dans 3-4 sections minimum
 - **Services liés :** " . ($relatedServicesText ? "Si le sujet le permet, mentionner naturellement les services liés : {$relatedServicesText}. Par exemple, si on parle de rénovation toiture, mentionner hydrofuge, demoussage, réparation, zinguerie, etc. Si on parle d'isolation, mentionner tout ce qui est lié à l'isolation : isolation thermique, isolation phonique, matériaux isolants, etc.\n" : "") . "- **Originalité :** Ne copie AUCUN contenu, crée un texte 100% original basé sur une synthèse des meilleures informations
 - **IMPORTANT :** Ne pas faire référence aux services de l'entreprise de manière répétitive ou commerciale. Se concentrer sur le sujet ({$keyword}) et mentionner les services liés naturellement dans le contexte
+- **QUALITÉ PREMIUM :** L'article doit être de qualité supérieure aux sources concurrentes : plus complet, mieux structuré, mieux rédigé, plus informatif
 
 **IMPORTANT - COHÉRENCE TITRE/CONTENU :**
 - Si le titre mentionne \"conseils\", le contenu DOIT contenir des conseils pratiques détaillés
