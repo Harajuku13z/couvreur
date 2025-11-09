@@ -685,10 +685,12 @@ function testApi(apiName, button) {
                 }
                 
                 // Afficher les tests d'URL
+                console.log('url_tests:', data.data.url_tests);
                 if (data.data.url_tests && Array.isArray(data.data.url_tests) && data.data.url_tests.length > 0) {
                     html += '<div class="mt-3">';
-                    html += '<div class="font-semibold mb-2 text-sm">Tests d\'indexation par protocole:</div>';
+                    html += '<div class="font-semibold mb-2 text-sm">Tests d\'indexation par protocole (' + data.data.url_tests.length + ' tests):</div>';
                     data.data.url_tests.forEach(function(test, index) {
+                        console.log('Test URL:', test);
                         const testBgClass = test.success ? 'bg-green-50 text-green-800 border-green-300' : 'bg-red-50 text-red-800 border-red-300';
                         const testIcon = test.success ? 'check-circle' : 'times-circle';
                         html += '<div class="' + testBgClass + ' border-2 rounded-lg p-3 mb-2">';
