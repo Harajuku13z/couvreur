@@ -43,7 +43,8 @@ class RunSeoAutomations extends Command
         $this->info("Traitement de " . $cities->count() . " ville(s) favorite(s)...");
 
         foreach ($cities as $index => $city) {
-            $this->info("Ville #{$index + 1}: {$city->name} (#{$city->id})");
+            $cityNumber = $index + 1;
+            $this->info("Ville #{$cityNumber}: {$city->name} (#{$city->id})");
             
             // Dispatcher le job avec un délai échelonné pour éviter les rate limits
             ProcessSeoCityJob::dispatch($city->id)
