@@ -103,24 +103,39 @@ class AiService
                         strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
                         ($errorCode && strpos(strtolower($errorCode), 'invalid_api_key') !== false)) {
                         Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
-                            'error_message' => $errorMessage
+                            'error_message' => $errorMessage,
+                            'status' => $response->status()
                         ]);
-                        // Ne pas continuer vers Groq si ChatGPT a une clé invalide
-                        // (probablement que Groq a aussi une clé invalide)
+                        // Retourner null immédiatement si ChatGPT est activé mais clé invalide
+                        // Ne pas utiliser Groq en fallback si ChatGPT est activé
+                        return null;
                     }
+                    
+                    // Si ChatGPT est activé, ne pas utiliser Groq en fallback
+                    // Forcer l'utilisation de ChatGPT uniquement
+                    Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
+                        'error_message' => $errorMessage,
+                        'status' => $response->status()
+                    ]);
+                    return null;
                 }
             } catch (\Exception $e) {
                 Log::error('Erreur appel ChatGPT', [
                     'message' => $e->getMessage(),
                     'trace' => config('app.debug') ? $e->getTraceAsString() : null
                 ]);
+                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
+                if ($chatgptEnabled) {
+                    return null;
+                }
             }
         } else {
             Log::info('ChatGPT désactivé ou clé manquante, utilisation de Groq');
         }
         
-        // Fallback sur Groq si ChatGPT a échoué ou est désactivé
-        if ($groqApiKey) {
+        // Fallback sur Groq UNIQUEMENT si ChatGPT est désactivé ou clé manquante
+        // Si ChatGPT est activé mais échoue, on ne doit PAS utiliser Groq
+        if (!$chatgptEnabled && $groqApiKey) {
             try {
                 $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
                 $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');

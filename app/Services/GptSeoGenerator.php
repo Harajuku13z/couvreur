@@ -28,11 +28,59 @@ class GptSeoGenerator
         string $keyword,
         string $cityName,
         array $relatedQueries = [],
-        array $competitors = []
+        array $competitors = [],
+        ?callable $progressCallback = null
     ): ?array {
         $prompt = $this->buildPrompt($keyword, $cityName, $relatedQueries, $competitors);
         
         $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
+        
+        // Étape 1: Générer uniquement le titre d'abord
+        if ($progressCallback) {
+            $progressCallback([
+                'step' => 'title_generation',
+                'message' => 'Génération du titre optimisé...'
+            ]);
+        }
+        
+        $titlePrompt = "Pour le mot-clé \"{$keyword}\" ciblant la ville {$cityName}, génère UNIQUEMENT un titre d'article SEO optimisé (60-70 caractères max).\n\nRetourne UNIQUEMENT le titre, sans formatage, sans JSON, juste le titre.";
+        
+        $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
+            'max_tokens' => 100,
+            'temperature' => 0.3,
+            'timeout' => 30
+        ]);
+        
+        $generatedTitle = null;
+        if ($titleResult && isset($titleResult['content'])) {
+            $generatedTitle = trim($titleResult['content']);
+            // Nettoyer le titre (enlever guillemets, markdown, etc.)
+            $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
+            $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
+            $generatedTitle = trim($generatedTitle);
+            
+            if ($progressCallback) {
+                $progressCallback([
+                    'step' => 'title_generated',
+                    'message' => 'Titre généré: ' . $generatedTitle,
+                    'title' => $generatedTitle
+                ]);
+            }
+            
+            Log::info('GptSeoGenerator: Titre généré', [
+                'keyword' => $keyword,
+                'city' => $cityName,
+                'title' => $generatedTitle
+            ]);
+        }
+        
+        // Étape 2: Générer l'article complet avec le titre
+        if ($progressCallback) {
+            $progressCallback([
+                'step' => 'article_generation',
+                'message' => 'Génération de l\'article complet...'
+            ]);
+        }
         
         $result = AiService::callAI($prompt, $systemMessage, [
             'max_tokens' => 8000, // Augmenté pour articles 1500-2500 mots
@@ -101,10 +149,19 @@ class GptSeoGenerator
             return null;
         }
 
+        // Utiliser le titre généré précédemment si disponible et si le titre du JSON est vide
+        if (empty($decoded['titre']) && $generatedTitle) {
+            $decoded['titre'] = $generatedTitle;
+            Log::info('GptSeoGenerator: Utilisation du titre généré précédemment', [
+                'title' => $generatedTitle
+            ]);
+        }
+        
         if (empty($decoded['titre']) || empty($decoded['contenu_html'])) {
             Log::error('GptSeoGenerator: Données invalides (titre ou contenu_html manquant)', [
                 'has_titre' => !empty($decoded['titre']),
                 'has_contenu_html' => !empty($decoded['contenu_html']),
+                'generated_title' => $generatedTitle,
                 'decoded_keys' => array_keys($decoded ?? [])
             ]);
             return null;

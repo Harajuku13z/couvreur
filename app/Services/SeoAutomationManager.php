@@ -184,12 +184,25 @@ class SeoAutomationManager
                 'step' => 'gpt_generation',
                 'title' => 'Génération du contenu (GPT)',
                 'status' => 'processing',
-                'message' => 'Création du contenu optimisé avec GPT...',
+                'message' => 'Génération du titre optimisé...',
                 'data' => []
             ];
             if ($progressCallback) $progressCallback($steps);
             
-            $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors);
+            $gptProgressCallback = function($progressData) use (&$steps, $progressCallback) {
+                if (isset($progressData['step'])) {
+                    $stepIndex = count($steps) - 1;
+                    if ($progressData['step'] === 'title_generated' && isset($progressData['title'])) {
+                        $steps[$stepIndex]['message'] = 'Titre généré: ' . $progressData['title'];
+                        $steps[$stepIndex]['data'] = ['title' => $progressData['title']];
+                    } elseif ($progressData['step'] === 'article_generation') {
+                        $steps[$stepIndex]['message'] = 'Génération de l\'article complet...';
+                    }
+                    if ($progressCallback) $progressCallback($steps);
+                }
+            };
+            
+            $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors, $gptProgressCallback);
 
             if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
                 $errorMessage = 'Génération GPT échouée ou réponse invalide';
