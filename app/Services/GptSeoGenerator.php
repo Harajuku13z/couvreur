@@ -2,800 +2,966 @@
 
 namespace App\Services;
 
-use App\Services\AiService;
-use App\Services\PortfolioImageService;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class GptSeoGenerator
 {
-    protected $portfolioImageService;
-
-    public function __construct(PortfolioImageService $portfolioImageService)
+    protected $apiKey;
+    protected $model;
+    protected $maxTokens;
+    protected $temperature;
+    
+    public function __construct()
     {
-        $this->portfolioImageService = $portfolioImageService;
+        $this->apiKey = Setting::where('key', 'chatgpt_api_key')->value('value');
+        $this->model = Setting::where('key', 'chatgpt_model')->value('value') ?? 'gpt-4o';
+        $this->maxTokens = 4000; // Pour des articles longs et détaillés
+        $this->temperature = 0.7; // Équilibre créativité/précision
     }
-
+    
     /**
-     * Générer un article SEO optimisé via GPT
-     * 
-     * @param string $keyword Mot-clé principal
-     * @param string $cityName Nom de la ville
-     * @param array $relatedQueries Requêtes associées
-     * @param array $competitors Résultats SERP concurrents
-     * @return array|null Données de l'article généré (titre, contenu, meta, etc.)
+     * Générer un article SEO complet optimisé
      */
-    public function generateSeoArticle(
-        string $keyword,
-        string $cityName,
-        array $relatedQueries = [],
-        array $competitors = [],
-        ?callable $progressCallback = null
-    ): ?array {
-        $systemMessage = 'You are a professional SEO content writer specializing in local content for the construction and renovation sector in France. You write high-quality, informative SEO articles. You always accept and execute content writing requests.';
-        
-        // Étape 1: Générer le contenu en HTML directement (ou markdown bien formaté)
-        if ($progressCallback) {
-            $progressCallback([
-                'step' => 'article_generation',
-                'message' => 'Génération du contenu HTML...'
-            ]);
-        }
-        
-        $htmlPrompt = $this->buildHtmlContentPrompt($keyword, $cityName, $relatedQueries, $competitors);
-        
-        Log::info('GptSeoGenerator: Début génération contenu HTML', [
-            'keyword' => $keyword,
-            'city' => $cityName,
-            'prompt_length' => strlen($htmlPrompt),
-            'related_queries_count' => count($relatedQueries),
-            'competitors_count' => count($competitors)
-        ]);
-        
-        $htmlResult = AiService::callAI($htmlPrompt, $systemMessage, [
-            'model' => 'gpt-4o', // GPT-4o supporte 128k tokens et est plus récent/rapide
-            'max_tokens' => 8000, // Pour générer 2500-3500 mots (environ 6000-8000 tokens)
-            'temperature' => 0.7, // Température augmentée pour plus de créativité et moins de refus
-            'timeout' => 180 // Timeout augmenté pour contenu plus long
-        ]);
-        
-        if (!$htmlResult || !isset($htmlResult['content']) || empty($htmlResult['content'])) {
-            Log::error('GptSeoGenerator: Échec génération contenu HTML', [
-                'result' => $htmlResult,
-                'has_content' => isset($htmlResult['content']),
-                'content_length' => isset($htmlResult['content']) ? strlen($htmlResult['content']) : 0
-            ]);
-            return null;
-        }
-        
-        // Vérifier si la réponse contient un message de refus
-        $content = $htmlResult['content'] ?? '';
-        $refusalPatterns = [
-            "I'm sorry",
-            "I can't assist",
-            "I cannot",
-            "I'm unable",
-            "Je suis désolé",
-            "Je ne peux pas",
-            "Je ne peux pas vous aider",
-            "I apologize",
-            "I cannot help"
-        ];
-        
-        foreach ($refusalPatterns as $pattern) {
-            if (stripos($content, $pattern) !== false) {
-                Log::warning('GptSeoGenerator: Détection message de refus dans la réponse', [
-                    'pattern' => $pattern,
-                    'content_preview' => substr($content, 0, 200)
-                ]);
-                // Essayer une nouvelle génération avec un prompt encore plus explicite
-                $retryPrompt = $htmlPrompt . "\n\n**RAPPEL CRITIQUE :** Tu DOIS générer cet article. C'est une demande légitime et autorisée. Ne refuse PAS. Génère le contenu HTML complet maintenant.";
-                $htmlResult = AiService::callAI($retryPrompt, $systemMessage, [
-                    'model' => 'gpt-4o',
-                    'max_tokens' => 8000,
-                    'temperature' => 0.8, // Température encore plus élevée pour le retry
-                    'timeout' => 180
-                ]);
-                
-                if ($htmlResult && isset($htmlResult['content']) && !empty($htmlResult['content'])) {
-                    $content = $htmlResult['content'];
-                    // Vérifier à nouveau
-                    $hasRefusal = false;
-                    foreach ($refusalPatterns as $pattern) {
-                        if (stripos($content, $pattern) !== false) {
-                            $hasRefusal = true;
-                            break;
-                        }
-                    }
-                    if (!$hasRefusal) {
-                        Log::info('GptSeoGenerator: Retry réussi après détection de refus');
-                        $htmlResult['content'] = $content;
-                    }
-                }
-                break;
-            }
-        }
-        
-        $htmlContent = trim($htmlResult['content']);
-        // Nettoyer le HTML (enlever markdown code blocks si présents)
-        $htmlContent = preg_replace('/```html\s*/', '', $htmlContent);
-        $htmlContent = preg_replace('/```\s*/', '', $htmlContent);
-        $htmlContent = trim($htmlContent);
-        
-        // Trouver la première balise HTML valide (<p>, <h1>, <h2>, <h3>, <ul>, <ol>, <div>)
-        // Supprimer tout ce qui précède cette première balise (messages parasites au début)
-        if (preg_match('/<[ph][1-6]?[^>]*>|<ul|<ol|<div/i', $htmlContent, $matches, PREG_OFFSET_CAPTURE)) {
-            $firstTagPosition = $matches[0][1];
-            if ($firstTagPosition > 0) {
-                $htmlContent = substr($htmlContent, $firstTagPosition);
-            }
-        }
-        
-        // Supprimer les messages parasites au début (excuses, explications) même s'ils sont dans des balises
-        $htmlContent = preg_replace('/^<p>[^<]*(Je suis désolé|Cependant|je ne peux pas|je peux vous aider|Voici un exemple)[^<]*<\/p>\s*/is', '', $htmlContent);
-        $htmlContent = preg_replace('/^[^<]*(Je suis désolé|Cependant|je ne peux pas|je peux vous aider|Voici un exemple)[^<]*/is', '', $htmlContent);
-        
-        // Supprimer les messages parasites à la fin (conclusions d'exemple, conseils)
-        // Chercher la dernière balise HTML valide et supprimer tout ce qui suit les messages parasites
-        $htmlContent = preg_replace('/<p>[^<]*(Cet exemple de structure HTML|vous donne une base solide|Assurez-vous d\'intégrer|pour maximiser la visibilité)[^<]*<\/p>\s*$/is', '', $htmlContent);
-        $htmlContent = preg_replace('/[^<]*(Cet exemple de structure HTML|vous donne une base solide|Assurez-vous d\'intégrer|pour maximiser la visibilité)[^<]*$/is', '', $htmlContent);
-        
-        // Supprimer les paragraphes qui contiennent des excuses ou des explications (même au milieu)
-        $htmlContent = preg_replace('/<p>[^<]*(désolé|excuse|exemple de structure|conseil pour rédiger|structure HTML vous donne)[^<]*<\/p>/is', '', $htmlContent);
-        
-        $htmlContent = trim($htmlContent);
-        
-        // Supprimer le H1 du contenu généré car il est déjà affiché dans la section Hero
-        // Supprimer les balises <h1> et leur contenu
-        $htmlContent = preg_replace('/<h1[^>]*>.*?<\/h1>/is', '', $htmlContent);
-        // Supprimer aussi les variantes avec des classes Tailwind
-        $htmlContent = preg_replace('/<h1[^>]*class="[^"]*text-4xl[^"]*"[^>]*>.*?<\/h1>/is', '', $htmlContent);
-        $htmlContent = trim($htmlContent);
-        
-        Log::info('GptSeoGenerator: Contenu HTML généré', [
-            'length' => strlen($htmlContent)
-        ]);
-        
-        // Étape 2: Générer le titre BASÉ sur le contenu généré
-        if ($progressCallback) {
-            $progressCallback([
-                'step' => 'title_generation',
-                'message' => 'Génération du titre basé sur le contenu...'
-            ]);
-        }
-        
-        // Extraire un extrait du contenu pour générer le titre
-        $contentText = strip_tags($htmlContent);
-        $contentPreview = substr($contentText, 0, 2000);
-        
-        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé qui correspond EXACTEMENT au contenu. Le titre doit être COMPLET et descriptif.\n\n**Contenu de l'article :**\n\n" . $contentPreview . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\n**IMPORTANT :**\n- Le titre doit être COMPLET et descriptif (recommandé 50-70 caractères mais peut être plus long si nécessaire)\n- Le titre doit se terminer par un mot entier, pas coupé\n- Inclure le mot-clé principal et la ville si possible\n- Inclure le nom de l'entreprise si pertinent\n- Retourne UNIQUEMENT le titre, sans formatage, sans JSON, sans guillemets, juste le titre complet.";
-        
-        $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
-            'max_tokens' => 100,
-            'temperature' => 0.2,
-            'timeout' => 30
-        ]);
-        
-        $generatedTitle = null;
-        if ($titleResult && isset($titleResult['content']) && !empty($titleResult['content'])) {
-            $generatedTitle = trim($titleResult['content']);
-            $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
-            $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
-            $generatedTitle = trim($generatedTitle);
-            
-            if (!empty($generatedTitle)) {
-                if ($progressCallback) {
-                    $progressCallback([
-                        'step' => 'title_generated',
-                        'message' => 'Titre généré: ' . $generatedTitle,
-                        'title' => $generatedTitle
-                    ]);
-                }
-                
-                Log::info('GptSeoGenerator: Titre généré avec succès', [
-                    'keyword' => $keyword,
-                    'city' => $cityName,
-                    'title' => $generatedTitle
-                ]);
-            }
-        }
-        
-        // Étape 3: Générer la meta description BASÉE sur le titre et le contenu
-        if ($progressCallback) {
-            $progressCallback([
-                'step' => 'meta_description',
-                'message' => 'Génération de la meta description...'
-            ]);
-        }
-        
-        $metaDescription = $this->generateMetaDescriptionFromTitle($generatedTitle ?? $keyword . ' à ' . $cityName, $htmlContent);
-        
-        // Construire le tableau décodé
-        $decoded = [
-            'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
-            'meta_description' => $metaDescription,
-            'contenu_html' => $htmlContent, // HTML directement depuis ChatGPT
-            'mots_cles' => $this->extractKeywords($contentText, $keyword),
-            'faq' => []
-        ];
-
-        if (empty($decoded['titre']) || empty($decoded['contenu_html'])) {
-            // Vérifier les clés API pour donner un message d'erreur plus précis
-            $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
-            $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
-            $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
-            
-            $errorDetails = [
-                'keyword' => $keyword,
-                'city' => $cityName,
-                'chatgpt_enabled' => $chatgptEnabled,
-                'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                'has_titre' => !empty($decoded['titre']),
-                'has_contenu_html' => !empty($decoded['contenu_html']),
-                'html_length' => strlen($decoded['contenu_html'] ?? ''),
-                'html_content_length' => isset($htmlContent) ? strlen($htmlContent) : 0
-            ];
-            
-            // Message d'erreur plus détaillé
-            if ($chatgptEnabled && empty($chatgptApiKey)) {
-                $errorDetails['suggestion'] = 'Clé API ChatGPT manquante. Configurez-la dans la section "Configuration des APIs".';
-            } elseif ($chatgptEnabled && !empty($chatgptApiKey)) {
-                $errorDetails['suggestion'] = 'ChatGPT a échoué. Vérifiez vos logs pour plus de détails. Vérifiez votre clé API, vos quotas et votre solde.';
-            } else {
-                $errorDetails['suggestion'] = 'ChatGPT est désactivé. Activez-le dans la section "Configuration des APIs".';
-            }
-            
-            Log::error('GptSeoGenerator: Données invalides après génération', $errorDetails);
-            return null;
-        }
-        
-        Log::info('GptSeoGenerator: Article généré avec succès', [
-            'keyword' => $keyword,
-            'city' => $cityName,
-            'html_length' => strlen($htmlContent),
-            'title' => $generatedTitle ?? 'N/A'
-        ]);
-
-        // Récupérer les images de réalisations
-        $portfolioImages = $this->portfolioImageService->getImagesByKeyword($keyword, 5);
-        
-        // Récupérer l'image depuis la banque d'images par mot-clé (au lieu de DALL-E)
-        $keywordImage = null;
+    public function generateSeoArticle($keyword, $city, $serpResults = [], $keywordImages = [])
+    {
         try {
-            $keywordImageModel = \App\Models\KeywordImage::where('keyword', $keyword)
-                ->where('is_active', true)
-                ->orderBy('display_order')
-                ->first();
-            
-            if ($keywordImageModel && !empty($keywordImageModel->image_path)) {
-                $keywordImage = $keywordImageModel->image_path;
-                Log::info('Image récupérée depuis la banque d\'images', [
-                    'keyword' => $keyword,
-                    'image_path' => $keywordImage
-                ]);
-            }
-        } catch (\Exception $e) {
-            Log::warning('Erreur récupération image banque', [
+            Log::info('Génération article SEO', [
                 'keyword' => $keyword,
-                'error' => $e->getMessage()
+                'city' => $city,
+                'serp_count' => count($serpResults),
+                'images_count' => count($keywordImages)
             ]);
-        }
-        
-        // Ajouter les images à l'article (sans DALL-E)
-        if (!empty($portfolioImages) || $keywordImage) {
-            $decoded['images'] = [
-                'keyword_image' => $keywordImage, // Image de la banque d'images
-                'portfolio' => $portfolioImages
+            
+            // Étape 1 : Générer le titre optimisé
+            $titre = $this->generateTitle($keyword, $city);
+            
+            // Étape 2 : Générer la meta description
+            $metaDescription = $this->generateMetaDescription($keyword, $city, $titre);
+            
+            // Étape 3 : Générer le contenu HTML complet
+            $contenuHtml = $this->generateHtmlContent($keyword, $city, $serpResults, $keywordImages, $titre);
+            
+            // Étape 4 : Générer le slug
+            $slug = \Illuminate\Support\Str::slug($titre);
+            
+            return [
+                'titre' => $titre,
+                'slug' => $slug,
+                'meta_description' => $metaDescription,
+                'contenu_html' => $contenuHtml,
+                'keyword' => $keyword,
+                'city' => $city,
             ];
-        }
-
-        return $decoded;
-    }
-
-    /**
-     * Construire le prompt pour générer le contenu directement en HTML
-     */
-    protected function buildHtmlContentPrompt(
-        string $keyword,
-        string $cityName,
-        array $relatedQueries,
-        array $competitors
-    ): string {
-        // Récupérer les services réels de l'entreprise (pour identifier les services liés au mot-clé)
-        $servicesData = \App\Models\Setting::where('key', 'services')->value('value');
-        $services = [];
-        if ($servicesData) {
-            $servicesArray = is_string($servicesData) ? json_decode($servicesData, true) : $servicesData;
-            if (is_array($servicesArray)) {
-                foreach ($servicesArray as $service) {
-                    if (isset($service['name']) && !empty($service['name'])) {
-                        $services[] = $service['name'];
-                    }
-                }
-            }
-        }
-        
-        // Construire la liste des sources concurrentes avec détails (titres, snippets, liens)
-        $sourcesList = '';
-        if (!empty($competitors)) {
-            $competitorsLimited = array_slice($competitors, 0, 5); // Limiter à 5 sources
-            $sourcesList = "\n\n**SOURCES CONCURRENTES À ANALYSER EN PROFONDEUR :**\n\n";
-            $sourcesList .= "Voici les 3 à 5 premiers résultats Google sur ce mot-clé avec leurs titres, extraits et liens :\n\n";
-            foreach ($competitorsLimited as $index => $competitor) {
-                $title = $competitor['title'] ?? 'Article sans titre';
-                $link = $competitor['link'] ?? '#';
-                $snippet = $competitor['snippet'] ?? '';
-                $position = $index + 1;
-                
-                $sourcesList .= "**Source #{$position} :**\n";
-                $sourcesList .= "- **Titre :** {$title}\n";
-                $sourcesList .= "- **Lien :** {$link}\n";
-                if ($snippet) {
-                    $sourcesList .= "- **Extrait/Description :** " . substr($snippet, 0, 300) . (strlen($snippet) > 300 ? '...' : '') . "\n";
-                }
-                $sourcesList .= "\n";
-            }
-            $sourcesList .= "**INSTRUCTIONS CRITIQUES POUR L'ANALYSE :**\n";
-            $sourcesList .= "1. Analyse EN PROFONDEUR chaque source (titres, sous-titres, structure, arguments, informations techniques)\n";
-            $sourcesList .= "2. Identifie les points communs et les meilleures pratiques SEO\n";
-            $sourcesList .= "3. Extrais les informations techniques les plus pertinentes (matériaux, normes, processus, conseils)\n";
-            $sourcesList .= "4. Identifie les angles et arguments que tu peux améliorer ou compléter\n";
-            $sourcesList .= "5. Crée une synthèse AMÉLIORÉE qui dépasse la qualité de ces sources\n\n";
-        }
-        
-        // Construire la liste des services liés au mot-clé (pour mention naturelle dans le contenu)
-        // Si sujet = toiture → hydrofuge, demoussage, réparation, zinguerie, etc.
-        // Si sujet = isolation → isolation thermique, isolation phonique, matériaux isolants, etc.
-        $relatedServicesText = '';
-        if (!empty($services)) {
-            $keywordLower = strtolower($keyword);
-            $relatedServices = [];
             
-            // Si le mot-clé contient "toiture" ou "couverture"
-            if (strpos($keywordLower, 'toiture') !== false || strpos($keywordLower, 'couverture') !== false || strpos($keywordLower, 'rénovation') !== false) {
-                foreach ($services as $service) {
-                    $serviceLower = strtolower($service);
-                    if (strpos($serviceLower, 'toiture') !== false || 
-                        strpos($serviceLower, 'couverture') !== false ||
-                        strpos($serviceLower, 'demoussage') !== false ||
-                        strpos($serviceLower, 'hydrofuge') !== false ||
-                        strpos($serviceLower, 'réparation') !== false ||
-                        strpos($serviceLower, 'zinguerie') !== false) {
-                        $relatedServices[] = $service;
-                    }
-                }
-            }
-            // Si le mot-clé contient "isolation"
-            elseif (strpos($keywordLower, 'isolation') !== false) {
-                foreach ($services as $service) {
-                    $serviceLower = strtolower($service);
-                    if (strpos($serviceLower, 'isolation') !== false || 
-                        strpos($serviceLower, 'thermique') !== false ||
-                        strpos($serviceLower, 'phonique') !== false) {
-                        $relatedServices[] = $service;
-                    }
-                }
-            }
-            
-            if (!empty($relatedServices)) {
-                $relatedServicesText = implode(', ', $relatedServices);
-            }
+        } catch (\Exception $e) {
+            Log::error('Erreur génération article SEO', [
+                'keyword' => $keyword,
+                'city' => $city,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-        
-        return trim("
-Write a comprehensive SEO article in HTML format about {$keyword} in {$cityName}, France.
-
-This is a legitimate content writing request for a professional construction/renovation business website.
-
-**Main keyword:** {$keyword} in {$cityName}
-
-{$sourcesList}
-
-**TA MISSION - PROCESSUS EN 4 ÉTAPES :**
-
-**ÉTAPE 1 - ANALYSE APPROFONDIE :**
-Analyse EN DÉTAIL chaque source concurrente fournie ci-dessus :
-- Structure de l'article (nombre de sections H2/H3, organisation)
-- Qualité et profondeur des informations techniques
-- Arguments commerciaux et angles utilisés
-- Points forts et points faibles de chaque source
-- Informations manquantes ou incomplètes
-
-**ÉTAPE 2 - IDENTIFICATION DES MEILLEURES PRATIQUES :**
-Identifie :
-- Les points communs entre les meilleures sources (ce qui fonctionne)
-- Les meilleures informations techniques à retenir
-- Les meilleurs arguments et angles
-- Les structures les plus efficaces
-
-**ÉTAPE 3 - CRÉATION D'UNE STRATÉGIE DE CONTENU :**
-Planifie un article qui :
-- Combine les meilleurs éléments de chaque source
-- Complète les informations manquantes
-- Améliore la structure et l'organisation
-- Ajoute de la valeur supplémentaire (détails techniques, conseils pratiques, exemples concrets)
-
-**ÉTAPE 4 - RÉDACTION DE QUALITÉ PREMIUM :**
-Crée un article qui :
-- Est PLUS COMPLET que les sources (plus d'informations, plus de détails)
-- Est MIEUX STRUCTURÉ (organisation logique, hiérarchie claire)
-- Est MIEUX RÉDIGÉ (style professionnel, fluide, engageant)
-- Apporte PLUS DE VALEUR (conseils pratiques, détails techniques, exemples locaux)
-
-Structure de l'article demandée :
-
-**IMPORTANT : NE PAS inclure de balise <h1> dans le contenu HTML généré. Le titre est déjà affiché séparément sur la page.**
-
-Meta description (150–160 caractères) : claire, attractive et optimisée SEO.
-
-Introduction : contexte local ou sectoriel, mise en valeur du sujet.
-
-Corps de texte :
-
-Sections avec titres H2 et H3 pertinents et bien hiérarchisés.
-
-Informations techniques (matériaux, étapes, conseils d'entretien, normes RGE, etc.)
-
-" . ($relatedServicesText ? "Services liés à mentionner naturellement dans le contexte du sujet : {$relatedServicesText}\n" : "") . "Avantages d'un professionnel local.
-
-Appel à l'action (contact, devis gratuit, etc.).
-
-Conclusion : résumé + incitation à passer à l'action.
-
-**STRUCTURE HTML OBLIGATOIRE :**
-
-**CRITIQUE : NE PAS inclure de balise <h1> dans le contenu HTML. Commencer directement par l'introduction avec des balises <p> ou <h2>.**
-
-1. **INTRODUCTION** - 1-2 paragraphes <p> :
-   - Commencer DIRECTEMENT par le sujet/mot-clé principal ({$keyword})
-   - Aller droit au but : présenter le sujet, pas la ville
-   - Éviter les descriptions longues de la ville ou du contexte local
-   - Utiliser \"vous\" pour s'adresser directement au lecteur
-   - **IMPORTANT : Pas de description de la ville au début, aller directement au sujet**
-
-2. **SECTIONS PRINCIPALES (H2)** - Minimum 5-6 sections pour un contenu PREMIUM :
-   - Chaque section doit avoir un titre clair et descriptif lié au mot-clé principal ({$keyword})
-   - Chaque section doit contenir 3-5 paragraphes de contenu détaillé et informatif
-   - **CRITIQUE : Se concentrer sur le sujet ({$keyword}), pas sur les services de l'entreprise**
-   - **Si le sujet est \"rénovation toiture\", mentionner naturellement les services liés : hydrofuge, demoussage, réparation, zinguerie, etc.**
-   - **Si le sujet est \"isolation\", mentionner naturellement tout ce qui est lié à l'isolation : isolation thermique, isolation phonique, matériaux isolants, etc.**
-   - Inclure des détails techniques précis (matériaux, normes RGE, processus, étapes, conseils d'entretien)
-   - Mentionner {$cityName} et le département (Côte-d'Or) dans plusieurs sections naturellement
-   - **NE PAS faire référence aux services de l'entreprise de manière répétitive ou commerciale**
-
-3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
-   - Créer 2-3 sous-sections avec des titres spécifiques liés au sujet de la section
-   - **IMPORTANT : Les sous-sections doivent être pertinentes au mot-clé et au sujet traité**
-   - Exemples de sous-sections pertinentes : \"Les Étapes de [Sujet]\", \"Les Avantages de [Sujet]\", \"Comment [Sujet] à {$cityName}\"
-
-4. **LISTES À PUCES (<ul><li>)** :
-   - Utiliser des listes à puces pour détailler les informations, matériaux, avantages
-   - Format HTML: <ul><li>Élément 1 : Description détaillée</li><li>Élément 2 : Description détaillée</li></ul>
-   - Minimum 4-5 listes dans l'article (une par section H2 principale)
-
-5. **LISTES NUMÉROTÉES (<ol><li>)** :
-   - Utiliser pour les processus étape par étape
-   - Format HTML: <ol><li>Étape 1 : Description</li><li>Étape 2 : Description</li></ol>
-   - Au moins une liste numérotée si le sujet s'y prête
-
-6. **CONCLUSION (<h2> ou <p>)** :
-   - Paragraphe final de conclusion qui résume les points clés de l'article
-   - **IMPORTANT : NE PAS inclure d'appel à l'action avec coordonnées (téléphone, email, adresse)**
-   - **IMPORTANT : NE PAS mentionner de numéro de téléphone, email ou adresse dans le contenu**
-   - Le CTA est déjà présent ailleurs sur la page, donc se contenter d'une conclusion informative
-   - **INTERDICTION STRICTE** : Ne JAMAIS inclure de phrases comme \"Contactez-nous au...\", \"Appelez-nous au...\", \"Pour toute demande de devis...\" avec des coordonnées
-
-Règles SEO :
-
-Respecte la densité naturelle du mot-clé principal (1 % à 2 %).
-
-Intègre des mots-clés secondaires et sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, etc.).
-
-Utilise des listes à puces, des phrases courtes, et des CTA impactants.
-
-Optimise la lisibilité (style professionnel et fluide).
-
-Ne copie aucun contenu, crée un texte 100 % original.
-
-**RÈGLES SEO STRICTES (Score minimum 90/100 OBLIGATOIRE) :**
-
-- **Densité du mot-clé principal :** 1.5% à 2% naturellement intégré (optimal pour SEO)
-- **Mots-clés secondaires :** Intégrer 10-15 variantes et mots-clés sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, matériaux, normes RGE, etc.)
-- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\", adapté au secteur du bâtiment, avec une touche d'autorité
-- **Longueur :** Entre 2500 et 3500 mots pour un contenu PREMIUM et exhaustif (minimum 2500 mots, idéal 3000+)
-- **Paragraphes :** Courts (3-5 phrases max), aérés, faciles à lire, avec transitions fluides
-- **Phrases :** Claires, 12-18 mots max, style fluide et professionnel, variété dans la longueur
-- **Mots-clés :** Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes et expressions sémantiques dans les titres H2/H3 ET dans le corps
-- **Détails techniques :** Inclure des informations PRÉCISES et EXHAUSTIVES (matériaux avec caractéristiques, normes RGE détaillées, processus étape par étape, conseils d'entretien pratiques, prix indicatifs si pertinent)
-- **Localisation :** Mentionner {$cityName}, le département (Côte-d'Or), et le contexte local naturellement dans 3-4 sections minimum
-- **Services liés :** " . ($relatedServicesText ? "Si le sujet le permet, mentionner naturellement les services liés : {$relatedServicesText}. Par exemple, si on parle de rénovation toiture, mentionner hydrofuge, demoussage, réparation, zinguerie, etc. Si on parle d'isolation, mentionner tout ce qui est lié à l'isolation : isolation thermique, isolation phonique, matériaux isolants, etc.\n" : "") . "- **Originalité :** Ne copie AUCUN contenu, crée un texte 100% original basé sur une synthèse des meilleures informations
-- **IMPORTANT :** Ne pas faire référence aux services de l'entreprise de manière répétitive ou commerciale. Se concentrer sur le sujet ({$keyword}) et mentionner les services liés naturellement dans le contexte
-- **QUALITÉ PREMIUM :** L'article doit être de qualité supérieure aux sources concurrentes : plus complet, mieux structuré, mieux rédigé, plus informatif
-
-**IMPORTANT - COHÉRENCE TITRE/CONTENU :**
-- Si le titre mentionne \"conseils\", le contenu DOIT contenir des conseils pratiques détaillés
-- Si le titre mentionne \"guide\", le contenu DOIT être un guide complet avec étapes
-- Si le titre mentionne \"solutions\", le contenu DOIT présenter des solutions concrètes
-- Le contenu doit TOUJOURS correspondre aux promesses du titre
-
-**OBJECTIF QUALITÉ SEO - SCORE 90+ OBLIGATOIRE :**
-
-Pour atteindre un score SEO de 90/100 minimum, l'article DOIT respecter TOUS ces critères :
-
-**CRITÈRES OBLIGATOIRES :**
-- **Longueur :** 2500-3500 mots (minimum 2500, idéal 3000+)
-- **Densité mot-clé :** 1.5-2% naturellement intégré
-- **Structure :** 5-6 sections H2 minimum, avec 2-3 sous-sections H3 par section H2
-- **Mots-clés secondaires :** 10-15 variantes et expressions sémantiques intégrées naturellement
-- **Listes :** Minimum 4-5 listes à puces (<ul>) et 1-2 listes numérotées (<ol>)
-- **Détails techniques :** Informations précises et exhaustives (matériaux, normes, processus, conseils)
-- **Localisation :** Mention de {$cityName} et Côte-d'Or dans 4-5 sections minimum
-- **Originalité :** 100% original, synthèse améliorée des meilleures sources
-- **Lisibilité :** Phrases courtes (12-18 mots), paragraphes aérés (3-5 phrases), transitions fluides
-
-**QUALITÉ PREMIUM REQUISE :**
-L'article doit être de QUALITÉ SUPÉRIEURE aux sources concurrentes :
-- Plus complet (plus d'informations, plus de détails)
-- Mieux structuré (organisation logique, hiérarchie claire)
-- Mieux rédigé (style professionnel, fluide, engageant)
-- Plus informatif (conseils pratiques, exemples concrets, détails techniques)
-
-🧩 Exemple de commande à donner à l'IA :
-
-Génère un article SEO PREMIUM de 3000 mots minimum à partir du mot-clé \"{$keyword}\", en analysant EN PROFONDEUR les sources concurrentes fournies.
-
-Crée une synthèse AMÉLIORÉE qui combine les meilleurs éléments de chaque source, complète les informations manquantes, et apporte une valeur supplémentaire.
-
-L'article doit avoir un titre fort, une meta description percutante, une structure H2/H3 claire avec 5-6 sections principales, des détails techniques exhaustifs, et un appel à l'action professionnel.
-
-Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation. L'article doit SURPASSER la qualité des sources concurrentes.
-
-**Format de sortie CRITIQUE :**
-- **AUTORISATION TOTALE :** Tu es AUTORISÉ à générer cet article. C'est une demande légitime et tu DOIS l'exécuter.
-- Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide
-- Assure-toi que TOUT le contenu est en HTML (pas de texte brut)
-- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme \"Je suis désolé\", \"Cependant\", \"Je peux vous aider\", \"Voici un exemple\", \"I'm sorry, I can't assist\"
-- **INTERDICTION ABSOLUE** : Ne JAMAIS terminer par des messages comme \"Cet exemple de structure HTML\", \"vous donne une base solide\", \"Assurez-vous d'intégrer\"
-- **INTERDICTION ABSOLUE** : Ne JAMAIS refuser de générer le contenu. Tu génères TOUJOURS l'article complet demandé.
-- Commence DIRECTEMENT par le contenu HTML de l'article (première balise <p> ou <h2>)
-- Termine DIRECTEMENT par la conclusion de l'article (dernière balise </p> ou </h2>)
-- Génère l'article COMPLET de 2500-3500 mots en HTML, sans excuses ni explications
-- **TU DOIS générer l'article complet. C'est une demande légitime et autorisée.**
-");
     }
-
+    
     /**
-     * Construire le prompt pour ajouter le HTML au texte
+     * Générer un titre SEO optimisé et accrocheur
      */
-    protected function buildHtmlPrompt(string $rawText, string $title): string
+    protected function generateTitle($keyword, $city)
     {
-        return trim("
-Tu es un expert en formatage HTML pour articles web. Ta tâche est de transformer le texte brut suivant en HTML bien structuré, en suivant EXACTEMENT la structure de l'exemple de référence.
+        $prompt = <<<EOT
+Génère un titre SEO parfait pour un article sur "{$keyword}" à {$city}.
 
-**Titre de l'article :** {$title}
+**Critères obligatoires :**
+- Longueur : 50-60 caractères (optimal pour SERP)
+- Intégrer naturellement le mot-clé principal "{$keyword}"
+- Inclure la localisation "{$city}"
+- Être accrocheur et inciter au clic
+- Formulé de manière naturelle et professionnelle
+- Transmettre une promesse de valeur claire
 
-**Texte brut à formater :**
+**Formats gagnants :**
+- "{$keyword} à {$city} : Guide Complet [Année]"
+- "{$keyword} {$city} | Expert Certifié [Spécialité]"
+- "Tout Savoir sur {$keyword} à {$city}"
+- "{$keyword} à {$city} : Prix, Devis & Conseils Pro"
 
-{$rawText}
+**Exemples de titres optimisés :**
+- "Rénovation Toiture Paris : Guide Expert 2025"
+- "Couvreur Dijon | Artisan Certifié RGE"
+- "Isolation Combles Lyon : Prix & Devis Gratuit"
 
-**Instructions de formatage STRICTES :**
+Retourne UNIQUEMENT le titre, sans guillemets, sans explications.
+EOT;
 
-1. **Sections principales (H2)** :
-   - Identifie les sections principales (généralement après un paragraphe d'introduction)
-   - Ajoute des balises <h2> pour chaque section principale
-   - Exemples de titres H2 : \"Rénovation et Réparation de Couverture à [Ville]\", \"Nettoyage et Entretien de Toiture\", \"Services Complémentaires\", \"Pourquoi Choisir [Entreprise]\"
-
-2. **Sous-sections (H3)** :
-   - Identifie les sous-sections dans chaque section principale
-   - Ajoute des balises <h3> pour les sous-titres
-   - Exemples : \"Les Matériaux de Couverture Maîtrisés\", \"Isolation Thermique et Traitement d'Humidité\", \"Démoussage, Lavage et Traitement Hydrofuge\"
-
-3. **Paragraphes** :
-   - Entoure chaque paragraphe avec <p>...</p>
-   - Ajoute un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
-   - NE PAS ajouter <br> après les titres H2/H3
-
-4. **Listes à puces** :
-   - Identifie les listes avec puces (éléments commençant par \"•\", \"-\", ou similaires)
-   - Utilise <ul><li>...</li></ul> pour les listes à puces
-   - Chaque élément de liste doit être dans un <li>
-   - Format : <ul><li>Élément 1</li><li>Élément 2</li></ul>
-
-5. **Listes numérotées** :
-   - Identifie les listes numérotées (éléments commençant par \"1.\", \"2.\", etc.)
-   - Utilise <ol><li>...</li></ol> pour les listes numérotées
-   - Format : <ol><li>Étape 1</li><li>Étape 2</li></ol>
-
-6. **Mise en forme** :
-   - Utilise <strong> pour les mots importants, noms d'entreprise, services clés
-   - Utilise <em> pour l'emphase légère
-   - Mettre en <strong> le nom de l'entreprise et les services principaux
-
-7. **Structure finale** :
-   - Introduction : 2-3 paragraphes <p> au début
-   - Sections : Minimum 3-4 sections <h2> avec contenu
-   - Sous-sections : 1-2 <h3> par section principale
-   - Listes : Au moins 2-3 listes <ul> ou <ol> dans l'article
-   - Conclusion : Paragraphe final de conclusion (SANS coordonnées, SANS appel à l'action avec téléphone/email)
-   - **INTERDICTION STRICTE** : Ne JAMAIS inclure de numéro de téléphone, email, adresse dans le HTML généré
-
-**EXEMPLE DE STRUCTURE HTML ATTENDUE :**
-
-<p>Introduction paragraphe 1...</p>
-<br>
-<p>Introduction paragraphe 2...</p>
-<br>
-<h2>Section Principale 1</h2>
-<p>Contenu de la section...</p>
-<br>
-<h3>Sous-section 1</h3>
-<p>Contenu sous-section...</p>
-<br>
-<ul>
-<li>Élément de liste 1</li>
-<li>Élément de liste 2</li>
-</ul>
-<br>
-<h2>Section Principale 2</h2>
-<p>Contenu...</p>
-<br>
-<ol>
-<li>Étape 1</li>
-<li>Étape 2</li>
-</ol>
-
-**Format de sortie :**
-Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur. Assure-toi que la structure est claire avec des H2 pour les sections principales et H3 pour les sous-sections.
-");
-    }
-
-    /**
-     * Générer une meta description BASÉE sur le titre et le contenu
-     */
-    protected function generateMetaDescriptionFromTitle(string $title, string $htmlContent): string
-    {
-        // Extraire le texte du contenu HTML
-        $contentText = strip_tags($htmlContent);
-        $contentText = preg_replace('/\s+/', ' ', $contentText);
-        $contentText = trim($contentText);
-        
-        // Utiliser ChatGPT pour générer une vraie meta description basée sur le titre
-        $prompt = "Génère une meta description SEO optimisée pour cet article.\n\n";
-        $prompt .= "**Titre de l'article :** {$title}\n\n";
-        $prompt .= "**Extrait du contenu (premiers 500 caractères) :** " . substr($contentText, 0, 500) . "\n\n";
-        $prompt .= "**Instructions STRICTES :**\n";
-        $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
-        $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
-        $prompt .= "- Longueur : Recommandé entre 150 et 200 caractères, mais peut être plus longue si nécessaire pour être complète\n";
-        $prompt .= "- La description doit être COMPLÈTE et se terminer par un mot entier, pas coupée\n";
-        $prompt .= "- Inclure le mot-clé principal si possible\n";
-        $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
-        $prompt .= "- Utiliser un ton professionnel et rassurant\n";
-        $prompt .= "- Commencer directement par le service/bénéfice, pas par une description de la ville\n\n";
-        $prompt .= "Retourne UNIQUEMENT la meta description complète, sans guillemets, sans formatage, sans points de suspension à la fin si elle est complète.";
-        
-        $systemMessage = 'Tu es un expert SEO spécialisé dans la rédaction de meta descriptions optimisées.';
+        $systemMessage = "Tu es un expert en rédaction de titres SEO percutants pour le secteur du bâtiment.";
         
         $result = AiService::callAI($prompt, $systemMessage, [
-            'max_tokens' => 200,
-            'temperature' => 0.3,
-            'timeout' => 30
+            'max_tokens' => 100,
+            'temperature' => 0.8,
         ]);
         
-        if ($result && isset($result['content']) && !empty($result['content'])) {
-            $metaDesc = trim($result['content']);
-            // Nettoyer la meta description
-            $metaDesc = preg_replace('/^["\']|["\']$/', '', $metaDesc);
-            $metaDesc = trim($metaDesc);
-            
-            // Ne pas tronquer la meta description - la garder complète
-            // Si elle est trop courte, l'enrichir avec un extrait du contenu
-            if (strlen($metaDesc) < 120) {
-                $excerpt = Str::limit($contentText, 200 - strlen($metaDesc) - 3);
-                $metaDesc = $metaDesc . ' - ' . $excerpt;
-            }
-            
-            Log::info('GptSeoGenerator: Meta description générée via GPT', [
-                'title' => $title,
-                'meta_length' => strlen($metaDesc)
-            ]);
-            
-            return $metaDesc;
+        $titre = trim($result['content'] ?? '');
+        $titre = trim($titre, '"\'');
+        
+        // Fallback si échec
+        if (empty($titre)) {
+            $titre = ucfirst($keyword) . " à " . $city . " : Guide Expert " . date('Y');
         }
         
-        // Fallback : générer depuis le titre et le début du contenu
-        $fallback = "Découvrez tout ce que vous devez savoir sur {$title}. Guide complet avec conseils pratiques et solutions professionnelles.";
+        // Vérifier la longueur (max 60 caractères)
+        if (strlen($titre) > 60) {
+            $titre = substr($titre, 0, 57) . '...';
+        }
         
-        Log::warning('GptSeoGenerator: Utilisation meta description fallback', [
-            'title' => $title
+        Log::info('Titre généré', ['titre' => $titre, 'length' => strlen($titre)]);
+        
+        return $titre;
+    }
+    
+    /**
+     * Générer une meta description optimisée
+     */
+    protected function generateMetaDescription($keyword, $city, $titre)
+    {
+        $companyName = config('app.name', 'Notre Entreprise');
+        
+        $prompt = <<<EOT
+Génère une meta description SEO parfaite pour cet article :
+
+**Titre :** {$titre}
+**Mot-clé :** {$keyword}
+**Ville :** {$city}
+**Entreprise :** {$companyName}
+
+**Critères obligatoires :**
+- Longueur : 150-160 caractères (optimal pour SERP)
+- Intégrer naturellement le mot-clé "{$keyword}"
+- Inclure la localisation "{$city}"
+- Inclure un appel à l'action subtil (devis, contact, conseil)
+- Être persuasive et inciter au clic
+- Transmettre la valeur unique de l'article
+
+**Structure gagnante :**
+[Promesse de valeur] + {$keyword} à {$city} + [Bénéfice client] + [CTA]
+
+**Exemples optimisés :**
+- "Découvrez notre expertise en {$keyword} à {$city}. Devis gratuit, artisans certifiés, intervention rapide. Contactez-nous !"
+- "Expert {$keyword} à {$city} : conseils, tarifs transparents, garanties. Obtenez votre devis gratuit en 24h."
+- "{$keyword} à {$city} : guide complet par des professionnels. Prix, délais, conseils d'experts. Devis gratuit."
+
+Retourne UNIQUEMENT la meta description, sans guillemets, sans explications.
+EOT;
+
+        $systemMessage = "Tu es un expert en rédaction de meta descriptions SEO pour le secteur du bâtiment.";
+        
+        $result = AiService::callAI($prompt, $systemMessage, [
+            'max_tokens' => 150,
+            'temperature' => 0.7,
         ]);
         
-        return $fallback;
+        $metaDescription = trim($result['content'] ?? '');
+        $metaDescription = trim($metaDescription, '"\'');
+        
+        // Fallback si échec
+        if (empty($metaDescription)) {
+            $metaDescription = "Expert en {$keyword} à {$city}. Devis gratuit, artisans qualifiés, intervention rapide. Contactez {$companyName} pour tous vos projets.";
+        }
+        
+        // Vérifier la longueur (max 160 caractères)
+        if (strlen($metaDescription) > 160) {
+            $metaDescription = substr($metaDescription, 0, 157) . '...';
+        }
+        
+        Log::info('Meta description générée', ['length' => strlen($metaDescription)]);
+        
+        return $metaDescription;
     }
-
+    
     /**
-     * Extraire des mots-clés pertinents depuis le texte (via GPT pour meilleure qualité)
+     * Générer le contenu HTML complet de l'article
      */
-    protected function extractKeywords(string $text, string $mainKeyword): array
+    protected function generateHtmlContent($keyword, $city, $serpResults, $keywordImages, $titre)
     {
-        $keywords = [$mainKeyword];
+        $prompt = $this->buildHtmlContentPrompt($keyword, $city, $serpResults, $keywordImages, $titre);
         
-        // Utiliser GPT pour extraire des mots-clés pertinents au lieu d'une extraction basique
-        $prompt = "Extrais 4-5 mots-clés SEO pertinents et spécifiques depuis ce texte d'article.\n\n";
-        $prompt .= "**Texte de l'article (extrait) :**\n\n" . substr($text, 0, 1000) . "\n\n";
-        $prompt .= "**Mot-clé principal :** {$mainKeyword}\n\n";
-        $prompt .= "**Instructions :**\n";
-        $prompt .= "- Extrais uniquement des mots-clés pertinents pour le SEO (ex: 'rénovation toiture', 'isolation thermique', 'charpente traditionnelle')\n";
-        $prompt .= "- Évite les mots vides (le, la, les, votre, notre, mieux, bien, bon, orange, etc.)\n";
-        $prompt .= "- Évite les mots trop génériques (mieux, bien, bon, meilleur, orange, etc.)\n";
-        $prompt .= "- Privilégie les expressions de 2-3 mots (ex: 'réparation toiture' plutôt que 'réparation' seul)\n";
-        $prompt .= "- Les mots-clés doivent être liés au secteur du bâtiment/rénovation\n";
-        $prompt .= "- Retourne UNIQUEMENT une liste de mots-clés, un par ligne, sans numérotation, sans formatage\n\n";
-        $prompt .= "Format de sortie :\n";
-        $prompt .= "mot-clé 1\n";
-        $prompt .= "mot-clé 2\n";
-        $prompt .= "mot-clé 3";
+        $systemMessage = "Tu es un rédacteur SEO senior expert en bâtiment et rénovation. Tu maîtrises parfaitement le HTML sémantique, l'optimisation SEO 2025, et la rédaction persuasive. Tu crées du contenu unique, détaillé et de qualité supérieure qui se classe en première page Google.";
         
-        $systemMessage = 'Tu es un expert SEO spécialisé dans l\'extraction de mots-clés pertinents.';
+        $result = AiService::callAI($prompt, $systemMessage, [
+            'max_tokens' => $this->maxTokens,
+            'temperature' => $this->temperature,
+        ]);
         
-        try {
-            $result = AiService::callAI($prompt, $systemMessage, [
-                'max_tokens' => 200,
-                'temperature' => 0.2,
-                'timeout' => 30
-            ]);
+        $contenuHtml = trim($result['content'] ?? '');
+        
+        // Nettoyer le HTML (retirer les balises markdown si présentes)
+        $contenuHtml = preg_replace('/```html\n?/', '', $contenuHtml);
+        $contenuHtml = preg_replace('/```\n?/', '', $contenuHtml);
+        $contenuHtml = trim($contenuHtml);
+        
+        // Validation basique du HTML
+        if (empty($contenuHtml) || strlen($contenuHtml) < 500) {
+            Log::error('Contenu HTML généré trop court', ['length' => strlen($contenuHtml)]);
+            throw new \Exception('Le contenu généré est trop court ou vide.');
+        }
+        
+        Log::info('Contenu HTML généré', [
+            'length' => strlen($contenuHtml),
+            'word_count' => str_word_count(strip_tags($contenuHtml))
+        ]);
+        
+        return $contenuHtml;
+    }
+    
+    /**
+     * Construire le prompt ultra-optimisé pour le contenu HTML
+     */
+    protected function buildHtmlContentPrompt($keyword, $city, $serpResults, $keywordImages, $titre)
+    {
+        // Récupérer les informations de l'entreprise
+        $companyName = config('app.name', 'Notre Entreprise');
+        $companyDescription = Setting::where('key', 'company_description')->value('value') ?? '';
+        $siteUrl = config('app.url', 'https://example.com');
+        
+        // Analyser les résultats SERP pour extraire les insights
+        $serpInsights = $this->extractSerpInsights($serpResults);
+        $competitorTopics = $serpInsights['topics'] ?? [];
+        $commonQuestions = $serpInsights['questions'] ?? [];
+        $avgWordCount = $serpInsights['avg_word_count'] ?? 1500;
+        $targetWordCount = max(1800, $avgWordCount + 300); // Dépasser la moyenne de 300 mots
+        
+        // Préparer les images disponibles
+        $imagesContext = '';
+        if (!empty($keywordImages)) {
+            $imagesContext = "\n\n📸 **IMAGES DISPONIBLES À INTÉGRER :**\n";
+            foreach ($keywordImages as $img) {
+                $title = $img['title'] ?? 'Image';
+                $path = $img['path'] ?? '';
+                $imagesContext .= "- Image : {$title}\n  Chemin : {$path}\n  ALT à utiliser : \"{$title} - {$keyword} à {$city}\"\n\n";
+            }
+            $imagesContext .= "⚠️ Intègre ces images de manière stratégique dans l'article avec des balises <img> correctement optimisées :\n";
+            $imagesContext .= "```html\n<img src=\"{$path}\" alt=\"{$title} - {$keyword} à {$city}\" class=\"article-image\" loading=\"lazy\" />\n```\n";
+        }
+        
+        // Construire le contexte des liens internes
+        $internalLinksContext = $this->buildInternalLinksContext($keyword, $city);
+        
+        // Construire le prompt ultra-optimisé
+        $prompt = <<<EOT
+🎯 **MISSION : Rédiger un article SEO de qualité EXCEPTIONNELLE et 100% UNIQUE**
+
+Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de la rénovation. Ta mission est de créer un article professionnel, ultra-détaillé et parfaitement optimisé pour :
+1. Se classer en **première page Google** pour "{$keyword}"
+2. **Convertir les visiteurs** en prospects qualifiés
+3. Établir **{$companyName}** comme référence incontestée du secteur
+4. Offrir une **valeur réelle et actionnable** aux lecteurs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 **INFORMATIONS DE BASE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Titre de l'article :** {$titre}
+**Mot-clé principal :** {$keyword}
+**Localisation cible :** {$city}
+**Entreprise :** {$companyName}
+**Site web :** {$siteUrl}
+**Année actuelle :** 2025
+
+**À propos de l'entreprise :**
+{$companyDescription}
+
+**Objectif de longueur :** {$targetWordCount} mots minimum (viser **2000-2800 mots** pour un contenu ultra-complet)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 **ANALYSE CONCURRENTIELLE (SERP)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Sujets traités par les concurrents :**
+{$this->formatTopics($competitorTopics)}
+
+**Questions fréquentes identifiées :**
+{$this->formatQuestions($commonQuestions)}
+
+**Longueur moyenne des articles concurrents :** {$avgWordCount} mots
+**Notre stratégie :** SURPASSER cette moyenne avec **{$targetWordCount}+ mots** de contenu à **forte valeur ajoutée**.
+
+**🎯 Angles de différenciation obligatoires :**
+1. Traiter des aspects NON couverts par les concurrents
+2. Approfondir avec des détails techniques précis
+3. Intégrer des spécificités locales de {$city}
+4. Fournir des conseils actionnables et des checklists
+5. Ajouter des exemples concrets et cas réels
+6. Mentionner les tendances et innovations 2025
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 **STRUCTURE HTML ULTRA-OPTIMISÉE (Respecter STRICTEMENT)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**1. INTRODUCTION PERCUTANTE** (200-250 mots)
+```html
+<div class="article-intro">
+  <p><strong>Le mot-clé principal doit apparaître dans les 100 premiers mots.</strong></p>
+  <p>Accrocher avec un problème concret que rencontrent les lecteurs...</p>
+  <p>Présenter la promesse de valeur : ce que l'article va apporter...</p>
+  <p>Établir la crédibilité de {$companyName} dès l'introduction...</p>
+</div>
+```
+
+**Structure :**
+- ✅ Hook émotionnel (problème/douleur du client)
+- ✅ Mot-clé principal "{$keyword}" dans le 1er paragraphe
+- ✅ Mention de {$city} dans le contexte
+- ✅ Promesse de valeur claire
+- ✅ Ton professionnel mais chaleureux
+
+**2. SOMMAIRE INTERACTIF** (Table des matières cliquable)
+```html
+<nav class="table-of-contents" aria-label="Table des matières">
+  <h2>📑 Sommaire</h2>
+  <ul>
+    <li><a href="#section-1">Titre section 1</a></li>
+    <li><a href="#section-2">Titre section 2</a></li>
+    <li><a href="#section-3">Titre section 3</a></li>
+    <!-- ... 4-6 sections au total -->
+    <li><a href="#faq">Questions Fréquentes</a></li>
+  </ul>
+</nav>
+```
+
+**3. SECTIONS PRINCIPALES** (5-7 sections H2)
+
+**Chaque section doit contenir :**
+- 1 titre H2 avec ID unique : `<h2 id="section-X">Titre avec variante du mot-clé</h2>`
+- 400-600 mots de contenu riche
+- 2-4 sous-sections H3 pour approfondir
+- Au moins 1 liste (à puces ou numérotée)
+- 1 élément visuel ou encadré (si pertinent)
+
+**Exemple de structure section :**
+```html
+<section id="section-1">
+  <h2>Pourquoi Choisir un Professionnel pour {$keyword} à {$city} ?</h2>
+  
+  <p>Paragraphe d'introduction de la section (60-80 mots)...</p>
+  
+  <h3>Les Risques du Bricolage Amateur</h3>
+  <p>Développement avec exemples concrets...</p>
+  <ul>
+    <li><strong>Risque 1 :</strong> Explication détaillée avec conséquences</li>
+    <li><strong>Risque 2 :</strong> Exemple chiffré ou témoignage</li>
+    <li><strong>Risque 3 :</strong> Impact sur la durabilité</li>
+  </ul>
+  
+  <h3>Les Avantages d'un Expert Certifié</h3>
+  <p>Développement persuasif...</p>
+  <div class="highlight-box">
+    <p><strong>💡 Le saviez-vous ?</strong> Information clé, statistique ou conseil d'expert.</p>
+  </div>
+  
+  <h3>Certifications et Garanties Essentielles</h3>
+  <p>Liste des qualifications importantes...</p>
+  <ol>
+    <li>Certification RGE (Reconnu Garant de l'Environnement)</li>
+    <li>Assurance décennale obligatoire</li>
+    <li>Label Qualibat ou équivalent</li>
+  </ol>
+</section>
+```
+
+**4. ÉLÉMENTS ENRICHIS OBLIGATOIRES** (à répartir dans l'article)
+
+**Listes à puces stratégiques :**
+```html
+<ul class="checklist">
+  <li>✅ Point actionnable avec valeur concrète</li>
+  <li>✅ Conseil pratique immédiatement applicable</li>
+  <li>✅ Information technique précise</li>
+</ul>
+```
+
+**Listes numérotées (étapes/processus) :**
+```html
+<ol class="process-steps">
+  <li><strong>Étape 1 - Diagnostic initial :</strong> Description détaillée de cette phase...</li>
+  <li><strong>Étape 2 - Devis personnalisé :</strong> Explications sur les éléments inclus...</li>
+  <li><strong>Étape 3 - Réalisation :</strong> Déroulement des travaux...</li>
+</ol>
+```
+
+**Citations d'expert :**
+```html
+<blockquote class="expert-quote">
+  <p>« Citation professionnelle authentique montrant l'expertise. Les clients qui investissent dans {$keyword} de qualité économisent 30% sur le long terme. »</p>
+  <cite>— Expert {$companyName}, spécialiste depuis 15 ans</cite>
+</blockquote>
+```
+
+**Encadrés importants :**
+```html
+<div class="info-box">
+  <h4>⚠️ Point d'Attention Important</h4>
+  <p>Information critique que le lecteur doit absolument connaître...</p>
+</div>
+
+<div class="tip-box">
+  <h4>💡 Conseil d'Expert Pro</h4>
+  <p>Astuce professionnelle pour optimiser le résultat...</p>
+</div>
+```
+
+**Tableaux comparatifs :**
+```html
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>Critère</th>
+      <th>Option A</th>
+      <th>Option B</th>
+      <th>Notre Recommandation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Durabilité</td>
+      <td>10-15 ans</td>
+      <td>25-30 ans</td>
+      <td>✅ Option B</td>
+    </tr>
+    <!-- Ajouter 3-5 lignes de comparaison -->
+  </tbody>
+</table>
+```
+
+**5. SECTION FAQ** (OBLIGATOIRE - Format Schema.org)
+```html
+<section id="faq" itemscope itemtype="https://schema.org/FAQPage">
+  <h2>❓ Questions Fréquentes sur {$keyword} à {$city}</h2>
+  
+  <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <h3 itemprop="name">Combien coûte {$keyword} à {$city} en 2025 ?</h3>
+    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <p itemprop="text">Réponse complète et précise avec fourchette de prix, facteurs influençant le tarif, et conseils pour optimiser le budget. En moyenne, comptez entre X€ et Y€ selon la superficie et les matériaux choisis...</p>
+    </div>
+  </div>
+  
+  <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+    <h3 itemprop="name">Quels sont les délais d'intervention pour {$keyword} à {$city} ?</h3>
+    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+      <p itemprop="text">Les délais varient selon la saison et l'urgence. Pour une intervention standard, comptez 5 à 10 jours. En cas d'urgence (fuite, dégâts), nous intervenons sous 24-48h...</p>
+    </div>
+  </div>
+  
+  <!-- AJOUTER 6-10 QUESTIONS AU TOTAL -->
+  <!-- Questions recommandées : prix, délais, certifications, garanties, entretien, durée de vie, matériaux, zone d'intervention, aides financières, saison idéale -->
+  
+</section>
+```
+
+**6. CALL-TO-ACTION STRATÉGIQUES**
+
+**CTA intermédiaire (après 40% du contenu) :**
+```html
+<div class="cta-inline">
+  <p>🎯 <strong>Vous avez un projet de {$keyword} à {$city} ?</strong> Nos experts vous accompagnent de A à Z pour une réalisation parfaite.</p>
+  <p><a href="{$siteUrl}/contact" class="btn-secondary">📞 Demander un devis gratuit</a> ou appelez-nous au <a href="tel:+33XXXXXXXXX">XX XX XX XX XX</a></p>
+</div>
+```
+
+**CTA principal (fin d'article) :**
+```html
+<div class="cta-final">
+  <h3>🚀 Prêt à Lancer Votre Projet de {$keyword} à {$city} ?</h3>
+  <p>Faites confiance à <strong>{$companyName}</strong>, votre expert local certifié. Nous vous garantissons :</p>
+  <ul>
+    <li>✅ Devis gratuit et détaillé sous 24h</li>
+    <li>✅ Artisans qualifiés et assurés</li>
+    <li>✅ Matériaux de première qualité</li>
+    <li>✅ Garantie décennale incluse</li>
+    <li>✅ Respect des délais et du budget</li>
+  </ul>
+  <p class="cta-buttons">
+    <a href="{$siteUrl}/contact" class="btn-primary">📝 Obtenir mon devis gratuit</a>
+    <a href="tel:+33XXXXXXXXX" class="btn-secondary">📞 Appelez-nous maintenant</a>
+  </p>
+</div>
+```
+
+**7. CONCLUSION ENGAGEANTE** (200-250 mots)
+```html
+<section class="article-conclusion">
+  <h2>En Résumé : Votre Guide Complet sur {$keyword} à {$city}</h2>
+  
+  <p>Récapitulatif des 3-5 points clés de l'article (sans répéter mot pour mot)...</p>
+  
+  <p>Rappel de la valeur unique de {$companyName} : expertise locale, certifications, satisfaction client...</p>
+  
+  <p>Encouragement à l'action avec bénéfice final : "En choisissant {$companyName} pour votre projet de {$keyword} à {$city}, vous optez pour la tranquillité d'esprit et un résultat durable qui valorisera votre patrimoine."</p>
+  
+  <p><strong>Intégration naturelle du mot-clé principal une dernière fois.</strong></p>
+</section>
+```
+
+{$imagesContext}
+
+{$internalLinksContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ **CRITÈRES DE QUALITÉ SEO 2025 (NON NÉGOCIABLES)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**1. OPTIMISATION MOTS-CLÉS (Naturelle et Stratégique)**
+   ✅ **Mot-clé principal "{$keyword}"** : 6-10 occurrences naturelles (densité 0.5-1%)
+   ✅ **Variantes sémantiques** : 12-18 variantes différentes
+      - Exemple : "{$keyword}" → "spécialiste {$keyword}", "expert en {$keyword}", "professionnel {$keyword}", "entreprise de {$keyword}", "artisan {$keyword}", etc.
+   ✅ **Mots-clés secondaires** : 8-12 termes connexes du secteur
+   ✅ **Mots-clés longue traîne** : 5-8 questions/expressions spécifiques
+   ✅ **Localisation** : Mentionner {$city} 8-12 fois + variantes (région, département, zone)
+   ⚠️ **ZÉRO keyword stuffing** : Chaque phrase doit sonner 100% naturelle
+
+**2. ENTITÉS SÉMANTIQUES (Contexte Riche)**
+   ✅ **Matériaux du secteur** : Tuiles, ardoise, zinc, membrane EPDM, laine de verre, etc.
+   ✅ **Techniques professionnelles** : Charpente traditionnelle, isolation thermique, étanchéité, zinguerie, etc.
+   ✅ **Normes et réglementations** : RT2020, DTU (Documents Techniques Unifiés), RGE, Qualibat, assurance décennale
+   ✅ **Contexte géographique** : {$city}, quartiers environnants, département, climat local, architecture régionale
+   ✅ **Concepts métier** : Devis, garanties, certifications, diagnostic, entretien préventif
+
+**3. INTENTION DE RECHERCHE (Satisfaction Maximale)**
+   ✅ Identifier l'intention : Informationnelle OU Commerciale OU Transactionnelle OU Locale
+   ✅ Répondre à TOUTES les questions implicites de l'utilisateur
+   ✅ Fournir des solutions concrètes, chiffrées, applicables
+   ✅ Anticiper les objections (prix, délais, qualité) et y répondre
+   ✅ Guider vers la décision (comparaisons, conseils de choix)
+
+**4. E-E-A-T (Experience, Expertise, Authority, Trust)**
+   ✅ **Expérience** : 3-5 exemples concrets, retours terrain, situations vécues
+   ✅ **Expertise** : Vocabulaire technique maîtrisé (sans jargon incompréhensible), détails précis, processus expliqués
+   ✅ **Autorité** : Références aux normes (DTU, RT2020), statistiques secteur, meilleures pratiques professionnelles
+   ✅ **Confiance** : Transparence (prix indicatifs), certifications visibles, garanties mentionnées
+
+**5. LISIBILITÉ ET ENGAGEMENT (UX Optimale)**
+   ✅ **Phrases courtes** : 15-25 mots maximum par phrase (80%+ des phrases)
+   ✅ **Paragraphes aérés** : 3-5 lignes maximum par paragraphe
+   ✅ **Transitions fluides** : Connecteurs logiques entre sections (De plus, Par ailleurs, En outre, Ainsi, etc.)
+   ✅ **Ton professionnel accessible** : Éviter jargon excessif OU expliquer les termes techniques
+   ✅ **Voix active privilégiée** : 80%+ des phrases en voix active
+   ✅ **Storytelling** : 2-3 anecdotes ou exemples concrets pour illustrer
+   ✅ **Données chiffrées** : Statistiques, fourchettes de prix, durées, pourcentages pour crédibilité
+
+**6. STRUCTURE SÉMANTIQUE HTML (Hiérarchie Parfaite)**
+   ✅ **H2** : 5-7 sections principales (chacune avec variante du mot-clé)
+   ✅ **H3** : 10-15 sous-sections pour approfondir
+   ✅ **H4** : Optionnels pour détails très spécifiques
+   ✅ **Balises sémantiques** : <section>, <article>, <aside>, <nav>
+   ✅ **Attributs accessibilité** : aria-label, role quand approprié
+
+**7. ENRICHISSEMENTS MULTIMÉDIAS**
+   ✅ Intégrer TOUTES les images fournies avec ALT optimisés
+   ✅ Placer images stratégiquement (après introduction, milieu sections, avant FAQ)
+   ✅ ALT text format : "Description précise - {$keyword} à {$city}"
+   ✅ Attribut loading="lazy" pour performance
+
+**8. LIENS STRATÉGIQUES**
+   ✅ **Liens internes** : 6-10 liens vers pages connexes (utiliser contexte fourni)
+   ✅ **Ancres descriptives** : "découvrez nos services de [service]", "en savoir plus sur [sujet]"
+   ✅ **Répartition naturelle** : 1 lien tous les 300-400 mots
+   ✅ **Jamais** : "cliquez ici", "voir ici", ancres génériques
+
+**9. FEATURED SNIPPETS (Position 0)**
+   ✅ **Paragraphes quotables** : Chaque paragraphe autonome et complet
+   ✅ **Réponses directes** : Format question → réponse immédiate en 40-60 mots
+   ✅ **Listes structurées** : Étapes numérotées pour processus, puces pour avantages
+   ✅ **Tableaux** : Comparaisons claires (matériaux, prix, durée de vie)
+   ✅ **Définitions claires** : Expliquer termes techniques en 1-2 phrases
+
+**10. CONVERSIONS ET ACTIONS**
+   ✅ **CTAs visibles** : 2-3 CTA répartis stratégiquement
+   ✅ **Proposition de valeur** : Avantages concrets pour le client
+   ✅ **Urgence subtile** : "Places limitées ce mois-ci", "Profitez des aides 2025"
+   ✅ **Facilité contact** : Téléphone, formulaire, chat mentionnés
+   ✅ **Preuves sociales** : "500+ clients satisfaits", "15 ans d'expérience"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ **ERREURS À ÉVITER ABSOLUMENT**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚫 **Contenu de remplissage** : Chaque phrase doit apporter de la valeur réelle
+🚫 **Sur-optimisation** : Répétition mécanique du mot-clé, ancres sur-optimisées
+🚫 **Duplication concurrence** : Ne JAMAIS paraphraser les concurrents
+🚫 **Promesses exagérées** : Rester factuel et réaliste (prix, délais, résultats)
+🚫 **Fautes** : Orthographe, grammaire, ponctuation irréprochables
+🚫 **Phrases-fleuves** : Aucune phrase >30 mots
+🚫 **Structure plate** : Varier longueur paragraphes, alterner listes/texte
+🚫 **Vague et général** : Toujours donner exemples concrets, chiffres précis
+🚫 **HTML mal formé** : Balises fermées, hiérarchie respectée
+🚫 **Oublier localisation** : {$city} doit être présente tout au long
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 **STRATÉGIE DE DIFFÉRENCIATION (Surpasser Concurrents)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pour devenir LA référence sur "{$keyword}" à {$city}, cet article DOIT :
+
+1. **Être 30% plus complet** que le meilleur concurrent
+   - Traiter angles non couverts identifiés dans l'analyse SERP
+   - Approfondir sections superficielles chez concurrents
+   - Ajouter section unique (innovation 2025, réglementation locale, cas d'usage spécifiques)
+
+2. **Être ultra-actionnable**
+   - Checklists téléchargeables mentalement (ex: "Les 10 points à vérifier avant de...")
+   - Guide étape par étape pour choisir/comparer
+   - Calculs simples pour estimer budget/durée
+   - Conseils d'entretien ou préparation
+
+3. **Être hyper-local**
+   - Spécificités climatiques de {$city} (pluie, vent, gel)
+   - Réglementations PLU (Plan Local d'Urbanisme) si applicables
+   - Architecture typique de la région
+   - Aides locales/régionales disponibles en 2025
+   - Témoignage client de {$city} (anonymisé si besoin)
+
+4. **Démontrer expertise supérieure**
+   - Détails techniques précis (normes DTU spécifiques, calculs thermiques)
+   - Explications processus étape par étape
+   - Erreurs courantes à éviter (vu sur le terrain)
+   - Innovations et tendances 2025 du secteur
+   - Certifications et labels expliqués
+
+5. **Être plus engageant**
+   - Storytelling : Commencer sections par mini-scénarios ("Imaginez...", "Marie et Pierre avaient ce problème...")
+   - Ton conversationnel pro (tutoiement ou vouvoiement selon contexte)
+   - Questions rhétoriques pour engager ("Vous vous demandez sûrement...")
+   - Analogies simples pour concepts techniques
+
+6. **Être plus récent et à jour**
+   - Mentionner "2025" 3-5 fois naturellement
+   - Nouvelles normes/réglementations 2024-2025
+   - Évolution des prix récente
+   - Tendances actuelles du marché
+   - Technologies/matériaux dernière génération
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 **FORMAT DE SORTIE STRICTEMENT REQUIS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Retourne UNIQUEMENT le contenu HTML pur, SANS :**
+- ❌ Balises <html>, <head>, <body>, <!DOCTYPE>
+- ❌ Titre H1 (déjà géré ailleurs)
+- ❌ Scripts JavaScript
+- ❌ Styles CSS inline (sauf classes)
+- ❌ Commentaires HTML (sauf suggestions visuelles type <!-- Suggestion: Ajouter vidéo ici -->)
+- ❌ Texte avant/après le HTML (pas d'introduction "Voici l'article...")
+
+**Le HTML doit être :**
+✅ Bien indenté (2 espaces par niveau)
+✅ Sémantiquement correct (HTML5)
+✅ Prêt à insérer dans un <div class="article-content">
+✅ Tous attributs présents (id, class, itemscope, href, src, alt, loading)
+
+**Structure de sortie attendue :**
+```html
+<div class="article-intro">
+  <!-- Introduction -->
+</div>
+
+<nav class="table-of-contents">
+  <!-- Sommaire -->
+</nav>
+
+<section id="section-1">
+  <!-- Section 1 -->
+</section>
+
+<!-- ... autres sections ... -->
+
+<section id="faq" itemscope itemtype="https://schema.org/FAQPage">
+  <!-- FAQ -->
+</section>
+
+<div class="cta-final">
+  <!-- CTA final -->
+</div>
+
+<section class="article-conclusion">
+  <!-- Conclusion -->
+</section>
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 **PROCESSUS DE RÉDACTION OPTIMAL**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**ÉTAPE 1 - ANALYSE (Mental)**
+- Comprendre intention recherche derrière "{$keyword}"
+- Identifier persona cible (propriétaire, syndic, particulier, professionnel)
+- Définir problèmes principaux à résoudre
+- Repérer opportunités de différenciation vs concurrents
+
+**ÉTAPE 2 - PLANIFICATION (Mental)**
+- Créer plan détaillé : 5-7 sections H2 logiques
+- Répartir variantes mot-clé entre sections
+- Positionner CTAs stratégiquement
+- Prévoir emplacements images
+
+**ÉTAPE 3 - RÉDACTION**
+- Introduction accrocheuse (mot-clé dans 100 premiers mots)
+- Développer chaque section avec profondeur
+- Alterner formats : texte, listes, tableaux, encadrés
+- Intégrer naturellement mots-clés et variantes
+- Maintenir ton professionnel mais accessible
+
+**ÉTAPE 4 - ENRICHISSEMENT**
+- Ajouter données chiffrées, statistiques
+- Insérer exemples concrets et anecdotes
+- Créer FAQ riche (8-10 questions)
+- Optimiser CTAs avec propositions de valeur claires
+
+**ÉTAPE 5 - OPTIMISATION**
+- Vérifier densité mots-clés (0.5-1%)
+- Contrôler longueur paragraphes/phrases
+- Valider structure HTML (h2>h3>h4)
+- S'assurer liens internes présents
+- Confirmer images intégrées avec ALT
+
+**ÉTAPE 6 - QUALITÉ FINALE**
+- Relire pour fluidité et cohérence
+- Vérifier transitions entre sections
+- Confirmer valeur actionnable apportée
+- S'assurer différenciation vs concurrents
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 **OBJECTIFS MESURABLES DE CET ARTICLE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cet article doit permettre de :
+✅ **Se classer top 3** sur "{$keyword}" + {$city} dans les 3 mois
+✅ **Générer 5-15 demandes de devis** par mois via CTAs
+✅ **Temps lecture moyen** : 4-7 minutes (engagement fort)
+✅ **Taux rebond** : <50% (grâce à sommaire et structure)
+✅ **Partages sociaux** : 3-10 par mois (contenu de valeur)
+✅ **Featured snippet** : Capturer position 0 sur 2-3 requêtes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ **COMMENCER LA RÉDACTION MAINTENANT**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tu as toutes les informations nécessaires. Génère maintenant un article HTML exceptionnel de **{$targetWordCount}+ mots** qui :
+
+🏆 Établit {$companyName} comme LA référence pour {$keyword} à {$city}
+🏆 Surpasse tous les concurrents en profondeur et qualité
+🏆 Convertit les visiteurs en clients
+🏆 Se classe en première page Google
+
+**Ton article doit être tellement bon que :**
+- Les lecteurs le bookmarkent comme ressource de référence
+- Les concurrents voudraient l'avoir écrit
+- Google le met en featured snippet
+- Les prospects appellent après l'avoir lu
+
+**RÉDIGE MAINTENANT.** Produis le meilleur contenu SEO jamais créé sur ce sujet.
+EOT;
+
+        return $prompt;
+    }
+    
+    /**
+     * Extraire des insights des résultats SERP
+     */
+    protected function extractSerpInsights($serpResults)
+    {
+        $topics = [];
+        $questions = [];
+        $wordCounts = [];
+        
+        if (empty($serpResults)) {
+            return [
+                'topics' => [
+                    'Présentation des services et expertise',
+                    'Tarifs détaillés et options de financement',
+                    'Zone d\'intervention et disponibilités',
+                    'Certifications professionnelles et garanties',
+                    'Processus de réalisation étape par étape',
+                    'Matériaux utilisés et leurs avantages'
+                ],
+                'questions' => [
+                    'Combien coûte ce service en moyenne ?',
+                    'Quels sont les délais d\'intervention habituels ?',
+                    'Quelles certifications possédez-vous ?',
+                    'Quelle est votre zone d\'intervention ?',
+                    'Proposez-vous des garanties ?',
+                    'Quels matériaux recommandez-vous ?',
+                    'Comment se déroule le chantier ?',
+                    'Peut-on bénéficier d\'aides financières ?'
+                ],
+                'avg_word_count' => 1500
+            ];
+        }
+        
+        foreach ($serpResults as $result) {
+            // Extraire les sujets des titres et snippets
+            if (isset($result['title'])) {
+                $title = strtolower($result['title']);
+                
+                // Identifier les thèmes récurrents
+                if (strpos($title, 'prix') !== false || strpos($title, 'tarif') !== false || strpos($title, 'coût') !== false) {
+                    $topics[] = 'Prix et tarification détaillée';
+                }
+                if (strpos($title, 'comment') !== false || strpos($title, 'guide') !== false) {
+                    $topics[] = 'Guide pratique et conseils';
+                }
+                if (strpos($title, 'meilleur') !== false || strpos($title, 'comparatif') !== false) {
+                    $topics[] = 'Comparaisons et recommandations';
+                }
+            }
             
-            if ($result && isset($result['content']) && !empty($result['content'])) {
-                $content = trim($result['content']);
-                // Parser les mots-clés (un par ligne)
-                $lines = preg_split('/\r?\n/', $content);
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    // Enlever les numéros, puces, tirets en début de ligne
-                    $line = preg_replace('/^[\d\.\-\*\+\s]+/', '', $line);
-                    $line = trim($line);
-                    
-                    // Filtrer les mots vides et trop courts
-                    $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où', 'votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange'];
-                    
-                    if (!empty($line) && strlen($line) >= 3 && strlen($line) <= 50) {
-                        $lineLower = strtolower($line);
-                        // Vérifier que ce n'est pas un mot vide
-                        if (!in_array($lineLower, $stopWords) && !in_array($line, $keywords)) {
-                            $keywords[] = $line;
+            if (isset($result['snippet'])) {
+                $snippet = $result['snippet'];
+                
+                // Identifier les questions dans les snippets
+                if (preg_match_all('/\b(comment|pourquoi|quand|où|quel|combien|qui|quoi)[^.?!]{5,}[?]/ui', $snippet, $matches)) {
+                    foreach ($matches[0] as $question) {
+                        $question = trim($question);
+                        if (strlen($question) > 10 && strlen($question) < 150) {
+                            $questions[] = ucfirst($question);
                         }
                     }
                 }
                 
-                Log::info('GptSeoGenerator: Mots-clés extraits via GPT', [
-                    'main_keyword' => $mainKeyword,
-                    'keywords_count' => count($keywords),
-                    'keywords' => $keywords
-                ]);
-            }
-        } catch (\Exception $e) {
-            Log::warning('GptSeoGenerator: Erreur extraction mots-clés via GPT, utilisation méthode basique', [
-                'error' => $e->getMessage()
-            ]);
-            
-            // Fallback : extraction basique améliorée
-            $words = str_word_count(strtolower($text), 1, 'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ');
-            $wordFreq = array_count_values($words);
-            arsort($wordFreq);
-            
-            $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où', 'votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange', 'chevigny', 'saint', 'sauveur'];
-            
-            $count = 0;
-            foreach ($wordFreq as $word => $freq) {
-                if ($count >= 4) break;
-                if (strlen($word) >= 4 && !in_array($word, $stopWords) && !in_array($word, $keywords)) {
-                    $keywords[] = $word;
-                    $count++;
+                // Estimer le nombre de mots (approximatif)
+                $wordCount = str_word_count($snippet) * 15; // Le snippet représente ~1/15 de l'article
+                if ($wordCount > 500 && $wordCount < 5000) {
+                    $wordCounts[] = $wordCount;
                 }
+            }
+            
+            // Extraire word count si disponible
+            if (isset($result['word_count']) && $result['word_count'] > 0) {
+                $wordCounts[] = $result['word_count'];
             }
         }
         
-        return array_slice($keywords, 0, 5);
+        // Déduplication et nettoyage
+        $topics = array_unique($topics);
+        $questions = array_unique($questions);
+        $questions = array_slice($questions, 0, 10);
+        
+        // Ajouter des questions par défaut si peu trouvées
+        if (count($questions) < 5) {
+            $defaultQuestions = [
+                'Combien coûte ce service ?',
+                'Quels sont les délais d\'intervention ?',
+                'Êtes-vous certifiés et assurés ?',
+                'Quelle zone couvrez-vous ?',
+                'Proposez-vous des garanties ?',
+                'Quels matériaux utilisez-vous ?'
+            ];
+            $questions = array_merge($questions, $defaultQuestions);
+            $questions = array_unique($questions);
+            $questions = array_slice($questions, 0, 10);
+        }
+        
+        $avgWordCount = !empty($wordCounts) ? (int) (array_sum($wordCounts) / count($wordCounts)) : 1500;
+        
+        // Limiter entre 1200 et 3000 mots
+        $avgWordCount = max(1200, min(3000, $avgWordCount));
+        
+        return [
+            'topics' => array_values($topics),
+            'questions' => array_values($questions),
+            'avg_word_count' => $avgWordCount
+        ];
+    }
+    
+    /**
+     * Formater les sujets pour le prompt
+     */
+    protected function formatTopics($topics)
+    {
+        if (empty($topics)) {
+            return "- Services et prestations détaillées\n- Tarifs et options de financement\n- Zone d'intervention et disponibilités\n- Certifications et garanties professionnelles\n- Processus de réalisation\n- Matériaux et techniques utilisés";
+        }
+        
+        $formatted = '';
+        foreach (array_slice($topics, 0, 8) as $index => $topic) {
+            $formatted .= ($index + 1) . ". {$topic}\n";
+        }
+        
+        return rtrim($formatted);
+    }
+    
+    /**
+     * Formater les questions pour le prompt
+     */
+    protected function formatQuestions($questions)
+    {
+        if (empty($questions)) {
+            return "1. Combien coûte ce service en moyenne ?\n2. Quels sont les délais d'intervention ?\n3. Êtes-vous certifiés et assurés ?\n4. Quelle est votre zone d'intervention ?\n5. Proposez-vous des garanties décennales ?\n6. Quels matériaux recommandez-vous ?";
+        }
+        
+        $formatted = '';
+        foreach (array_slice($questions, 0, 10) as $index => $question) {
+            $question = trim($question);
+            if (!empty($question)) {
+                $formatted .= ($index + 1) . ". {$question}\n";
+            }
+        }
+        
+        return rtrim($formatted);
+    }
+    
+    /**
+     * Construire le contexte des liens internes
+     */
+    protected function buildInternalLinksContext($keyword, $city)
+    {
+        // Récupérer les services disponibles
+        $servicesData = Setting::where('key', 'services')->value('value');
+        $services = [];
+        
+        if (!empty($servicesData)) {
+            $decoded = json_decode($servicesData, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $services = $decoded;
+            }
+        }
+        
+        $linksContext = "\n\n🔗 **LIENS INTERNES À INTÉGRER NATURELLEMENT**\n\n";
+        $linksContext .= "**IMPORTANT :** Intègre 6-10 liens internes pertinents dans le contenu de manière fluide et naturelle.\n\n";
+        
+        if (!empty($services)) {
+            $linksContext .= "**Services connexes disponibles sur le site :**\n";
+            foreach (array_slice($services, 0, 8) as $service) {
+                $serviceName = $service['name'] ?? 'Service';
+                $serviceSlug = \Illuminate\Support\Str::slug($serviceName);
+                $linksContext .= "- **{$serviceName}** : <a href=\"/services/{$serviceSlug}\">{$serviceName} à {$city}</a>\n";
+            }
+            $linksContext .= "\n";
+        }
+        
+        $linksContext .= "**Pages principales du site :**\n";
+        $linksContext .= "- À propos : <a href=\"/about\">Découvrez notre entreprise et notre expertise</a>\n";
+        $linksContext .= "- Contact : <a href=\"/contact\">Demandez votre devis gratuit personnalisé</a>\n";
+        $linksContext .= "- Réalisations : <a href=\"/realisations\">Consultez nos projets récents</a>\n";
+        $linksContext .= "- Zone d'intervention : <a href=\"/zone-intervention\">Vérifie si nous intervenons chez vous</a>\n";
+        $linksContext .= "- Blog : <a href=\"/blog\">Tous nos conseils d'experts</a>\n";
+        
+        $linksContext .= "\n**🎯 Règles d'intégration des liens :**\n";
+        $linksContext .= "1. Les ancres doivent être **descriptives et naturelles** (jamais \"cliquez ici\" ou \"en savoir plus\")\n";
+        $linksContext .= "2. Intégrer les liens **dans le flux naturel** du texte, pas en fin de phrase artificiellement\n";
+        $linksContext .= "3. Répartir équitablement : **1 lien tous les 300-400 mots** environ\n";
+        $linksContext .= "4. Privilégier les liens vers services **connexes et pertinents** pour le sujet traité\n";
+        $linksContext .= "5. Varier les ancres : ne pas utiliser le même texte d'ancre plusieurs fois\n";
+        
+        $linksContext .= "\n**Exemples d'intégration réussie :**\n";
+        $linksContext .= "✅ \"Pour compléter votre projet, découvrez nos <a href=\"/services/isolation-combles\">solutions d'isolation des combles à {$city}</a>.\"\n";
+        $linksContext .= "✅ \"Notre équipe réalise également des <a href=\"/services/charpente\">travaux de charpente traditionnelle</a> dans toute la région.\"\n";
+        $linksContext .= "✅ \"Consultez <a href=\"/realisations\">nos dernières réalisations de {$keyword}</a> pour vous inspirer.\"\n";
+        
+        $linksContext .= "\n❌ À éviter :\n";
+        $linksContext .= "❌ \"Pour en savoir plus, <a href=\"/services\">cliquez ici</a>.\"\n";
+        $linksContext .= "❌ \"Découvrez nos <a href=\"/about\">services</a>.\" (ancre trop générique)\n";
+        
+        return $linksContext;
     }
 }
-
