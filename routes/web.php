@@ -24,14 +24,69 @@ Route::get('/test-phone-tracking', function () {
     return view('test-phone-tracking');
 })->name('test.phone.tracking');
 
-/**
- * ROUTES ULTRA-SIMPLES
- * Navigation directe, pas de AJAX compliqué
- */
+        /**
+         * ROUTES ULTRA-SIMPLES
+         * Navigation directe, pas de AJAX compliqué
+         */
 
-// Setup Routes (no middleware)
-Route::get('/setup', [ConfigController::class, 'showSetup'])->name('config.setup');
-Route::post('/setup', [ConfigController::class, 'processSetup'])->name('config.setup.process');
+        // Setup Routes (no middleware)
+        Route::get('/setup', [ConfigController::class, 'showSetup'])->name('config.setup');
+        Route::post('/setup', [ConfigController::class, 'processSetup'])->name('config.setup.process');
+        
+        // Route pour exécuter le scheduler via HTTP (pour services externes comme cron-job.org)
+        // Protégée par token pour la sécurité
+        Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
+            $token = $request->query('token');
+            $configuredToken = \App\Models\Setting::where('key', 'schedule_run_token')->value('value');
+            
+            // Si aucun token n'est configuré, générer un token et le retourner avec instructions
+            if (empty($configuredToken)) {
+                $newToken = \Illuminate\Support\Str::random(32);
+                \App\Models\Setting::set('schedule_run_token', $newToken, 'string', 'seo');
+                
+                return response()->json([
+                    'message' => 'Token généré. Utilisez cette URL pour exécuter le scheduler :',
+                    'url' => url('/schedule/run?token=' . $newToken),
+                    'token' => $newToken,
+                    'instructions' => 'Configurez ce token dans un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL toutes les minutes.'
+                ], 200);
+            }
+            
+            // Vérifier le token
+            if (empty($token) || $token !== $configuredToken) {
+                return response()->json([
+                    'error' => 'Token invalide ou manquant',
+                    'message' => 'Utilisez ?token=VOTRE_TOKEN dans l\'URL'
+                ], 401);
+            }
+            
+            // Exécuter le scheduler
+            try {
+                \Artisan::call('schedule:run');
+                $output = \Artisan::output();
+                
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP', [
+                    'ip' => $request->ip(),
+                    'output' => $output
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Scheduler exécuté à ' . now()->format('Y-m-d H:i:s'),
+                    'output' => $output
+                ], 200);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'error' => 'Erreur lors de l\'exécution du scheduler',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        })->name('schedule.run');
 
 // API Routes
 // Route pour tracking des appels téléphoniques (POST et GET pour compatibilité)
