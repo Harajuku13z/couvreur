@@ -972,11 +972,10 @@ EOT;
         }
         
         $linksContext .= "**Pages principales du site :**\n";
-        $linksContext .= "- À propos : <a href=\"/about\">Découvrez notre entreprise et notre expertise</a>\n";
-        $linksContext .= "- Contact : <a href=\"/contact\">Demandez votre devis gratuit personnalisé</a>\n";
-        $linksContext .= "- Réalisations : <a href=\"/realisations\">Consultez nos projets récents</a>\n";
-        $linksContext .= "- Zone d'intervention : <a href=\"/zone-intervention\">Vérifie si nous intervenons chez vous</a>\n";
-        $linksContext .= "- Blog : <a href=\"/blog\">Tous nos conseils d'experts</a>\n";
+        // Utiliser les routes Laravel pour garantir que les liens fonctionnent
+        $linksContext .= "- Contact : <a href=\"" . route('contact') . "\">Demandez votre devis gratuit personnalisé</a>\n";
+        $linksContext .= "- Réalisations : <a href=\"" . route('portfolio.index') . "\">Consultez nos projets récents</a>\n";
+        $linksContext .= "- Blog : <a href=\"" . route('blog.index') . "\">Tous nos conseils d'experts</a>\n";
         
         $linksContext .= "\n**🎯 Règles d'intégration des liens :**\n";
         $linksContext .= "1. Les ancres doivent être **descriptives et naturelles** (jamais \"cliquez ici\" ou \"en savoir plus\")\n";

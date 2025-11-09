@@ -123,7 +123,13 @@
         }
     @endphp
     
-    <title>{{ e($finalTitle) }}</title>
+    @php
+        // Décoder les entités HTML pour éviter le double encodage
+        $decodedTitle = html_entity_decode($finalTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Encoder une seule fois pour l'affichage
+        $safeTitle = htmlspecialchars($decodedTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8', false);
+    @endphp
+    <title>{{ $safeTitle }}</title>
     <meta name="description" content="{{ e($finalDescription) }}">
     @php
         try {

@@ -73,10 +73,14 @@
         $organizationSchema["email"] = $companyEmail;
     }
     $organizationSchema["priceRange"] = "€€";
-    if ($logoUrl && $logoUrl !== url('logo/logo.png')) { // Éviter le logo par défaut
-        $organizationSchema["image"] = $logoUrl;
-        $organizationSchema["logo"] = $logoUrl;  // Logo pour affichage dans Google (requis pour favicon dans résultats)
-    }
+    // Toujours inclure le logo (même le logo par défaut) pour que Google puisse l'afficher
+    $organizationSchema["image"] = $logoUrl;
+    $organizationSchema["logo"] = [
+        "@type" => "ImageObject",
+        "url" => $logoUrl,
+        "width" => 600,
+        "height" => 60
+    ];
     
     // Ajouter les réseaux sociaux si disponibles
     $sameAs = [];
