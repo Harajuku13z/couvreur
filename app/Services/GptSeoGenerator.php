@@ -476,19 +476,19 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
         $contentText = trim($contentText);
         
         // Utiliser ChatGPT pour générer une vraie meta description basée sur le titre
-        $prompt = "Génère une meta description SEO optimisée (150-160 caractères EXACTEMENT) pour cet article.\n\n";
+        $prompt = "Génère une meta description SEO optimisée pour cet article.\n\n";
         $prompt .= "**Titre de l'article :** {$title}\n\n";
         $prompt .= "**Extrait du contenu (premiers 500 caractères) :** " . substr($contentText, 0, 500) . "\n\n";
-            $prompt .= "**Instructions STRICTES :**\n";
-            $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
-            $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
-            $prompt .= "- Longueur : Recommandé entre 150 et 200 caractères, mais peut être plus longue si nécessaire pour être complète\n";
-            $prompt .= "- La description doit être COMPLÈTE et se terminer par un mot entier, pas coupée\n";
-            $prompt .= "- Inclure le mot-clé principal si possible\n";
-            $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
-            $prompt .= "- Utiliser un ton professionnel et rassurant\n";
-            $prompt .= "- Commencer directement par le service/bénéfice, pas par une description de la ville\n\n";
-            $prompt .= "Retourne UNIQUEMENT la meta description complète, sans guillemets, sans formatage, sans points de suspension à la fin si elle est complète.";
+        $prompt .= "**Instructions STRICTES :**\n";
+        $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
+        $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
+        $prompt .= "- Longueur : Recommandé entre 150 et 200 caractères, mais peut être plus longue si nécessaire pour être complète\n";
+        $prompt .= "- La description doit être COMPLÈTE et se terminer par un mot entier, pas coupée\n";
+        $prompt .= "- Inclure le mot-clé principal si possible\n";
+        $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
+        $prompt .= "- Utiliser un ton professionnel et rassurant\n";
+        $prompt .= "- Commencer directement par le service/bénéfice, pas par une description de la ville\n\n";
+        $prompt .= "Retourne UNIQUEMENT la meta description complète, sans guillemets, sans formatage, sans points de suspension à la fin si elle est complète.";
         
         $systemMessage = 'Tu es un expert SEO spécialisé dans la rédaction de meta descriptions optimisées.';
         
