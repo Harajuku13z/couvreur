@@ -37,13 +37,20 @@ class ArticleController extends Controller
         if (!empty($article->featured_image)) {
             $pageImage = asset($article->featured_image);
         } else {
-            $defaultBlogImage = 'images/og-blog.jpg';
+            // Utiliser l'image configurée dans les settings, sinon l'image par défaut
+            $defaultBlogImage = setting('default_blog_og_image', 'images/og-blog.jpg');
             if (file_exists(public_path($defaultBlogImage))) {
                 $pageImage = asset($defaultBlogImage);
             } else {
-                $companyLogo = setting('company_logo');
-                if ($companyLogo) {
-                    $pageImage = asset($companyLogo);
+                // Fallback sur l'image par défaut si celle configurée n'existe pas
+                $fallbackImage = 'images/og-blog.jpg';
+                if (file_exists(public_path($fallbackImage))) {
+                    $pageImage = asset($fallbackImage);
+                } else {
+                    $companyLogo = setting('company_logo');
+                    if ($companyLogo) {
+                        $pageImage = asset($companyLogo);
+                    }
                 }
             }
         }

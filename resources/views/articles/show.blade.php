@@ -9,7 +9,7 @@
     $pageTitle = $article->meta_title ?: $article->title;
     $pageDescription = $article->meta_description;
     $pageKeywords = $article->meta_keywords;
-    $pageImage = $article->featured_image ? asset($article->featured_image) : asset('images/og-blog.jpg');
+    $pageImage = $article->featured_image ? asset($article->featured_image) : asset(setting('default_blog_og_image', 'images/og-blog.jpg'));
     $pageType = 'article';
     $currentPage = 'article';
 @endphp

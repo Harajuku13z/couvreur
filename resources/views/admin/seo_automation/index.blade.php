@@ -264,11 +264,68 @@
         </div>
     @endif
 
-    <!-- Configuration des APIs -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-cog mr-2 text-gray-600"></i>Configuration des APIs
-        </h2>
+            <!-- Configuration Image OG Blog -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-image mr-2 text-purple-600"></i>Image Open Graph par défaut (Blog)
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Cette image sera utilisée comme image de partage (og:image) pour tous les articles qui n'ont pas d'image mise en avant. Format recommandé : 1200x630px.
+                </p>
+                
+                @php
+                    $currentOgImage = \App\Models\Setting::where('key', 'default_blog_og_image')->value('value') ?? 'images/og-blog.jpg';
+                @endphp
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Chemin de l'image (depuis public/)
+                        </label>
+                        <form action="{{ route('admin.seo-automation.save-og-image') }}" method="POST" class="flex items-end gap-3">
+                            @csrf
+                            <div class="flex-1">
+                                <input type="text" 
+                                       name="image_path" 
+                                       value="{{ $currentOgImage }}"
+                                       placeholder="images/og-blog.jpg"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Exemple: <code>images/og-blog.jpg</code> ou <code>images/articles/default.jpg</code>
+                                </p>
+                            </div>
+                            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
+                                <i class="fas fa-save mr-1"></i>Enregistrer
+                            </button>
+                        </form>
+                    </div>
+                    
+                    @if(file_exists(public_path($currentOgImage)))
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Image actuelle :</p>
+                            <img src="{{ asset($currentOgImage) }}" 
+                                 alt="Image OG Blog" 
+                                 class="max-w-md w-full h-auto rounded-lg shadow-md">
+                            <p class="text-xs text-gray-500 mt-2">
+                                <code>{{ $currentOgImage }}</code>
+                            </p>
+                        </div>
+                    @else
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                L'image <code>{{ $currentOgImage }}</code> n'existe pas. Veuillez créer le fichier dans <code>public/{{ $currentOgImage }}</code>
+                            </p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Configuration des APIs -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-cog mr-2 text-gray-600"></i>Configuration des APIs
+                </h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- SerpAPI -->

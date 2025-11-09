@@ -315,6 +315,35 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Sauvegarder le chemin de l'image OG Blog par défaut
+     */
+    public function saveOgImage(Request $request)
+    {
+        $validated = $request->validate([
+            'image_path' => 'required|string|max:255',
+        ]);
+        
+        $imagePath = trim($validated['image_path']);
+        
+        // Vérifier que le chemin commence par "images/"
+        if (!str_starts_with($imagePath, 'images/')) {
+            return redirect()->back()
+                ->with('error', '❌ Le chemin doit commencer par "images/" (ex: images/og-blog.jpg)');
+        }
+        
+        // Vérifier que le fichier existe
+        if (!file_exists(public_path($imagePath))) {
+            return redirect()->back()
+                ->with('error', "❌ Le fichier {$imagePath} n'existe pas dans public/. Veuillez d'abord uploader l'image.");
+        }
+        
+        \App\Models\Setting::set('default_blog_og_image', $imagePath, 'string', 'seo');
+        
+        return redirect()->back()
+            ->with('success', "✅ Image Open Graph par défaut mise à jour : {$imagePath}");
+    }
+
+    /**
      * Générer des mots-clés depuis la description de l'entreprise en utilisant SerpAPI
      */
     public function generateKeywords(Request $request)
