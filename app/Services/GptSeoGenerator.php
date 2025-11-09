@@ -34,58 +34,7 @@ class GptSeoGenerator
     ): ?array {
         $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
         
-        // Étape 1: Générer uniquement le titre d'abord
-        if ($progressCallback) {
-            $progressCallback([
-                'step' => 'title_generation',
-                'message' => 'Génération du titre optimisé...'
-            ]);
-        }
-        
-        $titlePrompt = "Pour le mot-clé \"{$keyword}\" ciblant la ville {$cityName}, génère UNIQUEMENT un titre d'article SEO optimisé (60-70 caractères max).\n\nRetourne UNIQUEMENT le titre, sans formatage, sans JSON, juste le titre.";
-        
-        $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
-            'max_tokens' => 100,
-            'temperature' => 0.3,
-            'timeout' => 30
-        ]);
-        
-        $generatedTitle = null;
-        if ($titleResult && isset($titleResult['content']) && !empty($titleResult['content'])) {
-            $generatedTitle = trim($titleResult['content']);
-            // Nettoyer le titre (enlever guillemets, markdown, etc.)
-            $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
-            $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
-            $generatedTitle = trim($generatedTitle);
-            
-            if (!empty($generatedTitle)) {
-                if ($progressCallback) {
-                    $progressCallback([
-                        'step' => 'title_generated',
-                        'message' => 'Titre généré: ' . $generatedTitle,
-                        'title' => $generatedTitle
-                    ]);
-                }
-                
-                Log::info('GptSeoGenerator: Titre généré avec succès', [
-                    'keyword' => $keyword,
-                    'city' => $cityName,
-                    'title' => $generatedTitle
-                ]);
-            } else {
-                Log::warning('GptSeoGenerator: Titre généré mais vide après nettoyage', [
-                    'original' => $titleResult['content'] ?? 'N/A'
-                ]);
-            }
-        } else {
-            Log::warning('GptSeoGenerator: Échec génération titre', [
-                'has_result' => !empty($titleResult),
-                'has_content' => isset($titleResult['content']),
-                'content_preview' => isset($titleResult['content']) ? substr($titleResult['content'], 0, 100) : 'N/A'
-            ]);
-        }
-        
-        // Étape 2: Générer le texte brut de qualité (SANS HTML)
+        // Étape 1: Générer le texte brut de qualité (SANS HTML) - AVANT le titre pour garantir la cohérence
         if ($progressCallback) {
             $progressCallback([
                 'step' => 'article_generation',
@@ -118,6 +67,57 @@ class GptSeoGenerator
         Log::info('GptSeoGenerator: Texte brut généré', [
             'length' => strlen($rawText)
         ]);
+        
+        // Étape 2: Générer le titre BASÉ sur le contenu généré (pour garantir la cohérence)
+        if ($progressCallback) {
+            $progressCallback([
+                'step' => 'title_generation',
+                'message' => 'Génération du titre basé sur le contenu...'
+            ]);
+        }
+        
+        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé (60-70 caractères max) qui correspond EXACTEMENT au contenu. Le titre doit refléter fidèlement ce qui est écrit dans l'article.\n\n**Contenu de l'article :**\n\n" . substr($rawText, 0, 2000) . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\nRetourne UNIQUEMENT le titre, sans formatage, sans JSON, juste le titre.";
+        
+        $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
+            'max_tokens' => 100,
+            'temperature' => 0.2, // Plus bas pour un titre précis
+            'timeout' => 30
+        ]);
+        
+        $generatedTitle = null;
+        if ($titleResult && isset($titleResult['content']) && !empty($titleResult['content'])) {
+            $generatedTitle = trim($titleResult['content']);
+            // Nettoyer le titre (enlever guillemets, markdown, etc.)
+            $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
+            $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
+            $generatedTitle = trim($generatedTitle);
+            
+            if (!empty($generatedTitle)) {
+                if ($progressCallback) {
+                    $progressCallback([
+                        'step' => 'title_generated',
+                        'message' => 'Titre généré: ' . $generatedTitle,
+                        'title' => $generatedTitle
+                    ]);
+                }
+                
+                Log::info('GptSeoGenerator: Titre généré avec succès basé sur le contenu', [
+                    'keyword' => $keyword,
+                    'city' => $cityName,
+                    'title' => $generatedTitle
+                ]);
+            } else {
+                Log::warning('GptSeoGenerator: Titre généré mais vide après nettoyage', [
+                    'original' => $titleResult['content'] ?? 'N/A'
+                ]);
+            }
+        } else {
+            Log::warning('GptSeoGenerator: Échec génération titre, utilisation titre par défaut', [
+                'has_result' => !empty($titleResult),
+                'has_content' => isset($titleResult['content']),
+                'content_preview' => isset($titleResult['content']) ? substr($titleResult['content'], 0, 100) : 'N/A'
+            ]);
+        }
         
         // Étape 3: Ajouter le HTML au texte généré
         if ($progressCallback) {
@@ -303,6 +303,12 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 - Ajouter un **appel à l'action** à la fin.
 - Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
 - Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets, des conseils pratiques, des statistiques si pertinentes.
+
+**IMPORTANT - COHÉRENCE TITRE/CONTENU :**
+- Si tu mentionnes "conseils" ou "astuces" dans le contenu, assure-toi de fournir VRAIMENT des conseils pratiques et détaillés.
+- Si tu mentionnes "guide", assure-toi de fournir un guide complet avec des étapes claires.
+- Si tu mentionnes "solutions", assure-toi de présenter des solutions concrètes et applicables.
+- Le contenu doit TOUJOURS correspondre aux promesses faites dans le titre. Si le titre mentionne "conseils pratiques", le contenu DOIT contenir des conseils pratiques détaillés et actionnables.
 
 **Format de sortie :**
 Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne.
