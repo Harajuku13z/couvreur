@@ -500,13 +500,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- Article Content -->
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                    @if($article->featured_image)
-                        <div class="w-full">
-                            <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
-                                 class="w-full aspect-video object-cover rounded-lg shadow-lg">
-                        </div>
-                    @endif
-                    
                     <div class="p-8">
                         <!-- Article Content - Texte brut de ChatGPT (qualitatif) -->
                         <div class="article-content prose prose-lg max-w-none whitespace-pre-line">
@@ -518,15 +511,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             $suggestedLinks = \App\Helpers\InternalLinkingHelper::getSuggestedLinks('article', 5);
                         @endphp
                         @if(count($suggestedLinks) > 0)
-                        <div class="mt-12 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="mt-12 p-6 rounded-lg border" style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); border-color: var(--primary-color, #3b82f6);">
                             <h3 class="text-xl font-bold text-gray-800 mb-4">
                                 <i class="fas fa-link mr-2 text-primary"></i>Articles et Services Connexes
                             </h3>
                             <div class="grid md:grid-cols-2 gap-4">
                                 @foreach($suggestedLinks as $link)
                                 <a href="{{ $link['url'] }}" class="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
-                                    <i class="fas {{ $link['type'] === 'service' ? 'fa-tools' : 'fa-newspaper' }} text-primary mr-3"></i>
-                                    <span class="text-gray-800 hover:text-primary">{{ $link['title'] }}</span>
+                                    <i class="fas {{ $link['type'] === 'service' ? 'fa-tools' : 'fa-newspaper' }} mr-3" style="color: var(--primary-color, #3b82f6);"></i>
+                                    <span class="text-gray-800 hover:underline" style="--hover-color: var(--primary-color, #3b82f6);">{{ $link['title'] }}</span>
                                     <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                                 </a>
                                 @endforeach
@@ -548,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--primary-color, #3b82f6);" onmouseover="this.style.backgroundColor='var(--secondary-color, #1e40af)'" onmouseout="this.style.backgroundColor='var(--primary-color, #3b82f6)'">
                                         <i class="fab fa-facebook-f"></i>
                                         <span class="hidden sm:inline">Facebook</span>
                                     </a>
@@ -557,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                         <i class="fab fa-twitter"></i>
                                         <span class="hidden sm:inline">Twitter</span>
                                     </a>
@@ -566,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--secondary-color, #1e40af);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                         <i class="fab fa-linkedin-in"></i>
                                         <span class="hidden sm:inline">LinkedIn</span>
                                     </a>
@@ -575,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                         <i class="fab fa-whatsapp"></i>
                                         <span class="hidden sm:inline">WhatsApp</span>
                                     </a>
@@ -584,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--primary-color, #3b82f6);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                         <i class="fab fa-telegram-plane"></i>
                                         <span class="hidden sm:inline">Telegram</span>
                                     </a>
@@ -643,18 +636,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="space-y-6">
 
                     <!-- Company Info -->
-                    <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
+                    <div class="rounded-xl shadow-xl p-6 text-white" style="background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));">
                         <div class="text-center mb-6">
                             <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-building text-2xl"></i>
                             </div>
                             <h3 class="text-xl font-bold mb-2">{{ setting('company_name') }}</h3>
-                            <p class="text-blue-100 text-sm">Votre partenaire rénovation</p>
+                            <p class="text-sm opacity-90">Votre partenaire rénovation</p>
                         </div>
                         
                         <div class="space-y-4 mb-6">
                             <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
+                                <i class="fas fa-map-marker-alt mr-3 opacity-80"></i>
                                 <span class="text-sm">
                                     @php
                                         $address = setting('company_address', '');
@@ -679,14 +672,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </span>
                             </div>
                             <div class="flex items-center">
-                                <i class="fas fa-phone text-green-300 mr-3"></i>
-                                <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:text-green-200 transition-colors">
+                                <i class="fas fa-phone mr-3 opacity-80"></i>
+                                <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:opacity-80 transition-opacity">
                                     {{ setting('company_phone') }}
                                 </a>
                             </div>
                             <div class="flex items-center">
-                                <i class="fas fa-envelope text-blue-200 mr-3"></i>
-                                <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:text-blue-200 transition-colors">
+                                <i class="fas fa-envelope mr-3 opacity-80"></i>
+                                <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:opacity-80 transition-opacity">
                                     {{ setting('company_email') }}
                                 </a>
                             </div>
@@ -695,12 +688,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <!-- Boutons d'action -->
                         <div class="space-y-3">
                             <a href="{{ route('form.step', 'propertyType') }}" 
-                               class="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">
+                               class="w-full bg-white py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center" style="color: var(--primary-color, #3b82f6);">
                                 <i class="fas fa-calculator mr-2"></i>
                                 Devis Gratuit
                             </a>
                             <a href="tel:{{ setting('company_phone_raw') }}" 
-                               class="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 transition-colors flex items-center justify-center">
+                               class="w-full text-white py-3 px-4 rounded-lg font-bold transition-opacity flex items-center justify-center" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                 <i class="fas fa-phone mr-2"></i>
                                 Appeler Maintenant
                             </a>
@@ -710,11 +703,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="mt-6 pt-4 border-t border-white border-opacity-20">
                             <div class="flex justify-center space-x-4 text-xs">
                                 <div class="flex items-center">
-                                    <i class="fas fa-shield-alt text-yellow-300 mr-1"></i>
-                                    <span class="text-blue-100">Garantie</span>
+                                    <i class="fas fa-shield-alt mr-1 opacity-80"></i>
+                                    <span class="opacity-90">Garantie</span>
                                 </div>
                                 <div class="flex items-center">
-                                    <i class="fas fa-certificate text-yellow-300 mr-1"></i>
+                                    <i class="fas fa-certificate mr-1 opacity-80"></i>
                                     <span class="text-blue-100">Certifié</span>
                                 </div>
                                 <div class="flex items-center">
