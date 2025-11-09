@@ -62,6 +62,15 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-lg font-medium text-gray-900">
                         <i class="fab fa-google mr-2 text-blue-600"></i>SerpAPI
+                        @if(!empty($apiConfig['serpapi_key']))
+                            <span class="ml-2 text-xs text-green-600">
+                                <i class="fas fa-check-circle"></i> Configuré
+                            </span>
+                        @else
+                            <span class="ml-2 text-xs text-gray-500">
+                                <i class="fas fa-exclamation-circle"></i> Non configuré
+                            </span>
+                        @endif
                     </h3>
                     <button onclick="testApi('serpapi', this)" 
                             class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
@@ -70,11 +79,18 @@
                 </div>
                 <form action="{{ route('admin.seo-automation.save-config') }}" method="POST" class="space-y-3">
                     @csrf
-                    <input type="password" 
-                           name="serpapi_key" 
-                           value=""
-                           placeholder="{{ $apiConfig['serpapi_key'] ? 'Laisser vide pour conserver' : 'Clé API SerpAPI' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <div>
+                        <input type="password" 
+                               name="serpapi_key" 
+                               value=""
+                               placeholder="{{ !empty($apiConfig['serpapi_key']) ? 'Laisser vide pour conserver la clé actuelle' : 'Entrez votre clé API SerpAPI' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        @if(!empty($apiConfig['serpapi_key']))
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>Clé configurée ({{ strlen($apiConfig['serpapi_key']) }} caractères)
+                            </p>
+                        @endif
+                    </div>
                     <button type="submit" class="w-full bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
                         <i class="fas fa-save mr-1"></i>Sauvegarder
                     </button>
@@ -87,6 +103,15 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-lg font-medium text-gray-900">
                         <i class="fas fa-robot mr-2 text-green-600"></i>ChatGPT
+                        @if(!empty($apiConfig['chatgpt_api_key']))
+                            <span class="ml-2 text-xs text-green-600">
+                                <i class="fas fa-check-circle"></i> Configuré
+                            </span>
+                        @else
+                            <span class="ml-2 text-xs text-gray-500">
+                                <i class="fas fa-exclamation-circle"></i> Non configuré
+                            </span>
+                        @endif
                     </h3>
                     <button onclick="testApi('gpt', this)" 
                             class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
@@ -99,11 +124,18 @@
                         <input type="checkbox" name="chatgpt_enabled" value="1" {{ $apiConfig['chatgpt_enabled'] ? 'checked' : '' }} class="rounded">
                         <label class="ml-2 text-sm text-gray-700">Activer</label>
                     </div>
-                    <input type="password" 
-                           name="chatgpt_api_key" 
-                           value=""
-                           placeholder="{{ $apiConfig['chatgpt_api_key'] ? 'Laisser vide pour conserver' : 'Clé API OpenAI' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <div>
+                        <input type="password" 
+                               name="chatgpt_api_key" 
+                               value=""
+                               placeholder="{{ !empty($apiConfig['chatgpt_api_key']) ? 'Laisser vide pour conserver la clé actuelle' : 'Entrez votre clé API OpenAI' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        @if(!empty($apiConfig['chatgpt_api_key']))
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>Clé configurée ({{ strlen($apiConfig['chatgpt_api_key']) }} caractères)
+                            </p>
+                        @endif
+                    </div>
                     <select name="chatgpt_model" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                         <option value="gpt-3.5-turbo" {{ $apiConfig['chatgpt_model'] == 'gpt-3.5-turbo' ? 'selected' : '' }}>GPT-3.5 Turbo</option>
                         <option value="gpt-4" {{ $apiConfig['chatgpt_model'] == 'gpt-4' ? 'selected' : '' }}>GPT-4</option>
