@@ -149,18 +149,16 @@ class GptSeoGenerator
             $formattedHtml = trim($formattedHtml);
         }
         
-        // Construire la réponse JSON
-        $result = [
-            'content' => json_encode([
-                'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
-                'meta_description' => $this->generateMetaDescription($rawText),
-                'contenu_html' => $formattedHtml,
-                'mots_cles' => $this->extractKeywords($rawText, $keyword),
-                'faq' => []
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        // Construire directement le tableau décodé (pas besoin de JSON)
+        $decoded = [
+            'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
+            'meta_description' => $this->generateMetaDescription($rawText),
+            'contenu_html' => $formattedHtml,
+            'mots_cles' => $this->extractKeywords($rawText, $keyword),
+            'faq' => []
         ];
 
-        if (!$result || !isset($result['content']) || empty($result['content'])) {
+        if (empty($decoded['titre']) || empty($decoded['contenu_html'])) {
             // Vérifier les clés API pour donner un message d'erreur plus précis
             $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
             $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
