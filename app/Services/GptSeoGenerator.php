@@ -504,16 +504,11 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
             $metaDesc = preg_replace('/^["\']|["\']$/', '', $metaDesc);
             $metaDesc = trim($metaDesc);
             
-            // S'assurer que c'est entre 150-160 caractères
-            if (strlen($metaDesc) > 160) {
-                $metaDesc = Str::limit($metaDesc, 157) . '...';
-            } elseif (strlen($metaDesc) < 120) {
-                // Si trop courte, compléter avec un extrait du contenu
-                $excerpt = Str::limit($contentText, 160 - strlen($metaDesc) - 3);
+            // Ne pas tronquer la meta description - la garder complète
+            // Si elle est trop courte, l'enrichir avec un extrait du contenu
+            if (strlen($metaDesc) < 120) {
+                $excerpt = Str::limit($contentText, 200 - strlen($metaDesc) - 3);
                 $metaDesc = $metaDesc . ' - ' . $excerpt;
-                if (strlen($metaDesc) > 160) {
-                    $metaDesc = Str::limit($metaDesc, 157) . '...';
-                }
             }
             
             Log::info('GptSeoGenerator: Meta description générée via GPT', [
@@ -526,9 +521,6 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
         
         // Fallback : générer depuis le titre et le début du contenu
         $fallback = "Découvrez tout ce que vous devez savoir sur {$title}. Guide complet avec conseils pratiques et solutions professionnelles.";
-        if (strlen($fallback) > 160) {
-            $fallback = Str::limit($fallback, 157) . '...';
-        }
         
         Log::warning('GptSeoGenerator: Utilisation meta description fallback', [
             'title' => $title
