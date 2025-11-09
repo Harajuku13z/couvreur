@@ -48,7 +48,7 @@ Route::get('/test-phone-tracking', function () {
                     'message' => 'Token généré. Utilisez cette URL pour exécuter le scheduler :',
                     'url' => url('/schedule/run?token=' . $newToken),
                     'token' => $newToken,
-                    'instructions' => 'Configurez ce token dans un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL toutes les minutes.'
+                    'instructions' => 'Configurez ce token dans un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL une fois par jour.'
                 ], 200);
             }
             
@@ -60,20 +60,48 @@ Route::get('/test-phone-tracking', function () {
                 ], 401);
             }
             
-            // Exécuter le scheduler
+            // Exécuter directement la génération d'articles (sans vérifier l'heure)
             try {
-                \Artisan::call('schedule:run');
+                // Vérifier si l'automatisation est activée
+                $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+                $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+                if ($automationEnabled === false && $automationEnabled !== true) {
+                    $automationEnabled = true; // Par défaut
+                }
+                
+                if (!$automationEnabled) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Automatisation SEO désactivée',
+                        'output' => 'L\'automatisation est désactivée dans les paramètres.'
+                    ], 200);
+                }
+                
+                // Vérifier qu'il y a des villes favorites
+                $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
+                if ($favoriteCitiesCount === 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Aucune ville favorite',
+                        'output' => 'Aucune ville favorite configurée. Marquez au moins une ville comme favorite.'
+                    ], 200);
+                }
+                
+                // Exécuter directement la génération d'articles (sans vérifier l'heure)
+                \Artisan::call('seo:run-automations');
                 $output = \Artisan::output();
                 
-                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP', [
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération directe', [
                     'ip' => $request->ip(),
-                    'output' => $output
+                    'output' => $output,
+                    'timestamp' => now()->format('Y-m-d H:i:s')
                 ]);
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Scheduler exécuté à ' . now()->format('Y-m-d H:i:s'),
-                    'output' => $output
+                    'message' => 'Génération d\'articles lancée à ' . now()->format('Y-m-d H:i:s'),
+                    'output' => $output,
+                    'note' => 'Les articles sont générés directement (mode exécution directe activé par défaut)'
                 ], 200);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [
@@ -82,7 +110,7 @@ Route::get('/test-phone-tracking', function () {
                 ]);
                 
                 return response()->json([
-                    'error' => 'Erreur lors de l\'exécution du scheduler',
+                    'error' => 'Erreur lors de l\'exécution',
                     'message' => $e->getMessage()
                 ], 500);
             }
