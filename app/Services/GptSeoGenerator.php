@@ -345,7 +345,7 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 - Inclure le **mot-clé principal** et des variantes naturelles tout au long de l'article.
 - Utiliser des phrases claires, engageantes et faciles à lire.
 - Proposer des **listes, exemples, statistiques ou conseils** si possible.
-- Longueur: **entre 1500 et 2500 mots** pour un contenu complet et détaillé.
+- Longueur: **entre 1000 et 1800 mots** pour un contenu complet et détaillé (adapté aux limites techniques).
 - HTML propre avec des balises sémantiques: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
 - Inclure des retours à la ligne appropriés pour une meilleure lisibilité.
 - Ajouter un **appel à l'action** à la fin (ex : \"Découvrez nos services\", \"Contactez-nous pour un devis gratuit\", etc.)
