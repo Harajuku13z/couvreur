@@ -4,7 +4,7 @@
 @section('page_title', 'Créer un Devis')
 
 @section('content')
-<div class="p-6">
+<div class="p-4 md:p-6">
     <div class="mb-6">
         <a href="{{ route('admin.devis.index') }}" class="text-blue-600 hover:text-blue-900">
             <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
@@ -221,25 +221,28 @@ function addLigne(ligne = null) {
     
     const ligneHtml = `
         <div class="border border-gray-200 rounded-lg p-4 ligne-item" data-index="${index}">
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-5">
-                    <label class="block text-sm font-medium mb-1">Description *</label>
-                    <input type="text" 
-                           name="lignes[${index}][description]" 
-                           value="${ligne ? ligne.description : ''}"
-                           required
-                           class="w-full px-3 py-2 border border-gray-300 rounded">
-                </div>
-                <div class="col-span-2">
+            <!-- Ligne 1: Description -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Description *</label>
+                <textarea name="lignes[${index}][description]" 
+                          required
+                          rows="2"
+                          class="w-full px-3 py-2 border border-gray-300 rounded resize-y">${ligne ? ligne.description : ''}</textarea>
+            </div>
+            
+            <!-- Ligne 2: Quantité, Unité et Prix unitaire -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div>
                     <label class="block text-sm font-medium mb-1">Quantité *</label>
                     <input type="number" 
                            name="lignes[${index}][quantite]" 
                            value="${ligne ? ligne.quantite : ''}"
                            step="0.01"
                            required
+                           oninput="calculateLigneTotal(${index})"
                            class="w-full px-3 py-2 border border-gray-300 rounded">
                 </div>
-                <div class="col-span-2">
+                <div>
                     <label class="block text-sm font-medium mb-1">Unité *</label>
                     <input type="text" 
                            name="lignes[${index}][unite]" 
@@ -247,19 +250,34 @@ function addLigne(ligne = null) {
                            required
                            class="w-full px-3 py-2 border border-gray-300 rounded">
                 </div>
-                <div class="col-span-2">
+                <div>
                     <label class="block text-sm font-medium mb-1">Prix unitaire (€) *</label>
                     <input type="number" 
                            name="lignes[${index}][prix_unitaire]" 
                            value="${ligne ? ligne.prix_unitaire : ''}"
                            step="0.01"
                            required
+                           oninput="calculateLigneTotal(${index})"
                            class="w-full px-3 py-2 border border-gray-300 rounded">
                 </div>
-                <div class="col-span-1 flex items-end">
+            </div>
+            
+            <!-- Ligne 3: Total -->
+            <div class="flex justify-between items-center">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium mb-1">Total (€)</label>
+                    <input type="text" 
+                           name="lignes[${index}][total]" 
+                           id="ligne-total-${index}"
+                           readonly
+                           value="0.00"
+                           class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 font-semibold">
+                </div>
+                <div class="ml-4 flex items-end">
                     <button type="button" 
                             onclick="removeLigne(${index})" 
-                            class="text-red-600 hover:text-red-900">
+                            class="text-red-600 hover:text-red-900 p-2"
+                            title="Supprimer cette ligne">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -269,12 +287,39 @@ function addLigne(ligne = null) {
     
     container.insertAdjacentHTML('beforeend', ligneHtml);
     
+    // Calculer le total initial si des valeurs sont présentes (après insertion dans le DOM)
+    setTimeout(() => {
+        if (ligne) {
+            calculateLigneTotal(index);
+        }
+    }, 0);
+    
     // Ajouter les listeners pour recalculer l'acompte
     updateAcompteOnLigneChange();
 }
 
+// Calculer le total d'une ligne
+function calculateLigneTotal(index) {
+    const ligneItem = document.querySelector(`.ligne-item[data-index="${index}"]`);
+    if (!ligneItem) return;
+    
+    const quantite = parseFloat(ligneItem.querySelector('input[name*="[quantite]"]').value) || 0;
+    const prixUnitaire = parseFloat(ligneItem.querySelector('input[name*="[prix_unitaire]"]').value) || 0;
+    const total = quantite * prixUnitaire;
+    
+    const totalInput = document.getElementById(`ligne-total-${index}`);
+    if (totalInput) {
+        totalInput.value = total.toFixed(2);
+    }
+    
+    // Recalculer l'acompte
+    calculateAcompte();
+}
+
 function removeLigne(index) {
     document.querySelector(`.ligne-item[data-index="${index}"]`).remove();
+    // Recalculer l'acompte après suppression
+    calculateAcompte();
 }
 
 async function generateLinesWithAI() {
@@ -389,15 +434,9 @@ function calculateAcompte() {
 
 // Recalculer l'acompte quand les lignes changent
 function updateAcompteOnLigneChange() {
-    const lignes = document.querySelectorAll('.ligne-item');
-    lignes.forEach(ligne => {
-        ['quantite', 'prix_unitaire'].forEach(field => {
-            const input = ligne.querySelector(`input[name*="[${field}]"]`);
-            if (input) {
-                input.addEventListener('input', calculateAcompte);
-            }
-        });
-    });
+    // Les événements oninput sont déjà gérés directement dans le HTML
+    // Cette fonction est conservée pour compatibilité mais n'est plus nécessaire
+    // car oninput est directement dans les inputs
 }
 
 document.addEventListener('DOMContentLoaded', function() {
