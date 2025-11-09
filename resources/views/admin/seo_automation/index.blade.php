@@ -50,6 +50,99 @@
         </div>
     @endif
 
+    <!-- Configuration des APIs -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-cog mr-2 text-gray-600"></i>Configuration des APIs
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- SerpAPI -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fab fa-google mr-2 text-blue-600"></i>SerpAPI
+                    </h3>
+                    <button onclick="testApi('serpapi', this)" 
+                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                        <i class="fas fa-vial mr-1"></i>Test
+                    </button>
+                </div>
+                <form action="{{ route('admin.seo-automation.save-config') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <input type="password" 
+                           name="serpapi_key" 
+                           value=""
+                           placeholder="{{ $apiConfig['serpapi_key'] ? 'Laisser vide pour conserver' : 'Clé API SerpAPI' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <button type="submit" class="w-full bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
+                        <i class="fas fa-save mr-1"></i>Sauvegarder
+                    </button>
+                </form>
+                <div id="serpapi_result" class="mt-2 text-sm"></div>
+            </div>
+
+            <!-- ChatGPT -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-robot mr-2 text-green-600"></i>ChatGPT
+                    </h3>
+                    <button onclick="testApi('gpt', this)" 
+                            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        <i class="fas fa-vial mr-1"></i>Test
+                    </button>
+                </div>
+                <form action="{{ route('admin.seo-automation.save-config') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div class="flex items-center">
+                        <input type="checkbox" name="chatgpt_enabled" value="1" {{ $apiConfig['chatgpt_enabled'] ? 'checked' : '' }} class="rounded">
+                        <label class="ml-2 text-sm text-gray-700">Activer</label>
+                    </div>
+                    <input type="password" 
+                           name="chatgpt_api_key" 
+                           value=""
+                           placeholder="{{ $apiConfig['chatgpt_api_key'] ? 'Laisser vide pour conserver' : 'Clé API OpenAI' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <select name="chatgpt_model" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <option value="gpt-3.5-turbo" {{ $apiConfig['chatgpt_model'] == 'gpt-3.5-turbo' ? 'selected' : '' }}>GPT-3.5 Turbo</option>
+                        <option value="gpt-4" {{ $apiConfig['chatgpt_model'] == 'gpt-4' ? 'selected' : '' }}>GPT-4</option>
+                        <option value="gpt-4-turbo" {{ $apiConfig['chatgpt_model'] == 'gpt-4-turbo' ? 'selected' : '' }}>GPT-4 Turbo</option>
+                        <option value="gpt-4o" {{ $apiConfig['chatgpt_model'] == 'gpt-4o' ? 'selected' : '' }}>GPT-4o</option>
+                    </select>
+                    <button type="submit" class="w-full bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
+                        <i class="fas fa-save mr-1"></i>Sauvegarder
+                    </button>
+                </form>
+                <div id="gpt_result" class="mt-2 text-sm"></div>
+            </div>
+
+            <!-- Google Indexing -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fab fa-google mr-2 text-red-600"></i>Google Indexing
+                    </h3>
+                    <button onclick="testApi('google_indexing', this)" 
+                            class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                        <i class="fas fa-vial mr-1"></i>Test
+                    </button>
+                </div>
+                <form action="{{ route('admin.seo-automation.save-config') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <textarea name="google_credentials" 
+                              rows="4"
+                              placeholder="{{ $apiConfig['google_credentials'] ? 'Laisser vide pour conserver' : 'Credentials JSON' }}"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono">{{ old('google_credentials', $apiConfig['google_credentials']) }}</textarea>
+                    <button type="submit" class="w-full bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700">
+                        <i class="fas fa-save mr-1"></i>Sauvegarder
+                    </button>
+                </form>
+                <div id="google_indexing_result" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistiques -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-lg shadow p-4">
@@ -451,6 +544,63 @@ document.addEventListener('DOMContentLoaded', function() {
             testModal.classList.add('hidden');
         }
     });
+    
+    // Fonction pour tester une API individuelle
+    function testApi(apiName, button) {
+        const resultDiv = document.getElementById(apiName + '_result');
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Test...';
+        resultDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-1"></i>Test en cours...</div>';
+        
+        fetch('{{ route("admin.seo-automation.test-api") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ api: apiName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            button.disabled = false;
+            button.innerHTML = originalText;
+            
+            let bgClass = 'bg-green-50 border-green-400 text-green-700';
+            let icon = 'check-circle';
+            
+            if (data.status === 'error') {
+                bgClass = 'bg-red-50 border-red-400 text-red-700';
+                icon = 'times-circle';
+            } else if (data.status === 'warning') {
+                bgClass = 'bg-yellow-50 border-yellow-400 text-yellow-700';
+                icon = 'exclamation-triangle';
+            }
+            
+            let html = '<div class="' + bgClass + ' border rounded-lg p-2 mt-2">';
+            html += '<i class="fas fa-' + icon + ' mr-1"></i>';
+            html += '<span>' + data.message + '</span>';
+            if (data.data) {
+                html += '<div class="mt-1 text-xs opacity-75">';
+                if (Array.isArray(data.data)) {
+                    html += data.data.join(', ');
+                } else {
+                    html += JSON.stringify(data.data);
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            
+            resultDiv.innerHTML = html;
+        })
+        .catch(error => {
+            button.disabled = false;
+            button.innerHTML = originalText;
+            resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
+        });
+    }
 });
 </script>
 @endsection

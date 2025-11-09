@@ -42,7 +42,18 @@ class SeoAutomationController extends Controller
             $services = [];
         }
         
-        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services'));
+        // Récupérer les configurations des APIs
+        $apiConfig = [
+            'serpapi_key' => \App\Models\Setting::get('serp_api_key', ''),
+            'chatgpt_enabled' => \App\Models\Setting::get('chatgpt_enabled', true),
+            'chatgpt_api_key' => \App\Models\Setting::get('chatgpt_api_key', ''),
+            'chatgpt_model' => \App\Models\Setting::get('chatgpt_model', 'gpt-4o'),
+            'groq_api_key' => \App\Models\Setting::get('groq_api_key', ''),
+            'groq_model' => \App\Models\Setting::get('groq_model', 'llama-3.1-8b-instant'),
+            'google_credentials' => \App\Models\Setting::get('google_search_console_credentials', ''),
+        ];
+        
+        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig'));
     }
 
     /**
@@ -255,5 +266,171 @@ class SeoAutomationController extends Controller
                 'error' => collect($results)->where('status', 'error')->count(),
             ]
         ]);
+    }
+
+    /**
+     * Sauvegarder les configurations des APIs
+     */
+    public function saveApiConfig(Request $request)
+    {
+        $validated = $request->validate([
+            'serpapi_key' => 'nullable|string',
+            'chatgpt_enabled' => 'nullable|boolean',
+            'chatgpt_api_key' => 'nullable|string',
+            'chatgpt_model' => 'nullable|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4o',
+            'groq_api_key' => 'nullable|string',
+            'groq_model' => 'nullable|string|in:llama-3.1-8b-instant,llama-3.1-70b-versatile,mixtral-8x7b-32768',
+            'google_credentials' => 'nullable|string',
+        ]);
+
+        // Sauvegarder SerpAPI (seulement si une valeur est fournie)
+        if ($request->filled('serpapi_key')) {
+            \App\Models\Setting::set('serp_api_key', $validated['serpapi_key'], 'string', 'seo');
+        }
+
+        // Sauvegarder ChatGPT
+        if ($request->has('chatgpt_enabled')) {
+            \App\Models\Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
+        }
+        if ($request->filled('chatgpt_api_key')) {
+            \App\Models\Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'], 'string', 'ai');
+        }
+        if ($request->has('chatgpt_model')) {
+            \App\Models\Setting::set('chatgpt_model', $validated['chatgpt_model'] ?? 'gpt-4o', 'string', 'ai');
+        }
+
+        // Sauvegarder Groq (seulement si une valeur est fournie)
+        if ($request->filled('groq_api_key')) {
+            \App\Models\Setting::set('groq_api_key', $validated['groq_api_key'], 'string', 'ai');
+        }
+        if ($request->has('groq_model')) {
+            \App\Models\Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
+        }
+
+        // Sauvegarder Google Search Console
+        if ($request->has('google_credentials')) {
+            $credentials = $validated['google_credentials'] ?? '';
+            
+            if (!empty($credentials)) {
+                // Valider que c'est un JSON valide
+                $decoded = json_decode($credentials, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return redirect()->back()
+                        ->with('error', 'Le JSON des credentials Google Search Console est invalide: ' . json_last_error_msg())
+                        ->withInput();
+                }
+                
+                // Vérifier que c'est bien un service account
+                if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
+                    return redirect()->back()
+                        ->with('error', 'Les credentials doivent être de type "service_account"')
+                        ->withInput();
+                }
+            }
+            
+            \App\Models\Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
+        }
+
+        \App\Models\Setting::clearCache();
+
+        return redirect()->back()
+            ->with('success', 'Configurations des APIs sauvegardées avec succès !');
+    }
+
+    /**
+     * Tester une API spécifique
+     */
+    public function testApi(Request $request)
+    {
+        $api = $request->input('api');
+        
+        $results = [];
+        
+        switch ($api) {
+            case 'serpapi':
+                try {
+                    $serpService = new SerpApiService();
+                    $keywords = $serpService->getTrendingKeywords('FR', 3);
+                    
+                    if (!empty($keywords)) {
+                        $results = [
+                            'status' => 'success',
+                            'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
+                            'data' => array_slice($keywords, 0, 3)
+                        ];
+                    } else {
+                        $results = [
+                            'status' => 'warning',
+                            'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $results = [
+                        'status' => 'error',
+                        'message' => 'Erreur SerpAPI: ' . $e->getMessage()
+                    ];
+                }
+                break;
+                
+            case 'gpt':
+                try {
+                    $gptService = new GptSeoGenerator();
+                    $testResult = $gptService->generateSeoArticle('couvreur', 'Paris', [], []);
+                    
+                    if ($testResult && !empty($testResult['titre'])) {
+                        $results = [
+                            'status' => 'success',
+                            'message' => 'Connexion GPT réussie. Génération de test OK.',
+                            'data' => [
+                                'titre' => substr($testResult['titre'], 0, 100) . '...',
+                                'has_content' => !empty($testResult['contenu_html'])
+                            ]
+                        ];
+                    } else {
+                        $results = [
+                            'status' => 'warning',
+                            'message' => 'Connexion GPT OK mais réponse invalide. Vérifiez la configuration.'
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $results = [
+                        'status' => 'error',
+                        'message' => 'Erreur GPT: ' . $e->getMessage()
+                    ];
+                }
+                break;
+                
+            case 'google_indexing':
+                try {
+                    $googleService = new \App\Services\GoogleSearchConsoleService();
+                    $isConfigured = $googleService->isConfigured();
+                    
+                    if ($isConfigured) {
+                        $results = [
+                            'status' => 'success',
+                            'message' => 'Google Indexing configuré correctement. Les credentials sont valides.'
+                        ];
+                    } else {
+                        $results = [
+                            'status' => 'error',
+                            'message' => 'Google Indexing non configuré. Veuillez configurer les credentials.'
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $results = [
+                        'status' => 'error',
+                        'message' => 'Erreur Google Indexing: ' . $e->getMessage()
+                    ];
+                }
+                break;
+                
+            default:
+                $results = [
+                    'status' => 'error',
+                    'message' => 'API inconnue'
+                ];
+        }
+        
+        return response()->json($results);
     }
 }

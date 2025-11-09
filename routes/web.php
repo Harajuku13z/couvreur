@@ -296,6 +296,8 @@ Route::middleware(['check.setup'])->group(function () {
             Route::get('/seo-automation', [App\Http\Controllers\Admin\SeoAutomationController::class, 'index'])->name('seo-automation.index');
             Route::post('/seo-automation/run', [App\Http\Controllers\Admin\SeoAutomationController::class, 'run'])->name('seo-automation.run');
             Route::post('/seo-automation/test', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testConnections'])->name('seo-automation.test');
+            Route::post('/seo-automation/test-api', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testApi'])->name('seo-automation.test-api');
+            Route::post('/seo-automation/save-config', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveApiConfig'])->name('seo-automation.save-config');
             Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run-city');
             Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
 
