@@ -102,8 +102,57 @@ class GptSeoGenerator
             'competitors_count' => count($competitors)
         ]);
         
+        // Vérifier la longueur du prompt pour éviter les erreurs
+        $promptLength = strlen($prompt);
+        Log::info('GptSeoGenerator: Longueur prompt avant appel', [
+            'prompt_length' => $promptLength,
+            'prompt_length_kb' => round($promptLength / 1024, 2)
+        ]);
+        
+        // Si le prompt est trop long, réduire les sources
+        if ($promptLength > 6000) {
+            Log::warning('GptSeoGenerator: Prompt trop long, réduction des sources', [
+                'original_length' => $promptLength
+            ]);
+            // Réduire encore plus les sources si nécessaire
+            $sourcesList = '';
+            if (!empty($competitors)) {
+                $competitorsLimited = array_slice($competitors, 0, 3); // Limiter à 3 sources
+                $sourcesList = "\n\n**Sources principales** (3 articles) :\n\n";
+                foreach ($competitorsLimited as $index => $competitor) {
+                    $title = $competitor['title'] ?? 'Article sans titre';
+                    $sourcesList .= ($index + 1) . ". {$title}\n";
+                }
+            }
+            // Reconstruire le prompt avec sources réduites
+            $prompt = $this->buildPrompt($keyword, $cityName, array_slice($relatedQueries, 0, 3), $competitorsLimited);
+        }
+        
+        // Calculer max_tokens en fonction du modèle et de la longueur du prompt
+        // Estimation: ~1 token = 4 caractères
+        $estimatedInputTokens = (int)(strlen($prompt) / 4);
+        // Pour GPT-4o et GPT-4: limite de 4096 tokens de completion
+        // Pour GPT-3.5: limite de 4096 tokens de completion
+        // Laisser une marge de sécurité: max 3500 tokens de completion
+        $maxTokens = min(3500, max(2000, 4096 - $estimatedInputTokens));
+        
+        // Si le calcul donne un max_tokens trop faible, utiliser une valeur minimale raisonnable
+        if ($maxTokens < 1500) {
+            $maxTokens = 2000; // Minimum pour un article de qualité
+            Log::warning('GptSeoGenerator: Prompt très long, utilisation max_tokens minimum', [
+                'max_tokens' => $maxTokens,
+                'estimated_input_tokens' => $estimatedInputTokens
+            ]);
+        }
+        
+        Log::info('GptSeoGenerator: Paramètres génération', [
+            'max_tokens' => $maxTokens,
+            'estimated_input_tokens' => $estimatedInputTokens,
+            'total_estimated_tokens' => $estimatedInputTokens + $maxTokens
+        ]);
+        
         $result = AiService::callAI($prompt, $systemMessage, [
-            'max_tokens' => 8000, // Augmenté pour articles 1500-2500 mots
+            'max_tokens' => $maxTokens, // Limité à 3500 max pour respecter la limite de 4096
             'temperature' => 0.2,
             'timeout' => 180 // Timeout augmenté pour génération plus longue
         ]);
@@ -319,7 +368,7 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 **IMPORTANT :**
 - Le contenu_html doit être du HTML valide et propre avec des retours à la ligne appropriés.
 - Ne te contente pas de reformuler les titres, synthétise les informations, ajoute des exemples, et rends l'article plus complet que les sources existantes.
-- L'article doit être significativement plus long et détaillé que les sources (1200-2000 mots).
+- L'article doit être significativement plus long et détaillé que les sources (1000-1800 mots).
 - Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
 - Structure HTML recommandée: <h1>Titre</h1> <p>Introduction</p> <h2>Sous-titre 1</h2> <p>Contenu...</p> <h3>Sous-sous-titre</h3> <p>Contenu...</p> <h2>Conclusion</h2> <p>Conclusion...</p> <h2>FAQ</h2> <div class=\"faq\">...</div>
 ");
