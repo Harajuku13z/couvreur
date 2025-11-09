@@ -27,6 +27,20 @@ class RunSeoAutomations extends Command
      */
     public function handle()
     {
+        // Vérifier si l'automatisation est activée
+        $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+        $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+        
+        // Par défaut, activé si non défini
+        if ($automationEnabled === false && $automationEnabled !== true) {
+            $automationEnabled = true;
+        }
+        
+        if (!$automationEnabled) {
+            $this->info('Automatisation SEO désactivée. Utilisez le bouton dans l\'admin pour l\'activer.');
+            return 0;
+        }
+        
         $cityId = $this->option('city_id');
         
         if ($cityId) {

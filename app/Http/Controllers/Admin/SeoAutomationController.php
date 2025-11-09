@@ -68,6 +68,14 @@ class SeoAutomationController extends Controller
         // Récupérer les villes favorites
         $favoriteCities = City::where('is_favorite', true)->orderBy('name')->get();
         
+        // Vérifier si l'automatisation est activée
+        $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+        $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+        // Par défaut, activé si non défini
+        if ($automationEnabled === false && $automationEnabled !== true) {
+            $automationEnabled = true;
+        }
+        
         // Récupérer les services
         $servicesData = \App\Models\Setting::get('services', '[]');
         $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
