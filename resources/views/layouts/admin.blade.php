@@ -3,14 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>@yield('title', 'Administration') - {{ setting('company_name', 'Sauser Couverture') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preconnect pour améliorer le chargement (Safari) -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Tailwind CSS - Version compatible Safari -->
+    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+    <!-- Fallback pour Safari si le script ne charge pas -->
+    <script>
+        // Vérifier si Tailwind est chargé après 2 secondes
+        setTimeout(function() {
+            if (typeof tailwind === 'undefined') {
+                // Créer un fallback CSS inline minimal
+                var style = document.createElement('style');
+                style.textContent = `
+                    .container { width: 100%; margin: 0 auto; padding: 0 1rem; }
+                    .flex { display: flex; }
+                    .grid { display: grid; }
+                    .hidden { display: none; }
+                    .bg-white { background-color: #fff; }
+                    .text-gray-900 { color: #111827; }
+                    .rounded-lg { border-radius: 0.5rem; }
+                    .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+                    .p-4 { padding: 1rem; }
+                    .mb-4 { margin-bottom: 1rem; }
+                `;
+                document.head.appendChild(style);
+            }
+        }, 2000);
+    </script>
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     
     <style>
         :root {
