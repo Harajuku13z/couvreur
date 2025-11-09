@@ -1654,7 +1654,7 @@ function testApi(apiName, button) {
                     html += '<ul class="list-disc list-inside space-y-1 text-gray-700">';
                     html += '<li>Gardez ce token secret et ne le partagez pas</li>';
                     html += '<li>Utilisez cette URL dans votre service externe (cron-job.org, UptimeRobot, etc.)</li>';
-                    html += '<li>Configurez le service pour appeler cette URL <strong>toutes les minutes</strong></li>';
+                    html += '<li>Configurez le service pour appeler cette URL <strong>une fois par jour</strong> à l\'heure configurée</li>';
                     html += '</ul>';
                     html += '</div>';
                     html += '</div>';
