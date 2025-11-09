@@ -243,24 +243,25 @@ class GptSeoGenerator
         $companyCity = \App\Models\Setting::where('key', 'company_city')->value('value') ?? '';
         $companyPhone = \App\Models\Setting::where('key', 'company_phone')->value('value') ?? '';
         
-        // Construire la liste des sources (titres + liens)
+        // Construire la liste des sources (titres + liens) - Limiter à 5 sources pour éviter prompt trop long
         $sourcesList = '';
         if (!empty($competitors)) {
-            $sourcesList = "\n\n**Sources à utiliser** - Voici " . count($competitors) . " titres d'articles existants + liens pour comprendre le sujet :\n\n";
-            foreach ($competitors as $index => $competitor) {
+            $competitorsLimited = array_slice($competitors, 0, 5); // Limiter à 5 sources
+            $sourcesList = "\n\n**Sources à utiliser** - Voici " . count($competitorsLimited) . " titres d'articles existants + liens pour comprendre le sujet :\n\n";
+            foreach ($competitorsLimited as $index => $competitor) {
                 $title = $competitor['title'] ?? 'Article sans titre';
                 $link = $competitor['link'] ?? '#';
                 $snippet = $competitor['snippet'] ?? '';
                 $sourcesList .= ($index + 1) . ". **{$title}**\n";
                 $sourcesList .= "   Lien: {$link}\n";
                 if ($snippet) {
-                    $sourcesList .= "   Extrait: " . substr($snippet, 0, 150) . "...\n";
+                    $sourcesList .= "   Extrait: " . substr($snippet, 0, 100) . "...\n"; // Réduire à 100 caractères
                 }
                 $sourcesList .= "\n";
             }
         }
         
-        $related = empty($relatedQueries) ? '' : implode(', ', array_slice($relatedQueries, 0, 6));
+        $related = empty($relatedQueries) ? '' : implode(', ', array_slice($relatedQueries, 0, 4)); // Réduire à 4 requêtes
         
         $companyInfo = '';
         if ($companyName && $companyName !== 'notre entreprise') {
@@ -318,7 +319,7 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 **IMPORTANT :**
 - Le contenu_html doit être du HTML valide et propre avec des retours à la ligne appropriés.
 - Ne te contente pas de reformuler les titres, synthétise les informations, ajoute des exemples, et rends l'article plus complet que les sources existantes.
-- L'article doit être significativement plus long et détaillé que les sources (1500-2500 mots).
+- L'article doit être significativement plus long et détaillé que les sources (1200-2000 mots).
 - Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
 - Structure HTML recommandée: <h1>Titre</h1> <p>Introduction</p> <h2>Sous-titre 1</h2> <p>Contenu...</p> <h3>Sous-sous-titre</h3> <p>Contenu...</p> <h2>Conclusion</h2> <p>Conclusion...</p> <h2>FAQ</h2> <div class=\"faq\">...</div>
 ");
