@@ -119,39 +119,17 @@ class GptSeoGenerator
             ]);
         }
         
-        // Étape 3: Ajouter le HTML au texte généré
-        if ($progressCallback) {
-            $progressCallback([
-                'step' => 'html_formatting',
-                'message' => 'Ajout du formatage HTML...'
-            ]);
-        }
-        
-        $htmlPrompt = $this->buildHtmlPrompt($rawText, $generatedTitle ?? $keyword);
-        
-        $htmlResult = AiService::callAI($htmlPrompt, 'Tu es un expert en formatage HTML pour articles web.', [
-            'max_tokens' => 4000,
-            'temperature' => 0.1, // Plus précis pour le formatage
-            'timeout' => 90
+        // Utiliser directement le texte brut (sans formatage HTML)
+        // Le texte brut de ChatGPT est de qualité et sera affiché tel quel dans la vue
+        Log::info('GptSeoGenerator: Utilisation du texte brut sans formatage HTML', [
+            'text_length' => strlen($rawText)
         ]);
         
-        if (!$htmlResult || !isset($htmlResult['content']) || empty($htmlResult['content'])) {
-            Log::warning('GptSeoGenerator: Échec formatage HTML, utilisation texte brut');
-            // Fallback : utiliser le texte brut avec un formatage minimal
-            $formattedHtml = '<p>' . nl2br(htmlspecialchars($rawText)) . '</p>';
-        } else {
-            $formattedHtml = trim($htmlResult['content']);
-            // Nettoyer le HTML (enlever markdown code blocks si présents)
-            $formattedHtml = preg_replace('/```html\s*/', '', $formattedHtml);
-            $formattedHtml = preg_replace('/```\s*/', '', $formattedHtml);
-            $formattedHtml = trim($formattedHtml);
-        }
-        
-        // Construire directement le tableau décodé (pas besoin de JSON)
+        // Construire directement le tableau décodé avec le texte brut
         $decoded = [
             'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
             'meta_description' => $this->generateMetaDescription($rawText),
-            'contenu_html' => $formattedHtml,
+            'contenu_html' => $rawText, // Texte brut directement (sera formaté dans la vue avec nl2br)
             'mots_cles' => $this->extractKeywords($rawText, $keyword),
             'faq' => []
         ];

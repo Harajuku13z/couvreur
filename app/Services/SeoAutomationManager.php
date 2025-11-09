@@ -235,7 +235,7 @@ class SeoAutomationManager
             }
             
             $steps[count($steps) - 1]['status'] = 'success';
-            $steps[count($steps) - 1]['message'] = 'Contenu généré avec succès (' . strlen($gptData['contenu_html']) . ' caractères)';
+            $steps[count($steps) - 1]['message'] = 'Texte brut généré avec succès (' . strlen($gptData['contenu_html']) . ' caractères)';
             $steps[count($steps) - 1]['data'] = [
                 'title' => $gptData['titre'],
                 'meta_description' => $gptData['meta_description'] ?? null,
