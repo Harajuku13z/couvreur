@@ -473,6 +473,83 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Obtenir ou générer le token pour la route HTTP schedule/run
+     */
+    public function getScheduleToken(Request $request)
+    {
+        $token = \App\Models\Setting::where('key', 'schedule_run_token')->value('value');
+        
+        if (empty($token)) {
+            // Générer un nouveau token
+            $token = \Illuminate\Support\Str::random(32);
+            \App\Models\Setting::set('schedule_run_token', $token, 'string', 'seo');
+        }
+        
+        $url = url('/schedule/run?token=' . $token);
+        
+        return response()->json([
+            'status' => 'success',
+            'token' => $token,
+            'url' => $url,
+            'message' => 'Token récupéré avec succès'
+        ]);
+    }
+    
+    /**
+     * Régénérer le token pour la route HTTP schedule/run
+     */
+    public function regenerateScheduleToken(Request $request)
+    {
+        $newToken = \Illuminate\Support\Str::random(32);
+        \App\Models\Setting::set('schedule_run_token', $newToken, 'string', 'seo');
+        
+        $url = url('/schedule/run?token=' . $newToken);
+        
+        return response()->json([
+            'status' => 'success',
+            'token' => $newToken,
+            'url' => $url,
+            'message' => 'Token régénéré avec succès. N\'oubliez pas de mettre à jour votre service externe (cron-job.org, etc.) avec le nouveau token.'
+        ]);
+    }
+    
+    /**
+     * Tester la route HTTP schedule/run
+     */
+    public function testScheduleHttp(Request $request)
+    {
+        $token = \App\Models\Setting::where('key', 'schedule_run_token')->value('value');
+        
+        if (empty($token)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Aucun token configuré. Générez d\'abord un token.'
+            ], 400);
+        }
+        
+        $url = url('/schedule/run?token=' . $token);
+        
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->get($url);
+            $data = $response->json();
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Route HTTP testée avec succès',
+                'url' => $url,
+                'response' => $data,
+                'http_status' => $response->status()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors du test : ' . $e->getMessage(),
+                'url' => $url
+            ], 500);
+        }
+    }
+
+    /**
      * Tester le scheduler manuellement
      */
     public function testScheduler(Request $request)

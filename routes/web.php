@@ -371,6 +371,9 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/seo-automation/execute-now', [App\Http\Controllers\Admin\SeoAutomationController::class, 'executeNow'])->name('seo-automation.execute-now');
             Route::post('/seo-automation/reset-all', [App\Http\Controllers\Admin\SeoAutomationController::class, 'resetAll'])->name('seo-automation.reset-all');
             Route::post('/seo-automation/test-scheduler', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testScheduler'])->name('seo-automation.test-scheduler');
+            Route::get('/seo-automation/schedule-token', [App\Http\Controllers\Admin\SeoAutomationController::class, 'getScheduleToken'])->name('seo-automation.schedule-token');
+            Route::post('/seo-automation/regenerate-schedule-token', [App\Http\Controllers\Admin\SeoAutomationController::class, 'regenerateScheduleToken'])->name('seo-automation.regenerate-schedule-token');
+            Route::post('/seo-automation/test-schedule-http', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testScheduleHttp'])->name('seo-automation.test-schedule-http');
             });
 
             // ===== ARTICLES =====

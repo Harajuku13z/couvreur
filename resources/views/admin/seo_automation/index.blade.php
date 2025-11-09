@@ -53,6 +53,52 @@
     <!-- Résultat du test scheduler -->
     <div id="schedulerTestResult" class="hidden mb-4"></div>
     
+    <!-- Configuration Route HTTP Schedule -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-globe mr-2 text-blue-600"></i>Route HTTP Alternative (si le cron ne fonctionne pas)
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Si le cron via hPanel ne fonctionne pas, vous pouvez utiliser un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL toutes les minutes.
+        </p>
+        
+        <div class="space-y-4">
+            <div class="flex items-center gap-3">
+                <button type="button" 
+                        id="getScheduleTokenBtn"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-key mr-2"></i>
+                    Afficher le token et l'URL
+                </button>
+                <button type="button" 
+                        id="regenerateTokenBtn"
+                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Régénérer le token
+                </button>
+                <button type="button" 
+                        id="testScheduleHttpBtn"
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-vial mr-2"></i>
+                    Tester la route HTTP
+                </button>
+            </div>
+            
+            <div id="scheduleTokenResult" class="hidden"></div>
+        </div>
+        
+        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+            <p class="font-semibold text-blue-900 mb-2">📋 Instructions pour configurer un service externe :</p>
+            <ol class="list-decimal list-inside space-y-1 text-blue-800">
+                <li>Cliquez sur "Afficher le token et l'URL" pour obtenir votre URL complète</li>
+                <li>Créez un compte sur <a href="https://cron-job.org" target="_blank" class="underline font-semibold">cron-job.org</a> (gratuit)</li>
+                <li>Créez un nouveau cron job avec cette URL</li>
+                <li>Configurez la fréquence : <code class="bg-blue-100 px-1 rounded">Toutes les minutes</code></li>
+                <li>Sauvegardez et le service appellera automatiquement votre URL chaque minute</li>
+            </ol>
+        </div>
+    </div>
+    
     <!-- Statut automatisation -->
     @php
         $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
@@ -1485,6 +1531,187 @@ function testApi(apiName, button) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        // Gestion de la route HTTP Schedule
+        document.getElementById('getScheduleTokenBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Chargement...';
+            
+            const resultDiv = document.getElementById('scheduleTokenResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><i class="fas fa-spinner fa-spin mr-2"></i>Récupération du token...</div>';
+            
+            fetch('{{ route("admin.seo-automation.schedule-token") }}', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success') {
+                    let html = '<div class="bg-white border border-gray-200 rounded-lg p-4">';
+                    html += '<h3 class="font-bold text-gray-900 mb-3"><i class="fas fa-link mr-2 text-blue-600"></i>URL de la route HTTP</h3>';
+                    html += '<div class="space-y-3">';
+                    html += '<div>';
+                    html += '<label class="block text-sm font-medium text-gray-700 mb-1">URL complète :</label>';
+                    html += '<div class="flex items-center gap-2">';
+                    html += '<input type="text" id="scheduleUrl" value="' + data.url + '" readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm">';
+                    html += '<button onclick="copyToClipboard(\'' + data.url + '\')" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">';
+                    html += '<i class="fas fa-copy mr-2"></i>Copier';
+                    html += '</button>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div>';
+                    html += '<label class="block text-sm font-medium text-gray-700 mb-1">Token (gardez-le secret) :</label>';
+                    html += '<div class="flex items-center gap-2">';
+                    html += '<input type="text" id="scheduleToken" value="' + data.token + '" readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm">';
+                    html += '<button onclick="copyToClipboard(\'' + data.token + '\')" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">';
+                    html += '<i class="fas fa-copy mr-2"></i>Copier';
+                    html += '</button>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">';
+                    html += '<p class="font-semibold mb-2">⚠️ Important :</p>';
+                    html += '<ul class="list-disc list-inside space-y-1 text-gray-700">';
+                    html += '<li>Gardez ce token secret et ne le partagez pas</li>';
+                    html += '<li>Utilisez cette URL dans votre service externe (cron-job.org, UptimeRobot, etc.)</li>';
+                    html += '<li>Configurez le service pour appeler cette URL <strong>toutes les minutes</strong></li>';
+                    html += '</ul>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-exclamation-circle mr-2"></i>' + (data.message || 'Erreur lors de la récupération') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-times-circle mr-2"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        
+        document.getElementById('regenerateTokenBtn')?.addEventListener('click', function() {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir régénérer le token ? Vous devrez mettre à jour votre service externe avec le nouveau token.')) {
+                return;
+            }
+            
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Régénération...';
+            
+            const resultDiv = document.getElementById('scheduleTokenResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><i class="fas fa-spinner fa-spin mr-2"></i>Régénération du token...</div>';
+            
+            fetch('{{ route("admin.seo-automation.regenerate-schedule-token") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success') {
+                    let html = '<div class="bg-green-50 border border-green-200 rounded-lg p-4">';
+                    html += '<p class="text-green-800 font-semibold mb-2"><i class="fas fa-check-circle mr-2"></i>Token régénéré avec succès !</p>';
+                    html += '<div class="mt-3 space-y-2">';
+                    html += '<div>';
+                    html += '<label class="block text-sm font-medium text-gray-700 mb-1">Nouvelle URL :</label>';
+                    html += '<div class="flex items-center gap-2">';
+                    html += '<input type="text" value="' + data.url + '" readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white font-mono text-sm">';
+                    html += '<button onclick="copyToClipboard(\'' + data.url + '\')" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">';
+                    html += '<i class="fas fa-copy mr-2"></i>Copier';
+                    html += '</button>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<p class="text-sm text-yellow-700 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>N\'oubliez pas de mettre à jour votre service externe avec la nouvelle URL !</p>';
+                    html += '</div>';
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-exclamation-circle mr-2"></i>' + (data.message || 'Erreur lors de la régénération') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-times-circle mr-2"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        
+        document.getElementById('testScheduleHttpBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+            
+            const resultDiv = document.getElementById('scheduleTokenResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><i class="fas fa-spinner fa-spin mr-2"></i>Test de la route HTTP...</div>';
+            
+            fetch('{{ route("admin.seo-automation.test-schedule-http") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success') {
+                    let html = '<div class="bg-green-50 border border-green-200 rounded-lg p-4">';
+                    html += '<p class="text-green-800 font-semibold mb-2"><i class="fas fa-check-circle mr-2"></i>Route HTTP testée avec succès !</p>';
+                    html += '<div class="mt-3 space-y-2 text-sm">';
+                    html += '<p><strong>URL testée :</strong> <code class="bg-white px-2 py-1 rounded">' + data.url + '</code></p>';
+                    html += '<p><strong>Statut HTTP :</strong> <span class="text-green-600">' + data.http_status + '</span></p>';
+                    if (data.response && data.response.message) {
+                        html += '<p><strong>Message :</strong> ' + data.response.message + '</p>';
+                    }
+                    html += '</div>';
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-exclamation-circle mr-2"></i>' + (data.message || 'Erreur lors du test') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                resultDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4"><i class="fas fa-times-circle mr-2"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Afficher un message de confirmation temporaire
+                const message = document.createElement('div');
+                message.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                message.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Copié dans le presse-papiers !';
+                document.body.appendChild(message);
+                setTimeout(() => {
+                    message.remove();
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Erreur lors de la copie: ', err);
+            });
         }
         </script>
         @endsection
