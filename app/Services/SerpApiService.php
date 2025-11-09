@@ -27,8 +27,8 @@ class SerpApiService
     public function getTrendingKeywords(string $geo = 'FR', int $limit = 12): array
     {
         try {
-            // Pour Google Trends, on doit fournir soit 'q' (query) soit 'category'
-            // Les catégories utilisent des IDs numériques (ex: 0 = All, 3 = Business, etc.)
+            // Pour Google Trends, on doit fournir soit 'q' (query) soit 'cat' (category)
+            // Le paramètre est 'cat' (pas 'category') et utilise des IDs numériques
             // On utilise d'abord un mot-clé générique pour le secteur de la couverture
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                 'engine' => 'google_trends',
@@ -44,13 +44,13 @@ class SerpApiService
                     'geo' => $geo
                 ]);
                 
-                // Si l'erreur persiste, essayer avec une catégorie (0 = All categories)
+                // Si l'erreur persiste, essayer avec 'cat' (pas 'category') - 0 = All categories
                 if ($response->status() === 400) {
-                    Log::info('Tentative alternative SerpAPI Trends avec category');
+                    Log::info('Tentative alternative SerpAPI Trends avec cat');
                     $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                         'engine' => 'google_trends',
                         'geo' => $geo,
-                        'category' => 0, // 0 = All categories
+                        'cat' => 0, // 0 = All categories (paramètre 'cat' pas 'category')
                         'api_key' => $this->apiKey,
                     ]);
                     
@@ -67,16 +67,57 @@ class SerpApiService
             }
 
             $json = $response->json();
-            $items = $json['trending_searches'] ?? ($json['trendingSearches'] ?? []);
+            
+            // Google Trends API retourne différentes structures selon le type de recherche
+            // Pour 'q' (query), on cherche dans 'related_queries' ou 'interest_over_time'
+            // Pour 'cat' (category), on cherche dans 'interest_over_time'
             $titles = [];
             
-            foreach ($items as $item) {
-                $title = $item['title'] ?? $item['title']['query'] ?? null;
-                if ($title && !empty(trim($title))) {
-                    $titles[] = trim($title);
+            // Essayer d'abord les related_queries (si on a utilisé 'q')
+            if (isset($json['related_queries'])) {
+                $relatedQueries = $json['related_queries'];
+                // Prendre les "top" et "rising" queries
+                if (isset($relatedQueries['top'])) {
+                    foreach ($relatedQueries['top'] as $query) {
+                        $title = $query['query'] ?? null;
+                        if ($title && !empty(trim($title))) {
+                            $titles[] = trim($title);
+                        }
+                        if (count($titles) >= $limit) {
+                            break;
+                        }
+                    }
                 }
-                if (count($titles) >= $limit) {
-                    break;
+                if (count($titles) < $limit && isset($relatedQueries['rising'])) {
+                    foreach ($relatedQueries['rising'] as $query) {
+                        $title = $query['query'] ?? null;
+                        if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                            $titles[] = trim($title);
+                        }
+                        if (count($titles) >= $limit) {
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Si pas assez de résultats, essayer interest_over_time (pour cat)
+            if (count($titles) < $limit && isset($json['interest_over_time'])) {
+                // Pour cat, on n'a pas de queries directes, on retourne ce qu'on a
+                // ou on peut extraire des données de timeline
+            }
+            
+            // Fallback: essayer trending_searches (format alternatif)
+            if (empty($titles)) {
+                $items = $json['trending_searches'] ?? ($json['trendingSearches'] ?? []);
+                foreach ($items as $item) {
+                    $title = $item['title'] ?? ($item['title']['query'] ?? null);
+                    if ($title && !empty(trim($title))) {
+                        $titles[] = trim($title);
+                    }
+                    if (count($titles) >= $limit) {
+                        break;
+                    }
                 }
             }
             
