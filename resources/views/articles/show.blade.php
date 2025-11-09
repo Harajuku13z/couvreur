@@ -921,14 +921,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fab fa-facebook-f"></i>
                     </a>
                     
-                    <!-- Twitter -->
-                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="bg-sky-500 hover:bg-sky-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    
                     <!-- WhatsApp -->
                     <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
                        target="_blank" 
@@ -937,12 +929,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fab fa-whatsapp"></i>
                     </a>
                     
-                    <!-- Telegram -->
-                    <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-telegram-plane"></i>
+                    <!-- Email -->
+                    <a href="mailto:?subject={{ urlencode($article->title) }}&body={{ urlencode('Je vous partage cet article intéressant : ' . request()->url()) }}" 
+                       class="bg-gray-600 hover:bg-gray-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                        <i class="fas fa-envelope"></i>
                     </a>
                     
                     <!-- Copier le lien -->
@@ -985,23 +975,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         @endif
 
-        <!-- CTA Section -->
-        <div class="mt-12">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 text-center">
-                <h2 class="text-2xl font-bold mb-4">Prêt à commencer votre projet ?</h2>
-                <p class="text-blue-100 mb-6">Contactez-nous pour un devis gratuit et personnalisé</p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="tel:{{ setting('company_phone_raw') }}" 
-                       class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-phone mr-2"></i>Appeler maintenant
-                    </a>
-                    <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
-                        <i class="fas fa-calculator mr-2"></i>Devis gratuit
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
