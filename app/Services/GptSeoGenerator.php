@@ -247,76 +247,32 @@ class GptSeoGenerator
         // Récupérer les images de réalisations
         $portfolioImages = $this->portfolioImageService->getImagesByKeyword($keyword, 5);
         
-        // Générer une image avec DALL-E si ChatGPT est disponible
-        $generatedImage = null;
-        $generatedImageUrl = null;
-        $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
-        $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
-        $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
-        
-        if ($chatgptEnabled && $chatgptApiKey) {
-            try {
-                // Améliorer le prompt pour générer des images réalistes et compréhensibles
-                $imagePrompt = "Photographie professionnelle haute qualité d'une toiture rénovée, {$keyword} à {$cityName}, style photographie immobilière moderne, éclairage naturel, composition claire et nette, toiture en tuiles neuves bien entretenue, charpente visible et solide, environnement propre, angle de vue professionnel, image réaliste et compréhensible, qualité photographique";
-                
-                $imageResult = AiService::generateImage($imagePrompt, ['size' => '1024x1024', 'n' => 1]);
-                
-                if ($imageResult && !empty($imageResult[0]['url'] ?? null)) {
-                    $generatedImageUrl = $imageResult[0]['url'];
-                    
-                    // Télécharger l'image et la sauvegarder localement
-                    try {
-                        $imageContent = file_get_contents($generatedImageUrl);
-                        if ($imageContent) {
-                            $imageName = 'article-' . time() . '-' . Str::slug($keyword . '-' . $cityName) . '.jpg';
-                            $imagePath = 'images/articles/' . $imageName;
-                            $fullPath = public_path($imagePath);
-                            
-                            // Créer le dossier s'il n'existe pas
-                            $dir = dirname($fullPath);
-                            if (!file_exists($dir)) {
-                                mkdir($dir, 0755, true);
-                            }
-                            
-                            // Sauvegarder l'image
-                            if (file_put_contents($fullPath, $imageContent)) {
-                                $generatedImage = $imagePath;
-                                Log::info('Image DALL-E téléchargée et sauvegardée', [
-                                    'keyword' => $keyword,
-                                    'path' => $imagePath
-                                ]);
-                            } else {
-                                Log::warning('Impossible de sauvegarder l\'image DALL-E', [
-                                    'path' => $fullPath
-                                ]);
-                                // Utiliser l'URL distante en fallback
-                                $generatedImage = $generatedImageUrl;
-                            }
-                        } else {
-                            Log::warning('Impossible de télécharger l\'image DALL-E', [
-                                'url' => $generatedImageUrl
-                            ]);
-                            // Utiliser l'URL distante en fallback
-                            $generatedImage = $generatedImageUrl;
-                        }
-                    } catch (\Exception $e) {
-                        Log::warning('Erreur téléchargement image DALL-E', [
-                            'error' => $e->getMessage(),
-                            'url' => $generatedImageUrl
-                        ]);
-                        // Utiliser l'URL distante en fallback
-                        $generatedImage = $generatedImageUrl;
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::warning('Erreur génération image DALL-E', ['error' => $e->getMessage()]);
+        // Récupérer l'image depuis la banque d'images par mot-clé (au lieu de DALL-E)
+        $keywordImage = null;
+        try {
+            $keywordImageModel = \App\Models\KeywordImage::where('keyword', $keyword)
+                ->where('is_active', true)
+                ->orderBy('display_order')
+                ->first();
+            
+            if ($keywordImageModel && !empty($keywordImageModel->image_path)) {
+                $keywordImage = $keywordImageModel->image_path;
+                Log::info('Image récupérée depuis la banque d\'images', [
+                    'keyword' => $keyword,
+                    'image_path' => $keywordImage
+                ]);
             }
+        } catch (\Exception $e) {
+            Log::warning('Erreur récupération image banque', [
+                'keyword' => $keyword,
+                'error' => $e->getMessage()
+            ]);
         }
         
-        // Ajouter les images à l'article
-        if (!empty($portfolioImages) || $generatedImage) {
+        // Ajouter les images à l'article (sans DALL-E)
+        if (!empty($portfolioImages) || $keywordImage) {
             $decoded['images'] = [
-                'generated' => $generatedImage,
+                'keyword_image' => $keywordImage, // Image de la banque d'images
                 'portfolio' => $portfolioImages
             ];
         }
@@ -395,7 +351,7 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 - Utiliser des **paragraphes courts** (3-5 phrases max) avec des espaces entre eux.
 - Longueur: **entre 1000 et 1800 mots** pour un contenu complet et détaillé.
 - HTML propre avec des balises sémantiques: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-- **ESPACEMENT CRITIQUE** : Ajouter <br><br> entre chaque paragraphe pour une meilleure lisibilité.
+- **ESPACEMENT** : Ajouter un seul <br> entre chaque paragraphe pour une meilleure lisibilité (pas de double <br><br>).
 - Ajouter un **appel à l'action** à la fin (ex : \"Découvrez nos services\", \"Contactez-nous pour un devis gratuit\", etc.)
 - Inclure une **FAQ de 5 à 8 questions** pertinentes avec réponses détaillées.
 
@@ -404,41 +360,37 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 <h1>Titre principal</h1>
 
 <p>Premier paragraphe d'introduction (2-3 phrases).</p>
-<br><br>
+<br>
 <p>Deuxième paragraphe d'introduction (2-3 phrases).</p>
-<br><br>
+<br>
 
 <h2>Premier sous-titre H2</h2>
-<br>
 <p>Paragraphe d'introduction de la section (2-3 phrases).</p>
-<br><br>
+<br>
 <p>Paragraphe de développement (3-4 phrases).</p>
-<br><br>
+<br>
 
 <h3>Sous-sous-titre H3</h3>
-<br>
 <p>Paragraphe explicatif (2-3 phrases).</p>
-<br><br>
+<br>
 
 <ul>
 <li>Point important 1</li>
 <li>Point important 2</li>
 <li>Point important 3</li>
 </ul>
-<br><br>
+<br>
 
 <p>Paragraphe de conclusion de la section (2-3 phrases).</p>
-<br><br>
+<br>
 
 <h2>Deuxième sous-titre H2</h2>
-<br>
 <p>Contenu de la section...</p>
-<br><br>
+<br>
 
 <h2>Conclusion</h2>
-<br>
 <p>Paragraphe de conclusion (3-4 phrases) avec appel à l'action.</p>
-<br><br>
+<br>
 
 <h2>FAQ</h2>
 <br>
@@ -465,14 +417,13 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 }
 
 **RÈGLES CRITIQUES DE FORMATAGE :**
-1. **TOUJOURS** ajouter <br><br> entre chaque paragraphe <p> pour créer des espaces visuels
-2. **TOUJOURS** ajouter <br> après chaque titre (H2, H3) pour créer un espace
+1. **TOUJOURS** ajouter un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
+2. **NE PAS** ajouter <br> après les titres H2/H3 (les styles CSS gèrent l'espacement)
 3. Utiliser des **paragraphes courts** (3-5 phrases maximum)
 4. Utiliser des **listes à puces** pour les informations importantes
-5. **NE PAS** mettre plusieurs paragraphes à la suite sans <br><br>
-6. Le contenu doit être **agréable à lire** avec beaucoup d'espace blanc
-7. Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale
-8. Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets
+5. Le contenu doit être **bien structuré** avec des espaces modérés
+6. Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale
+7. Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets
 ");
     }
 }

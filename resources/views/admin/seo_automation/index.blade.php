@@ -484,6 +484,99 @@
         </div>
     </div>
 
+    <!-- Banque d'images par mot-clé -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-images mr-2 text-indigo-600"></i>Banque d'images par mot-clé
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Associez une image à chaque mot-clé pour éviter d'utiliser DALL-E à chaque génération. L'image sera utilisée dans la section "Nos Réalisations" des articles générés.
+        </p>
+        
+        <div class="space-y-4">
+            <!-- Formulaire d'ajout -->
+            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Ajouter une image</h3>
+                <form action="{{ route('admin.seo-automation.keyword-image.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé</label>
+                            <input type="text" 
+                                   name="keyword" 
+                                   required
+                                   placeholder="Ex: rénovation de toiture"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                            <input type="file" 
+                                   name="image" 
+                                   accept="image/jpeg,image/png,image/jpg,image/webp"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Titre (optionnel)</label>
+                        <input type="text" 
+                               name="title" 
+                               placeholder="Ex: Toiture rénovée"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
+                        <i class="fas fa-plus mr-1"></i>Ajouter l'image
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Liste des images -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Images configurées</h3>
+                <div id="keywordImagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @php
+                        $keywordImages = \App\Models\KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
+                    @endphp
+                    @forelse($keywordImages as $keywordImage)
+                        <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                            <div class="mb-2">
+                                <img src="{{ asset($keywordImage->image_path) }}" 
+                                     alt="{{ $keywordImage->title ?? $keywordImage->keyword }}"
+                                     class="w-full h-32 object-cover rounded-lg">
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-medium text-gray-900">{{ $keywordImage->keyword }}</p>
+                                @if($keywordImage->title)
+                                    <p class="text-gray-600 text-xs mt-1">{{ $keywordImage->title }}</p>
+                                @endif
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-xs {{ $keywordImage->is_active ? 'text-green-600' : 'text-gray-400' }}">
+                                        {{ $keywordImage->is_active ? 'Actif' : 'Inactif' }}
+                                    </span>
+                                    <form action="{{ route('admin.seo-automation.keyword-image.destroy', $keywordImage) }}" 
+                                          method="POST" 
+                                          class="inline"
+                                          onsubmit="return confirm('Supprimer cette image ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full text-center py-8 text-gray-500">
+                            <i class="fas fa-images text-4xl mb-2"></i>
+                            <p>Aucune image configurée. Ajoutez une image pour commencer.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Gestion des mots-clés personnalisés -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">

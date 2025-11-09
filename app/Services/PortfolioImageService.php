@@ -61,8 +61,10 @@ class PortfolioImageService
                                     break 2;
                                 }
                                 if (!empty($image)) {
+                                    // Utiliser asset() pour générer l'URL correcte
+                                    $imageUrl = str_starts_with($image, 'http') ? $image : asset($image);
                                     $images[] = [
-                                        'url' => url($image),
+                                        'url' => $imageUrl,
                                         'title' => $item['title'] ?? 'Réalisation',
                                         'work_type' => $workType
                                     ];
@@ -94,8 +96,10 @@ class PortfolioImageService
                                     break 2;
                                 }
                                 if (!empty($image)) {
+                                    // Utiliser asset() pour générer l'URL correcte
+                                    $imageUrl = str_starts_with($image, 'http') ? $image : asset($image);
                                     $images[] = [
-                                        'url' => url($image),
+                                        'url' => $imageUrl,
                                         'title' => $item['title'] ?? 'Réalisation',
                                         'work_type' => $itemWorkType
                                     ];

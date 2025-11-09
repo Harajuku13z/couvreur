@@ -266,13 +266,20 @@ class SeoAutomationManager
             $contentHtml = $gptData['contenu_html'];
             
             // Ajouter la section des réalisations avec images si disponibles
-            if (isset($gptData['images']) && (!empty($gptData['images']['portfolio']) || !empty($gptData['images']['generated']))) {
+            if (isset($gptData['images']) && (!empty($gptData['images']['portfolio']) || !empty($gptData['images']['keyword_image']))) {
                 $realizationsSection = "\n\n<h2>Nos Réalisations</h2>\n<p>Découvrez quelques-unes de nos réalisations récentes dans le domaine de {$keyword} :</p>\n<div class=\"realizations-gallery\" style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 30px 0;\">\n";
                 
-                // Ajouter l'image générée si disponible
-                if (!empty($gptData['images']['generated'])) {
+                // Ajouter l'image de la banque d'images si disponible
+                if (!empty($gptData['images']['keyword_image'])) {
+                    $keywordImagePath = $gptData['images']['keyword_image'];
+                    // Utiliser asset() pour générer l'URL correcte
+                    if (!str_starts_with($keywordImagePath, 'http')) {
+                        $keywordImageUrl = asset($keywordImagePath);
+                    } else {
+                        $keywordImageUrl = $keywordImagePath;
+                    }
                     $realizationsSection .= "<div class=\"realization-item\">\n";
-                    $realizationsSection .= "<img src=\"{$gptData['images']['generated']}\" alt=\"{$keyword} à {$city->name}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
+                    $realizationsSection .= "<img src=\"{$keywordImageUrl}\" alt=\"{$keyword} à {$city->name}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
                     $realizationsSection .= "</div>\n";
                 }
                 
@@ -280,6 +287,7 @@ class SeoAutomationManager
                 if (!empty($gptData['images']['portfolio'])) {
                     foreach ($gptData['images']['portfolio'] as $img) {
                         $imgUrl = $img['url'] ?? $img;
+                        // L'URL est déjà correcte depuis PortfolioImageService (utilise asset())
                         $imgTitle = $img['title'] ?? 'Réalisation';
                         $realizationsSection .= "<div class=\"realization-item\">\n";
                         $realizationsSection .= "<img src=\"{$imgUrl}\" alt=\"{$imgTitle}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
@@ -292,10 +300,10 @@ class SeoAutomationManager
                 $contentHtml .= $realizationsSection;
             }
             
-            // Utiliser l'image générée comme featured_image si disponible
+            // Utiliser l'image de la banque d'images comme featured_image si disponible
             $featuredImage = null;
-            if (isset($gptData['images']['generated']) && !empty($gptData['images']['generated'])) {
-                $featuredImage = $gptData['images']['generated'];
+            if (isset($gptData['images']['keyword_image']) && !empty($gptData['images']['keyword_image'])) {
+                $featuredImage = $gptData['images']['keyword_image'];
             }
             
             $article = Article::create([

@@ -126,10 +126,13 @@ class SeoAutomationController extends Controller
             $customKeywords = [];
         }
         
-        // Récupérer la description de l'entreprise
-        $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
-        
-        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription'));
+                // Récupérer la description de l'entreprise
+                $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
+                
+                // Récupérer les images de mots-clés
+                $keywordImages = KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
+                
+                return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription', 'keywordImages'));
     }
 
     /**

@@ -179,7 +179,7 @@
     line-height: 2.5rem;
     font-weight: 700;
     color: #111827;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     margin-bottom: 1rem;
 }
 
@@ -188,8 +188,8 @@
     line-height: 2.25rem;
     font-weight: 700;
     color: #111827;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e5e7eb;
 }
@@ -199,8 +199,8 @@
     line-height: 2rem;
     font-weight: 600;
     color: #1f2937;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .article-content h4 {
@@ -208,14 +208,20 @@
     line-height: 1.75rem;
     font-weight: 600;
     color: #374151;
-    margin-top: 1.25rem;
+    margin-top: 1rem;
     margin-bottom: 0.5rem;
 }
 
 .article-content p {
-    margin-bottom: 1rem;
-    line-height: 1.75;
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
     color: #374151;
+}
+
+.article-content br {
+    display: block;
+    content: "";
+    margin-top: 0.5rem;
 }
 
 .article-content ul,
