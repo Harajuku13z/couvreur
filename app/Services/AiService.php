@@ -238,10 +238,9 @@ class AiService
                 
                 // Si ChatGPT est activé, ne pas utiliser Groq en fallback
                 // Forcer l'utilisation de ChatGPT uniquement
+                if ($chatgptEnabled) {
                     Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
                         'error_message' => $errorMessage,
-                        'status' => $response->status(),
-                        'error_type' => $errorType,
                         'error_code' => $errorCode
                     ]);
                     return null;
