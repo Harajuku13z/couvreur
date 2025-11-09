@@ -92,24 +92,15 @@
                     <label for="serpapi_key" class="block text-sm font-medium text-gray-700 mb-2">
                         Clé API SerpAPI
                     </label>
-                    <div class="relative">
-                        <input type="password" 
-                               id="serpapi_key" 
-                               name="serpapi_key" 
-                               value=""
-                               placeholder="{{ $apiConfig['serpapi_key'] ? 'Laisser vide pour conserver la clé actuelle' : 'Votre clé API SerpAPI' }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @if($apiConfig['serpapi_key'])
-                            <button type="button" 
-                                    onclick="document.getElementById('serpapi_key').type = document.getElementById('serpapi_key').type === 'password' ? 'text' : 'password'"
-                                    class="absolute right-2 top-2 text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-eye" id="serpapi_toggle"></i>
-                            </button>
-                        @endif
-                    </div>
+                    <input type="password" 
+                           id="serpapi_key" 
+                           name="serpapi_key" 
+                           value="{{ old('serpapi_key', $apiConfig['serpapi_key']) }}"
+                           placeholder="Votre clé API SerpAPI"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @if($apiConfig['serpapi_key'])
                         <p class="text-xs text-gray-500 mt-1">
-                            <i class="fas fa-check-circle mr-1 text-green-600"></i>Clé configurée ({{ strlen($apiConfig['serpapi_key']) }} caractères) - Laisser vide pour conserver
+                            <i class="fas fa-eye mr-1"></i>Clé configurée ({{ strlen($apiConfig['serpapi_key']) }} caractères)
                         </p>
                     @endif
                     <p class="text-xs text-gray-500 mt-1">Utilisée pour récupérer les tendances Google Trends</p>
@@ -137,24 +128,15 @@
                         <label for="chatgpt_api_key" class="block text-sm font-medium text-gray-700 mb-2">
                             Clé API OpenAI
                         </label>
-                        <div class="relative">
-                            <input type="password" 
-                                   id="chatgpt_api_key" 
-                                   name="chatgpt_api_key" 
-                                   value=""
-                                   placeholder="{{ $apiConfig['chatgpt_api_key'] ? 'Laisser vide pour conserver la clé actuelle' : 'sk-...' }}"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @if($apiConfig['chatgpt_api_key'])
-                                <button type="button" 
-                                        onclick="document.getElementById('chatgpt_api_key').type = document.getElementById('chatgpt_api_key').type === 'password' ? 'text' : 'password'"
-                                        class="absolute right-2 top-2 text-gray-500 hover:text-gray-700">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            @endif
-                        </div>
+                        <input type="password" 
+                               id="chatgpt_api_key" 
+                               name="chatgpt_api_key" 
+                               value="{{ old('chatgpt_api_key', $apiConfig['chatgpt_api_key']) }}"
+                               placeholder="sk-..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @if($apiConfig['chatgpt_api_key'])
                             <p class="text-xs text-gray-500 mt-1">
-                                <i class="fas fa-check-circle mr-1 text-green-600"></i>Clé configurée ({{ strlen($apiConfig['chatgpt_api_key']) }} caractères) - Laisser vide pour conserver
+                                <i class="fas fa-eye mr-1"></i>Clé configurée ({{ strlen($apiConfig['chatgpt_api_key']) }} caractères)
                             </p>
                         @endif
                     </div>
@@ -184,24 +166,15 @@
                         <label for="groq_api_key" class="block text-sm font-medium text-gray-700 mb-2">
                             Clé API Groq
                         </label>
-                        <div class="relative">
-                            <input type="password" 
-                                   id="groq_api_key" 
-                                   name="groq_api_key" 
-                                   value=""
-                                   placeholder="{{ $apiConfig['groq_api_key'] ? 'Laisser vide pour conserver la clé actuelle' : 'gsk_...' }}"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @if($apiConfig['groq_api_key'])
-                                <button type="button" 
-                                        onclick="document.getElementById('groq_api_key').type = document.getElementById('groq_api_key').type === 'password' ? 'text' : 'password'"
-                                        class="absolute right-2 top-2 text-gray-500 hover:text-gray-700">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            @endif
-                        </div>
+                        <input type="password" 
+                               id="groq_api_key" 
+                               name="groq_api_key" 
+                               value="{{ old('groq_api_key', $apiConfig['groq_api_key']) }}"
+                               placeholder="gsk_..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @if($apiConfig['groq_api_key'])
                             <p class="text-xs text-gray-500 mt-1">
-                                <i class="fas fa-check-circle mr-1 text-green-600"></i>Clé configurée ({{ strlen($apiConfig['groq_api_key']) }} caractères) - Laisser vide pour conserver
+                                <i class="fas fa-eye mr-1"></i>Clé configurée ({{ strlen($apiConfig['groq_api_key']) }} caractères)
                             </p>
                         @endif
                         <p class="text-xs text-gray-500 mt-1">Utilisé en fallback si ChatGPT échoue</p>

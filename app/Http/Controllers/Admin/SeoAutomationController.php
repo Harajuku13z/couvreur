@@ -283,25 +283,25 @@ class SeoAutomationController extends Controller
             'google_credentials' => 'nullable|string',
         ]);
 
-        // Sauvegarder SerpAPI (seulement si une valeur est fournie)
-        if ($request->filled('serpapi_key')) {
-            \App\Models\Setting::set('serp_api_key', $validated['serpapi_key'], 'string', 'seo');
+        // Sauvegarder SerpAPI
+        if ($request->has('serpapi_key')) {
+            \App\Models\Setting::set('serp_api_key', $validated['serpapi_key'] ?? '', 'string', 'seo');
         }
 
         // Sauvegarder ChatGPT
         if ($request->has('chatgpt_enabled')) {
             \App\Models\Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
         }
-        if ($request->filled('chatgpt_api_key')) {
-            \App\Models\Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'], 'string', 'ai');
+        if ($request->has('chatgpt_api_key')) {
+            \App\Models\Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'] ?? '', 'string', 'ai');
         }
         if ($request->has('chatgpt_model')) {
             \App\Models\Setting::set('chatgpt_model', $validated['chatgpt_model'] ?? 'gpt-4o', 'string', 'ai');
         }
 
-        // Sauvegarder Groq (seulement si une valeur est fournie)
-        if ($request->filled('groq_api_key')) {
-            \App\Models\Setting::set('groq_api_key', $validated['groq_api_key'], 'string', 'ai');
+        // Sauvegarder Groq
+        if ($request->has('groq_api_key')) {
+            \App\Models\Setting::set('groq_api_key', $validated['groq_api_key'] ?? '', 'string', 'ai');
         }
         if ($request->has('groq_model')) {
             \App\Models\Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
