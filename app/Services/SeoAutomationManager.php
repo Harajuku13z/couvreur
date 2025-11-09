@@ -334,6 +334,16 @@ class SeoAutomationManager
                     'percentage' => $seoAnalysis['percentage'],
                     'grade' => $seoAnalysis['grade']
                 ]);
+                
+                // Si le score est < 90, logger un avertissement
+                if ($seoAnalysis['percentage'] < 90) {
+                    Log::warning('SeoAutomationManager: Score SEO inférieur à 90', [
+                        'article_id' => $article->id,
+                        'score' => $seoAnalysis['percentage'],
+                        'issues' => $seoAnalysis['issues'],
+                        'suggestion' => 'Améliorer le contenu pour atteindre un score de 90+'
+                    ]);
+                }
             } catch (\Exception $e) {
                 Log::warning('SeoAutomationManager: Erreur lors de l\'analyse SEO', [
                     'article_id' => $article->id,

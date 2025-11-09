@@ -316,13 +316,14 @@ Tu t'appuies sur les meilleures sources issues des premiers résultats Google po
    - Utiliser \"vous\" pour s'adresser directement au lecteur
    - **IMPORTANT : Pas de description de la ville au début, aller directement au service**
 
-2. **SECTIONS PRINCIPALES (H2)** - Minimum 3-4 sections :
+2. **SECTIONS PRINCIPALES (H2)** - Minimum 4-5 sections pour un contenu complet :
    - Chaque section doit avoir un titre clair et descriptif lié au mot-clé principal ({$keyword})
-   - Chaque section doit contenir 2-4 paragraphes de contenu détaillé
+   - Chaque section doit contenir 3-5 paragraphes de contenu détaillé et informatif
    - **CRITIQUE : Les sections doivent correspondre aux services réellement proposés par {$companyName}**
    " . ($servicesList ? "- Services à couvrir : {$servicesList}\n" : "") . "   - **NE PAS créer de sections sur des services non proposés** (ex: pas d'isolation si ce n'est pas un service proposé, pas de matériaux si ce n'est pas pertinent au mot-clé)
-   - Inclure des détails techniques précis uniquement pour les services proposés
-   - Mentionner {$cityName} dans au moins une section
+   - Inclure des détails techniques précis uniquement pour les services proposés (matériaux, normes RGE, processus, étapes, conseils d'entretien)
+   - Mentionner {$cityName} et le département (Côte-d'Or) dans plusieurs sections naturellement
+   - Inclure des informations sur les avantages d'un professionnel local
 
 3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
    - Créer 1-2 sous-sections avec des titres spécifiques liés au service de la section
@@ -371,6 +372,14 @@ Tu t'appuies sur les meilleures sources issues des premiers résultats Google po
 - Si le titre mentionne \"guide\", le contenu DOIT être un guide complet avec étapes
 - Si le titre mentionne \"solutions\", le contenu DOIT présenter des solutions concrètes
 - Le contenu doit TOUJOURS correspondre aux promesses du titre
+
+**OBJECTIF QUALITÉ SEO :**
+- Le contenu doit viser un score SEO de 90/100 minimum
+- Longueur : 2000-3000 mots minimum
+- Densité mot-clé : 1-2% naturellement intégré
+- Structure : 4-5 sections H2 minimum, avec sous-sections H3
+- Originalité : 100% original, synthèse améliorée des meilleures sources
+- Lisibilité : Phrases courtes, paragraphes aérés, listes à puces
 
 **EXEMPLE DE STRUCTURE :**
 
