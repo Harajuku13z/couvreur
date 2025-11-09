@@ -23,3 +23,10 @@ Schedule::command('index:urls-daily')
         // Vérifier si l'indexation quotidienne est activée
         return \App\Models\Setting::get('daily_indexing_enabled', false);
     });
+
+// Automatisation SEO : génération d'articles quotidiens pour les villes favorites
+Schedule::command('seo:run-automations')
+    ->dailyAt('04:00') // Exécuter chaque jour à 4h du matin
+    ->withoutOverlapping() // Éviter les exécutions simultanées
+    ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
+    ->runInBackground(); // Exécuter en arrière-plan

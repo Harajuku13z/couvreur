@@ -292,6 +292,11 @@ Route::middleware(['check.setup'])->group(function () {
         Route::post('/ads/templates/{template}/toggle-status', [App\Http\Controllers\Admin\AdTemplateController::class, 'toggleStatus'])->name('ads.templates.toggle-status');
         Route::delete('/ads/templates/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'destroy'])->name('ads.templates.destroy');
 
+            // ===== AUTOMATISATION SEO =====
+            Route::get('/seo-automation', [App\Http\Controllers\Admin\SeoAutomationController::class, 'index'])->name('seo-automation.index');
+            Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run');
+            Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
+
             // ===== ARTICLES =====
             // ===== ARTICLES (NOUVEAU SYSTÈME) =====
             Route::get('/articles', [App\Http\Controllers\Admin\ArticleController::class, 'index'])->name('articles.index');

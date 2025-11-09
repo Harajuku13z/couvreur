@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class Article extends Model
@@ -27,6 +28,7 @@ class Article extends Model
         'difficulty',
         'tags',
         'published_at',
+        'city_id',
     ];
 
     protected $casts = [
@@ -60,5 +62,13 @@ class Article extends Model
         // Générer un excerpt automatiquement si pas défini
         $content = strip_tags($this->content_html);
         return Str::limit($content, 160);
+    }
+
+    /**
+     * Relation avec la ville
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 }
