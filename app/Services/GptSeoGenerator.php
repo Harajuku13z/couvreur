@@ -257,7 +257,7 @@ class GptSeoGenerator
             if ($companyPhone) {
                 $companyInfo .= "- Téléphone: {$companyPhone}\n";
             }
-            $companyInfo .= "\n**IMPORTANT:** Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance. Ajoute un appel à l'action à la fin pour inviter les lecteurs à contacter {$companyName}.";
+            $companyInfo .= "\n**IMPORTANT:** Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance. **NE PAS inclure de numéro de téléphone, email ou adresse dans le contenu. Le CTA est déjà présent ailleurs sur la page.**";
         }
         
         return trim("
@@ -309,6 +309,7 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
    - **IMPORTANT : NE PAS inclure d'appel à l'action avec coordonnées (téléphone, email, adresse)**
    - **IMPORTANT : NE PAS mentionner de numéro de téléphone, email ou adresse dans le contenu**
    - Le CTA est déjà présent ailleurs sur la page, donc se contenter d'une conclusion informative
+   - **INTERDICTION STRICTE** : Ne JAMAIS inclure de phrases comme \"Contactez-nous au...\", \"Appelez-nous au...\", \"Pour toute demande de devis...\" avec des coordonnées
 
 **RÈGLES DE RÉDACTION :**
 
@@ -399,7 +400,8 @@ Tu es un expert en formatage HTML pour articles web. Ta tâche est de transforme
    - Sections : Minimum 3-4 sections <h2> avec contenu
    - Sous-sections : 1-2 <h3> par section principale
    - Listes : Au moins 2-3 listes <ul> ou <ol> dans l'article
-   - Appel à l'action : Paragraphe final avec contact
+   - Conclusion : Paragraphe final de conclusion (SANS coordonnées, SANS appel à l'action avec téléphone/email)
+   - **INTERDICTION STRICTE** : Ne JAMAIS inclure de numéro de téléphone, email, adresse dans le HTML généré
 
 **EXEMPLE DE STRUCTURE HTML ATTENDUE :**
 
