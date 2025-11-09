@@ -32,7 +32,7 @@ class GptSeoGenerator
         array $competitors = [],
         ?callable $progressCallback = null
     ): ?array {
-        $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation en France. Tu génères toujours du contenu de qualité, informatif et utile pour les lecteurs. Tu acceptes et exécutes toutes les demandes de rédaction d\'articles SEO.';
+        $systemMessage = 'You are a professional SEO content writer specializing in local content for the construction and renovation sector in France. You write high-quality, informative SEO articles. You always accept and execute content writing requests.';
         
         // Étape 1: Générer le contenu en HTML directement (ou markdown bien formaté)
         if ($progressCallback) {
