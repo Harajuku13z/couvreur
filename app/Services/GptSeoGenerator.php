@@ -27,9 +27,9 @@ class GptSeoGenerator
         $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
         
         $result = AiService::callAI($prompt, $systemMessage, [
-            'max_tokens' => 4000,
+            'max_tokens' => 8000, // Augmenté pour articles 1500-2500 mots
             'temperature' => 0.2,
-            'timeout' => 120
+            'timeout' => 180 // Timeout augmenté pour génération plus longue
         ]);
 
         if (!$result || !isset($result['content'])) {
