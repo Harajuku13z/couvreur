@@ -560,6 +560,7 @@ class SeoAutomationController extends Controller
                         $domain = parse_url($siteUrl, PHP_URL_HOST) ?: 'couvreur-chevigny-saint-sauveur.fr';
                         
                         $testUrls = [
+                            $domain, // Domaine nu sans protocole
                             'https://' . $domain,
                             'http://' . $domain,
                             'https://' . $domain . '/',
