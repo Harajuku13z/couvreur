@@ -225,6 +225,14 @@ EOT;
         $companyDescription = Setting::where('key', 'company_description')->value('value') ?? '';
         $siteUrl = config('app.url', 'https://example.com');
         
+        // Récupérer le numéro de téléphone
+        $companyPhone = Setting::where('key', 'company_phone')->value('value') ?? '';
+        $companyPhoneRaw = Setting::where('key', 'company_phone_raw')->value('value') ?? $companyPhone;
+        
+        // Construire les URLs correctes
+        $devisUrl = route('form.step', 'propertyType');
+        $contactUrl = route('contact');
+        
         // Analyser les résultats SERP pour extraire les insights
         $serpInsights = $this->extractSerpInsights($serpResults);
         $competitorTopics = $serpInsights['topics'] ?? [];
@@ -465,7 +473,7 @@ Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de l
 ```html
 <div class="cta-inline">
   <p>🎯 <strong>Vous avez un projet de {$keyword} à {$city} ?</strong> Nos experts vous accompagnent de A à Z pour une réalisation parfaite.</p>
-  <p><a href="{$siteUrl}/contact" class="btn-secondary">📞 Demander un devis gratuit</a> ou appelez-nous au <a href="tel:+33XXXXXXXXX">XX XX XX XX XX</a></p>
+  <p><a href="{$devisUrl}" class="btn-secondary">📞 Demander un devis gratuit</a> ou appelez-nous au <a href="tel:{$companyPhoneRaw}">{$companyPhone}</a></p>
 </div>
 ```
 
@@ -482,11 +490,18 @@ Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de l
     <li>✅ Respect des délais et du budget</li>
   </ul>
   <p class="cta-buttons">
-    <a href="{$siteUrl}/contact" class="btn-primary">📝 Obtenir mon devis gratuit</a>
-    <a href="tel:+33XXXXXXXXX" class="btn-secondary">📞 Appelez-nous maintenant</a>
+    <a href="{$devisUrl}" class="btn-primary">📝 Obtenir mon devis gratuit</a>
+    <a href="tel:{$companyPhoneRaw}" class="btn-secondary">📞 Appelez-nous maintenant</a>
   </p>
 </div>
 ```
+
+**⚠️ IMPORTANT - Liens CTA :**
+- Utilise EXACTEMENT les URLs suivantes :
+  - Devis : `{$devisUrl}` (route vers le formulaire de devis)
+  - Téléphone : `tel:{$companyPhoneRaw}` avec le texte `{$companyPhone}`
+- NE PAS utiliser de placeholders comme `/contact` ou `tel:+33XXXXXXXXX`
+- Les liens doivent être fonctionnels et pointer vers les bonnes routes
 
 **7. CONCLUSION ENGAGEANTE** (200-250 mots)
 ```html
