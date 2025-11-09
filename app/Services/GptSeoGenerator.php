@@ -285,8 +285,29 @@ class GptSeoGenerator
             }
         }
         
+        // Construire la liste des services liés au mot-clé (pour mention naturelle dans le contenu)
+        $relatedServices = [];
+        if ($servicesList) {
+            $servicesArray = explode(', ', $servicesList);
+            // Filtrer les services pertinents au mot-clé
+            $keywordLower = strtolower($keyword);
+            foreach ($servicesArray as $service) {
+                $serviceLower = strtolower(trim($service));
+                // Si le service est lié au mot-clé, l'inclure
+                if (strpos($keywordLower, $serviceLower) !== false || 
+                    strpos($serviceLower, $keywordLower) !== false ||
+                    (strpos($keywordLower, 'toiture') !== false && (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false || strpos($serviceLower, 'demoussage') !== false || strpos($serviceLower, 'hydrofuge') !== false)) ||
+                    (strpos($keywordLower, 'isolation') !== false && (strpos($serviceLower, 'isolation') !== false || strpos($serviceLower, 'thermique') !== false))) {
+                    $relatedServices[] = trim($service);
+                }
+            }
+        }
+        $relatedServicesText = !empty($relatedServices) ? implode(', ', $relatedServices) : '';
+        
         return trim("
-Tu es un rédacteur web expert en SEO, spécialisé dans le domaine de la couverture, de la rénovation et des travaux de bâtiment en France.
+Générateur d'article SEO intelligent
+
+Rôle : Tu es un rédacteur web expert en SEO, spécialisé dans le domaine de la couverture, de la rénovation et des travaux de bâtiment en France.
 
 Tu écris des articles optimisés pour le référencement naturel (SEO), clairs, bien structurés, et agréables à lire.
 
@@ -295,16 +316,20 @@ Tu t'appuies sur les meilleures sources issues des premiers résultats Google po
 **CRITIQUE : Génère le contenu DIRECTEMENT en HTML bien structuré avec les balises <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <br>.**
 **Le contenu DOIT être en HTML, pas en texte brut.**
 
-**1. Mot-clé principal :** {$keyword} à {$cityName}
+⚙️ Instructions :
+
+Mot-clé principal : {$keyword} à {$cityName}
 
 {$sourcesList}
 **Requêtes associées à intégrer naturellement :** {$related}
-{$companyInfo}
 
-**Ta mission :**
-- Analyse le contenu des pages concurrentes (titres, sous-titres, informations techniques, arguments commerciaux, structure)
-- Identifie les points communs, les informations les plus pertinentes et les avantages concurrentiels
-- Crée une synthèse améliorée : un article original, plus complet, mieux structuré et mieux rédigé que la concurrence
+Ta mission :
+
+Analyse le contenu des pages concurrentes (titres, sous-titres, informations techniques, arguments commerciaux, structure).
+
+Identifie les points communs, les informations les plus pertinentes et les avantages concurrentiels.
+
+Crée une synthèse améliorée : un article original, plus complet, mieux structuré et mieux rédigé que la concurrence.
 
 **STRUCTURE OBLIGATOIRE EN HTML :**
 
