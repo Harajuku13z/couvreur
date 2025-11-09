@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class AiService
 {
@@ -49,25 +50,33 @@ class AiService
         elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
             $model = $chatgptModelSetting->value;
         } 
-        // PRIORITÉ 3: Par défaut gpt-4o (plus récent, support 128k tokens)
+        // PRIORITÉ 3: Si max_tokens > 4096, utiliser gpt-4o (support 128k tokens)
+        elseif ($maxTokens > 4096) {
+            $model = 'gpt-4o';
+            Log::info('AiService: max_tokens > 4096, utilisation de gpt-4o par défaut', [
+                'max_tokens' => $maxTokens
+            ]);
+        }
+        // PRIORITÉ 4: Par défaut gpt-4o
         else {
             $model = 'gpt-4o';
         }
         
-        // CRITIQUE: Si max_tokens > 4096, FORCER un modèle compatible (AVANT l'appel API)
+        // CRITIQUE: Si max_tokens > 4096, FORCER un modèle compatible
         if ($maxTokens > 4096) {
-            // Modèles compatibles avec tokens longs (noms exacts de l'API OpenAI)
+            // Modèles compatibles avec tokens longs
             $compatibleModels = [
                 'gpt-4o',                  // GPT-4o (recommandé, plus récent)
                 'gpt-4o-2024-08-06',       // GPT-4o avec date
-                'gpt-4-turbo-preview',     // gpt-4-turbo
+                'gpt-4-turbo',             // gpt-4-turbo
+                'gpt-4-turbo-preview',     // Variante
                 'gpt-4-0125-preview',      // Variante
                 'gpt-4-1106-preview'       // Variante
             ];
             
             if (!in_array($model, $compatibleModels)) {
                 $originalModel = $model;
-                $model = 'gpt-4o'; // Utiliser gpt-4o par défaut (plus récent, meilleur)
+                $model = 'gpt-4o';
                 Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4o', [
                     'original_model' => $originalModel,
                     'new_model' => $model,
