@@ -256,8 +256,8 @@ class GptSeoGenerator
         
         if ($chatgptEnabled && $chatgptApiKey) {
             try {
-                // Améliorer le prompt pour générer des images avant/après réalistes
-                $imagePrompt = "Photo professionnelle réaliste de rénovation de toiture avant et après transformation, {$keyword} à {$cityName}, style photographie de chantier professionnel, haute qualité, éclairage naturel, composition avant/après côte à côte, toiture rénovée avec tuiles neuves, charpente solide, avant: toiture ancienne dégradée, après: toiture neuve impeccable, réalisme photographique, détail professionnel";
+                // Améliorer le prompt pour générer des images réalistes et compréhensibles
+                $imagePrompt = "Photographie professionnelle haute qualité d'une toiture rénovée, {$keyword} à {$cityName}, style photographie immobilière moderne, éclairage naturel, composition claire et nette, toiture en tuiles neuves bien entretenue, charpente visible et solide, environnement propre, angle de vue professionnel, image réaliste et compréhensible, qualité photographique";
                 
                 $imageResult = AiService::generateImage($imagePrompt, ['size' => '1024x1024', 'n' => 1]);
                 
@@ -387,23 +387,75 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 **Objectifs de l'article :**
 
 - Créer un contenu **unique**, qui n'est pas dupliqué par rapport aux sources.
-- Fournir une **introduction captivante** et un **résumé/conclusion** clairs.
-- Structurer l'article avec des **sous-titres H2 et H3 pertinents**.
+- Fournir une **introduction captivante** (2-3 paragraphes) qui accroche le lecteur.
+- Structurer l'article avec des **sous-titres H2 et H3 pertinents** et bien espacés.
 - Inclure le **mot-clé principal** et des variantes naturelles tout au long de l'article.
-- Utiliser des phrases claires, engageantes et faciles à lire.
-- Proposer des **listes, exemples, statistiques ou conseils** si possible.
-- Longueur: **entre 1000 et 1800 mots** pour un contenu complet et détaillé (adapté aux limites techniques).
+- Utiliser des phrases claires, engageantes et faciles à lire (15-20 mots max par phrase).
+- Proposer des **listes à puces** pour rendre le contenu plus digeste.
+- Utiliser des **paragraphes courts** (3-5 phrases max) avec des espaces entre eux.
+- Longueur: **entre 1000 et 1800 mots** pour un contenu complet et détaillé.
 - HTML propre avec des balises sémantiques: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-- Inclure des retours à la ligne appropriés pour une meilleure lisibilité.
+- **ESPACEMENT CRITIQUE** : Ajouter <br><br> entre chaque paragraphe pour une meilleure lisibilité.
 - Ajouter un **appel à l'action** à la fin (ex : \"Découvrez nos services\", \"Contactez-nous pour un devis gratuit\", etc.)
 - Inclure une **FAQ de 5 à 8 questions** pertinentes avec réponses détaillées.
+
+**STRUCTURE HTML STRICTE À RESPECTER :**
+
+<h1>Titre principal</h1>
+
+<p>Premier paragraphe d'introduction (2-3 phrases).</p>
+<br><br>
+<p>Deuxième paragraphe d'introduction (2-3 phrases).</p>
+<br><br>
+
+<h2>Premier sous-titre H2</h2>
+<br>
+<p>Paragraphe d'introduction de la section (2-3 phrases).</p>
+<br><br>
+<p>Paragraphe de développement (3-4 phrases).</p>
+<br><br>
+
+<h3>Sous-sous-titre H3</h3>
+<br>
+<p>Paragraphe explicatif (2-3 phrases).</p>
+<br><br>
+
+<ul>
+<li>Point important 1</li>
+<li>Point important 2</li>
+<li>Point important 3</li>
+</ul>
+<br><br>
+
+<p>Paragraphe de conclusion de la section (2-3 phrases).</p>
+<br><br>
+
+<h2>Deuxième sous-titre H2</h2>
+<br>
+<p>Contenu de la section...</p>
+<br><br>
+
+<h2>Conclusion</h2>
+<br>
+<p>Paragraphe de conclusion (3-4 phrases) avec appel à l'action.</p>
+<br><br>
+
+<h2>FAQ</h2>
+<br>
+<div class=\"faq\">
+<h3>Question 1 ?</h3>
+<p>Réponse détaillée 1 (2-3 phrases).</p>
+<br>
+<h3>Question 2 ?</h3>
+<p>Réponse détaillée 2 (2-3 phrases).</p>
+</div>
 
 **Format de sortie STRICTEMENT EN JSON (pas de markdown, pas de code block):**
 
 {
   \"titre\": \"Titre optimisé SEO (60-70 caractères max)\",
   \"meta_description\": \"Description SEO optimisée (155 caractères max)\",
-  \"contenu_html\": \"Article complet en HTML avec structure propre (H1, H2, H3, paragraphes, listes, etc.)\",
+  \"contenu_html\": \"Article complet en HTML avec structure propre, espaces entre paragraphes (<br><br>), et formatage clair\",
   \"mots_cles\": [\"mot-clé 1\", \"mot-clé 2\", \"mot-clé 3\", \"mot-clé 4\", \"mot-clé 5\"],
   \"faq\": [
     {\"question\": \"Question 1\", \"reponse\": \"Réponse détaillée 1\"},
@@ -412,12 +464,15 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
   ]
 }
 
-**IMPORTANT :**
-- Le contenu_html doit être du HTML valide et propre avec des retours à la ligne appropriés.
-- Ne te contente pas de reformuler les titres, synthétise les informations, ajoute des exemples, et rends l'article plus complet que les sources existantes.
-- L'article doit être significativement plus long et détaillé que les sources (1000-1800 mots).
-- Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
-- Structure HTML recommandée: <h1>Titre</h1> <p>Introduction</p> <h2>Sous-titre 1</h2> <p>Contenu...</p> <h3>Sous-sous-titre</h3> <p>Contenu...</p> <h2>Conclusion</h2> <p>Conclusion...</p> <h2>FAQ</h2> <div class=\"faq\">...</div>
+**RÈGLES CRITIQUES DE FORMATAGE :**
+1. **TOUJOURS** ajouter <br><br> entre chaque paragraphe <p> pour créer des espaces visuels
+2. **TOUJOURS** ajouter <br> après chaque titre (H2, H3) pour créer un espace
+3. Utiliser des **paragraphes courts** (3-5 phrases maximum)
+4. Utiliser des **listes à puces** pour les informations importantes
+5. **NE PAS** mettre plusieurs paragraphes à la suite sans <br><br>
+6. Le contenu doit être **agréable à lire** avec beaucoup d'espace blanc
+7. Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale
+8. Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets
 ");
     }
 }

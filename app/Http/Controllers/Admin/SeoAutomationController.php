@@ -305,7 +305,7 @@ class SeoAutomationController extends Controller
     public function saveTime(Request $request)
     {
         $validated = $request->validate([
-            'time' => 'required|regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/',
+            'time' => ['required', 'regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
         ]);
         
         \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
