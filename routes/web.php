@@ -88,6 +88,7 @@ Route::get('/test-phone-tracking', function () {
                 }
                 
                 // Exécuter directement la génération d'articles (sans vérifier l'heure)
+                // En arrière-plan pour éviter timeout
                 \Artisan::call('seo:run-automations');
                 $output = \Artisan::output();
                 
@@ -97,11 +98,13 @@ Route::get('/test-phone-tracking', function () {
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ]);
                 
+                // Retourner immédiatement pour éviter timeout
                 return response()->json([
                     'success' => true,
                     'message' => 'Génération d\'articles lancée à ' . now()->format('Y-m-d H:i:s'),
-                    'output' => $output,
-                    'note' => 'Les articles sont générés directement (mode exécution directe activé par défaut)'
+                    'output' => substr($output, 0, 500) . (strlen($output) > 500 ? '...' : ''),
+                    'note' => 'Les articles sont générés directement (mode exécution directe). Le traitement peut prendre quelques minutes.',
+                    'status' => 'processing'
                 ], 200);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [

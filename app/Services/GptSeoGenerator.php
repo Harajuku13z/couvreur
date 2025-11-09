@@ -224,6 +224,21 @@ class GptSeoGenerator
         $companyCity = \App\Models\Setting::where('key', 'company_city')->value('value') ?? '';
         $companyPhone = \App\Models\Setting::where('key', 'company_phone')->value('value') ?? '';
         
+        // Récupérer les services réels de l'entreprise
+        $servicesData = \App\Models\Setting::where('key', 'services')->value('value');
+        $services = [];
+        if ($servicesData) {
+            $servicesArray = is_string($servicesData) ? json_decode($servicesData, true) : $servicesData;
+            if (is_array($servicesArray)) {
+                foreach ($servicesArray as $service) {
+                    if (isset($service['name']) && !empty($service['name'])) {
+                        $services[] = $service['name'];
+                    }
+                }
+            }
+        }
+        $servicesList = !empty($services) ? implode(', ', $services) : '';
+        
         // Construire la liste des sources (titres + liens) - Limiter à 5 sources pour éviter prompt trop long
         $sourcesList = '';
         if (!empty($competitors)) {
@@ -257,7 +272,17 @@ class GptSeoGenerator
             if ($companyPhone) {
                 $companyInfo .= "- Téléphone: {$companyPhone}\n";
             }
-            $companyInfo .= "\n**IMPORTANT:** Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance. **NE PAS inclure de numéro de téléphone, email ou adresse dans le contenu. Le CTA est déjà présent ailleurs sur la page.**";
+            if ($servicesList) {
+                $companyInfo .= "- Services proposés: {$servicesList}\n";
+            }
+            $companyInfo .= "\n**IMPORTANT:**\n";
+            $companyInfo .= "- Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance.\n";
+            $companyInfo .= "- **NE PAS inclure de numéro de téléphone, email ou adresse dans le contenu. Le CTA est déjà présent ailleurs sur la page.**\n";
+            if ($servicesList) {
+                $companyInfo .= "- **CRITIQUE : Le contenu DOIT se concentrer UNIQUEMENT sur les services réellement proposés : {$servicesList}\n";
+                $companyInfo .= "- **NE PAS mentionner de services que l'entreprise ne propose pas** (ex: si l'entreprise ne fait pas d'isolation, ne pas parler d'isolation thermique)\n";
+                $companyInfo .= "- **Chaque section doit être liée à un service réel de l'entreprise**\n";
+            }
         }
         
         return trim("

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SeoAutomation;
 use App\Models\Article;
 use App\Models\City;
+use App\Services\SeoQualityAnalyzer;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Exception;
