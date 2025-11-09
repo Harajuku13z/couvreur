@@ -3,15 +3,15 @@
 @section('title', 'Soumissions Abandonnées')
 
 @section('content')
-<div class="p-6">
-    <div class="mb-6 flex justify-between items-center">
+<div class="p-4 md:p-6">
+    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">Soumissions Abandonnées</h1>
+            <h1 class="text-xl md:text-3xl font-bold text-gray-800">Soumissions Abandonnées</h1>
             <p class="text-gray-600 mt-2">Liste des formulaires non complétés</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 w-full sm:w-auto">
             <a href="{{ route('admin.export.abandoned-submissions') }}" 
-               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition w-full sm:w-auto text-center">
                 <i class="fas fa-download mr-2"></i>Export CSV
             </a>
         </div>
@@ -94,8 +94,52 @@
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- Vue mobile : Cartes -->
+    <div class="md:hidden space-y-4">
+        @forelse($abandonedSubmissions as $abandoned)
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm font-medium text-gray-500">#{{ substr($abandoned->session_id, 0, 8) }}</span>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            {{ ucfirst($abandoned->current_step ?? 'N/A') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.abandoned-submission.show', $abandoned->id) }}" 
+                       class="text-blue-600 hover:text-blue-900 p-2"
+                       title="Voir détails">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                @if($abandoned->created_at && $abandoned->abandoned_at)
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-clock w-5 text-gray-400"></i>
+                    <span>{{ $abandoned->created_at->diffForHumans($abandoned->abandoned_at) }}</span>
+                </div>
+                @endif
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-calendar w-5 text-gray-400"></i>
+                    <span>{{ $abandoned->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+            <p class="text-lg">Aucune soumission abandonnée</p>
+            <p class="text-sm">Les formulaires incomplets apparaîtront ici</p>
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Vue desktop : Table -->
+    <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">

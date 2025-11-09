@@ -3,15 +3,15 @@
 @section('title', 'Villes')
 
 @section('content')
-<div class="max-w-5xl mx-auto py-10">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Gestion des villes</h1>
-        <div class="flex items-center space-x-4">
+<div class="max-w-5xl mx-auto p-4 md:py-10">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 class="text-xl md:text-3xl font-bold">Gestion des villes</h1>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:space-x-4 w-full sm:w-auto">
             <span class="text-sm text-gray-600">
                 <span id="favorites-count">{{ $favoritesCount ?? 0 }}</span> favoris
             </span>
             <a href="{{ route('admin.cities.index', ['favorites' => '1']) }}" 
-               class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm">
+               class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm w-full sm:w-auto text-center">
                 Voir les favoris
             </a>
         </div>
@@ -130,7 +130,61 @@
         </form>
     </div>
 
-    <div class="bg-white rounded shadow">
+    <!-- Vue mobile : Cartes -->
+    <div class="md:hidden space-y-4">
+        @foreach($cities as $city)
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                        {{ $city->name }}
+                    </h3>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <span>{{ $city->postal_code }}</span>
+                        @if($city->department)
+                            <span>•</span>
+                            <span>{{ $city->department }}</span>
+                        @endif
+                        @if($city->region)
+                            <span>•</span>
+                            <span>{{ $city->region }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <form method="POST" action="{{ route('admin.cities.destroy', $city) }}" onsubmit="return confirm('Supprimer ?')" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button class="text-red-600 hover:text-red-900 p-2" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('admin.cities.update', $city) }}" class="inline">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="active" value="{{ $city->active ? 0 : 1 }}">
+                    <button class="px-3 py-1 rounded text-xs {{ $city->active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                        {{ $city->active ? 'Actif' : 'Inactif' }}
+                    </button>
+                </form>
+                <button onclick="toggleFavorite({{ $city->id }})" 
+                        class="favorite-btn px-3 py-1 rounded text-xs {{ $city->is_favorite ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600' }}"
+                        data-city-id="{{ $city->id }}"
+                        data-is-favorite="{{ $city->is_favorite ? '1' : '0' }}">
+                    <i class="fas fa-star mr-1"></i>
+                    {{ $city->is_favorite ? 'Favori' : 'Ajouter' }}
+                </button>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    <!-- Vue desktop : Table -->
+    <div class="hidden md:block bg-white rounded shadow">
         <table class="min-w-full">
             <thead>
                 <tr class="text-left text-sm text-gray-600">

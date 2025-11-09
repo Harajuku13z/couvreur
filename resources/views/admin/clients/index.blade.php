@@ -39,8 +39,67 @@
         </form>
     </div>
 
-    <!-- Liste des clients -->
-    <div class="bg-white rounded-lg shadow overflow-hidden table-responsive">
+    <!-- Vue mobile : Cartes -->
+    <div class="md:hidden space-y-4">
+        @forelse($clients as $client)
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        {{ $client->nom_complet }}
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.devis.create', ['client_id' => $client->id]) }}" 
+                       class="text-blue-600 hover:text-blue-900 p-2"
+                       title="Créer un devis">
+                        <i class="fas fa-file-invoice"></i>
+                    </a>
+                    <button onclick="showDeleteClientModal({{ $client->id }}, '{{ $client->nom_complet }}')" 
+                            class="text-red-600 hover:text-red-900 p-2"
+                            title="Supprimer le client">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-envelope w-5 text-gray-400"></i>
+                    <span>{{ $client->email }}</span>
+                </div>
+                @if($client->telephone)
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-phone w-5 text-gray-400"></i>
+                    <span>{{ $client->telephone }}</span>
+                </div>
+                @endif
+                @if($client->adresse || $client->code_postal || $client->ville)
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-map-marker-alt w-5 text-gray-400"></i>
+                    <div>
+                        @if($client->adresse)
+                            <div>{{ $client->adresse }}</div>
+                        @endif
+                        @if($client->code_postal || $client->ville)
+                            <div class="text-gray-500">
+                                {{ trim(($client->code_postal ?? '') . ' ' . ($client->ville ?? '')) }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+        @empty
+        <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            Aucun client trouvé
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Vue desktop : Table -->
+    <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden table-responsive">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>

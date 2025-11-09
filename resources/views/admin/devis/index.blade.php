@@ -52,8 +52,72 @@
         </form>
     </div>
 
-    <!-- Liste des devis -->
-    <div class="bg-white rounded-lg shadow overflow-hidden table-responsive">
+    <!-- Vue mobile : Cartes -->
+    <div class="md:hidden space-y-4">
+        @forelse($devis as $devi)
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm font-medium text-gray-500">{{ $devi->numero }}</span>
+                        @php
+                            $statusColors = [
+                                'Brouillon' => 'bg-gray-100 text-gray-800',
+                                'En Attente' => 'bg-yellow-100 text-yellow-800',
+                                'Accepté' => 'bg-green-100 text-green-800',
+                                'Refusé' => 'bg-red-100 text-red-800',
+                            ];
+                        @endphp
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$devi->statut] ?? 'bg-gray-100' }}">
+                            {{ $devi->statut }}
+                        </span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ $devi->client->nom_complet ?? 'Sans client' }}
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.devis.show', $devi->id) }}" 
+                       class="text-blue-600 hover:text-blue-900 p-2"
+                       title="Voir">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{{ route('admin.devis.edit', $devi->id) }}" 
+                       class="text-green-600 hover:text-green-900 p-2"
+                       title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    @php
+                        $requiresPassword = in_array($devi->statut, ['Accepté', 'En Attente']) || $devi->facture;
+                    @endphp
+                    <button onclick="showDeleteDevisModal({{ $devi->id }}, '{{ $devi->numero }}', {{ $requiresPassword ? 'true' : 'false' }})" 
+                            class="text-red-600 hover:text-red-900 p-2"
+                            title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-calendar w-5 text-gray-400"></i>
+                    <span>{{ $devi->date_emission->format('d/m/Y') }}</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-euro-sign w-5 text-gray-400"></i>
+                    <span class="font-semibold text-gray-900">{{ number_format($devi->total_ttc, 2, ',', ' ') }} €</span>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            Aucun devis trouvé
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Vue desktop : Table -->
+    <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden table-responsive">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
