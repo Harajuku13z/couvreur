@@ -308,14 +308,18 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
    - **IMPORTANT : Pas de description de la ville au début, aller directement au service**
 
 2. **SECTIONS PRINCIPALES (H2)** - Minimum 3-4 sections :
-   - Chaque section doit avoir un titre clair et descriptif (ex: \"Rénovation et Réparation de Couverture à {$cityName}\")
+   - Chaque section doit avoir un titre clair et descriptif lié au mot-clé principal ({$keyword})
    - Chaque section doit contenir 2-4 paragraphes de contenu détaillé
-   - Inclure des détails techniques précis (matériaux, processus, normes)
+   - **CRITIQUE : Les sections doivent correspondre aux services réellement proposés par {$companyName}**
+   " . ($servicesList ? "- Services à couvrir : {$servicesList}\n" : "") . "   - **NE PAS créer de sections sur des services non proposés** (ex: pas d'isolation si ce n'est pas un service proposé, pas de matériaux si ce n'est pas pertinent au mot-clé)
+   - Inclure des détails techniques précis uniquement pour les services proposés
    - Mentionner {$cityName} dans au moins une section
 
 3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
-   - Créer 1-2 sous-sections avec des titres spécifiques
-   - Exemple: \"Les Matériaux de Couverture Maîtrisés\", \"Isolation Thermique et Traitement d'Humidité\"
+   - Créer 1-2 sous-sections avec des titres spécifiques liés au service de la section
+   - **IMPORTANT : Les sous-sections doivent être pertinentes au mot-clé et aux services proposés**
+   - **NE PAS utiliser d'exemples génériques** comme \"Les Matériaux de Couverture Maîtrisés\" ou \"Isolation Thermique\" si ces sujets ne sont pas directement liés au mot-clé principal
+   - Exemples de sous-sections pertinentes : \"Les Étapes de [Service]\", \"Les Avantages de [Service]\", \"Comment [Service] à {$cityName}\"
 
 4. **LISTES À PUCES** :
    - Utiliser des listes à puces pour détailler les services, matériaux, avantages
