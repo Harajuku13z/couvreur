@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI as OpenAIFacade;
+use OpenAI;
 
 class AiService
 {
@@ -33,14 +33,7 @@ class AiService
         $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
         $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
         
-        // Configurer la clé API pour openai-php/laravel
-        if ($chatgptApiKey) {
-            config(['openai.api_key' => $chatgptApiKey]);
-            // Forcer la réinitialisation du client si la clé change
-            if (app()->bound('openai')) {
-                app()->forgetInstance('openai');
-            }
-        }
+        // La clé API sera utilisée directement pour créer le client
         
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
         $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
@@ -142,8 +135,8 @@ class AiService
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                // Utiliser app() pour résoudre le service directement
-                $openaiClient = app('openai');
+                // Créer le client directement avec la clé API
+                $openaiClient = OpenAI::client($chatgptApiKey);
                 $response = $openaiClient->chat()->create([
                     'model' => $model,
                     'messages' => $messages,
@@ -193,7 +186,7 @@ class AiService
                         ]);
                         
                         try {
-                            $openaiClient = app('openai');
+                            $openaiClient = OpenAI::client($chatgptApiKey);
                             $response = $openaiClient->chat()->create([
                                 'model' => 'gpt-4o',
                                 'messages' => $messages,
