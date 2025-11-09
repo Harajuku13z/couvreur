@@ -74,15 +74,18 @@ class SeoQualityAnalyzer
             $textContent = strip_tags($content);
             $wordCount = str_word_count($textContent);
             
-            // Longueur du contenu
-            if ($wordCount >= 1500 && $wordCount <= 3000) {
+            // Longueur du contenu (critères plus stricts pour score 90+)
+            if ($wordCount >= 2000 && $wordCount <= 3500) {
                 $score += 10;
                 $strengths[] = 'Contenu de longueur optimale (' . number_format($wordCount) . ' mots)';
-            } elseif ($wordCount < 1000) {
-                $score += 3;
-                $issues[] = 'Contenu trop court (' . number_format($wordCount) . ' mots, minimum 1500 recommandé)';
-            } else {
+            } elseif ($wordCount >= 1500 && $wordCount < 2000) {
                 $score += 7;
+                $issues[] = 'Contenu un peu court (' . number_format($wordCount) . ' mots, recommandé 2000+ pour score 90+)';
+            } elseif ($wordCount < 1500) {
+                $score += 3;
+                $issues[] = 'Contenu trop court (' . number_format($wordCount) . ' mots, minimum 2000 recommandé)';
+            } else {
+                $score += 8;
             }
             
             // Structure HTML
@@ -118,7 +121,7 @@ class SeoQualityAnalyzer
                 $issues[] = 'Aucune liste (améliore la lisibilité)';
             }
             
-            // Densité du mot-clé principal
+            // Densité du mot-clé principal (critères stricts pour score 90+)
             $focusKeyword = $article->focus_keyword ?? '';
             if (!empty($focusKeyword)) {
                 $keywordLower = strtolower($focusKeyword);
@@ -126,13 +129,19 @@ class SeoQualityAnalyzer
                 $keywordCount = substr_count($textLower, $keywordLower);
                 $density = ($keywordCount / max($wordCount, 1)) * 100;
                 
-                if ($density >= 0.5 && $density <= 2.5) {
-                    $score += 3;
+                // Densité optimale entre 1% et 2% pour score 90+
+                if ($density >= 1.0 && $density <= 2.0) {
+                    $score += 5;
                     $strengths[] = 'Densité du mot-clé optimale (' . number_format($density, 2) . '%)';
+                } elseif ($density >= 0.5 && $density < 1.0) {
+                    $score += 2;
+                    $issues[] = 'Densité du mot-clé un peu faible (' . number_format($density, 2) . '%, recommandé 1-2% pour score 90+)';
                 } elseif ($density < 0.5) {
-                    $issues[] = 'Densité du mot-clé trop faible (' . number_format($density, 2) . '%)';
-                } else {
+                    $issues[] = 'Densité du mot-clé trop faible (' . number_format($density, 2) . '%, minimum 1% recommandé)';
+                } elseif ($density > 2.5) {
                     $issues[] = 'Densité du mot-clé trop élevée (' . number_format($density, 2) . '%, risque de sur-optimisation)';
+                } else {
+                    $score += 3;
                 }
             }
         } else {

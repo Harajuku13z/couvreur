@@ -286,7 +286,11 @@ class GptSeoGenerator
         }
         
         return trim("
-Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâtiment et de la rénovation. Ta tâche est de rédiger un article web de qualité supérieure, engageant et optimisé pour le référencement Google.
+Tu es un rédacteur web expert en SEO, spécialisé dans le domaine de la couverture, de la rénovation et des travaux de bâtiment en France.
+
+Tu écris des articles optimisés pour le référencement naturel (SEO), clairs, bien structurés, et agréables à lire.
+
+Tu t'appuies sur les meilleures sources issues des premiers résultats Google pour créer un contenu unique, informatif et captivant.
 
 **CRITIQUE : Génère le contenu DIRECTEMENT en HTML bien structuré avec les balises <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <br>.**
 **Le contenu DOIT être en HTML, pas en texte brut.**
@@ -296,6 +300,11 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
 {$sourcesList}
 **Requêtes associées à intégrer naturellement :** {$related}
 {$companyInfo}
+
+**Ta mission :**
+- Analyse le contenu des pages concurrentes (titres, sous-titres, informations techniques, arguments commerciaux, structure)
+- Identifie les points communs, les informations les plus pertinentes et les avantages concurrentiels
+- Crée une synthèse améliorée : un article original, plus complet, mieux structuré et mieux rédigé que la concurrence
 
 **STRUCTURE OBLIGATOIRE EN HTML :**
 
@@ -343,16 +352,19 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
    - Le CTA est déjà présent ailleurs sur la page, donc se contenter d'une conclusion informative
    - **INTERDICTION STRICTE** : Ne JAMAIS inclure de phrases comme \"Contactez-nous au...\", \"Appelez-nous au...\", \"Pour toute demande de devis...\" avec des coordonnées
 
-**RÈGLES DE RÉDACTION :**
+**RÈGLES SEO STRICTES (Score minimum 90/100 requis) :**
 
-- Ton : Professionnel, expert, rassurant, utilisant \"vous\" et \"notre\"
-- Longueur : Entre 1800 et 2500 mots pour un contenu complet
-- Paragraphes : Courts (3-5 phrases max), aérés
-- Phrases : Claires, 15-20 mots max
-- Mots-clés : Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes
-- Détails techniques : Inclure des informations précises (matériaux, normes, processus)
-- Localisation : Mentionner {$cityName} et le contexte local (département, région) naturellement
-- Entreprise : Mettre en avant {$companyName} comme acteur local de confiance, expert
+- **Densité du mot-clé principal :** 1% à 2% naturellement intégré (ni trop, ni trop peu)
+- **Mots-clés secondaires :** Intégrer des variantes et mots-clés sémantiques (travaux de rénovation, artisan couvreur, devis toiture, isolation, etc.)
+- **Ton :** Professionnel, expert, rassurant, utilisant \"vous\" et \"notre\", adapté à une entreprise de rénovation locale
+- **Longueur :** Entre 2000 et 3000 mots pour un contenu complet et détaillé (minimum 2000 mots)
+- **Paragraphes :** Courts (3-5 phrases max), aérés, faciles à lire
+- **Phrases :** Claires, 15-20 mots max, style fluide et professionnel
+- **Mots-clés :** Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes et expressions sémantiques
+- **Détails techniques :** Inclure des informations précises (matériaux, normes RGE, processus, étapes, conseils d'entretien)
+- **Localisation :** Mentionner {$cityName}, le département (Côte-d'Or), et le contexte local naturellement
+- **Entreprise :** Mettre en avant {$companyName} comme acteur local de confiance, expert, réactif
+- **Originalité :** Ne copie AUCUN contenu, crée un texte 100% original basé sur une synthèse des meilleures informations
 
 **IMPORTANT - COHÉRENCE TITRE/CONTENU :**
 - Si le titre mentionne \"conseils\", le contenu DOIT contenir des conseils pratiques détaillés
