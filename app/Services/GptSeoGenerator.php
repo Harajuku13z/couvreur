@@ -239,70 +239,56 @@ class GptSeoGenerator
         }
         $servicesList = !empty($services) ? implode(', ', $services) : '';
         
-        // Construire la liste des sources (titres + liens) - Limiter à 5 sources pour éviter prompt trop long
+        // Construire la liste des sources concurrentes (format du prompt fourni)
         $sourcesList = '';
         if (!empty($competitors)) {
             $competitorsLimited = array_slice($competitors, 0, 5); // Limiter à 5 sources
-            $sourcesList = "\n\n**Sources à utiliser** - Voici " . count($competitorsLimited) . " titres d'articles existants + liens pour comprendre le sujet :\n\n";
+            $sourcesList = "\n\nSources concurrentes :\n\n";
+            $sourcesList .= "Voici les liens des 3 à 5 premiers résultats Google sur ce mot-clé :\n\n";
             foreach ($competitorsLimited as $index => $competitor) {
-                $title = $competitor['title'] ?? 'Article sans titre';
                 $link = $competitor['link'] ?? '#';
-                $snippet = $competitor['snippet'] ?? '';
-                $sourcesList .= ($index + 1) . ". **{$title}**\n";
-                $sourcesList .= "   Lien: {$link}\n";
-                if ($snippet) {
-                    $sourcesList .= "   Extrait: " . substr($snippet, 0, 100) . "...\n"; // Réduire à 100 caractères
-                }
-                $sourcesList .= "\n";
-            }
-        }
-        
-        $related = empty($relatedQueries) ? '' : implode(', ', array_slice($relatedQueries, 0, 4)); // Réduire à 4 requêtes
-        
-        $companyInfo = '';
-        if ($companyName && $companyName !== 'notre entreprise') {
-            $companyInfo = "\n\n**INFORMATIONS DE L'ENTREPRISE À METTRE EN AVANT:**\n";
-            $companyInfo .= "- Nom: {$companyName}\n";
-            if ($companyDescription) {
-                $companyInfo .= "- Description: {$companyDescription}\n";
-            }
-            if ($companyCity) {
-                $companyInfo .= "- Localisation: {$companyCity}\n";
-            }
-            if ($companyPhone) {
-                $companyInfo .= "- Téléphone: {$companyPhone}\n";
-            }
-            if ($servicesList) {
-                $companyInfo .= "- Services proposés: {$servicesList}\n";
-            }
-            $companyInfo .= "\n**IMPORTANT:**\n";
-            $companyInfo .= "- Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance.\n";
-            $companyInfo .= "- **NE PAS inclure de numéro de téléphone, email ou adresse dans le contenu. Le CTA est déjà présent ailleurs sur la page.**\n";
-            if ($servicesList) {
-                $companyInfo .= "- **CRITIQUE : Le contenu DOIT se concentrer UNIQUEMENT sur les services réellement proposés : {$servicesList}\n";
-                $companyInfo .= "- **NE PAS mentionner de services que l'entreprise ne propose pas** (ex: si l'entreprise ne fait pas d'isolation, ne pas parler d'isolation thermique)\n";
-                $companyInfo .= "- **Chaque section doit être liée à un service réel de l'entreprise**\n";
+                $sourcesList .= $link . "\n";
             }
         }
         
         // Construire la liste des services liés au mot-clé (pour mention naturelle dans le contenu)
-        $relatedServices = [];
-        if ($servicesList) {
-            $servicesArray = explode(', ', $servicesList);
-            // Filtrer les services pertinents au mot-clé
+        // Si sujet = toiture → hydrofuge, demoussage, réparation, zinguerie, etc.
+        // Si sujet = isolation → isolation thermique, isolation phonique, matériaux isolants, etc.
+        $relatedServicesText = '';
+        if (!empty($services)) {
             $keywordLower = strtolower($keyword);
-            foreach ($servicesArray as $service) {
-                $serviceLower = strtolower(trim($service));
-                // Si le service est lié au mot-clé, l'inclure
-                if (strpos($keywordLower, $serviceLower) !== false || 
-                    strpos($serviceLower, $keywordLower) !== false ||
-                    (strpos($keywordLower, 'toiture') !== false && (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false || strpos($serviceLower, 'demoussage') !== false || strpos($serviceLower, 'hydrofuge') !== false)) ||
-                    (strpos($keywordLower, 'isolation') !== false && (strpos($serviceLower, 'isolation') !== false || strpos($serviceLower, 'thermique') !== false))) {
-                    $relatedServices[] = trim($service);
+            $relatedServices = [];
+            
+            // Si le mot-clé contient "toiture" ou "couverture"
+            if (strpos($keywordLower, 'toiture') !== false || strpos($keywordLower, 'couverture') !== false || strpos($keywordLower, 'rénovation') !== false) {
+                foreach ($services as $service) {
+                    $serviceLower = strtolower($service);
+                    if (strpos($serviceLower, 'toiture') !== false || 
+                        strpos($serviceLower, 'couverture') !== false ||
+                        strpos($serviceLower, 'demoussage') !== false ||
+                        strpos($serviceLower, 'hydrofuge') !== false ||
+                        strpos($serviceLower, 'réparation') !== false ||
+                        strpos($serviceLower, 'zinguerie') !== false) {
+                        $relatedServices[] = $service;
+                    }
                 }
             }
+            // Si le mot-clé contient "isolation"
+            elseif (strpos($keywordLower, 'isolation') !== false) {
+                foreach ($services as $service) {
+                    $serviceLower = strtolower($service);
+                    if (strpos($serviceLower, 'isolation') !== false || 
+                        strpos($serviceLower, 'thermique') !== false ||
+                        strpos($serviceLower, 'phonique') !== false) {
+                        $relatedServices[] = $service;
+                    }
+                }
+            }
+            
+            if (!empty($relatedServices)) {
+                $relatedServicesText = implode(', ', $relatedServices);
+            }
         }
-        $relatedServicesText = !empty($relatedServices) ? implode(', ', $relatedServices) : '';
         
         return trim("
 Générateur d'article SEO intelligent
