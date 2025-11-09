@@ -232,16 +232,32 @@ class GptSeoGenerator
             }
         }
         
-        // Construire la liste des sources concurrentes (format du prompt fourni)
+        // Construire la liste des sources concurrentes avec détails (titres, snippets, liens)
         $sourcesList = '';
         if (!empty($competitors)) {
             $competitorsLimited = array_slice($competitors, 0, 5); // Limiter à 5 sources
-            $sourcesList = "\n\nSources concurrentes :\n\n";
-            $sourcesList .= "Voici les liens des 3 à 5 premiers résultats Google sur ce mot-clé :\n\n";
+            $sourcesList = "\n\n**SOURCES CONCURRENTES À ANALYSER EN PROFONDEUR :**\n\n";
+            $sourcesList .= "Voici les 3 à 5 premiers résultats Google sur ce mot-clé avec leurs titres, extraits et liens :\n\n";
             foreach ($competitorsLimited as $index => $competitor) {
+                $title = $competitor['title'] ?? 'Article sans titre';
                 $link = $competitor['link'] ?? '#';
-                $sourcesList .= $link . "\n";
+                $snippet = $competitor['snippet'] ?? '';
+                $position = $index + 1;
+                
+                $sourcesList .= "**Source #{$position} :**\n";
+                $sourcesList .= "- **Titre :** {$title}\n";
+                $sourcesList .= "- **Lien :** {$link}\n";
+                if ($snippet) {
+                    $sourcesList .= "- **Extrait/Description :** " . substr($snippet, 0, 300) . (strlen($snippet) > 300 ? '...' : '') . "\n";
+                }
+                $sourcesList .= "\n";
             }
+            $sourcesList .= "**INSTRUCTIONS CRITIQUES POUR L'ANALYSE :**\n";
+            $sourcesList .= "1. Analyse EN PROFONDEUR chaque source (titres, sous-titres, structure, arguments, informations techniques)\n";
+            $sourcesList .= "2. Identifie les points communs et les meilleures pratiques SEO\n";
+            $sourcesList .= "3. Extrais les informations techniques les plus pertinentes (matériaux, normes, processus, conseils)\n";
+            $sourcesList .= "4. Identifie les angles et arguments que tu peux améliorer ou compléter\n";
+            $sourcesList .= "5. Crée une synthèse AMÉLIORÉE qui dépasse la qualité de ces sources\n\n";
         }
         
         // Construire la liste des services liés au mot-clé (pour mention naturelle dans le contenu)
@@ -284,13 +300,13 @@ class GptSeoGenerator
         }
         
         return trim("
-Générateur d'article SEO intelligent
+Générateur d'article SEO intelligent - QUALITÉ PREMIUM REQUISE
 
-Rôle : Tu es un rédacteur web expert en SEO, spécialisé dans le domaine de la couverture, de la rénovation et des travaux de bâtiment en France.
+Rôle : Tu es un rédacteur web EXPERT en SEO, spécialisé dans le domaine de la couverture, de la rénovation et des travaux de bâtiment en France.
 
 Tu écris des articles optimisés pour le référencement naturel (SEO), clairs, bien structurés, et agréables à lire.
 
-Tu t'appuies sur les meilleures sources issues des premiers résultats Google pour créer un contenu unique, informatif et captivant.
+Tu t'appuies sur les meilleures sources issues des premiers résultats Google pour créer un contenu unique, informatif et captivant qui SURPASSE la concurrence.
 
 **CRITIQUE : Génère le contenu DIRECTEMENT en HTML bien structuré avec les balises <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <br>.**
 **Le contenu DOIT être en HTML, pas en texte brut.**
@@ -303,13 +319,36 @@ Mot-clé principal : {$keyword} à {$cityName}
 
 {$sourcesList}
 
-Ta mission :
+**TA MISSION - PROCESSUS EN 4 ÉTAPES :**
 
-Analyse le contenu des pages concurrentes (titres, sous-titres, informations techniques, arguments commerciaux, structure).
+**ÉTAPE 1 - ANALYSE APPROFONDIE :**
+Analyse EN DÉTAIL chaque source concurrente fournie ci-dessus :
+- Structure de l'article (nombre de sections H2/H3, organisation)
+- Qualité et profondeur des informations techniques
+- Arguments commerciaux et angles utilisés
+- Points forts et points faibles de chaque source
+- Informations manquantes ou incomplètes
 
-Identifie les points communs, les informations les plus pertinentes et les avantages concurrentiels.
+**ÉTAPE 2 - IDENTIFICATION DES MEILLEURES PRATIQUES :**
+Identifie :
+- Les points communs entre les meilleures sources (ce qui fonctionne)
+- Les meilleures informations techniques à retenir
+- Les meilleurs arguments et angles
+- Les structures les plus efficaces
 
-Crée une synthèse améliorée : un article original, plus complet, mieux structuré et mieux rédigé que la concurrence.
+**ÉTAPE 3 - CRÉATION D'UNE STRATÉGIE DE CONTENU :**
+Planifie un article qui :
+- Combine les meilleurs éléments de chaque source
+- Complète les informations manquantes
+- Améliore la structure et l'organisation
+- Ajoute de la valeur supplémentaire (détails techniques, conseils pratiques, exemples concrets)
+
+**ÉTAPE 4 - RÉDACTION DE QUALITÉ PREMIUM :**
+Crée un article qui :
+- Est PLUS COMPLET que les sources (plus d'informations, plus de détails)
+- Est MIEUX STRUCTURÉ (organisation logique, hiérarchie claire)
+- Est MIEUX RÉDIGÉ (style professionnel, fluide, engageant)
+- Apporte PLUS DE VALEUR (conseils pratiques, détails techniques, exemples locaux)
 
 Structure de l'article demandée :
 
@@ -404,21 +443,37 @@ Ne copie aucun contenu, crée un texte 100 % original.
 - Si le titre mentionne \"solutions\", le contenu DOIT présenter des solutions concrètes
 - Le contenu doit TOUJOURS correspondre aux promesses du titre
 
-**OBJECTIF QUALITÉ SEO :**
-- Le contenu doit viser un score SEO de 90/100 minimum
-- Longueur : 2000-3000 mots minimum
-- Densité mot-clé : 1-2% naturellement intégré
-- Structure : 4-5 sections H2 minimum, avec sous-sections H3
-- Originalité : 100% original, synthèse améliorée des meilleures sources
-- Lisibilité : Phrases courtes, paragraphes aérés, listes à puces
+**OBJECTIF QUALITÉ SEO - SCORE 90+ OBLIGATOIRE :**
+
+Pour atteindre un score SEO de 90/100 minimum, l'article DOIT respecter TOUS ces critères :
+
+**CRITÈRES OBLIGATOIRES :**
+- **Longueur :** 2500-3500 mots (minimum 2500, idéal 3000+)
+- **Densité mot-clé :** 1.5-2% naturellement intégré
+- **Structure :** 5-6 sections H2 minimum, avec 2-3 sous-sections H3 par section H2
+- **Mots-clés secondaires :** 10-15 variantes et expressions sémantiques intégrées naturellement
+- **Listes :** Minimum 4-5 listes à puces (<ul>) et 1-2 listes numérotées (<ol>)
+- **Détails techniques :** Informations précises et exhaustives (matériaux, normes, processus, conseils)
+- **Localisation :** Mention de {$cityName} et Côte-d'Or dans 4-5 sections minimum
+- **Originalité :** 100% original, synthèse améliorée des meilleures sources
+- **Lisibilité :** Phrases courtes (12-18 mots), paragraphes aérés (3-5 phrases), transitions fluides
+
+**QUALITÉ PREMIUM REQUISE :**
+L'article doit être de QUALITÉ SUPÉRIEURE aux sources concurrentes :
+- Plus complet (plus d'informations, plus de détails)
+- Mieux structuré (organisation logique, hiérarchie claire)
+- Mieux rédigé (style professionnel, fluide, engageant)
+- Plus informatif (conseils pratiques, exemples concrets, détails techniques)
 
 🧩 Exemple de commande à donner à l'IA :
 
-Génère un article SEO complet à partir du mot-clé \"{$keyword}\", en t'appuyant sur les meilleurs éléments issus de ces pages concurrentes.
+Génère un article SEO PREMIUM de 3000 mots minimum à partir du mot-clé \"{$keyword}\", en analysant EN PROFONDEUR les sources concurrentes fournies.
 
-Fais une synthèse des meilleures informations pour créer un article de 2000 à 3000 mots, avec un titre fort, une meta description percutante, une structure H2/H3 claire, et un appel à l'action professionnel.
+Crée une synthèse AMÉLIORÉE qui combine les meilleurs éléments de chaque source, complète les informations manquantes, et apporte une valeur supplémentaire.
 
-Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation.
+L'article doit avoir un titre fort, une meta description percutante, une structure H2/H3 claire avec 5-6 sections principales, des détails techniques exhaustifs, et un appel à l'action professionnel.
+
+Le ton doit être expert, local et rassurant, adapté à une entreprise de rénovation. L'article doit SURPASSER la qualité des sources concurrentes.
 
 **Format de sortie :**
 Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide. Assure-toi que TOUT le contenu est en HTML (pas de texte brut).
