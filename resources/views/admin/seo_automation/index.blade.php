@@ -25,6 +25,14 @@
                 <i class="fas fa-vial mr-2"></i>
                 Tester les connexions
             </button>
+            <form action="{{ route('admin.seo-automation.force-run') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Forcer l\'exécution du scheduler maintenant ? Cela planifiera les jobs pour toutes les villes favorites.');">
+                @csrf
+                <button type="submit" 
+                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i>
+                    Forcer l'exécution maintenant
+                </button>
+            </form>
         </div>
     </div>
     
@@ -102,12 +110,24 @@
         </div>
     </div>
 
+    @if(session('scheduler_output'))
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div class="flex items-start">
+                <i class="fas fa-terminal mr-2 mt-0.5 text-blue-600"></i>
+                <div class="flex-1">
+                    <p class="font-semibold text-blue-900 mb-2">Sortie du scheduler :</p>
+                    <pre class="bg-white p-3 rounded text-xs overflow-x-auto border border-blue-200">{{ session('scheduler_output') }}</pre>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             <div class="flex items-start">
                 <i class="fas fa-check-circle mr-2 mt-0.5"></i>
                 <div class="flex-1">
-                    <p class="font-semibold">{{ session('success') }}</p>
+                    <p class="font-semibold whitespace-pre-line">{{ session('success') }}</p>
                     @if(session('seo_results'))
                         <div class="mt-3 space-y-4">
                             @foreach(session('seo_results') as $resultIndex => $result)

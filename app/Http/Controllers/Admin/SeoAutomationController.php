@@ -306,6 +306,68 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Forcer l'exécution manuelle du scheduler (test)
+     */
+    public function forceRun(Request $request)
+    {
+        try {
+            // Vérifier si l'automatisation est activée
+            $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+            $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+            
+            if ($automationEnabled === false && $automationEnabled !== true) {
+                $automationEnabled = true;
+            }
+            
+            if (!$automationEnabled) {
+                return redirect()->back()
+                    ->with('error', '⚠️ L\'automatisation est désactivée. Activez-la d\'abord pour tester.');
+            }
+            
+            // Exécuter la commande seo:run-automations
+            $exitCode = \Artisan::call('seo:run-automations');
+            $output = \Artisan::output();
+            
+            Log::info('SeoAutomationController: Exécution forcée du scheduler', [
+                'exit_code' => $exitCode,
+                'output' => $output
+            ]);
+            
+            // Parser la sortie pour extraire les informations
+            $citiesCount = 0;
+            $jobsCount = 0;
+            
+            if (preg_match('/Traitement de (\d+) ville\(s\) favorite\(s\)\.\.\./', $output, $matches)) {
+                $citiesCount = (int)$matches[1];
+            }
+            if (preg_match('/(\d+) job\(s\) planifié\(s\)/', $output, $matches)) {
+                $jobsCount = (int)$matches[1];
+            }
+            
+            if ($exitCode === 0 && $jobsCount > 0) {
+                $message = "✅ Scheduler exécuté avec succès ! {$jobsCount} job(s) planifié(s) pour {$citiesCount} ville(s).";
+                $message .= "\n💡 Exécutez maintenant: php artisan queue:work --queue=seo-automation";
+                
+                return redirect()->back()
+                    ->with('success', $message)
+                    ->with('scheduler_output', $output);
+            } else {
+                return redirect()->back()
+                    ->with('warning', "⚠️ Scheduler exécuté mais aucun job n'a été planifié. Vérifiez que vous avez des villes favorites configurées.")
+                    ->with('scheduler_output', $output);
+            }
+        } catch (\Exception $e) {
+            Log::error('SeoAutomationController: Erreur lors de l\'exécution forcée du scheduler', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de l\'exécution du scheduler: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Sauvegarder l'heure de publication automatique et le nombre d'articles
      */
     public function saveTime(Request $request)
