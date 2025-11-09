@@ -192,7 +192,7 @@ class SeoAutomationController extends Controller
         $successCount = 0;
         $failedCount = 0;
         
-        $manager = app(SeoAutomationManager::class);
+        $manager = app(\App\Services\SeoAutomationManager::class);
         
         foreach ($cities as $city) {
             // Créer le nombre d'articles demandé pour chaque ville
