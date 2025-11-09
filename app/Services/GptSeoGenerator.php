@@ -281,7 +281,7 @@ class GptSeoGenerator
         }
         
         return trim("
-Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de rédiger un article web de qualité supérieure, engageant et optimisé pour le référencement Google.
+Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâtiment et de la rénovation. Ta tâche est de rédiger un article web de qualité supérieure, engageant et optimisé pour le référencement Google.
 
 **IMPORTANT : Écris UNIQUEMENT le texte brut, SANS HTML, SANS formatage, juste le contenu de qualité.**
 
@@ -291,27 +291,77 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 **Requêtes associées à intégrer naturellement :** {$related}
 {$companyInfo}
 
-**Objectifs de l'article :**
+**STRUCTURE OBLIGATOIRE DE L'ARTICLE :**
 
-- Créer un contenu **unique et original**, qui n'est pas dupliqué par rapport aux sources.
-- Fournir une **introduction captivante** (2-3 paragraphes) qui accroche le lecteur.
-- Structurer mentalement l'article avec des sections claires (mais ne pas écrire de titres HTML).
-- Inclure le **mot-clé principal** et des variantes naturelles tout au long de l'article.
-- Utiliser des phrases claires, engageantes et faciles à lire (15-20 mots max par phrase).
-- Utiliser des **paragraphes courts** (3-5 phrases max).
-- Longueur: **entre 1500 et 2500 mots** pour un contenu complet et détaillé.
-- Ajouter un **appel à l'action** à la fin.
-- Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
-- Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets, des conseils pratiques, des statistiques si pertinentes.
+1. **INTRODUCTION (2-3 paragraphes)** :
+   - Commencer par une phrase d'accroche qui mentionne la ville ({$cityName}) et le contexte local
+   - Présenter l'entreprise ({$companyName}) comme expert local
+   - Mentionner les services principaux liés au mot-clé
+   - Utiliser \"vous\" pour s'adresser directement au lecteur
+
+2. **SECTIONS PRINCIPALES (H2)** - Minimum 3-4 sections :
+   - Chaque section doit avoir un titre clair et descriptif (ex: \"Rénovation et Réparation de Couverture à {$cityName}\")
+   - Chaque section doit contenir 2-4 paragraphes de contenu détaillé
+   - Inclure des détails techniques précis (matériaux, processus, normes)
+   - Mentionner {$cityName} dans au moins une section
+
+3. **SOUS-SECTIONS (H3)** - Dans chaque section principale :
+   - Créer 1-2 sous-sections avec des titres spécifiques
+   - Exemple: \"Les Matériaux de Couverture Maîtrisés\", \"Isolation Thermique et Traitement d'Humidité\"
+
+4. **LISTES À PUCES** :
+   - Utiliser des listes à puces pour détailler les services, matériaux, avantages
+   - Format: \"• Service 1 : Description détaillée\"
+   - Minimum 2-3 listes dans l'article
+
+5. **LISTES NUMÉROTÉES** :
+   - Utiliser pour les processus étape par étape
+   - Format: \"1. Étape 1 : Description\"
+   - Au moins une liste numérotée si le sujet s'y prête
+
+6. **SECTION \"POURQUOI CHOISIR [ENTREPRISE]\"** :
+   - Section dédiée mettant en avant l'entreprise
+   - Liste des avantages/garanties
+   - Mention de la localisation et de la réactivité
+
+7. **APPEL À L'ACTION ET CONTACT** :
+   - Paragraphe final invitant à contacter l'entreprise
+   - Mention des coordonnées (téléphone, email, adresse) si disponibles
+
+**RÈGLES DE RÉDACTION :**
+
+- Ton : Professionnel, expert, rassurant, utilisant \"vous\" et \"notre\"
+- Longueur : Entre 1800 et 2500 mots pour un contenu complet
+- Paragraphes : Courts (3-5 phrases max), aérés
+- Phrases : Claires, 15-20 mots max
+- Mots-clés : Intégrer naturellement \"{$keyword}\", \"{$cityName}\", variantes
+- Détails techniques : Inclure des informations précises (matériaux, normes, processus)
+- Localisation : Mentionner {$cityName} et le contexte local (département, région) naturellement
+- Entreprise : Mettre en avant {$companyName} comme acteur local de confiance, expert
 
 **IMPORTANT - COHÉRENCE TITRE/CONTENU :**
-- Si tu mentionnes \"conseils\" ou \"astuces\" dans le contenu, assure-toi de fournir VRAIMENT des conseils pratiques et détaillés.
-- Si tu mentionnes \"guide\", assure-toi de fournir un guide complet avec des étapes claires.
-- Si tu mentionnes \"solutions\", assure-toi de présenter des solutions concrètes et applicables.
-- Le contenu doit TOUJOURS correspondre aux promesses faites dans le titre. Si le titre mentionne \"conseils pratiques\", le contenu DOIT contenir des conseils pratiques détaillés et actionnables.
+- Si le titre mentionne \"conseils\", le contenu DOIT contenir des conseils pratiques détaillés
+- Si le titre mentionne \"guide\", le contenu DOIT être un guide complet avec étapes
+- Si le titre mentionne \"solutions\", le contenu DOIT présenter des solutions concrètes
+- Le contenu doit TOUJOURS correspondre aux promesses du titre
+
+**EXEMPLE DE STRUCTURE :**
+
+Introduction (2-3 paragraphes)
+[Section H2: Titre principal]
+  Paragraphe d'introduction de la section
+  [Sous-section H3: Titre sous-section]
+    Contenu détaillé avec listes à puces si nécessaire
+  [Sous-section H3: Autre sous-section]
+    Contenu détaillé
+[Section H2: Autre section principale]
+  Contenu avec processus numéroté si applicable
+[Section H2: Pourquoi Choisir [Entreprise]]
+  Liste des avantages
+[Appel à l'action et contact]
 
 **Format de sortie :**
-Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne.
+Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne. Indique les sections principales par des lignes vides avant et après.
 ");
     }
 
@@ -321,7 +371,7 @@ Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste l
     protected function buildHtmlPrompt(string $rawText, string $title): string
     {
         return trim("
-Tu es un expert en formatage HTML pour articles web. Ta tâche est de transformer le texte brut suivant en HTML bien structuré.
+Tu es un expert en formatage HTML pour articles web. Ta tâche est de transformer le texte brut suivant en HTML bien structuré, en suivant EXACTEMENT la structure de l'exemple de référence.
 
 **Titre de l'article :** {$title}
 
@@ -329,19 +379,73 @@ Tu es un expert en formatage HTML pour articles web. Ta tâche est de transforme
 
 {$rawText}
 
-**Instructions de formatage :**
+**Instructions de formatage STRICTES :**
 
-1. Identifie les sections principales et ajoute des balises <h2> pour les titres de section
-2. Identifie les sous-sections et ajoute des balises <h3> pour les sous-titres
-3. Entoure chaque paragraphe avec <p>...</p>
-4. Identifie les listes (éléments avec puces ou numérotés) et utilise <ul><li>...</li></ul> ou <ol><li>...</li></ol>
-5. Ajoute un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
-6. NE PAS ajouter <br> après les titres H2/H3
-7. Utilise <strong> pour les mots importants et <em> pour l'emphase
-8. Assure-toi que le HTML est valide et bien structuré
+1. **Sections principales (H2)** :
+   - Identifie les sections principales (généralement après un paragraphe d'introduction)
+   - Ajoute des balises <h2> pour chaque section principale
+   - Exemples de titres H2 : \"Rénovation et Réparation de Couverture à [Ville]\", \"Nettoyage et Entretien de Toiture\", \"Services Complémentaires\", \"Pourquoi Choisir [Entreprise]\"
+
+2. **Sous-sections (H3)** :
+   - Identifie les sous-sections dans chaque section principale
+   - Ajoute des balises <h3> pour les sous-titres
+   - Exemples : \"Les Matériaux de Couverture Maîtrisés\", \"Isolation Thermique et Traitement d'Humidité\", \"Démoussage, Lavage et Traitement Hydrofuge\"
+
+3. **Paragraphes** :
+   - Entoure chaque paragraphe avec <p>...</p>
+   - Ajoute un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
+   - NE PAS ajouter <br> après les titres H2/H3
+
+4. **Listes à puces** :
+   - Identifie les listes avec puces (éléments commençant par \"•\", \"-\", ou similaires)
+   - Utilise <ul><li>...</li></ul> pour les listes à puces
+   - Chaque élément de liste doit être dans un <li>
+   - Format : <ul><li>Élément 1</li><li>Élément 2</li></ul>
+
+5. **Listes numérotées** :
+   - Identifie les listes numérotées (éléments commençant par \"1.\", \"2.\", etc.)
+   - Utilise <ol><li>...</li></ol> pour les listes numérotées
+   - Format : <ol><li>Étape 1</li><li>Étape 2</li></ol>
+
+6. **Mise en forme** :
+   - Utilise <strong> pour les mots importants, noms d'entreprise, services clés
+   - Utilise <em> pour l'emphase légère
+   - Mettre en <strong> le nom de l'entreprise et les services principaux
+
+7. **Structure finale** :
+   - Introduction : 2-3 paragraphes <p> au début
+   - Sections : Minimum 3-4 sections <h2> avec contenu
+   - Sous-sections : 1-2 <h3> par section principale
+   - Listes : Au moins 2-3 listes <ul> ou <ol> dans l'article
+   - Appel à l'action : Paragraphe final avec contact
+
+**EXEMPLE DE STRUCTURE HTML ATTENDUE :**
+
+<p>Introduction paragraphe 1...</p>
+<br>
+<p>Introduction paragraphe 2...</p>
+<br>
+<h2>Section Principale 1</h2>
+<p>Contenu de la section...</p>
+<br>
+<h3>Sous-section 1</h3>
+<p>Contenu sous-section...</p>
+<br>
+<ul>
+<li>Élément de liste 1</li>
+<li>Élément de liste 2</li>
+</ul>
+<br>
+<h2>Section Principale 2</h2>
+<p>Contenu...</p>
+<br>
+<ol>
+<li>Étape 1</li>
+<li>Étape 2</li>
+</ol>
 
 **Format de sortie :**
-Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur.
+Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur. Assure-toi que la structure est claire avec des H2 pour les sections principales et H3 pour les sous-sections.
 ");
     }
 
