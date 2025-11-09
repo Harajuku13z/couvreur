@@ -146,22 +146,33 @@ class GoogleSearchConsoleService
                 ];
             }
 
-            // S'assurer que l'URL est complète
-            if (!str_starts_with($url, 'http')) {
-                $url = rtrim($this->siteUrl, '/') . '/' . ltrim($url, '/');
+            $originalUrl = $url;
+            
+            // Gérer les différents formats d'URL
+            // Si c'est un format sc-domain:, on le garde tel quel
+            if (str_starts_with($url, 'sc-domain:')) {
+                // Format sc-domain: est valide tel quel
+            }
+            // Si c'est juste un domaine (sans protocole), ajouter https://
+            elseif (!str_starts_with($url, 'http') && !str_starts_with($url, 'sc-domain:')) {
+                // C'est probablement juste un domaine, ajouter https://
+                $url = 'https://' . ltrim($url, '/');
             }
 
-            // Vérifier que l'URL appartient au domaine configuré
-            $parsedUrl = parse_url($url);
-            $parsedSiteUrl = parse_url($this->siteUrl);
-            
-            if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host']) && 
-                $parsedUrl['host'] !== $parsedSiteUrl['host']) {
-                return [
-                    'success' => false,
-                    'message' => "L'URL n'appartient pas au domaine configuré: {$parsedUrl['host']} vs {$parsedSiteUrl['host']}",
-                    'error_code' => 'DOMAIN_MISMATCH'
-                ];
+            // Pour les formats sc-domain:, on ne vérifie pas le domaine
+            if (!str_starts_with($originalUrl, 'sc-domain:')) {
+                // Vérifier que l'URL appartient au domaine configuré (seulement pour les URLs normales)
+                $parsedUrl = parse_url($url);
+                $parsedSiteUrl = parse_url($this->siteUrl);
+                
+                if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host']) && 
+                    $parsedUrl['host'] !== $parsedSiteUrl['host']) {
+                    return [
+                        'success' => false,
+                        'message' => "L'URL n'appartient pas au domaine configuré: {$parsedUrl['host']} vs {$parsedSiteUrl['host']}",
+                        'error_code' => 'DOMAIN_MISMATCH'
+                    ];
+                }
             }
 
             // Créer la notification d'URL
