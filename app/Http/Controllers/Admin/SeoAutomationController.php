@@ -694,6 +694,7 @@ class SeoAutomationController extends Controller
         $validated = $request->validate([
             'time' => ['required', 'regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
             'articles_per_city' => 'nullable|integer|min:1|max:10',
+            'direct_execution' => 'nullable|boolean',
         ]);
         
         \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
@@ -702,10 +703,15 @@ class SeoAutomationController extends Controller
             \App\Models\Setting::set('seo_automation_articles_per_city', (string)$validated['articles_per_city'], 'string', 'seo');
         }
         
+        // Sauvegarder le mode d'exécution (direct ou queue)
+        $directExecution = $request->has('direct_execution') && $request->boolean('direct_execution');
+        \App\Models\Setting::set('seo_automation_direct_execution', $directExecution ? '1' : '0', 'boolean', 'seo');
+        
         $articlesPerCity = $validated['articles_per_city'] ?? 1;
+        $executionMode = $directExecution ? 'directe (sans queue)' : 'via queue (nécessite worker)';
         
         return redirect()->back()
-            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, {$articlesPerCity} article(s) par ville");
+            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, {$articlesPerCity} article(s) par ville, exécution {$executionMode}");
     }
 
     /**

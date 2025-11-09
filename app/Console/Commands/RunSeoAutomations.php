@@ -58,6 +58,7 @@ class RunSeoAutomations extends Command
 
         if ($cities->isEmpty()) {
             $this->info('Aucune ville favorite à traiter.');
+            \Illuminate\Support\Facades\Log::warning('RunSeoAutomations: Aucune ville favorite trouvée');
             return 0;
         }
 
@@ -66,27 +67,119 @@ class RunSeoAutomations extends Command
         
         $this->info("Traitement de " . $cities->count() . " ville(s) favorite(s)...");
         $this->info("Nombre d'articles par ville : {$articlesPerCity}");
+        
+        \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Début du traitement', [
+            'cities_count' => $cities->count(),
+            'articles_per_city' => $articlesPerCity
+        ]);
 
-        $totalJobs = 0;
-        foreach ($cities as $cityIndex => $city) {
-            $cityNumber = $cityIndex + 1;
-            $this->info("Ville #{$cityNumber}: {$city->name} (#{$city->id})");
-            
-            // Générer le nombre d'articles demandé pour chaque ville
-            for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
-                $jobIndex = ($cityIndex * $articlesPerCity) + $articleIndex;
-                
-                // Dispatcher le job avec un délai échelonné pour éviter les rate limits
-                ProcessSeoCityJob::dispatch($city->id)
-                    ->onQueue('seo-automation')
-                    ->delay(now()->addSeconds($jobIndex * 15));
-                
-                $totalJobs++;
-            }
+        // Vérifier si on doit exécuter directement (sans queue) ou via queue
+        $useDirectExecution = \App\Models\Setting::where('key', 'seo_automation_direct_execution')->value('value');
+        $useDirectExecution = filter_var($useDirectExecution, FILTER_VALIDATE_BOOLEAN);
+        
+        // Par défaut, utiliser l'exécution directe si non défini (plus fiable)
+        if ($useDirectExecution === false && $useDirectExecution !== true) {
+            $useDirectExecution = true;
         }
 
-        $this->info("✅ {$totalJobs} job(s) planifié(s) dans la queue 'seo-automation'");
-        $this->info("💡 Exécutez: php artisan queue:work --queue=seo-automation");
+        if ($useDirectExecution) {
+            // EXÉCUTION DIRECTE (sans queue) - Plus fiable, pas besoin de worker
+            $this->info("⚡ Mode exécution directe (sans queue)");
+            
+            $manager = app(SeoAutomationManager::class);
+            $totalProcessed = 0;
+            $totalSuccess = 0;
+            $totalFailed = 0;
+            
+            foreach ($cities as $cityIndex => $city) {
+                $cityNumber = $cityIndex + 1;
+                $this->info("Ville #{$cityNumber}: {$city->name} (#{$city->id})");
+                
+                // Générer le nombre d'articles demandé pour chaque ville
+                for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
+                    try {
+                        $this->line("  → Génération article " . ($articleIndex + 1) . "/{$articlesPerCity}...");
+                        
+                        $log = $manager->runForCity($city, null, function($steps) {
+                            // Callback pour le suivi (optionnel)
+                        });
+                        
+                        $totalProcessed++;
+                        
+                        if ($log->status === 'indexed' || $log->status === 'published') {
+                            $totalSuccess++;
+                            $this->info("  ✅ Succès : " . ($log->article_url ?? 'Article créé'));
+                        } else {
+                            $totalFailed++;
+                            $this->error("  ❌ Échec : " . ($log->error_message ?? 'Erreur inconnue'));
+                        }
+                        
+                        // Délai entre les articles pour éviter les rate limits
+                        if ($articleIndex < $articlesPerCity - 1) {
+                            sleep(5);
+                        }
+                    } catch (\Exception $e) {
+                        $totalFailed++;
+                        $this->error("  ❌ Erreur : " . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('RunSeoAutomations: Erreur lors du traitement', [
+                            'city_id' => $city->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+                
+                // Délai entre les villes
+                if ($cityIndex < $cities->count() - 1) {
+                    sleep(10);
+                }
+            }
+            
+            $this->info("");
+            $this->info("✅ Traitement terminé :");
+            $this->info("   - Total traité : {$totalProcessed}");
+            $this->info("   - Succès : {$totalSuccess}");
+            $this->info("   - Échecs : {$totalFailed}");
+            
+            \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Traitement terminé (direct)', [
+                'total_processed' => $totalProcessed,
+                'total_success' => $totalSuccess,
+                'total_failed' => $totalFailed
+            ]);
+        } else {
+            // EXÉCUTION VIA QUEUE (ancien système)
+            $this->info("📦 Mode queue (nécessite worker)");
+            
+            $totalJobs = 0;
+            foreach ($cities as $cityIndex => $city) {
+                $cityNumber = $cityIndex + 1;
+                $this->info("Ville #{$cityNumber}: {$city->name} (#{$city->id})");
+                
+                // Générer le nombre d'articles demandé pour chaque ville
+                for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
+                    $jobIndex = ($cityIndex * $articlesPerCity) + $articleIndex;
+                    
+                    // Dispatcher le job avec un délai échelonné pour éviter les rate limits
+                    ProcessSeoCityJob::dispatch($city->id)
+                        ->onQueue('seo-automation')
+                        ->delay(now()->addSeconds($jobIndex * 15));
+                    
+                    $totalJobs++;
+                    
+                    \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Job dispatché', [
+                        'city_id' => $city->id,
+                        'city_name' => $city->name,
+                        'job_index' => $jobIndex
+                    ]);
+                }
+            }
+
+            $this->info("✅ {$totalJobs} job(s) planifié(s) dans la queue 'seo-automation'");
+            $this->info("💡 Exécutez: php artisan queue:work --queue=seo-automation");
+            
+            \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Traitement terminé (queue)', [
+                'total_jobs' => $totalJobs
+            ]);
+        }
 
         return 0;
     }

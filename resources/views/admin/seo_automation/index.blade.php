@@ -142,11 +142,26 @@
                                max="10"
                                class="px-2 py-1 border border-gray-300 rounded text-sm w-16">
                     </div>
+                    <div class="flex items-center gap-2">
+                        <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">
+                            <input type="checkbox" 
+                                   id="direct_execution" 
+                                   name="direct_execution" 
+                                   value="1"
+                                   {{ \App\Models\Setting::where('key', 'seo_automation_direct_execution')->value('value') ? 'checked' : '' }}
+                                   class="rounded">
+                            <span>Exécution directe (sans queue)</span>
+                        </label>
+                    </div>
                     <button type="submit" 
                             class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
                         <i class="fas fa-save mr-1"></i>Enregistrer
                     </button>
                 </form>
+                <div class="mt-2 text-xs text-gray-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <strong>Exécution directe :</strong> Les articles sont générés immédiatement sans passer par la queue (plus fiable, pas besoin de worker).
+                </div>
             </div>
         </div>
     @else
