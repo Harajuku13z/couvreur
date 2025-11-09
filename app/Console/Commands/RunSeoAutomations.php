@@ -54,19 +54,31 @@ class RunSeoAutomations extends Command
             return 0;
         }
 
+        // Récupérer le nombre d'articles à générer par ville
+        $articlesPerCity = (int)\App\Models\Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?: 1;
+        
         $this->info("Traitement de " . $cities->count() . " ville(s) favorite(s)...");
+        $this->info("Nombre d'articles par ville : {$articlesPerCity}");
 
-        foreach ($cities as $index => $city) {
-            $cityNumber = $index + 1;
+        $totalJobs = 0;
+        foreach ($cities as $cityIndex => $city) {
+            $cityNumber = $cityIndex + 1;
             $this->info("Ville #{$cityNumber}: {$city->name} (#{$city->id})");
             
-            // Dispatcher le job avec un délai échelonné pour éviter les rate limits
-            ProcessSeoCityJob::dispatch($city->id)
-                ->onQueue('seo-automation')
-                ->delay(now()->addSeconds($index * 15));
+            // Générer le nombre d'articles demandé pour chaque ville
+            for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
+                $jobIndex = ($cityIndex * $articlesPerCity) + $articleIndex;
+                
+                // Dispatcher le job avec un délai échelonné pour éviter les rate limits
+                ProcessSeoCityJob::dispatch($city->id)
+                    ->onQueue('seo-automation')
+                    ->delay(now()->addSeconds($jobIndex * 15));
+                
+                $totalJobs++;
+            }
         }
 
-        $this->info("✅ " . $cities->count() . " job(s) planifié(s) dans la queue 'seo-automation'");
+        $this->info("✅ {$totalJobs} job(s) planifié(s) dans la queue 'seo-automation'");
         $this->info("💡 Exécutez: php artisan queue:work --queue=seo-automation");
 
         return 0;

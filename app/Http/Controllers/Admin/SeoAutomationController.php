@@ -305,18 +305,25 @@ class SeoAutomationController extends Controller
     }
 
     /**
-     * Sauvegarder l'heure de publication automatique
+     * Sauvegarder l'heure de publication automatique et le nombre d'articles
      */
     public function saveTime(Request $request)
     {
         $validated = $request->validate([
             'time' => ['required', 'regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
+            'articles_per_city' => 'nullable|integer|min:1|max:10',
         ]);
         
         \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
         
+        if (isset($validated['articles_per_city'])) {
+            \App\Models\Setting::set('seo_automation_articles_per_city', (string)$validated['articles_per_city'], 'string', 'seo');
+        }
+        
+        $articlesPerCity = $validated['articles_per_city'] ?? 1;
+        
         return redirect()->back()
-            ->with('success', "✅ Heure de publication automatique mise à jour : {$validated['time']}");
+            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, {$articlesPerCity} article(s) par ville");
     }
 
     /**

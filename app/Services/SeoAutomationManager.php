@@ -301,9 +301,19 @@ class SeoAutomationManager
             }
             
             // Utiliser l'image de la banque d'images comme featured_image si disponible
+            // Sinon, utiliser l'image par défaut du blog
             $featuredImage = null;
             if (isset($gptData['images']['keyword_image']) && !empty($gptData['images']['keyword_image'])) {
                 $featuredImage = $gptData['images']['keyword_image'];
+            } else {
+                // Utiliser l'image par défaut du blog
+                $defaultBlogImage = \App\Models\Setting::where('key', 'default_blog_og_image')->value('value');
+                if ($defaultBlogImage && file_exists(public_path($defaultBlogImage))) {
+                    $featuredImage = $defaultBlogImage;
+                    Log::info('SeoAutomationManager: Utilisation image par défaut du blog', [
+                        'image' => $defaultBlogImage
+                    ]);
+                }
             }
             
             $article = Article::create([

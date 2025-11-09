@@ -87,76 +87,78 @@ class GptSeoGenerator
             ]);
         }
         
-        // Étape 2: Générer l'article complet avec le titre
+        // Étape 2: Générer le texte brut de qualité (SANS HTML)
         if ($progressCallback) {
             $progressCallback([
                 'step' => 'article_generation',
-                'message' => 'Génération de l\'article complet...'
+                'message' => 'Génération du texte de qualité...'
             ]);
         }
         
-        Log::info('GptSeoGenerator: Début génération article complet', [
+        $textPrompt = $this->buildTextPrompt($keyword, $cityName, $relatedQueries, $competitors);
+        
+        Log::info('GptSeoGenerator: Début génération texte brut', [
             'keyword' => $keyword,
             'city' => $cityName,
-            'prompt_length' => strlen($prompt),
+            'prompt_length' => strlen($textPrompt),
             'related_queries_count' => count($relatedQueries),
             'competitors_count' => count($competitors)
         ]);
         
-        // Vérifier la longueur du prompt pour éviter les erreurs
-        $promptLength = strlen($prompt);
-        Log::info('GptSeoGenerator: Longueur prompt avant appel', [
-            'prompt_length' => $promptLength,
-            'prompt_length_kb' => round($promptLength / 1024, 2)
+        $textResult = AiService::callAI($textPrompt, $systemMessage, [
+            'max_tokens' => 3000,
+            'temperature' => 0.3, // Plus créatif pour un texte de qualité
+            'timeout' => 120
         ]);
         
-        // Si le prompt est trop long, réduire les sources
-        if ($promptLength > 6000) {
-            Log::warning('GptSeoGenerator: Prompt trop long, réduction des sources', [
-                'original_length' => $promptLength
-            ]);
-            // Réduire encore plus les sources si nécessaire
-            $sourcesList = '';
-            if (!empty($competitors)) {
-                $competitorsLimited = array_slice($competitors, 0, 3); // Limiter à 3 sources
-                $sourcesList = "\n\n**Sources principales** (3 articles) :\n\n";
-                foreach ($competitorsLimited as $index => $competitor) {
-                    $title = $competitor['title'] ?? 'Article sans titre';
-                    $sourcesList .= ($index + 1) . ". {$title}\n";
-                }
-            }
-            // Reconstruire le prompt avec sources réduites
-            $prompt = $this->buildPrompt($keyword, $cityName, array_slice($relatedQueries, 0, 3), $competitorsLimited);
+        if (!$textResult || !isset($textResult['content']) || empty($textResult['content'])) {
+            Log::error('GptSeoGenerator: Échec génération texte brut');
+            return null;
         }
         
-        // Calculer max_tokens en fonction du modèle et de la longueur du prompt
-        // Estimation: ~1 token = 4 caractères
-        $estimatedInputTokens = (int)(strlen($prompt) / 4);
-        // Pour GPT-4o et GPT-4: limite de 4096 tokens de completion
-        // Pour GPT-3.5: limite de 4096 tokens de completion
-        // Laisser une marge de sécurité: max 3500 tokens de completion
-        $maxTokens = min(3500, max(2000, 4096 - $estimatedInputTokens));
+        $rawText = trim($textResult['content']);
+        Log::info('GptSeoGenerator: Texte brut généré', [
+            'length' => strlen($rawText)
+        ]);
         
-        // Si le calcul donne un max_tokens trop faible, utiliser une valeur minimale raisonnable
-        if ($maxTokens < 1500) {
-            $maxTokens = 2000; // Minimum pour un article de qualité
-            Log::warning('GptSeoGenerator: Prompt très long, utilisation max_tokens minimum', [
-                'max_tokens' => $maxTokens,
-                'estimated_input_tokens' => $estimatedInputTokens
+        // Étape 3: Ajouter le HTML au texte généré
+        if ($progressCallback) {
+            $progressCallback([
+                'step' => 'html_formatting',
+                'message' => 'Ajout du formatage HTML...'
             ]);
         }
         
-        Log::info('GptSeoGenerator: Paramètres génération', [
-            'max_tokens' => $maxTokens,
-            'estimated_input_tokens' => $estimatedInputTokens,
-            'total_estimated_tokens' => $estimatedInputTokens + $maxTokens
+        $htmlPrompt = $this->buildHtmlPrompt($rawText, $generatedTitle ?? $keyword);
+        
+        $htmlResult = AiService::callAI($htmlPrompt, 'Tu es un expert en formatage HTML pour articles web.', [
+            'max_tokens' => 4000,
+            'temperature' => 0.1, // Plus précis pour le formatage
+            'timeout' => 90
         ]);
         
-        $result = AiService::callAI($prompt, $systemMessage, [
-            'max_tokens' => $maxTokens, // Limité à 3500 max pour respecter la limite de 4096
-            'temperature' => 0.2,
-            'timeout' => 180 // Timeout augmenté pour génération plus longue
-        ]);
+        if (!$htmlResult || !isset($htmlResult['content']) || empty($htmlResult['content'])) {
+            Log::warning('GptSeoGenerator: Échec formatage HTML, utilisation texte brut');
+            // Fallback : utiliser le texte brut avec un formatage minimal
+            $formattedHtml = '<p>' . nl2br(htmlspecialchars($rawText)) . '</p>';
+        } else {
+            $formattedHtml = trim($htmlResult['content']);
+            // Nettoyer le HTML (enlever markdown code blocks si présents)
+            $formattedHtml = preg_replace('/```html\s*/', '', $formattedHtml);
+            $formattedHtml = preg_replace('/```\s*/', '', $formattedHtml);
+            $formattedHtml = trim($formattedHtml);
+        }
+        
+        // Construire la réponse JSON
+        $result = [
+            'content' => json_encode([
+                'titre' => $generatedTitle ?? $keyword . ' à ' . $cityName,
+                'meta_description' => $this->generateMetaDescription($rawText),
+                'contenu_html' => $formattedHtml,
+                'mots_cles' => $this->extractKeywords($rawText, $keyword),
+                'faq' => []
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        ];
 
         if (!$result || !isset($result['content']) || empty($result['content'])) {
             // Vérifier les clés API pour donner un message d'erreur plus précis
@@ -281,9 +283,9 @@ class GptSeoGenerator
     }
 
     /**
-     * Construire le prompt pour GPT
+     * Construire le prompt pour générer un texte brut de qualité (SANS HTML)
      */
-    protected function buildPrompt(
+    protected function buildTextPrompt(
         string $keyword,
         string $cityName,
         array $relatedQueries,
@@ -332,7 +334,9 @@ class GptSeoGenerator
         }
         
         return trim("
-Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de rédiger un article web de qualité supérieure, structuré, engageant et optimisé pour le référencement Google.
+Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de rédiger un article web de qualité supérieure, engageant et optimisé pour le référencement Google.
+
+**IMPORTANT : Écris UNIQUEMENT le texte brut, SANS HTML, SANS formatage, juste le contenu de qualité.**
 
 **1. Mot-clé principal :** {$keyword} à {$cityName}
 
@@ -342,89 +346,92 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 
 **Objectifs de l'article :**
 
-- Créer un contenu **unique**, qui n'est pas dupliqué par rapport aux sources.
+- Créer un contenu **unique et original**, qui n'est pas dupliqué par rapport aux sources.
 - Fournir une **introduction captivante** (2-3 paragraphes) qui accroche le lecteur.
-- Structurer l'article avec des **sous-titres H2 et H3 pertinents** et bien espacés.
+- Structurer mentalement l'article avec des sections claires (mais ne pas écrire de titres HTML).
 - Inclure le **mot-clé principal** et des variantes naturelles tout au long de l'article.
 - Utiliser des phrases claires, engageantes et faciles à lire (15-20 mots max par phrase).
-- Proposer des **listes à puces** pour rendre le contenu plus digeste.
-- Utiliser des **paragraphes courts** (3-5 phrases max) avec des espaces entre eux.
-- Longueur: **entre 1000 et 1800 mots** pour un contenu complet et détaillé.
-- HTML propre avec des balises sémantiques: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-- **ESPACEMENT** : Ajouter un seul <br> entre chaque paragraphe pour une meilleure lisibilité (pas de double <br><br>).
-- Ajouter un **appel à l'action** à la fin (ex : \"Découvrez nos services\", \"Contactez-nous pour un devis gratuit\", etc.)
-- Inclure une **FAQ de 5 à 8 questions** pertinentes avec réponses détaillées.
+- Utiliser des **paragraphes courts** (3-5 phrases max).
+- Longueur: **entre 1500 et 2500 mots** pour un contenu complet et détaillé.
+- Ajouter un **appel à l'action** à la fin.
+- Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale.
+- Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets, des conseils pratiques, des statistiques si pertinentes.
 
-**STRUCTURE HTML STRICTE À RESPECTER :**
-
-<h1>Titre principal</h1>
-
-<p>Premier paragraphe d'introduction (2-3 phrases).</p>
-<br>
-<p>Deuxième paragraphe d'introduction (2-3 phrases).</p>
-<br>
-
-<h2>Premier sous-titre H2</h2>
-<p>Paragraphe d'introduction de la section (2-3 phrases).</p>
-<br>
-<p>Paragraphe de développement (3-4 phrases).</p>
-<br>
-
-<h3>Sous-sous-titre H3</h3>
-<p>Paragraphe explicatif (2-3 phrases).</p>
-<br>
-
-<ul>
-<li>Point important 1</li>
-<li>Point important 2</li>
-<li>Point important 3</li>
-</ul>
-<br>
-
-<p>Paragraphe de conclusion de la section (2-3 phrases).</p>
-<br>
-
-<h2>Deuxième sous-titre H2</h2>
-<p>Contenu de la section...</p>
-<br>
-
-<h2>Conclusion</h2>
-<p>Paragraphe de conclusion (3-4 phrases) avec appel à l'action.</p>
-<br>
-
-<h2>FAQ</h2>
-<br>
-<div class=\"faq\">
-<h3>Question 1 ?</h3>
-<p>Réponse détaillée 1 (2-3 phrases).</p>
-<br>
-<h3>Question 2 ?</h3>
-<p>Réponse détaillée 2 (2-3 phrases).</p>
-</div>
-
-**Format de sortie STRICTEMENT EN JSON (pas de markdown, pas de code block):**
-
-{
-  \"titre\": \"Titre optimisé SEO (60-70 caractères max)\",
-  \"meta_description\": \"Description SEO optimisée (155 caractères max)\",
-  \"contenu_html\": \"Article complet en HTML avec structure propre, espaces entre paragraphes (<br><br>), et formatage clair\",
-  \"mots_cles\": [\"mot-clé 1\", \"mot-clé 2\", \"mot-clé 3\", \"mot-clé 4\", \"mot-clé 5\"],
-  \"faq\": [
-    {\"question\": \"Question 1\", \"reponse\": \"Réponse détaillée 1\"},
-    {\"question\": \"Question 2\", \"reponse\": \"Réponse détaillée 2\"},
-    ...
-  ]
-}
-
-**RÈGLES CRITIQUES DE FORMATAGE :**
-1. **TOUJOURS** ajouter un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
-2. **NE PAS** ajouter <br> après les titres H2/H3 (les styles CSS gèrent l'espacement)
-3. Utiliser des **paragraphes courts** (3-5 phrases maximum)
-4. Utiliser des **listes à puces** pour les informations importantes
-5. Le contenu doit être **bien structuré** avec des espaces modérés
-6. Inclure au moins un paragraphe mentionnant explicitement {$cityName} et l'expertise locale
-7. Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets
+**Format de sortie :**
+Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne.
 ");
+    }
+
+    /**
+     * Construire le prompt pour ajouter le HTML au texte
+     */
+    protected function buildHtmlPrompt(string $rawText, string $title): string
+    {
+        return trim("
+Tu es un expert en formatage HTML pour articles web. Ta tâche est de transformer le texte brut suivant en HTML bien structuré.
+
+**Titre de l'article :** {$title}
+
+**Texte brut à formater :**
+
+{$rawText}
+
+**Instructions de formatage :**
+
+1. Identifie les sections principales et ajoute des balises <h2> pour les titres de section
+2. Identifie les sous-sections et ajoute des balises <h3> pour les sous-titres
+3. Entoure chaque paragraphe avec <p>...</p>
+4. Identifie les listes (éléments avec puces ou numérotés) et utilise <ul><li>...</li></ul> ou <ol><li>...</li></ol>
+5. Ajoute un seul <br> entre chaque paragraphe <p> (pas de double <br><br>)
+6. NE PAS ajouter <br> après les titres H2/H3
+7. Utilise <strong> pour les mots importants et <em> pour l'emphase
+8. Assure-toi que le HTML est valide et bien structuré
+
+**Format de sortie :**
+Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur.
+");
+    }
+
+    /**
+     * Générer une meta description depuis le texte
+     */
+    protected function generateMetaDescription(string $text): string
+    {
+        $text = strip_tags($text);
+        $text = preg_replace('/\s+/', ' ', $text);
+        $text = trim($text);
+        
+        if (strlen($text) <= 155) {
+            return $text;
+        }
+        
+        return Str::limit($text, 152) . '...';
+    }
+
+    /**
+     * Extraire des mots-clés depuis le texte
+     */
+    protected function extractKeywords(string $text, string $mainKeyword): array
+    {
+        $keywords = [$mainKeyword];
+        
+        // Extraire quelques mots-clés supplémentaires (simplifié)
+        $words = str_word_count(strtolower($text), 1, 'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ');
+        $wordFreq = array_count_values($words);
+        arsort($wordFreq);
+        
+        $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où'];
+        
+        $count = 0;
+        foreach ($wordFreq as $word => $freq) {
+            if ($count >= 4) break;
+            if (strlen($word) >= 4 && !in_array($word, $stopWords) && !in_array($word, $keywords)) {
+                $keywords[] = $word;
+                $count++;
+            }
+        }
+        
+        return array_slice($keywords, 0, 5);
     }
 }
 

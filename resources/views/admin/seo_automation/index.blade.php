@@ -42,14 +42,26 @@
                         <p class="text-xs text-green-700 mt-1">Les articles seront générés automatiquement chaque jour à <strong>{{ $automationTime }}</strong> pour toutes les villes favorites.</p>
                     </div>
                 </div>
-                <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2">
+                <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2 flex-wrap">
                     @csrf
-                    <label for="automation_time" class="text-xs text-gray-600">Heure:</label>
-                    <input type="time" 
-                           id="automation_time" 
-                           name="time" 
-                           value="{{ $automationTime }}"
-                           class="px-2 py-1 border border-gray-300 rounded text-sm">
+                    <div class="flex items-center gap-2">
+                        <label for="automation_time" class="text-xs text-gray-600">Heure:</label>
+                        <input type="time" 
+                               id="automation_time" 
+                               name="time" 
+                               value="{{ $automationTime }}"
+                               class="px-2 py-1 border border-gray-300 rounded text-sm">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="articles_per_city" class="text-xs text-gray-600">Articles par ville:</label>
+                        <input type="number" 
+                               id="articles_per_city" 
+                               name="articles_per_city" 
+                               value="{{ \App\Models\Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?? 1 }}"
+                               min="1" 
+                               max="10"
+                               class="px-2 py-1 border border-gray-300 rounded text-sm w-16">
+                    </div>
                     <button type="submit" 
                             class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
                         <i class="fas fa-save mr-1"></i>Enregistrer
