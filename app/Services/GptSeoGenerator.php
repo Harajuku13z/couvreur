@@ -442,7 +442,7 @@ Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de l
 </table>
 ```
 
-**5. SECTION FAQ** (OBLIGATOIRE - Format Schema.org)
+**5. SECTION FAQ** (OBLIGATOIRE - Format Schema.org CORRECT)
 ```html
 <section id="faq" itemscope itemtype="https://schema.org/FAQPage">
   <h2>❓ Questions Fréquentes sur {$keyword} à {$city}</h2>
@@ -466,6 +466,15 @@ Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de l
   
 </section>
 ```
+
+**⚠️ CRITIQUE - Format FAQ Schema.org :**
+- Utilise EXACTEMENT le format ci-dessus avec les balises HTML COMPLÈTES et FERMÉES
+- Chaque question DOIT être dans un `<div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">` COMPLET
+- Chaque réponse DOIT être dans un `<div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">` COMPLET
+- NE JAMAIS générer de balises HTML cassées ou incomplètes comme `https://schema.org/FAQPage">` seule
+- NE JAMAIS mettre les attributs schema.org sur des balises orphelines ou des fragments de HTML
+- TOUTES les balises doivent être complètes : `<section>`, `</section>`, `<div>`, `</div>`, `<h3>`, `</h3>`, `<p>`, `</p>`
+- Le format DOIT être du HTML valide et bien formé
 
 **6. CALL-TO-ACTION STRATÉGIQUES**
 
