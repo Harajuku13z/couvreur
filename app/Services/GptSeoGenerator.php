@@ -50,24 +50,40 @@ class GptSeoGenerator
 
         $content = $result['content'];
         
+        // Nettoyer le contenu (enlever markdown code blocks si présents)
+        $content = preg_replace('/```json\s*/', '', $content);
+        $content = preg_replace('/```\s*/', '', $content);
+        $content = trim($content);
+        
         // Essayer de parser le JSON
         $decoded = json_decode($content, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
             // Si pas de JSON, essayer d'extraire un bloc JSON
-            if (preg_match('/\{.*\}/s', $content, $matches)) {
+            if (preg_match('/\{[\s\S]*\}/', $content, $matches)) {
                 $decoded = json_decode($matches[0], true);
             } else {
                 Log::warning('GptSeoGenerator: Réponse non-JSON', [
-                    'content_preview' => substr($content, 0, 200)
+                    'content_preview' => substr($content, 0, 500),
+                    'json_error' => json_last_error_msg()
                 ]);
                 return null;
             }
         }
 
-        if (!$decoded || empty($decoded['titre']) || empty($decoded['contenu_html'])) {
-            Log::error('GptSeoGenerator: Données invalides', [
-                'decoded' => $decoded
+        if (!$decoded) {
+            Log::error('GptSeoGenerator: Impossible de décoder JSON', [
+                'content_preview' => substr($content, 0, 500),
+                'json_error' => json_last_error_msg()
+            ]);
+            return null;
+        }
+
+        if (empty($decoded['titre']) || empty($decoded['contenu_html'])) {
+            Log::error('GptSeoGenerator: Données invalides (titre ou contenu_html manquant)', [
+                'has_titre' => !empty($decoded['titre']),
+                'has_contenu_html' => !empty($decoded['contenu_html']),
+                'decoded_keys' => array_keys($decoded ?? [])
             ]);
             return null;
         }

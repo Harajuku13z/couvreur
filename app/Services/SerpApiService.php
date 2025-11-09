@@ -222,39 +222,122 @@ class SerpApiService
     public function getRelatedQueries(string $q, int $limit = 6): array
     {
         try {
-            $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
-                'engine' => 'google_related_questions',
-                'q' => $q,
-                'api_key' => $this->apiKey,
-            ]);
-
-            if (!$response->successful()) {
-                Log::warning('SerpAPI Related error', [
-                    'q' => $q,
-                    'status' => $response->status()
-                ]);
+            if (empty($this->apiKey)) {
+                Log::error('SerpAPI: Clé API manquante pour getRelatedQueries');
                 return [];
             }
-
-            $json = $response->json();
-            $items = $json['related_questions'] ?? [];
+            
             $questions = [];
             
-            foreach ($items as $item) {
-                $question = $item['question'] ?? $item['query'] ?? null;
-                if ($question && !empty(trim($question))) {
-                    $questions[] = trim($question);
+            // Approche 1: Recherche Google standard (contient related_questions, related_searches, people_also_ask)
+            try {
+                $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
+                    'engine' => 'google',
+                    'q' => $q,
+                    'api_key' => $this->apiKey,
+                    'num' => 5, // Juste pour récupérer les sections related
+                ]);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    
+                    // Récupérer depuis related_questions
+                    if (isset($json['related_questions']) && is_array($json['related_questions'])) {
+                        foreach ($json['related_questions'] as $item) {
+                            $question = $item['question'] ?? $item['query'] ?? null;
+                            if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                                $questions[] = trim($question);
+                            }
+                            if (count($questions) >= $limit) break;
+                        }
+                    }
+                    
+                    // Récupérer depuis related_searches
+                    if (count($questions) < $limit && isset($json['related_searches']) && is_array($json['related_searches'])) {
+                        foreach ($json['related_searches'] as $item) {
+                            $query = $item['query'] ?? null;
+                            if ($query && !empty(trim($query)) && !in_array(trim($query), $questions)) {
+                                $questions[] = trim($query);
+                            }
+                            if (count($questions) >= $limit) break;
+                        }
+                    }
+                    
+                    // Récupérer depuis people_also_ask
+                    if (count($questions) < $limit && isset($json['people_also_ask']) && is_array($json['people_also_ask'])) {
+                        foreach ($json['people_also_ask'] as $item) {
+                            $question = $item['question'] ?? $item['query'] ?? null;
+                            if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                                $questions[] = trim($question);
+                            }
+                            if (count($questions) >= $limit) break;
+                        }
+                    }
+                    
+                    if (count($questions) > 0) {
+                        Log::info('SerpAPI Related queries récupérées via Google Search', [
+                            'q' => $q,
+                            'count' => count($questions)
+                        ]);
+                        return array_slice($questions, 0, $limit);
+                    }
                 }
-                if (count($questions) >= $limit) {
-                    break;
-                }
+            } catch (\Exception $e) {
+                Log::warning('SerpAPI Google Search pour related queries échoué', [
+                    'q' => $q,
+                    'error' => $e->getMessage()
+                ]);
             }
             
-            return $questions;
+            // Approche 2: Engine google_related_questions (fallback)
+            try {
+                $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
+                    'engine' => 'google_related_questions',
+                    'q' => $q,
+                    'api_key' => $this->apiKey,
+                ]);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $items = $json['related_questions'] ?? [];
+                    
+                    foreach ($items as $item) {
+                        $question = $item['question'] ?? $item['query'] ?? null;
+                        if ($question && !empty(trim($question)) && !in_array(trim($question), $questions)) {
+                            $questions[] = trim($question);
+                        }
+                        if (count($questions) >= $limit) {
+                            break;
+                        }
+                    }
+                    
+                    if (count($questions) > 0) {
+                        Log::info('SerpAPI Related queries récupérées via google_related_questions', [
+                            'q' => $q,
+                            'count' => count($questions)
+                        ]);
+                        return array_slice($questions, 0, $limit);
+                    }
+                } else {
+                    Log::warning('SerpAPI Related error', [
+                        'q' => $q,
+                        'status' => $response->status(),
+                        'body' => substr($response->body(), 0, 200)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('SerpAPI google_related_questions échoué', [
+                    'q' => $q,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            return array_slice($questions, 0, $limit);
         } catch (\Exception $e) {
             Log::error('Exception SerpAPI Related', [
                 'message' => $e->getMessage(),
-                'q' => $q
+                'q' => $q,
+                'trace' => $e->getTraceAsString()
             ]);
             return [];
         }

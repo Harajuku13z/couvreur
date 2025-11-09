@@ -161,15 +161,21 @@ class SeoAutomationManager
             
             $steps[count($steps) - 1]['status'] = 'success';
             $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés';
-            $competitorTitles = [];
+            
+            // Préparer les données des concurrents avec titres et liens
+            $competitorsData = [];
             foreach ($competitors as $competitor) {
-                $competitorTitles[] = $competitor['title'] ?? 'N/A';
+                $competitorsData[] = [
+                    'title' => $competitor['title'] ?? 'N/A',
+                    'link' => $competitor['link'] ?? null,
+                    'snippet' => $competitor['snippet'] ?? null
+                ];
             }
             
             $steps[count($steps) - 1]['data'] = [
-                'related_queries' => array_slice($related, 0, 3),
+                'related_queries' => array_slice($related, 0, 6),
                 'competitors_count' => count($competitors),
-                'competitors_titles' => array_slice($competitorTitles, 0, 5)
+                'competitors' => array_slice($competitorsData, 0, 10) // Tous les concurrents avec leurs liens
             ];
             if ($progressCallback) $progressCallback($steps);
 
@@ -332,10 +338,14 @@ class SeoAutomationManager
     }
 
     /**
-     * Sélectionner un mot-clé pour une ville (éviter les doublons récents)
+     * Sélectionner un mot-clé pour une ville (éviter les doublons récents, sélection aléatoire)
      */
     protected function selectKeywordForCity(array $keywords, City $city): ?string
     {
+        if (empty($keywords)) {
+            return null;
+        }
+        
         // Récupérer les mots-clés utilisés dans les 14 derniers jours pour cette ville
         $recent = SeoAutomation::where('city_id', $city->id)
             ->where('created_at', '>=', now()->subDays(14))
@@ -343,19 +353,31 @@ class SeoAutomationManager
             ->pluck('keyword')
             ->toArray();
 
-        // Essayer de trouver un mot-clé non utilisé
-        foreach ($keywords as $k) {
-            if (!in_array($k, $recent)) {
-                return $k;
-            }
+        // Filtrer les mots-clés non utilisés récemment
+        $availableKeywords = array_filter($keywords, function($k) use ($recent) {
+            return !in_array($k, $recent);
+        });
+        
+        // Si des mots-clés sont disponibles, en choisir un au hasard
+        if (!empty($availableKeywords)) {
+            $availableKeywords = array_values($availableKeywords); // Réindexer
+            $selected = $availableKeywords[array_rand($availableKeywords)];
+            Log::info('SeoAutomationManager: Mot-clé sélectionné aléatoirement parmi les disponibles', [
+                'city' => $city->name,
+                'selected' => $selected,
+                'available_count' => count($availableKeywords)
+            ]);
+            return $selected;
         }
 
-        // Si tous sont déjà utilisés, prendre un au hasard
-        if (!empty($keywords)) {
-            return $keywords[array_rand($keywords)];
-        }
-
-        return null;
+        // Si tous sont déjà utilisés, prendre un au hasard parmi tous
+        $selected = $keywords[array_rand($keywords)];
+        Log::info('SeoAutomationManager: Tous les mots-clés déjà utilisés, sélection aléatoire parmi tous', [
+            'city' => $city->name,
+            'selected' => $selected,
+            'total_count' => count($keywords)
+        ]);
+        return $selected;
     }
 }
 

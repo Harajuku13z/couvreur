@@ -153,14 +153,38 @@
                                                                             @endif
                                                                         </div>
                                                                     @endif
-                                                                    @if(isset($step['data']['related_queries']) && is_array($step['data']['related_queries']))
-                                                                        <div class="text-gray-600 mt-1">
-                                                                            <strong>Requêtes associées:</strong> {{ implode(', ', $step['data']['related_queries']) }}
+                                                                    @if(isset($step['data']['related_queries']) && is_array($step['data']['related_queries']) && !empty($step['data']['related_queries']))
+                                                                        <div class="text-gray-600 mt-2">
+                                                                            <strong>Requêtes associées ({{ count($step['data']['related_queries']) }}):</strong>
+                                                                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                                                                @foreach($step['data']['related_queries'] as $query)
+                                                                                    <li class="text-sm">{{ $query }}</li>
+                                                                                @endforeach
+                                                                            </ul>
                                                                         </div>
                                                                     @endif
-                                                                    @if(isset($step['data']['competitors_titles']) && is_array($step['data']['competitors_titles']))
+                                                                    @if(isset($step['data']['competitors']) && is_array($step['data']['competitors']) && !empty($step['data']['competitors']))
+                                                                        <div class="text-gray-600 mt-2">
+                                                                            <strong>Concurrents analysés ({{ count($step['data']['competitors']) }}):</strong>
+                                                                            <ul class="list-none mt-2 space-y-2">
+                                                                                @foreach($step['data']['competitors'] as $competitor)
+                                                                                    <li class="text-sm border-l-2 border-blue-300 pl-2">
+                                                                                        <div class="font-medium">{{ $competitor['title'] ?? 'N/A' }}</div>
+                                                                                        @if(!empty($competitor['link']))
+                                                                                            <a href="{{ $competitor['link'] }}" target="_blank" class="text-blue-600 hover:underline text-xs break-all">
+                                                                                                <i class="fas fa-external-link-alt mr-1"></i>{{ $competitor['link'] }}
+                                                                                            </a>
+                                                                                        @endif
+                                                                                        @if(!empty($competitor['snippet']))
+                                                                                            <div class="text-xs text-gray-500 mt-1 italic">{{ Str::limit($competitor['snippet'], 100) }}</div>
+                                                                                        @endif
+                                                                                    </li>
+                                                                                @endforeach
+                                                                            </ul>
+                                                                        </div>
+                                                                    @elseif(isset($step['data']['competitors_count']))
                                                                         <div class="text-gray-600 mt-1">
-                                                                            <strong>Concurrents analysés:</strong> {{ count($step['data']['competitors_titles']) }} titres extraits
+                                                                            <strong>Concurrents analysés:</strong> {{ $step['data']['competitors_count'] }} résultats
                                                                         </div>
                                                                     @endif
                                                                     @if(isset($step['data']['title']))
