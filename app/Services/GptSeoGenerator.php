@@ -509,25 +509,84 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
     }
 
     /**
-     * Extraire des mots-clés depuis le texte
+     * Extraire des mots-clés pertinents depuis le texte (via GPT pour meilleure qualité)
      */
     protected function extractKeywords(string $text, string $mainKeyword): array
     {
         $keywords = [$mainKeyword];
         
-        // Extraire quelques mots-clés supplémentaires (simplifié)
-        $words = str_word_count(strtolower($text), 1, 'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ');
-        $wordFreq = array_count_values($words);
-        arsort($wordFreq);
+        // Utiliser GPT pour extraire des mots-clés pertinents au lieu d'une extraction basique
+        $prompt = "Extrais 4-5 mots-clés SEO pertinents et spécifiques depuis ce texte d'article.\n\n";
+        $prompt .= "**Texte de l'article (extrait) :**\n\n" . substr($text, 0, 1000) . "\n\n";
+        $prompt .= "**Mot-clé principal :** {$mainKeyword}\n\n";
+        $prompt .= "**Instructions :**\n";
+        $prompt .= "- Extrais uniquement des mots-clés pertinents pour le SEO (ex: 'rénovation toiture', 'isolation thermique', 'charpente traditionnelle')\n";
+        $prompt .= "- Évite les mots vides (le, la, les, votre, notre, mieux, bien, bon, orange, etc.)\n";
+        $prompt .= "- Évite les mots trop génériques (mieux, bien, bon, meilleur, orange, etc.)\n";
+        $prompt .= "- Privilégie les expressions de 2-3 mots (ex: 'réparation toiture' plutôt que 'réparation' seul)\n";
+        $prompt .= "- Les mots-clés doivent être liés au secteur du bâtiment/rénovation\n";
+        $prompt .= "- Retourne UNIQUEMENT une liste de mots-clés, un par ligne, sans numérotation, sans formatage\n\n";
+        $prompt .= "Format de sortie :\n";
+        $prompt .= "mot-clé 1\n";
+        $prompt .= "mot-clé 2\n";
+        $prompt .= "mot-clé 3";
         
-        $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où'];
+        $systemMessage = 'Tu es un expert SEO spécialisé dans l\'extraction de mots-clés pertinents.';
         
-        $count = 0;
-        foreach ($wordFreq as $word => $freq) {
-            if ($count >= 4) break;
-            if (strlen($word) >= 4 && !in_array($word, $stopWords) && !in_array($word, $keywords)) {
-                $keywords[] = $word;
-                $count++;
+        try {
+            $result = AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 200,
+                'temperature' => 0.2,
+                'timeout' => 30
+            ]);
+            
+            if ($result && isset($result['content']) && !empty($result['content'])) {
+                $content = trim($result['content']);
+                // Parser les mots-clés (un par ligne)
+                $lines = preg_split('/\r?\n/', $content);
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    // Enlever les numéros, puces, tirets en début de ligne
+                    $line = preg_replace('/^[\d\.\-\*\+\s]+/', '', $line);
+                    $line = trim($line);
+                    
+                    // Filtrer les mots vides et trop courts
+                    $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où', 'votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange'];
+                    
+                    if (!empty($line) && strlen($line) >= 3 && strlen($line) <= 50) {
+                        $lineLower = strtolower($line);
+                        // Vérifier que ce n'est pas un mot vide
+                        if (!in_array($lineLower, $stopWords) && !in_array($line, $keywords)) {
+                            $keywords[] = $line;
+                        }
+                    }
+                }
+                
+                Log::info('GptSeoGenerator: Mots-clés extraits via GPT', [
+                    'main_keyword' => $mainKeyword,
+                    'keywords_count' => count($keywords),
+                    'keywords' => $keywords
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('GptSeoGenerator: Erreur extraction mots-clés via GPT, utilisation méthode basique', [
+                'error' => $e->getMessage()
+            ]);
+            
+            // Fallback : extraction basique améliorée
+            $words = str_word_count(strtolower($text), 1, 'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ');
+            $wordFreq = array_count_values($words);
+            arsort($wordFreq);
+            
+            $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'à', 'pour', 'dans', 'sur', 'avec', 'par', 'est', 'sont', 'être', 'avoir', 'faire', 'cette', 'ces', 'ce', 'que', 'qui', 'quoi', 'comment', 'pourquoi', 'quand', 'où', 'votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange', 'chevigny', 'saint', 'sauveur'];
+            
+            $count = 0;
+            foreach ($wordFreq as $word => $freq) {
+                if ($count >= 4) break;
+                if (strlen($word) >= 4 && !in_array($word, $stopWords) && !in_array($word, $keywords)) {
+                    $keywords[] = $word;
+                    $count++;
+                }
             }
         }
         
