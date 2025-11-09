@@ -10,6 +10,32 @@
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Automatisation SEO</h1>
             <p class="text-gray-600 mt-1">Gestion des articles SEO générés automatiquement</p>
         </div>
+        <button id="testConnectionsBtn" 
+                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center">
+            <i class="fas fa-vial mr-2"></i>
+            Tester les connexions
+        </button>
+    </div>
+
+    <!-- Modal de test des connexions -->
+    <div id="testModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">
+                    <i class="fas fa-vial mr-2 text-green-600"></i>Test des connexions
+                </h3>
+                <button id="closeTestModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="testResults" class="space-y-4">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-blue-600 mb-4"></i>
+                    <p class="text-gray-600">Test en cours...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if(session('success'))
@@ -300,5 +326,132 @@
         {{ $logs->links() }}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testBtn = document.getElementById('testConnectionsBtn');
+    const testModal = document.getElementById('testModal');
+    const closeModal = document.getElementById('closeTestModal');
+    const testResults = document.getElementById('testResults');
+
+    testBtn.addEventListener('click', function() {
+        testModal.classList.remove('hidden');
+        testResults.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-3xl text-blue-600 mb-4"></i>
+                <p class="text-gray-600">Test en cours...</p>
+            </div>
+        `;
+
+        fetch('{{ route("admin.seo-automation.test") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            let html = '';
+            
+            // Déterminer les classes CSS
+            let summaryBgClass = 'bg-green-50';
+            let summaryBorderClass = 'border-green-400';
+            let summaryTextClass = 'text-green-700';
+            let summaryIconClass = 'check-circle';
+            let summaryTitle = '✅ Toutes les connexions sont OK';
+            
+            if (data.has_error) {
+                summaryBgClass = 'bg-red-50';
+                summaryBorderClass = 'border-red-400';
+                summaryTextClass = 'text-red-700';
+                summaryIconClass = 'exclamation-circle';
+                summaryTitle = '❌ Certaines connexions ont échoué';
+            } else if (!data.success) {
+                summaryBgClass = 'bg-yellow-50';
+                summaryBorderClass = 'border-yellow-400';
+                summaryTextClass = 'text-yellow-700';
+                summaryIconClass = 'exclamation-triangle';
+                summaryTitle = '⚠️ Certaines connexions ont des avertissements';
+            }
+            
+            // Résumé
+            html += '<div class="' + summaryBgClass + ' border ' + summaryBorderClass + ' rounded-lg p-4 mb-4">';
+            html += '<div class="flex items-center">';
+            html += '<i class="fas fa-' + summaryIconClass + ' ' + summaryTextClass + ' mr-2"></i>';
+            html += '<div>';
+            html += '<p class="font-semibold ' + summaryTextClass + '">' + summaryTitle + '</p>';
+            html += '<p class="text-sm ' + summaryTextClass + ' mt-1">';
+            html += data.summary.success + ' réussie(s), ' + data.summary.warning + ' avertissement(s), ' + data.summary.error + ' erreur(s)';
+            html += '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Détails par service
+            const serviceNames = {
+                'serpapi': 'SerpAPI',
+                'gpt': 'GPT (ChatGPT/Groq)',
+                'google_indexing': 'Google Indexing'
+            };
+            
+            const statusColors = {
+                'success': { bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-700', icon: 'check-circle' },
+                'warning': { bg: 'bg-yellow-50', border: 'border-yellow-400', text: 'text-yellow-700', icon: 'exclamation-triangle' },
+                'error': { bg: 'bg-red-50', border: 'border-red-400', text: 'text-red-700', icon: 'times-circle' },
+                'pending': { bg: 'bg-gray-50', border: 'border-gray-400', text: 'text-gray-700', icon: 'clock' }
+            };
+            
+            Object.keys(data.results).forEach(service => {
+                const result = data.results[service];
+                const colors = statusColors[result.status] || statusColors.pending;
+                
+                html += '<div class="' + colors.bg + ' border ' + colors.border + ' rounded-lg p-4">';
+                html += '<div class="flex items-start">';
+                html += '<i class="fas fa-' + colors.icon + ' ' + colors.text + ' mr-3 mt-1"></i>';
+                html += '<div class="flex-1">';
+                html += '<h4 class="font-semibold ' + colors.text + ' mb-1">' + (serviceNames[service] || service) + '</h4>';
+                html += '<p class="text-sm ' + colors.text + '">' + result.message + '</p>';
+                if (result.data) {
+                    html += '<div class="mt-2 text-xs ' + colors.text + ' opacity-75">';
+                    if (Array.isArray(result.data)) {
+                        html += result.data.join(', ');
+                    } else {
+                        html += JSON.stringify(result.data);
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            testResults.innerHTML = html;
+        })
+        .catch(error => {
+            testResults.innerHTML = `
+                <div class="bg-red-50 border border-red-400 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-times-circle text-red-600 mr-2"></i>
+                        <p class="text-red-700">Erreur lors du test: ${error.message}</p>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    closeModal.addEventListener('click', function() {
+        testModal.classList.add('hidden');
+    });
+
+    // Fermer en cliquant en dehors
+    testModal.addEventListener('click', function(e) {
+        if (e.target === testModal) {
+            testModal.classList.add('hidden');
+        }
+    });
+});
+</script>
 @endsection
 

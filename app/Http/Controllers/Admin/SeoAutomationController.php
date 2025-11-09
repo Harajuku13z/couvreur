@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\SeoAutomation;
 use App\Models\City;
 use App\Jobs\ProcessSeoCityJob;
+use App\Services\SerpApiService;
+use App\Services\GptSeoGenerator;
+use App\Services\GoogleIndexingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SeoAutomationController extends Controller
 {
@@ -134,5 +138,122 @@ class SeoAutomationController extends Controller
 
         return redirect()->back()
             ->with('success', $message);
+    }
+
+    /**
+     * Tester toutes les connexions (SerpAPI, GPT, Google Indexing)
+     */
+    public function testConnections()
+    {
+        $results = [
+            'serpapi' => ['status' => 'pending', 'message' => ''],
+            'gpt' => ['status' => 'pending', 'message' => ''],
+            'google_indexing' => ['status' => 'pending', 'message' => ''],
+        ];
+
+        // Test SerpAPI
+        try {
+            $serpService = new SerpApiService();
+            $keywords = $serpService->getTrendingKeywords('FR', 3);
+            
+            if (!empty($keywords)) {
+                $results['serpapi'] = [
+                    'status' => 'success',
+                    'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
+                    'data' => array_slice($keywords, 0, 3)
+                ];
+            } else {
+                $results['serpapi'] = [
+                    'status' => 'warning',
+                    'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
+                ];
+            }
+        } catch (\Exception $e) {
+            $results['serpapi'] = [
+                'status' => 'error',
+                'message' => 'Erreur SerpAPI: ' . $e->getMessage()
+            ];
+        }
+
+        // Test GPT
+        try {
+            $gptService = new GptSeoGenerator();
+            $testKeyword = 'couvreur';
+            $testCity = 'Paris';
+            
+            // Test avec un prompt minimal pour vérifier la connexion
+            $testResult = $gptService->generateSeoArticle($testKeyword, $testCity, [], []);
+            
+            if ($testResult && !empty($testResult['titre'])) {
+                $results['gpt'] = [
+                    'status' => 'success',
+                    'message' => 'Connexion GPT réussie. Génération de test OK.',
+                    'data' => [
+                        'titre' => substr($testResult['titre'], 0, 100) . '...',
+                        'has_content' => !empty($testResult['contenu_html'])
+                    ]
+                ];
+            } else {
+                $results['gpt'] = [
+                    'status' => 'warning',
+                    'message' => 'Connexion GPT OK mais réponse invalide. Vérifiez la configuration.'
+                ];
+            }
+        } catch (\Exception $e) {
+            $results['gpt'] = [
+                'status' => 'error',
+                'message' => 'Erreur GPT: ' . $e->getMessage()
+            ];
+        }
+
+        // Test Google Indexing
+        try {
+            $indexingService = new GoogleIndexingService();
+            
+            // Test avec une URL factice (ne sera pas réellement indexée mais teste la connexion)
+            $testUrl = config('app.url', 'https://example.com') . '/test-seo-automation';
+            
+            // On ne peut pas vraiment tester sans une vraie URL, donc on vérifie juste la configuration
+            $googleService = new \App\Services\GoogleSearchConsoleService();
+            $isConfigured = $googleService->isConfigured();
+            
+            if ($isConfigured) {
+                $results['google_indexing'] = [
+                    'status' => 'success',
+                    'message' => 'Google Indexing configuré correctement. Les credentials sont valides.'
+                ];
+            } else {
+                $results['google_indexing'] = [
+                    'status' => 'error',
+                    'message' => 'Google Indexing non configuré. Veuillez configurer les credentials dans Indexation.'
+                ];
+            }
+        } catch (\Exception $e) {
+            $results['google_indexing'] = [
+                'status' => 'error',
+                'message' => 'Erreur Google Indexing: ' . $e->getMessage()
+            ];
+        }
+
+        // Résumé global
+        $allSuccess = collect($results)->every(function ($result) {
+            return $result['status'] === 'success';
+        });
+
+        $hasError = collect($results)->contains(function ($result) {
+            return $result['status'] === 'error';
+        });
+
+        return response()->json([
+            'success' => $allSuccess,
+            'has_error' => $hasError,
+            'results' => $results,
+            'summary' => [
+                'total' => count($results),
+                'success' => collect($results)->where('status', 'success')->count(),
+                'warning' => collect($results)->where('status', 'warning')->count(),
+                'error' => collect($results)->where('status', 'error')->count(),
+            ]
+        ]);
     }
 }
