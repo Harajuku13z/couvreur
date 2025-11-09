@@ -76,7 +76,14 @@ class SerpApiService
             $url = 'https://serpapi.com/search.json?' . http_build_query($params);
             Log::debug('SerpAPI URL construite', ['url' => preg_replace('/api_key=[^&]+/', 'api_key=***', $url)]);
             
-            $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
+            // Essayer d'abord avec l'URL construite manuellement (plus fiable)
+            try {
+                $response = Http::timeout(30)->get($url);
+            } catch (\Exception $e) {
+                Log::error('SerpAPI erreur avec URL construite', ['error' => $e->getMessage()]);
+                // Fallback vers la méthode standard
+                $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
+            }
 
             if (!$response->successful()) {
                 $errorBody = $response->json();
