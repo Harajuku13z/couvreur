@@ -115,7 +115,8 @@ class SeoAutomationManager
             ]);
 
             // 6. Indexation Google
-            $url = url("/articles/{$article->slug}");
+            // Utiliser la route blog.show pour les articles publics
+            $url = route('blog.show', $article);
             $indexed = $this->indexer->indexUrl($url);
 
             // 7. Update log
