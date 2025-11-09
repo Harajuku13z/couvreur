@@ -25,12 +25,20 @@
                 <i class="fas fa-vial mr-2"></i>
                 Tester les connexions
             </button>
-            <form action="{{ route('admin.seo-automation.force-run') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Forcer l\'exécution du scheduler maintenant ? Cela planifiera les jobs pour toutes les villes favorites.');">
+            <form action="{{ route('admin.seo-automation.execute-now') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Exécuter immédiatement (sans attendre l\'heure configurée) ? Cela planifiera les jobs pour toutes les villes favorites.');">
                 @csrf
                 <button type="submit" 
-                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-play-circle mr-2"></i>
-                    Forcer l'exécution maintenant
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-bolt mr-2"></i>
+                    Exécuter maintenant
+                </button>
+            </form>
+            <form action="{{ route('admin.seo-automation.reset-all') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ ATTENTION : Cela supprimera TOUS les logs d\'automation et les jobs en attente. Êtes-vous sûr ?');">
+                @csrf
+                <button type="submit" 
+                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    Réinitialiser tout
                 </button>
             </form>
         </div>
@@ -47,7 +55,16 @@
                     <i class="fas fa-check-circle text-green-600 mr-2"></i>
                     <div>
                         <p class="text-sm font-medium text-green-900">Automatisation activée</p>
-                        <p class="text-xs text-green-700 mt-1">Les articles seront générés automatiquement chaque jour à <strong>{{ $automationTime }}</strong> pour toutes les villes favorites.</p>
+                        <p class="text-xs text-green-700 mt-1">
+                            Les articles seront générés automatiquement chaque jour à <strong>{{ $automationTime }}</strong> (heure {{ $timezone ?? 'Europe/Paris' }}).
+                            <br>
+                            <span class="text-gray-600">Heure actuelle : <strong>{{ $currentTime }}</strong> | Prochaine exécution : <strong>{{ $nextExecution ? $nextExecution->format('d/m/Y à H:i') : 'N/A' }}</strong></span>
+                        </p>
+                        @if(isset($pendingJobs) && count($pendingJobs) > 0)
+                            <p class="text-xs text-blue-700 mt-1">
+                                <i class="fas fa-clock mr-1"></i><strong>{{ count($pendingJobs) }} job(s)</strong> en attente dans la queue
+                            </p>
+                        @endif
                     </div>
                 </div>
                 <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2 flex-wrap">

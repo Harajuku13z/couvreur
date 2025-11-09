@@ -68,6 +68,46 @@ class SeoAutomationController extends Controller
             'failed' => SeoAutomation::where('status', 'failed')->count(),
         ];
         
+        // Récupérer les jobs en attente dans la queue
+        $pendingJobs = [];
+        try {
+            // Vérifier les jobs dans la queue 'seo-automation'
+            $queueConnection = config('queue.default');
+            if ($queueConnection === 'database') {
+                $pendingJobs = \DB::table('jobs')
+                    ->where('queue', 'seo-automation')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($job) {
+                        $payload = json_decode($job->payload, true);
+                        $jobClass = $payload['displayName'] ?? 'Unknown';
+                        return [
+                            'id' => $job->id,
+                            'class' => $jobClass,
+                            'created_at' => $job->created_at,
+                            'attempts' => $job->attempts,
+                        ];
+                    });
+            }
+        } catch (\Exception $e) {
+            Log::warning('Impossible de récupérer les jobs en attente: ' . $e->getMessage());
+        }
+        
+        // Récupérer l'heure configurée et le fuseau horaire
+        $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
+        $timezone = config('app.timezone', 'Europe/Paris');
+        $currentTime = now()->format('H:i');
+        $nextExecution = null;
+        
+        // Calculer la prochaine exécution
+        if ($currentTime < $automationTime) {
+            // Aujourd'hui
+            $nextExecution = now()->setTimeFromTimeString($automationTime);
+        } else {
+            // Demain
+            $nextExecution = now()->addDay()->setTimeFromTimeString($automationTime);
+        }
+        
         // Récupérer les villes favorites
         $favoriteCities = City::where('is_favorite', true)->orderBy('name')->get();
         
@@ -135,7 +175,7 @@ class SeoAutomationController extends Controller
                 // Récupérer les images de mots-clés
                 $keywordImages = KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
                 
-                return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription', 'keywordImages'));
+                return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription', 'keywordImages', 'pendingJobs', 'automationTime', 'timezone', 'currentTime', 'nextExecution'));
     }
 
     /**
@@ -364,6 +404,130 @@ class SeoAutomationController extends Controller
             
             return redirect()->back()
                 ->with('error', '❌ Erreur lors de l\'exécution du scheduler: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Exécuter immédiatement (sans respecter l'heure configurée)
+     */
+    public function executeNow(Request $request)
+    {
+        try {
+            // Vérifier si l'automatisation est activée
+            $automationEnabled = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+            $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+            
+            if ($automationEnabled === false && $automationEnabled !== true) {
+                $automationEnabled = true;
+            }
+            
+            if (!$automationEnabled) {
+                return redirect()->back()
+                    ->with('error', '⚠️ L\'automatisation est désactivée. Activez-la d\'abord.');
+            }
+            
+            // Exécuter la commande seo:run-automations immédiatement
+            $exitCode = \Artisan::call('seo:run-automations');
+            $output = \Artisan::output();
+            
+            Log::info('SeoAutomationController: Exécution immédiate du scheduler', [
+                'exit_code' => $exitCode,
+                'output' => $output
+            ]);
+            
+            // Parser la sortie
+            $citiesCount = 0;
+            $jobsCount = 0;
+            
+            if (preg_match('/Traitement de (\d+) ville\(s\) favorite\(s\)\.\.\./', $output, $matches)) {
+                $citiesCount = (int)$matches[1];
+            }
+            if (preg_match('/(\d+) job\(s\) planifié\(s\)/', $output, $matches)) {
+                $jobsCount = (int)$matches[1];
+            }
+            
+            if ($exitCode === 0 && $jobsCount > 0) {
+                $message = "✅ Exécution immédiate réussie ! {$jobsCount} job(s) planifié(s) pour {$citiesCount} ville(s).";
+                $message .= "\n💡 Les jobs sont en attente dans la queue. Exécutez: php artisan queue:work --queue=seo-automation";
+                
+                return redirect()->back()
+                    ->with('success', $message)
+                    ->with('scheduler_output', $output);
+            } else {
+                return redirect()->back()
+                    ->with('warning', "⚠️ Aucun job n'a été planifié. Vérifiez que vous avez des villes favorites configurées.")
+                    ->with('scheduler_output', $output);
+            }
+        } catch (\Exception $e) {
+            Log::error('SeoAutomationController: Erreur lors de l\'exécution immédiate', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Réinitialiser toutes les automations (supprimer les logs et jobs)
+     */
+    public function resetAll(Request $request)
+    {
+        try {
+            // Supprimer tous les logs SeoAutomation
+            $deletedLogs = SeoAutomation::count();
+            SeoAutomation::truncate();
+            
+            // Supprimer les jobs en attente dans la queue
+            $deletedJobs = 0;
+            try {
+                if (config('queue.default') === 'database') {
+                    $deletedJobs = \DB::table('jobs')
+                        ->where('queue', 'seo-automation')
+                        ->delete();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Impossible de supprimer les jobs: ' . $e->getMessage());
+            }
+            
+            // Supprimer les jobs échoués
+            $deletedFailed = 0;
+            try {
+                if (config('queue.default') === 'database') {
+                    $deletedFailed = \DB::table('failed_jobs')
+                        ->where('queue', 'seo-automation')
+                        ->orWhere('payload', 'like', '%ProcessSeoCityJob%')
+                        ->delete();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Impossible de supprimer les jobs échoués: ' . $e->getMessage());
+            }
+            
+            Log::info('SeoAutomationController: Réinitialisation complète', [
+                'deleted_logs' => $deletedLogs,
+                'deleted_jobs' => $deletedJobs,
+                'deleted_failed' => $deletedFailed
+            ]);
+            
+            $message = "✅ Réinitialisation complète réussie !\n";
+            $message .= "• {$deletedLogs} log(s) d'automation supprimé(s)\n";
+            $message .= "• {$deletedJobs} job(s) en attente supprimé(s)\n";
+            if ($deletedFailed > 0) {
+                $message .= "• {$deletedFailed} job(s) échoué(s) supprimé(s)";
+            }
+            
+            return redirect()->back()
+                ->with('success', $message);
+                
+        } catch (\Exception $e) {
+            Log::error('SeoAutomationController: Erreur lors de la réinitialisation', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de la réinitialisation: ' . $e->getMessage());
         }
     }
 
