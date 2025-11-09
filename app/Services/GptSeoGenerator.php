@@ -150,7 +150,7 @@ class GptSeoGenerator
                 'has_titre' => !empty($decoded['titre']),
                 'has_contenu_html' => !empty($decoded['contenu_html']),
                 'html_length' => strlen($decoded['contenu_html'] ?? ''),
-                'text_length' => strlen($rawText ?? '')
+                'html_content_length' => isset($htmlContent) ? strlen($htmlContent) : 0
             ];
             
             // Message d'erreur plus détaillé
