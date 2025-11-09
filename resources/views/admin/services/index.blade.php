@@ -6,8 +6,14 @@
 /* Styles pour la gestion des services */
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .services-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
 }
 
 .service-card {
@@ -90,17 +96,17 @@
 </style>
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-6">
+<div class="min-h-screen bg-gray-50 py-4 md:py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
+        <div class="mb-6 md:mb-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">🛠️ Gestion des Services</h1>
-                    <p class="mt-2 text-gray-600">Créez et gérez vos pages de services avec génération automatique de contenu</p>
+                    <h1 class="text-xl md:text-3xl font-bold text-gray-900">🛠️ Gestion des Services</h1>
+                    <p class="mt-2 text-gray-600 text-sm md:text-base">Créez et gérez vos pages de services avec génération automatique de contenu</p>
                 </div>
-                <div class="flex gap-3">
-                    <a href="{{ route('services.admin.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                <div class="flex gap-3 w-full sm:w-auto">
+                    <a href="{{ route('services.admin.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center w-full sm:w-auto">
                         <i class="fas fa-plus mr-2"></i>Nouveau Service
                     </a>
                 </div>
@@ -200,16 +206,16 @@
                                 </div>
                                 
                                 <div class="service-actions flex flex-col gap-2">
-                                    <div class="flex justify-center gap-2">
-                                        <a href="{{ route('services.show', $service['slug']) }}" target="_blank" class="btn-service btn-view">
+                                    <div class="flex flex-wrap justify-center gap-2">
+                                        <a href="{{ route('services.show', $service['slug']) }}" target="_blank" class="btn-service btn-view flex-1 sm:flex-none">
                                             <i class="fas fa-eye"></i>Voir
                                         </a>
-                                        <a href="{{ route('services.admin.edit', $service['id'] ?? $loop->index) }}" class="btn-service btn-edit">
+                                        <a href="{{ route('services.admin.edit', $service['id'] ?? $loop->index) }}" class="btn-service btn-edit flex-1 sm:flex-none">
                                             <i class="fas fa-edit"></i>Modifier
                                         </a>
                                     </div>
                                     <div class="flex justify-center gap-2">
-                                        <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ $service['name'] }}')" class="btn-service btn-delete">
+                                        <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ $service['name'] }}')" class="btn-service btn-delete w-full sm:w-auto">
                                             <i class="fas fa-trash"></i>Supprimer
                                         </button>
                                     </div>

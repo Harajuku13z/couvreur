@@ -83,18 +83,18 @@
     
     @if($isConfigured)
     <!-- Statistiques globales -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs md:text-sm text-gray-600 mb-1">
                         @if($showAll ?? false)
                             Visiteurs totaux (tous pays)
                         @else
                             Visiteurs France
                         @endif
                     </p>
-                    <p class="text-3xl font-bold text-gray-900">
+                    <p class="text-xl md:text-3xl font-bold text-gray-900">
                         @if($showAll ?? false)
                             {{ number_format($stats['totalVisitors']) }}
                         @else
@@ -107,69 +107,71 @@
                     </p>
                     @endif
                 </div>
-                <div class="bg-blue-100 rounded-full p-3">
-                    <i class="fas fa-users text-blue-600 text-2xl"></i>
+                <div class="bg-blue-100 rounded-full p-2 md:p-3 flex-shrink-0 ml-2">
+                    <i class="fas fa-users text-blue-600 text-xl md:text-2xl"></i>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Pages vues</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ number_format($stats['totalPageViews']) }}</p>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs md:text-sm text-gray-600 mb-1">Pages vues</p>
+                    <p class="text-xl md:text-3xl font-bold text-gray-900">{{ number_format($stats['totalPageViews']) }}</p>
                 </div>
-                <div class="bg-green-100 rounded-full p-3">
-                    <i class="fas fa-eye text-green-600 text-2xl"></i>
+                <div class="bg-green-100 rounded-full p-2 md:p-3 flex-shrink-0 ml-2">
+                    <i class="fas fa-eye text-green-600 text-xl md:text-2xl"></i>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Pages vues/visiteur</p>
-                    <p class="text-3xl font-bold text-gray-900">
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs md:text-sm text-gray-600 mb-1">Pages vues/visiteur</p>
+                    <p class="text-xl md:text-3xl font-bold text-gray-900">
                         {{ $stats['totalVisitors'] > 0 ? number_format($stats['totalPageViews'] / $stats['totalVisitors'], 2) : '0' }}
                     </p>
                 </div>
-                <div class="bg-purple-100 rounded-full p-3">
-                    <i class="fas fa-chart-line text-purple-600 text-2xl"></i>
+                <div class="bg-purple-100 rounded-full p-2 md:p-3 flex-shrink-0 ml-2">
+                    <i class="fas fa-chart-line text-purple-600 text-xl md:text-2xl"></i>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Période</p>
-                    <p class="text-3xl font-bold text-gray-900">30j</p>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs md:text-sm text-gray-600 mb-1">Période</p>
+                    <p class="text-xl md:text-3xl font-bold text-gray-900">{{ $days ?? 30 }}j</p>
                 </div>
-                <div class="bg-orange-100 rounded-full p-3">
-                    <i class="fas fa-calendar text-orange-600 text-2xl"></i>
+                <div class="bg-orange-100 rounded-full p-2 md:p-3 flex-shrink-0 ml-2">
+                    <i class="fas fa-calendar text-orange-600 text-xl md:text-2xl"></i>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Graphique des visiteurs -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Évolution des visiteurs</h2>
-        <canvas id="visitorsChart" height="100"></canvas>
+    <div class="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+        <h2 class="text-base md:text-lg font-semibold mb-4">Évolution des visiteurs</h2>
+        <div class="overflow-x-auto">
+            <canvas id="visitorsChart" height="100"></canvas>
+        </div>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
         <!-- Top pages -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold mb-4">Pages les plus visitées</h2>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <h2 class="text-base md:text-lg font-semibold mb-4">Pages les plus visitées</h2>
             <div class="space-y-3">
                        @forelse($topPages as $page)
-                       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                           <div class="flex-1">
-                               <p class="font-medium text-sm">{{ Str::limit($page['url'] ?? $page['path'] ?? 'N/A', 50) }}</p>
+                       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                           <div class="flex-1 min-w-0">
+                               <p class="font-medium text-xs md:text-sm break-words">{{ Str::limit($page['url'] ?? $page['path'] ?? 'N/A', 50) }}</p>
                                <p class="text-xs text-gray-500">{{ number_format($page['visits'] ?? $page['pageViews'] ?? 0) }} vues</p>
                            </div>
-                           <div class="text-blue-600 font-semibold">
+                           <div class="text-blue-600 font-semibold flex-shrink-0">
                                {{ number_format($page['visits'] ?? $page['pageViews'] ?? 0) }}
                            </div>
                        </div>
@@ -180,16 +182,16 @@
         </div>
         
         <!-- Top referrers -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold mb-4">Principales sources de trafic</h2>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <h2 class="text-base md:text-lg font-semibold mb-4">Principales sources de trafic</h2>
             <div class="space-y-3">
                 @forelse($topReferrers as $referrer)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex-1">
-                        <p class="font-medium text-sm">{{ Str::limit($referrer['url'] ?? 'Direct', 50) }}</p>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-xs md:text-sm break-words">{{ Str::limit($referrer['url'] ?? 'Direct', 50) }}</p>
                         <p class="text-xs text-gray-500">{{ number_format($referrer['visits'] ?? $referrer['pageViews'] ?? 0) }} visites</p>
                     </div>
-                    <div class="text-green-600 font-semibold">
+                    <div class="text-green-600 font-semibold flex-shrink-0">
                         {{ number_format($referrer['visits'] ?? $referrer['pageViews'] ?? 0) }}
                     </div>
                 </div>
@@ -200,21 +202,21 @@
         </div>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <!-- Top browsers -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold mb-4">Navigateurs les plus utilisés</h2>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <h2 class="text-base md:text-lg font-semibold mb-4">Navigateurs les plus utilisés</h2>
             <div class="space-y-3">
                 @forelse($topBrowsers as $browser)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-globe text-blue-600 mr-3"></i>
-                        <div>
-                            <p class="font-medium text-sm">{{ $browser['browser'] }}</p>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                    <div class="flex items-center min-w-0 flex-1">
+                        <i class="fas fa-globe text-blue-600 mr-3 flex-shrink-0"></i>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-medium text-xs md:text-sm break-words">{{ $browser['browser'] }}</p>
                             <p class="text-xs text-gray-500">{{ number_format($browser['sessions']) }} sessions</p>
                         </div>
                     </div>
-                    <div class="text-blue-600 font-semibold">
+                    <div class="text-blue-600 font-semibold flex-shrink-0">
                         {{ number_format($browser['sessions']) }}
                     </div>
                 </div>
@@ -225,19 +227,19 @@
         </div>
         
         <!-- Top countries -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold mb-4">Pays des visiteurs</h2>
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <h2 class="text-base md:text-lg font-semibold mb-4">Pays des visiteurs</h2>
             <div class="space-y-3">
                 @forelse($topCountries as $country)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-flag text-green-600 mr-3"></i>
-                        <div>
-                            <p class="font-medium text-sm">{{ $country['country'] }}</p>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                    <div class="flex items-center min-w-0 flex-1">
+                        <i class="fas fa-flag text-green-600 mr-3 flex-shrink-0"></i>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-medium text-xs md:text-sm break-words">{{ $country['country'] }}</p>
                             <p class="text-xs text-gray-500">{{ number_format($country['sessions']) }} sessions</p>
                         </div>
                     </div>
-                    <div class="text-green-600 font-semibold">
+                    <div class="text-green-600 font-semibold flex-shrink-0">
                         {{ number_format($country['sessions']) }}
                     </div>
                 </div>
