@@ -7,22 +7,22 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- En-tête avec statistiques -->
     <div class="mb-8">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
             <div>
                 <p class="text-gray-600 mt-2">Gérez vos annonces locales et générez du contenu automatiquement</p>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right">
-                    <div class="text-2xl font-bold text-blue-600">{{ $totalAds }}</div>
-                    <div class="text-sm text-gray-500">Annonces totales</div>
+            <div class="flex items-center justify-around md:justify-end gap-4 md:space-x-4">
+                <div class="text-center md:text-right">
+                    <div class="text-xl md:text-2xl font-bold text-blue-600">{{ $totalAds }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">Annonces totales</div>
                 </div>
-                <div class="text-right">
-                    <div class="text-2xl font-bold text-green-600">{{ $publishedAds }}</div>
-                    <div class="text-sm text-gray-500">Publiées</div>
+                <div class="text-center md:text-right">
+                    <div class="text-xl md:text-2xl font-bold text-green-600">{{ $publishedAds }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">Publiées</div>
                 </div>
-                <div class="text-right">
-                    <div class="text-2xl font-bold text-orange-600">{{ $draftAds }}</div>
-                    <div class="text-sm text-gray-500">Brouillons</div>
+                <div class="text-center md:text-right">
+                    <div class="text-xl md:text-2xl font-bold text-orange-600">{{ $draftAds }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">Brouillons</div>
                 </div>
             </div>
         </div>

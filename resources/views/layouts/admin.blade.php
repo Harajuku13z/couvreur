@@ -132,6 +132,24 @@
                 overflow-x: visible;
             }
         }
+        
+        /* Empêcher le scroll horizontal sur mobile */
+        @media (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+            
+            .container, .max-w-7xl, .max-w-6xl {
+                max-width: 100%;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            /* Forcer les flex containers à revenir à la ligne */
+            .flex-nowrap {
+                flex-wrap: wrap !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">

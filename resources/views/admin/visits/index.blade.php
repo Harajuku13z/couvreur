@@ -7,28 +7,28 @@
 @endphp
 
 @section('content')
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">📊 Statistiques de Visites</h1>
-        <div class="flex items-center space-x-4">
+<div class="p-4 md:p-6">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <h1 class="text-xl md:text-2xl font-bold">📊 Statistiques de Visites</h1>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
             @if($showAll ?? false)
             <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}" 
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center">
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center">
                 <i class="fas fa-flag mr-2"></i>France uniquement
             </a>
             @else
             <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}&all=1" 
-               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition flex items-center">
+               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center">
                 <i class="fas fa-globe mr-2"></i>Tous les visiteurs
             </a>
             @endif
-            <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="changePeriod()">
+            <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg w-full sm:w-auto" onchange="changePeriod()">
                 <option value="7" {{ ($days ?? 30) == 7 ? 'selected' : '' }}>7 derniers jours</option>
                 <option value="30" {{ ($days ?? 30) == 30 ? 'selected' : '' }}>30 derniers jours</option>
                 <option value="90" {{ ($days ?? 30) == 90 ? 'selected' : '' }}>90 derniers jours</option>
                 <option value="365" {{ ($days ?? 30) == 365 ? 'selected' : '' }}>1 an</option>
             </select>
-            <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+            <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition w-full sm:w-auto text-center">
                 <i class="fas fa-sync-alt mr-2"></i>Actualiser
             </button>
         </div>
