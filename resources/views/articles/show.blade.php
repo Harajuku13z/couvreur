@@ -15,6 +15,13 @@
 @endphp
 
 @push('head')
+<style>
+    :root {
+        --primary-color: {{ setting('primary_color', '#3b82f6') }};
+        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
+        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+</style>
 <!-- Métadonnées spécifiques aux articles -->
 <meta property="article:published_time" content="{{ $article->created_at->toISOString() }}">
 <meta property="article:author" content="{{ setting('company_name', 'Sauser Couverture') }}">
@@ -475,21 +482,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ $article->title }}</h1>
-                <div class="flex items-center justify-center text-blue-100 space-x-4">
-                    @if($article->published_at)
-                    <span class="bg-blue-700 px-3 py-1 rounded-full text-sm">
-                        <i class="fas fa-calendar mr-1"></i>{{ $article->published_at->format('d/m/Y') }}
-                    </span>
-                    @endif
-                    <span class="bg-blue-700 px-3 py-1 rounded-full text-sm">
-                        <i class="fas fa-clock mr-1"></i>Lecture
-                    </span>
-                </div>
+    <!-- Hero Section avec image mise en avant -->
+    <div class="relative min-h-[60vh] flex items-center justify-center overflow-hidden"
+         @if($article->featured_image)
+         style="background-image: url('{{ asset($article->featured_image) }}'); background-size: cover; background-position: center; background-attachment: scroll;"
+         @else
+         style="background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));"
+         @endif>
+        <!-- Overlay sombre pour améliorer la lisibilité -->
+        @if($article->featured_image)
+        <div class="absolute inset-0 bg-black/50 z-0"></div>
+        @else
+        <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-black/50 z-0"></div>
+        @endif
+        
+        <div class="max-w-6xl mx-auto px-4 text-center text-white relative z-10 py-16">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg">{{ $article->title }}</h1>
+            <div class="flex items-center justify-center space-x-4 flex-wrap gap-2">
+                @if($article->published_at)
+                <span class="flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
+                    <i class="fas fa-calendar mr-2"></i>Publié le {{ $article->published_at->format('d/m/Y') }}
+                </span>
+                @endif
+                <span class="flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
+                    <i class="fas fa-clock mr-2"></i>Lecture
+                </span>
             </div>
         </div>
     </div>
@@ -708,11 +725,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-certificate mr-1 opacity-80"></i>
-                                    <span class="text-blue-100">Certifié</span>
+                                    <span class="opacity-90">Certifié</span>
                                 </div>
                                 <div class="flex items-center">
-                                    <i class="fas fa-star text-yellow-300 mr-1"></i>
-                                    <span class="text-blue-100">5★</span>
+                                    <i class="fas fa-star mr-1 opacity-80"></i>
+                                    <span class="opacity-90">5★</span>
                                 </div>
                             </div>
                         </div>
