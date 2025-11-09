@@ -187,26 +187,65 @@ class SeoAutomationController extends Controller
                 ->with('error', 'Aucune ville sélectionnée ou favorite trouvée.');
         }
 
-        $dispatched = 0;
-        $delayCounter = 0;
-        foreach ($cities as $cityIndex => $city) {
+        // Exécuter les générations de manière synchrone pour afficher les résultats
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+        
+        $manager = app(SeoAutomationManager::class);
+        
+        foreach ($cities as $city) {
             // Créer le nombre d'articles demandé pour chaque ville
             for ($articleIndex = 0; $articleIndex < $numberOfArticles; $articleIndex++) {
-                ProcessSeoCityJob::dispatch($city->id, $customKeyword)
-                    ->onQueue('seo-automation')
-                    ->delay(now()->addSeconds($delayCounter * 5)); // Délai échelonné de 5 secondes
-                $dispatched++;
-                $delayCounter++;
+                try {
+                    $log = $manager->runForCity($city, $customKeyword);
+                    
+                    if ($log->status === 'indexed' || $log->status === 'published') {
+                        $successCount++;
+                        $results[] = [
+                            'city' => $city->name,
+                            'keyword' => $log->keyword,
+                            'status' => 'success',
+                            'url' => $log->article_url,
+                            'article_id' => $log->article_id,
+                        ];
+                    } else {
+                        $failedCount++;
+                        $results[] = [
+                            'city' => $city->name,
+                            'keyword' => $log->keyword,
+                            'status' => 'failed',
+                            'error' => $log->error_message ?? 'Erreur inconnue',
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $failedCount++;
+                    $results[] = [
+                        'city' => $city->name,
+                        'keyword' => $customKeyword ?? 'N/A',
+                        'status' => 'error',
+                        'error' => $e->getMessage(),
+                    ];
+                    Log::error('Erreur génération article SEO', [
+                        'city_id' => $city->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
             }
         }
 
-        $message = "✅ {$dispatched} job(s) planifié(s) pour " . $cities->count() . " ville(s)";
+        $message = "✅ {$successCount} article(s) généré(s) avec succès";
+        if ($failedCount > 0) {
+            $message .= ", ⚠️ {$failedCount} échec(s)";
+        }
         if ($customKeyword) {
             $message .= " avec le mot-clé/service: {$customKeyword}";
         }
 
         return redirect()->back()
-            ->with('success', $message);
+            ->with('success', $message)
+            ->with('seo_results', $results);
     }
 
     /**

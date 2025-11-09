@@ -40,12 +40,61 @@
 
     @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {{ session('success') }}
+            <div class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="font-semibold">{{ session('success') }}</p>
+                    @if(session('seo_results'))
+                        <div class="mt-3 space-y-2">
+                            @foreach(session('seo_results') as $result)
+                                <div class="bg-white rounded p-3 border border-green-300">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-900">
+                                                <i class="fas fa-map-marker-alt mr-1 text-blue-600"></i>{{ $result['city'] }}
+                                            </div>
+                                            @if(isset($result['keyword']))
+                                                <div class="text-sm text-gray-600 mt-1">
+                                                    <i class="fas fa-tag mr-1"></i>Mot-clé: <strong>{{ $result['keyword'] }}</strong>
+                                                </div>
+                                            @endif
+                                            @if($result['status'] === 'success' && isset($result['url']))
+                                                <div class="mt-2">
+                                                    <a href="{{ $result['url'] }}" target="_blank" 
+                                                       class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                        <i class="fas fa-external-link-alt mr-1"></i>
+                                                        Voir l'article publié
+                                                    </a>
+                                                </div>
+                                            @elseif($result['status'] === 'failed' || $result['status'] === 'error')
+                                                <div class="mt-2 text-sm text-red-600">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                    {{ $result['error'] ?? 'Erreur lors de la génération' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        @if($result['status'] === 'success')
+                                            <span class="ml-2 px-2 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
+                                                <i class="fas fa-check mr-1"></i>Publié
+                                            </span>
+                                        @else
+                                            <span class="ml-2 px-2 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded">
+                                                <i class="fas fa-times mr-1"></i>Échec
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     @endif
 
     @if(session('error'))
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-exclamation-circle mr-2"></i>
             {{ session('error') }}
         </div>
     @endif
