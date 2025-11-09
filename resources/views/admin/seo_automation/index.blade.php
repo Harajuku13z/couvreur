@@ -272,8 +272,7 @@
                             <label class="flex items-center">
                                 <input type="checkbox" 
                                        id="select_all_cities" 
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                       onchange="document.querySelectorAll('input[name=&quot;city_ids[]&quot;]').forEach(function(cb) { cb.checked = this.checked; }.bind(this))">
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span class="ml-2 text-sm font-medium text-gray-700">Sélectionner toutes ({{ $favoriteCities->count() }} villes favorites)</span>
                             </label>
                             <hr class="my-2">
