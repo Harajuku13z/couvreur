@@ -305,10 +305,10 @@ Tu es un expert en rédaction SEO et marketing de contenu. Ta tâche est de réd
 - Ne te contente pas de reformuler les sources, synthétise et enrichis avec des exemples concrets, des conseils pratiques, des statistiques si pertinentes.
 
 **IMPORTANT - COHÉRENCE TITRE/CONTENU :**
-- Si tu mentionnes "conseils" ou "astuces" dans le contenu, assure-toi de fournir VRAIMENT des conseils pratiques et détaillés.
-- Si tu mentionnes "guide", assure-toi de fournir un guide complet avec des étapes claires.
-- Si tu mentionnes "solutions", assure-toi de présenter des solutions concrètes et applicables.
-- Le contenu doit TOUJOURS correspondre aux promesses faites dans le titre. Si le titre mentionne "conseils pratiques", le contenu DOIT contenir des conseils pratiques détaillés et actionnables.
+- Si tu mentionnes \"conseils\" ou \"astuces\" dans le contenu, assure-toi de fournir VRAIMENT des conseils pratiques et détaillés.
+- Si tu mentionnes \"guide\", assure-toi de fournir un guide complet avec des étapes claires.
+- Si tu mentionnes \"solutions\", assure-toi de présenter des solutions concrètes et applicables.
+- Le contenu doit TOUJOURS correspondre aux promesses faites dans le titre. Si le titre mentionne \"conseils pratiques\", le contenu DOIT contenir des conseils pratiques détaillés et actionnables.
 
 **Format de sortie :**
 Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne.
