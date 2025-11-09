@@ -70,24 +70,26 @@ class GptSeoGenerator
         $htmlContent = preg_replace('/```\s*/', '', $htmlContent);
         $htmlContent = trim($htmlContent);
         
-        // Supprimer les messages parasites au début (excuses, explications)
-        $htmlContent = preg_replace('/^.*?Je suis désolé[^<]*/is', '', $htmlContent);
-        $htmlContent = preg_replace('/^.*?Cependant[^<]*/is', '', $htmlContent);
-        $htmlContent = preg_replace('/^.*?je ne peux pas[^<]*/is', '', $htmlContent);
-        $htmlContent = preg_replace('/^.*?je peux vous aider[^<]*/is', '', $htmlContent);
-        $htmlContent = preg_replace('/^.*?Voici un exemple[^<]*/is', '', $htmlContent);
+        // Trouver la première balise HTML valide (<p>, <h1>, <h2>, <h3>, <ul>, <ol>, <div>)
+        // Supprimer tout ce qui précède cette première balise (messages parasites au début)
+        if (preg_match('/<[ph][1-6]?[^>]*>|<ul|<ol|<div/i', $htmlContent, $matches, PREG_OFFSET_CAPTURE)) {
+            $firstTagPosition = $matches[0][1];
+            if ($firstTagPosition > 0) {
+                $htmlContent = substr($htmlContent, $firstTagPosition);
+            }
+        }
+        
+        // Supprimer les messages parasites au début (excuses, explications) même s'ils sont dans des balises
+        $htmlContent = preg_replace('/^<p>[^<]*(Je suis désolé|Cependant|je ne peux pas|je peux vous aider|Voici un exemple)[^<]*<\/p>\s*/is', '', $htmlContent);
+        $htmlContent = preg_replace('/^[^<]*(Je suis désolé|Cependant|je ne peux pas|je peux vous aider|Voici un exemple)[^<]*/is', '', $htmlContent);
         
         // Supprimer les messages parasites à la fin (conclusions d'exemple, conseils)
-        $htmlContent = preg_replace('/Cet exemple de structure HTML[^<]*$/is', '', $htmlContent);
-        $htmlContent = preg_replace('/vous donne une base solide[^<]*$/is', '', $htmlContent);
-        $htmlContent = preg_replace('/Assurez-vous d\'intégrer[^<]*$/is', '', $htmlContent);
-        $htmlContent = preg_replace('/pour maximiser la visibilité[^<]*$/is', '', $htmlContent);
+        // Chercher la dernière balise HTML valide et supprimer tout ce qui suit les messages parasites
+        $htmlContent = preg_replace('/<p>[^<]*(Cet exemple de structure HTML|vous donne une base solide|Assurez-vous d\'intégrer|pour maximiser la visibilité)[^<]*<\/p>\s*$/is', '', $htmlContent);
+        $htmlContent = preg_replace('/[^<]*(Cet exemple de structure HTML|vous donne une base solide|Assurez-vous d\'intégrer|pour maximiser la visibilité)[^<]*$/is', '', $htmlContent);
         
-        // Supprimer les phrases qui commencent par "Cependant" ou "Je peux" au début
-        $htmlContent = preg_replace('/^<p>\s*(Cependant|Je peux|Je suis|Voici)[^<]*<\/p>\s*/is', '', $htmlContent);
-        
-        // Supprimer les paragraphes qui contiennent des excuses ou des explications
-        $htmlContent = preg_replace('/<p>[^<]*(désolé|excuse|exemple|conseil|structure HTML)[^<]*<\/p>/is', '', $htmlContent);
+        // Supprimer les paragraphes qui contiennent des excuses ou des explications (même au milieu)
+        $htmlContent = preg_replace('/<p>[^<]*(désolé|excuse|exemple de structure|conseil pour rédiger|structure HTML vous donne)[^<]*<\/p>/is', '', $htmlContent);
         
         $htmlContent = trim($htmlContent);
         
