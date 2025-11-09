@@ -81,8 +81,112 @@
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden table-responsive">
+    <!-- Vue mobile : Cartes -->
+    <div class="md:hidden space-y-4">
+        @forelse($submissions as $submission)
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm font-medium text-gray-500">#{{ $submission->id }}</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {{ match($submission->status) {
+                                'COMPLETED' => 'bg-green-100 text-green-800',
+                                'IN_PROGRESS' => 'bg-yellow-100 text-yellow-800',
+                                'ABANDONED' => 'bg-red-100 text-red-800',
+                                default => 'bg-gray-100 text-gray-800'
+                            } }}">
+                            {{ match($submission->status) {
+                                'COMPLETED' => 'Complété',
+                                'IN_PROGRESS' => 'En cours',
+                                'ABANDONED' => 'Abandonné',
+                                default => 'Inconnu'
+                            } }}
+                        </span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ $submission->first_name }} {{ $submission->last_name }}
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.submission.show', $submission->id) }}" 
+                       class="text-blue-600 hover:text-blue-900 p-2"
+                       title="Voir les détails">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    @if($submission->status === 'COMPLETED')
+                        <a href="{{ route('admin.submission.create-client', $submission->id) }}" 
+                           class="text-green-600 hover:text-green-900 p-2"
+                           title="Créer un devis">
+                            <i class="fas fa-file-invoice"></i>
+                        </a>
+                    @endif
+                    @if($submission->status === 'IN_PROGRESS')
+                        <form method="POST" action="{{ route('admin.submission.mark-abandoned', $submission->id) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-red-600 hover:text-red-900 p-2" 
+                                    onclick="return confirm('Marquer comme abandonné ?')"
+                                    title="Abandonner">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-envelope w-5 text-gray-400"></i>
+                    <span>{{ $submission->email }}</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-phone w-5 text-gray-400"></i>
+                    <span>{{ $submission->phone }}</span>
+                </div>
+                @if($submission->city)
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-map-marker-alt w-5 text-gray-400"></i>
+                    <span>{{ $submission->city }}@if($submission->country), {{ $submission->country }}@endif</span>
+                </div>
+                @endif
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-calendar w-5 text-gray-400"></i>
+                    <span>{{ $submission->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+            </div>
+            
+            @php
+                $devisCount = $submission->devis_count;
+                $facturesPayeesCount = $submission->factures_payees_count;
+            @endphp
+            @if($devisCount > 0 || $facturesPayeesCount > 0)
+            <div class="mt-3 pt-3 border-t border-gray-200">
+                <div class="flex flex-wrap gap-2">
+                    @if($devisCount > 0)
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <i class="fas fa-file-invoice mr-1"></i>
+                            {{ $devisCount }} devis
+                        </span>
+                    @endif
+                    @if($facturesPayeesCount > 0)
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            {{ $facturesPayeesCount }} facture(s) payée(s)
+                        </span>
+                    @endif
+                </div>
+            </div>
+            @endif
+        </div>
+        @empty
+        <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+            Aucune soumission trouvée.
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Vue desktop : Table -->
+    <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden table-responsive">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>

@@ -1,11 +1,46 @@
 @extends('layouts.admin')
 
 @section('title', 'Tableau de Bord Devis & Facturation')
-@section('page_title', 'Tableau de Bord Devis & Facturation')
 
 @section('content')
-<div class="p-6">
-    <h1 class="text-2xl font-bold mb-6">Tableau de Bord Devis & Facturation</h1>
+<div class="p-4 md:p-6">
+    <!-- Menu rapide mobile -->
+    <div class="md:hidden mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès rapide</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{{ route('admin.devis.create') }}" 
+               class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-2">
+                    <i class="fas fa-plus text-white text-xl"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700 text-center">Créer un devis</span>
+            </a>
+            
+            <a href="{{ route('admin.factures.index') }}" 
+               class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-2">
+                    <i class="fas fa-receipt text-white text-xl"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700 text-center">Factures</span>
+            </a>
+            
+            <a href="{{ route('admin.clients.index') }}" 
+               class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-2">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700 text-center">Clients</span>
+            </a>
+            
+            <a href="{{ route('admin.submissions') }}" 
+               class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mb-2">
+                    <i class="fas fa-file-alt text-white text-xl"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700 text-center">Soumissions</span>
+            </a>
+        </div>
+    </div>
 
     <!-- Statistiques principales -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
