@@ -565,52 +565,57 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Convertir le texte brut en HTML formaté
                                 $content = \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article');
                                 
-                                // Convertir les URLs en liens cliquables
-                                $content = preg_replace('/(https?:\/\/[^\s]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $content);
+                                // Convertir les URLs en liens cliquables (avant le formatage)
+                                $content = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $content);
                                 
-                                // Convertir les retours à la ligne en paragraphes
-                                $paragraphs = preg_split('/\n\s*\n/', $content);
+                                // Séparer par double retour à la ligne (sections)
+                                $sections = preg_split('/\n\s*\n/', $content);
                                 $formattedContent = '';
                                 
-                                foreach ($paragraphs as $paragraph) {
-                                    $paragraph = trim($paragraph);
-                                    if (empty($paragraph)) continue;
+                                foreach ($sections as $section) {
+                                    $section = trim($section);
+                                    if (empty($section)) continue;
                                     
-                                    // Détecter les titres (lignes courtes, en majuscules ou commençant par #)
-                                    if (preg_match('/^#+\s*(.+)$/', $paragraph, $matches)) {
-                                        $level = strlen($matches[0]) - strlen(ltrim($matches[0], '#'));
-                                        $title = trim($matches[1]);
-                                        $tag = $level <= 1 ? 'h2' : ($level == 2 ? 'h3' : 'h4');
+                                    // Détecter les titres markdown (# Titre)
+                                    if (preg_match('/^(#{1,6})\s+(.+)$/m', $section, $matches)) {
+                                        $level = strlen($matches[1]);
+                                        $title = trim($matches[2]);
+                                        $tag = $level == 1 ? 'h2' : ($level == 2 ? 'h3' : 'h4');
                                         $formattedContent .= "<{$tag}>{$title}</{$tag}>\n";
-                                    } elseif (strlen($paragraph) < 100 && preg_match('/^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ\s]+$/', $paragraph)) {
-                                        // Titre en majuscules
-                                        $formattedContent .= "<h2>{$paragraph}</h2>\n";
-                                    } elseif (preg_match('/^[-•*]\s*(.+)$/m', $paragraph)) {
-                                        // Liste à puces
-                                        $items = preg_split('/\n(?=[-•*])/', $paragraph);
+                                    }
+                                    // Détecter les titres en majuscules (lignes courtes, tout en majuscules)
+                                    elseif (strlen($section) < 120 && preg_match('/^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ\s:?!,.-]+$/', $section) && !preg_match('/^[-•*0-9]/', $section)) {
+                                        $formattedContent .= "<h2>{$section}</h2>\n";
+                                    }
+                                    // Détecter les listes à puces (commencent par -, •, ou *)
+                                    elseif (preg_match('/^[-•*]\s+/m', $section)) {
+                                        $items = preg_split('/\n(?=[-•*])/', $section);
                                         $formattedContent .= '<ul class="list-icon">';
                                         foreach ($items as $item) {
-                                            $item = preg_replace('/^[-•*]\s*/', '', trim($item));
+                                            $item = preg_replace('/^[-•*]\s+/', '', trim($item));
                                             if (!empty($item)) {
-                                                $formattedContent .= "<li>{$item}</li>";
+                                                $formattedContent .= "<li>" . nl2br(htmlspecialchars($item, ENT_QUOTES, 'UTF-8')) . "</li>";
                                             }
                                         }
                                         $formattedContent .= '</ul>';
-                                    } elseif (preg_match('/^\d+\.\s*(.+)$/m', $paragraph)) {
-                                        // Liste numérotée
-                                        $items = preg_split('/\n(?=\d+\.)/', $paragraph);
+                                    }
+                                    // Détecter les listes numérotées (commencent par 1., 2., etc.)
+                                    elseif (preg_match('/^\d+\.\s+/m', $section)) {
+                                        $items = preg_split('/\n(?=\d+\.)/', $section);
                                         $formattedContent .= '<ol>';
                                         foreach ($items as $item) {
-                                            $item = preg_replace('/^\d+\.\s*/', '', trim($item));
+                                            $item = preg_replace('/^\d+\.\s+/', '', trim($item));
                                             if (!empty($item)) {
-                                                $formattedContent .= "<li>{$item}</li>";
+                                                $formattedContent .= "<li>" . nl2br(htmlspecialchars($item, ENT_QUOTES, 'UTF-8')) . "</li>";
                                             }
                                         }
                                         $formattedContent .= '</ol>';
-                                    } else {
-                                        // Paragraphe normal
-                                        $paragraph = nl2br($paragraph);
-                                        $formattedContent .= "<p>{$paragraph}</p>\n";
+                                    }
+                                    // Paragraphe normal
+                                    else {
+                                        // Convertir les retours à la ligne simples en <br>
+                                        $section = nl2br(htmlspecialchars($section, ENT_QUOTES, 'UTF-8'));
+                                        $formattedContent .= "<p>{$section}</p>\n";
                                     }
                                 }
                             @endphp
