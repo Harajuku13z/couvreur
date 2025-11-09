@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('keyword_images', function (Blueprint $table) {
             $table->id();
-            $table->string('keyword')->index(); // Mot-clé associé
+            $table->string('keyword'); // Mot-clé associé
             $table->string('image_path'); // Chemin de l'image (depuis public/)
             $table->string('title')->nullable(); // Titre optionnel
             $table->text('description')->nullable(); // Description optionnelle
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true); // Actif/inactif
             $table->timestamps();
             
+            // Un seul index sur keyword (pas de doublon)
             $table->index('keyword');
             $table->index('is_active');
         });

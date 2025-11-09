@@ -605,13 +605,16 @@
                         id="generateKeywordsBtn"
                         class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center">
                     <i class="fas fa-magic mr-2"></i>
-                    Générer les mots-clés depuis la description de l'entreprise
+                    Générer les mots-clés via ChatGPT
                 </button>
                 @if(empty($companyDescription))
                     <span class="text-xs text-yellow-600">
                         <i class="fas fa-exclamation-triangle mr-1"></i>Description d'entreprise non configurée
                     </span>
                 @endif
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>Utilise ChatGPT pour générer des mots-clés pertinents
+                </span>
             </div>
             
             <!-- Liste des mots-clés -->
@@ -1260,29 +1263,50 @@ function testApi(apiName, button) {
         function displayKeywords() {
             const container = document.getElementById('keywordsContainer');
             if (customKeywords.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l\'entreprise.</p>';
+                container.innerHTML = '<p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés via ChatGPT" pour en créer depuis la description de l\'entreprise.</p>';
                 document.getElementById('saveKeywordsBtn').disabled = true;
                 document.getElementById('saveKeywordsBtn').classList.add('opacity-50', 'cursor-not-allowed');
             } else {
-                let html = '<div class="flex flex-wrap gap-2">';
+                let html = '';
                 customKeywords.forEach((keyword, index) => {
-                    html += `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-300">
-                        <span>${keyword}</span>
-                        <button type="button" onclick="removeKeyword(${index})" class="ml-2 text-purple-600 hover:text-purple-800">
-                            <i class="fas fa-times text-xs"></i>
+                    html += `<div class="flex items-center gap-3 p-2 bg-white rounded border border-gray-200">
+                        <div class="flex-1">
+                            <input type="text" 
+                                   name="keywords[]" 
+                                   value="${keyword}"
+                                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                   placeholder="Mot-clé">
+                        </div>
+                        <div class="w-32">
+                            <input type="file" 
+                                   name="keyword_images[${index}]"
+                                   accept="image/jpeg,image/png,image/jpg,image/webp"
+                                   class="w-full text-xs">
+                        </div>
+                        <button type="button" 
+                                onclick="removeKeywordItem(this)"
+                                class="text-red-600 hover:text-red-800 px-2">
+                            <i class="fas fa-trash"></i>
                         </button>
-                    </span>`;
+                    </div>`;
                 });
-                html += '</div>';
                 container.innerHTML = html;
                 document.getElementById('saveKeywordsBtn').disabled = false;
                 document.getElementById('saveKeywordsBtn').classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
         
-        window.removeKeyword = function(index) {
-            customKeywords.splice(index, 1);
-            displayKeywords();
+        window.removeKeywordItem = function(button) {
+            const item = button.closest('.flex.items-center');
+            if (item) {
+                item.remove();
+                // Mettre à jour customKeywords
+                const inputs = document.querySelectorAll('#keywordsContainer input[name="keywords[]"]');
+                customKeywords = Array.from(inputs).map(input => input.value).filter(k => k.trim() !== '');
+                if (customKeywords.length === 0) {
+                    displayKeywords();
+                }
+            }
         };
         
         document.getElementById('saveKeywordsBtn')?.addEventListener('click', function() {
@@ -1291,14 +1315,19 @@ function testApi(apiName, button) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sauvegarde...';
             
+            const form = document.getElementById('keywordsForm');
+            const formData = new FormData(form);
+            
+            // Ajouter le token CSRF
+            formData.append('_token', '{{ csrf_token() }}');
+            
             fetch('{{ route("admin.seo-automation.save-keywords") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ keywords: customKeywords })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
