@@ -84,8 +84,9 @@
                     $phoneNumber = '33' . $phoneNumber;
                 }
                 
-                // Message simplifié pour WhatsApp
-                $whatsappMessage = 'Bonjour, voici votre devis ' . $devis->numero;
+                // Message avec lien vers le devis PDF
+                $pdfUrl = route('admin.devis.pdf', $devis->id);
+                $whatsappMessage = 'Bonjour, voici votre devis ' . $devis->numero . ' : ' . $pdfUrl;
                 $whatsappUrl = 'https://wa.me/' . $phoneNumber . '?text=' . urlencode($whatsappMessage);
             @endphp
             <a href="{{ $whatsappUrl }}" 
