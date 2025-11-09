@@ -27,8 +27,11 @@ class SeoAutomationPassword
             }
         }
         
-        // Si c'est la route de validation du mot de passe, laisser passer
-        if ($request->is('admin/seo-automation/verify-password')) {
+        // Si c'est la route de validation du mot de passe ou le formulaire, laisser passer
+        if ($request->is('admin/seo-automation/verify-password') || 
+            $request->is('admin/seo-automation/password') ||
+            $request->routeIs('admin.seo-automation.password-form') ||
+            $request->routeIs('admin.seo-automation.verify-password')) {
             return $next($request);
         }
         
