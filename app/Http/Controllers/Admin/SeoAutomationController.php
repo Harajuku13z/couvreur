@@ -569,8 +569,11 @@ class SeoAutomationController extends Controller
                         ];
                         
                         $urlTests = [];
+                        Log::info('Début tests URL Google Indexing', ['count' => count($testUrls)]);
+                        
                         foreach ($testUrls as $testUrl) {
                             try {
+                                Log::info('Test URL:', ['url' => $testUrl]);
                                 $indexResult = $googleService->indexUrl($testUrl);
                                 $urlTests[] = [
                                     'url' => $testUrl,
@@ -578,7 +581,9 @@ class SeoAutomationController extends Controller
                                     'message' => $indexResult['message'] ?? 'Aucun message',
                                     'error_code' => $indexResult['error_code'] ?? null
                                 ];
+                                Log::info('Résultat test URL:', ['url' => $testUrl, 'success' => $indexResult['success'] ?? false]);
                             } catch (\Exception $e) {
+                                Log::error('Exception test URL:', ['url' => $testUrl, 'error' => $e->getMessage()]);
                                 $urlTests[] = [
                                     'url' => $testUrl,
                                     'success' => false,
@@ -587,6 +592,8 @@ class SeoAutomationController extends Controller
                                 ];
                             }
                         }
+                        
+                        Log::info('Tests URL terminés', ['count' => count($urlTests)]);
                         
                         if ($testResult['success'] ?? false) {
                             $message = 'Connexion Google Indexing réussie.';
