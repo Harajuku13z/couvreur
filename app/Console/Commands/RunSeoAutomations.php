@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\City;
 use App\Jobs\ProcessSeoCityJob;
+use App\Services\SeoAutomationManager;
 use Illuminate\Console\Command;
 
 class RunSeoAutomations extends Command
