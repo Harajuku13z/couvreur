@@ -565,9 +565,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Convertir le texte brut en HTML formaté
                                 $content = \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article');
                                 
-                                // Convertir les URLs en liens cliquables (avant le formatage)
-                                $content = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $content);
-                                
                                 // Séparer par double retour à la ligne (sections)
                                 $sections = preg_split('/\n\s*\n/', $content);
                                 $formattedContent = '';
@@ -581,10 +578,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                         $level = strlen($matches[1]);
                                         $title = trim($matches[2]);
                                         $tag = $level == 1 ? 'h2' : ($level == 2 ? 'h3' : 'h4');
+                                        // Convertir URLs en liens dans le titre
+                                        $title = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $title);
                                         $formattedContent .= "<{$tag}>{$title}</{$tag}>\n";
                                     }
                                     // Détecter les titres en majuscules (lignes courtes, tout en majuscules)
                                     elseif (strlen($section) < 120 && preg_match('/^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ\s:?!,.-]+$/', $section) && !preg_match('/^[-•*0-9]/', $section)) {
+                                        // Convertir URLs en liens dans le titre
+                                        $section = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $section);
                                         $formattedContent .= "<h2>{$section}</h2>\n";
                                     }
                                     // Détecter les listes à puces (commencent par -, •, ou *)
@@ -594,7 +595,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         foreach ($items as $item) {
                                             $item = preg_replace('/^[-•*]\s+/', '', trim($item));
                                             if (!empty($item)) {
-                                                $formattedContent .= "<li>" . nl2br(htmlspecialchars($item, ENT_QUOTES, 'UTF-8')) . "</li>";
+                                                // Échapper HTML puis convertir URLs en liens
+                                                $item = htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
+                                                $item = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $item);
+                                                $formattedContent .= "<li>" . nl2br($item) . "</li>";
                                             }
                                         }
                                         $formattedContent .= '</ul>';
@@ -606,16 +610,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                         foreach ($items as $item) {
                                             $item = preg_replace('/^\d+\.\s+/', '', trim($item));
                                             if (!empty($item)) {
-                                                $formattedContent .= "<li>" . nl2br(htmlspecialchars($item, ENT_QUOTES, 'UTF-8')) . "</li>";
+                                                // Échapper HTML puis convertir URLs en liens
+                                                $item = htmlspecialchars($item, ENT_QUOTES, 'UTF-8');
+                                                $item = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $item);
+                                                $formattedContent .= "<li>" . nl2br($item) . "</li>";
                                             }
                                         }
                                         $formattedContent .= '</ol>';
                                     }
                                     // Paragraphe normal
                                     else {
-                                        // Convertir les retours à la ligne simples en <br>
-                                        $section = nl2br(htmlspecialchars($section, ENT_QUOTES, 'UTF-8'));
-                                        $formattedContent .= "<p>{$section}</p>\n";
+                                        // Échapper HTML puis convertir URLs en liens
+                                        $section = htmlspecialchars($section, ENT_QUOTES, 'UTF-8');
+                                        $section = preg_replace('/(https?:\/\/[^\s<>]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $section);
+                                        $formattedContent .= "<p>" . nl2br($section) . "</p>\n";
                                     }
                                 }
                             @endphp
