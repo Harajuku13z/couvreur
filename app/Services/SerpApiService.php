@@ -27,9 +27,12 @@ class SerpApiService
     public function getTrendingKeywords(string $geo = 'FR', int $limit = 12): array
     {
         try {
+            // Pour Google Trends, on doit fournir soit 'q' (query) soit 'category'
+            // Pour les tendances générales, on utilise 'category: "all"'
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                 'engine' => 'google_trends',
                 'geo' => $geo,
+                'category' => 'all', // Catégorie "all" pour les tendances générales
                 'api_key' => $this->apiKey,
             ]);
 
@@ -39,7 +42,27 @@ class SerpApiService
                     'body' => $response->body(),
                     'geo' => $geo
                 ]);
-                return [];
+                
+                // Si l'erreur persiste, essayer avec une catégorie spécifique ou un mot-clé générique
+                if ($response->status() === 400) {
+                    Log::info('Tentative alternative SerpAPI Trends avec query générique');
+                    $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
+                        'engine' => 'google_trends',
+                        'geo' => $geo,
+                        'q' => 'couvreur', // Mot-clé générique pour le secteur
+                        'api_key' => $this->apiKey,
+                    ]);
+                    
+                    if (!$response->successful()) {
+                        Log::error('SerpAPI Trends alternative error', [
+                            'status' => $response->status(),
+                            'body' => $response->body()
+                        ]);
+                        return [];
+                    }
+                } else {
+                    return [];
+                }
             }
 
             $json = $response->json();
