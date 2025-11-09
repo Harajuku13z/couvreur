@@ -505,8 +505,8 @@ Le ton doit être expert, local et rassurant, adapté à une entreprise de réno
 **Format de sortie CRITIQUE :**
 - Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide
 - Assure-toi que TOUT le contenu est en HTML (pas de texte brut)
-- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme "Je suis désolé", "Cependant", "Je peux vous aider", "Voici un exemple"
-- **INTERDICTION ABSOLUE** : Ne JAMAIS terminer par des messages comme "Cet exemple de structure HTML", "vous donne une base solide", "Assurez-vous d'intégrer"
+- **INTERDICTION ABSOLUE** : Ne JAMAIS commencer par des excuses, des explications ou des messages comme \"Je suis désolé\", \"Cependant\", \"Je peux vous aider\", \"Voici un exemple\"
+- **INTERDICTION ABSOLUE** : Ne JAMAIS terminer par des messages comme \"Cet exemple de structure HTML\", \"vous donne une base solide\", \"Assurez-vous d'intégrer\"
 - Commence DIRECTEMENT par le contenu HTML de l'article (première balise <p> ou <h2>)
 - Termine DIRECTEMENT par la conclusion de l'article (dernière balise </p> ou </h2>)
 - Génère l'article COMPLET de 2500-3500 mots en HTML, sans excuses ni explications
