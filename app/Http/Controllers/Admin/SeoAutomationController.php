@@ -119,7 +119,7 @@ class SeoAutomationController extends Controller
             'google_credentials' => $googleCredentials,
         ];
         
-        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig'));
+        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled'));
     }
 
     /**
