@@ -30,6 +30,7 @@ class Devis extends Model
         'reste_a_payer',
         'conditions_particulieres',
         'pdf_path',
+        'public_token',
     ];
 
     protected $casts = [
@@ -79,6 +80,9 @@ class Devis extends Model
             }
             if (empty($devis->date_emission)) {
                 $devis->date_emission = now();
+            }
+            if (empty($devis->public_token)) {
+                $devis->public_token = Str::random(32);
             }
         });
 
@@ -162,6 +166,29 @@ class Devis extends Model
         ]);
 
         return $facture;
+    }
+
+    /**
+     * Obtenir ou générer le token public
+     */
+    public function getPublicToken(): string
+    {
+        if (empty($this->public_token)) {
+            $this->public_token = Str::random(32);
+            $this->save();
+        }
+        return $this->public_token;
+    }
+
+    /**
+     * Obtenir l'URL publique du PDF
+     */
+    public function getPublicPdfUrl(): string
+    {
+        return route('devis.public.pdf', [
+            'id' => $this->id,
+            'token' => $this->getPublicToken()
+        ]);
     }
 }
 

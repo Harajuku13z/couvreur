@@ -165,6 +165,9 @@ Route::middleware(['check.setup'])->group(function () {
         return redirect()->route('form.step', $step);
     });
 
+    // ===== ROUTES PUBLIQUES DEVIS =====
+    Route::get('/devis/{id}/pdf/{token}', [DevisController::class, 'publicPdf'])->name('devis.public.pdf');
+
     // ===== ADMIN =====
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/login', [AdminController::class, 'showLogin'])->name('login');

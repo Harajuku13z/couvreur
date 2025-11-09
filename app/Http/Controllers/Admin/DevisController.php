@@ -216,6 +216,44 @@ class DevisController extends Controller
     /**
      * Générer et voir le PDF du devis
      */
+    /**
+     * Accès public au PDF avec token
+     */
+    public function publicPdf($id, $token)
+    {
+        try {
+            $devis = Devis::with(['client', 'lignesDevis'])->findOrFail($id);
+            
+            // Vérifier le token
+            if (empty($devis->public_token) || $devis->public_token !== $token) {
+                abort(403, 'Token invalide ou accès non autorisé');
+            }
+            
+            // Vérifications préliminaires
+            if (!$devis->client) {
+                throw new \Exception('Le client associé au devis n\'existe pas.');
+            }
+            
+            if ($devis->lignesDevis->isEmpty()) {
+                throw new \Exception('Le devis n\'a pas de lignes. Impossible de générer le PDF.');
+            }
+            
+            // Utiliser la même logique que la méthode pdf() mais sans authentification
+            return $this->generatePdfResponse($devis);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur génération PDF public', [
+                'error' => $e->getMessage(),
+                'devis_id' => $id,
+                'token' => substr($token, 0, 8) . '...'
+            ]);
+            
+            return response()->view('errors.500', [
+                'message' => 'Impossible de générer le PDF : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function pdf($id)
     {
         try {
@@ -230,89 +268,90 @@ class DevisController extends Controller
                 throw new \Exception('Le devis n\'a pas de lignes. Impossible de générer le PDF.');
             }
             
-            // Essayer d'abord de récupérer le PDF existant
-            if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
-                $pdfPath = Storage::disk('local')->path($devis->pdf_path);
-                if (file_exists($pdfPath)) {
-                    return response()->file($pdfPath, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
-                    ]);
-                }
-            }
-            
-            // Si le PDF n'existe pas, le générer directement sans le sauvegarder
-            // Méthode alternative plus robuste
-            try {
-                $devis->load(['client', 'lignesDevis']);
-                $companySettings = $this->getCompanySettings();
-                
-                // Générer le HTML depuis la vue
-                $html = view('pdfs.devis', [
-                    'devis' => $devis,
-                    'companySettings' => $companySettings,
-                ])->render();
-
-                // Vérifier que DomPDF est disponible
-                if (!class_exists('Dompdf\Dompdf')) {
-                    throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez sur le serveur: composer require dompdf/dompdf');
-                }
-
-                // Créer une instance DomPDF directement
-                $options = new \Dompdf\Options();
-                $options->set('isHtml5ParserEnabled', true);
-                $options->set('isRemoteEnabled', false);
-                $options->set('enableLocalFileAccess', true);
-                $options->set('defaultFont', 'DejaVu Sans');
-                
-                $dompdf = new \Dompdf\Dompdf($options);
-                $dompdf->loadHtml($html);
-                $dompdf->setPaper('A4', 'portrait');
-                $dompdf->render();
-                
-                return response($dompdf->output(), 200)
-                    ->header('Content-Type', 'application/pdf')
-                    ->header('Content-Disposition', 'inline; filename="Devis_' . $devis->numero . '.pdf"');
-                
-            } catch (\Exception $pdfError) {
-                Log::error('Erreur génération PDF directe', [
-                    'error' => $pdfError->getMessage(),
-                    'trace' => $pdfError->getTraceAsString(),
-                    'devis_id' => $id,
-                ]);
-                
-                // Essayer avec le service
-                $pdfService = new PdfService();
-                $pdfService->generateDevisPdf($devis);
-                $devis->refresh();
-                
-                if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
-                    $pdfPath = Storage::disk('local')->path($devis->pdf_path);
-                    return response()->file($pdfPath, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
-                    ]);
-                }
-                
-                throw $pdfError;
-            }
+            return $this->generatePdfResponse($devis);
             
         } catch (\Exception $e) {
-            Log::error('Erreur génération PDF devis', [
+            Log::error('Erreur génération PDF', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'devis_id' => $id,
             ]);
             
-            // Si on est dans une requête AJAX ou si on ne peut pas rediriger, retourner une erreur
-            if (request()->expectsJson() || !request()->hasHeader('Referer')) {
-                return response()->json([
-                    'error' => 'Erreur lors de la génération du PDF : ' . $e->getMessage()
-                ], 500);
+            return response()->view('errors.500', [
+                'message' => 'Impossible de générer le PDF : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Générer la réponse PDF (méthode partagée)
+     */
+    private function generatePdfResponse($devis)
+    {
+        // Essayer d'abord de récupérer le PDF existant
+        if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+            $pdfPath = Storage::disk('local')->path($devis->pdf_path);
+            if (file_exists($pdfPath)) {
+                return response()->file($pdfPath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
+                ]);
+            }
+        }
+        
+        // Si le PDF n'existe pas, le générer directement sans le sauvegarder
+        try {
+            $devis->load(['client', 'lignesDevis']);
+            $companySettings = $this->getCompanySettings();
+            
+            // Générer le HTML depuis la vue
+            $html = view('pdfs.devis', [
+                'devis' => $devis,
+                'companySettings' => $companySettings,
+            ])->render();
+
+            // Vérifier que DomPDF est disponible
+            if (!class_exists('Dompdf\Dompdf')) {
+                throw new \Exception('Le package DomPDF n\'est pas installé. Exécutez sur le serveur: composer require dompdf/dompdf');
+            }
+
+            // Créer une instance DomPDF directement
+            $options = new \Dompdf\Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', false);
+            $options->set('enableLocalFileAccess', true);
+            $options->set('defaultFont', 'DejaVu Sans');
+            
+            $dompdf = new \Dompdf\Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            
+            return response($dompdf->output(), 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="Devis_' . $devis->numero . '.pdf"');
+            
+        } catch (\Exception $pdfError) {
+            Log::error('Erreur génération PDF directe', [
+                'error' => $pdfError->getMessage(),
+                'trace' => $pdfError->getTraceAsString(),
+                'devis_id' => $devis->id,
+            ]);
+            
+            // Essayer avec le service
+            $pdfService = new PdfService();
+            $pdfService->generateDevisPdf($devis);
+            $devis->refresh();
+            
+            if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
+                $pdfPath = Storage::disk('local')->path($devis->pdf_path);
+                return response()->file($pdfPath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="Devis_' . $devis->numero . '.pdf"',
+                ]);
             }
             
-            return redirect()->route('admin.devis.show', $id)
-                ->with('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
+            throw $pdfError;
         }
     }
     

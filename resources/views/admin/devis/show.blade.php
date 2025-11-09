@@ -84,8 +84,8 @@
                     $phoneNumber = '33' . $phoneNumber;
                 }
                 
-                // Message avec lien vers le devis PDF
-                $pdfUrl = route('admin.devis.pdf', $devis->id);
+                // Message avec lien public vers le devis PDF (avec token)
+                $pdfUrl = $devis->getPublicPdfUrl();
                 $whatsappMessage = 'Bonjour, voici votre devis ' . $devis->numero . ' : ' . $pdfUrl;
                 $whatsappUrl = 'https://wa.me/' . $phoneNumber . '?text=' . urlencode($whatsappMessage);
             @endphp
