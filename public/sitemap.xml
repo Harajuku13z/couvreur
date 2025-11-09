@@ -1,80 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://normesrenovationbretagne.fr</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/services</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/services</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/nos-realisations</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/nos-realisations</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/avis</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/avis</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/blog</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/blog</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/contact</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/contact</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/mentions-legales</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/jobs</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/mentions-legales</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/politique-confidentialite</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/politique-confidentialite</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/cgv</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/cgv</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/blog/hydrofuge-comment-proteger-efficacement-vos-surfaces-de-leau-guide-complet-2024</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/blog/hydrofuge-comment-proteger-efficacement-vos-surfaces-de-leau-guide-complet-2024</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/blog/guide-complet-hydrofuge-de-toiture-protection-et-impermeabilisation-2024</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/blog/guide-complet-hydrofuge-de-toiture-protection-et-impermeabilisation-2024</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/annonces/test-couvreur-2-chantilly</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/annonces/test-couvreur-2-chantilly</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://normesrenovationbretagne.fr/annonces/test-couvreur-2-senlis</loc>
-    <lastmod>2025-11-08T14:02:50+00:00</lastmod>
+    <loc>https://couvreur-chevigny-saint-sauveur.fr/annonces/test-couvreur-2-senlis</loc>
+    <lastmod>2025-11-09T17:16:05+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
