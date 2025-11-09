@@ -60,6 +60,15 @@ class AiService
         // Essayer ChatGPT d'abord si activé et clé disponible
         if ($chatgptEnabled && $chatgptApiKey) {
             try {
+                Log::info('Tentative appel ChatGPT', [
+                    'model' => $model,
+                    'max_tokens' => $maxTokens,
+                    'temperature' => $temperature,
+                    'messages_count' => count($messages),
+                    'total_prompt_length' => strlen($prompt),
+                    'api_key_length' => strlen($chatgptApiKey)
+                ]);
+                
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $chatgptApiKey,
                     'Content-Type' => 'application/json',
@@ -70,13 +79,27 @@ class AiService
                     'max_tokens' => $maxTokens,
                 ]);
                 
+                Log::info('Réponse ChatGPT reçue', [
+                    'status' => $response->status(),
+                    'successful' => $response->successful()
+                ]);
+                
                 if ($response->successful()) {
                     $data = $response->json();
                     $content = $data['choices'][0]['message']['content'] ?? '';
                     
-                    Log::info('Réponse ChatGPT reçue', [
+                    if (empty($content)) {
+                        Log::warning('ChatGPT: Réponse vide', [
+                            'data_keys' => array_keys($data ?? []),
+                            'choices_count' => isset($data['choices']) ? count($data['choices']) : 0
+                        ]);
+                        return null;
+                    }
+                    
+                    Log::info('Réponse ChatGPT réussie', [
                         'content_length' => strlen($content),
-                        'model' => $model
+                        'model' => $model,
+                        'provider' => 'chatgpt'
                     ]);
                     
                     return [
@@ -89,12 +112,16 @@ class AiService
                     $errorType = $errorBody['error']['type'] ?? 'unknown';
                     $errorCode = $errorBody['error']['code'] ?? null;
                     
-                    Log::warning('Erreur API OpenAI, tentative avec Groq', [
+                    // Logger l'erreur complète pour diagnostic
+                    $errorBodyFull = $response->body();
+                    Log::error('Erreur API OpenAI', [
                         'status' => $response->status(),
                         'error_message' => $errorMessage,
                         'error_type' => $errorType,
                         'error_code' => $errorCode,
-                        'response_preview' => substr($response->body(), 0, 500)
+                        'response_body' => substr($errorBodyFull, 0, 1000),
+                        'chatgpt_enabled' => $chatgptEnabled,
+                        'api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0
                     ]);
                     
                     // Si c'est une erreur de clé API invalide, ne pas essayer Groq
@@ -106,8 +133,18 @@ class AiService
                             'error_message' => $errorMessage,
                             'status' => $response->status()
                         ]);
-                        // Retourner null immédiatement si ChatGPT est activé mais clé invalide
-                        // Ne pas utiliser Groq en fallback si ChatGPT est activé
+                        return null;
+                    }
+                    
+                    // Si c'est une erreur de quota ou rate limit, logger mais continuer
+                    if ($response->status() === 429 || 
+                        strpos(strtolower($errorMessage), 'rate limit') !== false ||
+                        strpos(strtolower($errorMessage), 'quota') !== false ||
+                        strpos(strtolower($errorMessage), 'billing') !== false) {
+                        Log::error('ChatGPT: Quota ou rate limit dépassé', [
+                            'error_message' => $errorMessage,
+                            'status' => $response->status()
+                        ]);
                         return null;
                     }
                     
@@ -115,7 +152,9 @@ class AiService
                     // Forcer l'utilisation de ChatGPT uniquement
                     Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
                         'error_message' => $errorMessage,
-                        'status' => $response->status()
+                        'status' => $response->status(),
+                        'error_type' => $errorType,
+                        'error_code' => $errorCode
                     ]);
                     return null;
                 }

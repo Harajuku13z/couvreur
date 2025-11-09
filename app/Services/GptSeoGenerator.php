@@ -52,25 +52,37 @@ class GptSeoGenerator
         ]);
         
         $generatedTitle = null;
-        if ($titleResult && isset($titleResult['content'])) {
+        if ($titleResult && isset($titleResult['content']) && !empty($titleResult['content'])) {
             $generatedTitle = trim($titleResult['content']);
             // Nettoyer le titre (enlever guillemets, markdown, etc.)
             $generatedTitle = preg_replace('/^["\']|["\']$/', '', $generatedTitle);
             $generatedTitle = preg_replace('/^#+\s*/', '', $generatedTitle);
             $generatedTitle = trim($generatedTitle);
             
-            if ($progressCallback) {
-                $progressCallback([
-                    'step' => 'title_generated',
-                    'message' => 'Titre généré: ' . $generatedTitle,
+            if (!empty($generatedTitle)) {
+                if ($progressCallback) {
+                    $progressCallback([
+                        'step' => 'title_generated',
+                        'message' => 'Titre généré: ' . $generatedTitle,
+                        'title' => $generatedTitle
+                    ]);
+                }
+                
+                Log::info('GptSeoGenerator: Titre généré avec succès', [
+                    'keyword' => $keyword,
+                    'city' => $cityName,
                     'title' => $generatedTitle
                 ]);
+            } else {
+                Log::warning('GptSeoGenerator: Titre généré mais vide après nettoyage', [
+                    'original' => $titleResult['content'] ?? 'N/A'
+                ]);
             }
-            
-            Log::info('GptSeoGenerator: Titre généré', [
-                'keyword' => $keyword,
-                'city' => $cityName,
-                'title' => $generatedTitle
+        } else {
+            Log::warning('GptSeoGenerator: Échec génération titre', [
+                'has_result' => !empty($titleResult),
+                'has_content' => isset($titleResult['content']),
+                'content_preview' => isset($titleResult['content']) ? substr($titleResult['content'], 0, 100) : 'N/A'
             ]);
         }
         
@@ -82,41 +94,56 @@ class GptSeoGenerator
             ]);
         }
         
+        Log::info('GptSeoGenerator: Début génération article complet', [
+            'keyword' => $keyword,
+            'city' => $cityName,
+            'prompt_length' => strlen($prompt),
+            'related_queries_count' => count($relatedQueries),
+            'competitors_count' => count($competitors)
+        ]);
+        
         $result = AiService::callAI($prompt, $systemMessage, [
             'max_tokens' => 8000, // Augmenté pour articles 1500-2500 mots
             'temperature' => 0.2,
             'timeout' => 180 // Timeout augmenté pour génération plus longue
         ]);
 
-        if (!$result || !isset($result['content'])) {
+        if (!$result || !isset($result['content']) || empty($result['content'])) {
             // Vérifier les clés API pour donner un message d'erreur plus précis
             $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
             $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
             $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
-            $groqApiKey = \App\Models\Setting::where('key', 'groq_api_key')->value('value');
             
             $errorDetails = [
                 'keyword' => $keyword,
                 'city' => $cityName,
                 'chatgpt_enabled' => $chatgptEnabled,
                 'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                'groq_api_key_exists' => !empty($groqApiKey),
+                'has_result' => !empty($result),
+                'has_content' => isset($result['content']),
+                'content_length' => isset($result['content']) ? strlen($result['content']) : 0,
+                'provider' => $result['provider'] ?? 'unknown'
             ];
             
             // Message d'erreur plus détaillé
             if ($chatgptEnabled && empty($chatgptApiKey)) {
                 $errorDetails['suggestion'] = 'Clé API ChatGPT manquante. Configurez-la dans la section "Configuration des APIs".';
-            } elseif ($chatgptEnabled && !empty($chatgptApiKey) && empty($groqApiKey)) {
-                $errorDetails['suggestion'] = 'Clé API ChatGPT invalide ou quota dépassé. Vérifiez votre clé API ou configurez Groq en fallback.';
-            } elseif (empty($groqApiKey)) {
-                $errorDetails['suggestion'] = 'Aucune clé API configurée. Configurez ChatGPT ou Groq dans la section "Configuration des APIs".';
+            } elseif ($chatgptEnabled && !empty($chatgptApiKey)) {
+                $errorDetails['suggestion'] = 'ChatGPT a échoué. Vérifiez vos logs pour plus de détails. Vérifiez votre clé API, vos quotas et votre solde.';
             } else {
-                $errorDetails['suggestion'] = 'Erreur lors de l\'appel aux APIs. Vérifiez vos clés API et vos quotas.';
+                $errorDetails['suggestion'] = 'ChatGPT est désactivé. Activez-le dans la section "Configuration des APIs".';
             }
             
             Log::error('GptSeoGenerator: Échec génération article', $errorDetails);
             return null;
         }
+        
+        Log::info('GptSeoGenerator: Article généré avec succès', [
+            'keyword' => $keyword,
+            'city' => $cityName,
+            'content_length' => strlen($result['content']),
+            'provider' => $result['provider'] ?? 'unknown'
+        ]);
 
         $content = $result['content'];
         
