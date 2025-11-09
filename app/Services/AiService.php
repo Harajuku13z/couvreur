@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenAI;
 
 class AiService
 {
@@ -135,8 +134,8 @@ class AiService
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                // Créer le client directement avec la clé API
-                $openaiClient = OpenAI::client($chatgptApiKey);
+                // Créer le client directement avec la clé API (namespace complet pour éviter conflits)
+                $openaiClient = \OpenAI\OpenAI::client($chatgptApiKey);
                 $response = $openaiClient->chat()->create([
                     'model' => $model,
                     'messages' => $messages,
@@ -186,7 +185,7 @@ class AiService
                         ]);
                         
                         try {
-                            $openaiClient = OpenAI::client($chatgptApiKey);
+                            $openaiClient = \OpenAI\OpenAI::client($chatgptApiKey);
                             $response = $openaiClient->chat()->create([
                                 'model' => 'gpt-4o',
                                 'messages' => $messages,
