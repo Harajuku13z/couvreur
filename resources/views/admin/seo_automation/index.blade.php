@@ -346,6 +346,66 @@
         </div>
     </div>
 
+    <!-- Gestion des mots-clés personnalisés -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-key mr-2 text-purple-600"></i>Mots-clés personnalisés
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Ces mots-clés seront utilisés pour la création automatisée des articles. Si aucun mot-clé personnalisé n'est défini, le système utilisera les tendances SerpAPI.
+        </p>
+        
+        <div class="space-y-4">
+            <!-- Bouton pour générer depuis la description -->
+            <div class="flex items-center gap-3">
+                <button type="button" 
+                        id="generateKeywordsBtn"
+                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-magic mr-2"></i>
+                    Générer les mots-clés depuis la description de l'entreprise
+                </button>
+                @if(empty($companyDescription))
+                    <span class="text-xs text-yellow-600">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Description d'entreprise non configurée
+                    </span>
+                @endif
+            </div>
+            
+            <!-- Liste des mots-clés -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Mots-clés personnalisés ({{ count($customKeywords) }} configuré(s))
+                </label>
+                <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto">
+                    @if(empty($customKeywords))
+                        <p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l'entreprise.</p>
+                    @else
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($customKeywords as $index => $keyword)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-300">
+                                    <span>{{ $keyword }}</span>
+                                    <button type="button" 
+                                            onclick="removeKeyword({{ $index }})"
+                                            class="ml-2 text-purple-600 hover:text-purple-800">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <button type="button" 
+                        id="saveKeywordsBtn"
+                        class="mt-3 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 {{ empty($customKeywords) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                        {{ empty($customKeywords) ? 'disabled' : '' }}>
+                    <i class="fas fa-save mr-2"></i>
+                    Sauvegarder les mots-clés
+                </button>
+                <div id="keywordsResult" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistiques -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-lg shadow p-4">
@@ -915,7 +975,108 @@ function testApi(apiName, button) {
             const errorMessage = error.message || 'Erreur inconnue';
             resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + errorMessage + '</div>';
         });
-}
-</script>
-@endsection
+        }
+
+        // Gestion des mots-clés personnalisés
+        let customKeywords = @json($customKeywords ?? []);
+        
+        document.getElementById('generateKeywordsBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+            
+            fetch('{{ route("admin.seo-automation.generate-keywords") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success' && data.keywords) {
+                    customKeywords = data.keywords;
+                    displayKeywords();
+                    document.getElementById('keywordsResult').innerHTML = '<div class="text-green-600"><i class="fas fa-check-circle mr-1"></i>' + data.message + '</div>';
+                } else {
+                    document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>' + (data.message || 'Erreur lors de la génération') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        
+        function displayKeywords() {
+            const container = document.getElementById('keywordsContainer');
+            if (customKeywords.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l\'entreprise.</p>';
+                document.getElementById('saveKeywordsBtn').disabled = true;
+                document.getElementById('saveKeywordsBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                let html = '<div class="flex flex-wrap gap-2">';
+                customKeywords.forEach((keyword, index) => {
+                    html += `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-300">
+                        <span>${keyword}</span>
+                        <button type="button" onclick="removeKeyword(${index})" class="ml-2 text-purple-600 hover:text-purple-800">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </span>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+                document.getElementById('saveKeywordsBtn').disabled = false;
+                document.getElementById('saveKeywordsBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        window.removeKeyword = function(index) {
+            customKeywords.splice(index, 1);
+            displayKeywords();
+        };
+        
+        document.getElementById('saveKeywordsBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sauvegarde...';
+            
+            fetch('{{ route("admin.seo-automation.save-keywords") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ keywords: customKeywords })
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                if (data.status === 'success') {
+                    document.getElementById('keywordsResult').innerHTML = '<div class="text-green-600"><i class="fas fa-check-circle mr-1"></i>' + data.message + '</div>';
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>' + (data.message || 'Erreur lors de la sauvegarde') + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
+            });
+        });
+        </script>
+        @endsection
 

@@ -302,9 +302,11 @@ Route::middleware(['check.setup'])->group(function () {
                 Route::post('/seo-automation/toggle', [App\Http\Controllers\Admin\SeoAutomationController::class, 'toggle'])->name('seo-automation.toggle');
                 Route::post('/seo-automation/test', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testConnections'])->name('seo-automation.test');
                 Route::post('/seo-automation/test-api', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testApi'])->name('seo-automation.test-api');
-                Route::post('/seo-automation/save-config', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveApiConfig'])->name('seo-automation.save-config');
-                Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run-city');
-                Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
+            Route::post('/seo-automation/save-config', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveApiConfig'])->name('seo-automation.save-config');
+            Route::post('/seo-automation/generate-keywords', [App\Http\Controllers\Admin\SeoAutomationController::class, 'generateKeywords'])->name('seo-automation.generate-keywords');
+            Route::post('/seo-automation/save-keywords', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveKeywords'])->name('seo-automation.save-keywords');
+            Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run-city');
+            Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
             });
 
             // ===== ARTICLES =====

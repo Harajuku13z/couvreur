@@ -119,7 +119,17 @@ class SeoAutomationController extends Controller
             'google_credentials' => $googleCredentials,
         ];
         
-        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled'));
+        // Récupérer les mots-clés personnalisés
+        $customKeywordsData = \App\Models\Setting::where('key', 'seo_custom_keywords')->value('value') ?? '[]';
+        $customKeywords = json_decode($customKeywordsData, true) ?? [];
+        if (!is_array($customKeywords)) {
+            $customKeywords = [];
+        }
+        
+        // Récupérer la description de l'entreprise
+        $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
+        
+        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription'));
     }
 
     /**
@@ -285,6 +295,96 @@ class SeoAutomationController extends Controller
             : '⏸️ Automatisation SEO mise en pause. Les générations automatiques sont désactivées.';
         
         return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Générer des mots-clés depuis la description de l'entreprise
+     */
+    public function generateKeywords(Request $request)
+    {
+        try {
+            $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
+            
+            if (empty($companyDescription)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Aucune description d\'entreprise trouvée. Veuillez d\'abord configurer la description de votre entreprise.'
+                ], 400);
+            }
+            
+            $prompt = "À partir de la description suivante de l'entreprise, génère une liste de 20 à 30 mots-clés SEO pertinents pour le secteur du bâtiment et de la rénovation. Les mots-clés doivent être variés, inclure des termes techniques, des services, et être optimisés pour le référencement local.\n\nDescription de l'entreprise:\n{$companyDescription}\n\nRetourne UNIQUEMENT un JSON avec ce format:\n{\"keywords\": [\"mot-clé 1\", \"mot-clé 2\", \"mot-clé 3\", ...]}\n\nNe retourne rien d'autre que le JSON.";
+            
+            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation.';
+            
+            $result = \App\Services\AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 1000,
+                'temperature' => 0.3,
+                'timeout' => 60
+            ]);
+            
+            if (!$result || !isset($result['content'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Erreur lors de la génération des mots-clés. Vérifiez votre configuration ChatGPT.'
+                ], 500);
+            }
+            
+            $content = $result['content'];
+            $decoded = json_decode($content, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                // Essayer d'extraire le JSON
+                if (preg_match('/\{.*\}/s', $content, $matches)) {
+                    $decoded = json_decode($matches[0], true);
+                }
+            }
+            
+            if (!$decoded || !isset($decoded['keywords']) || !is_array($decoded['keywords'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Format de réponse invalide. Réessayez.'
+                ], 500);
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'keywords' => $decoded['keywords'],
+                'message' => count($decoded['keywords']) . ' mots-clés générés avec succès.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur génération mots-clés', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Sauvegarder les mots-clés personnalisés
+     */
+    public function saveKeywords(Request $request)
+    {
+        $validated = $request->validate([
+            'keywords' => 'required|array',
+            'keywords.*' => 'string|max:255',
+        ]);
+        
+        $keywords = array_filter(array_map('trim', $validated['keywords']));
+        $keywords = array_values(array_unique($keywords)); // Supprimer les doublons
+        
+        \App\Models\Setting::set('seo_custom_keywords', json_encode($keywords), 'json', 'seo');
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => count($keywords) . ' mots-clés sauvegardés avec succès.',
+            'keywords' => $keywords
+        ]);
     }
 
     /**

@@ -58,23 +58,40 @@ class SeoAutomationManager
                     'keyword' => $keyword
                 ]);
             } else {
-                // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
-                $steps[] = [
-                    'step' => 'trending_keywords',
-                    'title' => 'Récupération des mots-clés tendances (SerpAPI)',
-                    'status' => 'processing',
-                    'message' => 'Analyse des tendances locales...',
-                    'data' => []
-                ];
-                if ($progressCallback) $progressCallback($steps);
+                // Vérifier d'abord les mots-clés personnalisés
+                $customKeywordsData = \App\Models\Setting::where('key', 'seo_custom_keywords')->value('value') ?? '[]';
+                $customKeywords = json_decode($customKeywordsData, true) ?? [];
                 
-                $geo = $city->region ?? 'FR';
-                // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
-                if (strpos($geo, '-') !== false) {
-                    $geo = explode('-', $geo)[0];
+                if (!empty($customKeywords) && is_array($customKeywords)) {
+                    // Utiliser les mots-clés personnalisés
+                    $keywords = $customKeywords;
+                    $steps[] = [
+                        'step' => 'keyword_selection',
+                        'title' => 'Sélection du mot-clé',
+                        'status' => 'processing',
+                        'message' => 'Utilisation des mots-clés personnalisés...',
+                        'data' => []
+                    ];
+                    if ($progressCallback) $progressCallback($steps);
+                } else {
+                    // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
+                    $steps[] = [
+                        'step' => 'trending_keywords',
+                        'title' => 'Récupération des mots-clés tendances (SerpAPI)',
+                        'status' => 'processing',
+                        'message' => 'Analyse des tendances locales...',
+                        'data' => []
+                    ];
+                    if ($progressCallback) $progressCallback($steps);
+                    
+                    $geo = $city->region ?? 'FR';
+                    // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
+                    if (strpos($geo, '-') !== false) {
+                        $geo = explode('-', $geo)[0];
+                    }
+                    
+                    $keywords = $this->serp->getTrendingKeywords($geo, 12);
                 }
-                
-                $keywords = $this->serp->getTrendingKeywords($geo, 12);
                 
                 if (empty($keywords)) {
                     $steps[count($steps) - 1]['status'] = 'failed';
@@ -208,10 +225,40 @@ class SeoAutomationManager
                 $slug = $slug . '-' . time();
             }
 
+            // Ajouter les images à la fin de l'article
+            $contentHtml = $gptData['contenu_html'];
+            
+            // Ajouter la section des réalisations avec images si disponibles
+            if (isset($gptData['images']) && (!empty($gptData['images']['portfolio']) || !empty($gptData['images']['generated']))) {
+                $realizationsSection = "\n\n<h2>Nos Réalisations</h2>\n<p>Découvrez quelques-unes de nos réalisations récentes dans le domaine de {$keyword} :</p>\n<div class=\"realizations-gallery\" style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 30px 0;\">\n";
+                
+                // Ajouter l'image générée si disponible
+                if (!empty($gptData['images']['generated'])) {
+                    $realizationsSection .= "<div class=\"realization-item\">\n";
+                    $realizationsSection .= "<img src=\"{$gptData['images']['generated']}\" alt=\"{$keyword} à {$city->name}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
+                    $realizationsSection .= "</div>\n";
+                }
+                
+                // Ajouter les images de réalisations
+                if (!empty($gptData['images']['portfolio'])) {
+                    foreach ($gptData['images']['portfolio'] as $img) {
+                        $imgUrl = $img['url'] ?? $img;
+                        $imgTitle = $img['title'] ?? 'Réalisation';
+                        $realizationsSection .= "<div class=\"realization-item\">\n";
+                        $realizationsSection .= "<img src=\"{$imgUrl}\" alt=\"{$imgTitle}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
+                        $realizationsSection .= "<p style=\"text-align: center; margin-top: 10px; font-size: 0.9em; color: #666;\">{$imgTitle}</p>\n";
+                        $realizationsSection .= "</div>\n";
+                    }
+                }
+                
+                $realizationsSection .= "</div>\n";
+                $contentHtml .= $realizationsSection;
+            }
+            
             $article = Article::create([
                 'title' => $gptData['titre'],
                 'slug' => $slug,
-                'content_html' => $gptData['contenu_html'],
+                'content_html' => $contentHtml,
                 'meta_description' => $gptData['meta_description'] ?? null,
                 'meta_keywords' => !empty($gptData['mots_cles']) ? implode(', ', $gptData['mots_cles']) : null,
                 'focus_keyword' => $keyword,

@@ -3,10 +3,18 @@
 namespace App\Services;
 
 use App\Services\AiService;
+use App\Services\PortfolioImageService;
 use Illuminate\Support\Facades\Log;
 
 class GptSeoGenerator
 {
+    protected $portfolioImageService;
+
+    public function __construct(PortfolioImageService $portfolioImageService)
+    {
+        $this->portfolioImageService = $portfolioImageService;
+    }
+
     /**
      * Générer un article SEO optimisé via GPT
      * 
@@ -62,6 +70,37 @@ class GptSeoGenerator
                 'decoded' => $decoded
             ]);
             return null;
+        }
+
+        // Récupérer les images de réalisations
+        $portfolioImages = $this->portfolioImageService->getImagesByKeyword($keyword, 5);
+        
+        // Générer une image avec DALL-E si ChatGPT est disponible
+        $generatedImage = null;
+        $chatgptApiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
+        $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+        $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+        
+        if ($chatgptEnabled && $chatgptApiKey) {
+            try {
+                $imagePrompt = "Photo professionnelle réaliste de {$keyword} à {$cityName}, style photographie de chantier, haute qualité, éclairage naturel";
+                $imageResult = AiService::generateImage($imagePrompt, ['size' => '1024x1024', 'n' => 1]);
+                
+                if ($imageResult && !empty($imageResult[0]['url'] ?? null)) {
+                    $generatedImage = $imageResult[0]['url'];
+                    Log::info('Image DALL-E générée avec succès', ['keyword' => $keyword]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Erreur génération image DALL-E', ['error' => $e->getMessage()]);
+            }
+        }
+        
+        // Ajouter les images à l'article
+        if (!empty($portfolioImages) || $generatedImage) {
+            $decoded['images'] = [
+                'generated' => $generatedImage,
+                'portfolio' => $portfolioImages
+            ];
         }
 
         return $decoded;
