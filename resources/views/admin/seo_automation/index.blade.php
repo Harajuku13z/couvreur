@@ -663,12 +663,15 @@ function testApi(apiName, button) {
             html += '<i class="fas fa-' + icon + ' mr-1"></i>';
             html += '<span>' + (data.message || 'Aucun message') + '</span>';
             if (data.data) {
-                html += '<div class="mt-2 text-xs space-y-1">';
+                html += '<div class="mt-2 text-xs">';
                 
                 // Afficher les informations de connexion
-                if (data.data.sites_count !== undefined) {
-                    html += '<div class="font-semibold">Informations de connexion:</div>';
-                    html += '<div>Sites trouvés: ' + data.data.sites_count + '</div>';
+                if (data.data.sites_count !== undefined || data.data.site_url || data.data.site_found !== undefined) {
+                    html += '<div class="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">';
+                    html += '<div class="font-semibold mb-1">Informations de connexion:</div>';
+                    if (data.data.sites_count !== undefined) {
+                        html += '<div>Sites trouvés: ' + data.data.sites_count + '</div>';
+                    }
                     if (data.data.site_url) {
                         html += '<div>URL du site: ' + data.data.site_url + '</div>';
                     }
@@ -678,34 +681,37 @@ function testApi(apiName, button) {
                     if (data.data.site_permission) {
                         html += '<div>Permission: ' + data.data.site_permission + '</div>';
                     }
+                    html += '</div>';
                 }
                 
                 // Afficher les tests d'URL
-                if (data.data.url_tests && Array.isArray(data.data.url_tests)) {
-                    html += '<div class="mt-3 font-semibold border-t pt-2">Tests d\'indexation par protocole:</div>';
+                if (data.data.url_tests && Array.isArray(data.data.url_tests) && data.data.url_tests.length > 0) {
+                    html += '<div class="mt-3">';
+                    html += '<div class="font-semibold mb-2 text-sm">Tests d\'indexation par protocole:</div>';
                     data.data.url_tests.forEach(function(test, index) {
-                        const testBgClass = test.success ? 'bg-green-50 text-green-700 border-green-300' : 'bg-red-50 text-red-700 border-red-300';
+                        const testBgClass = test.success ? 'bg-green-50 text-green-800 border-green-300' : 'bg-red-50 text-red-800 border-red-300';
                         const testIcon = test.success ? 'check-circle' : 'times-circle';
-                        html += '<div class="' + testBgClass + ' border rounded-lg p-2 mt-2">';
+                        html += '<div class="' + testBgClass + ' border-2 rounded-lg p-3 mb-2">';
                         html += '<div class="flex items-start">';
-                        html += '<i class="fas fa-' + testIcon + ' mr-2 mt-0.5"></i>';
+                        html += '<i class="fas fa-' + testIcon + ' mr-2 mt-0.5 text-lg"></i>';
                         html += '<div class="flex-1">';
-                        html += '<div class="font-mono text-sm font-bold mb-1">' + test.url + '</div>';
-                        html += '<div class="text-xs">' + test.message + '</div>';
+                        html += '<div class="font-mono text-sm font-bold mb-1 break-all">' + test.url + '</div>';
+                        html += '<div class="text-xs mt-1">' + test.message + '</div>';
                         if (test.error_code) {
-                            html += '<div class="text-xs mt-1 opacity-75">Code d\'erreur: ' + test.error_code + '</div>';
+                            html += '<div class="text-xs mt-1 opacity-75 font-semibold">Code d\'erreur: ' + test.error_code + '</div>';
                         }
                         html += '</div>';
                         html += '</div>';
                         html += '</div>';
                     });
+                    html += '</div>';
                 } else if (typeof data.data === 'object') {
                     // Pour les autres types de données
                     html += '<div class="mt-1 opacity-75">';
                     if (Array.isArray(data.data)) {
                         html += data.data.join(', ');
                     } else {
-                        html += JSON.stringify(data.data);
+                        html += JSON.stringify(data.data, null, 2);
                     }
                     html += '</div>';
                 } else if (data.data) {
