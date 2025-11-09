@@ -94,14 +94,25 @@ class AiService
         // Essayer ChatGPT d'abord si activé et clé disponible
         if ($chatgptEnabled && $chatgptApiKey) {
             try {
-                // S'assurer que le modèle est correct pour max_tokens élevé
+                // DERNIÈRE VÉRIFICATION CRITIQUE juste avant l'appel API
+                // Si max_tokens > 4096, FORCER gpt-4o (même si déjà vérifié)
                 if ($maxTokens > 4096) {
-                    // Utiliser gpt-4-turbo avec le nom exact de l'API OpenAI
-                    $model = 'gpt-4-turbo-preview'; // Nom exact de l'API pour gpt-4-turbo
-                    Log::info('AiService: max_tokens > 4096, utilisation de gpt-4-turbo-preview', [
-                        'max_tokens' => $maxTokens,
-                        'model_force' => $model
-                    ]);
+                    $compatibleModels = ['gpt-4o', 'gpt-4o-2024-08-06', 'gpt-4-turbo-preview', 'gpt-4-0125-preview', 'gpt-4-1106-preview'];
+                    if (!in_array($model, $compatibleModels)) {
+                        $originalModel = $model;
+                        $model = 'gpt-4o';
+                        Log::error('AiService: DERNIÈRE VÉRIFICATION - Modèle incompatible, FORCÉ à gpt-4o', [
+                            'original_model' => $originalModel,
+                            'new_model' => $model,
+                            'max_tokens' => $maxTokens,
+                            'location' => 'juste avant appel API'
+                        ]);
+                    } else {
+                        Log::info('AiService: Modèle compatible confirmé avant appel API', [
+                            'model' => $model,
+                            'max_tokens' => $maxTokens
+                        ]);
+                    }
                 }
                 
                 Log::info('Tentative appel ChatGPT', [
