@@ -593,7 +593,18 @@ class SeoAutomationController extends Controller
                             }
                         }
                         
-                        Log::info('Tests URL terminés', ['count' => count($urlTests)]);
+                        Log::info('Tests URL terminés', ['count' => count($urlTests), 'tests' => $urlTests]);
+                        
+                        // S'assurer que url_tests est toujours présent, même s'il est vide
+                        $responseData = [
+                            'sites_count' => $testResult['sites_count'] ?? 0,
+                            'site_found' => $testResult['site_found'] ?? false,
+                            'site_permission' => $testResult['site_permission'] ?? null,
+                            'site_url' => $testResult['site_url'] ?? null,
+                            'url_tests' => $urlTests // Toujours inclure, même si vide
+                        ];
+                        
+                        Log::info('Données de réponse préparées', ['url_tests_count' => count($urlTests)]);
                         
                         if ($testResult['success'] ?? false) {
                             $message = 'Connexion Google Indexing réussie.';
@@ -602,25 +613,13 @@ class SeoAutomationController extends Controller
                                 $results = [
                                     'status' => 'warning',
                                     'message' => $message,
-                                    'data' => [
-                                        'sites_count' => $testResult['sites_count'] ?? 0,
-                                        'site_found' => $testResult['site_found'] ?? false,
-                                        'site_permission' => $testResult['site_permission'] ?? null,
-                                        'site_url' => $testResult['site_url'] ?? null,
-                                        'url_tests' => $urlTests
-                                    ]
+                                    'data' => $responseData
                                 ];
                             } else {
                                 $results = [
                                     'status' => 'success',
                                     'message' => $message,
-                                    'data' => [
-                                        'sites_count' => $testResult['sites_count'] ?? 0,
-                                        'site_found' => $testResult['site_found'] ?? false,
-                                        'site_permission' => $testResult['site_permission'] ?? null,
-                                        'site_url' => $testResult['site_url'] ?? null,
-                                        'url_tests' => $urlTests
-                                    ]
+                                    'data' => $responseData
                                 ];
                             }
                         } else {
@@ -628,10 +627,12 @@ class SeoAutomationController extends Controller
                                 'status' => 'error',
                                 'message' => 'Erreur de connexion: ' . ($testResult['message'] ?? 'Erreur inconnue'),
                                 'data' => [
-                                    'url_tests' => $urlTests
+                                    'url_tests' => $urlTests // Toujours inclure
                                 ]
                             ];
                         }
+                        
+                        Log::info('Réponse finale préparée', ['has_url_tests' => isset($results['data']['url_tests']), 'url_tests_count' => count($results['data']['url_tests'] ?? [])]);
                     } catch (\Exception $e) {
                         Log::error('Test Google Indexing failed', [
                             'error' => $e->getMessage(),
