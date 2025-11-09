@@ -1020,6 +1020,43 @@
                 <a href="{{ $log->article_url }}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm mb-2">
                     <i class="fas fa-external-link-alt mr-1"></i> Voir l'article
                 </a>
+                @php
+                    $metadata = is_array($log->metadata) ? $log->metadata : json_decode($log->metadata, true);
+                    $seoAnalysis = $metadata['seo_analysis'] ?? null;
+                @endphp
+                @if($seoAnalysis)
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded text-sm font-medium
+                                @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
+                                @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
+                                @else bg-red-100 text-red-800
+                                @endif">
+                                <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
+                            </span>
+                        </div>
+                        @if(!empty($seoAnalysis['strengths']))
+                            <div class="text-xs text-green-700 mb-2">
+                                <strong>Points forts :</strong>
+                                <ul class="list-disc list-inside mt-1">
+                                    @foreach(array_slice($seoAnalysis['strengths'], 0, 3) as $strength)
+                                        <li>{{ $strength }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        @if(!empty($seoAnalysis['issues']))
+                            <div class="text-xs text-red-700">
+                                <strong>Points à améliorer :</strong>
+                                <ul class="list-disc list-inside mt-1">
+                                    @foreach(array_slice($seoAnalysis['issues'], 0, 3) as $issue)
+                                        <li>{{ $issue }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             @endif
             
             @if($log->status === 'failed')
