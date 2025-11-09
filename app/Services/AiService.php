@@ -135,8 +135,8 @@ class AiService
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
                 // Créer le client directement avec la clé API
-                // Utiliser le namespace complet du package client
-                $openaiClient = \OpenAI\Factory::new()
+                // Utiliser Factory pour éviter les conflits de nom de classe
+                $openaiClient = (new \OpenAI\Factory())
                     ->withApiKey($chatgptApiKey)
                     ->make();
                 $response = $openaiClient->chat()->create([
@@ -188,7 +188,7 @@ class AiService
                         ]);
                         
                         try {
-                            $openaiClient = \OpenAI\Factory::new()
+                            $openaiClient = (new \OpenAI\Factory())
                                 ->withApiKey($chatgptApiKey)
                                 ->make();
                             $response = $openaiClient->chat()->create([
