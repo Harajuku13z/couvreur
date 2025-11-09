@@ -579,33 +579,73 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Fonction pour tester une API individuelle
     function testApi(apiName, button) {
-        const resultDiv = document.getElementById(apiName + '_result');
+        console.log('testApi appelé avec:', apiName);
+        
+        const resultDivId = apiName + '_result';
+        const resultDiv = document.getElementById(resultDivId);
+        
+        if (!resultDiv) {
+            console.error('Élément resultDiv non trouvé:', resultDivId);
+            alert('Erreur: élément de résultat non trouvé pour ' + apiName);
+            return;
+        }
+        
         const originalText = button.innerHTML;
         
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Test...';
         resultDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-1"></i>Test en cours...</div>';
         
-        fetch('{{ route("admin.seo-automation.test-api") }}', {
+        const url = '{{ route("admin.seo-automation.test-api") }}';
+        console.log('URL de test:', url);
+        
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ api: apiName })
+            body: JSON.stringify({ api: apiName }),
+            credentials: 'same-origin'
         })
         .then(response => {
+            console.log('Réponse reçue:', response.status, response.statusText);
+            
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Erreur HTTP ' + response.status);
+                // Essayer de lire le JSON même en cas d'erreur
+                return response.text().then(text => {
+                    console.error('Erreur HTTP:', response.status, text);
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(text);
+                    } catch (e) {
+                        errorData = { message: text || 'Erreur HTTP ' + response.status };
+                    }
+                    throw new Error(errorData.message || 'Erreur HTTP ' + response.status);
                 });
             }
-            return response.json();
+            
+            return response.text().then(text => {
+                console.log('Réponse texte:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Erreur parsing JSON:', e, text);
+                    throw new Error('Réponse invalide du serveur: ' + text.substring(0, 100));
+                }
+            });
         })
         .then(data => {
+            console.log('Données reçues:', data);
+            
             button.disabled = false;
             button.innerHTML = originalText;
+            
+            if (!data || !data.status) {
+                throw new Error('Réponse invalide: ' + JSON.stringify(data));
+            }
             
             let bgClass = 'bg-green-50 border-green-400 text-green-700';
             let icon = 'check-circle';
@@ -620,13 +660,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let html = '<div class="' + bgClass + ' border rounded-lg p-2 mt-2">';
             html += '<i class="fas fa-' + icon + ' mr-1"></i>';
-            html += '<span>' + data.message + '</span>';
+            html += '<span>' + (data.message || 'Aucun message') + '</span>';
             if (data.data) {
                 html += '<div class="mt-1 text-xs opacity-75">';
                 if (Array.isArray(data.data)) {
                     html += data.data.join(', ');
-                } else {
+                } else if (typeof data.data === 'object') {
                     html += JSON.stringify(data.data);
+                } else {
+                    html += data.data;
                 }
                 html += '</div>';
             }
@@ -635,10 +677,12 @@ document.addEventListener('DOMContentLoaded', function() {
             resultDiv.innerHTML = html;
         })
         .catch(error => {
+            console.error('Erreur complète test API:', error);
             button.disabled = false;
             button.innerHTML = originalText;
-            console.error('Erreur test API:', error);
-            resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + (error.message || 'Erreur inconnue') + '</div>';
+            
+            const errorMessage = error.message || 'Erreur inconnue';
+            resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + errorMessage + '</div>';
         });
     }
 });
