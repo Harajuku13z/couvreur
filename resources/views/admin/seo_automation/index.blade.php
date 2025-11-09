@@ -188,8 +188,9 @@
                                                                         </div>
                                                                     @endif
                                                                     @if(isset($step['data']['title']))
-                                                                        <div class="text-gray-600 mt-1">
-                                                                            <strong>Titre généré:</strong> {{ $step['data']['title'] }}
+                                                                        <div class="text-gray-600 mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                                                            <strong class="text-blue-900">Titre choisi par ChatGPT:</strong>
+                                                                            <div class="text-blue-800 font-medium mt-1">{{ $step['data']['title'] }}</div>
                                                                         </div>
                                                                     @endif
                                                                     @if(isset($step['data']['url']))
