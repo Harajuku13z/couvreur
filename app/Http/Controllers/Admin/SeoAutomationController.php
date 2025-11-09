@@ -541,6 +541,18 @@ class SeoAutomationController extends Controller
                         
                         // Tester la connexion réelle
                         $googleService = new \App\Services\GoogleSearchConsoleService();
+                        
+                        // Vérifier d'abord si le service est configuré
+                        $isConfigured = $googleService->isConfigured();
+                        if (!$isConfigured) {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Les credentials sont présents mais le service ne peut pas être initialisé. Vérifiez le format des credentials et que toutes les clés requises sont présentes.'
+                            ];
+                            break;
+                        }
+                        
+                        // Tester la connexion avec l'API Google
                         $testResult = $googleService->testConnection();
                         
                         if ($testResult['success'] ?? false) {
