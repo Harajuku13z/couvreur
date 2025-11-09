@@ -67,8 +67,30 @@
             </a>
             @endif
             @if($devis->client->telephone)
-            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $devis->client->telephone) }}?text={{ urlencode('Bonjour, voici votre devis ' . $devis->numero . ' : ' . url(route('admin.devis.pdf', $devis->id))) }}" 
+            @php
+                // Nettoyer le numéro de téléphone (garder uniquement les chiffres)
+                $phoneNumber = preg_replace('/[^0-9+]/', '', $devis->client->telephone);
+                
+                // Retirer le + si présent
+                $phoneNumber = str_replace('+', '', $phoneNumber);
+                
+                // Si le numéro commence par 0, le remplacer par 33 (code pays France)
+                if (substr($phoneNumber, 0, 1) === '0') {
+                    $phoneNumber = '33' . substr($phoneNumber, 1);
+                }
+                // Si le numéro commence déjà par 33, on le garde tel quel
+                // Sinon, on suppose que c'est un numéro français et on ajoute 33
+                elseif (substr($phoneNumber, 0, 2) !== '33' && strlen($phoneNumber) === 9) {
+                    $phoneNumber = '33' . $phoneNumber;
+                }
+                
+                // Message simplifié pour WhatsApp
+                $whatsappMessage = 'Bonjour, voici votre devis ' . $devis->numero;
+                $whatsappUrl = 'https://wa.me/' . $phoneNumber . '?text=' . urlencode($whatsappMessage);
+            @endphp
+            <a href="{{ $whatsappUrl }}" 
                target="_blank"
+               rel="noopener noreferrer"
                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-center w-full sm:w-auto">
                 <i class="fab fa-whatsapp mr-2"></i>Envoyer sur WhatsApp
             </a>
