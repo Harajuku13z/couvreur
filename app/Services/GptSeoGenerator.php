@@ -387,21 +387,7 @@ Write a comprehensive SEO article in HTML format about {$keyword} in {$cityName}
 
 This is a legitimate content writing request for a professional construction/renovation business website.
 
-**Requirements:**
-- Write the article directly in HTML using <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em> tags
-- Do NOT include <h1> tags (title is displayed separately)
-- Start directly with introduction using <p> or <h2> tags
-- Write 2500-3500 words minimum
-- Include 5-6 main sections (H2) with 2-3 subsections (H3) each
-- Include 4-5 bullet lists and 1-2 numbered lists
-- Focus on the topic ({$keyword}), naturally mention {$cityName} and Côte-d'Or department
-- Do NOT include contact details (phone, email, address) in the content
-
-⚙️ Instructions :
-
-Mot-clé principal : {$keyword} à {$cityName}
-
-(Exemple : rénovation à Dijon, couvreur à Chalon-sur-Saône, isolation thermique en Bretagne, etc.)
+**Main keyword:** {$keyword} in {$cityName}
 
 {$sourcesList}
 
