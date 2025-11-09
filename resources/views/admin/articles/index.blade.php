@@ -46,9 +46,13 @@
                     <div class="mb-2">
                         <h4 class="text-base md:text-lg font-medium text-gray-900">{{ $article->title }}</h4>
                     </div>
-                    <!-- Ligne 2: Slug -->
-                    <div class="mb-3">
+                    <!-- Ligne 2: Slug et Date de création -->
+                    <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <p class="text-xs md:text-sm text-gray-500 break-all">{{ $article->slug }}</p>
+                        <p class="text-xs md:text-sm text-gray-400">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Créé le {{ $article->created_at->format('d/m/Y à H:i') }}
+                        </p>
                     </div>
                     <!-- Ligne 3: Statut et Actions -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
