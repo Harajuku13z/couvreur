@@ -169,10 +169,10 @@ class GptSeoGenerator
                 'city' => $cityName,
                 'chatgpt_enabled' => $chatgptEnabled,
                 'chatgpt_api_key_exists' => !empty($chatgptApiKey),
-                'has_result' => !empty($result),
-                'has_content' => isset($result['content']),
-                'content_length' => isset($result['content']) ? strlen($result['content']) : 0,
-                'provider' => $result['provider'] ?? 'unknown'
+                'has_titre' => !empty($decoded['titre']),
+                'has_contenu_html' => !empty($decoded['contenu_html']),
+                'html_length' => strlen($decoded['contenu_html'] ?? ''),
+                'text_length' => strlen($rawText ?? '')
             ];
             
             // Message d'erreur plus détaillé
@@ -184,57 +184,16 @@ class GptSeoGenerator
                 $errorDetails['suggestion'] = 'ChatGPT est désactivé. Activez-le dans la section "Configuration des APIs".';
             }
             
-            Log::error('GptSeoGenerator: Échec génération article', $errorDetails);
+            Log::error('GptSeoGenerator: Données invalides après génération', $errorDetails);
             return null;
         }
         
         Log::info('GptSeoGenerator: Article généré avec succès', [
             'keyword' => $keyword,
             'city' => $cityName,
-            'content_length' => strlen($result['content']),
-            'provider' => $result['provider'] ?? 'unknown'
+            'html_length' => strlen($formattedHtml),
+            'text_length' => strlen($rawText)
         ]);
-
-        $content = $result['content'];
-        
-        // Nettoyer le contenu (enlever markdown code blocks si présents)
-        $content = preg_replace('/```json\s*/', '', $content);
-        $content = preg_replace('/```\s*/', '', $content);
-        $content = trim($content);
-        
-        // Essayer de parser le JSON
-        $decoded = json_decode($content, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // Si pas de JSON, essayer d'extraire un bloc JSON
-            if (preg_match('/\{[\s\S]*\}/', $content, $matches)) {
-                $decoded = json_decode($matches[0], true);
-            } else {
-                Log::warning('GptSeoGenerator: Réponse non-JSON', [
-                    'content_preview' => substr($content, 0, 500),
-                    'json_error' => json_last_error_msg()
-                ]);
-                return null;
-            }
-        }
-
-        if (!$decoded) {
-            Log::error('GptSeoGenerator: Impossible de décoder JSON', [
-                'content_preview' => substr($content, 0, 500),
-                'json_error' => json_last_error_msg()
-            ]);
-            return null;
-        }
-
-        // Utiliser le titre généré précédemment si disponible et si le titre du JSON est vide
-        if (empty($decoded['titre']) && $generatedTitle) {
-            $decoded['titre'] = $generatedTitle;
-            Log::info('GptSeoGenerator: Utilisation du titre généré précédemment', [
-                'title' => $generatedTitle
-            ]);
-        }
-        
-        if (empty($decoded['titre']) || empty($decoded['contenu_html'])) {
             Log::error('GptSeoGenerator: Données invalides (titre ou contenu_html manquant)', [
                 'has_titre' => !empty($decoded['titre']),
                 'has_contenu_html' => !empty($decoded['contenu_html']),
