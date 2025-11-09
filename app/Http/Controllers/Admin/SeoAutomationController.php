@@ -400,95 +400,160 @@ class SeoAutomationController extends Controller
      */
     public function testApi(Request $request)
     {
-        $api = $request->input('api');
-        
-        $results = [];
-        
-        switch ($api) {
-            case 'serpapi':
-                try {
-                    $serpService = new SerpApiService();
-                    $keywords = $serpService->getTrendingKeywords('FR', 3);
-                    
-                    if (!empty($keywords)) {
-                        $results = [
-                            'status' => 'success',
-                            'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
-                            'data' => array_slice($keywords, 0, 3)
-                        ];
-                    } else {
-                        $results = [
-                            'status' => 'warning',
-                            'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
-                        ];
-                    }
-                } catch (\Exception $e) {
-                    $results = [
-                        'status' => 'error',
-                        'message' => 'Erreur SerpAPI: ' . $e->getMessage()
-                    ];
-                }
-                break;
-                
-            case 'gpt':
-                try {
-                    $gptService = new GptSeoGenerator();
-                    $testResult = $gptService->generateSeoArticle('couvreur', 'Paris', [], []);
-                    
-                    if ($testResult && !empty($testResult['titre'])) {
-                        $results = [
-                            'status' => 'success',
-                            'message' => 'Connexion GPT réussie. Génération de test OK.',
-                            'data' => [
-                                'titre' => substr($testResult['titre'], 0, 100) . '...',
-                                'has_content' => !empty($testResult['contenu_html'])
-                            ]
-                        ];
-                    } else {
-                        $results = [
-                            'status' => 'warning',
-                            'message' => 'Connexion GPT OK mais réponse invalide. Vérifiez la configuration.'
-                        ];
-                    }
-                } catch (\Exception $e) {
-                    $results = [
-                        'status' => 'error',
-                        'message' => 'Erreur GPT: ' . $e->getMessage()
-                    ];
-                }
-                break;
-                
-            case 'google_indexing':
-                try {
-                    $googleService = new \App\Services\GoogleSearchConsoleService();
-                    $isConfigured = $googleService->isConfigured();
-                    
-                    if ($isConfigured) {
-                        $results = [
-                            'status' => 'success',
-                            'message' => 'Google Indexing configuré correctement. Les credentials sont valides.'
-                        ];
-                    } else {
+        try {
+            $api = $request->input('api');
+            
+            if (empty($api)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Nom de l\'API non fourni'
+                ], 400);
+            }
+            
+            $results = [];
+            
+            switch ($api) {
+                case 'serpapi':
+                    try {
+                        // Vérifier d'abord si la clé est configurée
+                        $apiKey = \App\Models\Setting::where('key', 'serp_api_key')->value('value');
+                        if (empty($apiKey)) {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Clé API SerpAPI non configurée. Veuillez configurer votre clé API d\'abord.'
+                            ];
+                            break;
+                        }
+                        
+                        $serpService = new SerpApiService();
+                        $keywords = $serpService->getTrendingKeywords('FR', 3);
+                        
+                        if (!empty($keywords)) {
+                            $results = [
+                                'status' => 'success',
+                                'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
+                                'data' => array_slice($keywords, 0, 3)
+                            ];
+                        } else {
+                            $results = [
+                                'status' => 'warning',
+                                'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
+                            ];
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Test SerpAPI failed', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
                         $results = [
                             'status' => 'error',
-                            'message' => 'Google Indexing non configuré. Veuillez configurer les credentials.'
+                            'message' => 'Erreur SerpAPI: ' . $e->getMessage()
                         ];
                     }
-                } catch (\Exception $e) {
+                    break;
+                    
+                case 'gpt':
+                    try {
+                        // Vérifier d'abord si la clé est configurée
+                        $apiKey = \App\Models\Setting::where('key', 'chatgpt_api_key')->value('value');
+                        $enabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+                        $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+                        
+                        if (empty($apiKey)) {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Clé API ChatGPT non configurée. Veuillez configurer votre clé API d\'abord.'
+                            ];
+                            break;
+                        }
+                        
+                        if (!$enabled) {
+                            $results = [
+                                'status' => 'warning',
+                                'message' => 'ChatGPT est désactivé. Activez-le dans la configuration.'
+                            ];
+                            break;
+                        }
+                        
+                        // Test simple avec AiService directement
+                        $aiService = new \App\Services\AiService();
+                        $testResult = $aiService->callAI('Réponds simplement "OK" si tu reçois ce message.', 'Tu es un assistant.', [
+                            'max_tokens' => 10,
+                            'temperature' => 0.1,
+                            'timeout' => 30
+                        ]);
+                        
+                        if ($testResult && isset($testResult['content']) && !empty($testResult['content'])) {
+                            $results = [
+                                'status' => 'success',
+                                'message' => 'Connexion ChatGPT réussie. L\'API répond correctement.',
+                                'data' => [
+                                    'response_preview' => substr($testResult['content'], 0, 50) . '...'
+                                ]
+                            ];
+                        } else {
+                            $results = [
+                                'status' => 'warning',
+                                'message' => 'Connexion ChatGPT OK mais réponse invalide. Vérifiez la configuration.'
+                            ];
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Test ChatGPT failed', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                        $results = [
+                            'status' => 'error',
+                            'message' => 'Erreur ChatGPT: ' . $e->getMessage()
+                        ];
+                    }
+                    break;
+                    
+                case 'google_indexing':
+                    try {
+                        $googleService = new \App\Services\GoogleSearchConsoleService();
+                        $isConfigured = $googleService->isConfigured();
+                        
+                        if ($isConfigured) {
+                            $results = [
+                                'status' => 'success',
+                                'message' => 'Google Indexing configuré correctement. Les credentials sont valides.'
+                            ];
+                        } else {
+                            $results = [
+                                'status' => 'error',
+                                'message' => 'Google Indexing non configuré. Veuillez configurer les credentials JSON.'
+                            ];
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Test Google Indexing failed', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                        $results = [
+                            'status' => 'error',
+                            'message' => 'Erreur Google Indexing: ' . $e->getMessage()
+                        ];
+                    }
+                    break;
+                    
+                default:
                     $results = [
                         'status' => 'error',
-                        'message' => 'Erreur Google Indexing: ' . $e->getMessage()
+                        'message' => 'API inconnue: ' . $api
                     ];
-                }
-                break;
-                
-            default:
-                $results = [
-                    'status' => 'error',
-                    'message' => 'API inconnue'
-                ];
+            }
+            
+            return response()->json($results);
+        } catch (\Exception $e) {
+            Log::error('Test API general error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur générale: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json($results);
     }
 }
