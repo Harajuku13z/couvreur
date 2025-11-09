@@ -61,7 +61,11 @@
                     <i class="fas fa-envelope mr-2"></i>Envoyer par email
                 </button>
             </form>
-            <a href="mailto:{{ $devis->client->email }}?subject=Devis {{ $devis->numero }}&body=Bonjour,%0D%0A%0D%0AVeuillez trouver ci-joint notre devis {{ $devis->numero }}.%0D%0A%0D%0ACordialement" 
+            @php
+                $publicPdfUrl = $devis->getPublicPdfUrl();
+                $emailBody = 'Bonjour,%0D%0A%0D%0AVeuillez trouver ci-joint notre devis ' . $devis->numero . '.%0D%0A%0D%0AVous pouvez le consulter en ligne : ' . $publicPdfUrl . '%0D%0A%0D%0ACordialement';
+            @endphp
+            <a href="mailto:{{ $devis->client->email }}?subject=Devis {{ $devis->numero }}&body={{ $emailBody }}" 
                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-center w-full sm:w-auto">
                 <i class="fas fa-envelope-open-text mr-2"></i>Écrire un email
             </a>

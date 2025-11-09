@@ -204,6 +204,12 @@
             <!-- Attachment Notice -->
             <div class="attachment-notice">
                 <p>📎 Votre devis détaillé est disponible en pièce jointe</p>
+                <p style="margin-top: 15px;">
+                    <a href="{{ $devis->getPublicPdfUrl() }}" 
+                       style="display: inline-block; background-color: {{ setting('primary_color', '#3b82f6') }}; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: 600; margin-top: 10px;">
+                        👁️ Voir le devis en ligne
+                    </a>
+                </p>
             </div>
 
             <!-- Contact Box -->
