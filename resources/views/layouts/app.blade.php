@@ -103,13 +103,8 @@
             $finalImage = str_replace('http://', 'https://', $finalImage);
         }
         
-        // Limiter la longueur pour respecter les standards SEO
-        $finalTitle = mb_substr($finalTitle, 0, 60);
-        $finalDescription = mb_substr($finalDescription, 0, 160);
-        $finalOgTitle = mb_substr($finalOgTitle, 0, 60);
-        $finalOgDescription = mb_substr($finalOgDescription, 0, 160);
-        $finalTwitterTitle = mb_substr($finalTwitterTitle, 0, 60);
-        $finalTwitterDescription = mb_substr($finalTwitterDescription, 0, 160);
+        // NE PAS tronquer les titres et descriptions - les afficher en entier
+        // Les titres et descriptions sont déjà optimisés par GPT pour être complets
         
         // Récupérer la configuration SEO pour les tags de tracking
         $seoConfigData = \App\Models\Setting::get('seo_config', '[]');

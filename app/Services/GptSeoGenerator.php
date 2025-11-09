@@ -85,7 +85,7 @@ class GptSeoGenerator
         $contentText = strip_tags($htmlContent);
         $contentPreview = substr($contentText, 0, 2000);
         
-        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé (55-65 caractères MAXIMUM, pas plus) qui correspond EXACTEMENT au contenu. Le titre doit être COMPLET et ne pas être tronqué.\n\n**Contenu de l'article :**\n\n" . $contentPreview . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\n**IMPORTANT :**\n- Le titre doit faire EXACTEMENT entre 55 et 65 caractères (pour éviter la troncature dans les résultats Google)\n- Le titre doit être COMPLET et se terminer par un mot entier, pas coupé\n- Inclure le mot-clé principal et la ville si possible\n- Retourne UNIQUEMENT le titre, sans formatage, sans JSON, sans guillemets, juste le titre complet.";
+        $titlePrompt = "À partir du contenu suivant, génère UNIQUEMENT un titre d'article SEO optimisé qui correspond EXACTEMENT au contenu. Le titre doit être COMPLET et descriptif.\n\n**Contenu de l'article :**\n\n" . $contentPreview . "\n\n**Mot-clé principal :** {$keyword} à {$cityName}\n\n**IMPORTANT :**\n- Le titre doit être COMPLET et descriptif (recommandé 50-70 caractères mais peut être plus long si nécessaire)\n- Le titre doit se terminer par un mot entier, pas coupé\n- Inclure le mot-clé principal et la ville si possible\n- Inclure le nom de l'entreprise si pertinent\n- Retourne UNIQUEMENT le titre, sans formatage, sans JSON, sans guillemets, juste le titre complet.";
         
         $titleResult = AiService::callAI($titlePrompt, $systemMessage, [
             'max_tokens' => 100,
@@ -479,16 +479,16 @@ Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le 
         $prompt = "Génère une meta description SEO optimisée (150-160 caractères EXACTEMENT) pour cet article.\n\n";
         $prompt .= "**Titre de l'article :** {$title}\n\n";
         $prompt .= "**Extrait du contenu (premiers 500 caractères) :** " . substr($contentText, 0, 500) . "\n\n";
-        $prompt .= "**Instructions STRICTES :**\n";
-        $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
-        $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
-        $prompt .= "- Longueur : EXACTEMENT entre 150 et 160 caractères (pour éviter la troncature dans Google)\n";
-        $prompt .= "- La description doit être COMPLÈTE et se terminer par un mot entier, pas coupée\n";
-        $prompt .= "- Inclure le mot-clé principal si possible\n";
-        $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
-        $prompt .= "- Utiliser un ton professionnel et rassurant\n";
-        $prompt .= "- Commencer directement par le service/bénéfice, pas par une description de la ville\n\n";
-        $prompt .= "Retourne UNIQUEMENT la meta description complète (150-160 caractères), sans guillemets, sans formatage, sans points de suspension à la fin si elle est complète.";
+            $prompt .= "**Instructions STRICTES :**\n";
+            $prompt .= "- La meta description doit être accrocheuse et inciter au clic\n";
+            $prompt .= "- Elle doit résumer l'article et ses bénéfices\n";
+            $prompt .= "- Longueur : Recommandé entre 150 et 200 caractères, mais peut être plus longue si nécessaire pour être complète\n";
+            $prompt .= "- La description doit être COMPLÈTE et se terminer par un mot entier, pas coupée\n";
+            $prompt .= "- Inclure le mot-clé principal si possible\n";
+            $prompt .= "- Ne pas répéter le titre, mais le compléter\n";
+            $prompt .= "- Utiliser un ton professionnel et rassurant\n";
+            $prompt .= "- Commencer directement par le service/bénéfice, pas par une description de la ville\n\n";
+            $prompt .= "Retourne UNIQUEMENT la meta description complète, sans guillemets, sans formatage, sans points de suspension à la fin si elle est complète.";
         
         $systemMessage = 'Tu es un expert SEO spécialisé dans la rédaction de meta descriptions optimisées.';
         

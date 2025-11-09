@@ -1,27 +1,9 @@
 @extends('layouts.app')
 
 @php
-    // S'assurer que le titre est complet (max 65 caractères pour éviter troncature)
+    // Utiliser les titres et descriptions complets (sans troncature)
     $pageTitle = $article->meta_title ?: $article->title;
-    if (strlen($pageTitle) > 65) {
-        $lastSpace = strrpos(substr($pageTitle, 0, 65), ' ');
-        if ($lastSpace !== false && $lastSpace > 50) {
-            $pageTitle = substr($pageTitle, 0, $lastSpace);
-        } else {
-            $pageTitle = \Illuminate\Support\Str::limit($pageTitle, 62);
-        }
-    }
-    
-    // S'assurer que la meta description est complète (max 160 caractères)
     $pageDescription = $article->meta_description;
-    if ($pageDescription && strlen($pageDescription) > 160) {
-        $lastSpace = strrpos(substr($pageDescription, 0, 160), ' ');
-        if ($lastSpace !== false && $lastSpace > 140) {
-            $pageDescription = substr($pageDescription, 0, $lastSpace) . '...';
-        } else {
-            $pageDescription = \Illuminate\Support\Str::limit($pageDescription, 157) . '...';
-        }
-    }
     
     // Filtrer les mots-clés pour enlever les mots vides
     $metaKeywords = $article->meta_keywords;
