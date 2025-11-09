@@ -262,43 +262,12 @@ class SeoAutomationManager
                 $slug = $slug . '-' . time();
             }
 
-            // Ajouter les images à la fin de l'article
+            // Utiliser directement le texte brut (sans ajouter de HTML)
             $contentHtml = $gptData['contenu_html'];
             
-            // Ajouter la section des réalisations avec images si disponibles
-            if (isset($gptData['images']) && (!empty($gptData['images']['portfolio']) || !empty($gptData['images']['keyword_image']))) {
-                $realizationsSection = "\n\n<h2>Nos Réalisations</h2>\n<p>Découvrez quelques-unes de nos réalisations récentes dans le domaine de {$keyword} :</p>\n<div class=\"realizations-gallery\" style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 30px 0;\">\n";
-                
-                // Ajouter l'image de la banque d'images si disponible
-                if (!empty($gptData['images']['keyword_image'])) {
-                    $keywordImagePath = $gptData['images']['keyword_image'];
-                    // Utiliser asset() pour générer l'URL correcte
-                    if (!str_starts_with($keywordImagePath, 'http')) {
-                        $keywordImageUrl = asset($keywordImagePath);
-                    } else {
-                        $keywordImageUrl = $keywordImagePath;
-                    }
-                    $realizationsSection .= "<div class=\"realization-item\">\n";
-                    $realizationsSection .= "<img src=\"{$keywordImageUrl}\" alt=\"{$keyword} à {$city->name}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
-                    $realizationsSection .= "</div>\n";
-                }
-                
-                // Ajouter les images de réalisations
-                if (!empty($gptData['images']['portfolio'])) {
-                    foreach ($gptData['images']['portfolio'] as $img) {
-                        $imgUrl = $img['url'] ?? $img;
-                        // L'URL est déjà correcte depuis PortfolioImageService (utilise asset())
-                        $imgTitle = $img['title'] ?? 'Réalisation';
-                        $realizationsSection .= "<div class=\"realization-item\">\n";
-                        $realizationsSection .= "<img src=\"{$imgUrl}\" alt=\"{$imgTitle}\" style=\"width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" />\n";
-                        $realizationsSection .= "<p style=\"text-align: center; margin-top: 10px; font-size: 0.9em; color: #666;\">{$imgTitle}</p>\n";
-                        $realizationsSection .= "</div>\n";
-                    }
-                }
-                
-                $realizationsSection .= "</div>\n";
-                $contentHtml .= $realizationsSection;
-            }
+            // Note: Les images de réalisations ne sont plus ajoutées automatiquement
+            // car nous utilisons maintenant le texte brut pur de ChatGPT
+            // Si besoin, elles peuvent être ajoutées manuellement dans le contenu
             
             // Utiliser l'image de la banque d'images comme featured_image si disponible
             // Sinon, utiliser l'image par défaut du blog

@@ -508,9 +508,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     @endif
                     
                     <div class="p-8">
-                        <!-- Article Content - HTML généré par ChatGPT avec Tailwind CSS -->
-                        <div class="article-content">
-                            {!! \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article') !!}
+                        <!-- Article Content - Texte brut de ChatGPT (qualitatif) -->
+                        <div class="article-content prose prose-lg max-w-none whitespace-pre-line">
+                            {!! nl2br(e(\App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article'))) !!}
                         </div>
                         
                         {{-- Liens suggérés --}}
