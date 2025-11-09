@@ -42,18 +42,7 @@ class SeoAutomationController extends Controller
             $services = [];
         }
         
-        // Récupérer les configurations des APIs
-        $apiConfig = [
-            'serpapi_key' => \App\Models\Setting::get('serp_api_key', ''),
-            'chatgpt_enabled' => \App\Models\Setting::get('chatgpt_enabled', true),
-            'chatgpt_api_key' => \App\Models\Setting::get('chatgpt_api_key', ''),
-            'chatgpt_model' => \App\Models\Setting::get('chatgpt_model', 'gpt-4o'),
-            'groq_api_key' => \App\Models\Setting::get('groq_api_key', ''),
-            'groq_model' => \App\Models\Setting::get('groq_model', 'llama-3.1-8b-instant'),
-            'google_credentials' => \App\Models\Setting::get('google_search_console_credentials', ''),
-        ];
-        
-        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig'));
+        return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services'));
     }
 
     /**
@@ -266,74 +255,5 @@ class SeoAutomationController extends Controller
                 'error' => collect($results)->where('status', 'error')->count(),
             ]
         ]);
-    }
-
-    /**
-     * Sauvegarder les configurations des APIs
-     */
-    public function saveApiConfig(Request $request)
-    {
-        $validated = $request->validate([
-            'serpapi_key' => 'nullable|string',
-            'chatgpt_enabled' => 'nullable|boolean',
-            'chatgpt_api_key' => 'nullable|string',
-            'chatgpt_model' => 'nullable|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4o',
-            'groq_api_key' => 'nullable|string',
-            'groq_model' => 'nullable|string|in:llama-3.1-8b-instant,llama-3.1-70b-versatile,mixtral-8x7b-32768',
-            'google_credentials' => 'nullable|string',
-        ]);
-
-        // Sauvegarder SerpAPI
-        if ($request->has('serpapi_key')) {
-            \App\Models\Setting::set('serp_api_key', $validated['serpapi_key'] ?? '', 'string', 'seo');
-        }
-
-        // Sauvegarder ChatGPT
-        if ($request->has('chatgpt_enabled')) {
-            \App\Models\Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
-        }
-        if ($request->has('chatgpt_api_key')) {
-            \App\Models\Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'] ?? '', 'string', 'ai');
-        }
-        if ($request->has('chatgpt_model')) {
-            \App\Models\Setting::set('chatgpt_model', $validated['chatgpt_model'] ?? 'gpt-4o', 'string', 'ai');
-        }
-
-        // Sauvegarder Groq
-        if ($request->has('groq_api_key')) {
-            \App\Models\Setting::set('groq_api_key', $validated['groq_api_key'] ?? '', 'string', 'ai');
-        }
-        if ($request->has('groq_model')) {
-            \App\Models\Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
-        }
-
-        // Sauvegarder Google Search Console
-        if ($request->has('google_credentials')) {
-            $credentials = $validated['google_credentials'] ?? '';
-            
-            if (!empty($credentials)) {
-                // Valider que c'est un JSON valide
-                $decoded = json_decode($credentials, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return redirect()->back()
-                        ->with('error', 'Le JSON des credentials Google Search Console est invalide: ' . json_last_error_msg())
-                        ->withInput();
-                }
-                
-                // Vérifier que c'est bien un service account
-                if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
-                    return redirect()->back()
-                        ->with('error', 'Les credentials doivent être de type "service_account"')
-                        ->withInput();
-                }
-            }
-            
-            \App\Models\Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
-        }
-
-        \App\Models\Setting::clearCache();
-
-        return redirect()->back()
-            ->with('success', 'Configurations des APIs sauvegardées avec succès !');
     }
 }
