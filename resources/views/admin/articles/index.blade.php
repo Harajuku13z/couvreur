@@ -3,20 +3,20 @@
 @section('title', 'Articles')
 
 @section('content')
-<div class="max-w-6xl mx-auto py-10">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Articles</h1>
-        <div class="flex space-x-3">
-            <a href="{{ route('admin.articles.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+<div class="max-w-6xl mx-auto p-4 md:py-10">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold">Articles</h1>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <a href="{{ route('admin.articles.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">
                 <i class="fas fa-plus mr-2"></i>Nouvel Article
             </a>
-            <a href="{{ route('admin.articles.ai.form') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+            <a href="{{ route('admin.articles.ai.form') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-center">
                 <i class="fas fa-robot mr-2"></i>Générer avec IA
             </a>
-            <form method="POST" action="{{ route('admin.articles.destroy-all') }}" class="inline" onsubmit="return confirm('⚠️ ATTENTION: Cette action supprimera TOUS les articles définitivement. Êtes-vous sûr de vouloir continuer ?')">
+            <form method="POST" action="{{ route('admin.articles.destroy-all') }}" class="inline w-full sm:w-auto" onsubmit="return confirm('⚠️ ATTENTION: Cette action supprimera TOUS les articles définitivement. Êtes-vous sûr de vouloir continuer ?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full sm:w-auto text-center">
                     <i class="fas fa-trash-alt mr-2"></i>Supprimer tout
                 </button>
             </form>

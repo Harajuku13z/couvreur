@@ -4,11 +4,11 @@
 @section('page_title', 'Gestion des Devis')
 
 @section('content')
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Devis</h1>
+<div class="p-4 md:p-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 class="text-xl md:text-2xl font-bold">Devis</h1>
         <a href="{{ route('admin.devis.create') }}" 
-           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto text-center">
             <i class="fas fa-plus mr-2"></i>Nouveau Devis
         </a>
     </div>
@@ -27,7 +27,7 @@
 
     <!-- Filtres -->
     <div class="mb-6 bg-white p-4 rounded-lg shadow">
-        <form method="GET" action="{{ route('admin.devis.index') }}" class="flex gap-4 items-end">
+        <form method="GET" action="{{ route('admin.devis.index') }}" class="flex flex-col md:flex-row gap-4 items-end">
             <div class="flex-1">
                 <label class="block text-sm font-medium mb-1">Recherche</label>
                 <input type="text" 
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Liste des devis -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow overflow-hidden table-responsive">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -135,7 +135,7 @@
 
 <!-- Modal suppression devis -->
 <div id="deleteDevisModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 md:top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white modal-responsive">
         <div class="mt-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">

@@ -4,9 +4,9 @@
 @section('page_title', 'Toutes les Soumissions')
 
 @section('content')
-<div class="p-6">
+<div class="p-4 md:p-6">
     <!-- Filtres -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
         <form method="GET" action="{{ route('admin.submissions') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
@@ -41,39 +41,39 @@
     </div>
 
     <!-- Statistiques et liens rapides -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-6">
+    <div class="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center justify-around md:justify-start md:space-x-6">
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600">{{ $submissions->total() }}</div>
-                    <div class="text-sm text-gray-500">Total Leads</div>
+                    <div class="text-xl md:text-2xl font-bold text-blue-600">{{ $submissions->total() }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">Total Leads</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-green-600">{{ $submissions->where('status', 'COMPLETED')->count() }}</div>
-                    <div class="text-sm text-gray-500">Complétés</div>
+                    <div class="text-xl md:text-2xl font-bold text-green-600">{{ $submissions->where('status', 'COMPLETED')->count() }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">Complétés</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-yellow-600">{{ $submissions->where('status', 'IN_PROGRESS')->count() }}</div>
-                    <div class="text-sm text-gray-500">En cours</div>
+                    <div class="text-xl md:text-2xl font-bold text-yellow-600">{{ $submissions->where('status', 'IN_PROGRESS')->count() }}</div>
+                    <div class="text-xs md:text-sm text-gray-500">En cours</div>
                 </div>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-4">
                 <a href="{{ route('admin.abandoned-submissions') }}" 
-                   class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200 transition-colors duration-200 flex items-center">
+                   class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200 transition-colors duration-200 flex items-center justify-center">
                     <i class="fas fa-times-circle mr-2"></i>
                     Leads Abandonnés
                     <span class="ml-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">{{ $abandonedCount }}</span>
                 </a>
                 
                 <a href="{{ route('admin.export.submissions') }}" 
-                   class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg border border-blue-200 transition-colors duration-200 flex items-center">
+                   class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg border border-blue-200 transition-colors duration-200 flex items-center justify-center">
                     <i class="fas fa-download mr-2"></i>
                     Exporter
                 </a>
                 
                 <button onclick="showDeleteAllModal()" 
-                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
                     <i class="fas fa-trash-alt mr-2"></i>
                     Supprimer tout
                 </button>
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow overflow-hidden table-responsive">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -213,7 +213,7 @@
 
 <!-- Modal Supprimer tout -->
 <div id="deleteAllModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 md:top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white modal-responsive">
         <div class="mt-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">

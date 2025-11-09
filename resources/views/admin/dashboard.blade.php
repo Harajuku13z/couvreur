@@ -4,16 +4,16 @@
 @section('page_title', 'Dashboard Admin')
 
 @section('content')
-<div class="p-6">
+<div class="p-4 md:p-6">
     <!-- Actions -->
-    <div class="flex space-x-4 mb-6">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
         <a href="{{ route('admin.export.submissions') }}" 
-           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-center sm:text-left">
             <i class="fas fa-download mr-2"></i>
             Export CSV
         </a>
         <a href="{{ route('admin.statistics') }}" 
-           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-center sm:text-left">
             <i class="fas fa-chart-bar mr-2"></i>
             Statistiques
         </a>
