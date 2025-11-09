@@ -36,6 +36,10 @@ class AiService
         // Configurer la clé API pour openai-php/laravel
         if ($chatgptApiKey) {
             config(['openai.api_key' => $chatgptApiKey]);
+            // Forcer la réinitialisation du client si la clé change
+            if (app()->bound('openai')) {
+                app()->forgetInstance('openai');
+            }
         }
         
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
@@ -138,7 +142,9 @@ class AiService
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                $response = OpenAIFacade::chat()->create([
+                // Utiliser app() pour résoudre le service directement
+                $openaiClient = app('openai');
+                $response = $openaiClient->chat()->create([
                     'model' => $model,
                     'messages' => $messages,
                     'temperature' => $temperature,
@@ -187,7 +193,8 @@ class AiService
                         ]);
                         
                         try {
-                            $response = OpenAIFacade::chat()->create([
+                            $openaiClient = app('openai');
+                            $response = $openaiClient->chat()->create([
                                 'model' => 'gpt-4o',
                                 'messages' => $messages,
                                 'temperature' => $temperature,
