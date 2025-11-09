@@ -33,6 +33,11 @@ class AiService
         $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
         $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
         
+        // Configurer la clé API pour openai-php/laravel
+        if ($chatgptApiKey) {
+            config(['openai.api_key' => $chatgptApiKey]);
+        }
+        
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
         $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
