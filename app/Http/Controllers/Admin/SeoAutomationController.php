@@ -259,6 +259,29 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Activer/Désactiver l'automatisation globale
+     */
+    public function toggle()
+    {
+        $currentStatus = \App\Models\Setting::where('key', 'seo_automation_enabled')->value('value');
+        $currentStatus = filter_var($currentStatus, FILTER_VALIDATE_BOOLEAN);
+        
+        // Si non défini, considérer comme activé par défaut
+        if ($currentStatus === false && $currentStatus !== true) {
+            $currentStatus = true;
+        }
+        
+        $newStatus = !$currentStatus;
+        \App\Models\Setting::set('seo_automation_enabled', $newStatus ? '1' : '0', 'boolean', 'seo');
+        
+        $message = $newStatus 
+            ? '✅ Automatisation SEO activée. Les articles seront générés automatiquement chaque jour à 04:00.'
+            : '⏸️ Automatisation SEO mise en pause. Les générations automatiques sont désactivées.';
+        
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
      * Tester toutes les connexions (SerpAPI, GPT, Google Indexing)
      */
     public function testConnections()
