@@ -160,18 +160,28 @@ class GoogleSearchConsoleService
             }
 
             // Pour les formats sc-domain:, on ne vérifie pas le domaine
+            // Pour les autres formats, on vérifie mais on est plus permissif
             if (!str_starts_with($originalUrl, 'sc-domain:')) {
-                // Vérifier que l'URL appartient au domaine configuré (seulement pour les URLs normales)
                 $parsedUrl = parse_url($url);
                 $parsedSiteUrl = parse_url($this->siteUrl);
                 
-                if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host']) && 
-                    $parsedUrl['host'] !== $parsedSiteUrl['host']) {
-                    return [
-                        'success' => false,
-                        'message' => "L'URL n'appartient pas au domaine configuré: {$parsedUrl['host']} vs {$parsedSiteUrl['host']}",
-                        'error_code' => 'DOMAIN_MISMATCH'
-                    ];
+                // Vérifier que l'URL appartient au domaine configuré
+                // Mais on accepte aussi si c'est juste le domaine sans protocole
+                if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host'])) {
+                    $urlHost = $parsedUrl['host'];
+                    $siteHost = $parsedSiteUrl['host'];
+                    
+                    // Comparer les domaines (enlever www. si présent)
+                    $urlHostClean = preg_replace('/^www\./', '', $urlHost);
+                    $siteHostClean = preg_replace('/^www\./', '', $siteHost);
+                    
+                    if ($urlHostClean !== $siteHostClean) {
+                        return [
+                            'success' => false,
+                            'message' => "L'URL n'appartient pas au domaine configuré: {$urlHost} vs {$siteHost}",
+                            'error_code' => 'DOMAIN_MISMATCH'
+                        ];
+                    }
                 }
             }
 
