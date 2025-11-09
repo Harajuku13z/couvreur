@@ -663,14 +663,51 @@ function testApi(apiName, button) {
             html += '<i class="fas fa-' + icon + ' mr-1"></i>';
             html += '<span>' + (data.message || 'Aucun message') + '</span>';
             if (data.data) {
-                html += '<div class="mt-1 text-xs opacity-75">';
-                if (Array.isArray(data.data)) {
-                    html += data.data.join(', ');
-                } else if (typeof data.data === 'object') {
-                    html += JSON.stringify(data.data);
-                } else {
-                    html += data.data;
+                html += '<div class="mt-2 text-xs space-y-1">';
+                
+                // Afficher les informations de connexion
+                if (data.data.sites_count !== undefined) {
+                    html += '<div class="font-semibold">Informations de connexion:</div>';
+                    html += '<div>Sites trouvés: ' + data.data.sites_count + '</div>';
+                    if (data.data.site_url) {
+                        html += '<div>URL du site: ' + data.data.site_url + '</div>';
+                    }
+                    if (data.data.site_found !== undefined) {
+                        html += '<div>Site trouvé: ' + (data.data.site_found ? 'Oui' : 'Non') + '</div>';
+                    }
+                    if (data.data.site_permission) {
+                        html += '<div>Permission: ' + data.data.site_permission + '</div>';
+                    }
                 }
+                
+                // Afficher les tests d'URL
+                if (data.data.url_tests && Array.isArray(data.data.url_tests)) {
+                    html += '<div class="mt-2 font-semibold">Tests d\'indexation:</div>';
+                    data.data.url_tests.forEach(function(test) {
+                        const testBgClass = test.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700';
+                        const testIcon = test.success ? 'check-circle' : 'times-circle';
+                        html += '<div class="' + testBgClass + ' border rounded p-1 mt-1">';
+                        html += '<i class="fas fa-' + testIcon + ' mr-1"></i>';
+                        html += '<strong>' + test.url + '</strong>: ';
+                        html += test.message;
+                        if (test.error_code) {
+                            html += ' (Code: ' + test.error_code + ')';
+                        }
+                        html += '</div>';
+                    });
+                } else if (typeof data.data === 'object') {
+                    // Pour les autres types de données
+                    html += '<div class="mt-1 opacity-75">';
+                    if (Array.isArray(data.data)) {
+                        html += data.data.join(', ');
+                    } else {
+                        html += JSON.stringify(data.data);
+                    }
+                    html += '</div>';
+                } else if (data.data) {
+                    html += '<div class="mt-1 opacity-75">' + data.data + '</div>';
+                }
+                
                 html += '</div>';
             }
             html += '</div>';
