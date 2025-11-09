@@ -571,8 +571,18 @@ class SeoAutomationController extends Controller
                 mkdir($uploadDir, 0755, true);
             }
             
-            // Nom du fichier
-            $filename = 'og-blog.jpg';
+            // Supprimer l'ancienne image si elle existe
+            $oldImagePath = \App\Models\Setting::where('key', 'default_blog_og_image')->value('value');
+            if ($oldImagePath && file_exists(public_path($oldImagePath))) {
+                // Ne supprimer que si c'est le fichier og-blog.jpg (pour éviter de supprimer d'autres images)
+                if (basename($oldImagePath) === 'og-blog.jpg') {
+                    @unlink(public_path($oldImagePath));
+                    Log::info('Ancienne image OG Blog supprimée', ['path' => $oldImagePath]);
+                }
+            }
+            
+            // Nom du fichier avec timestamp pour éviter les conflits de cache
+            $filename = 'og-blog-' . time() . '.jpg';
             $imagePath = 'images/' . $filename;
             $fullPath = public_path($imagePath);
             
@@ -641,8 +651,28 @@ class SeoAutomationController extends Controller
             imagedestroy($sourceImage);
             imagedestroy($targetImage);
             
-            // Mettre à jour le setting
+            // Supprimer les anciennes images og-blog-*.jpg (garder seulement la dernière)
+            $imagesDir = public_path('images');
+            if (is_dir($imagesDir)) {
+                $files = glob($imagesDir . '/og-blog-*.jpg');
+                // Trier par date de modification (plus récent en dernier)
+                usort($files, function($a, $b) {
+                    return filemtime($a) - filemtime($b);
+                });
+                // Supprimer toutes sauf la dernière (celle qu'on vient de créer)
+                if (count($files) > 1) {
+                    foreach (array_slice($files, 0, -1) as $oldFile) {
+                        @unlink($oldFile);
+                        Log::info('Ancienne image OG Blog supprimée', ['file' => basename($oldFile)]);
+                    }
+                }
+            }
+            
+            // Mettre à jour le setting avec le nouveau chemin
             \App\Models\Setting::set('default_blog_og_image', $imagePath, 'string', 'seo');
+            
+            // Vider le cache si nécessaire
+            \App\Models\Setting::clearCache();
             
             return redirect()->back()
                 ->with('success', "✅ Image Open Graph uploadée et redimensionnée à 1200x630px : {$imagePath}");

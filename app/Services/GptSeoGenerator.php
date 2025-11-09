@@ -167,7 +167,7 @@ class GptSeoGenerator
         Log::info('GptSeoGenerator: Article généré avec succès', [
             'keyword' => $keyword,
             'city' => $cityName,
-            'html_length' => strlen($formattedHtml),
+            'html_length' => strlen($rawText),
             'text_length' => strlen($rawText)
         ]);
 
