@@ -7,61 +7,215 @@
     <title>@yield('title', 'Administration') - {{ setting('company_name', 'Sauser Couverture') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    <!-- CSS de base pour Safari (chargé immédiatement) -->
+    <style>
+        /* Reset et base */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.5; color: #111827; background-color: #f9fafb; }
+        html { -webkit-text-size-adjust: 100%; }
+        
+        /* Container et layout */
+        .container { width: 100%; max-width: 1280px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        
+        /* Flexbox */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        
+        /* Grid */
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        
+        /* Display */
+        .hidden { display: none !important; }
+        .block { display: block !important; }
+        
+        /* Colors */
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .bg-green-50 { background-color: #f0fdf4; }
+        .bg-yellow-50 { background-color: #fefce8; }
+        .bg-red-50 { background-color: #fef2f2; }
+        .text-gray-900 { color: #111827; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-500 { color: #6b7280; }
+        .text-blue-600 { color: #2563eb; }
+        .text-green-600 { color: #16a34a; }
+        .text-yellow-600 { color: #ca8a04; }
+        .text-red-600 { color: #dc2626; }
+        .text-white { color: #ffffff; }
+        
+        /* Typography */
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        
+        /* Borders */
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-full { border-radius: 9999px; }
+        .border { border-width: 1px; border-style: solid; border-color: #e5e7eb; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .border-gray-400 { border-color: #9ca3af; }
+        .border-green-400 { border-color: #4ade80; }
+        .border-red-400 { border-color: #f87171; }
+        .border-yellow-400 { border-color: #facc15; }
+        .border-blue-400 { border-color: #60a5fa; }
+        
+        /* Shadows */
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        
+        /* Buttons */
+        button, .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-green-600 { background-color: #16a34a; }
+        .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+        .hover\:bg-green-700:hover { background-color: #15803d; }
+        
+        /* Responsive */
+        @media (min-width: 640px) {
+            .sm\:flex-row { flex-direction: row; }
+            .sm\:items-center { align-items: center; }
+            .sm\:w-auto { width: auto; }
+        }
+        @media (min-width: 768px) {
+            .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+            .md\:hidden { display: none !important; }
+            .md\:block { display: block !important; }
+            .md\:flex-row { flex-direction: row; }
+            .md\:py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+            .md\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        }
+        
+        /* Spacing utilities */
+        .space-y-1 > * + * { margin-top: 0.25rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-x-4 > * + * { margin-left: 1rem; }
+        
+        /* Overflow */
+        .overflow-hidden { overflow: hidden; }
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-y-auto { overflow-y: auto; }
+        
+        /* Position */
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        
+        /* Z-index */
+        .z-40 { z-index: 40; }
+        .z-50 { z-index: 50; }
+        
+        /* Width */
+        .w-full { width: 100%; }
+        .w-11\/12 { width: 91.666667%; }
+        .w-64 { width: 16rem; }
+        
+        /* Height */
+        .h-screen { height: 100vh; }
+        .min-h-screen { min-height: 100vh; }
+        
+        /* Opacity */
+        .opacity-50 { opacity: 0.5; }
+        .opacity-75 { opacity: 0.75; }
+        
+        /* Cursor */
+        .cursor-pointer { cursor: pointer; }
+        
+        /* Text align */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        
+        /* Whitespace */
+        .whitespace-nowrap { white-space: nowrap; }
+        .break-words { word-wrap: break-word; overflow-wrap: break-word; }
+        
+        /* Min width */
+        .min-w-0 { min-width: 0; }
+        
+        /* Max width */
+        .max-w-7xl { max-width: 80rem; }
+        .max-w-6xl { max-width: 72rem; }
+        
+        /* Divide */
+        .divide-y > * + * { border-top-width: 1px; border-top-style: solid; border-top-color: #e5e7eb; }
+        .divide-gray-200 > * + * { border-top-color: #e5e7eb; }
+    </style>
+    
     <!-- Preconnect pour améliorer le chargement (Safari) -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
-    <!-- Tailwind CSS - Version compatible Safari -->
-    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous" onerror="loadTailwindFallback()"></script>
-    <!-- Fallback pour Safari si le script ne charge pas -->
+    <!-- Tailwind CSS - Version compatible Safari avec chargement alternatif -->
     <script>
-        function loadTailwindFallback() {
-            console.warn('Tailwind CDN failed, loading fallback CSS');
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css';
-            link.crossOrigin = 'anonymous';
-            document.head.appendChild(link);
-        }
-        
-        // Vérifier si Tailwind est chargé après 1 seconde (Safari peut être plus lent)
-        setTimeout(function() {
-            if (typeof tailwind === 'undefined' && !document.querySelector('style[data-tailwind-fallback]')) {
-                console.warn('Tailwind not loaded, applying fallback styles');
-                var style = document.createElement('style');
-                style.setAttribute('data-tailwind-fallback', 'true');
-                style.textContent = `
-                    * { box-sizing: border-box; }
-                    .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
-                    .flex { display: flex; }
-                    .grid { display: grid; }
-                    .hidden { display: none !important; }
-                    .bg-white { background-color: #fff; }
-                    .text-gray-900 { color: #111827; }
-                    .text-gray-600 { color: #4b5563; }
-                    .rounded-lg { border-radius: 0.5rem; }
-                    .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                    .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-                    .p-4 { padding: 1rem; }
-                    .p-6 { padding: 1.5rem; }
-                    .mb-4 { margin-bottom: 1rem; }
-                    .mb-6 { margin-bottom: 1.5rem; }
-                    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-                    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-                    .gap-4 { gap: 1rem; }
-                    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-                    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-                    @media (min-width: 768px) {
-                        .md\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-                        .md\\:hidden { display: none !important; }
-                        .md\\:block { display: block !important; }
-                    }
-                `;
-                document.head.appendChild(style);
+        // Charger Tailwind avec plusieurs fallbacks
+        (function() {
+            var tailwindLoaded = false;
+            
+            function loadTailwindCDN() {
+                if (tailwindLoaded) return;
+                
+                var script = document.createElement('script');
+                script.src = 'https://cdn.tailwindcss.com';
+                script.crossOrigin = 'anonymous';
+                script.onload = function() {
+                    tailwindLoaded = true;
+                    console.log('Tailwind CDN loaded');
+                };
+                script.onerror = function() {
+                    console.warn('Tailwind CDN failed, trying alternative');
+                    loadTailwindAlternative();
+                };
+                document.head.appendChild(script);
             }
-        }, 1000);
+            
+            function loadTailwindAlternative() {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css';
+                link.crossOrigin = 'anonymous';
+                link.onerror = function() {
+                    console.warn('Alternative Tailwind CDN also failed, using inline CSS only');
+                };
+                document.head.appendChild(link);
+            }
+            
+            // Charger immédiatement
+            loadTailwindCDN();
+        })();
     </script>
     
     <!-- Font Awesome -->
