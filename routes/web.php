@@ -45,10 +45,10 @@ Route::get('/test-phone-tracking', function () {
                 \App\Models\Setting::set('schedule_run_token', $newToken, 'string', 'seo');
                 
                 return response()->json([
-                    'message' => 'Token généré. Utilisez cette URL pour exécuter le scheduler :',
+                    'message' => 'Token généré. Utilisez cette URL pour exécuter la génération d\'articles :',
                     'url' => url('/schedule/run?token=' . $newToken),
                     'token' => $newToken,
-                    'instructions' => 'Configurez ce token dans un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL une fois par jour.'
+                    'instructions' => 'Configurez cette URL dans un service externe (cron-job.org, UptimeRobot, etc.) pour l\'appeler une fois par jour à l\'heure configurée. Chaque appel génère directement les articles pour toutes les villes favorites.'
                 ], 200);
             }
             
