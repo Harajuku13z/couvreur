@@ -220,27 +220,49 @@ class SeoAutomationController extends Controller
             'google_indexing' => ['status' => 'pending', 'message' => ''],
         ];
 
-        // Test SerpAPI
+        // Test SerpAPI - Test simple de connexion
         try {
-            $serpService = new SerpApiService();
-            $keywords = $serpService->getTrendingKeywords('FR', 3);
-            
-            if (!empty($keywords)) {
+            $apiKey = \App\Models\Setting::where('key', 'serp_api_key')->value('value');
+            if (empty($apiKey)) {
                 $results['serpapi'] = [
-                    'status' => 'success',
-                    'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
-                    'data' => array_slice($keywords, 0, 3)
+                    'status' => 'error',
+                    'message' => 'Clé API SerpAPI non configurée.'
                 ];
             } else {
-                $results['serpapi'] = [
-                    'status' => 'warning',
-                    'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
-                ];
+                // Test simple de connexion avec une requête Google Search basique
+                $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
+                    'engine' => 'google',
+                    'q' => 'test',
+                    'api_key' => $apiKey,
+                    'num' => 1, // Juste 1 résultat pour économiser les quotas
+                ]);
+                
+                if ($response->successful()) {
+                    $json = $response->json();
+                    if (isset($json['search_metadata']) || isset($json['organic_results'])) {
+                        $results['serpapi'] = [
+                            'status' => 'success',
+                            'message' => 'Connexion SerpAPI réussie. L\'API répond correctement.'
+                        ];
+                    } else {
+                        $results['serpapi'] = [
+                            'status' => 'warning',
+                            'message' => 'Connexion SerpAPI OK mais réponse inattendue.'
+                        ];
+                    }
+                } else {
+                    $errorBody = $response->json();
+                    $errorMessage = $errorBody['error'] ?? 'Erreur inconnue';
+                    $results['serpapi'] = [
+                        'status' => 'error',
+                        'message' => 'Erreur SerpAPI: ' . $errorMessage
+                    ];
+                }
             }
         } catch (\Exception $e) {
             $results['serpapi'] = [
                 'status' => 'error',
-                'message' => 'Erreur SerpAPI: ' . $e->getMessage()
+                'message' => 'Erreur de connexion SerpAPI: ' . $e->getMessage()
             ];
         }
 
