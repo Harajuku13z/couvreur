@@ -492,13 +492,40 @@ class SeoAutomationController extends Controller
             $currentTime = now()->format('H:i');
             $timezone = config('app.timezone', 'Europe/Paris');
             
+            // Vérifier si le cron est configuré (test basique)
+            $cronConfigured = false;
+            try {
+                // Tenter de détecter si le cron s'exécute (vérifier les logs récents)
+                $logFile = storage_path('logs/laravel.log');
+                if (file_exists($logFile)) {
+                    $logContent = file_get_contents($logFile);
+                    // Chercher des traces d'exécution du scheduler dans les dernières 24h
+                    $cronConfigured = (strpos($logContent, 'Running scheduled command') !== false || 
+                                     strpos($logContent, 'schedule:run') !== false);
+                }
+            } catch (\Exception $e) {
+                // Ignorer les erreurs
+            }
+            
+            // Analyser la sortie pour voir si des commandes sont prêtes
+            $hasReadyCommands = (strpos($output, 'Running scheduled command') !== false);
+            $noCommandsReady = (strpos($output, 'No scheduled commands are ready to run') !== false);
+            
             $info = [
                 'scheduler_executed' => $exitCode === 0,
                 'current_time' => $currentTime,
                 'automation_time' => $automationTime,
                 'timezone' => $timezone,
                 'will_trigger' => $currentTime === $automationTime,
-                'output' => $output
+                'output' => $output,
+                'cron_configured' => $cronConfigured,
+                'has_ready_commands' => $hasReadyCommands,
+                'no_commands_ready' => $noCommandsReady,
+                'explanation' => $noCommandsReady 
+                    ? ($currentTime === $automationTime 
+                        ? 'L\'heure est arrivée mais aucune commande n\'est prête. Vérifiez que l\'automatisation est activée.'
+                        : "L'heure configurée ({$automationTime}) n'est pas encore arrivée. Le scheduler attendra jusqu'à {$automationTime}.")
+                    : ($hasReadyCommands ? 'Des commandes sont prêtes et seront exécutées.' : 'Aucune commande planifiée pour le moment.')
             ];
             
             return response()->json([
