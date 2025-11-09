@@ -32,8 +32,6 @@ class GptSeoGenerator
         array $competitors = [],
         ?callable $progressCallback = null
     ): ?array {
-        $prompt = $this->buildPrompt($keyword, $cityName, $relatedQueries, $competitors);
-        
         $systemMessage = 'Tu es un rédacteur SEO professionnel spécialisé dans le contenu local pour le secteur du bâtiment et de la rénovation.';
         
         // Étape 1: Générer uniquement le titre d'abord
