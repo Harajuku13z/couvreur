@@ -233,15 +233,6 @@
     margin-bottom: 0.75rem;
 }
 
-.article-content h4 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 600;
-    color: #374151;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-}
-
 .article-content p {
     margin-bottom: 1.25rem;
     line-height: 1.8;
