@@ -425,24 +425,52 @@ class SeoAutomationController extends Controller
                             break;
                         }
                         
-                        Log::info('Test SerpAPI - Clé API trouvée', ['key_length' => strlen($apiKey)]);
+                        Log::info('Test SerpAPI - Test de connexion simple', ['key_length' => strlen($apiKey)]);
                         
-                        $serpService = new SerpApiService();
-                        $keywords = $serpService->getTrendingKeywords('FR', 3);
+                        // Test simple de connexion avec une requête Google Search basique
+                        $response = \Illuminate\Support\Facades\Http::timeout(30)->get('https://serpapi.com/search.json', [
+                            'engine' => 'google',
+                            'q' => 'test',
+                            'api_key' => $apiKey,
+                            'num' => 1, // Juste 1 résultat pour économiser les quotas
+                        ]);
                         
-                        Log::info('Test SerpAPI - Résultats', ['keywords_count' => count($keywords)]);
-                        
-                        if (!empty($keywords)) {
-                            $results = [
-                                'status' => 'success',
-                                'message' => 'Connexion SerpAPI réussie. ' . count($keywords) . ' mots-clés récupérés.',
-                                'data' => array_slice($keywords, 0, 3)
-                            ];
+                        if ($response->successful()) {
+                            $json = $response->json();
+                            
+                            // Vérifier que la réponse contient des données valides
+                            if (isset($json['search_metadata']) || isset($json['organic_results'])) {
+                                $results = [
+                                    'status' => 'success',
+                                    'message' => 'Connexion SerpAPI réussie. L\'API répond correctement.'
+                                ];
+                            } else {
+                                $results = [
+                                    'status' => 'warning',
+                                    'message' => 'Connexion SerpAPI OK mais réponse inattendue. Vérifiez votre clé API.'
+                                ];
+                            }
                         } else {
-                            $results = [
-                                'status' => 'warning',
-                                'message' => 'Connexion SerpAPI OK mais aucun mot-clé récupéré. Vérifiez votre clé API ou les quotas.'
-                            ];
+                            $errorBody = $response->json();
+                            $errorMessage = $errorBody['error'] ?? 'Erreur inconnue';
+                            
+                            // Détecter les erreurs spécifiques
+                            if (str_contains($errorMessage, 'Invalid API key') || str_contains($errorMessage, 'Invalid api_key')) {
+                                $results = [
+                                    'status' => 'error',
+                                    'message' => 'Clé API SerpAPI invalide. Vérifiez votre clé API.'
+                                ];
+                            } elseif (str_contains($errorMessage, 'quota') || str_contains($errorMessage, 'limit')) {
+                                $results = [
+                                    'status' => 'warning',
+                                    'message' => 'Quota SerpAPI dépassé. Vérifiez votre plan et vos limites.'
+                                ];
+                            } else {
+                                $results = [
+                                    'status' => 'error',
+                                    'message' => 'Erreur SerpAPI: ' . $errorMessage
+                                ];
+                            }
                         }
                     } catch (\Exception $e) {
                         Log::error('Test SerpAPI failed', [
@@ -451,7 +479,7 @@ class SeoAutomationController extends Controller
                         ]);
                         $results = [
                             'status' => 'error',
-                            'message' => 'Erreur SerpAPI: ' . $e->getMessage()
+                            'message' => 'Erreur de connexion SerpAPI: ' . $e->getMessage()
                         ];
                     }
                     break;
