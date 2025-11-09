@@ -315,6 +315,111 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Uploader et redimensionner l'image OG Blog
+     */
+    public function uploadOgImage(Request $request)
+    {
+        $validated = $request->validate([
+            'og_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB max
+        ]);
+        
+        try {
+            $image = $request->file('og_image');
+            
+            // Créer le dossier s'il n'existe pas
+            $uploadDir = public_path('images');
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Nom du fichier
+            $filename = 'og-blog.jpg';
+            $imagePath = 'images/' . $filename;
+            $fullPath = public_path($imagePath);
+            
+            // Charger l'image avec GD ou Intervention Image si disponible
+            $sourceImage = null;
+            $imageType = $image->getMimeType();
+            
+            if ($imageType === 'image/jpeg' || $imageType === 'image/jpg') {
+                $sourceImage = imagecreatefromjpeg($image->getRealPath());
+            } elseif ($imageType === 'image/png') {
+                $sourceImage = imagecreatefrompng($image->getRealPath());
+            } elseif ($imageType === 'image/webp') {
+                $sourceImage = imagecreatefromwebp($image->getRealPath());
+            }
+            
+            if (!$sourceImage) {
+                return redirect()->back()
+                    ->with('error', '❌ Format d\'image non supporté. Utilisez JPG, PNG ou WebP.');
+            }
+            
+            // Dimensions cibles pour OG (1200x630px)
+            $targetWidth = 1200;
+            $targetHeight = 630;
+            
+            // Obtenir les dimensions de l'image source
+            $sourceWidth = imagesx($sourceImage);
+            $sourceHeight = imagesy($sourceImage);
+            
+            // Calculer les dimensions pour conserver le ratio
+            $sourceRatio = $sourceWidth / $sourceHeight;
+            $targetRatio = $targetWidth / $targetHeight;
+            
+            if ($sourceRatio > $targetRatio) {
+                // Image plus large, ajuster la hauteur
+                $newHeight = $targetHeight;
+                $newWidth = (int)($targetHeight * $sourceRatio);
+            } else {
+                // Image plus haute, ajuster la largeur
+                $newWidth = $targetWidth;
+                $newHeight = (int)($targetWidth / $sourceRatio);
+            }
+            
+            // Créer une nouvelle image avec les dimensions cibles
+            $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
+            
+            // Remplir avec une couleur blanche (pour les zones vides)
+            $white = imagecolorallocate($targetImage, 255, 255, 255);
+            imagefill($targetImage, 0, 0, $white);
+            
+            // Calculer la position pour centrer l'image
+            $x = (int)(($targetWidth - $newWidth) / 2);
+            $y = (int)(($targetHeight - $newHeight) / 2);
+            
+            // Redimensionner et copier l'image
+            imagecopyresampled(
+                $targetImage, $sourceImage,
+                $x, $y, 0, 0,
+                $newWidth, $newHeight,
+                $sourceWidth, $sourceHeight
+            );
+            
+            // Sauvegarder l'image redimensionnée
+            imagejpeg($targetImage, $fullPath, 90); // Qualité 90%
+            
+            // Libérer la mémoire
+            imagedestroy($sourceImage);
+            imagedestroy($targetImage);
+            
+            // Mettre à jour le setting
+            \App\Models\Setting::set('default_blog_og_image', $imagePath, 'string', 'seo');
+            
+            return redirect()->back()
+                ->with('success', "✅ Image Open Graph uploadée et redimensionnée à 1200x630px : {$imagePath}");
+                
+        } catch (\Exception $e) {
+            Log::error('Erreur upload image OG Blog', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de l\'upload de l\'image : ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Sauvegarder le chemin de l'image OG Blog par défaut
      */
     public function saveOgImage(Request $request)
