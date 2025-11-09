@@ -576,9 +576,10 @@ document.addEventListener('DOMContentLoaded', function() {
             testModal.classList.add('hidden');
         }
     });
-    
-    // Fonction pour tester une API individuelle
-    function testApi(apiName, button) {
+});
+
+// Fonction pour tester une API individuelle (doit être globale pour onclick)
+function testApi(apiName, button) {
         console.log('testApi appelé avec:', apiName);
         
         const resultDivId = apiName + '_result';
@@ -684,8 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const errorMessage = error.message || 'Erreur inconnue';
             resultDiv.innerHTML = '<div class="bg-red-50 border border-red-400 text-red-700 rounded-lg p-2 mt-2"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + errorMessage + '</div>';
         });
-    }
-});
+}
 </script>
 @endsection
 
