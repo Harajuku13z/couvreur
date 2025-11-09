@@ -201,6 +201,14 @@ EOT;
         $contenuHtml = preg_replace('/```\n?/', '', $contenuHtml);
         $contenuHtml = trim($contenuHtml);
         
+        // Corriger les balises FAQ Schema.org mal formées
+        // Supprimer les fragments de balises comme "https://schema.org/FAQPage">" orphelins
+        $contenuHtml = preg_replace('/https:\/\/schema\.org\/[^>]*">\s*/', '', $contenuHtml);
+        // Corriger les balises FAQ incomplètes
+        $contenuHtml = preg_replace('/<section[^>]*itemtype="https:\/\/schema\.org\/FAQPage"[^>]*>\s*https:\/\/schema\.org\/[^>]*">/i', '<section id="faq" itemscope itemtype="https://schema.org/FAQPage">', $contenuHtml);
+        // Supprimer les balises orphelines schema.org
+        $contenuHtml = preg_replace('/<https:\/\/schema\.org\/[^>]*>/i', '', $contenuHtml);
+        
         // Validation basique du HTML
         if (empty($contenuHtml) || strlen($contenuHtml) < 500) {
             Log::error('Contenu HTML généré trop court', ['length' => strlen($contenuHtml)]);
