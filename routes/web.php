@@ -299,6 +299,7 @@ Route::middleware(['check.setup'])->group(function () {
             Route::middleware('seo.automation.password')->group(function () {
                 Route::get('/seo-automation', [App\Http\Controllers\Admin\SeoAutomationController::class, 'index'])->name('seo-automation.index');
                 Route::post('/seo-automation/run', [App\Http\Controllers\Admin\SeoAutomationController::class, 'run'])->name('seo-automation.run');
+                Route::post('/seo-automation/toggle', [App\Http\Controllers\Admin\SeoAutomationController::class, 'toggle'])->name('seo-automation.toggle');
                 Route::post('/seo-automation/test', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testConnections'])->name('seo-automation.test');
                 Route::post('/seo-automation/test-api', [App\Http\Controllers\Admin\SeoAutomationController::class, 'testApi'])->name('seo-automation.test-api');
                 Route::post('/seo-automation/save-config', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveApiConfig'])->name('seo-automation.save-config');

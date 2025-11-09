@@ -206,6 +206,7 @@ class SeoAutomationController extends Controller
                             'city' => $city->name,
                             'keyword' => $log->keyword,
                             'status' => 'success',
+                            'indexed' => $log->status === 'indexed',
                             'url' => $log->article_url,
                             'article_id' => $log->article_id,
                         ];
@@ -213,8 +214,9 @@ class SeoAutomationController extends Controller
                         $failedCount++;
                         $results[] = [
                             'city' => $city->name,
-                            'keyword' => $log->keyword,
+                            'keyword' => $log->keyword ?? 'N/A',
                             'status' => 'failed',
+                            'indexed' => false,
                             'error' => $log->error_message ?? 'Erreur inconnue',
                         ];
                     }

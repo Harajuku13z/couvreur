@@ -83,6 +83,24 @@ class GptSeoGenerator
             ->take(3)
             ->join('; ');
 
+        // Récupérer les informations de l'entreprise
+        $companyName = \App\Models\Setting::where('key', 'company_name')->value('value') ?? 'notre entreprise';
+        $companyDescription = \App\Models\Setting::where('key', 'company_description')->value('value') ?? '';
+        $companyCity = \App\Models\Setting::where('key', 'company_city')->value('value') ?? '';
+        
+        $companyInfo = '';
+        if ($companyName && $companyName !== 'notre entreprise') {
+            $companyInfo = "\n\nINFORMATIONS DE L'ENTREPRISE À METTRE EN AVANT:\n";
+            $companyInfo .= "- Nom: {$companyName}\n";
+            if ($companyDescription) {
+                $companyInfo .= "- Description: {$companyDescription}\n";
+            }
+            if ($companyCity) {
+                $companyInfo .= "- Localisation: {$companyCity}\n";
+            }
+            $companyInfo .= "\nIMPORTANT: Intègre naturellement ces informations dans le contenu, notamment dans un paragraphe dédié à {$cityName} où tu mentionneras {$companyName} comme acteur local de confiance.";
+        }
+        
         return trim("
 Tu es un expert SEO local. Rédige un article optimisé pour le mot-clé principal: \"{$keyword}\" ciblant la ville {$cityName}.
 
@@ -96,6 +114,13 @@ CONTRAINTES STRICTES:
 - Ton: professionnel, utile, optimiste.
 - Base-toi sur ces requêtes associées: {$related}
 - Exemples de titres/snippets concurrents: {$compet}
+{$companyInfo}
+
+STRATÉGIE DE CONTENU:
+- Analyse les meilleurs éléments des concurrents (titres, structure, angles)
+- Crée un contenu ORIGINAL et de meilleure qualité qui surpasse les concurrents
+- Intègre naturellement les requêtes associées pour une meilleure couverture SEO
+- Mets en avant l'expertise locale et la proximité avec {$cityName}
 
 FORMAT DE SORTIE STRICTEMENT EN JSON (pas de markdown, pas de code block):
 {

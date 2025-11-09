@@ -59,12 +59,18 @@
                                                 </div>
                                             @endif
                                             @if($result['status'] === 'success' && isset($result['url']))
-                                                <div class="mt-2">
+                                                <div class="mt-2 space-y-1">
                                                     <a href="{{ $result['url'] }}" target="_blank" 
                                                        class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
                                                         <i class="fas fa-external-link-alt mr-1"></i>
                                                         Voir l'article publié
                                                     </a>
+                                                    @if(isset($result['indexed']))
+                                                        <div class="text-xs {{ $result['indexed'] ? 'text-green-600' : 'text-yellow-600' }}">
+                                                            <i class="fas {{ $result['indexed'] ? 'fa-check-circle' : 'fa-clock' }} mr-1"></i>
+                                                            {{ $result['indexed'] ? 'Indexé par Google' : 'En attente d\'indexation' }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @elseif($result['status'] === 'failed' || $result['status'] === 'error')
                                                 <div class="mt-2 text-sm text-red-600">
@@ -74,9 +80,16 @@
                                             @endif
                                         </div>
                                         @if($result['status'] === 'success')
-                                            <span class="ml-2 px-2 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
-                                                <i class="fas fa-check mr-1"></i>Publié
-                                            </span>
+                                            <div class="ml-2 flex flex-col items-end gap-1">
+                                                <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
+                                                    <i class="fas fa-check mr-1"></i>Publié
+                                                </span>
+                                                @if(isset($result['indexed']) && $result['indexed'])
+                                                    <span class="px-2 py-1 bg-blue-200 text-blue-800 text-xs font-semibold rounded">
+                                                        <i class="fab fa-google mr-1"></i>Indexé
+                                                    </span>
+                                                @endif
+                                            </div>
                                         @else
                                             <span class="ml-2 px-2 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded">
                                                 <i class="fas fa-times mr-1"></i>Échec
