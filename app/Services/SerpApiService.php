@@ -29,11 +29,12 @@ class SerpApiService
         try {
             // Pour Google Trends, on doit fournir soit 'q' (query) soit 'cat' (category)
             // Le paramètre est 'cat' (pas 'category') et utilise des IDs numériques
-            // On utilise d'abord un mot-clé générique pour le secteur de la couverture
+            // Pour obtenir des mots-clés tendances, on utilise RELATED_QUERIES avec un mot-clé générique
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                 'engine' => 'google_trends',
                 'geo' => $geo,
                 'q' => 'couvreur', // Mot-clé générique pour le secteur
+                'data_type' => 'RELATED_QUERIES', // Pour obtenir des requêtes liées (mots-clés tendances)
                 'api_key' => $this->apiKey,
             ]);
 
