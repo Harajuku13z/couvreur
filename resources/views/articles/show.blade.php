@@ -31,8 +31,20 @@
 <style>
 /* Styles pour le contenu généré par ChatGPT avec Tailwind CSS */
 .article-content {
-    line-height: 1.7;
+    line-height: 1.8;
     color: #374151;
+    font-size: 1.1rem;
+}
+
+.article-content .text-link {
+    color: var(--primary-color, #3b82f6);
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.article-content .text-link:hover {
+    color: var(--secondary-color, #1e40af);
+    text-decoration: none;
 }
 
 /* S'assurer que le contenu Tailwind s'affiche correctement */
@@ -191,14 +203,14 @@
 }
 
 .article-content h2 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 2rem;
+    line-height: 2.5rem;
     font-weight: 700;
     color: #111827;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e5e7eb;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--primary-color, #3b82f6);
 }
 
 .article-content h3 {
@@ -206,8 +218,19 @@
     line-height: 2rem;
     font-weight: 600;
     color: #1f2937;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    border-left: 4px solid var(--accent-color, #f59e0b);
+}
+
+.article-content h4 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: #374151;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .article-content h4 {
@@ -220,9 +243,10 @@
 }
 
 .article-content p {
-    margin-bottom: 0.75rem;
-    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    line-height: 1.8;
     color: #374151;
+    text-align: justify;
 }
 
 .article-content br {
@@ -237,17 +261,43 @@
     padding-left: 1.5rem;
 }
 
-.article-content ul {
+.article-content ul.list-icon {
+    list-style: none;
+    padding-left: 0;
+    margin: 1.5rem 0;
+}
+
+.article-content ul.list-icon li {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.75;
+}
+
+.article-content ul.list-icon li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--primary-color, #3b82f6);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.article-content ul:not(.list-icon) {
     list-style-type: disc;
+    margin: 1.5rem 0;
+    padding-left: 2rem;
 }
 
 .article-content ol {
     list-style-type: decimal;
+    margin: 1.5rem 0;
+    padding-left: 2rem;
 }
 
 .article-content li {
-    margin-bottom: 0.5rem;
-    line-height: 1.75;
+    margin-bottom: 0.75rem;
+    line-height: 1.8;
 }
 
 .article-content strong {
@@ -519,8 +569,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     <div class="p-8">
                         <!-- Article Content - Texte brut de ChatGPT (qualitatif) -->
-                        <div class="article-content prose prose-lg max-w-none whitespace-pre-line">
-                            {!! nl2br(e(\App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article'))) !!}
+                        <div class="article-content prose prose-lg max-w-none">
+                            @php
+                                // Convertir le texte brut en HTML formaté
+                                $content = \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article');
+                                
+                                // Convertir les URLs en liens cliquables
+                                $content = preg_replace('/(https?:\/\/[^\s]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-link">$1</a>', $content);
+                                
+                                // Convertir les retours à la ligne en paragraphes
+                                $paragraphs = preg_split('/\n\s*\n/', $content);
+                                $formattedContent = '';
+                                
+                                foreach ($paragraphs as $paragraph) {
+                                    $paragraph = trim($paragraph);
+                                    if (empty($paragraph)) continue;
+                                    
+                                    // Détecter les titres (lignes courtes, en majuscules ou commençant par #)
+                                    if (preg_match('/^#+\s*(.+)$/', $paragraph, $matches)) {
+                                        $level = strlen($matches[0]) - strlen(ltrim($matches[0], '#'));
+                                        $title = trim($matches[1]);
+                                        $tag = $level <= 1 ? 'h2' : ($level == 2 ? 'h3' : 'h4');
+                                        $formattedContent .= "<{$tag}>{$title}</{$tag}>\n";
+                                    } elseif (strlen($paragraph) < 100 && preg_match('/^[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ\s]+$/', $paragraph)) {
+                                        // Titre en majuscules
+                                        $formattedContent .= "<h2>{$paragraph}</h2>\n";
+                                    } elseif (preg_match('/^[-•*]\s*(.+)$/m', $paragraph)) {
+                                        // Liste à puces
+                                        $items = preg_split('/\n(?=[-•*])/', $paragraph);
+                                        $formattedContent .= '<ul class="list-icon">';
+                                        foreach ($items as $item) {
+                                            $item = preg_replace('/^[-•*]\s*/', '', trim($item));
+                                            if (!empty($item)) {
+                                                $formattedContent .= "<li>{$item}</li>";
+                                            }
+                                        }
+                                        $formattedContent .= '</ul>';
+                                    } elseif (preg_match('/^\d+\.\s*(.+)$/m', $paragraph)) {
+                                        // Liste numérotée
+                                        $items = preg_split('/\n(?=\d+\.)/', $paragraph);
+                                        $formattedContent .= '<ol>';
+                                        foreach ($items as $item) {
+                                            $item = preg_replace('/^\d+\.\s*/', '', trim($item));
+                                            if (!empty($item)) {
+                                                $formattedContent .= "<li>{$item}</li>";
+                                            }
+                                        }
+                                        $formattedContent .= '</ol>';
+                                    } else {
+                                        // Paragraphe normal
+                                        $paragraph = nl2br($paragraph);
+                                        $formattedContent .= "<p>{$paragraph}</p>\n";
+                                    }
+                                }
+                            @endphp
+                            {!! $formattedContent !!}
                         </div>
                         
                         {{-- Liens suggérés --}}
@@ -563,40 +666,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <span class="hidden sm:inline">Facebook</span>
                                     </a>
                                     
-                                    <!-- Twitter -->
-                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}&via={{ setting('company_name', 'SauserCouverture') }}" 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                        <i class="fab fa-twitter"></i>
-                                        <span class="hidden sm:inline">Twitter</span>
-                                    </a>
-                                    
-                                    <!-- LinkedIn -->
-                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}" 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--secondary-color, #1e40af);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                        <i class="fab fa-linkedin-in"></i>
-                                        <span class="hidden sm:inline">LinkedIn</span>
-                                    </a>
-                                    
                                     <!-- WhatsApp -->
                                     <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
                                        target="_blank" 
                                        rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: #25D366;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                         <i class="fab fa-whatsapp"></i>
                                         <span class="hidden sm:inline">WhatsApp</span>
-                                    </a>
-                                    
-                                    <!-- Telegram -->
-                                    <a href="https://t.me/share/url?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--primary-color, #3b82f6);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                        <i class="fab fa-telegram-plane"></i>
-                                        <span class="hidden sm:inline">Telegram</span>
                                     </a>
                                     
                                     <!-- Email -->
