@@ -34,29 +34,64 @@ class ProcessSeoCityJob implements ShouldQueue
      */
     public function handle(SeoAutomationManager $manager): void
     {
-        $city = City::find($this->cityId);
-        
-        if (!$city) {
-            Log::warning('ProcessSeoCityJob: Ville non trouvée', [
-                'city_id' => $this->cityId
-            ]);
-            return;
-        }
+        try {
+            $city = City::find($this->cityId);
+            
+            if (!$city) {
+                Log::warning('ProcessSeoCityJob: Ville non trouvée', [
+                    'city_id' => $this->cityId
+                ]);
+                $this->fail(new \Exception("Ville #{$this->cityId} non trouvée"));
+                return;
+            }
 
-        if (!$city->is_favorite) {
-            Log::info('ProcessSeoCityJob: Ville non favorite, ignorée', [
+            if (!$city->is_favorite) {
+                Log::info('ProcessSeoCityJob: Ville non favorite, ignorée', [
+                    'city_id' => $this->cityId,
+                    'city_name' => $city->name
+                ]);
+                return; // Ne pas marquer comme échec, juste ignorer
+            }
+
+            Log::info('ProcessSeoCityJob: Début traitement de la ville', [
                 'city_id' => $this->cityId,
-                'city_name' => $city->name
+                'city_name' => $city->name,
+                'custom_keyword' => $this->customKeyword
             ]);
-            return;
+
+            $log = $manager->runForCity($city, $this->customKeyword);
+            
+            Log::info('ProcessSeoCityJob: Traitement terminé', [
+                'city_id' => $this->cityId,
+                'city_name' => $city->name,
+                'status' => $log->status,
+                'article_id' => $log->article_id
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('ProcessSeoCityJob: Exception non gérée', [
+                'city_id' => $this->cityId,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            // Marquer le job comme échoué pour qu'il soit dans failed_jobs
+            $this->fail($e);
         }
-
-        Log::info('ProcessSeoCityJob: Traitement de la ville', [
+    }
+    
+    /**
+     * Handle a job failure.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('ProcessSeoCityJob: Job échoué définitivement', [
             'city_id' => $this->cityId,
-            'city_name' => $city->name,
-            'custom_keyword' => $this->customKeyword
+            'custom_keyword' => $this->customKeyword,
+            'exception' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString()
         ]);
-
-        $manager->runForCity($city, $this->customKeyword);
     }
 }
