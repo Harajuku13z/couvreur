@@ -33,7 +33,7 @@ class AiService
         $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
         
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
-        $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : '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';
+        $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
         $chatgptModelSetting = \App\Models\Setting::where('key', 'chatgpt_model')->first();
         $model = $options['model'] ?? ($chatgptModelSetting ? $chatgptModelSetting->value : 'gpt-4o');
