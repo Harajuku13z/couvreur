@@ -470,6 +470,54 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Tester le scheduler manuellement
+     */
+    public function testScheduler(Request $request)
+    {
+        try {
+            // Exécuter le scheduler manuellement
+            $exitCode = \Artisan::call('schedule:run');
+            $output = \Artisan::output();
+            
+            Log::info('SeoAutomationController: Test du scheduler', [
+                'exit_code' => $exitCode,
+                'output' => $output
+            ]);
+            
+            // Vérifier l'heure actuelle et configurée
+            $automationTime = \App\Models\Setting::where('key', 'seo_automation_time')->value('value') ?? '04:00';
+            $currentTime = now()->format('H:i');
+            $timezone = config('app.timezone', 'Europe/Paris');
+            
+            $info = [
+                'scheduler_executed' => $exitCode === 0,
+                'current_time' => $currentTime,
+                'automation_time' => $automationTime,
+                'timezone' => $timezone,
+                'will_trigger' => $currentTime === $automationTime,
+                'output' => $output
+            ];
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Scheduler testé avec succès',
+                'info' => $info
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('SeoAutomationController: Erreur test scheduler', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Réinitialiser toutes les automations (supprimer les logs et jobs)
      */
     public function resetAll(Request $request)

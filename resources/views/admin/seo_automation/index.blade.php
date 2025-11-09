@@ -41,8 +41,17 @@
                     Réinitialiser tout
                 </button>
             </form>
+            <button type="button" 
+                    id="testSchedulerBtn"
+                    class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
+                <i class="fas fa-vial mr-2"></i>
+                Tester le scheduler
+            </button>
         </div>
     </div>
+    
+    <!-- Résultat du test scheduler -->
+    <div id="schedulerTestResult" class="hidden mb-4"></div>
     
     <!-- Statut automatisation -->
     @php

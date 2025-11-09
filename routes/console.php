@@ -36,6 +36,9 @@ Schedule::command('seo:run-automations')
         // Vérifier si l'automatisation est activée
         $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
         if (!filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN)) {
+            \Illuminate\Support\Facades\Log::info('SeoAutomation: Désactivée', [
+                'enabled' => $automationEnabled
+            ]);
             return false;
         }
         
@@ -43,6 +46,14 @@ Schedule::command('seo:run-automations')
         $automationTime = \App\Models\Setting::get('seo_automation_time', '04:00');
         // Utiliser now() qui respecte le fuseau horaire configuré (Europe/Paris)
         $currentTime = now()->format('H:i');
+        
+        // Log pour déboguer
+        \Illuminate\Support\Facades\Log::info('SeoAutomation: Vérification horaire', [
+            'current_time' => $currentTime,
+            'automation_time' => $automationTime,
+            'timezone' => config('app.timezone'),
+            'matches' => $currentTime === $automationTime
+        ]);
         
         // Exécuter seulement si on est à l'heure exacte (en heure locale France)
         return $currentTime === $automationTime;
