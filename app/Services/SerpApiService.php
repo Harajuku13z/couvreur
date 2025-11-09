@@ -39,157 +39,174 @@ class SerpApiService
                 throw new \Exception('Clé API SerpAPI non configurée');
             }
             
-            // Pour Google Trends, on doit fournir soit 'q' (query) soit 'cat' (category)
-            // Le paramètre est 'cat' (pas 'category') et utilise des IDs numériques
-            // Pour obtenir des mots-clés tendances, on utilise RELATED_QUERIES avec un mot-clé générique
-            $params = [
-                'engine' => 'google_trends',
-                'geo' => $geo,
-                'q' => 'couvreur', // Mot-clé générique pour le secteur
-                'data_type' => 'RELATED_QUERIES', // Pour obtenir des requêtes liées (mots-clés tendances)
-                'api_key' => $this->apiKey,
-            ];
-            
-            // Vérifier que tous les paramètres requis sont présents
-            if (empty($params['q']) && empty($params['cat'])) {
-                Log::error('SerpAPI: Paramètre q ou cat manquant', ['params' => $params]);
-                throw new \Exception('Paramètre q ou cat requis pour Google Trends');
-            }
-            
-            // Vérifier que la clé API est bien présente
-            if (empty($params['api_key'])) {
-                Log::error('SerpAPI: Clé API vide dans les paramètres');
-                throw new \Exception('Clé API SerpAPI vide');
-            }
-            
-            Log::info('SerpAPI Trends request', [
-                'engine' => $params['engine'],
-                'q' => $params['q'] ?? null,
-                'cat' => $params['cat'] ?? null,
-                'geo' => $geo,
-                'data_type' => $params['data_type'] ?? null,
-                'has_api_key' => !empty($this->apiKey),
-                'api_key_length' => strlen($this->apiKey ?? '')
-            ]);
-            
-            // Construire l'URL manuellement pour vérifier que les paramètres sont bien passés
-            $url = 'https://serpapi.com/search.json?' . http_build_query($params);
-            Log::debug('SerpAPI URL construite', ['url' => preg_replace('/api_key=[^&]+/', 'api_key=***', $url)]);
-            
-            // Essayer d'abord avec l'URL construite manuellement (plus fiable)
-            try {
-                $response = Http::timeout(30)->get($url);
-            } catch (\Exception $e) {
-                Log::error('SerpAPI erreur avec URL construite', ['error' => $e->getMessage()]);
-                // Fallback vers la méthode standard
-                $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
-            }
-
-            if (!$response->successful()) {
-                $errorBody = $response->json();
-                Log::error('SerpAPI Trends error', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                    'error' => $errorBody['error'] ?? null,
-                    'geo' => $geo,
-                    'params_sent' => [
-                        'engine' => $params['engine'],
-                        'q' => $params['q'] ?? null,
-                        'geo' => $params['geo'] ?? null,
-                        'data_type' => $params['data_type'] ?? null
-                    ]
-                ]);
-                
-                // Si l'erreur est "Missing query", essayer avec 'cat' au lieu de 'q'
-                if ($response->status() === 400 && 
-                    (str_contains($response->body(), 'Missing query') || 
-                     (isset($errorBody['error']) && str_contains($errorBody['error'], 'Missing query')))) {
-                    Log::info('Tentative alternative SerpAPI Trends avec cat (sans q)');
-                    $altParams = [
-                        'engine' => 'google_trends',
-                        'geo' => $geo,
-                        'cat' => 0, // 0 = All categories (paramètre 'cat' pas 'category')
-                        'api_key' => $this->apiKey,
-                    ];
-                    $response = Http::timeout(30)->get('https://serpapi.com/search.json', $altParams);
-                    
-                    if (!$response->successful()) {
-                        Log::error('SerpAPI Trends alternative error', [
-                            'status' => $response->status(),
-                            'body' => $response->body()
-                        ]);
-                        return [];
-                    }
-                } else {
-                    return [];
-                }
-            }
-
-            $json = $response->json();
-            
-            // Google Trends API retourne différentes structures selon le type de recherche
-            // Pour 'q' (query), on cherche dans 'related_queries' ou 'interest_over_time'
-            // Pour 'cat' (category), on cherche dans 'interest_over_time'
             $titles = [];
             
-            // Essayer d'abord les related_queries (si on a utilisé 'q')
-            if (isset($json['related_queries'])) {
-                $relatedQueries = $json['related_queries'];
-                // Prendre les "top" et "rising" queries
-                if (isset($relatedQueries['top'])) {
-                    foreach ($relatedQueries['top'] as $query) {
-                        $title = $query['query'] ?? null;
-                        if ($title && !empty(trim($title))) {
-                            $titles[] = trim($title);
+            // APPROCHE 1: Utiliser Google Search standard pour obtenir des requêtes liées
+            // C'est plus fiable que Google Trends et fonctionne toujours
+            Log::info('SerpAPI: Tentative avec Google Search standard');
+            try {
+                $searchParams = [
+                    'engine' => 'google',
+                    'q' => 'couvreur ' . $geo, // Recherche générique avec localisation
+                    'gl' => strtolower($geo), // Code pays (fr pour France)
+                    'hl' => 'fr', // Langue
+                    'num' => 10, // Nombre de résultats
+                    'api_key' => $this->apiKey,
+                ];
+                
+                $url = 'https://serpapi.com/search.json?' . http_build_query($searchParams);
+                $response = Http::timeout(30)->get($url);
+                
+                if ($response->successful()) {
+                    $json = $response->json();
+                    
+                    // Extraire les requêtes liées depuis les résultats de recherche
+                    if (isset($json['related_questions'])) {
+                        foreach ($json['related_questions'] as $question) {
+                            $title = $question['question'] ?? null;
+                            if ($title && !empty(trim($title))) {
+                                $titles[] = trim($title);
+                            }
+                            if (count($titles) >= $limit) {
+                                break;
+                            }
                         }
-                        if (count($titles) >= $limit) {
-                            break;
+                    }
+                    
+                    // Extraire aussi les suggestions de recherche
+                    if (count($titles) < $limit && isset($json['related_searches'])) {
+                        foreach ($json['related_searches'] as $search) {
+                            $title = $search['query'] ?? null;
+                            if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                                $titles[] = trim($title);
+                            }
+                            if (count($titles) >= $limit) {
+                                break;
+                            }
                         }
+                    }
+                    
+                    // Extraire les "People also ask"
+                    if (count($titles) < $limit && isset($json['people_also_ask'])) {
+                        foreach ($json['people_also_ask'] as $item) {
+                            $title = $item['question'] ?? $item['title'] ?? null;
+                            if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                                $titles[] = trim($title);
+                            }
+                            if (count($titles) >= $limit) {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($titles)) {
+                        Log::info('SerpAPI: Mots-clés récupérés via Google Search', ['count' => count($titles)]);
+                        return $titles;
                     }
                 }
-                if (count($titles) < $limit && isset($relatedQueries['rising'])) {
-                    foreach ($relatedQueries['rising'] as $query) {
-                        $title = $query['query'] ?? null;
-                        if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
-                            $titles[] = trim($title);
+            } catch (\Exception $e) {
+                Log::warning('SerpAPI Google Search failed', ['error' => $e->getMessage()]);
+            }
+            
+            // APPROCHE 2: Utiliser Google Autocomplete pour obtenir des suggestions
+            Log::info('SerpAPI: Tentative avec Google Autocomplete');
+            try {
+                $autocompleteParams = [
+                    'engine' => 'google_autocomplete',
+                    'q' => 'couvreur',
+                    'gl' => strtolower($geo),
+                    'hl' => 'fr',
+                    'api_key' => $this->apiKey,
+                ];
+                
+                $url = 'https://serpapi.com/search.json?' . http_build_query($autocompleteParams);
+                $response = Http::timeout(30)->get($url);
+                
+                if ($response->successful()) {
+                    $json = $response->json();
+                    
+                    if (isset($json['suggestions'])) {
+                        foreach ($json['suggestions'] as $suggestion) {
+                            $title = $suggestion['value'] ?? $suggestion ?? null;
+                            if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                                $titles[] = trim($title);
+                            }
+                            if (count($titles) >= $limit) {
+                                break;
+                            }
                         }
-                        if (count($titles) >= $limit) {
-                            break;
-                        }
+                    }
+                    
+                    if (!empty($titles)) {
+                        Log::info('SerpAPI: Mots-clés récupérés via Autocomplete', ['count' => count($titles)]);
+                        return $titles;
                     }
                 }
+            } catch (\Exception $e) {
+                Log::warning('SerpAPI Autocomplete failed', ['error' => $e->getMessage()]);
             }
             
-            // Si pas assez de résultats, essayer interest_over_time (pour cat)
-            if (count($titles) < $limit && isset($json['interest_over_time'])) {
-                // Pour cat, on n'a pas de queries directes, on retourne ce qu'on a
-                // ou on peut extraire des données de timeline
-            }
-            
-            // Fallback: essayer trending_searches (format alternatif)
-            if (empty($titles)) {
-                $items = $json['trending_searches'] ?? ($json['trendingSearches'] ?? []);
-                foreach ($items as $item) {
-                    $title = $item['title'] ?? ($item['title']['query'] ?? null);
-                    if ($title && !empty(trim($title))) {
-                        $titles[] = trim($title);
+            // APPROCHE 3: Utiliser Google Trends avec TIMESERIES (plus simple, pas de data_type)
+            Log::info('SerpAPI: Tentative avec Google Trends TIMESERIES');
+            try {
+                $trendsParams = [
+                    'engine' => 'google_trends',
+                    'q' => 'couvreur',
+                    'geo' => $geo,
+                    'data_type' => 'TIMESERIES', // Format par défaut, plus fiable
+                    'api_key' => $this->apiKey,
+                ];
+                
+                $url = 'https://serpapi.com/search.json?' . http_build_query($trendsParams);
+                $response = Http::timeout(30)->get($url);
+                
+                if ($response->successful()) {
+                    $json = $response->json();
+                    
+                    // Extraire depuis related_queries si disponible
+                    if (isset($json['related_queries'])) {
+                        $relatedQueries = $json['related_queries'];
+                        if (isset($relatedQueries['top'])) {
+                            foreach ($relatedQueries['top'] as $query) {
+                                $title = $query['query'] ?? null;
+                                if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                                    $titles[] = trim($title);
+                                }
+                                if (count($titles) >= $limit) {
+                                    break;
+                                }
+                            }
+                        }
+                        if (count($titles) < $limit && isset($relatedQueries['rising'])) {
+                            foreach ($relatedQueries['rising'] as $query) {
+                                $title = $query['query'] ?? null;
+                                if ($title && !empty(trim($title)) && !in_array(trim($title), $titles)) {
+                                    $titles[] = trim($title);
+                                }
+                                if (count($titles) >= $limit) {
+                                    break;
+                                }
+                            }
+                        }
                     }
-                    if (count($titles) >= $limit) {
-                        break;
+                    
+                    if (!empty($titles)) {
+                        Log::info('SerpAPI: Mots-clés récupérés via Trends TIMESERIES', ['count' => count($titles)]);
+                        return $titles;
                     }
                 }
+            } catch (\Exception $e) {
+                Log::warning('SerpAPI Trends TIMESERIES failed', ['error' => $e->getMessage()]);
             }
             
-            Log::info('SerpAPI Trends récupérés', [
-                'geo' => $geo,
-                'count' => count($titles)
-            ]);
+            // Si aucune approche n'a fonctionné, retourner un tableau vide
+            Log::warning('SerpAPI: Aucune approche n\'a fonctionné pour récupérer les mots-clés');
+            return [];
             
-            return $titles;
         } catch (\Exception $e) {
-            Log::error('Exception SerpAPI Trends', [
+            Log::error('Exception SerpAPI getTrendingKeywords', [
                 'message' => $e->getMessage(),
-                'geo' => $geo
+                'trace' => $e->getTraceAsString()
             ]);
             return [];
         }
@@ -293,4 +310,3 @@ class SerpApiService
         }
     }
 }
-
