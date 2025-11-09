@@ -3,9 +3,9 @@
 @section('title', 'Appels Téléphoniques')
 
 @section('content')
-<div class="p-6">
+<div class="p-4 md:p-6">
     <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">📞 Appels Téléphoniques</h1>
+        <h1 class="text-xl md:text-3xl font-bold text-gray-800">📞 Appels Téléphoniques</h1>
         <p class="text-gray-600 mt-1">Suivi des clics sur les liens téléphone</p>
     </div>
 
@@ -71,7 +71,7 @@
 
     <!-- Test du tracking -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <h3 class="text-sm font-semibold text-blue-800 mb-1">
                     <i class="fas fa-flask mr-1"></i>Test du tracking
@@ -80,7 +80,7 @@
             </div>
             <button type="button" 
                     onclick="testPhoneTracking()" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition w-full sm:w-auto text-center">
                 <i class="fas fa-play mr-2"></i>Tester le tracking
             </button>
         </div>
@@ -88,24 +88,103 @@
 
     <!-- Calls Table -->
     <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-gray-800">
+        <div class="px-4 md:px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h2 class="text-lg md:text-xl font-semibold text-gray-800">
                 <i class="fas fa-list mr-2 text-blue-500"></i>Historique des appels
             </h2>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:space-x-4 w-full sm:w-auto">
             @if($phoneCalls->total() > 0)
             <span class="text-sm text-gray-600">{{ $phoneCalls->total() }} appel(s)</span>
             @endif
                 @if($phoneCalls->total() > 0)
                 <button onclick="showDeleteAllModal()" 
-                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center text-sm">
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center text-sm w-full sm:w-auto justify-center">
                     <i class="fas fa-trash-alt mr-2"></i>
                     Supprimer tout
                 </button>
                 @endif
             </div>
         </div>
-        <div class="overflow-x-auto">
+        
+        <!-- Vue mobile : Cartes -->
+        <div class="md:hidden">
+            @forelse($phoneCalls as $call)
+            <div class="border-b border-gray-200 p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <a href="tel:{{ $call->phone_number }}" class="text-blue-600 hover:text-blue-800 font-medium text-lg">
+                                <i class="fas fa-phone mr-1"></i>{{ $call->phone_number }}
+                            </a>
+                        </div>
+                        <div class="text-sm text-gray-500 mb-2">
+                            <i class="fas fa-calendar mr-1"></i>{{ $call->clicked_at->format('d/m/Y H:i:s') }}
+                        </div>
+                    </div>
+                    <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                            class="text-blue-600 hover:text-blue-900 p-2"
+                            title="Corriger la ville">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-2 text-sm">
+                    @if($call->city)
+                    <div class="flex items-center text-gray-600">
+                        <i class="fas fa-map-marker-alt w-5 text-gray-400"></i>
+                        <span>{{ $call->city }}@if($call->country), {{ $call->country }}@endif</span>
+                    </div>
+                    @endif
+                    <div class="flex items-center text-gray-600">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {{ $call->source_page === 'home' ? 'bg-blue-100 text-blue-800' : '' }}
+                            {{ $call->source_page === 'success' ? 'bg-green-100 text-green-800' : '' }}
+                            {{ $call->source_page === 'header' ? 'bg-purple-100 text-purple-800' : '' }}
+                            {{ !in_array($call->source_page, ['home', 'success', 'header']) ? 'bg-gray-100 text-gray-800' : '' }}">
+                            {{ ucfirst($call->source_page) }}
+                        </span>
+                    </div>
+                    @if($call->referrer_url)
+                    <div class="flex items-start text-gray-600">
+                        <i class="fas fa-external-link-alt w-5 text-gray-400 mt-0.5"></i>
+                        <a href="{{ $call->referrer_url }}" target="_blank" 
+                           class="text-blue-600 hover:text-blue-800 break-all" 
+                           title="{{ $call->referrer_url }}">
+                            @php
+                                $referrerPath = parse_url($call->referrer_url, PHP_URL_PATH);
+                                $displayUrl = $referrerPath ?: $call->referrer_url;
+                            @endphp
+                            {{ Str::limit($displayUrl, 50) }}
+                        </a>
+                    </div>
+                    @endif
+                    @if($call->submission_id)
+                    <div class="flex items-center text-gray-600">
+                        <i class="fas fa-file-alt w-5 text-gray-400"></i>
+                        <a href="{{ route('admin.submission.show', $call->submission_id) }}" class="text-blue-600 hover:text-blue-800">
+                            Soumission #{{ $call->submission_id }}
+                        </a>
+                    </div>
+                    @endif
+                    @if($call->ip_address)
+                    <div class="flex items-center text-gray-600">
+                        <i class="fas fa-network-wired w-5 text-gray-400"></i>
+                        <span>{{ $call->ip_address }}</span>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="p-6 text-center">
+                <i class="fas fa-phone-slash text-6xl text-gray-300 mb-4"></i>
+                <p class="text-xl text-gray-600">Aucun appel téléphonique enregistré</p>
+                <p class="text-sm text-gray-500 mt-2">Les clics sur les liens téléphone seront suivis ici</p>
+            </div>
+            @endforelse
+        </div>
+
+        <!-- Vue desktop : Table -->
+        <div class="hidden md:block overflow-x-auto table-responsive">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -203,7 +282,7 @@
         </div>
 
         @if($phoneCalls->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
+        <div class="px-4 md:px-6 py-4 border-t border-gray-200">
             {{ $phoneCalls->links() }}
         </div>
         @endif
@@ -319,7 +398,7 @@
 
 <!-- Modal Supprimer tout -->
 <div id="deleteAllModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 md:top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white modal-responsive">
         <div class="mt-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">
@@ -431,7 +510,7 @@ document.getElementById('deleteAllForm').addEventListener('submit', function(e) 
 
 <!-- Modal correction ville -->
 <div id="editCityModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 md:top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white modal-responsive">
         <div class="mt-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">
