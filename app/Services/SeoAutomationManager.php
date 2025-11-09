@@ -323,7 +323,26 @@ class SeoAutomationManager
             $steps[count($steps) - 1]['data'] = ['url' => $url, 'indexed' => $indexed];
             if ($progressCallback) $progressCallback($steps);
 
-            // 7. Update log
+            // 7. Analyser la qualité SEO de l'article
+            try {
+                $analyzer = app(SeoQualityAnalyzer::class);
+                $seoAnalysis = $analyzer->analyze($article);
+                
+                Log::info('SeoAutomationManager: Analyse SEO de l\'article', [
+                    'article_id' => $article->id,
+                    'score' => $seoAnalysis['score'],
+                    'percentage' => $seoAnalysis['percentage'],
+                    'grade' => $seoAnalysis['grade']
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('SeoAutomationManager: Erreur lors de l\'analyse SEO', [
+                    'article_id' => $article->id,
+                    'error' => $e->getMessage()
+                ]);
+                $seoAnalysis = null;
+            }
+
+            // 8. Update log
             $log->update([
                 'keyword' => $keyword,
                 'status' => $indexed ? 'indexed' : 'published',
@@ -335,6 +354,7 @@ class SeoAutomationManager
                     'competitors' => $competitors,
                     'indexed' => $indexed,
                     'steps' => $steps,
+                    'seo_analysis' => $seoAnalysis,
                 ],
                 'error_message' => null,
             ]);
@@ -343,7 +363,9 @@ class SeoAutomationManager
                 'city' => $city->name,
                 'keyword' => $keyword,
                 'article_id' => $article->id,
-                'url' => $url
+                'url' => $url,
+                'seo_score' => $seoAnalysis['percentage'] ?? null,
+                'seo_grade' => $seoAnalysis['grade'] ?? null
             ]);
 
             return $log;
