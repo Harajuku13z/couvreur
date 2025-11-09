@@ -15,6 +15,39 @@ use Illuminate\Support\Facades\Log;
 class SeoAutomationController extends Controller
 {
     /**
+     * Afficher le formulaire de mot de passe
+     */
+    public function passwordForm()
+    {
+        return view('admin.seo_automation.password');
+    }
+
+    /**
+     * Vérifier le mot de passe
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        if ($request->password === 'elizo') {
+            $request->session()->put('seo_automation_password_verified', true);
+            $request->session()->put('seo_automation_password_verified_at', now());
+            
+            $redirectTo = $request->session()->get('redirect_to', route('admin.seo-automation.index'));
+            $request->session()->forget('redirect_to');
+            
+            return redirect($redirectTo)
+                ->with('success', 'Accès autorisé pour 1 heure.');
+        }
+
+        return redirect()->back()
+            ->with('error', 'Mot de passe incorrect.')
+            ->withInput();
+    }
+
+    /**
      * Afficher la liste des automations SEO
      */
     public function index()
