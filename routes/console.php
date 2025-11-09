@@ -25,19 +25,23 @@ Schedule::command('index:urls-daily')
     });
 
 // Automatisation SEO : génération d'articles quotidiens pour les villes favorites
-// Note: L'heure est récupérée dynamiquement dans la closure pour permettre les changements en temps réel
+// Note: L'heure est récupérée dynamiquement dans when() pour permettre les changements en temps réel
 Schedule::command('seo:run-automations')
-    ->daily(function () {
-        // Récupérer l'heure dynamiquement depuis les settings
-        $automationTime = \App\Models\Setting::get('seo_automation_time', '04:00');
-        $currentTime = now()->format('H:i');
-        return $currentTime === $automationTime;
-    })
+    ->hourly() // Vérifier chaque heure (le when() déterminera si on exécute)
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
     ->runInBackground() // Exécuter en arrière-plan
     ->when(function () {
         // Vérifier si l'automatisation est activée
         $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
-        return filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+        if (!filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN)) {
+            return false;
+        }
+        
+        // Vérifier si on est à l'heure configurée
+        $automationTime = \App\Models\Setting::get('seo_automation_time', '04:00');
+        $currentTime = now()->format('H:i');
+        
+        // Exécuter seulement si on est à l'heure exacte
+        return $currentTime === $automationTime;
     });
