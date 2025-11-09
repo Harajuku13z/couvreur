@@ -938,6 +938,21 @@
                             <a href="{{ $log->article_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
                                 <i class="fas fa-external-link-alt mr-1"></i> Voir
                             </a>
+                            @php
+                                $metadata = is_array($log->metadata) ? $log->metadata : json_decode($log->metadata, true);
+                                $seoAnalysis = $metadata['seo_analysis'] ?? null;
+                            @endphp
+                            @if($seoAnalysis)
+                                <div class="mt-1">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                        @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
+                                        @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
+                                        @else bg-red-100 text-red-800
+                                        @endif">
+                                        <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
+                                    </span>
+                                </div>
+                            @endif
                         @else
                             <span class="text-gray-400 text-sm">-</span>
                         @endif
