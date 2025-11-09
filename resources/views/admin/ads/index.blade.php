@@ -55,15 +55,15 @@
         </div>
 
         <!-- Actions rapides -->
-        <div class="flex justify-between items-center bg-white rounded-xl shadow-sm p-4 border">
-            <div class="flex items-center space-x-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white rounded-xl shadow-sm p-4 border">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
                 <span class="text-sm text-gray-600">Actions rapides :</span>
-                <button onclick="deleteAllAds()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200 transition-colors duration-200 flex items-center">
+                <button onclick="deleteAllAds()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg border border-red-200 transition-colors duration-200 flex items-center justify-center w-full sm:w-auto">
                     <i class="fas fa-trash mr-2"></i>
                     Supprimer toutes les annonces
                 </button>
             </div>
-            <div class="text-sm text-gray-500">
+            <div class="text-xs sm:text-sm text-gray-500 text-center sm:text-right">
                 Dernière mise à jour : {{ now()->format('d/m/Y H:i') }}
             </div>
         </div>
@@ -78,11 +78,96 @@
 
     <!-- Tableau des annonces -->
     <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div class="px-6 py-4 border-b bg-gray-50">
+        <div class="px-4 md:px-6 py-4 border-b bg-gray-50">
             <h2 class="text-lg font-semibold text-gray-900">Liste des annonces</h2>
         </div>
         
-        <div class="overflow-x-auto">
+        <!-- Vue mobile : Cartes -->
+        <div class="md:hidden divide-y divide-gray-200">
+            @forelse($ads as $ad)
+            <div class="p-4 hover:bg-gray-50">
+                <!-- Ligne 1: Titre -->
+                <div class="mb-2">
+                    <h3 class="text-base font-semibold text-gray-900">{{ $ad->title }}</h3>
+                    @if($ad->keyword)
+                    <p class="text-xs text-gray-500 mt-1">{{ $ad->keyword }}</p>
+                    @endif
+                </div>
+                <!-- Ligne 2: Ville et Statut -->
+                <div class="mb-2 flex flex-wrap items-center gap-2">
+                    @if($ad->city)
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+                        <span>{{ $ad->city->name }}@if($ad->city->postal_code) ({{ $ad->city->postal_code }})@endif</span>
+                    </div>
+                    @endif
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {{ match($ad->status) {
+                            'published' => 'bg-green-100 text-green-800',
+                            'draft' => 'bg-yellow-100 text-yellow-800',
+                            'archived' => 'bg-gray-100 text-gray-800'
+                        } }}">
+                        <i class="fas fa-circle mr-1 text-xs
+                            {{ match($ad->status) {
+                                'published' => 'text-green-400',
+                                'draft' => 'text-yellow-400',
+                                'archived' => 'text-gray-400'
+                            } }}"></i>
+                        {{ ucfirst($ad->status) }}
+                    </span>
+                </div>
+                <!-- Ligne 3: Slug -->
+                <div class="mb-3">
+                    <code class="text-xs bg-gray-100 px-2 py-1 rounded break-all">{{ $ad->slug }}</code>
+                </div>
+                <!-- Ligne 4: Actions -->
+                <div class="flex flex-wrap gap-2">
+                    @if($ad->status !== 'published')
+                    <form method="POST" action="{{ route('admin.ads.publish', $ad) }}" class="inline">
+                        @csrf
+                        <button class="text-blue-600 hover:text-blue-800 transition-colors duration-150 text-sm px-3 py-1 rounded hover:bg-blue-50">
+                            <i class="fas fa-eye mr-1"></i>Publier
+                        </button>
+                    </form>
+                    @endif
+                    
+                    @if($ad->status !== 'archived')
+                    <form method="POST" action="{{ route('admin.ads.archive', $ad) }}" class="inline">
+                        @csrf
+                        <button class="text-gray-600 hover:text-gray-800 transition-colors duration-150 text-sm px-3 py-1 rounded hover:bg-gray-50">
+                            <i class="fas fa-archive mr-1"></i>Archiver
+                        </button>
+                    </form>
+                    @endif
+                    
+                    <form method="POST" action="{{ route('admin.ads.destroy', $ad) }}" class="inline" onsubmit="return confirm('Supprimer cette annonce ?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="text-red-600 hover:text-red-800 transition-colors duration-150 text-sm px-3 py-1 rounded hover:bg-red-50">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </form>
+                    
+                    @if($ad->status === 'published')
+                    <a class="text-green-600 hover:text-green-800 transition-colors duration-150 text-sm px-3 py-1 rounded hover:bg-green-50 inline-flex items-center" target="_blank" href="{{ route('ads.show', $ad->slug) }}">
+                        <i class="fas fa-external-link-alt mr-1"></i>Voir
+                    </a>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="px-4 md:px-6 py-12 text-center">
+                <div class="text-gray-400">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <p class="text-lg font-medium">Aucune annonce</p>
+                    <p class="text-sm">Commencez par créer votre première annonce</p>
+                </div>
+            </div>
+            @endforelse
+        </div>
+        
+        <!-- Vue desktop : Table -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
