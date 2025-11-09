@@ -272,13 +272,15 @@ Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâ
 **Requêtes associées à intégrer naturellement :** {$related}
 {$companyInfo}
 
-**STRUCTURE OBLIGATOIRE DE L'ARTICLE :**
+**STRUCTURE OBLIGATOIRE EN HTML :**
 
-1. **INTRODUCTION (2-3 paragraphes)** :
-   - Commencer par une phrase d'accroche qui mentionne la ville ({$cityName}) et le contexte local
-   - Présenter l'entreprise ({$companyName}) comme expert local
-   - Mentionner les services principaux liés au mot-clé
+1. **INTRODUCTION** - 1 paragraphe <p> MAXIMUM :
+   - Commencer DIRECTEMENT par le service/mot-clé principal ({$keyword})
+   - Aller droit au but : présenter le service, pas la ville
+   - Éviter les descriptions longues de la ville ou du contexte local
+   - Mentionner brièvement {$companyName} comme expert
    - Utiliser \"vous\" pour s'adresser directement au lecteur
+   - **IMPORTANT : Pas de description de la ville au début, aller directement au service**
 
 2. **SECTIONS PRINCIPALES (H2)** - Minimum 3-4 sections :
    - Chaque section doit avoir un titre clair et descriptif (ex: \"Rénovation et Réparation de Couverture à {$cityName}\")
