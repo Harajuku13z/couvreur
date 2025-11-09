@@ -28,7 +28,7 @@ Schedule::command('index:urls-daily')
 // Note: L'heure est récupérée dynamiquement dans when() pour permettre les changements en temps réel
 // Utilise le fuseau horaire configuré dans config/app.php (Europe/Paris)
 Schedule::command('seo:run-automations')
-    ->hourly() // Vérifier chaque heure (le when() déterminera si on exécute)
+    ->everyMinute() // Vérifier chaque minute (le when() déterminera si on exécute à l'heure exacte)
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
     ->runInBackground() // Exécuter en arrière-plan
