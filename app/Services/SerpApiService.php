@@ -50,26 +50,50 @@ class SerpApiService
                 'api_key' => $this->apiKey,
             ];
             
-            Log::info('SerpAPI Trends request', ['params' => array_merge($params, ['api_key' => '***']), 'geo' => $geo]);
+            // Vérifier que tous les paramètres requis sont présents
+            if (empty($params['q']) && empty($params['cat'])) {
+                Log::error('SerpAPI: Paramètre q ou cat manquant', ['params' => $params]);
+                throw new \Exception('Paramètre q ou cat requis pour Google Trends');
+            }
+            
+            Log::info('SerpAPI Trends request', [
+                'engine' => $params['engine'],
+                'q' => $params['q'] ?? null,
+                'cat' => $params['cat'] ?? null,
+                'geo' => $geo,
+                'data_type' => $params['data_type'] ?? null,
+                'has_api_key' => !empty($this->apiKey)
+            ]);
             
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', $params);
 
             if (!$response->successful()) {
+                $errorBody = $response->json();
                 Log::error('SerpAPI Trends error', [
                     'status' => $response->status(),
                     'body' => $response->body(),
-                    'geo' => $geo
+                    'error' => $errorBody['error'] ?? null,
+                    'geo' => $geo,
+                    'params_sent' => [
+                        'engine' => $params['engine'],
+                        'q' => $params['q'] ?? null,
+                        'geo' => $params['geo'] ?? null,
+                        'data_type' => $params['data_type'] ?? null
+                    ]
                 ]);
                 
-                // Si l'erreur persiste, essayer avec 'cat' (pas 'category') - 0 = All categories
-                if ($response->status() === 400) {
-                    Log::info('Tentative alternative SerpAPI Trends avec cat');
-                    $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
+                // Si l'erreur est "Missing query", essayer avec 'cat' au lieu de 'q'
+                if ($response->status() === 400 && 
+                    (str_contains($response->body(), 'Missing query') || 
+                     (isset($errorBody['error']) && str_contains($errorBody['error'], 'Missing query')))) {
+                    Log::info('Tentative alternative SerpAPI Trends avec cat (sans q)');
+                    $altParams = [
                         'engine' => 'google_trends',
                         'geo' => $geo,
                         'cat' => 0, // 0 = All categories (paramètre 'cat' pas 'category')
                         'api_key' => $this->apiKey,
-                    ]);
+                    ];
+                    $response = Http::timeout(30)->get('https://serpapi.com/search.json', $altParams);
                     
                     if (!$response->successful()) {
                         Log::error('SerpAPI Trends alternative error', [
