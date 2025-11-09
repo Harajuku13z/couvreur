@@ -263,7 +263,8 @@ class GptSeoGenerator
         return trim("
 Tu es un expert en rédaction SEO et marketing de contenu pour le secteur du bâtiment et de la rénovation. Ta tâche est de rédiger un article web de qualité supérieure, engageant et optimisé pour le référencement Google.
 
-**IMPORTANT : Écris UNIQUEMENT le texte brut, SANS HTML, SANS formatage, juste le contenu de qualité.**
+**CRITIQUE : Génère le contenu DIRECTEMENT en HTML bien structuré avec les balises <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <br>.**
+**Le contenu DOIT être en HTML, pas en texte brut.**
 
 **1. Mot-clé principal :** {$keyword} à {$cityName}
 
@@ -344,7 +345,7 @@ Introduction (2-3 paragraphes)
 [Appel à l'action et contact]
 
 **Format de sortie :**
-Retourne UNIQUEMENT le texte brut, sans HTML, sans JSON, sans formatage. Juste le contenu de qualité, paragraphe par paragraphe, séparés par des retours à la ligne. Indique les sections principales par des lignes vides avant et après.
+Retourne UNIQUEMENT le HTML formaté, sans markdown, sans code blocks, juste le HTML pur et valide. Assure-toi que TOUT le contenu est en HTML (pas de texte brut).
 ");
     }
 

@@ -47,14 +47,28 @@ Schedule::command('seo:run-automations')
         // Utiliser now() qui respecte le fuseau horaire configuré (Europe/Paris)
         $currentTime = now()->format('H:i');
         
+        // Vérifier qu'il y a des villes favorites
+        $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
+        
         // Log pour déboguer
         \Illuminate\Support\Facades\Log::info('SeoAutomation: Vérification horaire', [
             'current_time' => $currentTime,
             'automation_time' => $automationTime,
             'timezone' => config('app.timezone'),
-            'matches' => $currentTime === $automationTime
+            'matches' => $currentTime === $automationTime,
+            'favorite_cities_count' => $favoriteCitiesCount
         ]);
         
-        // Exécuter seulement si on est à l'heure exacte (en heure locale France)
-        return $currentTime === $automationTime;
+        // Vérifier les conditions
+        if ($currentTime !== $automationTime) {
+            return false; // Pas la bonne heure
+        }
+        
+        if ($favoriteCitiesCount === 0) {
+            \Illuminate\Support\Facades\Log::warning('SeoAutomation: Aucune ville favorite configurée');
+            return false; // Pas de villes favorites
+        }
+        
+        // Exécuter si toutes les conditions sont remplies
+        return true;
     });
