@@ -142,10 +142,15 @@ class SeoAutomationManager
             
             $steps[count($steps) - 1]['status'] = 'success';
             $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés';
+            $competitorTitles = [];
+            foreach ($competitors as $competitor) {
+                $competitorTitles[] = $competitor['title'] ?? 'N/A';
+            }
+            
             $steps[count($steps) - 1]['data'] = [
                 'related_queries' => array_slice($related, 0, 3),
                 'competitors_count' => count($competitors),
-                'competitors_titles' => array_slice(array_map(fn($c) => $c['title'] ?? 'N/A', $competitors), 0, 3)
+                'competitors_titles' => array_slice($competitorTitles, 0, 3)
             ];
             if ($progressCallback) $progressCallback($steps);
 
