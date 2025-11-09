@@ -49,26 +49,26 @@ class AiService
         elseif ($chatgptModelSetting && !empty($chatgptModelSetting->value)) {
             $model = $chatgptModelSetting->value;
         } 
-        // PRIORITÉ 3: Par défaut gpt-4-turbo-preview (nom exact de l'API)
+        // PRIORITÉ 3: Par défaut gpt-4o (plus récent, support 128k tokens)
         else {
-            $model = 'gpt-4-turbo-preview';
+            $model = 'gpt-4o';
         }
         
         // CRITIQUE: Si max_tokens > 4096, FORCER un modèle compatible (AVANT l'appel API)
         if ($maxTokens > 4096) {
             // Modèles compatibles avec tokens longs (noms exacts de l'API OpenAI)
             $compatibleModels = [
-                'gpt-4-turbo-preview',      // Nom exact pour gpt-4-turbo
+                'gpt-4o',                  // GPT-4o (recommandé, plus récent)
+                'gpt-4o-2024-08-06',       // GPT-4o avec date
+                'gpt-4-turbo-preview',     // gpt-4-turbo
                 'gpt-4-0125-preview',      // Variante
-                'gpt-4-1106-preview',      // Variante
-                'gpt-4o',                  // GPT-4o
-                'gpt-4o-2024-08-06'        // GPT-4o avec date
+                'gpt-4-1106-preview'       // Variante
             ];
             
             if (!in_array($model, $compatibleModels)) {
                 $originalModel = $model;
-                $model = 'gpt-4-turbo-preview'; // Nom exact de l'API
-                Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4-turbo-preview', [
+                $model = 'gpt-4o'; // Utiliser gpt-4o par défaut (plus récent, meilleur)
+                Log::warning('AiService: Modèle incompatible avec max_tokens élevé, passage à gpt-4o', [
                     'original_model' => $originalModel,
                     'new_model' => $model,
                     'max_tokens' => $maxTokens
