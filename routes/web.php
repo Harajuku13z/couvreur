@@ -294,7 +294,8 @@ Route::middleware(['check.setup'])->group(function () {
 
             // ===== AUTOMATISATION SEO =====
             Route::get('/seo-automation', [App\Http\Controllers\Admin\SeoAutomationController::class, 'index'])->name('seo-automation.index');
-            Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run');
+            Route::post('/seo-automation/run', [App\Http\Controllers\Admin\SeoAutomationController::class, 'run'])->name('seo-automation.run');
+            Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run-city');
             Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
 
             // ===== ARTICLES =====

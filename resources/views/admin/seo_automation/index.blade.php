@@ -48,6 +48,114 @@
         </div>
     </div>
 
+    <!-- Formulaire de lancement -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-play-circle mr-2 text-blue-600"></i>Lancer la génération d'articles
+        </h2>
+        
+        <form action="{{ route('admin.seo-automation.run') }}" method="POST" class="space-y-4">
+            @csrf
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nombre d'articles -->
+                <div>
+                    <label for="number_of_articles" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre d'articles à créer <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" 
+                           id="number_of_articles" 
+                           name="number_of_articles" 
+                           value="{{ old('number_of_articles', 1) }}"
+                           min="1" 
+                           max="50" 
+                           required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Entre 1 et 50 articles par ville</p>
+                </div>
+
+                <!-- Sélection de service -->
+                <div>
+                    <label for="service_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        Service (optionnel)
+                    </label>
+                    <select id="service_id" 
+                            name="service_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Aucun service --</option>
+                        @foreach($services as $service)
+                            <option value="{{ $service['id'] ?? '' }}" {{ old('service_id') == ($service['id'] ?? '') ? 'selected' : '' }}>
+                                {{ $service['name'] ?? 'Service sans nom' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Sélectionner un service pour utiliser son nom comme mot-clé</p>
+                </div>
+            </div>
+
+            <!-- Mot-clé personnalisé -->
+            <div>
+                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-2">
+                    Mot-clé personnalisé (optionnel)
+                </label>
+                <input type="text" 
+                       id="keyword" 
+                       name="keyword" 
+                       value="{{ old('keyword') }}"
+                       placeholder="Ex: couvreur, toiture, rénovation..."
+                       maxlength="255"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-gray-500 mt-1">Si rempli, ce mot-clé sera utilisé au lieu des tendances. Priorité sur le service.</p>
+            </div>
+
+            <!-- Sélection des villes -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Villes à cibler
+                </label>
+                <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
+                    @if($favoriteCities->isEmpty())
+                        <p class="text-sm text-gray-500 italic">Aucune ville favorite configurée. Allez dans <strong>Villes</strong> pour en marquer comme favorites.</p>
+                    @else
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" 
+                                       id="select_all_cities" 
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                       onchange="document.querySelectorAll('input[name=\"city_ids[]\"]').forEach(cb => cb.checked = this.checked)">
+                                <span class="ml-2 text-sm font-medium text-gray-700">Sélectionner toutes ({{ $favoriteCities->count() }} villes favorites)</span>
+                            </label>
+                            <hr class="my-2">
+                            @foreach($favoriteCities as $city)
+                                <label class="flex items-center">
+                                    <input type="checkbox" 
+                                           name="city_ids[]" 
+                                           value="{{ $city->id }}"
+                                           {{ old('city_ids') && in_array($city->id, old('city_ids')) ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">{{ $city->name }}</span>
+                                    @if($city->postal_code)
+                                        <span class="ml-2 text-xs text-gray-500">({{ $city->postal_code }})</span>
+                                    @endif
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Si aucune ville n'est sélectionnée, toutes les villes favorites seront utilisées</p>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Lancer la génération
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Table Desktop -->
     <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">

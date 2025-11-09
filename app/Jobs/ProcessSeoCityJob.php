@@ -15,15 +15,17 @@ class ProcessSeoCityJob implements ShouldQueue
     use InteractsWithQueue, Queueable, SerializesModels;
 
     public $cityId;
+    public $customKeyword;
     public $tries = 3;
     public $timeout = 300;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($cityId)
+    public function __construct($cityId, $customKeyword = null)
     {
         $this->cityId = $cityId;
+        $this->customKeyword = $customKeyword;
     }
 
     /**
@@ -50,9 +52,10 @@ class ProcessSeoCityJob implements ShouldQueue
 
         Log::info('ProcessSeoCityJob: Traitement de la ville', [
             'city_id' => $this->cityId,
-            'city_name' => $city->name
+            'city_name' => $city->name,
+            'custom_keyword' => $this->customKeyword
         ]);
 
-        $manager->runForCity($city);
+        $manager->runForCity($city, $this->customKeyword);
     }
 }

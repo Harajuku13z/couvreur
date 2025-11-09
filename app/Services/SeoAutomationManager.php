@@ -29,9 +29,10 @@ class SeoAutomationManager
      * Exécute la génération pour une ville
      * 
      * @param City $city Ville à traiter
+     * @param string|null $customKeyword Mot-clé personnalisé (optionnel)
      * @return SeoAutomation Instance du log créé
      */
-    public function runForCity(City $city): SeoAutomation
+    public function runForCity(City $city, ?string $customKeyword = null): SeoAutomation
     {
         $log = SeoAutomation::create([
             'city_id' => $city->id,
@@ -39,32 +40,41 @@ class SeoAutomationManager
         ]);
 
         try {
-            // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
-            $geo = $city->region ?? 'FR';
-            // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
-            if (strpos($geo, '-') !== false) {
-                $geo = explode('-', $geo)[0];
-            }
-            
-            $keywords = $this->serp->getTrendingKeywords($geo, 12);
-            
-            if (empty($keywords)) {
-                $log->update([
-                    'status' => 'failed',
-                    'error_message' => 'Aucun mot-clé récupéré depuis SerpAPI'
+            // Si un mot-clé personnalisé est fourni, l'utiliser directement
+            if ($customKeyword) {
+                $keyword = trim($customKeyword);
+                Log::info('SeoAutomationManager: Utilisation du mot-clé personnalisé', [
+                    'city' => $city->name,
+                    'keyword' => $keyword
                 ]);
-                return $log;
-            }
+            } else {
+                // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
+                $geo = $city->region ?? 'FR';
+                // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
+                if (strpos($geo, '-') !== false) {
+                    $geo = explode('-', $geo)[0];
+                }
+                
+                $keywords = $this->serp->getTrendingKeywords($geo, 12);
+                
+                if (empty($keywords)) {
+                    $log->update([
+                        'status' => 'failed',
+                        'error_message' => 'Aucun mot-clé récupéré depuis SerpAPI'
+                    ]);
+                    return $log;
+                }
 
-            // 2. Choisir mot-clé : priorité = mot non déjà utilisé récemment pour cette ville
-            $keyword = $this->selectKeywordForCity($keywords, $city);
-            
-            if (!$keyword) {
-                $log->update([
-                    'status' => 'failed',
-                    'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)'
-                ]);
-                return $log;
+                // 2. Choisir mot-clé : priorité = mot non déjà utilisé récemment pour cette ville
+                $keyword = $this->selectKeywordForCity($keywords, $city);
+                
+                if (!$keyword) {
+                    $log->update([
+                        'status' => 'failed',
+                        'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)'
+                    ]);
+                    return $log;
+                }
             }
 
             // 3. Related + competitors
