@@ -14,54 +14,29 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
     <!-- Tailwind CSS - Version compatible Safari -->
-    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous" onerror="loadTailwindFallback()"></script>
+    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
     <!-- Fallback pour Safari si le script ne charge pas -->
     <script>
-        function loadTailwindFallback() {
-            console.warn('Tailwind CDN failed, loading fallback CSS');
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css';
-            link.crossOrigin = 'anonymous';
-            document.head.appendChild(link);
-        }
-        
-        // Vérifier si Tailwind est chargé après 1 seconde (Safari peut être plus lent)
+        // Vérifier si Tailwind est chargé après 2 secondes
         setTimeout(function() {
-            if (typeof tailwind === 'undefined' && !document.querySelector('style[data-tailwind-fallback]')) {
-                console.warn('Tailwind not loaded, applying fallback styles');
+            if (typeof tailwind === 'undefined') {
+                // Créer un fallback CSS inline minimal
                 var style = document.createElement('style');
-                style.setAttribute('data-tailwind-fallback', 'true');
                 style.textContent = `
-                    * { box-sizing: border-box; }
-                    .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+                    .container { width: 100%; margin: 0 auto; padding: 0 1rem; }
                     .flex { display: flex; }
                     .grid { display: grid; }
-                    .hidden { display: none !important; }
+                    .hidden { display: none; }
                     .bg-white { background-color: #fff; }
                     .text-gray-900 { color: #111827; }
-                    .text-gray-600 { color: #4b5563; }
                     .rounded-lg { border-radius: 0.5rem; }
                     .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                    .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
                     .p-4 { padding: 1rem; }
-                    .p-6 { padding: 1.5rem; }
                     .mb-4 { margin-bottom: 1rem; }
-                    .mb-6 { margin-bottom: 1.5rem; }
-                    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-                    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-                    .gap-4 { gap: 1rem; }
-                    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-                    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-                    @media (min-width: 768px) {
-                        .md\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-                        .md\\:hidden { display: none !important; }
-                        .md\\:block { display: block !important; }
-                    }
                 `;
                 document.head.appendChild(style);
             }
-        }, 1000);
+        }, 2000);
     </script>
     
     <!-- Font Awesome -->
