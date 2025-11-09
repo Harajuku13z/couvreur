@@ -9,8 +9,10 @@ use App\Jobs\ProcessSeoCityJob;
 use App\Services\SerpApiService;
 use App\Services\GptSeoGenerator;
 use App\Services\GoogleIndexingService;
+use App\Models\KeywordImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SeoAutomationController extends Controller
 {
@@ -1170,6 +1172,86 @@ class SeoAutomationController extends Controller
                 'status' => 'error',
                 'message' => 'Erreur générale: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Stocker une image pour un mot-clé
+     */
+    public function storeKeywordImage(Request $request)
+    {
+        $validated = $request->validate([
+            'keyword' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB max
+            'title' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $image = $request->file('image');
+            $keyword = trim($validated['keyword']);
+            
+            // Créer le dossier s'il n'existe pas
+            $uploadDir = public_path('images/keywords');
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Nom du fichier
+            $filename = 'keyword-' . Str::slug($keyword) . '-' . time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = 'images/keywords/' . $filename;
+            
+            // Déplacer l'image
+            $image->move($uploadDir, $filename);
+            
+            // Créer l'entrée dans la base de données
+            $keywordImage = KeywordImage::create([
+                'keyword' => $keyword,
+                'image_path' => $imagePath,
+                'title' => $validated['title'] ?? null,
+                'is_active' => true,
+                'display_order' => 0,
+            ]);
+            
+            return redirect()->back()
+                ->with('success', "✅ Image ajoutée avec succès pour le mot-clé \"{$keyword}\"");
+                
+        } catch (\Exception $e) {
+            Log::error('Erreur ajout image mot-clé', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de l\'ajout de l\'image : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Supprimer une image de mot-clé
+     */
+    public function destroyKeywordImage(KeywordImage $keywordImage)
+    {
+        try {
+            // Supprimer le fichier physique
+            $imagePath = public_path($keywordImage->image_path);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+            
+            // Supprimer l'entrée de la base de données
+            $keywordImage->delete();
+            
+            return redirect()->back()
+                ->with('success', "✅ Image supprimée avec succès");
+                
+        } catch (\Exception $e) {
+            Log::error('Erreur suppression image mot-clé', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de la suppression de l\'image : ' . $e->getMessage());
         }
     }
 }
