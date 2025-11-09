@@ -194,14 +194,6 @@ class GptSeoGenerator
             'html_length' => strlen($formattedHtml),
             'text_length' => strlen($rawText)
         ]);
-            Log::error('GptSeoGenerator: Données invalides (titre ou contenu_html manquant)', [
-                'has_titre' => !empty($decoded['titre']),
-                'has_contenu_html' => !empty($decoded['contenu_html']),
-                'generated_title' => $generatedTitle,
-                'decoded_keys' => array_keys($decoded ?? [])
-            ]);
-            return null;
-        }
 
         // Récupérer les images de réalisations
         $portfolioImages = $this->portfolioImageService->getImagesByKeyword($keyword, 5);
