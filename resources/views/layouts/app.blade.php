@@ -208,19 +208,19 @@
         
         // Priorité 3: site_favicon (ConfigController)
         if (!$faviconUrl) {
-            $faviconPath = setting('site_favicon');
-            if ($faviconPath) {
-                // Si le chemin commence par uploads/, c'est un chemin relatif depuis public
-                if (strpos($faviconPath, 'uploads/') === 0 || strpos($faviconPath, '/') === 0) {
-                    $fullPath = public_path($faviconPath);
-                } else {
-                    // Sinon, c'est directement dans public/
-                    $fullPath = public_path($faviconPath);
-                }
-                
-                if (file_exists($fullPath)) {
-                    $faviconUrl = asset($faviconPath);
-                    $faviconPathForVersion = $faviconPath;
+        $faviconPath = setting('site_favicon');
+        if ($faviconPath) {
+            // Si le chemin commence par uploads/, c'est un chemin relatif depuis public
+            if (strpos($faviconPath, 'uploads/') === 0 || strpos($faviconPath, '/') === 0) {
+                $fullPath = public_path($faviconPath);
+            } else {
+                // Sinon, c'est directement dans public/
+                $fullPath = public_path($faviconPath);
+            }
+            
+            if (file_exists($fullPath)) {
+            $faviconUrl = asset($faviconPath);
+                $faviconPathForVersion = $faviconPath;
                 }
             }
         }
