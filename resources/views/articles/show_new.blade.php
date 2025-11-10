@@ -197,9 +197,9 @@
     
     /* Layout principal */
     .article-container {
-        max-width: 1400px;
+        max-width: 1200px;
         margin: -100px auto 0;
-        padding: 0;
+        padding: 0 1.5rem;
         position: relative;
         z-index: 10;
         width: 100%;
@@ -211,9 +211,10 @@
         background: var(--bg-white);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 2.5rem;
-        margin: 0 2rem 5rem;
+        padding: 3rem;
+        margin: 0 auto 5rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        max-width: 100%;
     }
     
     .article-grid {
