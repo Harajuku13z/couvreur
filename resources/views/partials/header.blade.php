@@ -4,11 +4,11 @@
     /* Styles spécifiques pour mobile */
     @media (max-width: 768px) {
         .header-mobile {
-            padding: 0.75rem 0 !important;
+            padding: 1rem 0 !important;
         }
         
         .logo-mobile {
-            height: 2.5rem !important;
+            height: 3rem !important;
             width: auto !important;
         }
         
@@ -23,11 +23,11 @@
     }
 </style>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-2 header-mobile">
+        <div class="flex justify-between items-center py-3 header-mobile">
             <div class="flex items-center">
                 <a href="{{ route('home') }}" class="flex items-center">
                     @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto logo-mobile">
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-12 w-auto logo-mobile">
                     @else
                         <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
                             {{ setting('company_name', 'Votre Entreprise') }}
