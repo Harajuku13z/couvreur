@@ -512,22 +512,32 @@
                 </label>
                 <form id="keywordsForm" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto">
+                    <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto space-y-2">
                     @if(empty($customKeywords))
                         <p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l'entreprise.</p>
                     @else
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($customKeywords as $index => $keyword)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-300">
-                                    <span>{{ $keyword }}</span>
-                                    <button type="button" 
-                                            onclick="removeKeyword({{ $index }})"
-                                            class="ml-2 text-purple-600 hover:text-purple-800">
-                                        <i class="fas fa-times text-xs"></i>
-                                    </button>
-                                </span>
-                            @endforeach
-                        </div>
+                        @foreach($customKeywords as $index => $keyword)
+                            <div class="flex items-center gap-3 p-2 bg-white rounded border border-gray-200">
+                                <div class="flex-1">
+                                    <input type="text" 
+                                           name="keywords[]" 
+                                           value="{{ $keyword }}"
+                                           class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                           placeholder="Mot-clé">
+                                </div>
+                                <div class="w-32">
+                                    <input type="file" 
+                                           name="keyword_images[{{ $index }}]"
+                                           accept="image/jpeg,image/png,image/jpg,image/webp"
+                                           class="w-full text-xs">
+                                </div>
+                                <button type="button" 
+                                        onclick="removeKeywordItem(this)"
+                                        class="text-red-600 hover:text-red-800 px-2">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        @endforeach
                     @endif
                     </div>
                     <button type="button" 
