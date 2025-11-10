@@ -11,28 +11,6 @@
             <p class="text-gray-600 mt-1">Gestion des articles SEO générés automatiquement</p>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Bouton Activation/Désactivation -->
-            <form action="{{ route('admin.seo-automation.toggle') }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" 
-                        class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center {{ $automationEnabled ? 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500' : 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500' }}">
-                    <i class="fas {{ $automationEnabled ? 'fa-pause' : 'fa-play' }} mr-2"></i>
-                    {{ $automationEnabled ? 'Mettre en pause' : 'Activer' }} l'automatisation
-                </button>
-            </form>
-            <button id="testConnectionsBtn" 
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
-                <i class="fas fa-vial mr-2"></i>
-                Tester les connexions
-            </button>
-            <form action="{{ route('admin.seo-automation.execute-now') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Exécuter immédiatement (sans attendre l\'heure configurée) ? Cela planifiera les jobs pour toutes les villes favorites.');">
-                @csrf
-                <button type="submit" 
-                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-bolt mr-2"></i>
-                    Exécuter maintenant
-                </button>
-            </form>
             <form action="{{ route('admin.seo-automation.reset-all') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ ATTENTION : Cela supprimera TOUS les logs d\'automation et les jobs en attente. Êtes-vous sûr ?');">
                 @csrf
                 <button type="submit" 
@@ -41,12 +19,6 @@
                     Réinitialiser tout
                 </button>
             </form>
-            <button type="button" 
-                    id="testSchedulerBtn"
-                    class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
-                <i class="fas fa-vial mr-2"></i>
-                Tester le scheduler
-            </button>
         </div>
     </div>
     
@@ -114,11 +86,6 @@
                     <i class="fas fa-check-circle text-green-600 mr-2"></i>
                     <div>
                         <p class="text-sm font-medium text-green-900">Automatisation activée</p>
-                        <p class="text-xs text-green-700 mt-1">
-                            Les articles seront générés automatiquement chaque jour à <strong>{{ $automationTime }}</strong> (heure {{ $timezone ?? 'Europe/Paris' }}).
-                            <br>
-                            <span class="text-gray-600">Heure actuelle : <strong>{{ $currentTime }}</strong> | Prochaine exécution : <strong>{{ $nextExecution ? $nextExecution->format('d/m/Y à H:i') : 'N/A' }}</strong></span>
-                        </p>
                         @if(isset($pendingJobs) && count($pendingJobs) > 0)
                             <p class="text-xs text-blue-700 mt-1">
                                 <i class="fas fa-clock mr-1"></i><strong>{{ count($pendingJobs) }} job(s)</strong> en attente dans la queue
@@ -129,7 +96,6 @@
                 <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2 flex-wrap">
                     @csrf
                     <div class="flex items-center gap-2">
-                        <label for="automation_time" class="text-xs text-gray-600">Heure:</label>
                         <input type="time" 
                                id="automation_time" 
                                name="time" 
@@ -137,7 +103,6 @@
                                class="px-2 py-1 border border-gray-300 rounded text-sm">
                     </div>
                     <div class="flex items-center gap-2">
-                        <label for="articles_per_city" class="text-xs text-gray-600">Articles par ville:</label>
                         <input type="number" 
                                id="articles_per_city" 
                                name="articles_per_city" 
@@ -607,11 +572,6 @@
         </div>
     </div>
 
-    <!-- Banque d'images par mot-clé -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-images mr-2 text-indigo-600"></i>Banque d'images par mot-clé
-        </h2>
         <p class="text-sm text-gray-600 mb-4">
             Associez une image à chaque mot-clé pour éviter d'utiliser DALL-E à chaque génération. L'image sera utilisée dans la section "Nos Réalisations" des articles générés.
         </p>
