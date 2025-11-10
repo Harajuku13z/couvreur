@@ -352,101 +352,6 @@
         </div>
     @endif
 
-            <!-- Configuration Image OG Blog -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">
-                    <i class="fas fa-image mr-2 text-purple-600"></i>Image Open Graph par défaut (Blog)
-                </h2>
-                <p class="text-sm text-gray-600 mb-4">
-                    Cette image sera utilisée comme image de partage (og:image) pour tous les articles qui n'ont pas d'image mise en avant. Format recommandé : 1200x630px (ratio 1.91:1).
-                </p>
-                
-                @php
-                    $currentOgImage = \App\Models\Setting::where('key', 'default_blog_og_image')->value('value') ?? 'images/og-blog.jpg';
-                @endphp
-                
-                <div class="space-y-4">
-                    <!-- Upload d'image -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Uploader une nouvelle image
-                        </label>
-                        <form action="{{ route('admin.seo-automation.upload-og-image') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
-                            @csrf
-                            <div>
-                                <input type="file" 
-                                       name="og_image" 
-                                       id="og_image_input"
-                                       accept="image/jpeg,image/png,image/jpg,image/webp"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Formats acceptés : JPG, PNG, WebP. L'image sera automatiquement redimensionnée à 1200x630px si nécessaire.
-                                </p>
-                            </div>
-                            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
-                                <i class="fas fa-upload mr-1"></i>Uploader et remplacer l'image
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Chemin manuel (optionnel) -->
-                    <div class="border-t border-gray-200 pt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Ou spécifier un chemin manuel (depuis public/)
-                        </label>
-                        <form action="{{ route('admin.seo-automation.save-og-image') }}" method="POST" class="flex items-end gap-3">
-                            @csrf
-                            <div class="flex-1">
-                                <input type="text" 
-                                       name="image_path" 
-                                       value="{{ $currentOgImage }}"
-                                       placeholder="images/og-blog.jpg"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Exemple: <code>images/og-blog.jpg</code> ou <code>images/articles/default.jpg</code>
-                                </p>
-                            </div>
-                            <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm">
-                                <i class="fas fa-save mr-1"></i>Enregistrer le chemin
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Aperçu de l'image actuelle -->
-                    @if(file_exists(public_path($currentOgImage)))
-                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <p class="text-sm font-medium text-gray-700 mb-2">Image actuelle :</p>
-                            <div class="relative inline-block">
-                                <img src="{{ asset($currentOgImage) }}" 
-                                     alt="Image OG Blog" 
-                                     id="og_image_preview"
-                                     class="max-w-full h-auto rounded-lg shadow-md"
-                                     style="max-width: 600px; max-height: 315px; object-fit: contain;">
-                                <div class="mt-2 text-xs text-gray-500">
-                                    <code>{{ $currentOgImage }}</code>
-                                    @php
-                                        $imagePath = public_path($currentOgImage);
-                                        if (file_exists($imagePath)) {
-                                            $imageSize = getimagesize($imagePath);
-                                            if ($imageSize) {
-                                                echo " - {$imageSize[0]}x{$imageSize[1]}px";
-                                            }
-                                        }
-                                    @endphp
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <p class="text-sm text-yellow-800">
-                                <i class="fas fa-exclamation-triangle mr-1"></i>
-                                L'image <code>{{ $currentOgImage }}</code> n'existe pas. Veuillez uploader une nouvelle image.
-                            </p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
             <!-- Configuration des APIs -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">
@@ -1657,5 +1562,193 @@ function testApi(apiName, button) {
             });
         }
         </script>
-        @endsection
+        
+    <!-- Image Open Graph par défaut (Blog) -->
+    @php
+        $currentOgImage = \App\Models\Setting::where('key', 'default_blog_og_image')->value('value') ?? 'images/og-blog.jpg';
+    @endphp
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-image mr-2 text-purple-600"></i>Image Open Graph par défaut (Blog)
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Cette image sera utilisée comme image de partage (og:image) pour tous les articles qui n'ont pas d'image mise en avant. Format recommandé : 1200x630px (ratio 1.91:1).
+        </p>
+        
+        <div class="space-y-4">
+            <!-- Upload d'image -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Uploader une nouvelle image
+                </label>
+                <form action="{{ route('admin.seo-automation.upload-og-image') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    @csrf
+                    <div>
+                        <input type="file" 
+                               name="og_image" 
+                               id="og_image_input"
+                               accept="image/jpeg,image/png,image/jpg,image/webp"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Formats acceptés : JPG, PNG, WebP. L'image sera automatiquement redimensionnée à 1200x630px si nécessaire.
+                        </p>
+                    </div>
+                    <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm">
+                        <i class="fas fa-upload mr-1"></i>Uploader et remplacer l'image
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Chemin manuel (optionnel) -->
+            <div class="border-t border-gray-200 pt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Ou spécifier un chemin manuel (depuis public/)
+                </label>
+                <form action="{{ route('admin.seo-automation.save-og-image') }}" method="POST" class="flex items-end gap-3">
+                    @csrf
+                    <div class="flex-1">
+                        <input type="text" 
+                               name="image_path" 
+                               value="{{ $currentOgImage }}"
+                               placeholder="images/og-blog.jpg"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Exemple: <code>images/og-blog.jpg</code> ou <code>images/articles/default.jpg</code>
+                        </p>
+                    </div>
+                    <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm">
+                        <i class="fas fa-save mr-1"></i>Enregistrer le chemin
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Aperçu de l'image actuelle -->
+            @if(file_exists(public_path($currentOgImage)))
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Image actuelle :</p>
+                    <div class="relative inline-block">
+                        <img src="{{ asset($currentOgImage) }}" 
+                             alt="Image OG Blog" 
+                             id="og_image_preview"
+                             class="max-w-full h-auto rounded-lg shadow-md"
+                             style="max-width: 600px; max-height: 315px; object-fit: contain;">
+                        <div class="mt-2 text-xs text-gray-500">
+                            <code>{{ $currentOgImage }}</code>
+                            @php
+                                $imagePath = public_path($currentOgImage);
+                                if (file_exists($imagePath)) {
+                                    $imageSize = getimagesize($imagePath);
+                                    if ($imageSize) {
+                                        echo " - {$imageSize[0]}x{$imageSize[1]}px";
+                                    }
+                                }
+                            @endphp
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        L'image <code>{{ $currentOgImage }}</code> n'existe pas. Veuillez uploader une nouvelle image.
+                    </p>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Banque d'images par mot-clé -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-images mr-2 text-indigo-600"></i>Banque d'images par mot-clé
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Associez une image à chaque mot-clé pour éviter d'utiliser DALL-E à chaque génération. L'image sera utilisée dans la section "Nos Réalisations" des articles générés.
+        </p>
+        
+        <div class="space-y-4">
+            <!-- Formulaire d'ajout -->
+            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Ajouter une image</h3>
+                <form action="{{ route('admin.seo-automation.keyword-image.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé</label>
+                            <input type="text" 
+                                   name="keyword" 
+                                   required
+                                   placeholder="Ex: rénovation de toiture"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                            <input type="file" 
+                                   name="image" 
+                                   accept="image/jpeg,image/png,image/jpg,image/webp"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Titre (optionnel)</label>
+                        <input type="text" 
+                               name="title" 
+                               placeholder="Ex: Toiture rénovée"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
+                        <i class="fas fa-plus mr-1"></i>Ajouter l'image
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Liste des images -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Images configurées</h3>
+                <div id="keywordImagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @php
+                        $keywordImages = \App\Models\KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
+                    @endphp
+                    @forelse($keywordImages as $keywordImage)
+                        <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                            <div class="mb-2">
+                                <img src="{{ asset($keywordImage->image_path) }}" 
+                                     alt="{{ $keywordImage->title ?? $keywordImage->keyword }}"
+                                     class="w-full h-32 object-cover rounded-lg">
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-medium text-gray-900">{{ $keywordImage->keyword }}</p>
+                                @if($keywordImage->title)
+                                    <p class="text-gray-600 text-xs mt-1">{{ $keywordImage->title }}</p>
+                                @endif
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-xs {{ $keywordImage->is_active ? 'text-green-600' : 'text-gray-400' }}">
+                                        {{ $keywordImage->is_active ? 'Actif' : 'Inactif' }}
+                                    </span>
+                                    <form action="{{ route('admin.seo-automation.keyword-image.destroy', $keywordImage) }}" 
+                                          method="POST" 
+                                          class="inline"
+                                          onsubmit="return confirm('Supprimer cette image ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full text-center py-8 text-gray-500">
+                            <i class="fas fa-images text-4xl mb-2"></i>
+                            <p>Aucune image configurée. Ajoutez une image pour commencer.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
 
