@@ -28,8 +28,15 @@ class ArticleController extends Controller
         }
 
         // Préparer les métadonnées SEO
+        // NE PAS tronquer les titres et descriptions - utiliser le contenu complet
         $pageTitle = $article->meta_title ?: $article->title;
-        $pageDescription = $article->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($article->content), 160);
+        // Si pas de meta_description, utiliser le début du contenu HTML (sans limite)
+        if (empty($article->meta_description)) {
+            $contentText = strip_tags($article->content_html ?? '');
+            $pageDescription = !empty($contentText) ? $contentText : ($article->excerpt ?? '');
+        } else {
+            $pageDescription = $article->meta_description;
+        }
         $pageKeywords = $article->meta_keywords ?? '';
         
         // Image Open Graph
