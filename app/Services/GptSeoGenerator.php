@@ -240,11 +240,11 @@ class GptSeoGenerator
         $avgWordCount = array_sum($wordCounts) / count($wordCounts);
         $maxWordCount = max($wordCounts);
         
-        // Viser 20% au-dessus de la moyenne, mais au moins 2000 mots
-        $targetWordCount = max(2000, ceil($avgWordCount * 1.2), $maxWordCount + 300);
+        // Viser 30% au-dessus de la moyenne, mais au moins 3000 mots pour couvrir toutes les sections
+        $targetWordCount = max(3000, ceil($avgWordCount * 1.3), $maxWordCount + 500);
         
-        // Limiter à 3500 mots max pour éviter contenu trop dilué
-        return min(3500, $targetWordCount);
+        // Limiter à 4500 mots max pour éviter contenu trop dilué
+        return min(4500, $targetWordCount);
     }
     
     /**
@@ -533,8 +533,8 @@ EOT;
         }
         
         $wordCount = str_word_count(strip_tags($contenuHtml));
-        if ($wordCount < 1500) {
-            Log::warning('Contenu en dessous du minimum recommandé', ['word_count' => $wordCount]);
+        if ($wordCount < 2500) {
+            Log::warning('Contenu en dessous du minimum recommandé', ['word_count' => $wordCount, 'minimum' => 2500]);
         }
         
         Log::info('Contenu HTML premium généré', [
@@ -649,11 +649,11 @@ EOT;
         $lowerKeyword = strtolower($keyword);
         
         // 1. Longueur du contenu (15 points)
-        if ($wordCount >= 2000) {
+        if ($wordCount >= 3000) {
             $score += 15;
-        } else if ($wordCount >= 1500) {
+        } else if ($wordCount >= 2500) {
             $score += 12;
-        } else if ($wordCount >= 1000) {
+        } else if ($wordCount >= 2000) {
             $score += 8;
         } else {
             $score += 5;
@@ -882,47 +882,54 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 </nav>
 ```
 
-**3. SECTIONS PRINCIPALES** (6-8 sections H2)
+**3. SECTIONS PRINCIPALES** (6-8 sections H2 OBLIGATOIRES)
 
-**THÈMES OBLIGATOIRES À COUVRIR :**
-- ✅ Présentation approfondie du {$keyword} (définition, importance, enjeux)
-- ✅ Types/catégories/options disponibles (comparatif détaillé)
-- ✅ Processus complet étape par étape
-- ✅ Prix détaillés & facteurs de coût (fourchettes précises pour {$city})
-- ✅ Choix des matériaux/solutions (avantages/inconvénients)
-- ✅ Réglementation & normes ({$currentYear})
-- ✅ Erreurs courantes à éviter absolument
-- ✅ Entretien & maintenance (guide pratique)
-- ✅ Aides financières disponibles à {$city} ({$currentYear})
-- ✅ Pourquoi choisir {$companyName} (USP)
+**⚠️ RÈGLE ABSOLUE : TOUTES les sections listées dans le sommaire DOIVENT être développées en profondeur (700-900 mots chacune)**
 
-**TEMPLATE SECTION PARFAITE :**
+**THÈMES OBLIGATOIRES À COUVRIR (développer CHACUN en profondeur) :**
+- ✅ **Les avantages d'un {$keyword}** (700-900 mots) : Développer tous les avantages, bénéfices, retours sur investissement, comparaisons avant/après
+- ✅ **Comment obtenir votre devis ?** (700-900 mots) : Processus complet étape par étape, documents nécessaires, délais, ce qui est inclus
+- ✅ **Choix de matériaux et techniques** (700-900 mots) : Comparatif détaillé de tous les matériaux, avantages/inconvénients, prix, durabilité, recommandations
+- ✅ **Comprendre les coûts d'une {$keyword}** (700-900 mots) : Détail de tous les postes de dépense, fourchettes précises pour {$city}, facteurs influençant le prix, exemples chiffrés
+- ✅ **Réglementations et normes {$currentYear}** (700-900 mots) : Toutes les normes applicables, obligations légales, certifications requises, évolutions récentes
+- ✅ **Maintenance et entretien** (700-900 mots) : Guide complet d'entretien, fréquence, coûts, conseils pro, erreurs à éviter
+- ✅ **Questions Fréquentes** (10-12 questions avec réponses détaillées 80-150 mots chacune)
+
+**⚠️ INTERDICTIONS ABSOLUES :**
+- ❌ JAMAIS de section avec seulement 2-3 lignes
+- ❌ JAMAIS de section manquante du sommaire
+- ❌ JAMAIS de contenu superficiel ou vague
+- ✅ CHAQUE section doit être complète, détaillée et actionnable
+
+**TEMPLATE SECTION PARFAITE (700-900 mots minimum) :**
 ```html
 <section id="section-X">
   <h2>[Titre H2 avec variante mot-clé naturelle]</h2>
   
-  <p>[Paragraphe intro 80-100 mots] Contextualisation du sujet avec données terrain...</p>
+  <p>[Paragraphe intro 100-120 mots] Contextualisation approfondie du sujet avec données terrain, statistiques, enjeux...</p>
   
-  <h3>[Sous-titre H3 spécifique]</h3>
-  <p>[Développement 120-150 mots] Explication détaillée avec exemples concrets...</p>
+  <h3>[Sous-titre H3 spécifique #1]</h3>
+  <p>[Développement 150-200 mots] Explication détaillée avec exemples concrets, cas pratiques, données chiffrées...</p>
+  <p>[Paragraphe complémentaire 100-120 mots] Approfondissement avec spécificités locales {$city}, tendances {$currentYear}...</p>
   
   <div class="info-box">
     <h4>💡 Conseil d'Expert Pro</h4>
-    <p>[Astuce actionnable immédiate] Basé sur [X] années d'expérience terrain...</p>
+    <p>[Astuce actionnable immédiate 80-100 mots] Basé sur [X] années d'expérience terrain, avec exemple concret...</p>
   </div>
   
-  <h3>[Sous-titre H3 #2]</h3>
-  <p>[Développement avec cas pratique]...</p>
+  <h3>[Sous-titre H3 spécifique #2]</h3>
+  <p>[Développement 150-200 mots] Approfondissement avec processus détaillé, étapes, précautions...</p>
   
   <ul class="checklist">
-    <li><strong>[Point 1] :</strong> [Explication détaillée avec bénéfice]</li>
-    <li><strong>[Point 2] :</strong> [Conseil actionnable]</li>
-    <li><strong>[Point 3] :</strong> [Donnée chiffrée ou statistique]</li>
-    <li><strong>[Point 4] :</strong> [Mise en garde importante]</li>
+    <li><strong>[Point 1] :</strong> [Explication détaillée 40-60 mots avec bénéfice concret et exemple]</li>
+    <li><strong>[Point 2] :</strong> [Conseil actionnable 40-60 mots avec mise en contexte]</li>
+    <li><strong>[Point 3] :</strong> [Donnée chiffrée ou statistique 40-60 mots avec explication]</li>
+    <li><strong>[Point 4] :</strong> [Mise en garde importante 40-60 mots avec conséquences]</li>
+    <li><strong>[Point 5] :</strong> [Recommandation pro 40-60 mots avec justification]</li>
   </ul>
   
-  <h3>[Sous-titre H3 #3]</h3>
-  <p>[Transition naturelle]...</p>
+  <h3>[Sous-titre H3 spécifique #3]</h3>
+  <p>[Développement 150-200 mots] Transition naturelle vers aspect complémentaire...</p>
   
   <table class="comparison-table">
     <thead>
@@ -935,29 +942,43 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
     </thead>
     <tbody>
       <tr>
-        <td>[Critère 1]</td>
-        <td>[Valeur A]</td>
-        <td>[Valeur B]</td>
-        <td>✅ [Recommandation]</td>
+        <td>[Critère 1 détaillé]</td>
+        <td>[Valeur A avec explication]</td>
+        <td>[Valeur B avec explication]</td>
+        <td>✅ [Recommandation justifiée]</td>
       </tr>
-      <!-- 4-6 lignes de comparaison -->
+      <!-- 5-7 lignes de comparaison détaillées -->
     </tbody>
   </table>
   
+  <h3>[Sous-titre H3 spécifique #4]</h3>
+  <p>[Développement 150-200 mots] Approfondissement supplémentaire avec exemples concrets...</p>
+  
   <blockquote class="expert-quote">
-    <p>« [Citation professionnelle authentique] Les clients qui [action] économisent en moyenne [chiffre]% sur [durée]. »</p>
+    <p>« [Citation professionnelle authentique 60-80 mots] Les clients qui [action] économisent en moyenne [chiffre]% sur [durée]. [Explication complémentaire]. »</p>
     <cite>— Expert {$companyName}, spécialiste {$keyword} depuis [X] ans</cite>
   </blockquote>
+  
+  <h3>[Sous-titre H3 spécifique #5]</h3>
+  <p>[Développement final 150-200 mots] Conclusion de section avec synthèse et prochaines étapes...</p>
 </section>
 ```
 
-**EXIGENCES PAR SECTION :**
-- 500-700 mots minimum
-- 3-5 sous-titres H3
-- Au moins 1 liste (puces ou numérotée)
-- 1 élément enrichi (encadré, tableau, citation)
-- 2-3 variantes sémantiques du mot-clé
+**⚠️ VÉRIFICATION OBLIGATOIRE :**
+- Chaque section doit faire MINIMUM 700 mots (vérifier avant de passer à la suivante)
+- Si une section fait moins de 700 mots, AJOUTER du contenu : exemples, détails techniques, conseils, données chiffrées
+- TOUTES les sections du sommaire doivent être présentes et développées
+
+**EXIGENCES PAR SECTION (CRITIQUE - RESPECTER STRICTEMENT) :**
+- ⚠️ **700-900 mots MINIMUM par section H2** (pas de section avec seulement 2-3 lignes)
+- ⚠️ **TOUTES les sections du sommaire DOIVENT être développées en profondeur**
+- ⚠️ **AUCUNE section ne doit être manquante ou trop courte**
+- 4-6 sous-titres H3 par section (pour approfondir chaque aspect)
+- Au moins 2 listes (puces ou numérotées) par section
+- 2-3 éléments enrichis (encadrés, tableaux, citations) par section
+- 3-4 variantes sémantiques du mot-clé par section
 - Transitions fluides entre paragraphes
+- Exemples concrets et données chiffrées dans chaque section
 
 **4. CTA STRATÉGIQUES** (2-3 dans l'article)
 
@@ -972,25 +993,11 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 </div>
 ```
 
-**CTA Principal (après section 5-6) :**
-```html
-<div class="cta-final">
-  <h3>🚀 Lancez Votre Projet de {$keyword} à {$city} en Toute Confiance</h3>
-  <p><strong>{$companyName}</strong>, votre partenaire expert local. Nous vous garantissons :</p>
-  <ul class="benefits-list">
-    <li>✅ <strong>Devis détaillé gratuit</strong> sous 24h, sans engagement</li>
-    <li>✅ <strong>Artisans certifiés RGE</strong> et assurés (garantie décennale)</li>
-    <li>✅ <strong>Matériaux premium</strong> sélectionnés pour leur durabilité</li>
-    <li>✅ <strong>Respect des délais</strong> et transparence totale sur les coûts</li>
-    <li>✅ <strong>Service après-vente</strong> réactif et suivi personnalisé</li>
-  </ul>
-  <p class="cta-buttons">
-    <a href="{$devisUrl}" class="btn-primary">📞 Demander mon devis gratuit</a>
-    <a href="tel:{$companyPhoneRaw}" class="btn-secondary">☎️ {$companyPhone}</a>
-  </p>
-  <p class="reassurance"><small>🔒 Vos données sont protégées. 500+ clients satisfaits à {$city} nous font confiance.</small></p>
-</div>
-```
+**⚠️ IMPORTANT - CTA FINAL :**
+❌ NE PAS générer de section CTA finale avec "Lancez Votre Projet" ou "En Résumé"
+❌ NE PAS inclure de section "article-conclusion" ou "cta-final"
+✅ Ces sections sont gérées automatiquement par le système et seront ajoutées après le contenu
+✅ Terminer l'article directement après la FAQ, sans CTA ni conclusion
 
 **5. FAQ SCHEMA.ORG** (10-12 questions MINIMUM)
 
@@ -1026,26 +1033,11 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 - Répondre précisément (chiffres, dates, faits)
 - Couvrir objections clients (prix, délais, qualité, garanties)
 
-**6. CONCLUSION ENGAGEANTE** (200-250 mots)
-
-```html
-<section class="article-conclusion">
-  <h2>En Résumé : Votre Référence Complète sur {$keyword} à {$city}</h2>
-  
-  <p>Vous l'avez découvert dans ce guide expert, [récapitulatif des 3-5 points essentiels sans répétition exacte]...</p>
-  
-  <p>Faire appel à {$companyName} pour votre projet de {$keyword} à {$city}, c'est choisir :</p>
-  <ul>
-    <li>[Avantage 1 unique]</li>
-    <li>[Avantage 2 différenciant]</li>
-    <li>[Avantage 3 rassurant]</li>
-  </ul>
-  
-  <p><strong>Ne laissez pas votre projet en suspens.</strong> Que vous soyez en phase de réflexion ou prêt à vous lancer, notre équipe d'experts certifiés est là pour vous conseiller sans engagement. Obtenez votre devis personnalisé gratuit et découvrez comment transformer votre vision en réalité.</p>
-  
-  <p>🏆 <em>{$companyName}, votre expert {$keyword} de confiance à {$city} depuis [X] ans.</em></p>
-</section>
-```
+**6. FIN DE L'ARTICLE :**
+⚠️ **NE PAS générer de section conclusion ou CTA final**
+⚠️ **Terminer l'article directement après la FAQ**
+✅ La section CTA finale et conclusion sont gérées automatiquement par le système
+✅ Arrêter le contenu après la balise </section> de la FAQ
 
 {$imagesContext}
 
@@ -1134,8 +1126,7 @@ Retourne UNIQUEMENT le HTML pur, sans :
 <div class="cta-inline">...</div>
 <section id="section-5">...</section>
 <section id="faq" itemscope itemtype="https://schema.org/FAQPage">...</section>
-<div class="cta-final">...</div>
-<section class="article-conclusion">...</section>
+<!-- FIN - Ne pas ajouter de CTA final ni conclusion, c'est géré automatiquement -->
 ```
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1149,7 +1140,14 @@ Créer l'article de référence ABSOLU sur "{$keyword}" à {$city} :
 - Qui génère des partages et backlinks naturels
 - Qui fait dire aux lecteurs : "C'est LE meilleur guide que j'ai lu"
 
-**RÉDIGE MAINTENANT** cet article exceptionnel de {$targetWordCount}+ mots. Chaque mot doit apporter de la valeur. Chaque section doit éduquer ET persuader. Chaque élément doit être optimisé pour le SEO ET l'humain.
+**⚠️ RAPPEL CRITIQUE AVANT RÉDACTION :**
+1. **TOUTES les sections du sommaire DOIVENT être présentes et développées (700-900 mots chacune)**
+2. **AUCUNE section ne doit avoir seulement 2-3 lignes**
+3. **Vérifier que chaque section H2 fait minimum 700 mots avant de passer à la suivante**
+4. **Si une section est trop courte, AJOUTER : exemples, détails techniques, conseils, données chiffrées, cas pratiques**
+5. **L'article total doit faire minimum {$targetWordCount} mots (idéalement 3500-4500 mots)**
+
+**RÉDIGE MAINTENANT** cet article exceptionnel de {$targetWordCount}+ mots. Chaque mot doit apporter de la valeur. Chaque section doit éduquer ET persuader. Chaque élément doit être optimisé pour le SEO ET l'humain. **TOUTES les sections du sommaire doivent être complètes et détaillées (700-900 mots chacune).**
 
 🚀 **C'EST PARTI. Produis le meilleur contenu SEO jamais créé sur ce sujet.**
 EOT;
