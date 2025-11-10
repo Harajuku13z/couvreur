@@ -213,6 +213,12 @@ class SeoAutomationController extends Controller
      */
     public function run(Request $request)
     {
+        // Si la requête est en GET, rediriger vers la page d'index
+        if ($request->isMethod('GET')) {
+            return redirect()->route('admin.seo-automation.index')
+                ->with('error', 'Cette action nécessite un formulaire POST. Veuillez utiliser le formulaire de la page.');
+        }
+        
         $validated = $request->validate([
             'number_of_articles' => 'required|integer|min:1|max:50',
             'keyword' => 'nullable|string|max:255',
