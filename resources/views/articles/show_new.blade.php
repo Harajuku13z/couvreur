@@ -1707,5 +1707,5 @@
         </div>
         </div>
     </div>
-</div><br>br>
+</div>
 @endsection
