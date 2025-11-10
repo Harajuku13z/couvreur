@@ -94,26 +94,28 @@
     }
     
     .wp-article-wrapper {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 0 20px;
     }
     
     .wp-article-content-area {
         display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 40px;
+        grid-template-columns: 1fr 320px;
+        gap: 50px;
         margin-top: -80px;
         position: relative;
         z-index: 10;
+        align-items: start;
     }
     
     .wp-article-main {
         background: #ffffff;
         border-radius: 8px;
         box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-        padding: 3rem;
+        padding: 4rem;
         margin-bottom: 2rem;
+        min-width: 0;
     }
     
     .wp-article-title {
@@ -147,10 +149,14 @@
     
     /* Styles pour le contenu généré par ChatGPT */
     .article-content {
-        line-height: 1.8;
+        line-height: 1.85;
         color: #374151;
-        font-size: 1.1rem;
+        font-size: 1.125rem;
         max-width: 100%;
+    }
+    
+    .article-content p {
+        margin-bottom: 1.75rem;
     }
     
     .article-content h1 {
@@ -313,28 +319,33 @@
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+        position: sticky;
+        top: 100px;
+        align-self: start;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
     }
     
     .wp-widget {
         background: #ffffff;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        padding: 1.5rem;
+        padding: 2rem;
     }
     
     .wp-widget-title {
-        font-size: 1.25rem;
+        font-size: 1.375rem;
         font-weight: 700;
         color: #111827;
-        margin: 0 0 1rem 0;
+        margin: 0 0 1.25rem 0;
         padding-bottom: 0.75rem;
         border-bottom: 2px solid var(--primary-color);
     }
     
     .wp-widget-content {
-        font-size: 0.95rem;
+        font-size: 1rem;
         color: #374151;
-        line-height: 1.6;
+        line-height: 1.7;
     }
     
     .wp-widget-content a {
@@ -488,6 +499,10 @@
     
     /* Responsive */
     @media (max-width: 1024px) {
+        .wp-article-wrapper {
+            max-width: 100%;
+        }
+        
         .wp-article-content-area {
             grid-template-columns: 1fr;
             gap: 2rem;
@@ -496,10 +511,14 @@
         
         .wp-article-main {
             margin-top: 2rem;
+            padding: 2.5rem;
         }
         
         .wp-sidebar {
             order: -1;
+            position: static;
+            max-height: none;
+            overflow-y: visible;
         }
         
         .wp-cta-benefits {
