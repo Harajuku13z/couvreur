@@ -286,17 +286,33 @@ class SeoAutomationManager
                 }
             }
             
+            // Préparer les mots-clés meta
+            $metaKeywords = null;
+            if (!empty($gptData['mots_cles'])) {
+                if (is_array($gptData['mots_cles'])) {
+                    $metaKeywords = implode(', ', $gptData['mots_cles']);
+                } else {
+                    $metaKeywords = $gptData['mots_cles'];
+                }
+            }
+            
             $article = Article::create([
                 'title' => $gptData['titre'],
                 'slug' => $slug,
                 'content_html' => $contentHtml,
                 'meta_description' => $gptData['meta_description'] ?? null,
-                'meta_keywords' => !empty($gptData['mots_cles']) ? implode(', ', $gptData['mots_cles']) : null,
+                'meta_keywords' => $metaKeywords,
                 'focus_keyword' => $keyword,
                 'featured_image' => $featuredImage,
                 'status' => 'published',
                 'published_at' => now(),
                 'city_id' => $city->id,
+            ]);
+            
+            Log::info('Article créé avec mots-clés', [
+                'article_id' => $article->id,
+                'meta_keywords' => $metaKeywords,
+                'meta_keywords_length' => strlen($metaKeywords ?? '')
             ]);
             
             $steps[count($steps) - 1]['status'] = 'success';
