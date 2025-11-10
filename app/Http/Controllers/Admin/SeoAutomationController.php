@@ -1492,8 +1492,16 @@ mot-clé 3
                         $testResult = $googleService->testConnection();
                         
                         // Tester différents protocoles et domaines
-                        $siteUrl = config('app.url', 'https://couvreur-chevigny-saint-sauveur.fr');
-                        $domain = parse_url($siteUrl, PHP_URL_HOST) ?: 'couvreur-chevigny-saint-sauveur.fr';
+                        // Utiliser le domaine depuis les settings ou la requête actuelle
+                        $siteUrl = \App\Models\Setting::get('site_url', null);
+                        if (empty($siteUrl)) {
+                            $siteUrl = config('app.url', request()->getSchemeAndHttpHost());
+                        }
+                        // S'assurer que l'URL a un protocole
+                        if (!preg_match('/^https?:\/\//', $siteUrl)) {
+                            $siteUrl = 'https://' . $siteUrl;
+                        }
+                        $domain = parse_url($siteUrl, PHP_URL_HOST) ?: parse_url(request()->getSchemeAndHttpHost(), PHP_URL_HOST) ?: request()->getHost();
                         
                         $testUrls = [
                             $domain, // Domaine nu sans protocole
