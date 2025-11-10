@@ -1256,7 +1256,26 @@ function testApi(apiName, button) {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sauvegarde...';
             
             const form = document.getElementById('keywordsForm');
+            if (!form) {
+                console.error('Formulaire keywordsForm introuvable');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: Formulaire introuvable</div>';
+                return;
+            }
+            
             const formData = new FormData(form);
+            
+            // Vérifier qu'il y a au moins un mot-clé
+            const keywordInputs = form.querySelectorAll('input[name="keywords[]"]');
+            const hasKeywords = Array.from(keywordInputs).some(input => input.value.trim() !== '');
+            
+            if (!hasKeywords) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Veuillez ajouter au moins un mot-clé</div>';
+                return;
+            }
             
             // Ajouter le token CSRF
             formData.append('_token', '{{ csrf_token() }}');
@@ -1269,7 +1288,15 @@ function testApi(apiName, button) {
                 },
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                // Vérifier si la réponse est OK
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Erreur HTTP ' + response.status);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -1284,9 +1311,10 @@ function testApi(apiName, button) {
                 }
             })
             .catch(error => {
+                console.error('Erreur sauvegarde mots-clés:', error);
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + error.message + '</div>';
+                document.getElementById('keywordsResult').innerHTML = '<div class="text-red-600"><i class="fas fa-times-circle mr-1"></i>Erreur: ' + (error.message || 'Erreur inconnue') + '</div>';
             });
         });
         
