@@ -1007,13 +1007,6 @@
         .company-address-card {
             padding: 2rem 1.5rem;
         }
-            gap: 3rem;
-        }
-        
-        .article-sidebar {
-            position: static;
-            order: -1;
-        }
         
         .article-container {
             margin-top: -60px;
