@@ -1023,15 +1023,24 @@ mot-clé 3
      */
     public function saveKeywords(Request $request)
     {
-        $validated = $request->validate([
-            'keywords' => 'required|array',
-            'keywords.*' => 'string|max:255',
-            'keyword_images' => 'nullable|array',
-            'keyword_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
-        
-        $keywords = array_filter(array_map('trim', $validated['keywords']));
-        $keywords = array_values(array_unique($keywords)); // Supprimer les doublons
+        try {
+            $validated = $request->validate([
+                'keywords' => 'required|array',
+                'keywords.*' => 'string|max:255',
+                'keyword_images' => 'nullable|array',
+                'keyword_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            ]);
+            
+            $keywords = array_filter(array_map('trim', $validated['keywords']));
+            $keywords = array_values(array_unique($keywords)); // Supprimer les doublons
+            
+            // Vérifier qu'il y a au moins un mot-clé
+            if (empty($keywords)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Aucun mot-clé valide à sauvegarder. Veuillez ajouter au moins un mot-clé.'
+                ], 400);
+            }
         
         // Créer le dossier pour les images de mots-clés s'il n'existe pas
         $uploadDir = public_path('images/keywords');
@@ -1075,20 +1084,49 @@ mot-clé 3
             }
         }
         
-        // Sauvegarder la liste des mots-clés
-        \App\Models\Setting::set('seo_custom_keywords', json_encode($keywords), 'json', 'seo');
-        
-        $message = count($keywords) . ' mots-clés sauvegardés avec succès.';
-        if (count($savedImages) > 0) {
-            $message .= ' ' . count($savedImages) . ' image(s) associée(s).';
+            // Sauvegarder la liste des mots-clés
+            \App\Models\Setting::set('seo_custom_keywords', json_encode($keywords), 'json', 'seo');
+            
+            $message = count($keywords) . ' mots-clés sauvegardés avec succès.';
+            if (count($savedImages) > 0) {
+                $message .= ' ' . count($savedImages) . ' image(s) associée(s).';
+            }
+            
+            Log::info('Mots-clés sauvegardés', [
+                'count' => count($keywords),
+                'keywords' => $keywords
+            ]);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => $message,
+                'keywords' => $keywords,
+                'images_saved' => count($savedImages)
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erreur validation sauvegarde mots-clés', [
+                'errors' => $e->errors()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur de validation: ' . implode(', ', array_map(function($errors) {
+                    return implode(', ', $errors);
+                }, $e->errors()))
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur sauvegarde mots-clés', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors de la sauvegarde: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => $message,
-            'keywords' => $keywords,
-            'images_saved' => count($savedImages)
-        ]);
     }
 
     /**
