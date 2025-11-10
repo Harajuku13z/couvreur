@@ -510,7 +510,9 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Mots-clés personnalisés ({{ count($customKeywords) }} configuré(s))
                 </label>
-                <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto">
+                <form id="keywordsForm" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto">
                     @if(empty($customKeywords))
                         <p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l'entreprise.</p>
                     @else
@@ -527,15 +529,16 @@
                             @endforeach
                         </div>
                     @endif
-                </div>
-                <button type="button" 
-                        id="saveKeywordsBtn"
-                        class="mt-3 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 {{ empty($customKeywords) ? 'opacity-50 cursor-not-allowed' : '' }}"
-                        {{ empty($customKeywords) ? 'disabled' : '' }}>
-                    <i class="fas fa-save mr-2"></i>
-                    Sauvegarder les mots-clés
-                </button>
-                <div id="keywordsResult" class="mt-2 text-sm"></div>
+                    </div>
+                    <button type="button" 
+                            id="saveKeywordsBtn"
+                            class="mt-3 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 {{ empty($customKeywords) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                            {{ empty($customKeywords) ? 'disabled' : '' }}>
+                        <i class="fas fa-save mr-2"></i>
+                        Sauvegarder les mots-clés
+                    </button>
+                    <div id="keywordsResult" class="mt-2 text-sm"></div>
+                </form>
             </div>
         </div>
     </div>
