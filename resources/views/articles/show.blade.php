@@ -370,6 +370,166 @@
     margin: 2rem 0;
 }
 
+/* Styles pour la FAQ */
+.article-content #faq {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.article-content #faq h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--primary-color, #3b82f6);
+}
+
+.article-content #faq > div[itemscope] {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--primary-color, #3b82f6);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.article-content #faq h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-left: 0;
+    border-left: none;
+}
+
+.article-content #faq div[itemscope][itemprop="acceptedAnswer"] {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.article-content #faq div[itemscope][itemprop="acceptedAnswer"] p {
+    margin-bottom: 0;
+    color: #374151;
+    line-height: 1.75;
+}
+
+/* Styles pour le CTA final */
+.article-content .cta-final {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, var(--secondary-color, #1e40af) 100%);
+    border-radius: 1rem;
+    color: #ffffff;
+    text-align: center;
+}
+
+.article-content .cta-final h3 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-left: 0;
+    border-left: none;
+}
+
+.article-content .cta-final p {
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.article-content .cta-final ul {
+    text-align: left;
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+
+.article-content .cta-final li {
+    margin-bottom: 0.75rem;
+    color: #ffffff;
+}
+
+.article-content .cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+@media (min-width: 640px) {
+    .article-content .cta-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.article-content .cta-buttons a {
+    display: inline-block;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.article-content .cta-buttons .btn-primary {
+    background-color: #ffffff;
+    color: var(--primary-color, #3b82f6);
+}
+
+.article-content .cta-buttons .btn-primary:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.article-content .cta-buttons .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 2px solid #ffffff;
+}
+
+.article-content .cta-buttons .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour la conclusion */
+.article-content .article-conclusion {
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background-color: #f0f9ff;
+    border-radius: 0.75rem;
+    border-left: 4px solid var(--accent-color, #f59e0b);
+}
+
+.article-content .article-conclusion h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--accent-color, #f59e0b);
+}
+
+.article-content .article-conclusion p {
+    color: #374151;
+    line-height: 1.8;
+}
+
 .article-content table {
     width: 100%;
     border-collapse: collapse;
@@ -694,7 +854,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <!-- Sidebar -->
-            <div class="hidden lg:block lg:col-span-1">
+            <div class="lg:col-span-1">
                 <div class="space-y-6">
 
                     <!-- Company Info -->
