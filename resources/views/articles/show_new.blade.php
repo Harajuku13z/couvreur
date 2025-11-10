@@ -844,6 +844,196 @@
         border-top: 1px solid var(--border);
     }
     
+    /* Section Nos Réalisations */
+    .portfolio-section {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border);
+    }
+    
+    .portfolio-section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .portfolio-section-title i {
+        color: var(--primary);
+    }
+    
+    .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .portfolio-card {
+        background: var(--bg-white);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s;
+    }
+    
+    .portfolio-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .portfolio-image {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .portfolio-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    
+    .portfolio-card:hover .portfolio-image img {
+        transform: scale(1.05);
+    }
+    
+    .portfolio-content {
+        padding: 1.25rem;
+    }
+    
+    .portfolio-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+    
+    .portfolio-type {
+        font-size: 0.9rem;
+        color: var(--text-medium);
+        margin-bottom: 0.75rem;
+    }
+    
+    .portfolio-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: gap 0.2s;
+    }
+    
+    .portfolio-link:hover {
+        gap: 0.75rem;
+        color: var(--primary-dark);
+    }
+    
+    /* Section Avis Clients */
+    .reviews-section {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border);
+    }
+    
+    .reviews-section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .reviews-section-title i {
+        color: var(--accent);
+    }
+    
+    .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .review-card {
+        background: var(--bg-white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border-left: 3px solid var(--accent);
+    }
+    
+    .review-header {
+        margin-bottom: 1rem;
+    }
+    
+    .review-stars {
+        display: flex;
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .review-stars i {
+        color: #d1d5db;
+        font-size: 0.875rem;
+    }
+    
+    .review-stars i.active {
+        color: var(--accent);
+    }
+    
+    .review-author {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    .review-content {
+        font-size: 0.95rem;
+        color: var(--text-medium);
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+    
+    .review-date {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin: 0;
+    }
+    
+    .reviews-more-wrapper {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .reviews-more-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        background: var(--primary);
+        color: #ffffff;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .reviews-more-button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        gap: 0.75rem;
+    }
+    
     /* Section Lire aussi */
     .related-articles-section {
         margin-top: 3rem;
