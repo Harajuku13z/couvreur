@@ -220,11 +220,13 @@
                 <div class="mb-6">
                     <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider font-semibold">Devis & Facturation</div>
                     <div class="space-y-1">
+                        @if(Route::has('admin.quotations.dashboard'))
                         <a href="{{ route('admin.quotations.dashboard') }}" 
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}">
                             <i class="fas fa-chart-pie mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             Tableau de bord
                         </a>
+                        @endif
                         
                         <a href="{{ route('admin.devis.index') }}" 
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.devis.*') ? 'active' : '' }}">

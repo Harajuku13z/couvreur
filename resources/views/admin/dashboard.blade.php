@@ -10,6 +10,7 @@
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès rapide</h2>
         <div class="grid grid-cols-2 gap-3">
             <!-- Devis & Facturation -->
+            @if(Route::has('admin.quotations.dashboard'))
             <a href="{{ route('admin.quotations.dashboard') }}" 
                class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
                 <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-2">
@@ -17,6 +18,15 @@
                 </div>
                 <span class="text-sm font-medium text-gray-700 text-center">Devis & Facturation</span>
             </a>
+            @else
+            <a href="{{ route('admin.devis.index') }}" 
+               class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-2">
+                    <i class="fas fa-chart-pie text-white text-xl"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700 text-center">Devis & Facturation</span>
+            </a>
+            @endif
             
             <a href="{{ route('admin.devis.index') }}" 
                class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
