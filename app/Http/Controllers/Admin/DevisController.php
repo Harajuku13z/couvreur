@@ -569,6 +569,9 @@ class DevisController extends Controller
         try {
             \DB::beginTransaction();
 
+            // Sauvegarder l'ancien statut avant la mise à jour
+            $oldStatut = $devis->statut;
+
             $devis->update([
                 'client_id' => $request->client_id,
                 'statut' => $request->statut,
@@ -601,7 +604,6 @@ class DevisController extends Controller
             $devis->save();
 
             // Vérifier si le statut a changé pour "Validé" ou "Accepté"
-            $oldStatut = $devis->getOriginal('statut');
             $newStatut = $devis->statut;
             
             // Si le statut passe à "Validé" ou "Accepté" et qu'il n'y a pas encore de facture, en créer une
