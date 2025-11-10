@@ -110,12 +110,22 @@ class GoogleSearchConsoleService
      */
     protected function getSiteUrl()
     {
-        // Essayer de récupérer depuis les settings
+        // 1. Essayer de récupérer depuis les settings (priorité)
         $siteUrl = Setting::get('site_url', null);
         
+        // 2. Si pas dans les settings, utiliser APP_URL depuis la config Laravel
         if (empty($siteUrl)) {
-            // Utiliser APP_URL depuis la config Laravel
-            $siteUrl = config('app.url', url('/'));
+            $siteUrl = config('app.url', null);
+        }
+        
+        // 3. Si toujours vide, utiliser la requête actuelle (fallback dynamique)
+        if (empty($siteUrl)) {
+            try {
+                $siteUrl = request()->getSchemeAndHttpHost();
+            } catch (\Exception $e) {
+                // Si pas de requête (CLI), utiliser url() helper
+                $siteUrl = url('/');
+            }
         }
         
         // S'assurer que l'URL a un protocole (https:// ou http://)
