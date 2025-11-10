@@ -188,6 +188,8 @@
         padding: 0 2rem 5rem;
         position: relative;
         z-index: 10;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .article-grid {
@@ -195,35 +197,21 @@
         grid-template-columns: 1fr 360px !important;
         gap: 4rem !important;
         align-items: start !important;
-        position: relative;
-        width: 100%;
-        max-width: 100%;
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
     
     /* S'assurer que la grille fonctionne correctement */
     .article-grid > * {
-        min-width: 0; /* Permet aux éléments de se rétrécir si nécessaire */
+        min-width: 0;
+        box-sizing: border-box;
     }
     
-    /* Forcer l'article à rester dans sa colonne */
+    /* Card Article Principale - UNE SEULE DÉFINITION */
     .article-card {
-        grid-column: 1;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden; /* Empêche le contenu de déborder */
-    }
-    
-    /* Forcer la sidebar à rester dans sa colonne */
-    .article-sidebar {
-        grid-column: 2;
-        width: 360px;
-        max-width: 360px;
-        flex-shrink: 0;
-    }
-    
-    /* Card Article Principale */
-    .article-card {
-        grid-column: 1;
+        grid-column: 1 / 2 !important;
         background: var(--bg-white);
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
@@ -231,6 +219,20 @@
         transition: all 0.4s ease;
         width: 100%;
         max-width: 100%;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Forcer la sidebar à rester dans sa colonne */
+    .article-sidebar {
+        grid-column: 2 / 3 !important;
+        width: 360px !important;
+        max-width: 360px !important;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 2;
     }
     
     .article-card:hover {
@@ -253,50 +255,83 @@
         overflow-wrap: break-word;
     }
     
-    /* S'assurer que le contenu HTML généré ne casse pas la mise en page */
-    .article-content {
-        isolation: isolate; /* Crée un nouveau contexte d'empilement */
-        contain: layout style; /* Contient le layout et les styles */
+    /* ISOLATION COMPLÈTE du contenu HTML généré */
+    .article-content-wrapper {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
     
+    .article-content {
+        isolation: isolate !important;
+        contain: layout style paint !important;
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* FORCER tous les éléments du contenu à rester dans le conteneur */
     .article-content * {
         max-width: 100% !important;
         box-sizing: border-box !important;
-    }
-    
-    /* Empêcher les éléments avec position absolute de sortir du conteneur */
-    .article-content [style*="position: absolute"],
-    .article-content [style*="position:fixed"],
-    .article-content [style*="position:absolute"] {
         position: relative !important;
     }
     
-    /* Empêcher les éléments avec width fixe de casser la grille */
-    .article-content [style*="width: 100%"],
-    .article-content [style*="width:100%"] {
+    /* Empêcher TOUS les positionnements absolus/fixed */
+    .article-content [style*="position"],
+    .article-content [style*="Position"] {
+        position: relative !important;
+    }
+    
+    /* Empêcher les largeurs qui dépassent */
+    .article-content [style*="width"],
+    .article-content [style*="Width"] {
         max-width: 100% !important;
+    }
+    
+    /* Empêcher les marges négatives */
+    .article-content [style*="margin"],
+    .article-content [style*="Margin"] {
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
     
     /* S'assurer que les tableaux et images ne débordent pas */
     .article-content table {
         max-width: 100% !important;
         width: 100% !important;
-        display: block;
-        overflow-x: auto;
+        display: block !important;
+        overflow-x: auto !important;
+        box-sizing: border-box !important;
     }
     
     .article-content img {
         max-width: 100% !important;
         width: auto !important;
         height: auto !important;
-        display: block;
+        display: block !important;
+        box-sizing: border-box !important;
     }
     
     /* Empêcher les divs et sections de sortir du conteneur */
     .article-content div,
-    .article-content section {
+    .article-content section,
+    .article-content article,
+    .article-content aside,
+    .article-content nav {
         max-width: 100% !important;
-        overflow-x: auto;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+    }
+    
+    /* Empêcher les floats de casser la mise en page */
+    .article-content [style*="float"] {
+        float: none !important;
+        display: block !important;
     }
     
     .article-content > *:first-child {
