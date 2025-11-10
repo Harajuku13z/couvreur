@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Devis;
+use App\Models\Facture;
 use App\Models\LigneDevis;
 use App\Services\GroqQuotationService;
 use App\Services\PdfService;
@@ -178,10 +179,42 @@ class DevisController extends Controller
             $devis->recalculateTotals();
             $devis->save();
 
+            // Si le statut est "Validé" ou "Accepté", créer automatiquement la facture
+            if (in_array($devis->statut, ['Validé', 'Accepté']) && !$devis->facture) {
+                try {
+                    $facture = Facture::create([
+                        'devis_id' => $devis->id,
+                        'client_id' => $devis->client_id,
+                        'date_emission' => now(),
+                        'date_echeance' => now()->addDays(30),
+                        'prix_total_ht' => $devis->total_ht,
+                        'taux_tva' => $devis->taux_tva,
+                        'prix_total_ttc' => $devis->total_ttc,
+                        'statut' => 'En Attente',
+                    ]);
+                    
+                    Log::info('Facture créée automatiquement pour devis validé', [
+                        'devis_id' => $devis->id,
+                        'facture_id' => $facture->id
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Erreur création automatique facture', [
+                        'devis_id' => $devis->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    // On continue même si la facture n'a pas pu être créée
+                }
+            }
+
             \DB::commit();
 
+            $successMessage = 'Devis créé avec succès.';
+            if (in_array($devis->statut, ['Validé', 'Accepté']) && $devis->fresh()->facture) {
+                $successMessage .= ' Facture créée automatiquement.';
+            }
+
             return redirect()->route('admin.devis.show', $devis->id)
-                ->with('success', 'Devis créé avec succès');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Erreur création devis', [
@@ -567,6 +600,41 @@ class DevisController extends Controller
             $devis->recalculateTotals();
             $devis->save();
 
+            // Vérifier si le statut a changé pour "Validé" ou "Accepté"
+            $oldStatut = $devis->getOriginal('statut');
+            $newStatut = $devis->statut;
+            
+            // Si le statut passe à "Validé" ou "Accepté" et qu'il n'y a pas encore de facture, en créer une
+            if (in_array($newStatut, ['Validé', 'Accepté']) && 
+                !in_array($oldStatut, ['Validé', 'Accepté']) && 
+                !$devis->facture) {
+                try {
+                    $facture = Facture::create([
+                        'devis_id' => $devis->id,
+                        'client_id' => $devis->client_id,
+                        'date_emission' => now(),
+                        'date_echeance' => now()->addDays(30),
+                        'prix_total_ht' => $devis->total_ht,
+                        'taux_tva' => $devis->taux_tva,
+                        'prix_total_ttc' => $devis->total_ttc,
+                        'statut' => 'En Attente',
+                    ]);
+                    
+                    Log::info('Facture créée automatiquement pour devis validé', [
+                        'devis_id' => $devis->id,
+                        'facture_id' => $facture->id,
+                        'old_statut' => $oldStatut,
+                        'new_statut' => $newStatut
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Erreur création automatique facture', [
+                        'devis_id' => $devis->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    // On continue même si la facture n'a pas pu être créée
+                }
+            }
+
             // Supprimer l'ancien PDF s'il existe pour forcer la régénération
             if ($devis->pdf_path && Storage::disk('local')->exists($devis->pdf_path)) {
                 Storage::disk('local')->delete($devis->pdf_path);
@@ -588,8 +656,15 @@ class DevisController extends Controller
 
             \DB::commit();
 
+            $successMessage = 'Devis mis à jour avec succès. Le PDF a été régénéré.';
+            if (in_array($newStatut, ['Validé', 'Accepté']) && 
+                !in_array($oldStatut, ['Validé', 'Accepté']) && 
+                $devis->fresh()->facture) {
+                $successMessage .= ' Facture créée automatiquement.';
+            }
+
             return redirect()->route('admin.devis.show', $devis->id)
-                ->with('success', 'Devis mis à jour avec succès. Le PDF a été régénéré.');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Erreur mise à jour devis', [
