@@ -72,6 +72,15 @@
     .article-hero.has-image {
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    /* Overlay pour l'image - utiliser la couleur principale */
+    .article-hero.has-image::before {
+        background: linear-gradient(135deg, 
+            var(--primary) 0%, 
+            var(--primary-dark) 100%);
+        opacity: 0.7;
     }
     
     .article-hero::before {
@@ -79,10 +88,15 @@
         position: absolute;
         inset: 0;
         background: linear-gradient(135deg, 
-            rgba(15, 23, 42, 0.85) 0%, 
-            rgba(30, 64, 175, 0.75) 50%,
-            rgba(37, 99, 235, 0.65) 100%);
+            rgba(0, 0, 0, 0.6) 0%, 
+            rgba(0, 0, 0, 0.4) 100%);
         z-index: 1;
+    }
+    
+    /* Si l'image n'est pas présente, utiliser un overlay avec la couleur principale */
+    .article-hero:not(.has-image)::before {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        opacity: 1;
     }
     
     .article-hero::after {
