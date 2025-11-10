@@ -1314,12 +1314,19 @@
                 <div class="company-address-content">
                     <p class="company-address-line">
                         <i class="fas fa-map-pin"></i>
-                        <strong>Adresse :</strong> {{ setting('company_address') }}
-                        @if(setting('company_city'))
-                        , {{ setting('company_city') }}
+                        <strong>Adresse complète :</strong> 
+                        {{ setting('company_address') }}
+                        @if(setting('company_postal_code') || setting('company_city'))
+                        ,
                         @endif
                         @if(setting('company_postal_code'))
                         {{ setting('company_postal_code') }}
+                        @endif
+                        @if(setting('company_postal_code') && setting('company_city'))
+                        &nbsp;
+                        @endif
+                        @if(setting('company_city'))
+                        {{ setting('company_city') }}
                         @endif
                     </p>
                     @if(setting('company_phone'))
