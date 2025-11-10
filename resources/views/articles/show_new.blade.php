@@ -191,11 +191,13 @@
     }
     
     .article-grid {
-        display: grid;
-        grid-template-columns: 1fr 360px;
-        gap: 4rem;
-        align-items: start;
+        display: grid !important;
+        grid-template-columns: 1fr 360px !important;
+        gap: 4rem !important;
+        align-items: start !important;
         position: relative;
+        width: 100%;
+        max-width: 100%;
     }
     
     /* S'assurer que la grille fonctionne correctement */
@@ -203,13 +205,32 @@
         min-width: 0; /* Permet aux éléments de se rétrécir si nécessaire */
     }
     
+    /* Forcer l'article à rester dans sa colonne */
+    .article-card {
+        grid-column: 1;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden; /* Empêche le contenu de déborder */
+    }
+    
+    /* Forcer la sidebar à rester dans sa colonne */
+    .article-sidebar {
+        grid-column: 2;
+        width: 360px;
+        max-width: 360px;
+        flex-shrink: 0;
+    }
+    
     /* Card Article Principale */
     .article-card {
+        grid-column: 1;
         background: var(--bg-white);
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
         overflow: hidden;
         transition: all 0.4s ease;
+        width: 100%;
+        max-width: 100%;
     }
     
     .article-card:hover {
@@ -233,6 +254,11 @@
     }
     
     /* S'assurer que le contenu HTML généré ne casse pas la mise en page */
+    .article-content {
+        isolation: isolate; /* Crée un nouveau contexte d'empilement */
+        contain: layout style; /* Contient le layout et les styles */
+    }
+    
     .article-content * {
         max-width: 100% !important;
         box-sizing: border-box !important;
@@ -240,20 +266,37 @@
     
     /* Empêcher les éléments avec position absolute de sortir du conteneur */
     .article-content [style*="position: absolute"],
-    .article-content [style*="position:fixed"] {
+    .article-content [style*="position:fixed"],
+    .article-content [style*="position:absolute"] {
         position: relative !important;
+    }
+    
+    /* Empêcher les éléments avec width fixe de casser la grille */
+    .article-content [style*="width: 100%"],
+    .article-content [style*="width:100%"] {
+        max-width: 100% !important;
     }
     
     /* S'assurer que les tableaux et images ne débordent pas */
     .article-content table {
         max-width: 100% !important;
+        width: 100% !important;
         display: block;
         overflow-x: auto;
     }
     
     .article-content img {
         max-width: 100% !important;
+        width: auto !important;
         height: auto !important;
+        display: block;
+    }
+    
+    /* Empêcher les divs et sections de sortir du conteneur */
+    .article-content div,
+    .article-content section {
+        max-width: 100% !important;
+        overflow-x: auto;
     }
     
     .article-content > *:first-child {
@@ -891,10 +934,30 @@
                                 $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                             }
                             
+                            // Supprimer les sections CTA finales générées par GPT
                             $content = preg_replace('/<div[^>]*class="cta-final"[^>]*>.*?<\/div>/is', '', $content);
                             $content = preg_replace('/<section[^>]*class="article-conclusion"[^>]*>.*?<\/section>/is', '', $content);
                             $content = preg_replace('/🚀\s*Lancez\s+Votre\s+Projet[^<]*<.*?🔒[^<]*<.*?<\/div>/is', '', $content);
                             $content = preg_replace('/En\s+Résumé\s*:.*?🏆[^<]*<.*?<\/section>/is', '', $content);
+                            
+                            // Nettoyer les styles inline qui peuvent casser la mise en page
+                            $content = preg_replace('/style="[^"]*position\s*:\s*absolute[^"]*"/i', '', $content);
+                            $content = preg_replace('/style="[^"]*position\s*:\s*fixed[^"]*"/i', '', $content);
+                            $content = preg_replace('/style="[^"]*width\s*:\s*100%[^"]*"/i', 'style="max-width: 100%"', $content);
+                            
+                            // S'assurer que les balises sont bien fermées (approche simple)
+                            // Compter les balises ouvrantes et fermantes pour les divs et sections
+                            $openDivs = substr_count($content, '<div');
+                            $closeDivs = substr_count($content, '</div>');
+                            if ($openDivs > $closeDivs) {
+                                $content .= str_repeat('</div>', $openDivs - $closeDivs);
+                            }
+                            
+                            $openSections = substr_count($content, '<section');
+                            $closeSections = substr_count($content, '</section>');
+                            if ($openSections > $closeSections) {
+                                $content .= str_repeat('</section>', $openSections - $closeSections);
+                            }
                             
                             if (class_exists('\App\Helpers\InternalLinkingHelper')) {
                                 try {
