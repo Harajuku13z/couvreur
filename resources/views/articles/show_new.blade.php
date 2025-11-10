@@ -239,13 +239,13 @@
     }
     
     .article-content-wrapper {
-        padding: 3.5rem;
+        padding: 2.5rem;
     }
     
     /* Styles du contenu enrichis */
     .article-content {
-        font-size: 1.125rem;
-        line-height: 1.9;
+        font-size: 1.0625rem;
+        line-height: 1.5;
         color: var(--text-medium);
         max-width: 100%;
         overflow-x: auto; /* Permet le scroll horizontal si nécessaire */
@@ -337,11 +337,11 @@
     }
     
     .article-content h2 {
-        font-size: 2rem;
+        font-size: 1.875rem;
         font-weight: 700;
         color: var(--text-dark);
-        margin: 3.5rem 0 1.5rem 0;
-        padding-bottom: 1rem;
+        margin: 2rem 0 0.75rem 0;
+        padding-bottom: 0.5rem;
         position: relative;
         letter-spacing: -0.01em;
     }
@@ -358,11 +358,11 @@
     }
     
     .article-content h3 {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
         font-weight: 700;
         color: var(--text-dark);
-        margin: 2.5rem 0 1.25rem 0;
-        padding-left: 1rem;
+        margin: 1.5rem 0 0.75rem 0;
+        padding-left: 0.75rem;
         border-left: 4px solid var(--primary);
         transition: all 0.3s;
     }
@@ -380,8 +380,9 @@
     }
     
     .article-content p {
-        margin-bottom: 1.75rem;
+        margin-bottom: 1rem;
         color: var(--text-medium);
+        line-height: 1.5;
     }
     
     .article-content a {
@@ -399,14 +400,14 @@
     
     .article-content ul,
     .article-content ol {
-        margin: 1.75rem 0;
+        margin: 1.25rem 0;
         padding-left: 1.5rem;
     }
     
     .article-content li {
-        margin: 1rem 0;
+        margin: 0.5rem 0;
         padding-left: 0.5rem;
-        line-height: 1.8;
+        line-height: 1.6;
     }
     
     .article-content ul li::marker {
@@ -860,8 +861,8 @@
     
     .related-articles-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
     }
     
     .related-article-card {
@@ -895,14 +896,15 @@
     }
     
     .related-article-content {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
     
     .related-article-title {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         font-weight: 600;
         color: var(--text-dark);
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
     }
     
     .related-article-title a {
@@ -916,10 +918,10 @@
     }
     
     .related-article-excerpt {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: var(--text-medium);
-        line-height: 1.6;
-        margin-bottom: 1rem;
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
     }
     
     .related-article-link {
@@ -940,9 +942,9 @@
     
     /* Section Adresse complète */
     .company-address-section {
-        margin-top: 4rem;
-        padding-top: 4rem;
-        border-top: 2px solid var(--border);
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border);
     }
     
     .company-address-card {
@@ -1263,6 +1265,85 @@
                 </div>
             </article>
         </div>
+        
+        <!-- Section Nos Réalisations -->
+        @php
+            $portfolioItems = \App\Models\Setting::get('portfolio_items', []);
+            if (!is_array($portfolioItems)) {
+                $portfolioItems = [];
+            }
+            $displayedRealizations = collect($portfolioItems)
+                ->filter(function($item) {
+                    return is_array($item) && isset($item['title']);
+                })
+                ->take(3);
+        @endphp
+        
+        @if($displayedRealizations->count() > 0)
+        <div class="portfolio-section">
+            <h2 class="portfolio-section-title">
+                <i class="fas fa-images"></i>
+                Nos Réalisations
+            </h2>
+            <div class="portfolio-grid">
+                @foreach($displayedRealizations as $item)
+                <div class="portfolio-card">
+                    @if(!empty($item['images']))
+                        @php
+                            $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images'];
+                        @endphp
+                        <div class="portfolio-image">
+                            <img src="{{ asset($firstImage) }}" alt="{{ $item['title'] ?? 'Réalisation' }}">
+                        </div>
+                    @endif
+                    <div class="portfolio-content">
+                        <h3 class="portfolio-title">{{ $item['title'] ?? 'Réalisation' }}</h3>
+                        @if(!empty($item['work_type']))
+                        <p class="portfolio-type">{{ $item['work_type'] }}</p>
+                        @endif
+                        @if(!empty($item['slug']))
+                        <a href="{{ route('portfolio.show', $item['slug']) }}" class="portfolio-link">
+                            Voir la réalisation <i class="fas fa-arrow-right"></i>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+        
+        <!-- Section Avis Clients -->
+        @if(isset($reviews) && $reviews->count() > 0)
+        <div class="reviews-section">
+            <h2 class="reviews-section-title">
+                <i class="fas fa-star"></i>
+                Avis de Nos Clients
+            </h2>
+            <div class="reviews-grid">
+                @foreach($reviews->take(3) as $review)
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-stars">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star {{ $i <= ($review->rating ?? 5) ? 'active' : '' }}"></i>
+                            @endfor
+                        </div>
+                        @if($review->author_name)
+                        <p class="review-author">{{ $review->author_name }}</p>
+                        @endif
+                    </div>
+                    @if($review->content)
+                    <p class="review-content">{{ Str::limit($review->content, 150) }}</p>
+                    @endif
+                    @if($review->created_at)
+                    <p class="review-date">{{ $review->created_at->format('d/m/Y') }}</p>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
         
         <!-- Section Lire aussi -->
         @php
