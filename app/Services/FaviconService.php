@@ -29,14 +29,15 @@ class FaviconService
         
         try {
             // Tailles requises pour les favicons
+            // Google recommande minimum 48x48px, optimal 192x192px pour apparaître dans les résultats
             $sizes = [
                 '16x16' => 16,
                 '32x32' => 32,
-                '48x48' => 48,
-                '96x96' => 96,
+                '48x48' => 48,   // Minimum requis par Google
+                '96x96' => 96,   // Recommandé par Google
                 '180x180' => 180, // Apple Touch Icon
-                '192x192' => 192, // Manifest
-                '512x512' => 512  // Manifest
+                '192x192' => 192, // Optimal pour Google Search Results (recommandé)
+                '512x512' => 512  // Manifest PWA
             ];
             
             // Vérifier si GD est disponible

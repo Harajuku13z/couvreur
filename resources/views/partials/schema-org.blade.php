@@ -10,9 +10,43 @@
     $companyCountry = setting('company_country', 'France');
     $companyUrl = url('/');
     
-    // Organisation Schema
+    // Organisation Schema - Logo optimisé pour Google
     $companyLogo = setting('company_logo');
-    $logoUrl = $companyLogo ? (strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo)) : url('logo/logo.png');
+    $logoUrl = null;
+    
+    // Priorité 1: Logo d'entreprise configuré
+    if ($companyLogo) {
+        $logoUrl = strpos($companyLogo, 'http') === 0 ? $companyLogo : url($companyLogo);
+    }
+    
+    // Priorité 2: Favicon 96x96 ou 192x192 (optimal pour Google)
+    if (!$logoUrl) {
+        $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        
+        // Essayer le favicon 192x192 d'abord (recommandé par Google)
+        $favicon192 = $seoConfig['favicon_192x192'] ?? 'favicons/favicon-192x192.png';
+        if (file_exists(public_path($favicon192))) {
+            $logoUrl = url($favicon192);
+        } else {
+            // Essayer le favicon 96x96
+            $favicon96 = $seoConfig['favicon_96x96'] ?? 'favicons/favicon-96x96.png';
+            if (file_exists(public_path($favicon96))) {
+                $logoUrl = url($favicon96);
+            } else {
+                // Essayer site_favicon
+                $siteFavicon = setting('site_favicon');
+                if ($siteFavicon && file_exists(public_path($siteFavicon))) {
+                    $logoUrl = url($siteFavicon);
+                }
+            }
+        }
+    }
+    
+    // Fallback: Logo par défaut
+    if (!$logoUrl) {
+        $logoUrl = url('logo/logo.png');
+    }
     
     // Construire l'adresse complète (toujours inclure même si vide pour éviter les erreurs)
     // Google exige au moins un champ d'adresse rempli pour LocalBusiness
@@ -73,14 +107,45 @@
         $organizationSchema["email"] = $companyEmail;
     }
     $organizationSchema["priceRange"] = "€€";
-    // Toujours inclure le logo (même le logo par défaut) pour que Google puisse l'afficher
+    
+    // Logo optimisé pour Google Search Results
+    // Google recommande un logo d'au moins 112x112px pour apparaître dans les résultats
+    // Format optimal: carré, minimum 112x112px, maximum 1000x1000px
     $organizationSchema["image"] = $logoUrl;
     $organizationSchema["logo"] = [
         "@type" => "ImageObject",
         "url" => $logoUrl,
-        "width" => 600,
-        "height" => 60
+        // Dimensions optimales pour Google (carré recommandé)
+        "width" => 192,
+        "height" => 192
     ];
+    
+    // Ajouter aussi le favicon comme image alternative (Google peut l'utiliser)
+    $faviconUrl = null;
+    $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
+    $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+    
+    // Utiliser le favicon 96x96 ou 192x192 comme image alternative
+    $favicon192 = $seoConfig['favicon_192x192'] ?? 'favicons/favicon-192x192.png';
+    if (file_exists(public_path($favicon192))) {
+        $faviconUrl = url($favicon192);
+    } else {
+        $favicon96 = $seoConfig['favicon_96x96'] ?? 'favicons/favicon-96x96.png';
+        if (file_exists(public_path($favicon96))) {
+            $faviconUrl = url($favicon96);
+        }
+    }
+    
+    // Si le favicon est différent du logo, l'ajouter comme image alternative
+    if ($faviconUrl && $faviconUrl !== $logoUrl) {
+        if (!isset($organizationSchema["image"])) {
+            $organizationSchema["image"] = [];
+        }
+        if (!is_array($organizationSchema["image"])) {
+            $organizationSchema["image"] = [$organizationSchema["image"]];
+        }
+        $organizationSchema["image"][] = $faviconUrl;
+    }
     
     // Ajouter les réseaux sociaux si disponibles
     $sameAs = [];

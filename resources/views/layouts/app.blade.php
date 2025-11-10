@@ -181,7 +181,7 @@
     <meta name="twitter:site" content="{{ e(@setting('twitter_site')) }}">
     @endif
     
-    <!-- Favicon -->
+    <!-- Favicon - Optimisé pour Google Search Results -->
     @php
         $faviconUrl = null;
         $faviconPathForVersion = null;
@@ -190,24 +190,42 @@
         $seoConfigData = \App\Models\Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
         
-        // Vérifier d'abord dans site_favicon (ConfigController)
-        $faviconPath = setting('site_favicon');
-        if ($faviconPath) {
-            // Si le chemin commence par uploads/, c'est un chemin relatif depuis public
-            if (strpos($faviconPath, 'uploads/') === 0 || strpos($faviconPath, '/') === 0) {
-                $fullPath = public_path($faviconPath);
-            } else {
-                // Sinon, c'est directement dans public/
-                $fullPath = public_path($faviconPath);
-            }
-            
-            if (file_exists($fullPath)) {
-            $faviconUrl = asset($faviconPath);
-                $faviconPathForVersion = $faviconPath;
+        // Priorité 1: Favicon 192x192 (optimal pour Google - recommandé)
+        $favicon192 = $seoConfig['favicon_192x192'] ?? 'favicons/favicon-192x192.png';
+        if (file_exists(public_path($favicon192))) {
+            $faviconUrl = asset($favicon192);
+            $faviconPathForVersion = $favicon192;
+        }
+        
+        // Priorité 2: Favicon 96x96 (recommandé par Google)
+        if (!$faviconUrl) {
+            $favicon96 = $seoConfig['favicon_96x96'] ?? 'favicons/favicon-96x96.png';
+            if (file_exists(public_path($favicon96))) {
+                $faviconUrl = asset($favicon96);
+                $faviconPathForVersion = $favicon96;
             }
         }
         
-        // Si pas trouvé, vérifier dans seo_config (SeoController)
+        // Priorité 3: site_favicon (ConfigController)
+        if (!$faviconUrl) {
+            $faviconPath = setting('site_favicon');
+            if ($faviconPath) {
+                // Si le chemin commence par uploads/, c'est un chemin relatif depuis public
+                if (strpos($faviconPath, 'uploads/') === 0 || strpos($faviconPath, '/') === 0) {
+                    $fullPath = public_path($faviconPath);
+                } else {
+                    // Sinon, c'est directement dans public/
+                    $fullPath = public_path($faviconPath);
+                }
+                
+                if (file_exists($fullPath)) {
+                    $faviconUrl = asset($faviconPath);
+                    $faviconPathForVersion = $faviconPath;
+                }
+            }
+        }
+        
+        // Priorité 4: seo_config favicon (SeoController)
         if (!$faviconUrl && !empty($seoConfig['favicon'])) {
             $seoFaviconPath = $seoConfig['favicon'];
             $fullPath = public_path($seoFaviconPath);
@@ -264,6 +282,7 @@
         $favicon32 = $seoConfig['favicon_32x32'] ?? 'favicons/favicon-32x32.png';
         $favicon48 = $seoConfig['favicon_48x48'] ?? 'favicons/favicon-48x48.png';
         $favicon96 = $seoConfig['favicon_96x96'] ?? 'favicons/favicon-96x96.png';
+        $favicon192 = $seoConfig['favicon_192x192'] ?? 'favicons/favicon-192x192.png'; // Optimal pour Google
         
         // Apple Touch Icon
         $appleIcon = $seoConfig['apple_touch_icon'] ?? 'favicons/apple-touch-icon.png';
@@ -291,6 +310,10 @@
     @endif
     @if(file_exists(public_path($favicon96)))
     <link rel="icon" type="image/png" sizes="96x96" href="{{ asset($favicon96) }}">
+    @endif
+    @if(file_exists(public_path($favicon192)))
+    <!-- Favicon 192x192 (optimal pour Google Search Results) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset($favicon192) }}">
     @endif
     
     <!-- Apple Touch Icon (pour iOS - 180x180px) -->
