@@ -840,19 +840,19 @@
     
     /* Section Lire aussi */
     .related-articles-section {
-        margin-top: 4rem;
-        padding-top: 4rem;
-        border-top: 2px solid var(--border);
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border);
     }
     
     .related-articles-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         color: var(--text-dark);
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
     }
     
     .related-articles-title i {
@@ -949,19 +949,19 @@
     
     .company-address-card {
         background: var(--bg-light);
-        border-radius: 16px;
-        padding: 2.5rem;
+        border-radius: 12px;
+        padding: 2rem;
         border-left: 4px solid var(--primary);
     }
     
     .company-address-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--text-dark);
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
     }
     
     .company-address-title i {
