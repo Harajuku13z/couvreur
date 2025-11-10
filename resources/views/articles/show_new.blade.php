@@ -207,11 +207,7 @@
     }
     
     .article-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 360px !important;
-        gap: 4rem !important;
-        align-items: start !important;
-        position: relative !important;
+        display: block !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
@@ -223,9 +219,8 @@
         box-sizing: border-box;
     }
     
-    /* Card Article Principale - UNE SEULE DÉFINITION */
+    /* Card Article Principale */
     .article-card {
-        grid-column: 1 / 2 !important;
         background: var(--bg-white);
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
@@ -236,17 +231,6 @@
         box-sizing: border-box;
         position: relative;
         z-index: 1;
-    }
-    
-    /* Forcer la sidebar à rester dans sa colonne */
-    .article-sidebar {
-        grid-column: 2 / 3 !important;
-        width: 360px !important;
-        max-width: 360px !important;
-        flex-shrink: 0;
-        box-sizing: border-box;
-        position: relative;
-        z-index: 2;
     }
     
     .article-card:hover {
@@ -853,10 +837,176 @@
         border-top: 1px solid var(--border);
     }
     
+    /* Section Lire aussi */
+    .related-articles-section {
+        margin-top: 4rem;
+        padding-top: 4rem;
+        border-top: 2px solid var(--border);
+    }
+    
+    .related-articles-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .related-articles-title i {
+        color: var(--primary);
+    }
+    
+    .related-articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .related-article-card {
+        background: var(--bg-white);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+    }
+    
+    .related-article-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);
+    }
+    
+    .related-article-image {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .related-article-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    
+    .related-article-card:hover .related-article-image img {
+        transform: scale(1.05);
+    }
+    
+    .related-article-content {
+        padding: 1.5rem;
+    }
+    
+    .related-article-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+    }
+    
+    .related-article-title a {
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .related-article-title a:hover {
+        color: var(--primary);
+    }
+    
+    .related-article-excerpt {
+        font-size: 0.95rem;
+        color: var(--text-medium);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .related-article-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: gap 0.2s;
+    }
+    
+    .related-article-link:hover {
+        gap: 0.75rem;
+        color: var(--primary-dark);
+    }
+    
+    /* Section Adresse complète */
+    .company-address-section {
+        margin-top: 4rem;
+        padding-top: 4rem;
+        border-top: 2px solid var(--border);
+    }
+    
+    .company-address-card {
+        background: var(--bg-light);
+        border-radius: 16px;
+        padding: 2.5rem;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .company-address-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .company-address-title i {
+        color: var(--primary);
+    }
+    
+    .company-address-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    
+    .company-address-line {
+        font-size: 1.0625rem;
+        color: var(--text-medium);
+        line-height: 1.8;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .company-address-line i {
+        color: var(--primary);
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+    
+    .company-address-line a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .company-address-line a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+    
     /* Responsive Design */
     @media (max-width: 1024px) {
-        .article-grid {
+        .related-articles-grid {
             grid-template-columns: 1fr;
+        }
+        
+        .company-address-card {
+            padding: 2rem 1.5rem;
+        }
             gap: 3rem;
         }
         
@@ -1119,65 +1269,82 @@
                     </div>
                 </div>
             </article>
-            
-            <!-- Sidebar -->
-            <aside class="article-sidebar">
-                <!-- Contact Card -->
-                <div class="sidebar-card">
-                    <h3 class="sidebar-card-title">
-                        <i class="fas fa-headset"></i>
-                        Besoin d'aide ?
-                    </h3>
-                    <div class="sidebar-card-body">
-                        <p>Nos experts sont à votre disposition pour répondre à toutes vos questions.</p>
-                        <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-primary btn-block">
-                            <i class="fas fa-phone"></i>
-                            <span>{{ setting('company_phone') }}</span>
-                        </a>
-                        <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-outline btn-block" style="margin-top: 0.75rem;">
-                            <i class="fas fa-calculator"></i>
-                            <span>Devis gratuit</span>
-                        </a>
+        </div>
+        
+        <!-- Section Lire aussi -->
+        @php
+            $relatedArticles = \App\Models\Article::where('status', 'published')
+                ->where('id', '!=', $article->id)
+                ->orderBy('published_at', 'desc')
+                ->limit(3)
+                ->get();
+        @endphp
+        
+        @if($relatedArticles->count() > 0)
+        <div class="related-articles-section">
+            <h2 class="related-articles-title">
+                <i class="fas fa-book-reader"></i>
+                Lire aussi
+            </h2>
+            <div class="related-articles-grid">
+                @foreach($relatedArticles as $relatedArticle)
+                <article class="related-article-card">
+                    @if($relatedArticle->featured_image)
+                    <div class="related-article-image">
+                        <img src="{{ asset($relatedArticle->featured_image) }}" alt="{{ $relatedArticle->title }}">
                     </div>
-                </div>
-                
-                <!-- Company Info Card -->
-                <div class="sidebar-card">
-                    <h3 class="sidebar-card-title">
-                        <i class="fas fa-building"></i>
-                        Notre Entreprise
-                    </h3>
-                    <div class="sidebar-card-body">
-                        <p><strong>{{ setting('company_name') }}</strong></p>
-                        <p style="margin-top: 0.75rem;">{{ setting('company_address') }}</p>
-                        <p style="margin-top: 0.75rem;">
-                            <a href="tel:{{ setting('company_phone_raw') }}" style="color: var(--primary); text-decoration: none;">
-                                <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>{{ setting('company_phone') }}
-                            </a>
-                        </p>
-                        <p style="margin-top: 0.5rem;">
-                            <a href="mailto:{{ setting('company_email') }}" style="color: var(--primary); text-decoration: none;">
-                                <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i>{{ setting('company_email') }}
-                            </a>
-                        </p>
-                    </div>
-                </div>
-                
-                <!-- CTA Card -->
-                <div class="sidebar-card gradient">
-                    <h3 class="sidebar-card-title">
-                        <i class="fas fa-rocket"></i>
-                        Prêt à commencer ?
-                    </h3>
-                    <div class="sidebar-card-body">
-                        <p>Contactez-nous pour un devis gratuit et personnalisé.</p>
-                        <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white btn-block">
-                            <i class="fas fa-calculator"></i>
-                            <span>Demander un devis</span>
+                    @endif
+                    <div class="related-article-content">
+                        <h3 class="related-article-title">
+                            <a href="{{ route('blog.show', $relatedArticle) }}">{{ $relatedArticle->title }}</a>
+                        </h3>
+                        @if($relatedArticle->meta_description)
+                        <p class="related-article-excerpt">{{ Str::limit(strip_tags($relatedArticle->meta_description), 120) }}</p>
+                        @endif
+                        <a href="{{ route('blog.show', $relatedArticle) }}" class="related-article-link">
+                            Lire la suite <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
+                </article>
+                @endforeach
+            </div>
+        </div>
+        @endif
+        
+        <!-- Section Adresse complète -->
+        <div class="company-address-section">
+            <div class="company-address-card">
+                <h3 class="company-address-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ setting('company_name') }}
+                </h3>
+                <div class="company-address-content">
+                    <p class="company-address-line">
+                        <i class="fas fa-map-pin"></i>
+                        <strong>Adresse :</strong> {{ setting('company_address') }}
+                        @if(setting('company_city'))
+                        , {{ setting('company_city') }}
+                        @endif
+                        @if(setting('company_postal_code'))
+                        {{ setting('company_postal_code') }}
+                        @endif
+                    </p>
+                    @if(setting('company_phone'))
+                    <p class="company-address-line">
+                        <i class="fas fa-phone"></i>
+                        <strong>Téléphone :</strong> 
+                        <a href="tel:{{ setting('company_phone_raw') }}">{{ setting('company_phone') }}</a>
+                    </p>
+                    @endif
+                    @if(setting('company_email'))
+                    <p class="company-address-line">
+                        <i class="fas fa-envelope"></i>
+                        <strong>Email :</strong> 
+                        <a href="mailto:{{ setting('company_email') }}">{{ setting('company_email') }}</a>
+                    </p>
+                    @endif
                 </div>
-            </aside>
+            </div>
         </div>
     </div>
 </div>
