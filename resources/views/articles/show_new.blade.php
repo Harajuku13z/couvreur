@@ -974,10 +974,50 @@
         margin-bottom: 1rem;
     }
     
+    .review-author-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .review-author-avatar {
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--border);
+    }
+    
+    .review-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .review-avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.125rem;
+        text-transform: uppercase;
+    }
+    
+    .review-author-details {
+        flex: 1;
+        min-width: 0;
+    }
+    
     .review-stars {
         display: flex;
         gap: 0.25rem;
-        margin-bottom: 0.5rem;
+        margin-top: 0.25rem;
     }
     
     .review-stars i {
@@ -993,7 +1033,7 @@
         font-weight: 600;
         color: var(--text-dark);
         font-size: 0.95rem;
-        margin: 0;
+        margin: 0 0 0.25rem 0;
     }
     
     .review-content {
@@ -1536,19 +1576,38 @@
                 @foreach($reviews->take(3) as $review)
                 <div class="review-card">
                     <div class="review-header">
-                        <div class="review-stars">
-                            @for($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star {{ $i <= ($review->rating ?? 5) ? 'active' : '' }}"></i>
-                            @endfor
+                        <div class="review-author-info">
+                            <div class="review-author-avatar">
+                                @if($review->author_photo_url)
+                                    <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name ?? 'Auteur' }}" class="review-avatar-img">
+                                @elseif($review->author_photo)
+                                    <img src="{{ asset($review->author_photo) }}" alt="{{ $review->author_name ?? 'Auteur' }}" class="review-avatar-img">
+                                @else
+                                    <div class="review-avatar-placeholder">
+                                        {{ $review->author_initials ?? '?' }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="review-author-details">
+                                @if($review->author_name)
+                                <p class="review-author">{{ $review->author_name }}</p>
+                                @endif
+                                <div class="review-stars">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= ($review->rating ?? 5) ? 'active' : '' }}"></i>
+                                    @endfor
+                                </div>
+                            </div>
                         </div>
-                        @if($review->author_name)
-                        <p class="review-author">{{ $review->author_name }}</p>
-                        @endif
                     </div>
-                    @if($review->content)
+                    @if($review->review_text)
+                    <p class="review-content">{{ Str::limit($review->review_text, 150) }}</p>
+                    @elseif($review->content)
                     <p class="review-content">{{ Str::limit($review->content, 150) }}</p>
                     @endif
-                    @if($review->created_at)
+                    @if($review->review_date)
+                    <p class="review-date">{{ $review->review_date->format('d/m/Y') }}</p>
+                    @elseif($review->created_at)
                     <p class="review-date">{{ $review->created_at->format('d/m/Y') }}</p>
                     @endif
                 </div>
