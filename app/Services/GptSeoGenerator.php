@@ -483,6 +483,127 @@ EOT;
     }
     
     /**
+     * Générer les mots-clés meta optimisés
+     */
+    protected function generateMetaKeywords($keyword, $city, $titre, $semanticAnalysis)
+    {
+        $companyName = config('app.name', 'Notre Entreprise');
+        $relatedKeywords = $semanticAnalysis['related_keywords'] ?? [];
+        
+        // Prendre les 8-10 meilleurs mots-clés connexes
+        $topRelatedKeywords = array_slice($relatedKeywords, 0, 8);
+        
+        $prompt = <<<EOT
+Génère 12-15 mots-clés SEO pertinents pour cet article.
+
+**Titre article :** {$titre}
+**Mot-clé principal :** {$keyword}
+**Ville :** {$city}
+**Entreprise :** {$companyName}
+**Mots-clés connexes identifiés :** {$this->implodeKeywords($topRelatedKeywords)}
+
+**Critères STRICTS :**
+✅ 12-15 mots-clés au total
+✅ Inclure le mot-clé principal "{$keyword}"
+✅ Inclure la ville "{$city}" dans au moins 2-3 variantes
+✅ Inclure 3-5 mots-clés connexes pertinents
+✅ Inclure des variantes locales (ex: "{$keyword} {$city}", "{$keyword} {département}")
+✅ Inclure des mots-clés techniques du secteur (toiture, couverture, isolation, etc.)
+✅ Inclure des mots-clés d'intention (devis, prix, tarif, expert, professionnel)
+✅ Format: liste séparée par des virgules, sans numérotation, sans puces
+
+**Exemples de format attendu :**
+{$keyword}, {$keyword} {$city}, expert {$keyword}, devis {$keyword}, prix {$keyword}, {$keyword} professionnel, couverture {$city}, toiture {$city}, isolation {$city}
+
+**RÈGLES :**
+- Pas d'émojis
+- Pas de guillemets
+- Pas de numérotation (1., 2., etc.)
+- Pas de tirets/puces (-, •, etc.)
+- Uniquement des mots-clés séparés par des virgules
+- Maximum 15 mots-clés
+
+Génère UNIQUEMENT la liste de mots-clés séparés par des virgules, sans explications, sans guillemets.
+EOT;
+
+        $systemMessage = "Tu es un expert SEO spécialisé dans la génération de mots-clés meta optimisés. Tu génères des listes de mots-clés pertinents et variés pour maximiser le référencement.";
+        
+        try {
+            $result = AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 200,
+                'temperature' => 0.7,
+            ]);
+            
+            $keywordsString = trim($result['content'] ?? '');
+            
+            // Nettoyer la réponse
+            $keywordsString = trim($keywordsString, '"\'');
+            $keywordsString = preg_replace('/^[\d\.\-\*\•\s]+/', '', $keywordsString); // Enlever numéros, puces
+            $keywordsString = preg_replace('/\s+/', ' ', $keywordsString); // Normaliser espaces
+            
+            // Parser en tableau
+            $keywords = array_map('trim', explode(',', $keywordsString));
+            $keywords = array_filter($keywords, function($kw) {
+                return !empty($kw) && strlen($kw) >= 2 && strlen($kw) <= 50;
+            });
+            
+            // S'assurer que le mot-clé principal et la ville sont présents
+            $keywordLower = strtolower($keyword);
+            $cityLower = strtolower($city);
+            $hasKeyword = false;
+            $hasCity = false;
+            
+            foreach ($keywords as $kw) {
+                if (stripos(strtolower($kw), $keywordLower) !== false) {
+                    $hasKeyword = true;
+                }
+                if (stripos(strtolower($kw), $cityLower) !== false) {
+                    $hasCity = true;
+                }
+            }
+            
+            // Ajouter si manquant
+            if (!$hasKeyword) {
+                array_unshift($keywords, $keyword);
+            }
+            if (!$hasCity) {
+                $keywords[] = $keyword . ' ' . $city;
+            }
+            
+            // Limiter à 15 mots-clés
+            $keywords = array_slice(array_unique($keywords), 0, 15);
+            
+            Log::info('Mots-clés meta générés', [
+                'count' => count($keywords),
+                'keywords_preview' => array_slice($keywords, 0, 5)
+            ]);
+            
+            return $keywords;
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur génération mots-clés meta', [
+                'error' => $e->getMessage()
+            ]);
+            
+            // Fallback : générer des mots-clés basiques
+            $fallbackKeywords = [
+                $keyword,
+                $keyword . ' ' . $city,
+                'expert ' . $keyword,
+                'devis ' . $keyword,
+                $keyword . ' professionnel',
+                'couverture ' . $city,
+                'toiture ' . $city,
+                'isolation ' . $city,
+                'rénovation ' . $city,
+                'artisan ' . $city
+            ];
+            
+            return array_slice($fallbackKeywords, 0, 12);
+        }
+    }
+    
+    /**
      * Générer le contenu HTML ultra-optimisé
      */
     protected function generateHtmlContent($keyword, $city, $serpResults, $keywordImages, $titre, $semanticAnalysis)
