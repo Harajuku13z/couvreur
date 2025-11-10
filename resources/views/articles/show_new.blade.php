@@ -199,11 +199,21 @@
     .article-container {
         max-width: 1400px;
         margin: -100px auto 0;
-        padding: 0 2rem 5rem;
+        padding: 0;
         position: relative;
         z-index: 10;
         width: 100%;
         box-sizing: border-box;
+    }
+    
+    /* Conteneur avec border pour tout le contenu */
+    .article-content-container {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2.5rem;
+        margin: 0 2rem 5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
     .article-grid {
@@ -221,11 +231,11 @@
     
     /* Card Article Principale */
     .article-card {
-        background: var(--bg-white);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        transition: all 0.4s ease;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+        transition: none;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -233,10 +243,6 @@
         z-index: 1;
     }
     
-    .article-card:hover {
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
-        transform: translateY(-4px);
-    }
     
     .article-content-wrapper {
         padding: 2.5rem;
@@ -1116,6 +1122,7 @@
     
     <!-- Contenu principal -->
     <div class="article-container">
+        <div class="article-content-container">
         <div class="article-grid">
             <!-- Article -->
             <article class="article-card">
@@ -1276,7 +1283,8 @@
                 ->filter(function($item) {
                     return is_array($item) && isset($item['title']);
                 })
-                ->take(3);
+                ->shuffle()
+                ->take(2);
         @endphp
         
         @if($displayedRealizations->count() > 0)
@@ -1342,6 +1350,13 @@
                 </div>
                 @endforeach
             </div>
+            @if($reviews->count() > 3)
+            <div class="reviews-more-wrapper">
+                <a href="{{ route('reviews.all') ?? '/avis' }}" class="reviews-more-button">
+                    Voir plus d'avis <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            @endif
         </div>
         @endif
         
@@ -1426,6 +1441,7 @@
                     @endif
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>
