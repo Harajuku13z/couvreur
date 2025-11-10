@@ -1041,49 +1041,49 @@ mot-clé 3
                     'message' => 'Aucun mot-clé valide à sauvegarder. Veuillez ajouter au moins un mot-clé.'
                 ], 400);
             }
-        
-        // Créer le dossier pour les images de mots-clés s'il n'existe pas
-        $uploadDir = public_path('images/keywords');
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        // Traiter les images associées aux mots-clés
-        $keywordImages = $validated['keyword_images'] ?? [];
-        $savedImages = [];
-        
-        foreach ($keywords as $index => $keyword) {
-            // Si une image est fournie pour ce mot-clé
-            if (isset($keywordImages[$index]) && $keywordImages[$index]->isValid()) {
-                $image = $keywordImages[$index];
-                $filename = 'keyword-' . Str::slug($keyword) . '-' . time() . '-' . $index . '.' . $image->getClientOriginalExtension();
-                $imagePath = 'images/keywords/' . $filename;
-                
-                // Déplacer l'image
-                $image->move($uploadDir, $filename);
-                
-                // Créer ou mettre à jour l'entrée dans keyword_images
-                $keywordImageModel = KeywordImage::updateOrCreate(
-                    ['keyword' => $keyword],
-                    [
-                        'image_path' => $imagePath,
-                        'title' => $keyword,
-                        'is_active' => true,
-                        'display_order' => $index,
-                    ]
-                );
-                
-                $savedImages[] = $keywordImageModel->id;
-            } else {
-                // Vérifier si une image existe déjà pour ce mot-clé
-                $existingImage = KeywordImage::where('keyword', $keyword)->first();
-                if ($existingImage) {
-                    // Mettre à jour l'ordre d'affichage
-                    $existingImage->update(['display_order' => $index]);
+            
+            // Créer le dossier pour les images de mots-clés s'il n'existe pas
+            $uploadDir = public_path('images/keywords');
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Traiter les images associées aux mots-clés
+            $keywordImages = $validated['keyword_images'] ?? [];
+            $savedImages = [];
+            
+            foreach ($keywords as $index => $keyword) {
+                // Si une image est fournie pour ce mot-clé
+                if (isset($keywordImages[$index]) && $keywordImages[$index]->isValid()) {
+                    $image = $keywordImages[$index];
+                    $filename = 'keyword-' . Str::slug($keyword) . '-' . time() . '-' . $index . '.' . $image->getClientOriginalExtension();
+                    $imagePath = 'images/keywords/' . $filename;
+                    
+                    // Déplacer l'image
+                    $image->move($uploadDir, $filename);
+                    
+                    // Créer ou mettre à jour l'entrée dans keyword_images
+                    $keywordImageModel = KeywordImage::updateOrCreate(
+                        ['keyword' => $keyword],
+                        [
+                            'image_path' => $imagePath,
+                            'title' => $keyword,
+                            'is_active' => true,
+                            'display_order' => $index,
+                        ]
+                    );
+                    
+                    $savedImages[] = $keywordImageModel->id;
+                } else {
+                    // Vérifier si une image existe déjà pour ce mot-clé
+                    $existingImage = KeywordImage::where('keyword', $keyword)->first();
+                    if ($existingImage) {
+                        // Mettre à jour l'ordre d'affichage
+                        $existingImage->update(['display_order' => $index]);
+                    }
                 }
             }
-        }
-        
+            
             // Sauvegarder la liste des mots-clés
             \App\Models\Setting::set('seo_custom_keywords', json_encode($keywords), 'json', 'seo');
             
