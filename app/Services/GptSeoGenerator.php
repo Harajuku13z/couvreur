@@ -43,6 +43,9 @@ class GptSeoGenerator
             // Étape 2 : Générer la meta description persuasive
             $metaDescription = $this->generateMetaDescription($keyword, $city, $titre, $semanticAnalysis);
             
+            // Étape 2.5 : Générer les mots-clés meta
+            $metaKeywords = $this->generateMetaKeywords($keyword, $city, $titre, $semanticAnalysis);
+            
             // Étape 3 : Générer le contenu HTML ultra-optimisé
             $contenuHtml = $this->generateHtmlContent($keyword, $city, $serpResults, $keywordImages, $titre, $semanticAnalysis);
             
@@ -66,6 +69,7 @@ class GptSeoGenerator
                 'titre' => $titre,
                 'slug' => $slug,
                 'meta_description' => $metaDescription,
+                'mots_cles' => $metaKeywords,
                 'contenu_html' => $contenuHtml,
                 'keyword' => $keyword,
                 'city' => $city,
