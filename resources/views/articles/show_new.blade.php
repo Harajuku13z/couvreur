@@ -94,16 +94,16 @@
     }
     
     .wp-article-wrapper {
-        max-width: 1400px;
+        max-width: 1600px;
         margin: 0 auto;
         padding: 0 20px;
     }
     
     .wp-article-content-area {
         display: grid;
-        grid-template-columns: 1fr 320px;
-        gap: 50px;
-        margin-top: -80px;
+        grid-template-columns: 1fr 260px;
+        gap: 40px;
+        margin-top: -60px;
         position: relative;
         z-index: 10;
         align-items: start;
@@ -116,6 +116,7 @@
         padding: 4rem;
         margin-bottom: 2rem;
         min-width: 0;
+        flex: 1;
     }
     
     .wp-article-title {
@@ -320,9 +321,9 @@
         flex-direction: column;
         gap: 1.5rem;
         position: sticky;
-        top: 100px;
+        top: 20px;
         align-self: start;
-        max-height: calc(100vh - 120px);
+        max-height: calc(100vh - 40px);
         overflow-y: auto;
     }
     
