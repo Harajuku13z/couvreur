@@ -1209,6 +1209,13 @@
         
         .article-container {
             margin-top: -60px;
+            padding: 0 1rem;
+            max-width: 100%;
+        }
+        
+        .article-content-container {
+            padding: 2rem;
+            margin: 0 auto 3rem;
         }
     }
     
@@ -1231,7 +1238,13 @@
         }
         
         .article-container {
-            padding: 0 1.5rem 3rem;
+            padding: 0 0.75rem;
+        }
+        
+        .article-content-container {
+            padding: 1.5rem;
+            margin: 0 auto 2rem;
+            border-radius: 8px;
         }
         
         .article-content-wrapper {
