@@ -202,12 +202,22 @@ EOT;
         $contenuHtml = trim($contenuHtml);
         
         // Corriger les balises FAQ Schema.org mal formées
+        // Corriger les balises avec itemtype="<h2> ou itemtype="<h3> (erreur GPT)
+        $contenuHtml = preg_replace('/itemtype="<h([23])>/i', 'itemtype="https://schema.org/Question"><h$1', $contenuHtml);
+        $contenuHtml = preg_replace('/itemtype="<section/i', 'itemtype="https://schema.org/FAQPage"><section', $contenuHtml);
+        $contenuHtml = preg_replace('/itemtype="<div/i', 'itemtype="https://schema.org/Answer"><div', $contenuHtml);
+        // Corriger les balises section FAQ cassées
+        $contenuHtml = preg_replace('/<section[^>]*itemtype="<h2>/i', '<section id="faq" itemscope itemtype="https://schema.org/FAQPage"><h2', $contenuHtml);
         // Supprimer les fragments de balises comme "https://schema.org/FAQPage">" orphelins
         $contenuHtml = preg_replace('/https:\/\/schema\.org\/[^>]*">\s*/', '', $contenuHtml);
         // Corriger les balises FAQ incomplètes
         $contenuHtml = preg_replace('/<section[^>]*itemtype="https:\/\/schema\.org\/FAQPage"[^>]*>\s*https:\/\/schema\.org\/[^>]*">/i', '<section id="faq" itemscope itemtype="https://schema.org/FAQPage">', $contenuHtml);
         // Supprimer les balises orphelines schema.org
         $contenuHtml = preg_replace('/<https:\/\/schema\.org\/[^>]*>/i', '', $contenuHtml);
+        // Supprimer le texte de conclusion indésirable
+        $contenuHtml = preg_replace('/Ce contenu HTML intègre toutes les recommandations SEO.*?\./s', '', $contenuHtml);
+        $contenuHtml = preg_replace('/Ce contenu HTML.*?référence pour.*?\./s', '', $contenuHtml);
+        $contenuHtml = preg_replace('/visant à établir.*?comme.*?référence.*?\./s', '', $contenuHtml);
         
         // Validation basique du HTML
         if (empty($contenuHtml) || strlen($contenuHtml) < 500) {
@@ -479,10 +489,11 @@ Tu es un rédacteur SEO expert spécialisé dans le secteur du bâtiment et de l
 - Utilise EXACTEMENT le format ci-dessus avec les balises HTML COMPLÈTES et FERMÉES
 - Chaque question DOIT être dans un `<div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">` COMPLET
 - Chaque réponse DOIT être dans un `<div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">` COMPLET
-- NE JAMAIS générer de balises HTML cassées ou incomplètes comme `https://schema.org/FAQPage">` seule
+- NE JAMAIS générer de balises HTML cassées ou incomplètes comme `itemtype="<h2>` ou `itemtype="<h3>`
 - NE JAMAIS mettre les attributs schema.org sur des balises orphelines ou des fragments de HTML
-- TOUTES les balises doivent être complètes : `<section>`, `</section>`, `<div>`, `</div>`, `<h3>`, `</h3>`, `<p>`, `</p>`
+- TOUTES les balises doivent être complètes : `<section id="faq" itemscope itemtype="https://schema.org/FAQPage">`, `</section>`, `<div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">`, `</div>`, `<h3 itemprop="name">`, `</h3>`, `<p itemprop="text">`, `</p>`
 - Le format DOIT être du HTML valide et bien formé
+- NE JAMAIS terminer l'article par des phrases comme "Ce contenu HTML intègre..." ou "visant à établir... comme référence"
 
 **6. CALL-TO-ACTION STRATÉGIQUES**
 
