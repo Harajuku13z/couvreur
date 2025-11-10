@@ -332,6 +332,26 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         padding: 2rem;
+        flex-shrink: 0; /* Empêche les widgets de rétrécir */
+    }
+    
+    /* Style pour le scroll de la sidebar */
+    .wp-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .wp-sidebar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .wp-sidebar::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+    
+    .wp-sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
     }
     
     .wp-widget-title {
