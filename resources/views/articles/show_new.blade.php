@@ -195,6 +195,12 @@
         grid-template-columns: 1fr 360px;
         gap: 4rem;
         align-items: start;
+        position: relative;
+    }
+    
+    /* S'assurer que la grille fonctionne correctement */
+    .article-grid > * {
+        min-width: 0; /* Permet aux éléments de se rétrécir si nécessaire */
     }
     
     /* Card Article Principale */
@@ -220,6 +226,34 @@
         font-size: 1.125rem;
         line-height: 1.9;
         color: var(--text-medium);
+        max-width: 100%;
+        overflow-x: auto; /* Permet le scroll horizontal si nécessaire */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    /* S'assurer que le contenu HTML généré ne casse pas la mise en page */
+    .article-content * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Empêcher les éléments avec position absolute de sortir du conteneur */
+    .article-content [style*="position: absolute"],
+    .article-content [style*="position:fixed"] {
+        position: relative !important;
+    }
+    
+    /* S'assurer que les tableaux et images ne débordent pas */
+    .article-content table {
+        max-width: 100% !important;
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .article-content img {
+        max-width: 100% !important;
+        height: auto !important;
     }
     
     .article-content > *:first-child {
@@ -410,10 +444,33 @@
     /* Sidebar moderne */
     .article-sidebar {
         position: sticky;
-        top: 100px;
+        top: 20px;
         display: flex;
         flex-direction: column;
         gap: 1.75rem;
+        align-self: start;
+        z-index: 5;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+    
+    /* Style pour le scroll de la sidebar */
+    .article-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .article-sidebar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .article-sidebar::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+    
+    .article-sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
     }
     
     .sidebar-card {
