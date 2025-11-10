@@ -760,13 +760,15 @@ IMPORTANT:
                 ], 500);
             }
 
-            // Valider et nettoyer les champs
+            // Valider et nettoyer les champs - Ne pas tronquer, laisser Google gérer l'affichage
+            // Google peut afficher jusqu'à 60 caractères pour les titres (mais accepte plus)
+            // et jusqu'à 320 caractères pour les descriptions (anciennement 160)
             $seoContent = [
-                'meta_title' => Str::limit($generatedContent['meta_title'] ?? '', 60, ''),
-                'meta_description' => Str::limit($generatedContent['meta_description'] ?? '', 160, ''),
+                'meta_title' => trim($generatedContent['meta_title'] ?? ''),
+                'meta_description' => trim($generatedContent['meta_description'] ?? ''),
                 'meta_keywords' => Str::limit($generatedContent['meta_keywords'] ?? '', 255, ''),
-                'og_title' => Str::limit($generatedContent['og_title'] ?? $generatedContent['meta_title'] ?? '', 60, ''),
-                'og_description' => Str::limit($generatedContent['og_description'] ?? $generatedContent['meta_description'] ?? '', 160, '')
+                'og_title' => trim($generatedContent['og_title'] ?? $generatedContent['meta_title'] ?? ''),
+                'og_description' => trim($generatedContent['og_description'] ?? $generatedContent['meta_description'] ?? '')
             ];
 
             return response()->json([
@@ -903,12 +905,14 @@ IMPORTANT:
                 ], 500);
             }
 
-            // Valider et nettoyer les champs
+            // Valider et nettoyer les champs - Ne pas tronquer, laisser Google gérer l'affichage
+            // Google peut afficher jusqu'à 60 caractères pour les titres (mais accepte plus)
+            // et jusqu'à 320 caractères pour les descriptions (anciennement 160)
             $seoContent = [
-                'meta_title' => Str::limit($generatedContent['meta_title'] ?? '', 60, ''),
-                'meta_description' => Str::limit($generatedContent['meta_description'] ?? '', 160, ''),
-                'og_title' => Str::limit($generatedContent['og_title'] ?? $generatedContent['meta_title'] ?? '', 60, ''),
-                'og_description' => Str::limit($generatedContent['og_description'] ?? $generatedContent['meta_description'] ?? '', 160, '')
+                'meta_title' => trim($generatedContent['meta_title'] ?? ''),
+                'meta_description' => trim($generatedContent['meta_description'] ?? ''),
+                'og_title' => trim($generatedContent['og_title'] ?? $generatedContent['meta_title'] ?? ''),
+                'og_description' => trim($generatedContent['og_description'] ?? $generatedContent['meta_description'] ?? '')
             ];
 
             return response()->json([

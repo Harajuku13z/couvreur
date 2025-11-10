@@ -1,10 +1,45 @@
 @extends('layouts.app')
 
-@section('title', $article->meta_title ?: $article->title)
-@section('description', $article->meta_description)
-@section('keywords', $article->meta_keywords)
+@php
+    // Utiliser les titres et descriptions complets (sans troncature)
+    $pageTitle = $article->meta_title ?: $article->title;
+    $pageDescription = $article->meta_description;
+    
+    // Filtrer les mots-clés pour enlever les mots vides
+    $metaKeywords = $article->meta_keywords;
+    if ($metaKeywords) {
+        $keywordsArray = array_map('trim', explode(',', $metaKeywords));
+        $stopWords = ['votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange', 'le', 'la', 'les'];
+        $filteredKeywords = array_filter($keywordsArray, function($kw) use ($stopWords) {
+            $kwLower = strtolower(trim($kw));
+            return !empty($kw) && strlen($kw) >= 3 && !in_array($kwLower, $stopWords);
+        });
+        $metaKeywords = !empty($filteredKeywords) ? implode(', ', $filteredKeywords) : null;
+    }
+    
+    // Passer les métadonnées spécifiques à l'article au layout principal
+    $pageImage = $article->featured_image ? asset($article->featured_image) : asset(setting('default_blog_og_image', 'images/og-blog.jpg'));
+    $pageType = 'article';
+    $currentPage = 'article';
+    
+    // Open Graph et Twitter
+    $ogTitle = $ogTitle ?? $pageTitle;
+    $ogDescription = $ogDescription ?? $pageDescription;
+    $twitterTitle = $twitterTitle ?? $ogTitle;
+    $twitterDescription = $twitterDescription ?? $ogDescription;
+@endphp
+
+@section('title', $pageTitle)
+@section('description', $pageDescription)
+@section('keywords', $metaKeywords)
 
 @push('head')
+<!-- Métadonnées spécifiques aux articles -->
+<meta property="article:published_time" content="{{ $article->created_at->toISOString() }}">
+<meta property="article:author" content="{{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="article:section" content="Blog">
+<meta property="article:tag" content="{{ $article->focus_keyword ?? 'Rénovation' }}">
+
 <style>
     :root {
         --primary-color: {{ setting('primary_color', '#3b82f6') }};

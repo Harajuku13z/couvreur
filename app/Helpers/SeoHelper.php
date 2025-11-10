@@ -101,9 +101,11 @@ class SeoHelper
                          ?: trim($customData['description'] ?? '') 
                          ?: $defaultDescription;
         
-        // Limiter la longueur pour respecter les standards SEO
-        $finalTitle = mb_substr($finalTitle, 0, 60);
-        $finalDescription = mb_substr($finalDescription, 0, 160);
+        // NE PAS tronquer les titres et descriptions - les afficher en entier
+        // Les titres et descriptions générés par GPT sont déjà optimisés
+        // Google peut afficher jusqu'à 60 caractères pour les titres (mais accepte plus)
+        // et jusqu'à 320 caractères pour les descriptions (anciennement 160)
+        // On laisse Google gérer l'affichage, on ne tronque pas côté serveur
         
         // Image finale (logique selon le type de page)
         if (self::shouldUseDefaultImage($pageName, $customData['image'] ?? null)) {

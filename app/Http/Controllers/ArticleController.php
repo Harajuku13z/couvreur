@@ -69,7 +69,7 @@ class ArticleController extends Controller
             ->limit(6)
             ->get();
 
-        return view('articles.show', compact(
+        return view('articles.show_new', compact(
             'article', 
             'reviews', 
             'pageTitle', 

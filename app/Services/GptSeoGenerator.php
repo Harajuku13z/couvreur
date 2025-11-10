@@ -453,13 +453,13 @@ EOT;
             $metaDescription = "Expert {$keyword} à {$city}. {$companyName} : devis gratuit, artisans certifiés, intervention rapide. Qualité garantie, tarifs transparents.";
         }
         
-        // Optimisation longueur (sweet spot 155-160 caractères)
+        // Optimisation longueur - Google peut afficher jusqu'à 320 caractères maintenant
+        // On ne tronque plus, on laisse Google gérer l'affichage
         $currentLength = strlen($metaDescription);
         
-        if ($currentLength > 160) {
-            // Tronquer à 157 caractères + "..."
-            $metaDescription = substr($metaDescription, 0, 157) . '...';
-        } else if ($currentLength < 140) {
+        // Ne plus tronquer - laisser le contenu complet
+        // Google peut afficher jusqu'à 320 caractères dans les résultats de recherche
+        if ($currentLength < 140) {
             // Trop court, ajouter CTA si absent
             if (strpos(strtolower($metaDescription), 'devis') === false && 
                 strpos(strtolower($metaDescription), 'contact') === false) {
