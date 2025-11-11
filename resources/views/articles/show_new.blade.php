@@ -1520,30 +1520,46 @@
                                 ]);
                             }
                             
-                            // ÉTAPE 1: Protéger toutes les balises <img> valides existantes avec un placeholder unique
+                            // ÉTAPE 1: Protéger toutes les balises <img> valides existantes AVANT tout traitement
                             $validImages = [];
                             $content = preg_replace_callback(
                                 '/<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>/i',
                                 function($matches) use (&$validImages) {
                                     $placeholder = '<!--IMG_VALID_' . count($validImages) . '-->';
                                     $validImages[] = $matches[0];
+                                    \Log::info('Image protégée', [
+                                        'placeholder' => $placeholder,
+                                        'img_tag' => $matches[0],
+                                        'src' => $matches[1]
+                                    ]);
                                     return $placeholder;
                                 },
                                 $content
                             );
                             
-                            // ÉTAPE 2: Nettoyer les URLs dupliquées (domaine répété plusieurs fois)
+                            \Log::info('Images protégées', [
+                                'count' => count($validImages),
+                                'content_length_after_protection' => strlen($content)
+                            ]);
+                            
+                            // ÉTAPE 2: Nettoyer les URLs dupliquées (domaine répété plusieurs fois) - seulement en dehors des placeholders
                             $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+/i', '$1', $content);
                             
                             // ÉTAPE 3: Réparer les balises <img> cassées avec URLs dupliquées et attributs multiples
+                            // Mais seulement si ce n'est pas un placeholder
                             $content = preg_replace_callback(
                                 '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)+/i',
                                 function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    if (strpos($matches[0], '<!--IMG_VALID_') !== false) {
+                                        return $matches[0];
+                                    }
                                     $src = $matches[1];
                                     $alt = 'Image article';
                                     if (preg_match('/alt=["\']([^"\']+)["\']/', $matches[0], $altMatch)) {
                                         $alt = $altMatch[1];
                                     }
+                                    \Log::info('Image cassée réparée (URL complète)', ['src' => $src]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
                                 },
                                 $content
@@ -1553,24 +1569,97 @@
                             $content = preg_replace_callback(
                                 '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)+/i',
                                 function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    if (strpos($matches[0], '<!--IMG_VALID_') !== false) {
+                                        return $matches[0];
+                                    }
                                     $src = asset(ltrim($matches[1], '/'));
                                     $alt = 'Image article';
                                     if (preg_match('/alt=["\']([^"\']+)["\']/', $matches[0], $altMatch)) {
                                         $alt = $altMatch[1];
                                     }
+                                    \Log::info('Image cassée réparée (URL relative)', ['src' => $src]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
                                 },
                                 $content
                             );
                             
-                            // ÉTAPE 5: Supprimer les fragments de balises <img> cassées (qui ne commencent pas par <img)
-                            $content = preg_replace('/"\s+alt=["\'][^"\']+["\'][^>]*>/i', '', $content);
+                            // ÉTAPE 5: Réparer les balises <img> cassées qui commencent directement par une URL
+                            // Pattern: https://domain.com/uploads/...image.jpg" alt="..." loading="lazy">
+                            // (sans <img src= au début)
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0]; // Garder si dans un placeholder
+                                        }
+                                    }
+                                    $src = $matches[1];
+                                    $alt = isset($matches[3]) ? $matches[3] : 'Image article';
+                                    \Log::info('Balise img cassée réparée (URL directe)', ['src' => $src, 'alt' => $alt]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 5b: Réparer les URLs relatives qui commencent directement
+                            // Pattern: /uploads/articles/...image.jpg" alt="..." loading="lazy">
+                            $content = preg_replace_callback(
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0]; // Garder si dans un placeholder
+                                        }
+                                    }
+                                    $src = asset(ltrim($matches[1], '/'));
+                                    $alt = isset($matches[3]) ? $matches[3] : 'Image article';
+                                    \Log::info('Balise img cassée réparée (URL relative directe)', ['src' => $src, 'alt' => $alt]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 5c: Supprimer les fragments de balises <img> cassées restantes (qui ne commencent pas par <img)
+                            // Mais seulement si ce n'est pas dans un placeholder
+                            $content = preg_replace_callback(
+                                '/"\s+alt=["\'][^"\']+["\'][^>]*>/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0]; // Garder si dans un placeholder
+                                        }
+                                    }
+                                    return ''; // Supprimer sinon
+                                },
+                                $content
+                            );
                             
                             // ÉTAPE 6: Convertir les URLs d'images restantes en balises <img>
+                            // Mais seulement si ce n'est pas dans un placeholder
                             // URLs complètes avec domaine
                             $content = preg_replace_callback(
                                 '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0]; // Garder si dans un placeholder
+                                        }
+                                    }
+                                    \Log::info('URL convertie en balise img (URL complète)', ['url' => $matches[1]]);
                                     return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
@@ -1580,7 +1669,16 @@
                             $content = preg_replace_callback(
                                 '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0]; // Garder si dans un placeholder
+                                        }
+                                    }
                                     $src = asset(ltrim($matches[1], '/'));
+                                    \Log::info('URL convertie en balise img (URL relative)', ['url' => $matches[1], 'src' => $src]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
@@ -1591,8 +1689,20 @@
                                 $content = str_replace('<!--IMG_VALID_' . $index . '-->', $imgTag, $content);
                             }
                             
-                            // ÉTAPE 8: Nettoyer les balises <img> sans src valide
+                            \Log::info('Images restaurées', [
+                                'count' => count($validImages),
+                                'content_length_after_restore' => strlen($content)
+                            ]);
+                            
+                            // ÉTAPE 8: Nettoyer les balises <img> sans src valide (seulement celles vraiment cassées)
                             $content = preg_replace('/<img(?![^>]*src=["\'][^"\']+["\'])[^>]*>/i', '', $content);
+                            
+                            // Log final pour debug
+                            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $finalImgMatches);
+                            \Log::info('Images finales dans le contenu', [
+                                'count' => count($finalImgMatches[1]),
+                                'urls' => $finalImgMatches[1]
+                            ]);
                             
                             // Supprimer les sections CTA finales générées par GPT
                             $content = preg_replace('/<div[^>]*class="cta-final"[^>]*>.*?<\/div>/is', '', $content);
