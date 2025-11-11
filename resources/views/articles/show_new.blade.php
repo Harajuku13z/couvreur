@@ -1520,6 +1520,32 @@
                                 ]);
                             }
                             
+                            // ÉTAPE 0: SOLUTION ULTIME - Réparer les balises <img> cassées qui commencent directement par une URL
+                            // Pattern exact: https://domain.com/uploads/...image.jpg" alt="..." loading="lazy">
+                            // Cette étape DOIT être faite AVANT la protection pour capturer ces cas
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    $src = $matches[1];
+                                    $alt = isset($matches[4]) ? $matches[4] : 'Image article';
+                                    \Log::info('SOLUTION ULTIME: Balise img cassée réparée (URL directe)', ['src' => $src, 'alt' => $alt]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 0b: Réparer aussi les URLs relatives qui commencent directement
+                            $content = preg_replace_callback(
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    $src = asset(ltrim($matches[1], '/'));
+                                    $alt = isset($matches[4]) ? $matches[4] : 'Image article';
+                                    \Log::info('SOLUTION ULTIME: Balise img cassée réparée (URL relative)', ['src' => $src, 'alt' => $alt]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
                             // ÉTAPE 1: Protéger toutes les balises <img> valides existantes AVANT tout traitement
                             $validImages = [];
                             $content = preg_replace_callback(
