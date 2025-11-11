@@ -1586,9 +1586,9 @@
                             
                             // ÉTAPE 5: Réparer les balises <img> cassées qui commencent directement par une URL
                             // Pattern: https://domain.com/uploads/...image.jpg" alt="..." loading="lazy">
-                            // (sans <img src= au début)
+                            // (sans <img src= au début) - le guillemet peut être collé ou avec espace
                             $content = preg_replace_callback(
-                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+)?alt=["\']([^"\']+)["\'][^>]*>)/i',
                                 function($matches) {
                                     // Vérifier que ce n'est pas dans un placeholder
                                     $pos = strpos($content, $matches[0]);
@@ -1599,8 +1599,8 @@
                                         }
                                     }
                                     $src = $matches[1];
-                                    $alt = isset($matches[3]) ? $matches[3] : 'Image article';
-                                    \Log::info('Balise img cassée réparée (URL directe)', ['src' => $src, 'alt' => $alt]);
+                                    $alt = isset($matches[4]) ? $matches[4] : 'Image article';
+                                    \Log::info('Balise img cassée réparée (URL directe complète)', ['src' => $src, 'alt' => $alt]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
                                 },
                                 $content
@@ -1609,7 +1609,7 @@
                             // ÉTAPE 5b: Réparer les URLs relatives qui commencent directement
                             // Pattern: /uploads/articles/...image.jpg" alt="..." loading="lazy">
                             $content = preg_replace_callback(
-                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+)?alt=["\']([^"\']+)["\'][^>]*>)/i',
                                 function($matches) {
                                     // Vérifier que ce n'est pas dans un placeholder
                                     $pos = strpos($content, $matches[0]);
@@ -1620,9 +1620,58 @@
                                         }
                                     }
                                     $src = asset(ltrim($matches[1], '/'));
-                                    $alt = isset($matches[3]) ? $matches[3] : 'Image article';
+                                    $alt = isset($matches[4]) ? $matches[4] : 'Image article';
                                     \Log::info('Balise img cassée réparée (URL relative directe)', ['src' => $src, 'alt' => $alt]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 5c: Réparer aussi les cas où l'URL est seule (sans attributs après)
+                            // Pattern: https://domain.com/uploads/...image.jpg
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))(?![^<]*>)/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder ou déjà dans une balise img
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        // Si c'est déjà dans une balise img, ne pas toucher
+                                        if (preg_match('/<img[^>]*src=["\'][^"\']*$/i', $before)) {
+                                            return $matches[0];
+                                        }
+                                        // Si c'est dans un placeholder, ne pas toucher
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0];
+                                        }
+                                    }
+                                    $src = $matches[1];
+                                    \Log::info('URL seule convertie en balise img (URL complète)', ['src' => $src]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 5d: Réparer les URLs relatives seules
+                            $content = preg_replace_callback(
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))(?![^<]*>)/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder ou déjà dans une balise img
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        // Si c'est déjà dans une balise img, ne pas toucher
+                                        if (preg_match('/<img[^>]*src=["\'][^"\']*$/i', $before)) {
+                                            return $matches[0];
+                                        }
+                                        // Si c'est dans un placeholder, ne pas toucher
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0];
+                                        }
+                                    }
+                                    $src = asset(ltrim($matches[1], '/'));
+                                    \Log::info('URL seule convertie en balise img (URL relative)', ['src' => $src]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
                             );
