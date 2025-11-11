@@ -28,6 +28,8 @@ class GoogleUrlInspectionService
             $this->client = new Client();
             $this->client->setApplicationName('Laravel SEO Automation');
             $this->client->setScopes([
+                // Certaines configurations exigent le scope complet pour URL Inspection
+                'https://www.googleapis.com/auth/webmasters',
                 'https://www.googleapis.com/auth/webmasters.readonly',
             ]);
 
