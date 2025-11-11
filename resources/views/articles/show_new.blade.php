@@ -1587,6 +1587,7 @@
                             // ÉTAPE 5: Réparer les balises <img> cassées qui commencent directement par une URL
                             // Pattern: https://domain.com/uploads/...image.jpg" alt="..." loading="lazy">
                             // (sans <img src= au début) - le guillemet peut être collé ou avec espace
+                            // Gérer aussi les cas avec backslash échappé
                             $content = preg_replace_callback(
                                 '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+)?alt=["\']([^"\']+)["\'][^>]*>)/i',
                                 function($matches) {
@@ -1600,7 +1601,28 @@
                                     }
                                     $src = $matches[1];
                                     $alt = isset($matches[4]) ? $matches[4] : 'Image article';
-                                    \Log::info('Balise img cassée réparée (URL directe complète)', ['src' => $src, 'alt' => $alt]);
+                                    \Log::info('Balise img cassée réparée (URL directe complète)', ['src' => $src, 'alt' => $alt, 'match' => $matches[0]]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 5a: Réparer aussi les cas avec backslash échappé dans l'URL
+                            // Pattern: https://domain.com/uploads/...article\_1762875356\_691357dc893a7.jpeg" alt="..."
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+(?:\\\\_|[^"\'])+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+)?alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    // Vérifier que ce n'est pas dans un placeholder
+                                    $pos = strpos($content, $matches[0]);
+                                    if ($pos !== false) {
+                                        $before = substr($content, 0, $pos);
+                                        if (strpos($before, '<!--IMG_VALID_') !== false && strpos($before, '-->') > strrpos($before, '<!--IMG_VALID_')) {
+                                            return $matches[0];
+                                        }
+                                    }
+                                    $src = str_replace('\\_', '_', $matches[1]); // Déséchapper les underscores
+                                    $alt = isset($matches[4]) ? $matches[4] : 'Image article';
+                                    \Log::info('Balise img cassée réparée (URL avec backslash)', ['src' => $src, 'alt' => $alt]);
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
                                 },
                                 $content
