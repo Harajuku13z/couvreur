@@ -177,8 +177,7 @@ class GoogleUrlInspectionService
                     if ($indexStatusResult) {
                         $coverage = $indexStatusResult->getCoverageState();
                         $status['coverage_state'] = $coverage;
-                        // Normaliser la comparaison (certains SDK renvoient 'INDEXED' en majuscules)
-                        $status['indexed'] = is_string($coverage) ? strtoupper($coverage) === 'INDEXED' : false;
+                        
                         // Certains SDKs ne fournissent pas ces champs; utiliser method_exists par sécurité
                         $status['indexing_state'] = method_exists($indexStatusResult, 'getIndexingState')
                             ? $indexStatusResult->getIndexingState()
@@ -191,16 +190,36 @@ class GoogleUrlInspectionService
                             ? $indexStatusResult->getVerdict()
                             : null;
 
+                        // ⚠️ LOGIQUE AMÉLIORÉE : Une URL est considérée comme indexée si :
+                        // 1. coverage_state === 'INDEXED' OU
+                        // 2. indexing_state === 'URL_IS_ON_GOOGLE' (l'URL est sur Google) OU
+                        // 3. verdict === 'PASS' ET coverage_state n'est pas explicitement 'NOT_INDEXED'
+                        $coverageUpper = is_string($coverage) ? strtoupper($coverage) : '';
+                        $indexingStateUpper = is_string($status['indexing_state']) ? strtoupper($status['indexing_state']) : '';
+                        $verdictUpper = is_string($status['verdict']) ? strtoupper($status['verdict']) : '';
+                        
+                        $isIndexedByCoverage = $coverageUpper === 'INDEXED';
+                        $isIndexedByIndexingState = $indexingStateUpper === 'URL_IS_ON_GOOGLE';
+                        $isIndexedByVerdict = $verdictUpper === 'PASS' && $coverageUpper !== 'NOT_INDEXED';
+                        
+                        $status['indexed'] = $isIndexedByCoverage || $isIndexedByIndexingState || $isIndexedByVerdict;
+                        
+                        // Log détaillé pour diagnostic
+                        Log::info('URL Inspection - Analyse détaillée', [
+                            'url' => $url,
+                            'site_url_used' => $candidateSiteUrl,
+                            'coverage_state' => $coverage,
+                            'indexing_state' => $status['indexing_state'],
+                            'verdict' => $status['verdict'],
+                            'indexed_by_coverage' => $isIndexedByCoverage,
+                            'indexed_by_indexing_state' => $isIndexedByIndexingState,
+                            'indexed_by_verdict' => $isIndexedByVerdict,
+                            'final_indexed' => $status['indexed'],
+                            'last_crawl_time' => $status['last_crawl_time'],
+                        ]);
+
                         // Ne pas utiliser getDetails()/getCrawlIssue(), non disponibles dans certaines versions
                     }
-
-                    // Note: certains SDKs ne renvoient pas AMP/Mobile/RichResults; on se limite au statut d'indexation
-                    Log::info('URL Inspection réussie', [
-                        'url' => $url,
-                        'site_url_used' => $candidateSiteUrl,
-                        'indexed' => $status['indexed'],
-                        'coverage_state' => $status['coverage_state']
-                    ]);
 
                     $triedVariants[] = $status;
                     // Conserver la première réponse indexée comme gagnante
