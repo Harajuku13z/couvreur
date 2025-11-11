@@ -106,54 +106,143 @@ class ArticleController extends Controller
 
     public function update(Request $request, Article $article)
     {
-        // Validation conditionnelle selon le type d'input
-        $rules = [
-            'title' => 'required|string|max:500',
-            'content_html' => 'required|string',
-            'meta_title' => 'nullable|string|max:500',
-            'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:2000',
-            'status' => 'required|in:draft,published'
-        ];
-        
-        // Si c'est un fichier uploadé, valider comme image
-        if ($request->hasFile('featured_image')) {
-            $rules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120';
-        } else {
-            $rules['featured_image'] = 'nullable|string';
-        }
-        
-        $validated = $request->validate($rules);
+        try {
+            Log::info('ArticleController::update - Début', [
+                'article_id' => $article->id,
+                'request_method' => $request->method(),
+                'has_content_html' => $request->has('content_html'),
+                'content_html_length' => strlen($request->input('content_html', '')),
+                'has_featured_image' => $request->has('featured_image'),
+                'has_file_featured_image' => $request->hasFile('featured_image'),
+                'all_inputs' => array_keys($request->all()),
+            ]);
 
-        $featuredImagePath = $article->featured_image; // Garder l'image actuelle par défaut
-        
-        // Cas 1: Upload de fichier
-        if ($request->hasFile('featured_image')) {
-            $file = $request->file('featured_image');
-            $featuredImagePath = $this->handleImageUpload($file);
-        }
-        // Cas 2: Path depuis la galerie (string qui commence par uploads/ ou images/)
-        elseif ($request->has('featured_image') && is_string($request->input('featured_image'))) {
-            $imageInput = $request->input('featured_image');
-            // Vérifier que le path existe et est valide
-            if (str_starts_with($imageInput, 'uploads/') || str_starts_with($imageInput, 'images/')) {
-                $fullPath = public_path($imageInput);
-                if (file_exists($fullPath) && is_file($fullPath)) {
+            // Validation conditionnelle selon le type d'input
+            $rules = [
+                'title' => 'required|string|max:500',
+                'content_html' => 'required|string',
+                'meta_title' => 'nullable|string|max:500',
+                'meta_description' => 'nullable|string|max:500',
+                'meta_keywords' => 'nullable|string|max:2000',
+                'status' => 'required|in:draft,published'
+            ];
+            
+            // Si c'est un fichier uploadé, valider comme image
+            if ($request->hasFile('featured_image')) {
+                $rules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120';
+                Log::info('ArticleController::update - Validation fichier image', [
+                    'file_name' => $request->file('featured_image')->getClientOriginalName(),
+                    'file_size' => $request->file('featured_image')->getSize(),
+                ]);
+            } else {
+                $rules['featured_image'] = 'nullable|string';
+                Log::info('ArticleController::update - Validation string image', [
+                    'featured_image_value' => $request->input('featured_image'),
+                    'featured_image_type' => gettype($request->input('featured_image')),
+                ]);
+            }
+            
+            $validated = $request->validate($rules);
+            
+            Log::info('ArticleController::update - Validation réussie', [
+                'validated_keys' => array_keys($validated),
+                'title' => $validated['title'] ?? 'N/A',
+                'content_html_length' => strlen($validated['content_html'] ?? ''),
+                'status' => $validated['status'] ?? 'N/A',
+            ]);
+
+            $featuredImagePath = $article->featured_image; // Garder l'image actuelle par défaut
+            
+            Log::info('ArticleController::update - Traitement image', [
+                'current_featured_image' => $featuredImagePath,
+                'has_file' => $request->hasFile('featured_image'),
+                'has_input' => $request->has('featured_image'),
+                'input_value' => $request->input('featured_image'),
+            ]);
+            
+            // Cas 1: Upload de fichier
+            if ($request->hasFile('featured_image')) {
+                $file = $request->file('featured_image');
+                $featuredImagePath = $this->handleImageUpload($file);
+                Log::info('ArticleController::update - Fichier uploadé', [
+                    'new_path' => $featuredImagePath,
+                ]);
+            }
+            // Cas 2: Path depuis la galerie (string qui commence par uploads/ ou images/)
+            elseif ($request->has('featured_image') && is_string($request->input('featured_image'))) {
+                $imageInput = $request->input('featured_image');
+                Log::info('ArticleController::update - Traitement path/URL', [
+                    'image_input' => $imageInput,
+                    'starts_with_uploads' => str_starts_with($imageInput, 'uploads/'),
+                    'starts_with_images' => str_starts_with($imageInput, 'images/'),
+                    'is_valid_url' => filter_var($imageInput, FILTER_VALIDATE_URL),
+                ]);
+                
+                // Vérifier que le path existe et est valide
+                if (str_starts_with($imageInput, 'uploads/') || str_starts_with($imageInput, 'images/')) {
+                    $fullPath = public_path($imageInput);
+                    if (file_exists($fullPath) && is_file($fullPath)) {
+                        $featuredImagePath = $imageInput;
+                        Log::info('ArticleController::update - Path valide trouvé', [
+                            'full_path' => $fullPath,
+                            'exists' => file_exists($fullPath),
+                        ]);
+                    } else {
+                        Log::warning('ArticleController::update - Path invalide', [
+                            'full_path' => $fullPath,
+                            'exists' => file_exists($fullPath),
+                        ]);
+                    }
+                }
+                // Cas 3: URL externe (commence par http:// ou https://)
+                elseif (filter_var($imageInput, FILTER_VALIDATE_URL)) {
                     $featuredImagePath = $imageInput;
+                    Log::info('ArticleController::update - URL externe détectée', [
+                        'url' => $imageInput,
+                    ]);
                 }
             }
-            // Cas 3: URL externe (commence par http:// ou https://)
-            elseif (filter_var($imageInput, FILTER_VALIDATE_URL)) {
-                $featuredImagePath = $imageInput;
-            }
+
+            $validated['featured_image'] = $featuredImagePath;
+            $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
+            
+            Log::info('ArticleController::update - Données avant update', [
+                'featured_image' => $validated['featured_image'],
+                'published_at' => $validated['published_at'],
+                'title' => $validated['title'],
+                'status' => $validated['status'],
+            ]);
+            
+            $article->update($validated);
+            
+            Log::info('ArticleController::update - Update réussi', [
+                'article_id' => $article->id,
+                'updated_title' => $article->title,
+                'updated_featured_image' => $article->featured_image,
+                'updated_status' => $article->status,
+            ]);
+
+            return redirect()->route('admin.articles.show', $article)
+                ->with('success', 'Article modifié avec succès');
+                
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('ArticleController::update - Erreur de validation', [
+                'errors' => $e->errors(),
+                'article_id' => $article->id,
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('ArticleController::update - Erreur exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'article_id' => $article->id,
+            ]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erreur lors de la mise à jour: ' . $e->getMessage());
         }
-
-        $validated['featured_image'] = $featuredImagePath;
-        $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
-        $article->update($validated);
-
-        return redirect()->route('admin.articles.show', $article)
-            ->with('success', 'Article modifié avec succès');
     }
 
     public function destroy(Article $article)
@@ -377,7 +466,8 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             
             // Générer l'URL complète et le chemin relatif
             $imagePath = 'uploads/articles/' . $filename;
-            $imageUrl = url($imagePath);
+            // Utiliser asset() au lieu de url() pour générer une URL absolue correcte
+            $imageUrl = asset($imagePath);
             
             // Générer un alt text automatique si non fourni
             $altText = $request->input('alt_text');

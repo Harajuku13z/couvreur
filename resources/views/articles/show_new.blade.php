@@ -1423,23 +1423,44 @@
                         @php
                             $content = $article->content_html;
                             
+                            // Debug: logger le contenu brut pour voir comment les images sont stockées
+                            \Log::info('Article content_html brut', [
+                                'article_id' => $article->id,
+                                'content_length' => strlen($content),
+                                'has_img_tags' => strpos($content, '<img') !== false,
+                                'img_count' => substr_count($content, '<img'),
+                                'sample' => substr($content, 0, 500),
+                            ]);
+                            
                             if (strpos($content, '&lt;') !== false && strpos($content, '<') === false) {
                                 $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            }
+                            
+                            // Extraire toutes les URLs d'images pour debug
+                            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $imgMatches);
+                            if (!empty($imgMatches[1])) {
+                                \Log::info('URLs d\'images trouvées dans le contenu', [
+                                    'article_id' => $article->id,
+                                    'urls' => $imgMatches[1],
+                                ]);
                             }
                             
                             // Corriger les URLs d'images relatives en URLs absolues
                             // Les images uploadées via Quill ont des URLs comme /uploads/articles/... ou uploads/articles/...
                             // Aussi gérer les cas où l'URL est stockée comme texte au lieu d'une balise <img>
+                            
+                            // D'abord, améliorer le regex pour capturer toutes les balises img
                             $content = preg_replace_callback(
-                                '/<img([^>]*?)(?:\s+src=["\']([^"\']+)["\']|src=["\']([^"\']+)["\'])([^>]*?)>/i',
+                                '/<img\s+([^>]*?)>/i',
                                 function($matches) {
-                                    // Récupérer src (peut être dans matches[2] ou matches[3] selon l'ordre)
-                                    $src = !empty($matches[2]) ? $matches[2] : (!empty($matches[3]) ? $matches[3] : '');
-                                    $before = $matches[1];
-                                    $after = !empty($matches[4]) ? $matches[4] : '';
+                                    $attributes = $matches[1];
                                     
-                                    if (empty($src)) {
-                                        return $matches[0]; // Retourner tel quel si pas de src
+                                    // Extraire le src avec un regex plus robuste
+                                    if (preg_match('/src=["\']([^"\']+)["\']/i', $attributes, $srcMatch)) {
+                                        $src = $srcMatch[1];
+                                    } else {
+                                        // Si pas de src trouvé, retourner tel quel
+                                        return $matches[0];
                                     }
                                     
                                     // Si c'est déjà une URL absolue (http:// ou https://), la garder telle quelle
@@ -1455,7 +1476,13 @@
                                     elseif (!preg_match('/^(\/|https?:\/\/)/', $src)) {
                                         // Essayer de construire l'URL complète
                                         $cleanSrc = ltrim($src, '/');
-                                        $finalSrc = asset($cleanSrc);
+                                        // Vérifier si le fichier existe
+                                        if (file_exists(public_path($cleanSrc))) {
+                                            $finalSrc = asset($cleanSrc);
+                                        } else {
+                                            // Essayer quand même avec asset()
+                                            $finalSrc = asset($cleanSrc);
+                                        }
                                     }
                                     // Si c'est une URL absolue avec le domaine (commence par /)
                                     elseif (preg_match('/^\//', $src) && !preg_match('/^\/\//', $src)) {
@@ -1465,34 +1492,62 @@
                                         $finalSrc = $src;
                                     }
                                     
+                                    // Remplacer le src dans les attributs
+                                    $newAttributes = preg_replace('/src=["\'][^"\']+["\']/i', 'src="' . htmlspecialchars($finalSrc, ENT_QUOTES, 'UTF-8') . '"', $attributes);
+                                    
                                     // S'assurer que l'image a un alt text si manquant
-                                    $altAttr = '';
-                                    if (!preg_match('/alt=["\']/', $before . $after)) {
-                                        $altAttr = ' alt="Image article"';
+                                    if (!preg_match('/alt=["\']/', $newAttributes)) {
+                                        $newAttributes .= ' alt="Image article"';
+                                    }
+                                    
+                                    // Ajouter loading lazy pour améliorer les performances
+                                    if (!preg_match('/loading=["\']/', $newAttributes)) {
+                                        $newAttributes .= ' loading="lazy"';
                                     }
                                     
                                     // Reconstruire la balise img avec l'URL corrigée
-                                    return '<img' . $before . ' src="' . htmlspecialchars($finalSrc, ENT_QUOTES, 'UTF-8') . '"' . $altAttr . $after . '>';
+                                    return '<img ' . $newAttributes . '>';
                                 },
                                 $content
                             );
+                            
+                            // Debug: logger les URLs après traitement
+                            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $imgMatchesAfter);
+                            if (!empty($imgMatchesAfter[1])) {
+                                \Log::info('URLs d\'images après traitement', [
+                                    'article_id' => $article->id,
+                                    'urls' => $imgMatchesAfter[1],
+                                ]);
+                            }
                             
                             // Gérer les cas où l'URL d'image est stockée comme texte (pas dans une balise <img>)
                             // Convertir les URLs d'images en balises <img> si elles sont seules sur une ligne
                             $content = preg_replace_callback(
                                 '/^(https?:\/\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
                                 function($matches) {
-                                    return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image">';
+                                    return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
                             );
                             
-                            // Gérer les URLs relatives d'images stockées comme texte
+                            // Gérer les URLs relatives d'images stockées comme texte (avec ou sans slash initial)
                             $content = preg_replace_callback(
                                 '/^(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
                                 function($matches) {
                                     $src = asset(ltrim($matches[1], '/'));
-                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image">';
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // Gérer aussi les URLs qui contiennent le domaine complet mais avec un chemin relatif
+                            // Exemple: https://example.com/uploads/articles/image.jpg -> doit rester tel quel
+                            // Mais aussi gérer les cas où l'URL est malformée
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\/]+)\/(uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
+                                function($matches) {
+                                    // Si l'URL contient déjà le domaine, la garder telle quelle
+                                    return $matches[0];
                                 },
                                 $content
                             );

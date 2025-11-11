@@ -7,9 +7,29 @@
     <div class="mb-6">
         <h1 class="text-3xl font-bold">Modifier l'Article</h1>
         <p class="text-gray-600 mt-2">Modifiez le contenu HTML de l'article</p>
+        <p class="text-xs text-blue-600 mt-1">
+            <i class="fas fa-info-circle"></i> Mode debug activé - Consultez la console du navigateur (F12) pour voir les détails
+        </p>
     </div>
 
-    <form method="POST" action="{{ route('admin.articles.update', $article) }}" class="space-y-6" enctype="multipart/form-data">
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <strong>Erreur :</strong> {{ session('error') }}
+        </div>
+    @endif
+    
+    @if($errors->any())
+        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <strong>Erreurs de validation :</strong>
+            <ul class="list-disc list-inside mt-2">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('admin.articles.update', $article) }}" class="space-y-6" enctype="multipart/form-data" id="articleEditForm">
         @csrf
         @method('PUT')
         
@@ -416,10 +436,32 @@ document.getElementById('title').addEventListener('input', function(e) {
     window.articleTitle = e.target.value;
 });
 
-// Synchroniser avant la soumission du formulaire
-document.querySelector('form').addEventListener('submit', function() {
-    document.getElementById('content_html_hidden').value = quill.root.innerHTML;
+// Synchroniser le contenu Quill en continu
+quill.on('text-change', function() {
+    const hiddenTextarea = document.getElementById('content_html_hidden');
+    if (hiddenTextarea) {
+        hiddenTextarea.value = quill.root.innerHTML;
+        console.log('Quill content synchronisé (text-change), longueur:', hiddenTextarea.value.length);
+    }
 });
+
+// Synchroniser avant la soumission du formulaire (première étape)
+const form = document.querySelector('form');
+form.addEventListener('submit', function(e) {
+    const hiddenTextarea = document.getElementById('content_html_hidden');
+    if (hiddenTextarea && quill) {
+        hiddenTextarea.value = quill.root.innerHTML;
+        console.log('Quill content synchronisé (submit - étape 1), longueur:', hiddenTextarea.value.length);
+        
+        // Vérifier que le contenu n'est pas vide
+        if (!hiddenTextarea.value || hiddenTextarea.value.trim() === '') {
+            console.warn('ATTENTION: Le contenu HTML est vide!');
+            e.preventDefault();
+            alert('Le contenu de l\'article ne peut pas être vide. Veuillez ajouter du contenu.');
+            return false;
+        }
+    }
+}, { capture: true }); // Utiliser capture pour exécuter en premier
 
 // ===== GESTION DES LIENS =====
 let allMenuLinks = [];
@@ -782,16 +824,38 @@ document.getElementById('gallery-search').addEventListener('input', function(e) 
 
 // Gérer la soumission du formulaire pour combiner les différents types d'input
 document.querySelector('form').addEventListener('submit', function(e) {
+    console.log('=== DEBUG FORM SUBMIT ===');
+    console.log('Form action:', this.action);
+    console.log('Form method:', this.method);
+    
+    // Synchroniser le contenu Quill avant soumission
+    const hiddenTextarea = document.getElementById('content_html_hidden');
+    if (hiddenTextarea && quill) {
+        hiddenTextarea.value = quill.root.innerHTML;
+        console.log('Content HTML synchronisé, longueur:', hiddenTextarea.value.length);
+    }
+    
     // Supprimer les anciens inputs cachés s'ils existent
     const existingHidden = this.querySelectorAll('input[name="featured_image"][type="hidden"]');
+    console.log('Inputs cachés existants:', existingHidden.length);
     existingHidden.forEach(input => input.remove());
     
     // Désactiver le champ fichier si on n'est pas sur l'onglet upload
     const fileInput = document.getElementById('featured_image_file');
+    const galleryTab = document.getElementById('content-gallery');
+    const urlTab = document.getElementById('content-url');
+    const uploadTab = document.getElementById('content-upload');
+    
+    console.log('État des onglets:', {
+        'gallery_hidden': galleryTab ? galleryTab.classList.contains('hidden') : 'N/A',
+        'url_hidden': urlTab ? urlTab.classList.contains('hidden') : 'N/A',
+        'upload_hidden': uploadTab ? uploadTab.classList.contains('hidden') : 'N/A',
+    });
     
     // Si on est sur l'onglet galerie, utiliser le path
-    if (!document.getElementById('content-gallery').classList.contains('hidden')) {
+    if (galleryTab && !galleryTab.classList.contains('hidden')) {
         const selectedPath = document.getElementById('featured_image_selected').value;
+        console.log('Onglet galerie actif, path sélectionné:', selectedPath);
         if (selectedPath) {
             // Désactiver le champ fichier pour éviter qu'il soit envoyé
             if (fileInput) {
@@ -804,11 +868,13 @@ document.querySelector('form').addEventListener('submit', function(e) {
             hiddenInput.name = 'featured_image';
             hiddenInput.value = selectedPath;
             this.appendChild(hiddenInput);
+            console.log('Input caché créé avec path:', selectedPath);
         }
     }
     // Si on est sur l'onglet URL, utiliser l'URL
-    else if (!document.getElementById('content-url').classList.contains('hidden')) {
+    else if (urlTab && !urlTab.classList.contains('hidden')) {
         const url = document.getElementById('featured_image_url').value;
+        console.log('Onglet URL actif, URL:', url);
         if (url) {
             // Désactiver le champ fichier pour éviter qu'il soit envoyé
             if (fileInput) {
@@ -821,15 +887,36 @@ document.querySelector('form').addEventListener('submit', function(e) {
             hiddenInput.name = 'featured_image';
             hiddenInput.value = url;
             this.appendChild(hiddenInput);
+            console.log('Input caché créé avec URL:', url);
         }
     }
     // Si on est sur l'onglet upload, le fichier est déjà dans le form
     else {
+        console.log('Onglet upload actif');
         // S'assurer que le champ fichier est activé
         if (fileInput) {
             fileInput.disabled = false;
+            if (fileInput.files && fileInput.files.length > 0) {
+                console.log('Fichier sélectionné:', fileInput.files[0].name);
+            } else {
+                console.log('Aucun fichier sélectionné');
+            }
         }
     }
+    
+    // Afficher tous les champs du formulaire avant soumission
+    const formData = new FormData(this);
+    console.log('=== DONNÉES DU FORMULAIRE ===');
+    for (let [key, value] of formData.entries()) {
+        if (key === 'content_html') {
+                console.log(key + ':', value.substring(0, 100) + '... (longueur: ' + value.length + ')');
+            } else if (value instanceof File) {
+                console.log(key + ':', 'File - ' + value.name + ' (' + value.size + ' bytes)');
+            } else {
+                console.log(key + ':', value);
+            }
+    }
+    console.log('=== FIN DEBUG ===');
 });
 </script>
 <style>
