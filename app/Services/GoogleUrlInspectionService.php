@@ -31,8 +31,11 @@ class GoogleUrlInspectionService
                 'https://www.googleapis.com/auth/webmasters.readonly',
             ]);
 
-            // Charger les credentials
-            $credentialsJson = Setting::get('google_credentials', null);
+            // Charger les credentials (essayer google_search_console_credentials puis google_credentials)
+            $credentialsJson = Setting::get('google_search_console_credentials', null);
+            if (empty($credentialsJson)) {
+                $credentialsJson = Setting::get('google_credentials', null);
+            }
             if (empty($credentialsJson)) {
                 throw new \Exception('Google credentials non configurés');
             }
@@ -101,13 +104,14 @@ class GoogleUrlInspectionService
             // Normaliser l'URL
             $url = $this->normalizeUrl($url);
 
-            // Utiliser l'API URL Inspection via REST
-            // L'API utilise urlInspection.index.inspect
+            // Utiliser l'API URL Inspection
+            // Format: urlInspection.index.inspect avec InspectUrlIndexRequest
             $requestBody = new \Google\Service\SearchConsole\InspectUrlIndexRequest();
             $requestBody->setInspectionUrl($url);
             $requestBody->setSiteUrl($this->siteUrl);
 
-            // Appeler l'API via la méthode inspect
+            // Appeler l'API
+            // Note: L'API peut nécessiter que le siteUrl soit au format sc-domain:example.com
             $response = $this->service->urlInspection_index->inspect($requestBody);
 
             // Parser la réponse
