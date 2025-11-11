@@ -1753,8 +1753,19 @@ function verifySingleStatus(url) {
                     if (v.error) {
                         appendVerificationLog(`   ❌ ${v.site_url_used} → ${v.error}`);
                     } else {
-                        const state = v.indexed ? 'INDEXED' : (v.coverage_state || 'UNKNOWN');
-                        appendVerificationLog(`   • ${v.site_url_used} → ${state}`);
+                        // Afficher le statut de manière plus claire
+                        let statusText = '';
+                        if (v.indexed) {
+                            statusText = '✅ Indexée';
+                            if (v.coverage_state) statusText += ` (${v.coverage_state})`;
+                            if (v.indexing_state) statusText += ` [${v.indexing_state}]`;
+                        } else {
+                            statusText = `⚠️ Non indexée`;
+                            if (v.coverage_state) statusText += ` (${v.coverage_state})`;
+                            if (v.indexing_state) statusText += ` [${v.indexing_state}]`;
+                            if (v.verdict) statusText += ` - Verdict: ${v.verdict}`;
+                        }
+                        appendVerificationLog(`   • ${v.site_url_used} → ${statusText}`);
                     }
                 });
             }

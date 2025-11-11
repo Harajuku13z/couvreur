@@ -233,12 +233,29 @@ class GoogleUrlInspectionService
                     // Enregistrer l'erreur pour cette variante
                     $error = json_decode($e->getMessage(), true);
                     $errorMessage = $error['error']['message'] ?? $e->getMessage();
+                    
+                    // ⚠️ Si c'est une erreur "You do not own this site" mais que la propriété sc-domain: fonctionne,
+                    // on peut quand même considérer que l'URL est indexée si on a déjà une réponse positive de sc-domain:
+                    $isOwnershipError = stripos($errorMessage, 'do not own') !== false || 
+                                       stripos($errorMessage, 'not part of this property') !== false;
+                    
                     $triedVariants[] = [
                         'url' => $url,
                         'site_url_used' => $candidateSiteUrl,
                         'error' => $errorMessage,
                         'code' => $e->getCode(),
+                        'is_ownership_error' => $isOwnershipError,
                     ];
+                    
+                    // Si on a déjà une réponse positive de sc-domain:, on peut ignorer les erreurs de propriété
+                    if ($isOwnershipError && $winningStatus && str_starts_with($winningStatus['site_url_used'], 'sc-domain:')) {
+                        Log::info('Erreur de propriété ignorée car sc-domain: a confirmé l\'indexation', [
+                            'url' => $url,
+                            'failed_property' => $candidateSiteUrl,
+                            'winning_property' => $winningStatus['site_url_used']
+                        ]);
+                    }
+                    
                     continue;
                 }
             }
@@ -354,6 +371,7 @@ class GoogleUrlInspectionService
      * Normaliser une URL
      * ⚠️ IMPORTANT: L'URL à inspecter doit TOUJOURS être au format https://... ou http://...
      * sc-domain: n'est PAS valide pour l'inspectionUrl (seulement pour siteUrl)
+     * ⚠️ On privilégie toujours https:// au lieu de http:// pour éviter les erreurs de propriété
      */
     protected function normalizeUrl(string $url): string
     {
@@ -377,6 +395,17 @@ class GoogleUrlInspectionService
                 $baseUrl = 'https://' . ltrim($domain, '/');
             }
             $url = $baseUrl . '/' . ltrim($url, '/');
+        }
+
+        // ⚠️ CRITIQUE: Toujours convertir http:// en https:// pour éviter les erreurs "You do not own this site"
+        // Les propriétés GSC sont généralement configurées pour https://, pas http://
+        if (str_starts_with($url, 'http://')) {
+            $originalUrl = $url;
+            $url = str_replace('http://', 'https://', $url);
+            Log::info('Conversion http:// en https:// pour éviter erreurs de propriété GSC', [
+                'original' => $originalUrl,
+                'converted' => $url
+            ]);
         }
 
         // Retirer le trailing slash
