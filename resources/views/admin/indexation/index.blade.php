@@ -465,6 +465,35 @@
             </div>
         </div>
 
+        <!-- Modal de vérification avec progression -->
+        <div id="verification-modal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden">
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg">
+                    <div class="px-6 py-4 border-b flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Vérification en cours</h3>
+                        <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeVerificationModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span id="verification-progress-label" class="text-sm text-gray-700">0% terminé</span>
+                                <span id="verification-progress-count" class="text-sm text-gray-500">0 / 0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                <div id="verification-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-200" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div id="verification-log" class="bg-gray-50 border border-gray-200 rounded-md p-3 h-64 overflow-y-auto text-xs text-gray-800 font-mono leading-5"></div>
+                    </div>
+                    <div class="px-6 py-3 border-t flex items-center justify-end space-x-2">
+                        <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm" onclick="closeVerificationModal()">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Liste des URLs -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
@@ -880,6 +909,8 @@ function verifyUrlFromList(url, buttonEl) {
     const original = buttonEl.innerHTML;
     buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Vérification...';
     buttonEl.disabled = true;
+    openVerificationModal(1);
+    appendVerificationLog(`→ Démarrage vérification: ${url}`);
     
     fetch('{{ route("admin.indexation.verify-status") }}', {
         method: 'POST',
@@ -891,6 +922,7 @@ function verifyUrlFromList(url, buttonEl) {
     })
     .then(r => r.json())
     .then(data => {
+        updateVerificationProgress(1, 1);
         if (data.success) {
             // Afficher badge selon le résultat
             badge.classList.remove('hidden');
@@ -899,24 +931,36 @@ function verifyUrlFromList(url, buttonEl) {
                 badge.textContent = 'Indexée';
                 const prop = data.property_used ? ` (propriété: ${data.property_used})` : '';
                 showNotification(`✅ URL indexée${prop}`, 'success');
+                appendVerificationLog(`✅ ${url} → Indexée${prop}`);
             } else {
                 badge.className = 'url-status-badge bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium';
                 badge.textContent = 'Non indexée';
                 const prop = data.property_used ? ` (propriété testée: ${data.property_used})` : '';
                 showNotification(`⚠️ URL non indexée${prop}`, 'warning');
+                appendVerificationLog(`⚠️ ${url} → Non indexée${prop}`);
             }
             // Log détaillé en console pour diagnostic
             if (data.tried_variants) {
                 console.group('Détails inspection URL');
                 console.table(data.tried_variants);
                 console.groupEnd();
+                data.tried_variants.forEach(v => {
+                    if (v.error) {
+                        appendVerificationLog(`   ❌ ${v.site_url_used} → ${v.error}`);
+                    } else {
+                        const state = v.indexed ? 'INDEXED' : (v.coverage_state || 'UNKNOWN');
+                        appendVerificationLog(`   • ${v.site_url_used} → ${state}`);
+                    }
+                });
             }
         } else {
             showNotification('Erreur: ' + (data.error || 'Inspection impossible'), 'error');
+            appendVerificationLog(`❌ ${url} → Erreur: ${data.error || 'Inspection impossible'}`);
         }
     })
     .catch(() => {
         showNotification('Erreur lors de la vérification', 'error');
+        appendVerificationLog(`❌ ${url} → Erreur réseau`);
     })
     .finally(() => {
         buttonEl.innerHTML = original;
@@ -1683,7 +1727,8 @@ function displayStatuses(statuses) {
 }
 
 function verifySingleStatus(url) {
-    showNotification('Vérification en cours...', 'info');
+    openVerificationModal(1);
+    appendVerificationLog(`→ Démarrage vérification: ${url}`);
     
     fetch('{{ route("admin.indexation.verify-status") }}', {
         method: 'POST',
@@ -1695,12 +1740,24 @@ function verifySingleStatus(url) {
     })
     .then(response => response.json())
     .then(data => {
+        updateVerificationProgress(1, 1);
         if (data.success) {
             const prop = data.property_used ? ` (propriété: ${data.property_used})` : '';
             showNotification(
                 data.indexed ? `✅ URL indexée${prop}` : `⚠️ URL non indexée${prop}`,
                 data.indexed ? 'success' : 'warning'
             );
+            appendVerificationLog(data.indexed ? `✅ Indexée${prop}` : `⚠️ Non indexée${prop}`);
+            if (data.tried_variants && Array.isArray(data.tried_variants)) {
+                data.tried_variants.forEach(v => {
+                    if (v.error) {
+                        appendVerificationLog(`   ❌ ${v.site_url_used} → ${v.error}`);
+                    } else {
+                        const state = v.indexed ? 'INDEXED' : (v.coverage_state || 'UNKNOWN');
+                        appendVerificationLog(`   • ${v.site_url_used} → ${state}`);
+                    }
+                });
+            }
             if (data.tried_variants) {
                 console.group('Détails inspection URL');
                 console.table(data.tried_variants);
@@ -1709,11 +1766,13 @@ function verifySingleStatus(url) {
             loadStatuses();
         } else {
             showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+            appendVerificationLog(`❌ Erreur: ${data.error || 'Erreur inconnue'}`);
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
         showNotification('Erreur lors de la vérification', 'error');
+        appendVerificationLog('❌ Erreur réseau lors de la vérification');
     });
 }
 
@@ -1756,6 +1815,9 @@ function verifyMultipleStatuses(urls) {
     let notIndexed = 0;
     let errors = 0;
     
+    openVerificationModal(urls.length);
+    appendVerificationLog(`→ Démarrage vérification batch (${urls.length} URLs)`);
+    
     urls.forEach((url, index) => {
         setTimeout(() => {
             fetch('{{ route("admin.indexation.verify-status") }}', {
@@ -1770,11 +1832,28 @@ function verifyMultipleStatuses(urls) {
             .then(data => {
                 completed++;
                 if (data.success) {
-                    if (data.indexed) indexed++;
-                    else notIndexed++;
+                    if (data.indexed) {
+                        indexed++;
+                        appendVerificationLog(`✅ [${completed}/${urls.length}] ${url} → Indexée${data.property_used ? ' ('+data.property_used+')' : ''}`);
+                    } else {
+                        notIndexed++;
+                        appendVerificationLog(`⚠️ [${completed}/${urls.length}] ${url} → Non indexée${data.property_used ? ' ('+data.property_used+')' : ''}`);
+                    }
+                    if (data.tried_variants && Array.isArray(data.tried_variants)) {
+                        data.tried_variants.forEach(v => {
+                            if (v.error) {
+                                appendVerificationLog(`   ❌ ${v.site_url_used} → ${v.error}`);
+                            } else {
+                                const state = v.indexed ? 'INDEXED' : (v.coverage_state || 'UNKNOWN');
+                                appendVerificationLog(`   • ${v.site_url_used} → ${state}`);
+                            }
+                        });
+                    }
                 } else {
                     errors++;
+                    appendVerificationLog(`❌ [${completed}/${urls.length}] ${url} → Erreur: ${data.error || 'Erreur inconnue'}`);
                 }
+                updateVerificationProgress(completed, urls.length);
                 
                 if (completed === urls.length) {
                     showNotification(
@@ -1782,14 +1861,18 @@ function verifyMultipleStatuses(urls) {
                         'success'
                     );
                     loadStatuses();
+                    appendVerificationLog('— Fin de la vérification —');
                 }
             })
             .catch(error => {
                 completed++;
                 errors++;
+                appendVerificationLog(`❌ [${completed}/${urls.length}] ${url} → Erreur réseau`);
+                updateVerificationProgress(completed, urls.length);
                 if (completed === urls.length) {
                     showNotification('Vérification terminée avec des erreurs', 'warning');
                     loadStatuses();
+                    appendVerificationLog('— Fin de la vérification —');
                 }
             });
         }, index * 500);
@@ -1860,6 +1943,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Charger les statuts au chargement de la page
     loadStatuses();
 });
+
+// Utilitaires de progression / modal
+let verificationTotal = 0;
+let verificationCompleted = 0;
+function openVerificationModal(total) {
+    verificationTotal = total;
+    verificationCompleted = 0;
+    const modal = document.getElementById('verification-modal');
+    const bar = document.getElementById('verification-progress');
+    const label = document.getElementById('verification-progress-label');
+    const count = document.getElementById('verification-progress-count');
+    const log = document.getElementById('verification-log');
+    if (!modal || !bar || !label || !count || !log) return;
+    bar.style.width = '0%';
+    label.textContent = '0% terminé';
+    count.textContent = `0 / ${total}`;
+    log.innerHTML = '';
+    modal.classList.remove('hidden');
+}
+function updateVerificationProgress(completed, total) {
+    verificationCompleted = completed;
+    verificationTotal = total;
+    const bar = document.getElementById('verification-progress');
+    const label = document.getElementById('verification-progress-label');
+    const count = document.getElementById('verification-progress-count');
+    if (!bar || !label || !count) return;
+    const percent = Math.max(0, Math.min(100, Math.round((completed / Math.max(1, total)) * 100)));
+    bar.style.width = percent + '%';
+    label.textContent = `${percent}% terminé`;
+    count.textContent = `${completed} / ${total}`;
+}
+function appendVerificationLog(message) {
+    const log = document.getElementById('verification-log');
+    if (!log) return;
+    const line = document.createElement('div');
+    line.textContent = message;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+}
+function closeVerificationModal() {
+    const modal = document.getElementById('verification-modal');
+    if (modal) modal.classList.add('hidden');
+}
 </script>
 @endpush
 
