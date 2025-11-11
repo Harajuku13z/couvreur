@@ -53,7 +53,7 @@
                        onmouseover="this.style.backgroundColor='var(--secondary-color)';"
                        onmouseout="this.style.backgroundColor='var(--accent-color)';">
                         <i class="fas fa-calculator mr-2"></i>
-                        Devis Gratuit
+                        Simulateur de devis
                     </a>
                     <a href="tel:{{ setting('company_phone_raw') }}" 
                        class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
@@ -87,7 +87,7 @@
                            onmouseover="this.style.backgroundColor='var(--secondary-color)';"
                            onmouseout="this.style.backgroundColor='var(--accent-color)';">
                             <i class="fas fa-calculator mr-2"></i>
-                            Demander un Devis Gratuit
+                            Simulateur de devis
                         </a>
                         <a href="tel:{{ setting('company_phone_raw') }}" 
                            class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
