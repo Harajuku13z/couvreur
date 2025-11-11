@@ -147,10 +147,9 @@ class GoogleUrlInspectionService
 
                     // Parser la réponse
                     $inspectionResult = $response->getInspectionResult();
-                    $indexStatusResult = $inspectionResult->getIndexStatusResult();
-                    $ampInspectionResult = $inspectionResult->getAmpInspectionResult();
-                    $mobileUsabilityResult = $inspectionResult->getMobileUsabilityResult();
-                    $richResultsResult = $inspectionResult->getRichResultsResult();
+                    $indexStatusResult = method_exists($inspectionResult, 'getIndexStatusResult')
+                        ? $inspectionResult->getIndexStatusResult()
+                        : null;
 
                     $status = [
                         'url' => $url,
@@ -193,19 +192,7 @@ class GoogleUrlInspectionService
                         }
                     }
 
-                    // Mobile usability
-                    if ($mobileUsabilityResult) {
-                        $status['mobile_usable'] = $mobileUsabilityResult->getVerdict() === 'PASS';
-                        if ($mobileUsabilityResult->getIssues()) {
-                            foreach ($mobileUsabilityResult->getIssues() as $issue) {
-                                $status['warnings'][] = [
-                                    'type' => 'mobile',
-                                    'severity' => $issue->getSeverity(),
-                                    'message' => $issue->getMessage(),
-                                ];
-                            }
-                        }
-                    }
+                    // Note: certains SDKs ne renvoient pas AMP/Mobile/RichResults; on se limite au statut d'indexation
 
                     Log::info('URL Inspection réussie', [
                         'url' => $url,
