@@ -333,16 +333,40 @@ class GoogleUrlInspectionService
 
     /**
      * Normaliser une URL
+     * ⚠️ IMPORTANT: L'URL à inspecter doit TOUJOURS être au format https://... ou http://...
+     * sc-domain: n'est PAS valide pour l'inspectionUrl (seulement pour siteUrl)
      */
     protected function normalizeUrl(string $url): string
     {
+        // Si c'est un format sc-domain:, le convertir en https://
+        if (str_starts_with($url, 'sc-domain:')) {
+            $originalUrl = $url;
+            $domain = str_replace('sc-domain:', '', $url);
+            $url = 'https://' . ltrim($domain, '/');
+            Log::warning('Conversion sc-domain: en https:// pour inspectionUrl', [
+                'original' => $originalUrl,
+                'converted' => $url
+            ]);
+        }
+        
         // S'assurer que l'URL est complète
         if (!preg_match('/^https?:\/\//', $url)) {
-            $url = $this->siteUrl . '/' . ltrim($url, '/');
+            // Utiliser le siteUrl comme base, mais s'assurer qu'il est en https://
+            $baseUrl = $this->siteUrl;
+            if (str_starts_with($baseUrl, 'sc-domain:')) {
+                $domain = str_replace('sc-domain:', '', $baseUrl);
+                $baseUrl = 'https://' . ltrim($domain, '/');
+            }
+            $url = $baseUrl . '/' . ltrim($url, '/');
         }
 
         // Retirer le trailing slash
         $url = rtrim($url, '/');
+
+        // Validation finale: s'assurer que l'URL est bien au format http:// ou https://
+        if (!preg_match('/^https?:\/\//', $url)) {
+            throw new \Exception("URL invalide après normalisation: {$url}. L'URL doit être au format https://... ou http://...");
+        }
 
         return $url;
     }

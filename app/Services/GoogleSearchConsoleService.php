@@ -169,40 +169,60 @@ class GoogleSearchConsoleService
 
             $originalUrl = $url;
             
-            // Gérer les différents formats d'URL
-            // Si c'est un format sc-domain:, on le garde tel quel
+            // ⚠️ IMPORTANT: L'API Google Indexing n'accepte QUE des URLs complètes (https://...)
+            // Elle ne supporte PAS le format sc-domain: pour l'URL à indexer
+            // sc-domain: est uniquement valide pour identifier une propriété GSC, pas pour soumettre une URL
+            
+            // Si c'est un format sc-domain:, le convertir en https://
             if (str_starts_with($url, 'sc-domain:')) {
-                // Format sc-domain: est valide tel quel
+                // Extraire le domaine de sc-domain:exemple.fr
+                $domain = str_replace('sc-domain:', '', $url);
+                $url = 'https://' . ltrim($domain, '/');
+                Log::warning('Conversion sc-domain: en https:// pour API Indexing', [
+                    'original' => $originalUrl,
+                    'converted' => $url
+                ]);
             }
             // Si c'est juste un domaine (sans protocole), ajouter https://
-            elseif (!str_starts_with($url, 'http') && !str_starts_with($url, 'sc-domain:')) {
+            elseif (!str_starts_with($url, 'http')) {
                 // C'est probablement juste un domaine, ajouter https://
                 $url = 'https://' . ltrim($url, '/');
             }
 
-            // Pour les formats sc-domain:, on ne vérifie pas le domaine
-            // Pour les autres formats, on vérifie mais on est plus permissif
-            if (!str_starts_with($originalUrl, 'sc-domain:')) {
-                $parsedUrl = parse_url($url);
-                $parsedSiteUrl = parse_url($this->siteUrl);
+            // Valider que l'URL est maintenant au format https:// ou http://
+            if (!str_starts_with($url, 'http')) {
+                return [
+                    'success' => false,
+                    'message' => "Format d'URL invalide pour l'API Indexing. L'URL doit être complète (https://... ou http://...). Format reçu: {$originalUrl}",
+                    'error_code' => 'INVALID_URL_FORMAT'
+                ];
+            }
+
+            // Vérifier que l'URL appartient au domaine configuré
+            $parsedUrl = parse_url($url);
+            $parsedSiteUrl = parse_url($this->siteUrl);
+            
+            // Normaliser le siteUrl si c'est un format sc-domain:
+            if (str_starts_with($this->siteUrl, 'sc-domain:')) {
+                $domain = str_replace('sc-domain:', '', $this->siteUrl);
+                $parsedSiteUrl = parse_url('https://' . $domain);
+            }
+            
+            // Vérifier que l'URL appartient au domaine configuré
+            if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host'])) {
+                $urlHost = $parsedUrl['host'];
+                $siteHost = $parsedSiteUrl['host'];
                 
-                // Vérifier que l'URL appartient au domaine configuré
-                // Mais on accepte aussi si c'est juste le domaine sans protocole
-                if (isset($parsedUrl['host']) && isset($parsedSiteUrl['host'])) {
-                    $urlHost = $parsedUrl['host'];
-                    $siteHost = $parsedSiteUrl['host'];
-                    
-                    // Comparer les domaines (enlever www. si présent)
-                    $urlHostClean = preg_replace('/^www\./', '', $urlHost);
-                    $siteHostClean = preg_replace('/^www\./', '', $siteHost);
-                    
-                    if ($urlHostClean !== $siteHostClean) {
-                        return [
-                            'success' => false,
-                            'message' => "L'URL n'appartient pas au domaine configuré: {$urlHost} vs {$siteHost}",
-                            'error_code' => 'DOMAIN_MISMATCH'
-                        ];
-                    }
+                // Comparer les domaines (enlever www. si présent)
+                $urlHostClean = preg_replace('/^www\./', '', $urlHost);
+                $siteHostClean = preg_replace('/^www\./', '', $siteHost);
+                
+                if ($urlHostClean !== $siteHostClean) {
+                    return [
+                        'success' => false,
+                        'message' => "L'URL n'appartient pas au domaine configuré: {$urlHost} vs {$siteHost}",
+                        'error_code' => 'DOMAIN_MISMATCH'
+                    ];
                 }
             }
 
