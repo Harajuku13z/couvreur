@@ -35,8 +35,8 @@ class SerpApiService
         try {
             // Vérifier que la clé API est configurée
             if (empty($this->apiKey)) {
-                Log::error('SerpAPI: Clé API manquante');
-                throw new \Exception('Clé API SerpAPI non configurée');
+                Log::warning('SerpAPI: Clé API manquante, utilisation du fallback ChatGPT');
+                return $this->getTrendingKeywordsWithChatGPT($geo, $limit);
             }
             
             $titles = [];
@@ -199,14 +199,89 @@ class SerpApiService
                 Log::warning('SerpAPI Trends TIMESERIES failed', ['error' => $e->getMessage()]);
             }
             
-            // Si aucune approche n'a fonctionné, retourner un tableau vide
-            Log::warning('SerpAPI: Aucune approche n\'a fonctionné pour récupérer les mots-clés');
-            return [];
+            // Si aucune approche n'a fonctionné, utiliser ChatGPT en fallback
+            Log::warning('SerpAPI: Aucune approche n\'a fonctionné, utilisation du fallback ChatGPT');
+            return $this->getTrendingKeywordsWithChatGPT($geo, $limit);
             
         } catch (\Exception $e) {
             Log::error('Exception SerpAPI getTrendingKeywords', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+            // Utiliser ChatGPT en fallback en cas d'erreur
+            return $this->getTrendingKeywordsWithChatGPT($geo, $limit);
+        }
+    }
+    
+    /**
+     * Fallback ChatGPT pour récupérer les mots-clés tendances
+     */
+    protected function getTrendingKeywordsWithChatGPT(string $geo, int $limit): array
+    {
+        try {
+            Log::info('SerpAPI: Utilisation de ChatGPT pour récupérer les mots-clés tendances', [
+                'geo' => $geo,
+                'limit' => $limit
+            ]);
+            
+            $prompt = "Génère une liste de {$limit} mots-clés SEO pertinents et recherchés pour le secteur du couvreur, de la toiture et de la rénovation en France (région: {$geo}).
+
+**Instructions :**
+- Génère des mots-clés spécifiques au secteur (ex: 'rénovation de toiture', 'couverture en tuiles', 'isolation thermique', 'charpente traditionnelle')
+- Inclus des mots-clés avec localisation (ex: 'couvreur à [ville]', 'rénovation toiture [ville]')
+- Inclus des mots-clés de services (ex: 'réparation toiture', 'isolation combles', 'zinguerie', 'demoussage')
+- Inclus des mots-clés de matériaux (ex: 'tuiles ardoise', 'zinc', 'isolation laine de verre')
+- Les mots-clés doivent être pertinents, recherchés et adaptés au secteur français
+- Évite les mots-clés trop génériques ou hors sujet
+- Retourne UNIQUEMENT une liste de mots-clés, un par ligne, sans numérotation, sans puces, sans formatage
+
+Format de sortie :
+mot-clé 1
+mot-clé 2
+mot-clé 3";
+
+            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation en France.';
+            
+            $result = \App\Services\AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 1000,
+                'temperature' => 0.3,
+                'timeout' => 60
+            ]);
+            
+            if (!$result || !isset($result['content']) || empty($result['content'])) {
+                Log::error('SerpAPI: ChatGPT fallback a échoué pour getTrendingKeywords');
+                return [];
+            }
+            
+            // Parser les mots-clés (un par ligne)
+            $content = trim($result['content']);
+            $keywords = [];
+            
+            // Séparer par lignes
+            $lines = preg_split('/\r?\n/', $content);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // Supprimer les numéros, tirets, puces au début
+                $line = preg_replace('/^[\d\.\-\*\•\s]+/', '', $line);
+                $line = trim($line);
+                
+                if (!empty($line) && strlen($line) > 3) {
+                    $keywords[] = $line;
+                }
+                if (count($keywords) >= $limit) {
+                    break;
+                }
+            }
+            
+            Log::info('SerpAPI: ChatGPT a généré des mots-clés', [
+                'count' => count($keywords),
+                'provider' => $result['provider'] ?? 'unknown'
+            ]);
+            
+            return array_slice($keywords, 0, $limit);
+        } catch (\Exception $e) {
+            Log::error('SerpAPI: Erreur lors du fallback ChatGPT pour getTrendingKeywords', [
+                'error' => $e->getMessage()
             ]);
             return [];
         }
@@ -223,8 +298,8 @@ class SerpApiService
     {
         try {
             if (empty($this->apiKey)) {
-                Log::error('SerpAPI: Clé API manquante pour getRelatedQueries');
-                return [];
+                Log::warning('SerpAPI: Clé API manquante pour getRelatedQueries, utilisation du fallback ChatGPT');
+                return $this->getRelatedQueriesWithChatGPT($q, $limit);
             }
             
             $questions = [];
@@ -387,12 +462,94 @@ class SerpApiService
                 ]);
             }
             
+            // Si aucune requête n'a été trouvée, utiliser ChatGPT en fallback
+            if (empty($questions)) {
+                Log::warning('SerpAPI: Aucune requête associée trouvée, utilisation du fallback ChatGPT');
+                return $this->getRelatedQueriesWithChatGPT($q, $limit);
+            }
+            
             return array_slice($questions, 0, $limit);
         } catch (\Exception $e) {
             Log::error('Exception SerpAPI Related', [
                 'message' => $e->getMessage(),
                 'q' => $q,
                 'trace' => $e->getTraceAsString()
+            ]);
+            // Utiliser ChatGPT en fallback en cas d'erreur
+            return $this->getRelatedQueriesWithChatGPT($q, $limit);
+        }
+    }
+    
+    /**
+     * Fallback ChatGPT pour récupérer les requêtes associées
+     */
+    protected function getRelatedQueriesWithChatGPT(string $q, int $limit): array
+    {
+        try {
+            Log::info('SerpAPI: Utilisation de ChatGPT pour récupérer les requêtes associées', [
+                'keyword' => $q,
+                'limit' => $limit
+            ]);
+            
+            $prompt = "Pour le mot-clé SEO suivant: \"{$q}\"
+
+Génère {$limit} requêtes/questions associées que les internautes recherchent sur Google concernant ce sujet dans le secteur du couvreur, de la toiture et de la rénovation.
+
+**Instructions :**
+- Génère des questions ou requêtes que les gens recherchent réellement sur Google
+- Les requêtes doivent être pertinentes et liées au mot-clé principal
+- Inclus des questions pratiques (ex: 'Comment...', 'Quel est le prix...', 'Quand...')
+- Inclus des requêtes de comparaison (ex: 'Quelle différence entre...')
+- Évite les requêtes trop génériques ou hors sujet
+- Retourne UNIQUEMENT une liste de requêtes, une par ligne, sans numérotation, sans puces, sans formatage
+
+Format de sortie :
+requête 1
+requête 2
+requête 3";
+
+            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation.';
+            
+            $result = \App\Services\AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 800,
+                'temperature' => 0.4,
+                'timeout' => 60
+            ]);
+            
+            if (!$result || !isset($result['content']) || empty($result['content'])) {
+                Log::error('SerpAPI: ChatGPT fallback a échoué pour getRelatedQueries');
+                return [];
+            }
+            
+            // Parser les requêtes (un par ligne)
+            $content = trim($result['content']);
+            $queries = [];
+            
+            // Séparer par lignes
+            $lines = preg_split('/\r?\n/', $content);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // Supprimer les numéros, tirets, puces au début
+                $line = preg_replace('/^[\d\.\-\*\•\s]+/', '', $line);
+                $line = trim($line);
+                
+                if (!empty($line) && strlen($line) > 5) {
+                    $queries[] = $line;
+                }
+                if (count($queries) >= $limit) {
+                    break;
+                }
+            }
+            
+            Log::info('SerpAPI: ChatGPT a généré des requêtes associées', [
+                'count' => count($queries),
+                'provider' => $result['provider'] ?? 'unknown'
+            ]);
+            
+            return array_slice($queries, 0, $limit);
+        } catch (\Exception $e) {
+            Log::error('SerpAPI: Erreur lors du fallback ChatGPT pour getRelatedQueries', [
+                'error' => $e->getMessage()
             ]);
             return [];
         }
@@ -408,6 +565,11 @@ class SerpApiService
     public function getTopSERP(string $q, int $limit = 5): array
     {
         try {
+            if (empty($this->apiKey)) {
+                Log::warning('SerpAPI: Clé API manquante pour getTopSERP, utilisation du fallback ChatGPT');
+                return $this->getTopSERPWithChatGPT($q, $limit);
+            }
+            
             $response = Http::timeout(30)->get('https://serpapi.com/search.json', [
                 'engine' => 'google',
                 'q' => $q,
@@ -420,7 +582,8 @@ class SerpApiService
                     'q' => $q,
                     'status' => $response->status()
                 ]);
-                return [];
+                // Utiliser ChatGPT en fallback
+                return $this->getTopSERPWithChatGPT($q, $limit);
             }
 
             $json = $response->json();
@@ -438,11 +601,114 @@ class SerpApiService
                 }
             }
             
+            // Si aucun résultat, utiliser ChatGPT en fallback
+            if (empty($top)) {
+                Log::warning('SerpAPI: Aucun résultat SERP trouvé, utilisation du fallback ChatGPT');
+                return $this->getTopSERPWithChatGPT($q, $limit);
+            }
+            
             return $top;
         } catch (\Exception $e) {
             Log::error('Exception SerpAPI Search', [
                 'message' => $e->getMessage(),
                 'q' => $q
+            ]);
+            // Utiliser ChatGPT en fallback en cas d'erreur
+            return $this->getTopSERPWithChatGPT($q, $limit);
+        }
+    }
+    
+    /**
+     * Fallback ChatGPT pour récupérer les concurrents (top SERP)
+     */
+    protected function getTopSERPWithChatGPT(string $q, int $limit): array
+    {
+        try {
+            Log::info('SerpAPI: Utilisation de ChatGPT pour analyser les concurrents', [
+                'query' => $q,
+                'limit' => $limit
+            ]);
+            
+            $prompt = "Pour la requête de recherche suivante: \"{$q}\"
+
+Génère {$limit} exemples de titres et descriptions que les sites web concurrents utiliseraient pour se positionner sur cette requête dans le secteur du couvreur, de la toiture et de la rénovation.
+
+**Instructions :**
+- Génère des titres réalistes que des entreprises de couvreur/rénovation utiliseraient
+- Génère des descriptions/snippets réalistes (2-3 phrases) qui expliquent les services
+- Les titres doivent être optimisés SEO et attractifs
+- Les descriptions doivent être informatives et persuasives
+- Retourne les résultats au format JSON avec cette structure exacte:
+[
+  {
+    \"title\": \"Titre du site concurrent 1\",
+    \"snippet\": \"Description des services proposés...\",
+    \"link\": null
+  },
+  {
+    \"title\": \"Titre du site concurrent 2\",
+    \"snippet\": \"Description des services proposés...\",
+    \"link\": null
+  }
+]
+
+Retourne UNIQUEMENT le JSON, sans texte avant ou après.";
+
+            $systemMessage = 'Tu es un expert SEO spécialisé dans le secteur du bâtiment et de la rénovation. Tu analyses les stratégies de référencement des concurrents.';
+            
+            $result = \App\Services\AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 1500,
+                'temperature' => 0.5,
+                'timeout' => 60
+            ]);
+            
+            if (!$result || !isset($result['content']) || empty($result['content'])) {
+                Log::error('SerpAPI: ChatGPT fallback a échoué pour getTopSERP');
+                return [];
+            }
+            
+            // Parser le JSON
+            $content = trim($result['content']);
+            
+            // Nettoyer le contenu si nécessaire (enlever markdown code blocks)
+            $content = preg_replace('/^```json\s*/', '', $content);
+            $content = preg_replace('/^```\s*/', '', $content);
+            $content = preg_replace('/\s*```$/', '', $content);
+            $content = trim($content);
+            
+            $competitors = json_decode($content, true);
+            
+            if (!is_array($competitors)) {
+                Log::warning('SerpAPI: ChatGPT a retourné un format invalide pour getTopSERP', [
+                    'content_preview' => substr($content, 0, 200)
+                ]);
+                return [];
+            }
+            
+            // Formater les résultats
+            $top = [];
+            foreach ($competitors as $competitor) {
+                if (isset($competitor['title']) && !empty($competitor['title'])) {
+                    $top[] = [
+                        'title' => $competitor['title'],
+                        'snippet' => $competitor['snippet'] ?? null,
+                        'link' => $competitor['link'] ?? null,
+                    ];
+                }
+                if (count($top) >= $limit) {
+                    break;
+                }
+            }
+            
+            Log::info('SerpAPI: ChatGPT a généré des concurrents', [
+                'count' => count($top),
+                'provider' => $result['provider'] ?? 'unknown'
+            ]);
+            
+            return array_slice($top, 0, $limit);
+        } catch (\Exception $e) {
+            Log::error('SerpAPI: Erreur lors du fallback ChatGPT pour getTopSERP', [
+                'error' => $e->getMessage()
             ]);
             return [];
         }

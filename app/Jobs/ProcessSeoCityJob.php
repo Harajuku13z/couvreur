@@ -34,6 +34,7 @@ class ProcessSeoCityJob implements ShouldQueue
      */
     public function handle(SeoAutomationManager $manager): void
     {
+        $log = null;
         try {
             $city = City::find($this->cityId);
             
@@ -59,13 +60,27 @@ class ProcessSeoCityJob implements ShouldQueue
                 'custom_keyword' => $this->customKeyword
             ]);
 
+            // Le manager crée son propre log, pas besoin d'en créer un ici
             $log = $manager->runForCity($city, $this->customKeyword);
+            
+            // Vérifier que le statut n'est plus "pending" après traitement
+            if ($log && $log->status === 'pending') {
+                Log::warning('ProcessSeoCityJob: Le statut est resté "pending" après traitement', [
+                    'city_id' => $this->cityId,
+                    'log_id' => $log->id
+                ]);
+                // Mettre à jour le statut en "failed" si toujours pending
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => 'Le traitement n\'a pas abouti - statut resté en attente'
+                ]);
+            }
             
             Log::info('ProcessSeoCityJob: Traitement terminé', [
                 'city_id' => $this->cityId,
                 'city_name' => $city->name,
-                'status' => $log->status,
-                'article_id' => $log->article_id
+                'status' => $log->status ?? 'unknown',
+                'article_id' => $log->article_id ?? null
             ]);
             
         } catch (\Exception $e) {
@@ -76,6 +91,30 @@ class ProcessSeoCityJob implements ShouldQueue
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
+            
+            // Mettre à jour le log si disponible
+            if ($log) {
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage()
+                ]);
+            } else {
+                // Créer un log d'échec si aucun log n'existe
+                try {
+                    $city = City::find($this->cityId);
+                    if ($city) {
+                        \App\Models\SeoAutomation::create([
+                            'city_id' => $city->id,
+                            'status' => 'failed',
+                            'error_message' => $e->getMessage()
+                        ]);
+                    }
+                } catch (\Exception $logException) {
+                    Log::error('ProcessSeoCityJob: Impossible de créer le log d\'échec', [
+                        'error' => $logException->getMessage()
+                    ]);
+                }
+            }
             
             // Marquer le job comme échoué pour qu'il soit dans failed_jobs
             $this->fail($e);

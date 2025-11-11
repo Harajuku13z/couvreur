@@ -421,6 +421,8 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/articles/generate-titles', [App\Http\Controllers\Admin\ArticleController::class, 'generateTitles'])->name('articles.generate-titles');
             Route::post('/articles/generate-content', [App\Http\Controllers\Admin\ArticleController::class, 'generateContent'])->name('articles.generate-content');
             Route::post('/articles/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('articles.upload-image');
+            Route::put('/articles/images/{imageId}/metadata', [App\Http\Controllers\Admin\ArticleController::class, 'updateImageMetadata'])->name('articles.images.update-metadata');
+            Route::get('/articles/{articleId}/images', [App\Http\Controllers\Admin\ArticleController::class, 'getArticleImages'])->name('articles.images');
             Route::post('/articles/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('articles.create-from-titles');
             
             // Routes IA améliorées (AVANT les routes avec paramètres)

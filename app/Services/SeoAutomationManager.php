@@ -96,11 +96,11 @@ class SeoAutomationManager
                 
                 if (empty($keywords)) {
                     $steps[count($steps) - 1]['status'] = 'failed';
-                    $steps[count($steps) - 1]['message'] = 'Aucun mot-clé récupéré depuis SerpAPI';
+                    $steps[count($steps) - 1]['message'] = 'Aucun mot-clé récupéré (SerpAPI et ChatGPT ont échoué)';
                     if ($progressCallback) $progressCallback($steps);
                     $log->update([
                         'status' => 'failed',
-                        'error_message' => 'Aucun mot-clé récupéré depuis SerpAPI',
+                        'error_message' => 'Aucun mot-clé récupéré (SerpAPI et ChatGPT ont échoué)',
                         'metadata' => ['steps' => $steps]
                     ]);
                     return $log;
@@ -160,8 +160,19 @@ class SeoAutomationManager
             
             $competitors = $this->serp->getTopSERP($searchQuery, 10);
             
-            $steps[count($steps) - 1]['status'] = 'success';
-            $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés';
+            // Vérifier que nous avons au moins quelques données
+            $hasData = !empty($related) || !empty($competitors);
+            
+            if (!$hasData) {
+                Log::warning('SeoAutomationManager: Aucune donnée de recherche (related queries ou competitors)', [
+                    'keyword' => $keyword,
+                    'city' => $city->name
+                ]);
+                // Continuer quand même, GPT peut générer sans ces données
+            }
+            
+            $steps[count($steps) - 1]['status'] = $hasData ? 'success' : 'warning';
+            $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés' . (!$hasData ? ' (fallback ChatGPT utilisé)' : '');
             
             // Préparer les données des concurrents avec titres et liens
             $competitorsData = [];
@@ -394,6 +405,18 @@ class SeoAutomationManager
                 'seo_grade' => $seoAnalysis['grade'] ?? null
             ]);
 
+            // Vérification finale : s'assurer que le statut n'est jamais resté "pending"
+            if ($log && $log->status === 'pending') {
+                Log::error('SeoAutomationManager: Le statut est resté "pending" après traitement complet', [
+                    'city_id' => $city->id,
+                    'log_id' => $log->id
+                ]);
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => 'Le traitement n\'a pas abouti - statut resté en attente'
+                ]);
+            }
+            
             return $log;
         } catch (Exception $e) {
             Log::error('SeoAutomationManager: Erreur', [
@@ -402,10 +425,43 @@ class SeoAutomationManager
                 'trace' => $e->getTraceAsString()
             ]);
             
-            $log->update([
-                'status' => 'failed',
-                'error_message' => $e->getMessage()
-            ]);
+            // S'assurer que le log existe et mettre à jour son statut
+            if ($log) {
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage()
+                ]);
+            } else {
+                // Créer un log d'échec si le log n'existe pas
+                try {
+                    $log = SeoAutomation::create([
+                        'city_id' => $city->id,
+                        'status' => 'failed',
+                        'error_message' => $e->getMessage()
+                    ]);
+                } catch (\Exception $logException) {
+                    Log::error('SeoAutomationManager: Impossible de créer le log d\'échec', [
+                        'error' => $logException->getMessage()
+                    ]);
+                }
+            }
+            
+            // Retourner le log ou créer un nouveau si nécessaire
+            if (!$log) {
+                try {
+                    $log = SeoAutomation::create([
+                        'city_id' => $city->id,
+                        'status' => 'failed',
+                        'error_message' => $e->getMessage()
+                    ]);
+                } catch (\Exception $logException) {
+                    // Si même la création échoue, retourner null
+                    Log::error('SeoAutomationManager: Impossible de créer le log d\'échec', [
+                        'error' => $logException->getMessage()
+                    ]);
+                    return null;
+                }
+            }
             
             return $log;
         }

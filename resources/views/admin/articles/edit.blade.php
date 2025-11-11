@@ -38,11 +38,11 @@
             </div>
 
             <div class="mt-6">
-                <label for="content_html" class="block text-sm font-medium text-gray-700 mb-2">Contenu HTML</label>
+                <label for="content_html" class="block text-sm font-medium text-gray-700 mb-2">Contenu de l'article</label>
                 <textarea id="content_html" name="content_html" rows="20" 
-                          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" 
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                           required>{{ old('content_html', $article->content_html) }}</textarea>
-                <p class="text-sm text-gray-500 mt-1">Le contenu HTML sera enregistré tel quel, sans modification.</p>
+                <p class="text-sm text-gray-500 mt-1">Utilisez l'éditeur pour formater votre contenu et ajouter des images avec leurs métadonnées SEO.</p>
                 @error('content_html')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -104,4 +104,160 @@
         </div>
     </form>
 </div>
+
+<!-- Modal pour upload d'image avec métadonnées -->
+<div id="imageUploadModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Ajouter une image</h3>
+            <form id="imageUploadForm" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Fichier image</label>
+                    <input type="file" id="imageFile" name="image" accept="image/*" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Texte alternatif (Alt) *</label>
+                    <input type="text" id="imageAltText" name="alt_text" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2" 
+                           placeholder="Description de l'image pour le SEO" required>
+                    <p class="text-xs text-gray-500 mt-1">Important pour le référencement</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mots-clés (séparés par des virgules)</label>
+                    <input type="text" id="imageKeywords" name="keywords" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2" 
+                           placeholder="couvreur, toiture, rénovation">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Titre (optionnel)</label>
+                    <input type="text" id="imageTitle" name="title" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description (optionnel)</label>
+                    <textarea id="imageDescription" name="description" rows="3" 
+                              class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeImageModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Uploader
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+let articleId = {{ $article->id }};
+
+tinymce.init({
+    selector: '#content_html',
+    height: 600,
+    menubar: true,
+    plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+    ],
+    toolbar: 'undo redo | blocks | ' +
+        'bold italic forecolor | alignleft aligncenter ' +
+        'alignright alignjustify | bullist numlist outdent indent | ' +
+        'removeformat | link image | code | help',
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+    file_picker_types: 'image',
+    images_upload_handler: function (blobInfo, progress) {
+        return new Promise(function (resolve, reject) {
+            // Ouvrir le modal pour upload avec métadonnées
+            openImageModal(blobInfo, resolve, reject);
+        });
+    },
+    setup: function(editor) {
+        editor.on('init', function() {
+            // Pré-remplir l'alt text avec le titre de l'article si disponible
+            const title = document.getElementById('title').value;
+            if (title) {
+                window.articleTitle = title;
+            }
+        });
+    }
+});
+
+function openImageModal(blobInfo, resolve, reject) {
+    const modal = document.getElementById('imageUploadModal');
+    const form = document.getElementById('imageUploadForm');
+    const fileInput = document.getElementById('imageFile');
+    
+    // Réinitialiser le formulaire
+    form.reset();
+    
+    // Créer un fichier à partir du blob
+    const file = new File([blobInfo.blob()], blobInfo.filename(), { type: blobInfo.blob().type });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    
+    // Pré-remplir l'alt text avec le titre de l'article si disponible
+    const title = document.getElementById('title').value;
+    if (title) {
+        document.getElementById('imageAltText').value = title + ' - Image';
+    }
+    
+    modal.classList.remove('hidden');
+    
+    // Gérer la soumission du formulaire
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        formData.append('image', fileInput.files[0]);
+        formData.append('article_id', articleId);
+        
+        fetch('{{ route("admin.articles.upload-image") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeImageModal();
+                // Insérer l'image dans l'éditeur avec l'alt text
+                const imgTag = `<img src="${data.image_url}" alt="${data.alt_text}" />`;
+                tinymce.activeEditor.insertContent(imgTag);
+                resolve(data.image_url);
+            } else {
+                alert('Erreur: ' + data.message);
+                reject(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de l\'upload: ' + error.message);
+            reject(error.message);
+        });
+    };
+}
+
+function closeImageModal() {
+    document.getElementById('imageUploadModal').classList.add('hidden');
+}
+
+// Mettre à jour l'alt text suggéré quand le titre change
+document.getElementById('title').addEventListener('input', function(e) {
+    window.articleTitle = e.target.value;
+});
+</script>
+@endpush
 @endsection

@@ -71,4 +71,12 @@ class Article extends Model
     {
         return $this->belongsTo(City::class);
     }
+
+    /**
+     * Relation avec les images
+     */
+    public function images()
+    {
+        return $this->hasMany(ArticleImage::class);
+    }
 }

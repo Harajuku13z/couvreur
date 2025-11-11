@@ -63,6 +63,11 @@ class ArticleController extends Controller
             'published_at' => $validated['status'] === 'published' ? now() : null,
         ]);
 
+        // Lier les images uploadées sans article_id à cet article
+        \App\Models\ArticleImage::whereNull('article_id')
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->update(['article_id' => $article->id]);
+
         return redirect()->route('admin.articles.show', $article)
             ->with('success', 'Article créé avec succès');
     }
@@ -278,13 +283,18 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
     }
 
     /**
-     * Upload d'image pour article
+     * Upload d'image pour article avec métadonnées SEO
      */
     public function uploadImage(Request $request)
     {
         try {
             $request->validate([
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+                'alt_text' => 'nullable|string|max:255',
+                'keywords' => 'nullable|string|max:500',
+                'title' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:1000',
+                'article_id' => 'nullable|exists:articles,id',
             ]);
 
             $image = $request->file('image');
@@ -299,12 +309,44 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             // Sauvegarder directement dans public/uploads/articles/
             $image->move($uploadPath, $filename);
             
-            // Générer l'URL complète
-            $imageUrl = url('uploads/articles/' . $filename);
+            // Obtenir les dimensions de l'image
+            $imageInfo = getimagesize($uploadPath . '/' . $filename);
+            $width = $imageInfo[0] ?? null;
+            $height = $imageInfo[1] ?? null;
+            
+            // Générer l'URL complète et le chemin relatif
+            $imagePath = 'uploads/articles/' . $filename;
+            $imageUrl = url($imagePath);
+            
+            // Générer un alt text automatique si non fourni
+            $altText = $request->input('alt_text');
+            if (empty($altText) && $request->input('title')) {
+                $altText = $request->input('title');
+            } elseif (empty($altText)) {
+                // Générer un alt text basique à partir du nom de fichier
+                $altText = 'Image article - ' . pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+            }
+            
+            // Créer l'enregistrement dans la base de données
+            $articleImage = \App\Models\ArticleImage::create([
+                'article_id' => $request->input('article_id'),
+                'image_path' => $imagePath,
+                'alt_text' => $altText,
+                'keywords' => $request->input('keywords'),
+                'title' => $request->input('title'),
+                'description' => $request->input('description'),
+                'width' => $width,
+                'height' => $height,
+                'file_size' => $image->getSize(),
+                'mime_type' => $image->getMimeType(),
+            ]);
             
             return response()->json([
                 'success' => true,
                 'image_url' => $imageUrl,
+                'image_id' => $articleImage->id,
+                'image_path' => $imagePath,
+                'alt_text' => $altText,
                 'message' => 'Image uploadée avec succès'
             ]);
 
@@ -314,6 +356,69 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de l\'upload de l\'image: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Mettre à jour les métadonnées d'une image
+     */
+    public function updateImageMetadata(Request $request, $imageId)
+    {
+        try {
+            $request->validate([
+                'alt_text' => 'nullable|string|max:255',
+                'keywords' => 'nullable|string|max:500',
+                'title' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:1000',
+            ]);
+
+            $image = \App\Models\ArticleImage::findOrFail($imageId);
+            
+            $image->update([
+                'alt_text' => $request->input('alt_text', $image->alt_text),
+                'keywords' => $request->input('keywords', $image->keywords),
+                'title' => $request->input('title', $image->title),
+                'description' => $request->input('description', $image->description),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Métadonnées mises à jour avec succès',
+                'image' => $image
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur mise à jour métadonnées image: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Lister les images d'un article
+     */
+    public function getArticleImages($articleId)
+    {
+        try {
+            $images = \App\Models\ArticleImage::where('article_id', $articleId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'images' => $images
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération images article: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
             ], 500);
         }
     }
