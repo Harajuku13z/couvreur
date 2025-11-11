@@ -18,6 +18,15 @@ use Illuminate\Support\Str;
 class SeoAutomationController extends Controller
 {
     /**
+     * Rediriger proprement les accès GET à /seo-automation/run
+     */
+    public function redirectRunGet(Request $request)
+    {
+        return redirect()->route('admin.seo-automation.index')
+            ->with('error', 'Cette action doit être appelée en POST. Vous avez été redirigé vers la page d\'automatisation.');
+    }
+
+    /**
      * Afficher le formulaire de mot de passe
      */
     public function passwordForm()
