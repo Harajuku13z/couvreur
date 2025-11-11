@@ -465,6 +465,7 @@
                                       name="message" 
                                       rows="6"
                                       required
+                                      minlength="6"
                                       placeholder="Décrivez votre projet ou votre demande en détail..."
                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"></textarea>
                         </div>
