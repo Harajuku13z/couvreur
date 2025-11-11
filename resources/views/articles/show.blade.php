@@ -23,12 +23,19 @@
 
 @php
     // Passer les métadonnées spécifiques à l'article au layout principal
+    // IMPORTANT: Ne pas tronquer les titres - utiliser le titre complet
     $pageTitle = $article->meta_title ?: $article->title;
     $pageDescription = $article->meta_description;
     $pageKeywords = $article->meta_keywords;
     $pageImage = $article->featured_image ? asset($article->featured_image) : asset(setting('default_blog_og_image', 'images/og-blog.jpg'));
     $pageType = 'article';
     $currentPage = 'article';
+    
+    // S'assurer que les titres Open Graph et Twitter utilisent le titre complet (sans troncature)
+    $ogTitle = $pageTitle;
+    $twitterTitle = $pageTitle;
+    $ogDescription = $pageDescription;
+    $twitterDescription = $pageDescription;
 @endphp
 
 @push('head')
@@ -37,6 +44,17 @@
         --primary-color: {{ setting('primary_color', '#3b82f6') }};
         --secondary-color: {{ setting('secondary_color', '#1e40af') }};
         --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    }
+    
+    /* S'assurer que le titre de l'article ne soit jamais tronqué */
+    .article-hero h1 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        white-space: normal;
+        text-overflow: unset;
+        overflow: visible;
+        max-width: 100%;
     }
 </style>
 <!-- Métadonnées spécifiques aux articles -->
@@ -714,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-black/50 z-0"></div>
         @endif
         
-        <div class="max-w-6xl mx-auto px-4 text-center text-white relative z-10 py-16">
+        <div class="max-w-6xl mx-auto px-4 text-center text-white relative z-10 py-16 article-hero">
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg">{{ $article->title }}</h1>
             <div class="flex items-center justify-center space-x-4 flex-wrap gap-2">
                 @if($article->published_at)
