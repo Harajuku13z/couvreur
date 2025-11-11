@@ -8,6 +8,7 @@ use Google\Service\Indexing\UrlNotification;
 use Google\Service\SearchConsole;
 use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
+use App\Models\UrlIndexationStatus;
 
 class GoogleSearchConsoleService
 {
@@ -15,6 +16,7 @@ class GoogleSearchConsoleService
     protected $service;
     protected $indexingService;
     protected $siteUrl;
+    protected $inspectionService;
 
     public function __construct()
     {
@@ -54,6 +56,15 @@ class GoogleSearchConsoleService
             
             $this->service = new SearchConsole($this->client);
             $this->indexingService = new Indexing($this->client);
+            
+            // Initialiser le service d'inspection
+            try {
+                $this->inspectionService = new GoogleUrlInspectionService();
+            } catch (\Exception $e) {
+                Log::warning('GoogleUrlInspectionService non initialisé', [
+                    'error' => $e->getMessage()
+                ]);
+            }
             
             Log::info('✅ Google Search Console client initialisé avec succès');
             return true;
@@ -205,10 +216,21 @@ class GoogleSearchConsoleService
 
             Log::info("URL indexée avec succès: {$url}");
 
+            // Enregistrer la soumission dans la base de données
+            try {
+                \App\Models\UrlIndexationStatus::recordSubmission($url);
+            } catch (\Exception $e) {
+                Log::warning('Erreur enregistrement soumission URL', [
+                    'url' => $url,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
             return [
                 'success' => true,
                 'message' => "URL indexée avec succès: {$url}",
-                'response' => $response
+                'response' => $response,
+                'note' => 'La soumission a été reçue par Google. Vérifiez le statut réel dans quelques heures via l\'inspection d\'URL.'
             ];
         } catch (\Google\Service\Exception $e) {
             // Erreur spécifique de l'API Google
@@ -529,6 +551,107 @@ class GoogleSearchConsoleService
                 'message' => 'Erreur lors du test: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Vérifier le statut réel d'indexation d'une URL
+     * 
+     * @param string $url URL à vérifier
+     * @return array Résultat de la vérification
+     */
+    public function verifyIndexationStatus(string $url): array
+    {
+        try {
+            if (!$this->inspectionService) {
+                $this->inspectionService = new GoogleUrlInspectionService();
+            }
+
+            if (!$this->inspectionService->isConfigured()) {
+                return [
+                    'success' => false,
+                    'error' => 'Service d\'inspection non configuré'
+                ];
+            }
+
+            $result = $this->inspectionService->inspectUrl($url);
+
+            if ($result['success']) {
+                // Enregistrer le statut dans la base de données
+                $status = $result['status'];
+                UrlIndexationStatus::updateOrCreateStatus($url, [
+                    'indexed' => $status['indexed'] ?? false,
+                    'coverage_state' => $status['coverage_state'] ?? null,
+                    'indexing_state' => $status['indexing_state'] ?? null,
+                    'page_fetch_state' => $status['page_fetch_state'] ?? null,
+                    'verdict' => $status['verdict'] ?? null,
+                    'last_crawl_time' => isset($status['last_crawl_time']) ? 
+                        \Carbon\Carbon::parse($status['last_crawl_time']) : null,
+                    'details' => $status['details'] ?? [],
+                    'errors' => $status['errors'] ?? [],
+                    'warnings' => $status['warnings'] ?? [],
+                    'mobile_usable' => $status['mobile_usable'] ?? null,
+                ]);
+
+                return [
+                    'success' => true,
+                    'indexed' => $status['indexed'] ?? false,
+                    'coverage_state' => $status['coverage_state'] ?? null,
+                    'indexing_state' => $status['indexing_state'] ?? null,
+                    'last_crawl_time' => $status['last_crawl_time'] ?? null,
+                    'details' => $status,
+                ];
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Erreur vérification statut indexation', [
+                'url' => $url,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Vérifier le statut de plusieurs URLs
+     * 
+     * @param array $urls URLs à vérifier
+     * @return array Résultats
+     */
+    public function verifyIndexationStatuses(array $urls): array
+    {
+        $results = [
+            'total' => count($urls),
+            'indexed' => 0,
+            'not_indexed' => 0,
+            'errors' => 0,
+            'details' => []
+        ];
+
+        foreach ($urls as $url) {
+            $result = $this->verifyIndexationStatus($url);
+            
+            if ($result['success']) {
+                if ($result['indexed'] ?? false) {
+                    $results['indexed']++;
+                } else {
+                    $results['not_indexed']++;
+                }
+            } else {
+                $results['errors']++;
+            }
+
+            $results['details'][] = [
+                'url' => $url,
+                'result' => $result
+            ];
+        }
+
+        return $results;
     }
 }
 

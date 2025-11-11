@@ -1154,5 +1154,119 @@ class IndexationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Vérifier le statut réel d'indexation d'une URL
+     */
+    public function verifyStatus(Request $request)
+    {
+        try {
+            $request->validate([
+                'url' => 'required|url'
+            ]);
+
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré.'
+                ], 400);
+            }
+
+            $url = $request->input('url');
+            $result = $googleService->verifyIndexationStatus($url);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            \Log::error('Erreur vérification statut URL: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la vérification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Vérifier le statut de plusieurs URLs
+     */
+    public function verifyStatuses(Request $request)
+    {
+        try {
+            $request->validate([
+                'urls' => 'required|array',
+                'urls.*' => 'required|url'
+            ]);
+
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console n\'est pas configuré.'
+                ], 400);
+            }
+
+            $urls = $request->input('urls');
+            $result = $googleService->verifyIndexationStatuses($urls);
+
+            return response()->json([
+                'success' => true,
+                'results' => $result
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur vérification statuts URLs: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la vérification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir tous les statuts d'indexation enregistrés
+     */
+    public function getStatuses(Request $request)
+    {
+        try {
+            $perPage = $request->get('per_page', 50);
+            $status = $request->get('status'); // 'indexed', 'not_indexed', null pour tous
+            
+            $query = \App\Models\UrlIndexationStatus::query();
+            
+            if ($status === 'indexed') {
+                $query->where('indexed', true);
+            } elseif ($status === 'not_indexed') {
+                $query->where('indexed', false);
+            }
+            
+            $statuses = $query->orderBy('last_verification_time', 'desc')
+                             ->orderBy('created_at', 'desc')
+                             ->paginate($perPage);
+
+            // Statistiques globales
+            $stats = [
+                'total' => \App\Models\UrlIndexationStatus::count(),
+                'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
+                'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
+                'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'statuses' => $statuses,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur récupération statuts: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
