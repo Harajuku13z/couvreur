@@ -98,6 +98,17 @@ class IndexationController extends Controller
         } catch (\Exception $e) {
             \Log::warning('Impossible de compter les URLs: ' . $e->getMessage());
         }
+
+        // Récupérer les statuts d'indexation réels
+        $indexationStats = [
+            'total' => \App\Models\UrlIndexationStatus::count(),
+            'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
+            'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
+            'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
+            'recently_verified' => \App\Models\UrlIndexationStatus::whereNotNull('last_verification_time')
+                ->where('last_verification_time', '>=', now()->subDays(7))
+                ->count(),
+        ];
         
         // Vérifier si IndexJump est configuré
         $indexJumpService = new IndexJumpService();
@@ -131,7 +142,8 @@ class IndexationController extends Controller
             'indexedCount',
             'isIndexJumpConfigured',
             'indexJumpToken',
-            'indexJumpBalance'
+            'indexJumpBalance',
+            'indexationStats'
         ));
     }
 
