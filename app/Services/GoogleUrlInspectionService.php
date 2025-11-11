@@ -329,7 +329,10 @@ class GoogleUrlInspectionService
     public function isConfigured(): bool
     {
         try {
-            $credentials = Setting::get('google_credentials', null);
+            $credentials = Setting::get('google_search_console_credentials', null);
+            if (empty($credentials)) {
+                $credentials = Setting::get('google_credentials', null);
+            }
             return !empty($credentials);
         } catch (\Exception $e) {
             return false;
