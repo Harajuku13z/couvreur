@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('keyword_images')) {
+            // La table existe déjà, on ne recrée pas
+            return;
+        }
+
         Schema::create('keyword_images', function (Blueprint $table) {
             $table->id();
             $table->string('keyword'); // Mot-clé associé
