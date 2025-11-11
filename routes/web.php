@@ -423,6 +423,7 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/articles/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('articles.upload-image');
             Route::put('/articles/images/{imageId}/metadata', [App\Http\Controllers\Admin\ArticleController::class, 'updateImageMetadata'])->name('articles.images.update-metadata');
             Route::get('/articles/{articleId}/images', [App\Http\Controllers\Admin\ArticleController::class, 'getArticleImages'])->name('articles.images');
+            Route::get('/articles/images/available', [App\Http\Controllers\Admin\ArticleController::class, 'getAvailableImages'])->name('articles.images.available');
             Route::post('/articles/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('articles.create-from-titles');
             
             // Routes IA améliorées (AVANT les routes avec paramètres)

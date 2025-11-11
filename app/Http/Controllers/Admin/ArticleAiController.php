@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Setting;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Services\AiService;
+use App\Services\GptSeoGenerator;
+use App\Services\SerpApiService;
 
 class ArticleAiController extends Controller
 {
@@ -81,6 +84,28 @@ class ArticleAiController extends Controller
             $featuredImagePath = 'uploads/articles/' . $filename;
         }
 
+        // Initialiser les services pour génération SEO premium
+        $gptGenerator = app(GptSeoGenerator::class);
+        $serpService = app(SerpApiService::class);
+        
+        // Récupérer les informations de l'entreprise
+        $companyInfo = $this->getCompanyInfo();
+        
+        // Récupérer la ville par défaut ou la première ville favorite
+        $defaultCity = City::where('is_favorite', true)->first();
+        if (!$defaultCity) {
+            // Créer une ville par défaut si aucune n'existe
+            $defaultCity = City::first();
+            if (!$defaultCity) {
+                $defaultCity = City::create([
+                    'name' => $companyInfo['company_city'] ?? 'Chevigny-Saint-Sauveur',
+                    'postal_code' => '21800',
+                    'region' => $companyInfo['company_region'] ?? 'Bourgogne-Franche-Comté',
+                    'is_favorite' => true,
+                ]);
+            }
+        }
+
         foreach ($titles as $title) {
             $slug = Str::slug($title);
             
@@ -91,24 +116,50 @@ class ArticleAiController extends Controller
             }
 
             try {
-                $content = $this->generateArticleContent($title, $category, $language, $customPrompt, $model);
+                // Extraire le mot-clé principal du titre
+                $keyword = $this->extractKeywordFromTitle($title);
                 
-                if (!$content) {
-                    $errors[] = "Échec de génération pour '$title'";
+                // Récupérer les données SERP (requêtes associées et concurrents)
+                $relatedQueries = $serpService->getRelatedQueries($keyword, 6);
+                $searchQuery = $keyword . ' ' . $defaultCity->name;
+                $competitors = $serpService->getTopSERP($searchQuery, 10);
+                
+                // Générer l'article avec le même système que l'automatisation SEO
+                // Note: $serpResults attend un tableau de résultats SERP (title, snippet)
+                // $keywordImages attend un tableau d'images (peut être vide)
+                // Suivant le pattern de SeoAutomationManager, on passe $competitors comme $serpResults
+                // et un tableau vide pour $keywordImages (pas d'images pour l'instant)
+                $gptData = $gptGenerator->generateSeoArticle(
+                    $keyword,
+                    $defaultCity->name,
+                    $competitors, // Résultats SERP avec title/snippet
+                    [] // Pas d'images pour l'instant
+                );
+                
+                if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
+                    $errors[] = "Échec de génération pour '$title' - réponse GPT invalide";
                     continue;
                 }
 
-                // Créer l'article
+                // Utiliser l'image de mise en avant si fournie
+                $finalFeaturedImage = $featuredImagePath;
+
+                // Créer l'article avec toutes les métadonnées SEO
                 Article::create([
-                    'title' => $title,
-                    'slug' => $slug,
-                    'excerpt' => $this->generateExcerpt($content),
-                    'content_html' => $content,
-                    'meta_description' => $this->generateMetaDescription($content),
-                    'meta_keywords' => $this->generateKeywords($title, $category),
-                    'featured_image' => $featuredImagePath,
+                    'title' => $gptData['titre'],
+                    'meta_title' => $gptData['titre'], // Utiliser le même titre pour meta_title
+                    'slug' => $gptData['slug'] ?? Str::slug($gptData['titre'] . '-' . $defaultCity->name),
+                    'excerpt' => $this->generateExcerpt($gptData['contenu_html']),
+                    'content_html' => $gptData['contenu_html'],
+                    'meta_description' => $gptData['meta_description'] ?? $this->generateMetaDescription($gptData['contenu_html']),
+                    'meta_keywords' => is_array($gptData['mots_cles'] ?? []) 
+                        ? implode(', ', $gptData['mots_cles']) 
+                        : ($gptData['mots_cles'] ?? $this->generateKeywords($title, $category)),
+                    'focus_keyword' => $keyword,
+                    'featured_image' => $finalFeaturedImage,
                     'status' => 'published',
                     'published_at' => now(),
+                    'city_id' => $defaultCity->id,
                 ]);
 
                 $created++;
@@ -117,7 +168,8 @@ class ArticleAiController extends Controller
                 $errors[] = "Erreur pour '$title': " . $e->getMessage();
                 Log::error('Erreur génération article IA', [
                     'title' => $title,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
                 ]);
             }
         }
@@ -131,108 +183,27 @@ class ArticleAiController extends Controller
     }
 
     /**
-     * Générer le contenu d'un article avec IA
+     * Extraire le mot-clé principal du titre
      */
-    private function generateArticleContent($title, $category, $language, $customPrompt, $model)
+    private function extractKeywordFromTitle($title)
     {
-        // Récupérer les informations de l'entreprise
-        $companyInfo = $this->getCompanyInfo();
+        // Enlever les mots communs et extraire le mot-clé principal
+        $stopWords = ['comment', 'les', 'guide', 'complet', 'de', 'la', 'le', 'un', 'une', 'des', 'du', 'pour', 'avec', 'sans', 'quoi', 'quand', 'où', 'pourquoi', 'comment', 'combien'];
+        $words = explode(' ', strtolower($title));
+        $keywords = array_filter($words, function($word) use ($stopWords) {
+            $cleanWord = trim($word, '.,!?;:');
+            return strlen($cleanWord) > 3 && !in_array($cleanWord, $stopWords);
+        });
         
-        // Prompt système optimisé pour contenu SEO de qualité
-        $system = "Tu es un expert en rédaction web SEO spécialisé pour couvreurs et entreprises de rénovation. Tu produis STRICTEMENT du HTML avec classes Tailwind CSS, sans balises <html> ni <body>, uniquement le contenu. Privilégie des paragraphes de qualité avec des phrases complètes plutôt que des listes. Utilise des classes Tailwind pour le styling et des icônes Font Awesome uniquement pour les titres de sections. Ton professionnel, informatif, orienté SEO avec du contenu textuel de qualité.";
-
-        // Prompt utilisateur détaillé
-        $user = ($customPrompt ? ($customPrompt . "\n\n") : '') . 
-                "Sujet: {$title}\n" .
-                "Catégorie: {$category}\n" .
-                "Langue: {$language}\n" .
-                "Entreprise: {$companyInfo['company_name']}\n" .
-                "Localisation: {$companyInfo['company_city']}, {$companyInfo['company_region']}\n\n" .
-                "Consignes détaillées:\n" .
-                "- Longueur: 1500 à 2000 mots minimum\n" .
-                "- Style: professionnel, engageant, orienté prospection/conversion\n" .
-                "- Inclure des mots-clés (ex: devis toiture, réparation urgence toiture, couvreur professionnel, rénovation toiture) naturellement dans les titres et le texte\n" .
-                "- Structure HTML optimisée pour SEO (exemple):\n" .
-                "<h1 class=\"text-4xl font-bold text-gray-900 mb-6\">Titre principal optimisé SEO</h1>\n" .
-                "<p class=\"text-lg text-gray-700 mb-8 leading-relaxed\">Introduction accrocheuse de 3-4 phrases qui présente le sujet et ses enjeux. Cette introduction doit captiver le lecteur et introduire naturellement les mots-clés principaux.</p>\n" .
-                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-lightbulb text-blue-600 mr-3\"></i>Section 1 - Titre descriptif</h2>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le premier point important. Utilise des phrases complètes et variées pour expliquer en détail les concepts. Intègre naturellement les mots-clés pertinents dans le texte.</p>\n" .
-                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section détaillée</h3>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe approfondi de 5-6 phrases qui détaille les aspects techniques ou pratiques. Fournis des informations précises et utiles pour le lecteur, en utilisant un vocabulaire professionnel mais accessible.</p>\n" .
-                "<div class=\"bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 rounded-r-lg\">\n" .
-                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-exclamation-triangle text-orange-600 mr-3\"></i>Point important à retenir</h3>\n" .
-                "  <p class=\"text-gray-700 leading-relaxed\">Paragraphe de 3-4 phrases dans une boîte colorée pour mettre en évidence un conseil important ou une erreur à éviter. Utilise un ton direct et informatif.</p>\n" .
-                "</div>\n" .
-                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-tools text-blue-600 mr-3\"></i>Section 2 - Titre descriptif</h2>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le deuxième point important. Varie les structures de phrases et utilise des connecteurs logiques pour une lecture fluide.</p>\n" .
-                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section technique</h3>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe technique de 5-6 phrases expliquant les aspects pratiques ou les procédures. Fournis des détails précis et des exemples concrets quand c'est pertinent.</p>\n" .
-                "<div class=\"bg-gray-50 rounded-lg p-6 mb-8\">\n" .
-                "  <h3 class=\"text-xl font-semibold text-gray-800 mb-4 flex items-center\"><i class=\"fas fa-info-circle text-blue-600 mr-3\"></i>Information complémentaire</h3>\n" .
-                "  <p class=\"text-gray-700 leading-relaxed\">Paragraphe de 3-4 phrases dans une boîte grise pour apporter des informations supplémentaires ou des précisions importantes.</p>\n" .
-                "</div>\n" .
-                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-check-circle text-green-600 mr-3\"></i>Section 3 - Titre descriptif</h2>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de 4-5 phrases développant le troisième point important. Utilise des exemples concrets et des cas d'usage pour illustrer tes propos.</p>\n" .
-                "<h3 class=\"text-xl font-semibold text-gray-800 mb-4\">Sous-section pratique</h3>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe pratique de 5-6 phrases donnant des conseils applicables et des recommandations professionnelles. Termine par une phrase qui résume l'importance du point abordé.</p>\n" .
-                "<h2 class=\"text-2xl font-bold text-gray-900 mb-6 flex items-center\"><i class=\"fas fa-flag-checkered text-blue-600 mr-3\"></i>Conclusion</h2>\n" .
-                "<p class=\"text-gray-700 mb-6 leading-relaxed\">Paragraphe de conclusion de 4-5 phrases qui synthétise les points principaux abordés dans l'article. Termine par une phrase qui encourage l'action ou qui résume la valeur ajoutée de l'article.</p>\n" .
-                "Contraintes importantes:\n" .
-                "- 3 à 4 <h2> et 5 à 6 <h3> minimum\n" .
-                "- PRIVILÉGIER les paragraphes de 4-6 phrases plutôt que les listes\n" .
-                "- Utiliser UNIQUEMENT des classes Tailwind CSS\n" .
-                "- Icônes Font Awesome UNIQUEMENT dans les titres de sections (pas dans le contenu)\n" .
-                "- NE PAS inclure de boutons ou CTA 'Demander un devis gratuit' dans le contenu\n" .
-                "- Utiliser des couleurs cohérentes (blue-600, green-600, orange-600, gray-900, etc.)\n" .
-                "- Espacement approprié (mb-4, mb-6, mb-8, p-6, etc.)\n" .
-                "- Backgrounds colorés pour les encadrés importants\n" .
-                "- Optimiser chaque paragraphe avec des mots-clés pertinents du secteur couverture/rénovation\n" .
-                "- Contenu informatif et professionnel, orienté expertise technique\n" .
-                "- Phrases complètes et variées pour un bon SEO textuel\n" .
-                "- Éviter les listes à puces, privilégier le contenu narratif";
-
-        try {
-            // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
-            // Estimation: ~1 token = 4 caractères pour le texte
-            $totalMessageLength = strlen($system ?? '') + strlen($user);
-            $estimatedInputTokens = (int)($totalMessageLength / 4);
-            // Laisser une marge de sécurité: limiter à 5500 tokens totaux
-            // Réduire max_tokens si nécessaire pour respecter la limite
-            $maxTokens = min(4000, max(1000, 5500 - $estimatedInputTokens));
-            
-            Log::info('Calcul tokens pour génération article', [
-                'estimated_input_tokens' => $estimatedInputTokens,
-                'adjusted_max_tokens' => $maxTokens,
-                'model' => $model
-            ]);
-            
-            $result = AiService::callAI($user, $system, [
-                'model' => $model,
-                'temperature' => 0.7,
-                'max_tokens' => $maxTokens,
-                'timeout' => 120 // Plus de temps pour les articles longs
-            ]);
-
-            if ($result && isset($result['content'])) {
-                Log::info('Article généré avec succès', [
-                    'title' => $title,
-                    'provider' => $result['provider'] ?? 'unknown',
-                    'content_length' => strlen($result['content'])
-                ]);
-                return $result['content'];
-            }
-
-            return null;
-
-        } catch (\Throwable $e) {
-            Log::error('Erreur génération contenu article', [
-                'title' => $title,
-                'error' => $e->getMessage(),
-                'trace' => config('app.debug') ? $e->getTraceAsString() : null
-            ]);
+        // Prendre les 2-3 premiers mots pertinents comme mot-clé
+        $keyword = implode(' ', array_slice($keywords, 0, 3));
+        
+        // Si pas de mot-clé trouvé, utiliser le titre complet
+        if (empty($keyword)) {
+            $keyword = strtolower($title);
         }
-
-        return null;
+        
+        return $keyword;
     }
 
     /**

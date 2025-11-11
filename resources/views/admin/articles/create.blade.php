@@ -9,7 +9,7 @@
         <p class="text-gray-600 mt-2">Créez un nouvel article avec le contenu HTML de ChatGPT</p>
     </div>
 
-    <form method="POST" action="{{ route('admin.articles.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.articles.store') }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
         
         <div class="bg-white rounded-lg shadow p-6">
@@ -59,9 +59,65 @@
                 </div>
 
                 <div>
-                    <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">Image mise en avant (URL)</label>
-                    <input type="url" id="featured_image" name="featured_image" value="{{ old('featured_image') }}" 
-                           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">Image mise en avant</label>
+                    
+                    <!-- Onglets pour basculer entre upload et galerie -->
+                    <div class="mb-3 border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-4">
+                            <button type="button" id="tab-upload" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 active-tab">
+                                <i class="fas fa-upload mr-2"></i>Uploader
+                            </button>
+                            <button type="button" id="tab-gallery" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-images mr-2"></i>Galerie
+                            </button>
+                            <button type="button" id="tab-url" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-link mr-2"></i>URL
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Contenu onglet Upload -->
+                    <div id="content-upload" class="tab-content">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                            <input type="file" id="featured_image_file" name="featured_image" accept="image/*" 
+                                   class="hidden" onchange="previewFeaturedImage(this)">
+                            <label for="featured_image_file" class="cursor-pointer">
+                                <div id="upload-area-featured" class="space-y-2">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                    <p class="text-gray-600">Cliquez pour sélectionner une image</p>
+                                    <p class="text-xs text-gray-500">JPG, PNG, WEBP (max 5MB)</p>
+                                </div>
+                                <div id="preview-featured" class="hidden">
+                                    <img id="preview-featured-img" class="max-w-full h-48 mx-auto rounded-lg shadow-lg">
+                                    <p class="text-sm text-gray-600 mt-2">Cliquez pour changer l'image</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Contenu onglet Galerie -->
+                    <div id="content-gallery" class="tab-content hidden">
+                        <div class="mb-3">
+                            <input type="text" id="gallery-search" placeholder="Rechercher une image..." 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div id="gallery-loading" class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin text-gray-400"></i> Chargement des images...
+                        </div>
+                        <div id="gallery-container" class="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 hidden">
+                            <!-- Les images seront chargées ici via JavaScript -->
+                        </div>
+                        <input type="hidden" id="featured_image_selected" name="featured_image_path" value="{{ old('featured_image') }}">
+                    </div>
+
+                    <!-- Contenu onglet URL -->
+                    <div id="content-url" class="tab-content hidden">
+                        <input type="url" id="featured_image_url" name="featured_image_url" value="{{ old('featured_image') }}" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="https://example.com/image.jpg">
+                        <p class="text-xs text-gray-500 mt-1">Entrez l'URL complète de l'image</p>
+                    </div>
+
                     @error('featured_image')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -298,6 +354,241 @@ document.getElementById('title').addEventListener('input', function(e) {
 // Synchroniser avant la soumission du formulaire
 document.querySelector('form').addEventListener('submit', function() {
     document.getElementById('content_html_hidden').value = quill.root.innerHTML;
+});
+
+// ===== GESTION DE L'IMAGE MISE EN AVANT =====
+
+// Gestion des onglets
+document.getElementById('tab-upload').addEventListener('click', function() {
+    switchTab('upload');
+});
+
+document.getElementById('tab-gallery').addEventListener('click', function() {
+    switchTab('gallery');
+    loadGallery();
+});
+
+document.getElementById('tab-url').addEventListener('click', function() {
+    switchTab('url');
+});
+
+function switchTab(tab) {
+    // Masquer tous les contenus
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Réinitialiser tous les onglets
+    document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+        btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'active-tab');
+        btn.classList.add('text-gray-500');
+    });
+    
+    // Afficher le contenu sélectionné
+    document.getElementById('content-' + tab).classList.remove('hidden');
+    
+    // Activer l'onglet sélectionné
+    const activeTab = document.getElementById('tab-' + tab);
+    activeTab.classList.remove('text-gray-500');
+    activeTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'active-tab');
+    
+    // Réinitialiser le champ fichier
+    const fileInput = document.getElementById('featured_image_file');
+    if (tab !== 'upload') {
+        fileInput.disabled = true;
+    } else {
+        fileInput.disabled = false;
+    }
+}
+
+// Preview de l'image uploadée
+function previewFeaturedImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-featured-img').src = e.target.result;
+            document.getElementById('upload-area-featured').classList.add('hidden');
+            document.getElementById('preview-featured').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Charger la galerie d'images
+let allGalleryImages = [];
+let filteredGalleryImages = [];
+
+function loadGallery() {
+    const container = document.getElementById('gallery-container');
+    const loading = document.getElementById('gallery-loading');
+    
+    // Si déjà chargée, juste afficher
+    if (allGalleryImages.length > 0) {
+        displayGallery();
+        return;
+    }
+    
+    loading.classList.remove('hidden');
+    container.classList.add('hidden');
+    
+    fetch('{{ route("admin.articles.images.available") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allGalleryImages = data.images;
+                filteredGalleryImages = data.images;
+                displayGallery();
+            } else {
+                alert('Erreur lors du chargement: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors du chargement de la galerie');
+        })
+        .finally(() => {
+            loading.classList.add('hidden');
+        });
+}
+
+function displayGallery() {
+    const container = document.getElementById('gallery-container');
+    container.innerHTML = '';
+    
+    if (filteredGalleryImages.length === 0) {
+        container.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-8">Aucune image trouvée</p>';
+        container.classList.remove('hidden');
+        return;
+    }
+    
+    filteredGalleryImages.forEach(image => {
+        const div = document.createElement('div');
+        div.className = 'relative cursor-pointer group';
+        div.setAttribute('data-path', image.path);
+        div.setAttribute('data-url', image.url);
+        div.onclick = function() {
+            selectGalleryImage(image.path, image.url);
+        };
+        
+        const img = document.createElement('img');
+        img.src = image.url;
+        img.alt = image.name;
+        img.setAttribute('data-path', image.path);
+        img.className = 'w-full h-24 object-cover rounded border-2 border-transparent hover:border-blue-500 transition-all cursor-pointer';
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded flex items-center justify-center pointer-events-none';
+        overlay.innerHTML = '<i class="fas fa-check-circle text-white text-2xl opacity-0 group-hover:opacity-100"></i>';
+        
+        const nameP = document.createElement('p');
+        nameP.className = 'text-xs text-gray-600 mt-1 truncate';
+        nameP.textContent = image.name;
+        nameP.title = image.name;
+        
+        const categoryP = document.createElement('p');
+        categoryP.className = 'text-xs text-gray-400';
+        categoryP.textContent = image.category;
+        
+        div.appendChild(img);
+        div.appendChild(overlay);
+        div.appendChild(nameP);
+        div.appendChild(categoryP);
+        
+        container.appendChild(div);
+    });
+    
+    container.classList.remove('hidden');
+}
+
+function selectGalleryImage(path, url) {
+    document.getElementById('featured_image_selected').value = path;
+    
+    // Afficher un indicateur visuel
+    const images = document.querySelectorAll('#gallery-container img');
+    images.forEach(img => {
+        img.classList.remove('border-blue-500', 'ring-2', 'ring-blue-500');
+        // Trouver l'image correspondante et la mettre en évidence
+        if (img.src === url || img.getAttribute('data-path') === path) {
+            img.classList.add('border-blue-500', 'ring-2', 'ring-blue-500');
+        }
+    });
+    
+    // Afficher un aperçu
+    showGalleryPreview(url);
+}
+
+function showGalleryPreview(url) {
+    // Créer ou mettre à jour un aperçu
+    let preview = document.getElementById('gallery-preview');
+    if (!preview) {
+        preview = document.createElement('div');
+        preview.id = 'gallery-preview';
+        preview.className = 'mt-4 p-4 bg-gray-50 rounded-lg';
+        document.getElementById('content-gallery').appendChild(preview);
+    }
+    preview.innerHTML = `
+        <p class="text-sm font-medium text-gray-700 mb-2">Image sélectionnée :</p>
+        <img src="${url}" alt="Preview" class="max-w-full h-32 object-contain rounded">
+    `;
+}
+
+// Recherche dans la galerie
+document.getElementById('gallery-search').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    if (searchTerm === '') {
+        filteredGalleryImages = allGalleryImages;
+    } else {
+        filteredGalleryImages = allGalleryImages.filter(image => {
+            return image.name.toLowerCase().includes(searchTerm) ||
+                   image.category.toLowerCase().includes(searchTerm) ||
+                   image.path.toLowerCase().includes(searchTerm);
+        });
+    }
+    displayGallery();
+});
+
+// Gérer la soumission du formulaire pour combiner les différents types d'input
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Supprimer les anciens inputs cachés s'ils existent
+    const existingHidden = this.querySelectorAll('input[name="featured_image"][type="hidden"]');
+    existingHidden.forEach(input => input.remove());
+    
+    // Désactiver le champ fichier si on n'est pas sur l'onglet upload
+    const fileInput = document.getElementById('featured_image_file');
+    
+    // Si on est sur l'onglet galerie, utiliser le path
+    if (!document.getElementById('content-gallery').classList.contains('hidden')) {
+        const selectedPath = document.getElementById('featured_image_selected').value;
+        if (selectedPath) {
+            // Désactiver le champ fichier
+            fileInput.disabled = true;
+            // Créer un input caché avec le path
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'featured_image';
+            hiddenInput.value = selectedPath;
+            this.appendChild(hiddenInput);
+        }
+    }
+    // Si on est sur l'onglet URL, utiliser l'URL
+    else if (!document.getElementById('content-url').classList.contains('hidden')) {
+        const url = document.getElementById('featured_image_url').value;
+        if (url) {
+            // Désactiver le champ fichier
+            fileInput.disabled = true;
+            // Créer un input caché avec l'URL
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'featured_image';
+            hiddenInput.value = url;
+            this.appendChild(hiddenInput);
+        }
+    }
+    // Si on est sur l'onglet upload, le fichier est déjà dans le form
+    else {
+        // S'assurer que le champ fichier est activé
+        fileInput.disabled = false;
+    }
 });
 </script>
 <style>

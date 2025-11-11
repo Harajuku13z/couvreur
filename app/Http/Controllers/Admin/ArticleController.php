@@ -36,19 +36,46 @@ class ArticleController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Validation conditionnelle selon le type d'input
+        $rules = [
             'title' => 'required|string|max:500',
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:2000',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'status' => 'required|in:draft,published'
-        ]);
+        ];
+        
+        // Si c'est un fichier uploadé, valider comme image
+        if ($request->hasFile('featured_image')) {
+            $rules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120';
+        } else {
+            $rules['featured_image'] = 'nullable|string';
+        }
+        
+        $validated = $request->validate($rules);
 
         $featuredImagePath = null;
+        
+        // Cas 1: Upload de fichier
         if ($request->hasFile('featured_image')) {
-            $featuredImagePath = $this->handleImageUpload($request->file('featured_image'));
+            $file = $request->file('featured_image');
+            $featuredImagePath = $this->handleImageUpload($file);
+        }
+        // Cas 2: Path depuis la galerie (string qui commence par uploads/ ou images/)
+        elseif ($request->has('featured_image') && is_string($request->input('featured_image'))) {
+            $imageInput = $request->input('featured_image');
+            // Vérifier que le path existe et est valide
+            if (str_starts_with($imageInput, 'uploads/') || str_starts_with($imageInput, 'images/')) {
+                $fullPath = public_path($imageInput);
+                if (file_exists($fullPath) && is_file($fullPath)) {
+                    $featuredImagePath = $imageInput;
+                }
+            }
+            // Cas 3: URL externe (commence par http:// ou https://)
+            elseif (filter_var($imageInput, FILTER_VALIDATE_URL)) {
+                $featuredImagePath = $imageInput;
+            }
         }
 
         $article = Article::create([
@@ -415,6 +442,77 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
 
         } catch (\Exception $e) {
             Log::error('Erreur récupération images article: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lister toutes les images disponibles dans le projet (portfolio, articles, services, etc.)
+     */
+    public function getAvailableImages()
+    {
+        try {
+            $images = [];
+            
+            // Dossiers à scanner
+            $directories = [
+                'uploads/portfolio' => 'Réalisations',
+                'uploads/articles' => 'Articles',
+                'uploads/services' => 'Services',
+                'uploads/homepage' => 'Page d\'accueil',
+                'images' => 'Images générales',
+            ];
+            
+            foreach ($directories as $dir => $category) {
+                $fullPath = public_path($dir);
+                if (is_dir($fullPath)) {
+                    // Scanner récursivement tous les fichiers images
+                    $iterator = new \RecursiveIteratorIterator(
+                        new \RecursiveDirectoryIterator($fullPath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                        \RecursiveIteratorIterator::SELF_FIRST
+                    );
+                    
+                    foreach ($iterator as $file) {
+                        if ($file->isFile()) {
+                            $extension = strtolower($file->getExtension());
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                $fullPath = $file->getPathname();
+                                // Normaliser le chemin (remplacer les backslashes par des slashes)
+                                $normalizedPath = str_replace('\\', '/', $fullPath);
+                                $publicPath = str_replace('\\', '/', public_path());
+                                $relativePath = str_replace($publicPath . '/', '', $normalizedPath);
+                                
+                                $images[] = [
+                                    'path' => $relativePath,
+                                    'url' => asset($relativePath),
+                                    'name' => $file->getFilename(),
+                                    'category' => $category,
+                                    'size' => $file->getSize(),
+                                    'modified' => $file->getMTime()
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Trier par date de modification (plus récentes en premier)
+            usort($images, function($a, $b) {
+                return $b['modified'] - $a['modified'];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'images' => $images,
+                'count' => count($images)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération images disponibles: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,

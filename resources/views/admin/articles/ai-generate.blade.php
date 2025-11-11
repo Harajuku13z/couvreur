@@ -158,11 +158,15 @@ Exemple:
                     <i class="fas fa-info-circle mr-2"></i>Informations importantes
                 </h3>
                 <ul class="text-sm text-blue-800 space-y-1">
-                    <li>• Chaque article généré fera 1500-2000 mots minimum</li>
-                    <li>• Le contenu sera optimisé SEO avec mots-clés pertinents</li>
-                    <li>• Structure HTML professionnelle avec H1, H2, H3, listes et CTA</li>
+                    <li>• Chaque article généré fera 3000-4500 mots (même qualité que l'automatisation SEO)</li>
+                    <li>• Contenu ultra-optimisé SEO avec analyse des concurrents et recherche approfondie</li>
+                    <li>• Structure complète : introduction, sommaire, 6-8 sections H2 (700-900 mots chacune), FAQ Schema.org</li>
+                    <li>• Recherche automatique des requêtes associées et analyse des concurrents</li>
+                    <li>• Recherche approfondie des prix réels du marché avec fourchettes détaillées</li>
+                    <li>• Génération automatique de meta description, mots-clés et focus keyword</li>
                     <li>• Articles automatiquement publiés après génération</li>
-                    <li>• Clé API OpenAI requise dans la configuration</li>
+                    <li>• Clé API OpenAI ou Groq requise dans la configuration</li>
+                    <li>• Utilise le même système de génération que l'automatisation SEO pour une qualité premium</li>
                 </ul>
             </div>
         </div>
