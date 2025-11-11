@@ -1520,26 +1520,26 @@
                                 ]);
                             }
                             
-                            // ÉTAPE 1: Protéger d'abord toutes les balises <img> valides existantes
+                            // ÉTAPE 1: Protéger toutes les balises <img> valides existantes avec un placeholder unique
+                            $validImages = [];
                             $content = preg_replace_callback(
                                 '/<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>/i',
-                                function($matches) {
-                                    return '<!--IMG_VALID_START-->' . $matches[0] . '<!--IMG_VALID_END-->';
+                                function($matches) use (&$validImages) {
+                                    $placeholder = '<!--IMG_VALID_' . count($validImages) . '-->';
+                                    $validImages[] = $matches[0];
+                                    return $placeholder;
                                 },
                                 $content
                             );
                             
                             // ÉTAPE 2: Nettoyer les URLs dupliquées (domaine répété plusieurs fois)
-                            // Exemple: https://domain.comhttps://domain.comhttps://domain.com/uploads/...
                             $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+/i', '$1', $content);
                             
                             // ÉTAPE 3: Réparer les balises <img> cassées avec URLs dupliquées et attributs multiples
-                            // Pattern: https://domain.com/uploads/...image.jpg" alt="..." loading="lazy">" alt="..." loading="lazy">
                             $content = preg_replace_callback(
                                 '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)+/i',
                                 function($matches) {
                                     $src = $matches[1];
-                                    // Extraire le premier alt trouvé dans tout le match
                                     $alt = 'Image article';
                                     if (preg_match('/alt=["\']([^"\']+)["\']/', $matches[0], $altMatch)) {
                                         $alt = $altMatch[1];
@@ -1550,12 +1550,10 @@
                             );
                             
                             // ÉTAPE 4: Réparer les URLs relatives avec attributs dupliqués
-                            // Pattern: /uploads/articles/...image.jpg" alt="..." loading="lazy">" alt="..." loading="lazy">
                             $content = preg_replace_callback(
                                 '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)+/i',
                                 function($matches) {
                                     $src = asset(ltrim($matches[1], '/'));
-                                    // Extraire le premier alt trouvé
                                     $alt = 'Image article';
                                     if (preg_match('/alt=["\']([^"\']+)["\']/', $matches[0], $altMatch)) {
                                         $alt = $altMatch[1];
@@ -1565,25 +1563,22 @@
                                 $content
                             );
                             
-                            // ÉTAPE 5: Supprimer les fragments de balises <img> cassées restantes (seulement ceux qui ne sont pas dans des balises valides)
-                            // Exemple: " alt="..." class="..." loading="lazy"> (sans <img src= au début)
-                            // Mais seulement si ce n'est pas dans une balise <img> valide protégée
-                            $content = preg_replace('/(?<!<!--IMG_VALID_START-->[^<]*)"\s+alt=["\'][^"\']+["\'][^>]*>(?!<!--IMG_VALID_END-->)/i', '', $content);
+                            // ÉTAPE 5: Supprimer les fragments de balises <img> cassées (qui ne commencent pas par <img)
+                            $content = preg_replace('/"\s+alt=["\'][^"\']+["\'][^>]*>/i', '', $content);
                             
-                            // ÉTAPE 6: Convertir les URLs d'images restantes (pas déjà dans des balises <img>)
-                            // URLs complètes avec domaine (mais pas dans les balises protégées)
+                            // ÉTAPE 6: Convertir les URLs d'images restantes en balises <img>
+                            // URLs complètes avec domaine
                             $content = preg_replace_callback(
-                                '/(?<!<!--IMG_VALID_START-->[^<]*)(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))(?!<!--IMG_VALID_END-->)/i',
+                                '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
-                                    // Vérifier que ce n'est pas déjà dans une balise <img>
                                     return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
                             );
                             
-                            // URLs relatives (mais pas dans les balises protégées)
+                            // URLs relatives
                             $content = preg_replace_callback(
-                                '/(?<!<!--IMG_VALID_START-->[^<]*)(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))(?!<!--IMG_VALID_END-->)/i',
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
                                     $src = asset(ltrim($matches[1], '/'));
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
@@ -1592,11 +1587,11 @@
                             );
                             
                             // ÉTAPE 7: Restaurer les balises <img> valides protégées
-                            $content = str_replace('<!--IMG_VALID_START-->', '', $content);
-                            $content = str_replace('<!--IMG_VALID_END-->', '', $content);
+                            foreach ($validImages as $index => $imgTag) {
+                                $content = str_replace('<!--IMG_VALID_' . $index . '-->', $imgTag, $content);
+                            }
                             
-                            // ÉTAPE 8: Nettoyer uniquement les balises <img> vraiment incomplètes (sans src)
-                            // Mais seulement celles qui n'ont vraiment pas de src
+                            // ÉTAPE 8: Nettoyer les balises <img> sans src valide
                             $content = preg_replace('/<img(?![^>]*src=["\'][^"\']+["\'])[^>]*>/i', '', $content);
                             
                             // Supprimer les sections CTA finales générées par GPT
