@@ -52,6 +52,9 @@ class GptSeoGenerator
             // Étape 4 : Post-traitement et optimisation finale
             $contenuHtml = $this->postProcessContent($contenuHtml, $keyword, $city);
             
+            // Étape 4.5 : Validation des sections (vérifier qu'aucune section n'est vide)
+            $contenuHtml = $this->validateAndFixSections($contenuHtml);
+            
             // Étape 5 : Validation qualité SEO
             $seoScore = $this->calculateSeoScore($contenuHtml, $keyword, $city, $titre, $metaDescription);
             
