@@ -1547,6 +1547,181 @@ function submitSitemapToIndexJump(filename, index) {
     });
 }
 
+// Fonctions pour la vérification des statuts
+function loadStatuses() {
+    const container = document.getElementById('statuses-container');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>';
+    
+    fetch('{{ route("admin.indexation.statuses") }}?per_page=10')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayStatuses(data.statuses.data);
+            } else {
+                container.innerHTML = '<div class="text-red-500">Erreur: ' + (data.error || 'Erreur inconnue') + '</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            container.innerHTML = '<div class="text-red-500">Erreur lors du chargement</div>';
+        });
+}
+
+function displayStatuses(statuses) {
+    const container = document.getElementById('statuses-container');
+    if (!container) return;
+    
+    if (statuses.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-500 py-4">Aucun statut vérifié pour le moment</div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    statuses.forEach(status => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
+        
+        const indexedBadge = status.indexed 
+            ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">✅ Indexée</span>'
+            : '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">⚠️ Non indexée</span>';
+        
+        const lastVerification = status.last_verification_time 
+            ? new Date(status.last_verification_time).toLocaleString('fr-FR')
+            : 'Jamais vérifiée';
+        
+        div.innerHTML = `
+            <div class="flex items-center flex-1">
+                <div class="flex-1">
+                    <a href="${status.url}" target="_blank" class="text-blue-600 hover:underline font-medium">
+                        ${status.url}
+                    </a>
+                    <div class="text-xs text-gray-500 mt-1">
+                        ${indexedBadge}
+                        <span class="ml-2">État: ${status.coverage_state || 'N/A'}</span>
+                        <span class="ml-2">Dernière vérification: ${lastVerification}</span>
+                    </div>
+                </div>
+                <button type="button" onclick="verifySingleStatus('${status.url}')" 
+                        class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function verifySingleStatus(url) {
+    showNotification('Vérification en cours...', 'info');
+    
+    fetch('{{ route("admin.indexation.verify-status") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                data.indexed ? '✅ URL indexée !' : '⚠️ URL non indexée',
+                data.indexed ? 'success' : 'warning'
+            );
+            loadStatuses();
+        } else {
+            showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la vérification', 'error');
+    });
+}
+
+function verifyAllStatuses() {
+    if (!confirm('Vérifier le statut de toutes les URLs soumises récemment ? Cela peut prendre quelques minutes.')) {
+        return;
+    }
+    
+    showNotification('Vérification en cours... Cela peut prendre quelques minutes.', 'info');
+    
+    fetch('{{ route("admin.indexation.statuses") }}?per_page=50')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.statuses.data.length > 0) {
+                const urls = data.statuses.data
+                    .filter(s => !s.indexed || !s.last_verification_time || 
+                        new Date(s.last_verification_time) < new Date(Date.now() - 24*60*60*1000))
+                    .map(s => s.url)
+                    .slice(0, 20);
+                
+                if (urls.length === 0) {
+                    showNotification('Aucune URL à vérifier', 'info');
+                    return;
+                }
+                
+                verifyMultipleStatuses(urls);
+            } else {
+                showNotification('Aucune URL trouvée', 'info');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la récupération des URLs', 'error');
+        });
+}
+
+function verifyMultipleStatuses(urls) {
+    let completed = 0;
+    let indexed = 0;
+    let notIndexed = 0;
+    let errors = 0;
+    
+    urls.forEach((url, index) => {
+        setTimeout(() => {
+            fetch('{{ route("admin.indexation.verify-status") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                completed++;
+                if (data.success) {
+                    if (data.indexed) indexed++;
+                    else notIndexed++;
+                } else {
+                    errors++;
+                }
+                
+                if (completed === urls.length) {
+                    showNotification(
+                        `Vérification terminée: ${indexed} indexées, ${notIndexed} non indexées, ${errors} erreurs`,
+                        'success'
+                    );
+                    loadStatuses();
+                }
+            })
+            .catch(error => {
+                completed++;
+                errors++;
+                if (completed === urls.length) {
+                    showNotification('Vérification terminée avec des erreurs', 'warning');
+                    loadStatuses();
+                }
+            });
+        }, index * 500);
+    });
+}
+
 // Permettre d'appuyer sur Entrée dans le champ URL
 document.addEventListener('DOMContentLoaded', function() {
     const urlInput = document.getElementById('test-url-input');
@@ -1557,6 +1732,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Charger les statuts au chargement de la page
+    loadStatuses();
 });
 </script>
 @endpush
