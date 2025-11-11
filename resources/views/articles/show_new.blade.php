@@ -1525,7 +1525,12 @@
                             
                             // ÉTAPE 0: SOLUTION ULTIME - Nettoyer d'abord les URLs dupliquées dans les balises cassées
                             // Pattern: https://domain.comhttps://domain.com/uploads/...image.jpg" alt="..."
+                            // Gérer aussi les cas où il y a plusieurs répétitions
                             $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+\/uploads\//i', '$1/uploads/', $content);
+                            // Gérer aussi les cas où le domaine est répété plusieurs fois avant /uploads/
+                            $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1){2,}\/uploads\//i', '$1/uploads/', $content);
+                            // Gérer les cas où l'URL complète est dupliquée : https://domain.comhttps://domain.com/uploads/...
+                            $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+/i', '$1', $content);
                             
                             // ÉTAPE 0a: Réparer les balises <img> cassées avec URL dupliquée et &amp; dans l'alt
                             // Pattern: https://domain.comhttps://domain.com/uploads/...image.jpg" alt="...&amp;amp;..." loading="lazy">
