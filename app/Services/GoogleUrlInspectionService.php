@@ -40,9 +40,16 @@ class GoogleUrlInspectionService
                 throw new \Exception('Google credentials non configurés');
             }
 
-            $credentials = json_decode($credentialsJson, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Format JSON invalide pour les credentials');
+            // Accepter soit un tableau, soit une chaîne JSON
+            if (is_array($credentialsJson)) {
+                $credentials = $credentialsJson;
+            } elseif (is_string($credentialsJson)) {
+                $credentials = json_decode($credentialsJson, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($credentials)) {
+                    throw new \Exception('Format JSON invalide pour les credentials');
+                }
+            } else {
+                throw new \Exception('Format des credentials non supporté');
             }
 
             $this->client->setAuthConfig($credentials);
