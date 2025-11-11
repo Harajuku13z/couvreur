@@ -86,6 +86,13 @@ class GoogleUrlInspectionService
             }
         }
 
+        // Si site_url a été configuré en format sc-domain:, le convertir en https://domaine
+        if (is_string($siteUrl) && str_starts_with($siteUrl, 'sc-domain:')) {
+            $domain = substr($siteUrl, strlen('sc-domain:'));
+            $domain = preg_replace('/^www\./', '', $domain);
+            $siteUrl = 'https://' . $domain;
+        }
+
         // S'assurer que l'URL a un protocole
         if (!preg_match('/^https?:\/\//', $siteUrl)) {
             $siteUrl = 'https://' . $siteUrl;
