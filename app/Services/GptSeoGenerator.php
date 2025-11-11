@@ -733,6 +733,49 @@ EOT;
     }
     
     /**
+     * Valider et corriger les sections vides ou incomplètes
+     */
+    protected function validateAndFixSections($html)
+    {
+        // Extraire toutes les sections H2 avec leur contenu
+        preg_match_all('/<h2[^>]*id=["\']section-(\d+)["\'][^>]*>(.*?)<\/h2>(.*?)(?=<h2|$)/is', $html, $sections, PREG_SET_ORDER);
+        
+        $issues = [];
+        foreach ($sections as $section) {
+            $sectionNum = $section[1];
+            $sectionTitle = strip_tags($section[2]);
+            $sectionContent = trim($section[3]);
+            
+            // Vérifier si la section est vide ou trop courte
+            $wordCount = str_word_count(strip_tags($sectionContent));
+            
+            if ($wordCount < 100) {
+                $issues[] = [
+                    'section' => $sectionNum,
+                    'title' => $sectionTitle,
+                    'word_count' => $wordCount,
+                    'content' => substr($sectionContent, 0, 200)
+                ];
+                
+                Log::warning('Section vide ou incomplète détectée', [
+                    'section' => $sectionNum,
+                    'title' => $sectionTitle,
+                    'word_count' => $wordCount
+                ]);
+            }
+        }
+        
+        if (!empty($issues)) {
+            Log::error('Sections vides ou incomplètes détectées dans l\'article généré', [
+                'issues' => $issues,
+                'total_sections' => count($sections)
+            ]);
+        }
+        
+        return $html;
+    }
+    
+    /**
      * Post-traitement du contenu pour optimisation finale
      */
     protected function postProcessContent($html, $keyword, $city)
