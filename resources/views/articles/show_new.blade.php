@@ -1523,17 +1523,32 @@
                                 ]);
                             }
                             
-                            // ÉTAPE 0: SOLUTION ULTIME - Nettoyer d'abord les URLs dupliquées dans les balises cassées
-                            // Pattern: https://domain.comhttps://domain.com/uploads/...image.jpg" alt="..."
-                            // Gérer aussi les cas où il y a plusieurs répétitions
+                            // ÉTAPE 0: SOLUTION ULTIME - Traiter d'abord les cas avec URL dupliquée AVANT nettoyage
+                            // Pattern exact: https://domain.comhttps://domain.com/uploads/...image.jpg" alt="..."
+                            // Ce pattern DOIT être traité en premier car il contient l'URL dupliquée
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\/\s<>"\']+)(\1)+\/uploads\/([^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
+                                function($matches) {
+                                    // Nettoyer l'URL dupliquée
+                                    $cleanDomain = $matches[1];
+                                    $filename = $matches[3];
+                                    $src = $cleanDomain . '/uploads/' . $filename;
+                                    $alt = isset($matches[6]) ? html_entity_decode($matches[6], ENT_QUOTES | ENT_HTML5, 'UTF-8') : 'Image article';
+                                    // Nettoyer les entités HTML multiples (&amp;amp; -> &)
+                                    $alt = preg_replace('/&amp;(amp;)+/', '&', $alt);
+                                    $alt = html_entity_decode($alt, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                    \Log::info('SOLUTION ULTIME: URL dupliquée nettoyée et balise réparée', ['src' => $src, 'alt' => $alt]);
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // ÉTAPE 0a: Nettoyer toutes les autres URLs dupliquées restantes
                             $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+\/uploads\//i', '$1/uploads/', $content);
-                            // Gérer aussi les cas où le domaine est répété plusieurs fois avant /uploads/
-                            $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1){2,}\/uploads\//i', '$1/uploads/', $content);
-                            // Gérer les cas où l'URL complète est dupliquée : https://domain.comhttps://domain.com/uploads/...
                             $content = preg_replace('/(https?:\/\/[^\/\s<>"\']+)(\1)+/i', '$1', $content);
                             
-                            // ÉTAPE 0a: Réparer les balises <img> cassées avec URL dupliquée et &amp; dans l'alt
-                            // Pattern: https://domain.comhttps://domain.com/uploads/...image.jpg" alt="...&amp;amp;..." loading="lazy">
+                            // ÉTAPE 0b: Réparer les balises <img> cassées avec URL propre et &amp; dans l'alt
+                            // Pattern: https://domain.com/uploads/...image.jpg" alt="...&amp;amp;..." loading="lazy">
                             $content = preg_replace_callback(
                                 '/(https?:\/\/[^\s<>"\']+\/uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("\s+alt=["\']([^"\']+)["\'][^>]*>)/i',
                                 function($matches) {
