@@ -168,28 +168,19 @@ class GoogleUrlInspectionService
                     if ($indexStatusResult) {
                         $status['indexed'] = $indexStatusResult->getCoverageState() === 'Indexed';
                         $status['coverage_state'] = $indexStatusResult->getCoverageState();
-                        $status['indexing_state'] = $indexStatusResult->getIndexingState();
+                        // Certains SDKs ne fournissent pas ces champs; utiliser method_exists par sécurité
+                        $status['indexing_state'] = method_exists($indexStatusResult, 'getIndexingState')
+                            ? $indexStatusResult->getIndexingState()
+                            : null;
                         $status['last_crawl_time'] = $indexStatusResult->getLastCrawlTime();
-                        $status['page_fetch_state'] = $indexStatusResult->getPageFetchState();
-                        $status['verdict'] = $indexStatusResult->getVerdict();
+                        $status['page_fetch_state'] = method_exists($indexStatusResult, 'getPageFetchState')
+                            ? $indexStatusResult->getPageFetchState()
+                            : null;
+                        $status['verdict'] = method_exists($indexStatusResult, 'getVerdict')
+                            ? $indexStatusResult->getVerdict()
+                            : null;
 
-                        // Détails
-                        if ($indexStatusResult->getDetails()) {
-                            $status['details'] = [
-                                'coverage_state' => $indexStatusResult->getDetails()->getCoverageState(),
-                                'indexed' => $indexStatusResult->getDetails()->getIndexed(),
-                                'crawled_as' => $indexStatusResult->getDetails()->getCrawledAs(),
-                            ];
-                        }
-
-                        // Erreurs
-                        if ($indexStatusResult->getCrawlIssue()) {
-                            $status['errors'][] = [
-                                'type' => $indexStatusResult->getCrawlIssue()->getIssueType(),
-                                'severity' => $indexStatusResult->getCrawlIssue()->getSeverity(),
-                                'description' => $indexStatusResult->getCrawlIssue()->getDescription(),
-                            ];
-                        }
+                        // Ne pas utiliser getDetails()/getCrawlIssue(), non disponibles dans certaines versions
                     }
 
                     // Note: certains SDKs ne renvoient pas AMP/Mobile/RichResults; on se limite au statut d'indexation
