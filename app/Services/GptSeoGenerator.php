@@ -734,6 +734,22 @@ EOT;
      */
     protected function postProcessContent($html, $keyword, $city)
     {
+        // Corriger les répétitions de ville (ex: "à Chevigny à Chevigny-Saint-Sauveur")
+        $cityPattern = preg_quote($city, '/');
+        // Pattern pour détecter "à [ville] à [ville]" ou "[ville] à [ville]"
+        $html = preg_replace('/\b(à|dans|pour)\s+' . $cityPattern . '\s+(à|dans|pour)\s+' . $cityPattern . '\b/i', '$1 ' . $city, $html);
+        $html = preg_replace('/\b' . $cityPattern . '\s+(à|dans|pour)\s+' . $cityPattern . '\b/i', $city, $html);
+        
+        // Supprimer les textes méta restants après nettoyage initial
+        $metaTextPatterns = [
+            '/<p[^>]*>.*?(?:Ce modèle HTML|système de gestion de contenu|directives SEO avancées|meilleures pratiques de développement|intégré dans un système|conçu pour être intégré).*?<\/p>/is',
+            '/<p[^>]*>.*?(?:modèle HTML|gestion de contenu|CMS|système de gestion).*?(?:SEO|développement web|contenu riche).*?<\/p>/is',
+        ];
+        
+        foreach ($metaTextPatterns as $pattern) {
+            $html = preg_replace($pattern, '', $html);
+        }
+        
         // Vérifier densité mots-clés
         $text = strip_tags($html);
         $wordCount = str_word_count($text);
