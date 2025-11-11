@@ -319,6 +319,15 @@
         height: auto !important;
         display: block !important;
         box-sizing: border-box !important;
+        margin: 1.5rem auto !important;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Corriger les images avec des URLs relatives */
+    .article-content img[src^="/uploads/"],
+    .article-content img[src^="uploads/"] {
+        /* Les URLs seront corrigées par PHP */
     }
     
     /* Empêcher les divs et sections de sortir du conteneur */
@@ -407,19 +416,58 @@
     
     .article-content ul,
     .article-content ol {
-        margin: 1.25rem 0;
-        padding-left: 1.5rem;
+        margin: 1.5rem 0;
+        padding-left: 0;
+        list-style: none;
     }
     
-    .article-content li {
-        margin: 0.5rem 0;
-        padding-left: 0.5rem;
-        line-height: 1.6;
+    .article-content ul li,
+    .article-content ol li {
+        margin-bottom: 0.75rem;
+        line-height: 1.7;
+        padding-left: 2rem;
+        position: relative;
+        color: var(--text-medium);
     }
     
-    .article-content ul li::marker {
-        color: var(--primary);
-        font-size: 1.2em;
+    /* Icônes arrondies pour les listes à puces */
+    .article-content ul li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    /* Icônes numérotées arrondies pour les listes ordonnées */
+    .article-content ol {
+        counter-reset: list-counter;
+    }
+    
+    .article-content ol li {
+        counter-increment: list-counter;
+    }
+    
+    .article-content ol li::before {
+        content: counter(list-counter);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .article-content blockquote {
@@ -1378,6 +1426,76 @@
                             if (strpos($content, '&lt;') !== false && strpos($content, '<') === false) {
                                 $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                             }
+                            
+                            // Corriger les URLs d'images relatives en URLs absolues
+                            // Les images uploadées via Quill ont des URLs comme /uploads/articles/... ou uploads/articles/...
+                            // Aussi gérer les cas où l'URL est stockée comme texte au lieu d'une balise <img>
+                            $content = preg_replace_callback(
+                                '/<img([^>]*?)(?:\s+src=["\']([^"\']+)["\']|src=["\']([^"\']+)["\'])([^>]*?)>/i',
+                                function($matches) {
+                                    // Récupérer src (peut être dans matches[2] ou matches[3] selon l'ordre)
+                                    $src = !empty($matches[2]) ? $matches[2] : (!empty($matches[3]) ? $matches[3] : '');
+                                    $before = $matches[1];
+                                    $after = !empty($matches[4]) ? $matches[4] : '';
+                                    
+                                    if (empty($src)) {
+                                        return $matches[0]; // Retourner tel quel si pas de src
+                                    }
+                                    
+                                    // Si c'est déjà une URL absolue (http:// ou https://), la garder telle quelle
+                                    if (preg_match('/^https?:\/\//', $src)) {
+                                        $finalSrc = $src;
+                                    }
+                                    // Si c'est une URL relative (commence par /uploads/ ou uploads/)
+                                    elseif (preg_match('/^\/?uploads\//', $src)) {
+                                        // Convertir en URL absolue
+                                        $finalSrc = asset(ltrim($src, '/'));
+                                    }
+                                    // Si c'est une URL relative sans slash initial (uploads/articles/...)
+                                    elseif (!preg_match('/^(\/|https?:\/\/)/', $src)) {
+                                        // Essayer de construire l'URL complète
+                                        $cleanSrc = ltrim($src, '/');
+                                        $finalSrc = asset($cleanSrc);
+                                    }
+                                    // Si c'est une URL absolue avec le domaine (commence par /)
+                                    elseif (preg_match('/^\//', $src) && !preg_match('/^\/\//', $src)) {
+                                        // C'est déjà une URL absolue relative au domaine
+                                        $finalSrc = asset(ltrim($src, '/'));
+                                    } else {
+                                        $finalSrc = $src;
+                                    }
+                                    
+                                    // S'assurer que l'image a un alt text si manquant
+                                    $altAttr = '';
+                                    if (!preg_match('/alt=["\']/', $before . $after)) {
+                                        $altAttr = ' alt="Image article"';
+                                    }
+                                    
+                                    // Reconstruire la balise img avec l'URL corrigée
+                                    return '<img' . $before . ' src="' . htmlspecialchars($finalSrc, ENT_QUOTES, 'UTF-8') . '"' . $altAttr . $after . '>';
+                                },
+                                $content
+                            );
+                            
+                            // Gérer les cas où l'URL d'image est stockée comme texte (pas dans une balise <img>)
+                            // Convertir les URLs d'images en balises <img> si elles sont seules sur une ligne
+                            $content = preg_replace_callback(
+                                '/^(https?:\/\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
+                                function($matches) {
+                                    return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image">';
+                                },
+                                $content
+                            );
+                            
+                            // Gérer les URLs relatives d'images stockées comme texte
+                            $content = preg_replace_callback(
+                                '/^(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
+                                function($matches) {
+                                    $src = asset(ltrim($matches[1], '/'));
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image">';
+                                },
+                                $content
+                            );
                             
                             // Supprimer les sections CTA finales générées par GPT
                             $content = preg_replace('/<div[^>]*class="cta-final"[^>]*>.*?<\/div>/is', '', $content);

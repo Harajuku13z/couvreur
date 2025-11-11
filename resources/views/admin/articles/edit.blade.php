@@ -370,17 +370,31 @@ document.getElementById('imageUploadForm').addEventListener('submit', function(e
             closeImageModal();
             // Insérer l'image dans Quill avec l'alt text
             const range = quill.getSelection(true);
+            if (!range) {
+                // Si pas de sélection, insérer à la fin
+                range = { index: quill.getLength(), length: 0 };
+            }
+            
+            // Insérer l'image
             quill.insertEmbed(range.index, 'image', data.image_url, 'user');
-            // Ajouter l'alt text comme attribut
-            const imgElement = quill.root.querySelector(`img[src="${data.image_url}"]`);
-            if (imgElement) {
-                imgElement.setAttribute('alt', data.alt_text);
-            }
-            // Synchroniser avec le textarea caché
-            const hiddenTextarea = document.getElementById('content_html_hidden');
-            if (hiddenTextarea) {
-                hiddenTextarea.value = quill.root.innerHTML;
-            }
+            
+            // Attendre un peu pour que l'image soit insérée dans le DOM
+            setTimeout(() => {
+                // Trouver l'image insérée et ajouter l'alt text
+                const imgElements = quill.root.querySelectorAll('img');
+                imgElements.forEach(img => {
+                    if (img.src === data.image_url || img.src.includes(data.image_path)) {
+                        img.setAttribute('alt', data.alt_text || 'Image article');
+                        img.setAttribute('loading', 'lazy');
+                    }
+                });
+                
+                // Synchroniser avec le textarea caché
+                const hiddenTextarea = document.getElementById('content_html_hidden');
+                if (hiddenTextarea) {
+                    hiddenTextarea.value = quill.root.innerHTML;
+                }
+            }, 100);
         } else {
             alert('Erreur: ' + data.message);
         }
