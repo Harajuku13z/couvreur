@@ -106,21 +106,49 @@ class ArticleController extends Controller
 
     public function update(Request $request, Article $article)
     {
-        $validated = $request->validate([
+        // Validation conditionnelle selon le type d'input
+        $rules = [
             'title' => 'required|string|max:500',
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:2000',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'status' => 'required|in:draft,published'
-        ]);
-
+        ];
+        
+        // Si c'est un fichier uploadé, valider comme image
         if ($request->hasFile('featured_image')) {
-            $featuredImagePath = $this->handleImageUpload($request->file('featured_image'));
-            $validated['featured_image'] = $featuredImagePath;
+            $rules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120';
+        } else {
+            $rules['featured_image'] = 'nullable|string';
+        }
+        
+        $validated = $request->validate($rules);
+
+        $featuredImagePath = $article->featured_image; // Garder l'image actuelle par défaut
+        
+        // Cas 1: Upload de fichier
+        if ($request->hasFile('featured_image')) {
+            $file = $request->file('featured_image');
+            $featuredImagePath = $this->handleImageUpload($file);
+        }
+        // Cas 2: Path depuis la galerie (string qui commence par uploads/ ou images/)
+        elseif ($request->has('featured_image') && is_string($request->input('featured_image'))) {
+            $imageInput = $request->input('featured_image');
+            // Vérifier que le path existe et est valide
+            if (str_starts_with($imageInput, 'uploads/') || str_starts_with($imageInput, 'images/')) {
+                $fullPath = public_path($imageInput);
+                if (file_exists($fullPath) && is_file($fullPath)) {
+                    $featuredImagePath = $imageInput;
+                }
+            }
+            // Cas 3: URL externe (commence par http:// ou https://)
+            elseif (filter_var($imageInput, FILTER_VALIDATE_URL)) {
+                $featuredImagePath = $imageInput;
+            }
         }
 
+        $validated['featured_image'] = $featuredImagePath;
         $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
         $article->update($validated);
 
@@ -325,6 +353,11 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             ]);
 
             $image = $request->file('image');
+            
+            // Récupérer les informations AVANT de déplacer le fichier
+            $fileSize = $image->getSize();
+            $mimeType = $image->getMimeType();
+            
             $filename = 'article_' . time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             
             // Créer le dossier s'il n'existe pas
@@ -336,8 +369,9 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
             // Sauvegarder directement dans public/uploads/articles/
             $image->move($uploadPath, $filename);
             
-            // Obtenir les dimensions de l'image
-            $imageInfo = getimagesize($uploadPath . '/' . $filename);
+            // Obtenir les dimensions de l'image (après le déplacement, utiliser le fichier déplacé)
+            $fullPath = $uploadPath . '/' . $filename;
+            $imageInfo = @getimagesize($fullPath);
             $width = $imageInfo[0] ?? null;
             $height = $imageInfo[1] ?? null;
             
@@ -364,8 +398,8 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
                 'description' => $request->input('description'),
                 'width' => $width,
                 'height' => $height,
-                'file_size' => $image->getSize(),
-                'mime_type' => $image->getMimeType(),
+                'file_size' => $fileSize,
+                'mime_type' => $mimeType,
             ]);
             
             return response()->json([
@@ -442,6 +476,118 @@ Génère l'article HTML complet selon les consignes du prompt ci-dessus.";
 
         } catch (\Exception $e) {
             Log::error('Erreur récupération images article: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les liens du menu pour l'éditeur
+     */
+    public function getMenuLinks()
+    {
+        try {
+            $links = [];
+            
+            // Lien Accueil
+            $links[] = [
+                'url' => route('home'),
+                'label' => 'Accueil',
+                'category' => 'Navigation principale'
+            ];
+            
+            // Services
+            $servicesData = \App\Models\Setting::get('services', '[]');
+            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+            if (!is_array($services)) {
+                $services = [];
+            }
+            
+            $featuredServices = array_filter($services, function($service) {
+                return is_array($service) && ($service['is_menu'] ?? false) && ($service['is_visible'] ?? true);
+            });
+            
+            if (count($featuredServices) > 0) {
+                $links[] = [
+                    'url' => route('services.index'),
+                    'label' => 'Tous nos services',
+                    'category' => 'Services'
+                ];
+                
+                foreach ($featuredServices as $service) {
+                    if (is_array($service) && isset($service['name']) && isset($service['slug'])) {
+                        $links[] = [
+                            'url' => route('services.show', $service['slug']),
+                            'label' => $service['name'],
+                            'category' => 'Services'
+                        ];
+                    }
+                }
+            } else {
+                $links[] = [
+                    'url' => route('services.index'),
+                    'label' => 'Nos Services',
+                    'category' => 'Services'
+                ];
+            }
+            
+            // Réalisations
+            $links[] = [
+                'url' => route('portfolio.index'),
+                'label' => 'Nos Réalisations',
+                'category' => 'Navigation principale'
+            ];
+            
+            // Blog
+            $links[] = [
+                'url' => route('blog.index'),
+                'label' => 'Blog et Astuces',
+                'category' => 'Navigation principale'
+            ];
+            
+            // Contact
+            $links[] = [
+                'url' => route('contact'),
+                'label' => 'Contact',
+                'category' => 'Navigation principale'
+            ];
+            
+            // Pages légales
+            $links[] = [
+                'url' => route('legal.mentions'),
+                'label' => 'Mentions légales',
+                'category' => 'Pages légales'
+            ];
+            
+            $links[] = [
+                'url' => route('legal.privacy'),
+                'label' => 'Politique de confidentialité',
+                'category' => 'Pages légales'
+            ];
+            
+            $links[] = [
+                'url' => route('legal.cgv'),
+                'label' => 'CGV',
+                'category' => 'Pages légales'
+            ];
+            
+            // Formulaire de devis
+            $links[] = [
+                'url' => route('form.step', 'propertyType'),
+                'label' => 'Simulateur de Prix / Devis',
+                'category' => 'Actions'
+            ];
+            
+            return response()->json([
+                'success' => true,
+                'links' => $links
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération liens menu: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,

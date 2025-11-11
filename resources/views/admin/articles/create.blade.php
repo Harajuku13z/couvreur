@@ -38,8 +38,10 @@
 
             <div class="mt-6">
                 <label for="content_html" class="block text-sm font-medium text-gray-700 mb-2">Contenu de l'article</label>
-                <div id="content_html" style="min-height: 400px;">
-                    {!! old('content_html', '') !!}
+                <div class="editor-container" style="position: relative;">
+                    <div id="content_html" style="min-height: 400px;">
+                        {!! old('content_html', '') !!}
+                    </div>
                 </div>
                 <textarea name="content_html" id="content_html_hidden" style="display: none;" required>{{ old('content_html') }}</textarea>
                 <p class="text-sm text-gray-500 mt-1">Utilisez l'éditeur pour formater votre contenu et ajouter des images avec leurs métadonnées SEO.</p>
@@ -107,7 +109,7 @@
                         <div id="gallery-container" class="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 hidden">
                             <!-- Les images seront chargées ici via JavaScript -->
                         </div>
-                        <input type="hidden" id="featured_image_selected" name="featured_image_path" value="{{ old('featured_image') }}">
+                        <input type="hidden" id="featured_image_selected" name="featured_image" value="{{ old('featured_image') }}">
                     </div>
 
                     <!-- Contenu onglet URL -->
@@ -153,6 +155,40 @@
             </button>
         </div>
     </form>
+</div>
+
+<!-- Modal pour sélection de lien -->
+<div id="linkModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white max-h-[80vh]">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Sélectionner un lien</h3>
+            <div class="mb-3">
+                <input type="text" id="linkSearch" placeholder="Rechercher un lien..." 
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div id="linkLoading" class="text-center py-4">
+                <i class="fas fa-spinner fa-spin text-gray-400"></i> Chargement des liens...
+            </div>
+            <div id="linkList" class="max-h-96 overflow-y-auto space-y-1 hidden">
+                <!-- Les liens seront chargés ici -->
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ou saisir une URL personnalisée :</label>
+                <input type="url" id="customLinkUrl" placeholder="https://example.com" 
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-end space-x-3 mt-4">
+                <button type="button" onclick="closeLinkModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Annuler
+                </button>
+                <button type="button" onclick="insertLink()" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Insérer
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal pour upload d'image avec métadonnées -->
@@ -234,6 +270,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 handlers: {
                     'image': function() {
                         openImageModalForQuill();
+                    },
+                    'link': function(value) {
+                        // Toujours ouvrir le modal pour sélectionner/insérer un lien
+                        openLinkModal();
                     }
                 }
             }
@@ -354,6 +394,154 @@ document.getElementById('title').addEventListener('input', function(e) {
 // Synchroniser avant la soumission du formulaire
 document.querySelector('form').addEventListener('submit', function() {
     document.getElementById('content_html_hidden').value = quill.root.innerHTML;
+});
+
+// ===== GESTION DES LIENS =====
+let allMenuLinks = [];
+let selectedLinkUrl = null;
+
+function openLinkModal() {
+    const modal = document.getElementById('linkModal');
+    const linkList = document.getElementById('linkList');
+    const linkLoading = document.getElementById('linkLoading');
+    const customLinkUrl = document.getElementById('customLinkUrl');
+    
+    // Réinitialiser
+    selectedLinkUrl = null;
+    customLinkUrl.value = '';
+    document.getElementById('linkSearch').value = '';
+    
+    // Si les liens ne sont pas encore chargés, les charger
+    if (allMenuLinks.length === 0) {
+        linkLoading.classList.remove('hidden');
+        linkList.classList.add('hidden');
+        
+        fetch('{{ route("admin.articles.menu-links") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allMenuLinks = data.links;
+                    displayLinks(allMenuLinks);
+                } else {
+                    alert('Erreur lors du chargement: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des liens');
+            })
+            .finally(() => {
+                linkLoading.classList.add('hidden');
+            });
+    } else {
+        displayLinks(allMenuLinks);
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function displayLinks(links) {
+    const linkList = document.getElementById('linkList');
+    linkList.innerHTML = '';
+    
+    // Grouper par catégorie
+    const grouped = {};
+    links.forEach(link => {
+        if (!grouped[link.category]) {
+            grouped[link.category] = [];
+        }
+        grouped[link.category].push(link);
+    });
+    
+    // Afficher par catégorie
+    Object.keys(grouped).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'link-category';
+        categoryDiv.textContent = category;
+        linkList.appendChild(categoryDiv);
+        
+        grouped[category].forEach(link => {
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'link-item';
+            linkDiv.setAttribute('data-url', link.url);
+            linkDiv.innerHTML = `
+                <div class="font-medium text-gray-900">${link.label}</div>
+                <div class="text-xs text-gray-500 truncate">${link.url}</div>
+            `;
+            linkDiv.onclick = function() {
+                // Désélectionner les autres
+                document.querySelectorAll('.link-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                // Sélectionner celui-ci
+                this.classList.add('selected');
+                selectedLinkUrl = link.url;
+                customLinkUrl.value = '';
+            };
+            linkList.appendChild(linkDiv);
+        });
+    });
+    
+    linkList.classList.remove('hidden');
+}
+
+function closeLinkModal() {
+    document.getElementById('linkModal').classList.add('hidden');
+    selectedLinkUrl = null;
+}
+
+function insertLink() {
+    const customUrl = document.getElementById('customLinkUrl').value.trim();
+    const url = customUrl || selectedLinkUrl;
+    
+    if (!url) {
+        alert('Veuillez sélectionner un lien ou saisir une URL');
+        return;
+    }
+    
+    // Récupérer la sélection actuelle
+    let range = quill.getSelection();
+    if (!range) {
+        // Si pas de sélection, utiliser la position du curseur
+        range = { index: quill.getLength() - 1, length: 0 };
+    }
+    
+    // Si du texte est sélectionné, le transformer en lien
+    if (range.length > 0) {
+        quill.formatText(range.index, range.length, 'link', url);
+    } else {
+        // Sinon, demander le texte du lien ou utiliser l'URL
+        const linkText = prompt('Texte du lien (laisser vide pour utiliser l\'URL) :', '');
+        if (linkText !== null) {
+            const textToInsert = linkText || url;
+            quill.insertText(range.index, textToInsert, 'link', url);
+            quill.setSelection(range.index + textToInsert.length);
+        }
+    }
+    
+    closeLinkModal();
+}
+
+// Recherche dans les liens
+document.getElementById('linkSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    if (searchTerm === '') {
+        displayLinks(allMenuLinks);
+    } else {
+        const filtered = allMenuLinks.filter(link => {
+            return link.label.toLowerCase().includes(searchTerm) ||
+                   link.url.toLowerCase().includes(searchTerm) ||
+                   link.category.toLowerCase().includes(searchTerm);
+        });
+        displayLinks(filtered);
+    }
+});
+
+// Permettre d'utiliser Enter pour insérer le lien
+document.getElementById('customLinkUrl').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        insertLink();
+    }
 });
 
 // ===== GESTION DE L'IMAGE MISE EN AVANT =====
@@ -560,8 +748,12 @@ document.querySelector('form').addEventListener('submit', function(e) {
     if (!document.getElementById('content-gallery').classList.contains('hidden')) {
         const selectedPath = document.getElementById('featured_image_selected').value;
         if (selectedPath) {
-            // Désactiver le champ fichier
-            fileInput.disabled = true;
+            // Désactiver le champ fichier pour éviter qu'il soit envoyé
+            if (fileInput) {
+                fileInput.disabled = true;
+                // Supprimer le fichier du FormData si présent
+                fileInput.value = '';
+            }
             // Créer un input caché avec le path
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
@@ -574,8 +766,11 @@ document.querySelector('form').addEventListener('submit', function(e) {
     else if (!document.getElementById('content-url').classList.contains('hidden')) {
         const url = document.getElementById('featured_image_url').value;
         if (url) {
-            // Désactiver le champ fichier
-            fileInput.disabled = true;
+            // Désactiver le champ fichier pour éviter qu'il soit envoyé
+            if (fileInput) {
+                fileInput.disabled = true;
+                fileInput.value = '';
+            }
             // Créer un input caché avec l'URL
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
@@ -587,25 +782,76 @@ document.querySelector('form').addEventListener('submit', function(e) {
     // Si on est sur l'onglet upload, le fichier est déjà dans le form
     else {
         // S'assurer que le champ fichier est activé
-        fileInput.disabled = false;
+        if (fileInput) {
+            fileInput.disabled = false;
+        }
     }
 });
 </script>
 <style>
 /* Styles pour Quill Editor */
-.ql-container {
+.editor-container {
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+    background: white;
+}
+
+/* Toolbar fixe */
+.editor-container .ql-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+    border-bottom: 1px solid #ccc;
+    border-radius: 0.375rem 0.375rem 0 0;
+    padding: 8px;
+}
+
+/* Contenu scrollable */
+.editor-container .ql-container {
     font-family: Helvetica, Arial, sans-serif;
     font-size: 16px;
     min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 .ql-editor {
     min-height: 400px;
+    padding: 12px 15px;
 }
 
 .ql-editor.ql-blank::before {
     font-style: normal;
     color: #999;
+}
+
+/* Styles pour la liste des liens */
+#linkList .link-item {
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#linkList .link-item:hover {
+    background-color: #f3f4f6;
+}
+
+#linkList .link-item.selected {
+    background-color: #dbeafe;
+    border-left: 3px solid #3b82f6;
+}
+
+#linkList .link-category {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    padding: 0 12px;
 }
 </style>
 @endpush
