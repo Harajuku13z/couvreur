@@ -63,16 +63,33 @@ class ContactController extends Controller
     public function send(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|min:6|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'postal_code' => 'nullable|string|max:10',
-            'city' => 'nullable|string|max:100',
-            'callback_time' => 'nullable|string|max:50',
-            'service_interest' => 'nullable|string|max:255',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:2000',
+            'phone' => 'required|string|min:6|max:20',
+            'postal_code' => 'required|string|min:5|max:10',
+            'city' => 'required|string|min:6|max:100',
+            'callback_time' => 'required|string|max:50',
+            'service_interest' => 'required|string|max:255',
+            'subject' => 'required|string|min:6|max:255',
+            'message' => 'required|string|min:6|max:2000',
             'recaptcha_token' => 'nullable|string',
+        ], [
+            'name.required' => 'Le nom est obligatoire.',
+            'name.min' => 'Le nom doit contenir au moins 6 caractères.',
+            'email.required' => 'L\'email est obligatoire.',
+            'email.email' => 'L\'email doit être valide.',
+            'phone.required' => 'Le téléphone est obligatoire.',
+            'phone.min' => 'Le téléphone doit contenir au moins 6 caractères.',
+            'postal_code.required' => 'Le code postal est obligatoire.',
+            'postal_code.min' => 'Le code postal doit contenir au moins 5 caractères.',
+            'city.required' => 'La ville est obligatoire.',
+            'city.min' => 'La ville doit contenir au moins 6 caractères.',
+            'callback_time.required' => 'Veuillez sélectionner un créneau pour vous rappeler.',
+            'service_interest.required' => 'Veuillez sélectionner un service.',
+            'subject.required' => 'Le sujet est obligatoire.',
+            'subject.min' => 'Le sujet doit contenir au moins 6 caractères.',
+            'message.required' => 'Le message est obligatoire.',
+            'message.min' => 'Le message doit contenir au moins 6 caractères.',
         ]);
 
         // Vérifier reCAPTCHA si activé (mais ne pas bloquer si le token est vide - peut être désactivé)

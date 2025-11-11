@@ -334,6 +334,7 @@
                                        id="name" 
                                        name="name" 
                                        required
+                                       minlength="6"
                                        placeholder="Jean Dupont"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                             </div>
@@ -354,22 +355,26 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label for="phone" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-phone mr-2 text-primary"></i>Téléphone
+                                    <i class="fas fa-phone mr-2 text-primary"></i>Téléphone *
                                 </label>
                                 <input type="tel" 
                                        id="phone" 
                                        name="phone"
+                                       required
+                                       minlength="6"
                                        placeholder="06 12 34 56 78"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                             </div>
                             
                             <div>
                                 <label for="postal_code" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-map-pin mr-2 text-primary"></i>Code postal
+                                    <i class="fas fa-map-pin mr-2 text-primary"></i>Code postal *
                                 </label>
                                 <input type="text" 
                                        id="postal_code" 
                                        name="postal_code"
+                                       required
+                                       minlength="5"
                                        placeholder="22540"
                                        maxlength="10"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
@@ -379,21 +384,24 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label for="city" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-city mr-2 text-primary"></i>Ville
+                                    <i class="fas fa-city mr-2 text-primary"></i>Ville *
                                 </label>
                                 <input type="text" 
                                        id="city" 
                                        name="city"
+                                       required
+                                       minlength="6"
                                        placeholder="Pédernec"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                             </div>
                             
                             <div>
                                 <label for="callback_time" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-clock mr-2 text-primary"></i>Quand vous rappeler ?
+                                    <i class="fas fa-clock mr-2 text-primary"></i>Quand vous rappeler ? *
                                 </label>
                                 <select id="callback_time" 
                                         name="callback_time"
+                                        required
                                         class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                                     <option value="">Sélectionnez un créneau</option>
                                     <option value="matin">🌅 Matin (9h - 12h)</option>
@@ -406,12 +414,13 @@
                         
                         <div>
                             <label for="service_interest" class="block text-sm font-bold text-gray-700 mb-2">
-                                <i class="fas fa-briefcase mr-2 text-primary"></i>Service qui vous intéresse
+                                <i class="fas fa-briefcase mr-2 text-primary"></i>Service qui vous intéresse *
                             </label>
                             <select id="service_interest" 
                                     name="service_interest"
+                                    required
                                     class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
-                                <option value="">Sélectionnez un service (optionnel)</option>
+                                <option value="">Sélectionnez un service</option>
                                 @php
                                     $servicesData = \App\Models\Setting::get('services', '[]');
                                     $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
@@ -443,6 +452,7 @@
                                    id="subject" 
                                    name="subject" 
                                    required
+                                   minlength="6"
                                    placeholder="Résumé de votre demande"
                                    class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                         </div>
