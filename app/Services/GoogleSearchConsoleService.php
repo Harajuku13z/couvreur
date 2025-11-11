@@ -599,6 +599,8 @@ class GoogleSearchConsoleService
                     'indexing_state' => $status['indexing_state'] ?? null,
                     'last_crawl_time' => $status['last_crawl_time'] ?? null,
                     'details' => $status,
+                    'property_used' => $result['property_used'] ?? ($status['site_url_used'] ?? null),
+                    'tried_variants' => $result['tried_variants'] ?? [],
                 ];
             }
 

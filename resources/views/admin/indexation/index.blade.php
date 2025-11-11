@@ -213,6 +213,11 @@
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                         <i class="fas fa-paper-plane mr-2"></i>Tester
                     </button>
+                    <button type="button" 
+                            onclick="testAllPropsForInput()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-list mr-2"></i>Tester toutes les propriétés
+                    </button>
                 </div>
             </div>
             @endif
@@ -892,11 +897,19 @@ function verifyUrlFromList(url, buttonEl) {
             if (data.indexed) {
                 badge.className = 'url-status-badge bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium';
                 badge.textContent = 'Indexée';
-                showNotification('✅ URL indexée (détectée via l’une des propriétés GSC)', 'success');
+                const prop = data.property_used ? ` (propriété: ${data.property_used})` : '';
+                showNotification(`✅ URL indexée${prop}`, 'success');
             } else {
                 badge.className = 'url-status-badge bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium';
                 badge.textContent = 'Non indexée';
-                showNotification('⚠️ URL non indexée', 'warning');
+                const prop = data.property_used ? ` (propriété testée: ${data.property_used})` : '';
+                showNotification(`⚠️ URL non indexée${prop}`, 'warning');
+            }
+            // Log détaillé en console pour diagnostic
+            if (data.tried_variants) {
+                console.group('Détails inspection URL');
+                console.table(data.tried_variants);
+                console.groupEnd();
             }
         } else {
             showNotification('Erreur: ' + (data.error || 'Inspection impossible'), 'error');
@@ -1683,10 +1696,16 @@ function verifySingleStatus(url) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            const prop = data.property_used ? ` (propriété: ${data.property_used})` : '';
             showNotification(
-                data.indexed ? '✅ URL indexée !' : '⚠️ URL non indexée',
+                data.indexed ? `✅ URL indexée${prop}` : `⚠️ URL non indexée${prop}`,
                 data.indexed ? 'success' : 'warning'
             );
+            if (data.tried_variants) {
+                console.group('Détails inspection URL');
+                console.table(data.tried_variants);
+                console.groupEnd();
+            }
             loadStatuses();
         } else {
             showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
@@ -1774,6 +1793,56 @@ function verifyMultipleStatuses(urls) {
                 }
             });
         }, index * 500);
+    });
+}
+
+// Tester toutes les propriétés pour l'URL du champ de test et afficher un récapitulatif
+function testAllPropsForInput() {
+    const input = document.getElementById('test-url-input');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) {
+        showNotification('Veuillez entrer une URL à tester', 'error');
+        input.focus();
+        return;
+    }
+    showNotification('Test de toutes les propriétés en cours...', 'info');
+    fetch('{{ route("admin.indexation.verify-status") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ url })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success && !data.tried_variants) {
+            showNotification('Erreur: ' + (data.error || 'Inspection impossible'), 'error');
+            return;
+        }
+        // Construire un résumé par variante
+        const variants = data.tried_variants || [];
+        if (variants.length === 0) {
+            showNotification('Aucune variante testée.', 'warning');
+            return;
+        }
+        let lines = variants.map(v => {
+            if (v.error) {
+                return `❌ ${v.site_url_used} → ${v.error}`;
+            } else {
+                const state = v.indexed ? '✅ INDEXED' : (v.coverage_state || 'UNKNOWN');
+                return `• ${v.site_url_used} → ${state}`;
+            }
+        });
+        // Afficher un toast compact et log détaillé en console
+        showNotification(lines.slice(0,5).join('<br>') + (lines.length > 5 ? `<br>… (${lines.length - 5} de plus)` : ''), data.indexed ? 'success' : 'warning');
+        console.group('Tester toutes les propriétés - détails');
+        console.table(variants);
+        console.groupEnd();
+    })
+    .catch(() => {
+        showNotification('Erreur réseau lors du test', 'error');
     });
 }
 

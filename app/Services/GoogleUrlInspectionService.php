@@ -131,7 +131,9 @@ class GoogleUrlInspectionService
                 $candidates[] = 'http://' . $host;
             }
 
+            $triedVariants = [];
             $lastError = null;
+            $winningStatus = null;
             foreach ($candidates as $candidateSiteUrl) {
                 try {
                     // Utiliser l'API URL Inspection
@@ -166,8 +168,10 @@ class GoogleUrlInspectionService
                     ];
 
                     if ($indexStatusResult) {
-                        $status['indexed'] = $indexStatusResult->getCoverageState() === 'Indexed';
-                        $status['coverage_state'] = $indexStatusResult->getCoverageState();
+                        $coverage = $indexStatusResult->getCoverageState();
+                        $status['coverage_state'] = $coverage;
+                        // Normaliser la comparaison (certains SDK renvoient 'INDEXED' en majuscules)
+                        $status['indexed'] = is_string($coverage) ? strtoupper($coverage) === 'INDEXED' : false;
                         // Certains SDKs ne fournissent pas ces champs; utiliser method_exists par sécurité
                         $status['indexing_state'] = method_exists($indexStatusResult, 'getIndexingState')
                             ? $indexStatusResult->getIndexingState()
@@ -184,7 +188,6 @@ class GoogleUrlInspectionService
                     }
 
                     // Note: certains SDKs ne renvoient pas AMP/Mobile/RichResults; on se limite au statut d'indexation
-
                     Log::info('URL Inspection réussie', [
                         'url' => $url,
                         'site_url_used' => $candidateSiteUrl,
@@ -192,14 +195,49 @@ class GoogleUrlInspectionService
                         'coverage_state' => $status['coverage_state']
                     ]);
 
-                    return [
-                        'success' => true,
-                        'status' => $status
-                    ];
+                    $triedVariants[] = $status;
+                    // Conserver la première réponse indexée comme gagnante
+                    if ($status['indexed'] && !$winningStatus) {
+                        $winningStatus = $status;
+                        // Ne pas break: on continue pour documenter toutes les variantes testées
+                    }
                 } catch (\Google\Service\Exception $e) {
                     // Garder le dernier message d'erreur, essayer la variante suivante
                     $lastError = $e;
+                    // Enregistrer l'erreur pour cette variante
+                    $error = json_decode($e->getMessage(), true);
+                    $errorMessage = $error['error']['message'] ?? $e->getMessage();
+                    $triedVariants[] = [
+                        'url' => $url,
+                        'site_url_used' => $candidateSiteUrl,
+                        'error' => $errorMessage,
+                        'code' => $e->getCode(),
+                    ];
                     continue;
+                }
+            }
+
+            // Si une variante a confirmé l'indexation, la retourner
+            if ($winningStatus) {
+                return [
+                    'success' => true,
+                    'status' => $winningStatus,
+                    'indexed' => true,
+                    'property_used' => $winningStatus['site_url_used'],
+                    'tried_variants' => $triedVariants,
+                ];
+            }
+
+            // Si au moins une variante a renvoyé une réponse mais non indexée, renvoyer le premier statut
+            foreach ($triedVariants as $variant) {
+                if (!isset($variant['error'])) {
+                    return [
+                        'success' => true,
+                        'status' => $variant,
+                        'indexed' => false,
+                        'property_used' => $variant['site_url_used'],
+                        'tried_variants' => $triedVariants,
+                    ];
                 }
             }
 
@@ -218,7 +256,8 @@ class GoogleUrlInspectionService
                 return [
                     'success' => false,
                     'error' => $errorMessage,
-                    'code' => $lastError->getCode()
+                    'code' => $lastError->getCode(),
+                    'tried_variants' => $triedVariants,
                 ];
             }
 
