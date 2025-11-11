@@ -1126,13 +1126,16 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 
 **3. SECTIONS PRINCIPALES** (6-8 sections H2 OBLIGATOIRES)
 
-**🚨 RÈGLE ABSOLUE CRITIQUE - À RESPECTER IMPÉRATIVEMENT :**
+**🚨 RÈGLE ABSOLUE CRITIQUE - À RESPECTER IMPÉRATIVEMENT - VIOLATION = ÉCHEC TOTAL :**
 
-**1. TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement**
+**1. TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement (700-900 mots chacune)**
 **2. Les sections DOIVENT être développées DANS L'ORDRE du sommaire, sans exception**
 **3. AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots)**
-**4. CHAQUE section doit faire MINIMUM 700-900 mots (pas de section avec 2-3 lignes)**
-**5. Si une section est trop courte, AJOUTER immédiatement : exemples, détails techniques, conseils, données chiffrées, cas pratiques**
+**4. CHAQUE section doit faire MINIMUM 700-900 mots (pas de section avec 2-3 lignes ou vide)**
+**5. INTERDIT ABSOLUMENT de créer un titre H2 suivi de rien ou de seulement 2-3 lignes**
+**6. INTERDIT de mettre des placeholders comme "Cette section sera développée" ou "Contenu à venir"**
+**7. Si une section est trop courte, AJOUTER immédiatement : exemples, détails techniques, conseils, données chiffrées, cas pratiques, procédures étape par étape, avantages/inconvénients, coûts, durées, matériaux, techniques, normes, réglementations**
+**8. CHAQUE section doit contenir IMMÉDIATEMENT après le titre H2 : 3-5 paragraphes de 100-150 mots, des exemples concrets, des informations pratiques, des conseils d'experts**
 
 **THÈMES OBLIGATOIRES À COUVRIR (développer CHACUN en profondeur) :**
 - ✅ **Les avantages d'un {$keyword}** (700-900 mots) : Développer tous les avantages, bénéfices, retours sur investissement, comparaisons avant/après
