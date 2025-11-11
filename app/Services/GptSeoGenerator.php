@@ -997,6 +997,48 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 5. Fournir outils actionnables : checklists, calculateurs mentaux, guides étape par étape
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 **RECHERCHE APPROFONDIE DES PRIX - OBLIGATOIRE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **CRITIQUE : Pour toute mention de prix, tarif ou coût dans l'article, tu DOIS effectuer une recherche approfondie sur les tarifs réels du marché français en {$currentYear}.**
+
+**INSTRUCTIONS POUR LA RECHERCHE DES PRIX :**
+1. Effectue une recherche approfondie sur les tarifs moyens du marché français pour {$keyword} en {$currentYear}
+2. Considère les variations régionales (prix peuvent être 10-30% plus élevés dans certaines régions comme l'Île-de-France)
+3. Prends en compte les différents types de prestations :
+   - Petite réparation / intervention ponctuelle
+   - Réparation moyenne / réfection partielle
+   - Rénovation complète
+   - Installation neuve
+4. Considère les différents matériaux et leur impact sur le prix (économique, standard, premium)
+5. Fournis des FOURCHETTES LARGES et RÉALISTES basées sur tes recherches
+
+**EXEMPLES DE FOURCHETTES RÉALISTES POUR "COUVREUR PROFESSIONNEL" / "RÉNOVATION TOITURE" :**
+- Petite réparation (remplacement de quelques tuiles, réparation ponctuelle) : 500€ à 2000€
+- Réparation moyenne (réfection partielle, zinguerie, remplacement d'une section) : 2000€ à 8000€
+- Rénovation complète toiture (dépose ancienne couverture, charpente si nécessaire, couverture neuve) : 8000€ à 25000€ pour une maison moyenne (100-150m²)
+- Rénovation complète avec isolation thermique : 12000€ à 35000€
+- Installation neuve (construction) : 10000€ à 30000€ selon la superficie
+
+**EXEMPLES POUR "ISOLATION THERMIQUE" :**
+- Isolation combles perdus : 30€ à 80€/m²
+- Isolation sous toiture : 50€ à 120€/m²
+- Isolation murs intérieurs : 40€ à 100€/m²
+- Isolation complète maison : 8000€ à 25000€ selon la superficie
+
+**EXEMPLES POUR "RÉNOVATION FAÇADE" :**
+- Nettoyage et hydrofuge : 15€ à 40€/m²
+- Rénovation complète (enduit, peinture) : 50€ à 120€/m²
+- Rénovation complète maison moyenne : 5000€ à 15000€
+
+**RÈGLES ABSOLUES POUR LES PRIX :**
+- ❌ JAMAIS de fourchette trop étroite (ex: 1500€-5000€ pour une rénovation complète)
+- ✅ TOUJOURS fournir plusieurs fourchettes selon le type de prestation
+- ✅ Mentionner les facteurs qui influencent le prix (superficie, matériaux, complexité, accessibilité)
+- ✅ Utiliser des exemples concrets avec des chiffres réalistes
+- ✅ Adapter les prix à la région {$city} si pertinente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏗️ **ARCHITECTURE DE CONTENU ULTRA-PERFORMANTE**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1050,7 +1092,7 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 - ✅ **Les avantages d'un {$keyword}** (700-900 mots) : Développer tous les avantages, bénéfices, retours sur investissement, comparaisons avant/après
 - ✅ **Comment obtenir votre devis ?** (700-900 mots) : Processus complet étape par étape, documents nécessaires, délais, ce qui est inclus
 - ✅ **Choix de matériaux et techniques** (700-900 mots) : Comparatif détaillé de tous les matériaux, avantages/inconvénients, prix, durabilité, recommandations
-- ✅ **Comprendre les coûts d'une {$keyword}** (700-900 mots) : Détail de tous les postes de dépense, fourchettes précises pour {$city}, facteurs influençant le prix, exemples chiffrés
+- ✅ **Comprendre les coûts d'une {$keyword}** (700-900 mots) : Détail de tous les postes de dépense, fourchettes LARGES et RÉALISTES basées sur une recherche approfondie du marché français {$currentYear} pour {$city}, facteurs influençant le prix, exemples chiffrés détaillés par type de prestation (petite réparation, réparation moyenne, rénovation complète, installation neuve). IMPORTANT : Fournir plusieurs fourchettes selon le type de prestation, jamais une seule fourchette trop étroite.
 - ✅ **Réglementations et normes {$currentYear}** (700-900 mots) : Toutes les normes applicables, obligations légales, certifications requises, évolutions récentes
 - ✅ **Maintenance et entretien** (700-900 mots) : Guide complet d'entretien, fréquence, coûts, conseils pro, erreurs à éviter
 - ✅ **Questions Fréquentes** (10-12 questions avec réponses détaillées 80-150 mots chacune)
@@ -1172,7 +1214,19 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
   <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
     <h3 itemprop="name">Quel est le prix moyen d'un {$keyword} à {$city} en {$currentYear} ?</h3>
     <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-      <p itemprop="text">Le tarif pour {$keyword} à {$city} varie généralement entre [X]€ et [Y]€, selon [facteurs]. Pour une prestation standard de [description], comptez environ [Z]€. Les prix dépendent de : la superficie à traiter, les matériaux choisis, la complexité technique, et les finitions souhaitées. {$companyName} propose des devis transparents détaillant chaque poste de dépense.</p>
+      <p itemprop="text">Le tarif pour {$keyword} à {$city} varie considérablement selon l'ampleur et le type de travaux. 
+
+**IMPORTANT :** Utilise les exemples de fourchettes réalistes fournis dans la section "RECHERCHE APPROFONDIE DES PRIX" du prompt pour générer une réponse précise avec PLUSIEURS fourchettes selon le type de prestation.
+
+**Format de réponse attendu :**
+- Commencer par expliquer que les prix varient selon le type de prestation
+- Fournir PLUSIEURS fourchettes détaillées (petite réparation, réparation moyenne, rénovation complète, etc.)
+- Mentionner les facteurs qui influencent le prix (superficie, matériaux, complexité, accessibilité)
+- Adapter les prix à la région {$city} si pertinente
+- Conclure en mentionnant que {$companyName} propose des devis gratuits et transparents
+
+**Exemple de structure :**
+Pour une petite réparation (remplacement de quelques tuiles, réparation ponctuelle), comptez entre 500€ et 2000€. Pour une réparation moyenne (réfection partielle, zinguerie), la fourchette se situe entre 2000€ et 8000€. Pour une rénovation complète de toiture (dépose ancienne couverture, charpente si nécessaire, couverture neuve), l'investissement varie entre 8000€ et 25000€ pour une maison moyenne de 100-150m². Si vous optez pour une rénovation complète avec isolation thermique, prévoyez entre 12000€ et 35000€. Les prix dépendent de nombreux facteurs : la superficie à traiter, les matériaux choisis (tuiles, ardoise, zinc, etc.), la complexité technique (accessibilité, pente, hauteur), l'état initial de la charpente, et les finitions souhaitées. {$companyName} propose des devis gratuits et transparents détaillant chaque poste de dépense, permettant ainsi de comprendre précisément l'investissement nécessaire pour votre projet à {$city}.</p>
     </div>
   </div>
   
