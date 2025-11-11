@@ -1009,7 +1009,13 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 
 **3. SECTIONS PRINCIPALES** (6-8 sections H2 OBLIGATOIRES)
 
-**⚠️ RÈGLE ABSOLUE : TOUTES les sections listées dans le sommaire DOIVENT être développées en profondeur (700-900 mots chacune)**
+**🚨 RÈGLE ABSOLUE CRITIQUE - À RESPECTER IMPÉRATIVEMENT :**
+
+**1. TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement**
+**2. Les sections DOIVENT être développées DANS L'ORDRE du sommaire, sans exception**
+**3. AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots)**
+**4. CHAQUE section doit faire MINIMUM 700-900 mots (pas de section avec 2-3 lignes)**
+**5. Si une section est trop courte, AJOUTER immédiatement : exemples, détails techniques, conseils, données chiffrées, cas pratiques**
 
 **THÈMES OBLIGATOIRES À COUVRIR (développer CHACUN en profondeur) :**
 - ✅ **Les avantages d'un {$keyword}** (700-900 mots) : Développer tous les avantages, bénéfices, retours sur investissement, comparaisons avant/après
@@ -1089,15 +1095,19 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 </section>
 ```
 
-**⚠️ VÉRIFICATION OBLIGATOIRE :**
-- Chaque section doit faire MINIMUM 700 mots (vérifier avant de passer à la suivante)
-- Si une section fait moins de 700 mots, AJOUTER du contenu : exemples, détails techniques, conseils, données chiffrées
-- TOUTES les sections du sommaire doivent être présentes et développées
+**🚨 VÉRIFICATION OBLIGATOIRE AVANT CHAQUE SECTION :**
+1. **Vérifier que la section précédente fait minimum 700 mots** (compter les mots avant de passer à la suivante)
+2. **Si une section fait moins de 700 mots, AJOUTER immédiatement** : exemples concrets, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées
+3. **Vérifier que TOUTES les sections du sommaire sont présentes** (compter les sections H2 et comparer avec le sommaire)
+4. **Vérifier que les sections sont dans l'ORDRE du sommaire** (section-1, section-2, section-3, etc.)
+5. **AUCUNE section ne doit être sautée ou omise**, même si cela rend l'article très long
 
 **EXIGENCES PAR SECTION (CRITIQUE - RESPECTER STRICTEMENT) :**
-- ⚠️ **700-900 mots MINIMUM par section H2** (pas de section avec seulement 2-3 lignes)
-- ⚠️ **TOUTES les sections du sommaire DOIVENT être développées en profondeur**
-- ⚠️ **AUCUNE section ne doit être manquante ou trop courte**
+- 🚨 **700-900 mots MINIMUM par section H2** (pas de section avec seulement 2-3 lignes - INTERDIT)
+- 🚨 **TOUTES les sections du sommaire DOIVENT être développées en profondeur** (aucune exception)
+- 🚨 **AUCUNE section ne doit être manquante ou trop courte** (vérifier avant de terminer)
+- 🚨 **Les sections DOIVENT être dans l'ORDRE du sommaire** (section-1, puis section-2, puis section-3, etc.)
+- 🚨 **Ne JAMAIS passer à la section suivante si la section actuelle fait moins de 700 mots**
 - 4-6 sous-titres H3 par section (pour approfondir chaque aspect)
 - Au moins 2 listes (puces ou numérotées) par section
 - 2-3 éléments enrichis (encadrés, tableaux, citations) par section
@@ -1265,12 +1275,24 @@ Créer l'article de référence ABSOLU sur "{$keyword}" à {$city} :
 - Qui génère des partages et backlinks naturels
 - Qui fait dire aux lecteurs : "C'est LE meilleur guide que j'ai lu"
 
-**⚠️ RAPPEL CRITIQUE AVANT RÉDACTION :**
-1. **TOUTES les sections du sommaire DOIVENT être présentes et développées (700-900 mots chacune)**
-2. **AUCUNE section ne doit avoir seulement 2-3 lignes**
-3. **Vérifier que chaque section H2 fait minimum 700 mots avant de passer à la suivante**
-4. **Si une section est trop courte, AJOUTER : exemples, détails techniques, conseils, données chiffrées, cas pratiques**
-5. **L'article total doit faire minimum {$targetWordCount} mots (idéalement 3500-4500 mots)**
+**🚨 RAPPEL CRITIQUE ABSOLU AVANT RÉDACTION :**
+
+**RÈGLES IMPÉRATIVES À RESPECTER SANS EXCEPTION :**
+
+1. **TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement (700-900 mots chacune)**
+2. **Les sections DOIVENT être développées DANS L'ORDRE du sommaire** (section-1, puis section-2, puis section-3, etc.)
+3. **AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots si nécessaire)**
+4. **AUCUNE section ne doit avoir seulement 2-3 lignes** (INTERDIT - chaque section doit être complète)
+5. **Vérifier que chaque section H2 fait minimum 700 mots AVANT de passer à la suivante** (compter les mots)
+6. **Si une section est trop courte, AJOUTER immédiatement** : exemples concrets détaillés, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées, témoignages, statistiques
+7. **L'article total doit faire minimum {$targetWordCount} mots** (idéalement 3500-4500 mots pour couvrir toutes les sections)
+8. **Ne JAMAIS terminer l'article avant d'avoir développé TOUTES les sections du sommaire**
+
+**PROCESSUS DE VÉRIFICATION OBLIGATOIRE :**
+- Après chaque section, compter les mots (doit être ≥ 700)
+- Avant de passer à la section suivante, vérifier que la section actuelle est complète
+- Avant de terminer l'article, vérifier que TOUTES les sections du sommaire sont présentes et développées
+- Si une section manque ou est trop courte, AJOUTER du contenu immédiatement
 
 **RÉDIGE MAINTENANT** cet article exceptionnel de {$targetWordCount}+ mots. Chaque mot doit apporter de la valeur. Chaque section doit éduquer ET persuader. Chaque élément doit être optimisé pour le SEO ET l'humain. **TOUTES les sections du sommaire doivent être complètes et détaillées (700-900 mots chacune).**
 
