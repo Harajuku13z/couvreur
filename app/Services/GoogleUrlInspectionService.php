@@ -111,87 +111,136 @@ class GoogleUrlInspectionService
             // Normaliser l'URL
             $url = $this->normalizeUrl($url);
 
-            // Utiliser l'API URL Inspection
-            // Format: urlInspection.index.inspect avec InspectUrlIndexRequest
-            $requestBody = new \Google\Service\SearchConsole\InspectUrlIndexRequest();
-            $requestBody->setInspectionUrl($url);
-            $requestBody->setSiteUrl($this->siteUrl);
-
-            // Appeler l'API
-            // Note: L'API peut nécessiter que le siteUrl soit au format sc-domain:example.com
-            $response = $this->service->urlInspection_index->inspect($requestBody);
-
-            // Parser la réponse
-            $inspectionResult = $response->getInspectionResult();
-            $indexStatusResult = $inspectionResult->getIndexStatusResult();
-            $ampInspectionResult = $inspectionResult->getAmpInspectionResult();
-            $mobileUsabilityResult = $inspectionResult->getMobileUsabilityResult();
-            $richResultsResult = $inspectionResult->getRichResultsResult();
-
-            $status = [
-                'url' => $url,
-                'indexed' => false,
-                'coverage_state' => null,
-                'last_crawl_time' => null,
-                'indexing_state' => null,
-                'page_fetch_state' => null,
-                'verdict' => null,
-                'details' => [],
-                'errors' => [],
-                'warnings' => [],
-            ];
-
-            if ($indexStatusResult) {
-                $status['indexed'] = $indexStatusResult->getCoverageState() === 'Indexed';
-                $status['coverage_state'] = $indexStatusResult->getCoverageState();
-                $status['indexing_state'] = $indexStatusResult->getIndexingState();
-                $status['last_crawl_time'] = $indexStatusResult->getLastCrawlTime();
-                $status['page_fetch_state'] = $indexStatusResult->getPageFetchState();
-                $status['verdict'] = $indexStatusResult->getVerdict();
-
-                // Détails
-                if ($indexStatusResult->getDetails()) {
-                    $status['details'] = [
-                        'coverage_state' => $indexStatusResult->getDetails()->getCoverageState(),
-                        'indexed' => $indexStatusResult->getDetails()->getIndexed(),
-                        'crawled_as' => $indexStatusResult->getDetails()->getCrawledAs(),
-                    ];
-                }
-
-                // Erreurs
-                if ($indexStatusResult->getCrawlIssue()) {
-                    $status['errors'][] = [
-                        'type' => $indexStatusResult->getCrawlIssue()->getIssueType(),
-                        'severity' => $indexStatusResult->getCrawlIssue()->getSeverity(),
-                        'description' => $indexStatusResult->getCrawlIssue()->getDescription(),
-                    ];
-                }
+            // Essayer plusieurs variantes de siteUrl pour éviter DOMAIN_MISMATCH:
+            // 1) site_url configuré (URL-prefix)
+            // 2) sc-domain:example.com (domain property)
+            // 3) https://example.com (URL-prefix sur le domaine racine)
+            $candidates = [];
+            $configuredSiteUrl = rtrim($this->siteUrl, '/');
+            if (!empty($configuredSiteUrl)) {
+                $candidates[] = $configuredSiteUrl;
+            }
+            // Extraire le domaine de l'URL
+            $parsed = parse_url($url);
+            if (!empty($parsed['host'])) {
+                $host = preg_replace('/^www\./', '', $parsed['host']);
+                $candidates[] = 'sc-domain:' . $host;
+                $candidates[] = 'https://' . $host;
+                $candidates[] = 'http://' . $host;
             }
 
-            // Mobile usability
-            if ($mobileUsabilityResult) {
-                $status['mobile_usable'] = $mobileUsabilityResult->getVerdict() === 'PASS';
-                if ($mobileUsabilityResult->getIssues()) {
-                    foreach ($mobileUsabilityResult->getIssues() as $issue) {
-                        $status['warnings'][] = [
-                            'type' => 'mobile',
-                            'severity' => $issue->getSeverity(),
-                            'message' => $issue->getMessage(),
-                        ];
+            $lastError = null;
+            foreach ($candidates as $candidateSiteUrl) {
+                try {
+                    // Utiliser l'API URL Inspection
+                    // Format: urlInspection.index.inspect avec InspectUrlIndexRequest
+                    $requestBody = new \Google\Service\SearchConsole\InspectUrlIndexRequest();
+                    $requestBody->setInspectionUrl($url);
+                    $requestBody->setSiteUrl($candidateSiteUrl);
+                    // Optionnel: préciser la langue
+                    $requestBody->setLanguageCode('fr-FR');
+
+                    // Appeler l'API
+                    $response = $this->service->urlInspection_index->inspect($requestBody);
+
+                    // Parser la réponse
+                    $inspectionResult = $response->getInspectionResult();
+                    $indexStatusResult = $inspectionResult->getIndexStatusResult();
+                    $ampInspectionResult = $inspectionResult->getAmpInspectionResult();
+                    $mobileUsabilityResult = $inspectionResult->getMobileUsabilityResult();
+                    $richResultsResult = $inspectionResult->getRichResultsResult();
+
+                    $status = [
+                        'url' => $url,
+                        'site_url_used' => $candidateSiteUrl,
+                        'indexed' => false,
+                        'coverage_state' => null,
+                        'last_crawl_time' => null,
+                        'indexing_state' => null,
+                        'page_fetch_state' => null,
+                        'verdict' => null,
+                        'details' => [],
+                        'errors' => [],
+                        'warnings' => [],
+                    ];
+
+                    if ($indexStatusResult) {
+                        $status['indexed'] = $indexStatusResult->getCoverageState() === 'Indexed';
+                        $status['coverage_state'] = $indexStatusResult->getCoverageState();
+                        $status['indexing_state'] = $indexStatusResult->getIndexingState();
+                        $status['last_crawl_time'] = $indexStatusResult->getLastCrawlTime();
+                        $status['page_fetch_state'] = $indexStatusResult->getPageFetchState();
+                        $status['verdict'] = $indexStatusResult->getVerdict();
+
+                        // Détails
+                        if ($indexStatusResult->getDetails()) {
+                            $status['details'] = [
+                                'coverage_state' => $indexStatusResult->getDetails()->getCoverageState(),
+                                'indexed' => $indexStatusResult->getDetails()->getIndexed(),
+                                'crawled_as' => $indexStatusResult->getDetails()->getCrawledAs(),
+                            ];
+                        }
+
+                        // Erreurs
+                        if ($indexStatusResult->getCrawlIssue()) {
+                            $status['errors'][] = [
+                                'type' => $indexStatusResult->getCrawlIssue()->getIssueType(),
+                                'severity' => $indexStatusResult->getCrawlIssue()->getSeverity(),
+                                'description' => $indexStatusResult->getCrawlIssue()->getDescription(),
+                            ];
+                        }
                     }
+
+                    // Mobile usability
+                    if ($mobileUsabilityResult) {
+                        $status['mobile_usable'] = $mobileUsabilityResult->getVerdict() === 'PASS';
+                        if ($mobileUsabilityResult->getIssues()) {
+                            foreach ($mobileUsabilityResult->getIssues() as $issue) {
+                                $status['warnings'][] = [
+                                    'type' => 'mobile',
+                                    'severity' => $issue->getSeverity(),
+                                    'message' => $issue->getMessage(),
+                                ];
+                            }
+                        }
+                    }
+
+                    Log::info('URL Inspection réussie', [
+                        'url' => $url,
+                        'site_url_used' => $candidateSiteUrl,
+                        'indexed' => $status['indexed'],
+                        'coverage_state' => $status['coverage_state']
+                    ]);
+
+                    return [
+                        'success' => true,
+                        'status' => $status
+                    ];
+                } catch (\Google\Service\Exception $e) {
+                    // Garder le dernier message d'erreur, essayer la variante suivante
+                    $lastError = $e;
+                    continue;
                 }
             }
 
-            Log::info('URL Inspection réussie', [
-                'url' => $url,
-                'indexed' => $status['indexed'],
-                'coverage_state' => $status['coverage_state']
-            ]);
+            // Si toutes les variantes échouent, lever la dernière erreur
+            if ($lastError instanceof \Google\Service\Exception) {
+                $error = json_decode($lastError->getMessage(), true);
+                $errorMessage = $error['error']['message'] ?? $lastError->getMessage();
+                
+                Log::error('Erreur URL Inspection API (toutes variantes échouées)', [
+                    'url' => $url,
+                    'site_url_tried' => $candidates,
+                    'error' => $errorMessage,
+                    'code' => $lastError->getCode()
+                ]);
 
-            return [
-                'success' => true,
-                'status' => $status
-            ];
+                return [
+                    'success' => false,
+                    'error' => $errorMessage,
+                    'code' => $lastError->getCode()
+                ];
+            }
 
         } catch (\Google\Service\Exception $e) {
             $error = json_decode($e->getMessage(), true);
