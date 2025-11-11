@@ -832,6 +832,14 @@ function displayUrls() {
                     </div>
                 </div>
             </div>
+            <div class="flex items-center space-x-2">
+                <span class="url-status-badge hidden text-xs px-2 py-1 rounded font-medium"></span>
+                <button type="button"
+                        class="text-blue-600 hover:text-blue-800 text-sm"
+                        onclick="verifyUrlFromList('${urlData.url}', this)">
+                    <i class="fas fa-search mr-1"></i> Vérifier
+                </button>
+            </div>
         `;
         container.appendChild(div);
     });
@@ -858,6 +866,53 @@ function nextPage() {
     if (currentPage < lastPage) {
         loadUrls(currentPage + 1);
     }
+}
+
+// Vérifier une URL depuis la liste et mettre à jour le badge
+function verifyUrlFromList(url, buttonEl) {
+    const row = buttonEl.closest('div.flex.items-center.justify-between');
+    const badge = row.querySelector('.url-status-badge');
+    const original = buttonEl.innerHTML;
+    buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Vérification...';
+    buttonEl.disabled = true;
+    
+    fetch('{{ route("admin.indexation.verify-status") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ url })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Afficher badge selon le résultat
+            badge.classList.remove('hidden');
+            if (data.indexed) {
+                badge.className = 'url-status-badge bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium';
+                badge.textContent = 'Indexée';
+                showNotification('✅ URL indexée (détectée via l’une des propriétés GSC)', 'success');
+            } else {
+                badge.className = 'url-status-badge bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium';
+                badge.textContent = 'Non indexée';
+                showNotification('⚠️ URL non indexée', 'warning');
+            }
+        } else {
+            showNotification('Erreur: ' + (data.error || 'Inspection impossible'), 'error');
+        }
+    })
+    .catch(() => {
+        showNotification('Erreur lors de la vérification', 'error');
+    })
+    .finally(() => {
+        buttonEl.innerHTML = original;
+        buttonEl.disabled = false;
+        // Rafraîchir le panneau des statuts réels
+        if (typeof loadStatuses === 'function') {
+            loadStatuses();
+        }
+    });
 }
 
 function selectAllUrls() {
