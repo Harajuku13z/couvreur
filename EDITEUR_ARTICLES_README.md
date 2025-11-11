@@ -2,11 +2,11 @@
 
 ## Fonctionnalités
 
-### 1. Éditeur WYSIWYG (TinyMCE)
-- Éditeur visuel pour créer et modifier les articles
+### 1. Éditeur WYSIWYG (Quill)
+- Éditeur visuel gratuit et open source (pas besoin de clé API)
 - Formatage de texte (gras, italique, listes, etc.)
 - Insertion de liens et d'images
-- Mode code pour éditer le HTML directement
+- Support des titres (H1-H6), citations, blocs de code
 
 ### 2. Upload d'Images avec Métadonnées SEO
 Lors de l'upload d'une image via l'éditeur, un formulaire modal s'ouvre pour saisir :
@@ -25,17 +25,13 @@ Toutes les images uploadées sont enregistrées dans la table `article_images` a
 - Type MIME
 - Relation avec l'article
 
-## Configuration TinyMCE
+## Configuration Quill Editor
 
-**Important** : Pour utiliser TinyMCE, vous devez obtenir une clé API gratuite sur [TinyMCE Cloud](https://www.tiny.cloud/auth/signup/).
+**Aucune configuration nécessaire !** Quill est un éditeur gratuit et open source qui fonctionne directement via CDN, sans besoin de clé API.
 
-1. Créez un compte sur https://www.tiny.cloud
-2. Obtenez votre clé API gratuite
-3. Remplacez `no-api-key` dans les fichiers `create.blade.php` et `edit.blade.php` par votre clé API :
-
-```javascript
-<script src="https://cdn.tiny.cloud/1/VOTRE_CLE_API/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-```
+L'éditeur est automatiquement chargé depuis le CDN officiel de Quill :
+- CSS : `https://cdn.quilljs.com/1.3.6/quill.snow.css`
+- JS : `https://cdn.quilljs.com/1.3.6/quill.js`
 
 ## Utilisation
 
