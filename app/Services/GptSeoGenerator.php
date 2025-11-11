@@ -1097,11 +1097,15 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 - ✅ **Maintenance et entretien** (700-900 mots) : Guide complet d'entretien, fréquence, coûts, conseils pro, erreurs à éviter
 - ✅ **Questions Fréquentes** (10-12 questions avec réponses détaillées 80-150 mots chacune)
 
-**⚠️ INTERDICTIONS ABSOLUES :**
-- ❌ JAMAIS de section avec seulement 2-3 lignes
+**⚠️ INTERDICTIONS ABSOLUES - VIOLATION = ÉCHEC TOTAL :**
+- ❌ JAMAIS de section avec seulement 2-3 lignes ou vide
 - ❌ JAMAIS de section manquante du sommaire
 - ❌ JAMAIS de contenu superficiel ou vague
-- ✅ CHAQUE section doit être complète, détaillée et actionnable
+- ❌ JAMAIS de titre H2 suivi de rien (section vide)
+- ❌ JAMAIS de placeholder ou "Contenu à venir"
+- ❌ JAMAIS de sauter une section même si elle semble difficile
+- ✅ CHAQUE section doit être complète, détaillée et actionnable (700-900 mots minimum)
+- ✅ CHAQUE section doit avoir du contenu réel et utile immédiatement après le titre H2
 
 **TEMPLATE SECTION PARFAITE (700-900 mots minimum) :**
 ```html
@@ -1366,26 +1370,60 @@ Créer l'article de référence ABSOLU sur "{$keyword}" à {$city} :
 - Qui génère des partages et backlinks naturels
 - Qui fait dire aux lecteurs : "C'est LE meilleur guide que j'ai lu"
 
-**🚨 RAPPEL CRITIQUE ABSOLU AVANT RÉDACTION :**
+**🚨 RAPPEL CRITIQUE ABSOLU AVANT RÉDACTION - RÈGLES NON NÉGOCIABLES :**
 
-**RÈGLES IMPÉRATIVES À RESPECTER SANS EXCEPTION :**
+**⚠️ INTERDICTION ABSOLUE DE CRÉER DES SECTIONS VIDES OU INCOMPLÈTES :**
 
 1. **TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement (700-900 mots chacune)**
 2. **Les sections DOIVENT être développées DANS L'ORDRE du sommaire** (section-1, puis section-2, puis section-3, etc.)
 3. **AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots si nécessaire)**
-4. **AUCUNE section ne doit avoir seulement 2-3 lignes** (INTERDIT - chaque section doit être complète)
-5. **Vérifier que chaque section H2 fait minimum 700 mots AVANT de passer à la suivante** (compter les mots)
-6. **Si une section est trop courte, AJOUTER immédiatement** : exemples concrets détaillés, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées, témoignages, statistiques
-7. **L'article total doit faire minimum {$targetWordCount} mots** (idéalement 3500-4500 mots pour couvrir toutes les sections)
-8. **Ne JAMAIS terminer l'article avant d'avoir développé TOUTES les sections du sommaire**
+4. **AUCUNE section ne doit avoir seulement 2-3 lignes ou être vide** (INTERDIT ABSOLUMENT - chaque section doit être complète)
+5. **INTERDIT de mettre seulement un titre H2 sans contenu en dessous** (exemple INTERDIT : `<h2>Comment obtenir votre devis ?</h2>` suivi de rien)
+6. **INTERDIT de mettre des placeholders ou des descriptions** (exemple INTERDIT : "Cette section sera développée plus tard" ou "Contenu à venir")
+7. **Vérifier que chaque section H2 fait minimum 700 mots AVANT de passer à la suivante** (compter les mots)
+8. **Si une section est trop courte, AJOUTER immédiatement** : exemples concrets détaillés, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées, témoignages, statistiques, procédures étape par étape, avantages/inconvénients, coûts détaillés, durées, matériaux, techniques, normes, réglementations
+9. **L'article total doit faire minimum {$targetWordCount} mots** (idéalement 3500-4500 mots pour couvrir toutes les sections)
+10. **Ne JAMAIS terminer l'article avant d'avoir développé TOUTES les sections du sommaire**
+11. **Chaque section doit contenir au minimum :**
+    - 3-5 paragraphes de 100-150 mots chacun
+    - Des exemples concrets et détaillés
+    - Des informations pratiques et actionnables
+    - Des données chiffrées ou statistiques si pertinentes
+    - Des conseils d'experts ou des bonnes pratiques
+    - Des sous-sections H3 si nécessaire pour structurer
 
-**PROCESSUS DE VÉRIFICATION OBLIGATOIRE :**
-- Après chaque section, compter les mots (doit être ≥ 700)
-- Avant de passer à la section suivante, vérifier que la section actuelle est complète
-- Avant de terminer l'article, vérifier que TOUTES les sections du sommaire sont présentes et développées
-- Si une section manque ou est trop courte, AJOUTER du contenu immédiatement
+**PROCESSUS DE VÉRIFICATION OBLIGATOIRE AVANT CHAQUE SECTION :**
+1. Lire le titre de la section dans le sommaire
+2. Créer le titre H2 correspondant avec l'ID unique (section-1, section-2, etc.)
+3. ÉCRIRE IMMÉDIATEMENT le contenu complet (700-900 mots minimum)
+4. Compter les mots de la section (doit être ≥ 700)
+5. Si < 700 mots, AJOUTER immédiatement : détails supplémentaires, exemples, conseils, données
+6. Vérifier que la section contient du contenu réel et utile (pas de remplissage vide)
+7. SEULEMENT APRÈS avoir complété la section, passer à la suivante
 
-**RÉDIGE MAINTENANT** cet article exceptionnel de {$targetWordCount}+ mots. Chaque mot doit apporter de la valeur. Chaque section doit éduquer ET persuader. Chaque élément doit être optimisé pour le SEO ET l'humain. **TOUTES les sections du sommaire doivent être complètes et détaillées (700-900 mots chacune).**
+**PROCESSUS DE VÉRIFICATION FINALE OBLIGATOIRE AVANT DE TERMINER :**
+1. Compter toutes les sections H2 dans l'article
+2. Comparer avec le nombre de sections dans le sommaire
+3. Vérifier que CHAQUE section du sommaire a son équivalent H2 développé dans l'article
+4. Vérifier que CHAQUE section H2 fait minimum 700 mots
+5. Si une section manque ou est trop courte, AJOUTER du contenu immédiatement
+6. Ne JAMAIS envoyer l'article si une section est manquante ou incomplète
+
+**EXEMPLE DE CE QUI EST INTERDIT (NE JAMAIS FAIRE CELA) :**
+```html
+<h2 id="section-2">Comment obtenir votre devis ?</h2>
+<!-- Section vide - INTERDIT -->
+```
+
+**EXEMPLE DE CE QUI EST OBLIGATOIRE (FAIRE TOUJOURS CELA) :**
+```html
+<h2 id="section-2">Comment obtenir votre devis ?</h2>
+<p>Pour obtenir un devis personnalisé pour votre projet de zinguerie moderne à Chevigny-Saint-Sauveur, plusieurs options s'offrent à vous...</p>
+<p>La première étape consiste à...</p>
+<!-- Minimum 700 mots de contenu détaillé et utile -->
+```
+
+**RÉDIGE MAINTENANT** cet article exceptionnel de {$targetWordCount}+ mots. Chaque mot doit apporter de la valeur. Chaque section doit éduquer ET persuader. Chaque élément doit être optimisé pour le SEO ET l'humain. **TOUTES les sections du sommaire doivent être complètes et détaillées (700-900 mots chacune). AUCUNE section vide ou incomplète ne sera acceptée.**
 
 🚀 **C'EST PARTI. Produis le meilleur contenu SEO jamais créé sur ce sujet.**
 EOT;
