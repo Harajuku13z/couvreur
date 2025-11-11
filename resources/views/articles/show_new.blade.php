@@ -1521,18 +1521,63 @@
                             }
                             
                             // Gérer les cas où l'URL d'image est stockée comme texte (pas dans une balise <img>)
-                            // Convertir les URLs d'images en balises <img> si elles sont seules sur une ligne
+                            // Cas 1: URLs complètes avec attributs après (balise <img> cassée)
+                            // Exemple: https://example.com/image.jpg" alt="..." loading="lazy">
                             $content = preg_replace_callback(
-                                '/^(https?:\/\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
+                                '/(https?:\/\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)/i',
+                                function($matches) {
+                                    $src = $matches[1];
+                                    $rest = $matches[3] ?? '';
+                                    // Extraire alt si présent
+                                    $alt = 'Image article';
+                                    if (preg_match('/alt=["\']([^"\']+)["\']/', $rest, $altMatch)) {
+                                        $alt = $altMatch[1];
+                                    }
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // Cas 2: URLs relatives avec attributs après (balise <img> cassée)
+                            // Exemple: /uploads/articles/image.jpg" alt="..." loading="lazy">
+                            $content = preg_replace_callback(
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))("(?:\s+[^>]*?)?>)/i',
+                                function($matches) {
+                                    $src = asset(ltrim($matches[1], '/'));
+                                    $rest = $matches[3] ?? '';
+                                    // Extraire alt si présent
+                                    $alt = 'Image article';
+                                    if (preg_match('/alt=["\']([^"\']+)["\']/', $rest, $altMatch)) {
+                                        $alt = $altMatch[1];
+                                    }
+                                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" class="article-image" loading="lazy">';
+                                },
+                                $content
+                            );
+                            
+                            // Cas 3: URLs complètes seules (mais pas déjà dans une balise <img>)
+                            // D'abord, marquer toutes les balises <img> existantes pour ne pas les toucher
+                            $content = preg_replace_callback(
+                                '/<img[^>]*>/i',
+                                function($matches) {
+                                    return '<!--IMG_TAG_START-->' . $matches[0] . '<!--IMG_TAG_END-->';
+                                },
+                                $content
+                            );
+                            
+                            // Maintenant, convertir les URLs d'images en balises <img>
+                            // URLs complètes avec domaine complet
+                            $content = preg_replace_callback(
+                                '/(https?:\/\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
                                     return '<img src="' . htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
                                 },
                                 $content
                             );
                             
-                            // Gérer les URLs relatives d'images stockées comme texte (avec ou sans slash initial)
+                            // URLs relatives
                             $content = preg_replace_callback(
-                                '/^(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))$/im',
+                                '/(\/?uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
                                 function($matches) {
                                     $src = asset(ltrim($matches[1], '/'));
                                     return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="Image article" class="article-image" loading="lazy">';
@@ -1540,17 +1585,9 @@
                                 $content
                             );
                             
-                            // Gérer aussi les URLs qui contiennent le domaine complet mais avec un chemin relatif
-                            // Exemple: https://example.com/uploads/articles/image.jpg -> doit rester tel quel
-                            // Mais aussi gérer les cas où l'URL est malformée
-                            $content = preg_replace_callback(
-                                '/(https?:\/\/[^\/]+)\/(uploads\/[^\s<>"\']+\.(jpg|jpeg|png|gif|webp|svg))/i',
-                                function($matches) {
-                                    // Si l'URL contient déjà le domaine, la garder telle quelle
-                                    return $matches[0];
-                                },
-                                $content
-                            );
+                            // Restaurer les balises <img> originales
+                            $content = str_replace('<!--IMG_TAG_START-->', '', $content);
+                            $content = str_replace('<!--IMG_TAG_END-->', '', $content);
                             
                             // Supprimer les sections CTA finales générées par GPT
                             $content = preg_replace('/<div[^>]*class="cta-final"[^>]*>.*?<\/div>/is', '', $content);
