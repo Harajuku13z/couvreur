@@ -1170,12 +1170,14 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 </section>
 ```
 
-**🚨 VÉRIFICATION OBLIGATOIRE AVANT CHAQUE SECTION :**
+**🚨 VÉRIFICATION OBLIGATOIRE AVANT CHAQUE SECTION (NON NÉGOCIABLE) :**
 1. **Vérifier que la section précédente fait minimum 700 mots** (compter les mots avant de passer à la suivante)
-2. **Si une section fait moins de 700 mots, AJOUTER immédiatement** : exemples concrets, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées
+2. **Si une section fait moins de 700 mots, AJOUTER immédiatement** : exemples concrets, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées, procédures étape par étape, avantages/inconvénients détaillés, coûts et durées, matériaux et techniques, normes et réglementations
 3. **Vérifier que TOUTES les sections du sommaire sont présentes** (compter les sections H2 et comparer avec le sommaire)
 4. **Vérifier que les sections sont dans l'ORDRE du sommaire** (section-1, section-2, section-3, etc.)
 5. **AUCUNE section ne doit être sautée ou omise**, même si cela rend l'article très long
+6. **AUCUNE section ne doit être vide** - Si tu ne sais pas quoi écrire pour une section, développe quand même avec : contexte général, processus détaillé, conseils pratiques, exemples concrets, informations utiles
+7. **AVANT de créer un titre H2, s'assurer d'avoir au moins 700 mots de contenu prêt à écrire** pour cette section
 
 **EXIGENCES PAR SECTION (CRITIQUE - RESPECTER STRICTEMENT) :**
 - 🚨 **700-900 mots MINIMUM par section H2** (pas de section avec seulement 2-3 lignes - INTERDIT)
