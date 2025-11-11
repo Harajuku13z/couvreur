@@ -322,6 +322,7 @@ Génère un titre SEO ULTRA-OPTIMISÉ pour maximiser le CTR (Click-Through Rate)
 - Être spécifique (éviter les titres génériques)
 - Transmettre un bénéfice immédiat
 - Utiliser des chiffres si pertinent (année, délai, prix)
+- **NE JAMAIS répéter la ville** (ex: "à {$city} à {$city}" est INTERDIT)
 
 Génère UN SEUL titre optimal. Retourne UNIQUEMENT le titre, sans guillemets, sans explications, sans préambule.
 EOT;
@@ -703,11 +704,23 @@ EOT;
             '/visant à établir.*?comme.*?référence.*?\./s',
             '/Cet article HTML.*?optimisé pour.*?\./s',
             '/Le contenu ci-dessus.*?SEO.*?\./s',
+            '/Ce modèle HTML.*?système de gestion de contenu.*?\./s',
+            '/Ce modèle HTML est conçu.*?directives SEO.*?\./s',
+            '/Ce modèle HTML.*?intégré dans.*?\./s',
+            '/modèle HTML.*?gestion de contenu.*?\./s',
+            '/respectant les directives SEO.*?meilleures pratiques.*?\./s',
+            '/fournissant un contenu riche.*?besoins des résidents.*?\./s',
+            '/Ce contenu.*?système de gestion.*?\./s',
+            '/HTML.*?intégré.*?CMS.*?\./s',
+            '/conçu pour être intégré.*?\./s',
         ];
         
         foreach ($unwantedPhrases as $pattern) {
             $html = preg_replace($pattern, '', $html);
         }
+        
+        // Supprimer les paragraphes entiers contenant des mentions de "modèle HTML", "système de gestion", etc.
+        $html = preg_replace('/<p[^>]*>.*?(?:modèle HTML|système de gestion|directives SEO|meilleures pratiques|intégré dans).*?<\/p>/is', '', $html);
         
         // Nettoyer les espaces multiples
         $html = preg_replace('/\n{3,}/', "\n\n", $html);
@@ -1187,8 +1200,9 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 ✅ Première occurrence dans les 100 premiers mots
 ✅ Présence dans 60-70% des titres H2
 ✅ 15-25 variantes sémantiques naturelles
-✅ Localisation "{$city}" : 10-15 occurrences
+✅ Localisation "{$city}" : 10-15 occurrences (mais JAMAIS répétée deux fois dans la même phrase)
 ✅ ZÉRO sur-optimisation (chaque phrase sonne naturelle)
+✅ **INTERDIT de répéter la ville** : "à {$city} à {$city}" ou "{$city} à {$city}" est FORMELLEMENT INTERDIT
 
 **STRUCTURE & LISIBILITÉ :**
 ✅ 6-8 sections H2 avec IDs uniques
@@ -1237,8 +1251,12 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 🚫 JAMAIS de HTML mal formé ou invalide
 🚫 JAMAIS de balises Schema.org cassées
 🚫 JAMAIS de texte méta type "Ce contenu HTML intègre..." (INTERDIT)
+🚫 JAMAIS de texte type "Ce modèle HTML est conçu..." (INTERDIT)
+🚫 JAMAIS de texte type "système de gestion de contenu" ou "directives SEO" (INTERDIT)
 🚫 JAMAIS de placeholders [À remplir] ou [Exemple]
 🚫 JAMAIS d'informations génériques non spécifiques à {$city}
+🚫 JAMAIS de répétition de la ville dans la même phrase (ex: "à {$city} à {$city}" est INTERDIT)
+🚫 JAMAIS de phrases contenant "modèle HTML", "système de gestion", "intégré dans un CMS" (INTERDIT)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📝 **FORMAT DE SORTIE STRICT**
@@ -1250,6 +1268,9 @@ Retourne UNIQUEMENT le HTML pur, sans :
 - ❌ Scripts, styles CSS inline
 - ❌ Commentaires "Ce contenu HTML..." ou méta-descriptions de l'article
 - ❌ Texte avant/après le HTML
+- ❌ Textes méta type "Ce modèle HTML est conçu pour être intégré..."
+- ❌ Textes type "système de gestion de contenu", "directives SEO", "meilleures pratiques"
+- ❌ Répétitions de la ville dans la même phrase (ex: "à {$city} à {$city}")
 
 **Structure finale attendue :**
 ```html
