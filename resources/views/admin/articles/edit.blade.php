@@ -454,12 +454,23 @@ form.addEventListener('submit', function(e) {
         console.log('Quill content synchronisé (submit - étape 1), longueur:', hiddenTextarea.value.length);
         
         // Vérifier que le contenu n'est pas vide
-        if (!hiddenTextarea.value || hiddenTextarea.value.trim() === '') {
+        if (!hiddenTextarea.value || hiddenTextarea.value.trim() === '' || hiddenTextarea.value.trim() === '<p><br></p>') {
             console.warn('ATTENTION: Le contenu HTML est vide!');
             e.preventDefault();
             alert('Le contenu de l\'article ne peut pas être vide. Veuillez ajouter du contenu.');
             return false;
         }
+        
+        // S'assurer que le champ a bien le nom content_html
+        if (hiddenTextarea.name !== 'content_html') {
+            hiddenTextarea.name = 'content_html';
+            console.log('Nom du champ corrigé en content_html');
+        }
+    } else {
+        console.error('Erreur: Quill ou textarea caché non trouvé', {
+            quill: !!quill,
+            textarea: !!hiddenTextarea
+        });
     }
 }, { capture: true }); // Utiliser capture pour exécuter en premier
 
