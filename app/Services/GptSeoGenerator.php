@@ -1046,7 +1046,7 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
    - Identifier leurs points forts et leurs faiblesses
 
 **RÉSULTATS SERP DES CONCURRENTS À ANALYSER :**
-{$this->formatSerpResultsForAnalysis($serpResults)}
+{$this->formatSerpResultsForAnalysis($serpResults, $keyword)}
 
 **QUESTIONS FRÉQUENTES IDENTIFIÉES :**
 {$this->formatQuestions($commonQuestions)}
