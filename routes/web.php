@@ -87,33 +87,95 @@ Route::get('/test-phone-tracking', function () {
                     ], 200);
                 }
                 
-                // Dispatcher les jobs de manière asynchrone pour éviter timeout
-                // Récupérer les villes favorites et dispatcher les jobs
+                // Exécuter directement la génération d'articles (sans queue)
+                // Récupérer les villes favorites
                 $favoriteCities = \App\Models\City::where('is_favorite', true)->get();
-                $jobsCount = 0;
                 
-                foreach ($favoriteCities as $city) {
-                    // Dispatcher le job pour chaque ville
-                    \App\Jobs\ProcessSeoCityJob::dispatch($city->id)
-                        ->onQueue('seo-automation');
-                    $jobsCount++;
-                }
+                // Récupérer le nombre d'articles à générer par ville
+                $articlesPerCity = (int)\App\Models\Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?: 1;
                 
-                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Jobs dispatchés', [
+                // Initialiser le manager
+                $manager = app(\App\Services\SeoAutomationManager::class);
+                $totalProcessed = 0;
+                $totalSuccess = 0;
+                $totalFailed = 0;
+                $results = [];
+                
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération directe', [
                     'ip' => $request->ip(),
                     'cities_count' => $favoriteCities->count(),
-                    'jobs_count' => $jobsCount,
+                    'articles_per_city' => $articlesPerCity,
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ]);
                 
-                // Retourner immédiatement pour éviter timeout
+                // Générer les articles pour chaque ville
+                foreach ($favoriteCities as $cityIndex => $city) {
+                    // Générer le nombre d'articles demandé pour chaque ville
+                    for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
+                        try {
+                            $log = $manager->runForCity($city, null);
+                            
+                            $totalProcessed++;
+                            
+                            if ($log->status === 'indexed' || $log->status === 'published') {
+                                $totalSuccess++;
+                                $results[] = [
+                                    'city' => $city->name,
+                                    'keyword' => $log->keyword,
+                                    'status' => 'success',
+                                    'url' => $log->article_url ?? null,
+                                ];
+                            } else {
+                                $totalFailed++;
+                                $results[] = [
+                                    'city' => $city->name,
+                                    'keyword' => $log->keyword ?? 'N/A',
+                                    'status' => 'failed',
+                                    'error' => $log->error_message ?? 'Erreur inconnue',
+                                ];
+                            }
+                            
+                            // Délai entre les articles pour éviter les rate limits
+                            if ($articleIndex < $articlesPerCity - 1) {
+                                sleep(2);
+                            }
+                        } catch (\Exception $e) {
+                            $totalFailed++;
+                            $results[] = [
+                                'city' => $city->name,
+                                'status' => 'error',
+                                'error' => $e->getMessage(),
+                            ];
+                            \Illuminate\Support\Facades\Log::error('Erreur génération article via schedule HTTP', [
+                                'city_id' => $city->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                    
+                    // Délai entre les villes
+                    if ($cityIndex < $favoriteCities->count() - 1) {
+                        sleep(3);
+                    }
+                }
+                
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération terminée', [
+                    'total_processed' => $totalProcessed,
+                    'total_success' => $totalSuccess,
+                    'total_failed' => $totalFailed
+                ]);
+                
+                // Retourner les résultats
                 return response()->json([
                     'success' => true,
-                    'message' => 'Génération d\'articles lancée à ' . now()->format('Y-m-d H:i:s'),
+                    'message' => 'Génération d\'articles terminée à ' . now()->format('Y-m-d H:i:s'),
                     'cities_count' => $favoriteCities->count(),
-                    'jobs_count' => $jobsCount,
-                    'note' => 'Les jobs ont été dispatchés dans la queue. Exécutez "php artisan queue:work --queue=seo-automation" pour traiter les jobs.',
-                    'status' => 'queued'
+                    'articles_per_city' => $articlesPerCity,
+                    'total_processed' => $totalProcessed,
+                    'total_success' => $totalSuccess,
+                    'total_failed' => $totalFailed,
+                    'results' => $results,
+                    'status' => 'completed'
                 ], 200);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [
