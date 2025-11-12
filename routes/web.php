@@ -36,6 +36,10 @@ Route::get('/test-phone-tracking', function () {
         // Route pour exécuter le scheduler via HTTP (pour services externes comme cron-job.org)
         // Protégée par token pour la sécurité
         Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
+            // Augmenter le timeout pour permettre la génération complète
+            set_time_limit(300); // 5 minutes
+            ini_set('max_execution_time', 300);
+            
             $token = $request->query('token');
             $configuredToken = \App\Models\Setting::where('key', 'schedule_run_token')->value('value');
             

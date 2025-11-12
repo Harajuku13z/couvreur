@@ -648,17 +648,45 @@ EOT;
         $result = AiService::callAI($prompt, $systemMessage, [
             'max_tokens' => $this->maxTokens,
             'temperature' => 0.68, // Sweet spot créativité/cohérence
+            'timeout' => 180, // 3 minutes pour la génération de contenu complexe
         ]);
         
+        // Vérifier que le résultat n'est pas null
+        if (!$result || !isset($result['content'])) {
+            Log::error('GptSeoGenerator: Résultat AI null ou vide', [
+                'result' => $result,
+                'keyword' => $keyword,
+                'city' => $city
+            ]);
+            throw new \Exception('L\'API IA n\'a pas retourné de contenu. Vérifiez vos clés API et vos quotas.');
+        }
+        
         $contenuHtml = trim($result['content'] ?? '');
+        
+        Log::info('GptSeoGenerator: Contenu brut reçu', [
+            'length' => strlen($contenuHtml),
+            'preview' => substr($contenuHtml, 0, 300),
+            'provider' => $result['provider'] ?? 'unknown'
+        ]);
         
         // Nettoyer le HTML
         $contenuHtml = $this->cleanHtmlOutput($contenuHtml);
         
-        // Validation robuste
-        if (empty($contenuHtml) || strlen($contenuHtml) < 800) {
-            Log::error('Contenu HTML généré insuffisant', ['length' => strlen($contenuHtml)]);
-            throw new \Exception('Le contenu généré est trop court ou vide.');
+        Log::info('GptSeoGenerator: Contenu après nettoyage', [
+            'length' => strlen($contenuHtml),
+            'preview' => substr($contenuHtml, 0, 300)
+        ]);
+        
+        // Validation robuste - ajuster le seuil minimum
+        if (empty($contenuHtml) || strlen($contenuHtml) < 500) {
+            Log::error('Contenu HTML généré insuffisant', [
+                'length' => strlen($contenuHtml),
+                'preview' => substr($contenuHtml, 0, 500),
+                'raw_preview' => substr($result['content'] ?? '', 0, 500),
+                'keyword' => $keyword,
+                'city' => $city
+            ]);
+            throw new \Exception('Le contenu généré est trop court ou vide. Longueur: ' . strlen($contenuHtml) . ' caractères. Vérifiez que l\'IA a bien généré du contenu.');
         }
         
         $wordCount = str_word_count(strip_tags($contenuHtml));
