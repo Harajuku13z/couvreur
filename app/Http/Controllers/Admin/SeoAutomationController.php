@@ -1432,6 +1432,7 @@ mot-clé 3
     {
         $validated = $request->validate([
             'serpapi_key' => 'nullable|string',
+            'seo_automation_serpapi_enabled' => 'nullable|boolean',
             'chatgpt_enabled' => 'nullable|boolean',
             'chatgpt_api_key' => 'nullable|string',
             'chatgpt_model' => 'nullable|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4o',
@@ -1443,6 +1444,15 @@ mot-clé 3
         // Sauvegarder SerpAPI (seulement si une valeur est fournie)
         if ($request->filled('serpapi_key')) {
             \App\Models\Setting::set('serp_api_key', $validated['serpapi_key'], 'string', 'seo');
+        }
+        
+        // Sauvegarder le toggle SerpAPI pour l'automatisation
+        if ($request->has('seo_automation_serpapi_enabled')) {
+            $serpapiEnabled = $request->boolean('seo_automation_serpapi_enabled');
+            \App\Models\Setting::set('seo_automation_serpapi_enabled', $serpapiEnabled ? '1' : '0', 'boolean', 'seo');
+            Log::info('SeoAutomationController: SerpAPI pour automatisation', [
+                'enabled' => $serpapiEnabled
+            ]);
         }
 
         // Sauvegarder ChatGPT

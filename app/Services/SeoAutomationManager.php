@@ -75,23 +75,38 @@ class SeoAutomationManager
                     ];
                     if ($progressCallback) $progressCallback($steps);
                 } else {
-                    // 1. Récupérer tendances (utiliser region si dispo, sinon 'FR')
+                    // Vérifier si SerpAPI est activé pour l'automatisation
+                    $serpapiEnabled = \App\Models\Setting::where('key', 'seo_automation_serpapi_enabled')->value('value');
+                    $serpapiEnabled = filter_var($serpapiEnabled, FILTER_VALIDATE_BOOLEAN);
+                    if ($serpapiEnabled === false && $serpapiEnabled !== true) {
+                        $serpapiEnabled = true; // Par défaut activé
+                    }
+                    
+                    // 1. Récupérer tendances (SerpAPI ou ChatGPT selon configuration)
                     $steps[] = [
                         'step' => 'trending_keywords',
-                        'title' => 'Récupération des mots-clés tendances (SerpAPI)',
+                        'title' => $serpapiEnabled ? 'Récupération des mots-clés tendances (SerpAPI)' : 'Récupération des mots-clés tendances (ChatGPT)',
                         'status' => 'processing',
-                        'message' => 'Analyse des tendances locales...',
+                        'message' => $serpapiEnabled ? 'Analyse des tendances locales via SerpAPI...' : 'Génération des mots-clés via ChatGPT...',
                         'data' => []
                     ];
                     if ($progressCallback) $progressCallback($steps);
                     
-                    $geo = $city->region ?? 'FR';
-                    // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
-                    if (strpos($geo, '-') !== false) {
-                        $geo = explode('-', $geo)[0];
+                    if ($serpapiEnabled) {
+                        // Utiliser SerpAPI (avec fallback ChatGPT intégré)
+                        $geo = $city->region ?? 'FR';
+                        // Nettoyer le code région si nécessaire (ex: "FR-27" -> "FR")
+                        if (strpos($geo, '-') !== false) {
+                            $geo = explode('-', $geo)[0];
+                        }
+                        $keywords = $this->serp->getTrendingKeywords($geo, 12);
+                    } else {
+                        // Utiliser uniquement ChatGPT pour générer les mots-clés
+                        Log::info('SeoAutomationManager: SerpAPI désactivé, utilisation ChatGPT pour mots-clés', [
+                            'city' => $city->name
+                        ]);
+                        $keywords = $this->getTrendingKeywordsWithChatGPT($city);
                     }
-                    
-                    $keywords = $this->serp->getTrendingKeywords($geo, 12);
                 }
                 
                 if (empty($keywords)) {
@@ -142,23 +157,41 @@ class SeoAutomationManager
             }
 
             // 3. Related + competitors (10 résultats pour meilleure analyse)
+            // Vérifier si SerpAPI est activé pour l'automatisation
+            $serpapiEnabled = \App\Models\Setting::where('key', 'seo_automation_serpapi_enabled')->value('value');
+            $serpapiEnabled = filter_var($serpapiEnabled, FILTER_VALIDATE_BOOLEAN);
+            if ($serpapiEnabled === false && $serpapiEnabled !== true) {
+                $serpapiEnabled = true; // Par défaut activé
+            }
+            
             $steps[] = [
                 'step' => 'serp_analysis',
-                'title' => 'Analyse des concurrents (SerpAPI)',
+                'title' => $serpapiEnabled ? 'Analyse des concurrents (SerpAPI)' : 'Analyse des concurrents (ChatGPT)',
                 'status' => 'processing',
-                'message' => 'Récupération des requêtes associées...',
+                'message' => $serpapiEnabled ? 'Récupération des requêtes associées via SerpAPI...' : 'Génération des données concurrentes via ChatGPT...',
                 'data' => []
             ];
             if ($progressCallback) $progressCallback($steps);
             
-            $related = $this->serp->getRelatedQueries($keyword, 6);
-            
-            // Recherche avec la ville pour des résultats plus pertinents
-            $searchQuery = $keyword . ' ' . $city->name;
-            $steps[count($steps) - 1]['message'] = 'Récupération des 10 premiers résultats Google pour "' . $searchQuery . '"...';
-            if ($progressCallback) $progressCallback($steps);
-            
-            $competitors = $this->serp->getTopSERP($searchQuery, 10);
+            if ($serpapiEnabled) {
+                // Utiliser SerpAPI (avec fallback ChatGPT intégré)
+                $related = $this->serp->getRelatedQueries($keyword, 6);
+                
+                // Recherche avec la ville pour des résultats plus pertinents
+                $searchQuery = $keyword . ' ' . $city->name;
+                $steps[count($steps) - 1]['message'] = 'Récupération des 10 premiers résultats Google pour "' . $searchQuery . '"...';
+                if ($progressCallback) $progressCallback($steps);
+                
+                $competitors = $this->serp->getTopSERP($searchQuery, 10);
+            } else {
+                // Utiliser uniquement ChatGPT pour générer les données concurrentes
+                Log::info('SeoAutomationManager: SerpAPI désactivé, utilisation ChatGPT pour analyse concurrents', [
+                    'keyword' => $keyword,
+                    'city' => $city->name
+                ]);
+                $related = $this->getRelatedQueriesWithChatGPT($keyword, 6);
+                $competitors = $this->getTopSERPWithChatGPT($keyword . ' ' . $city->name, 10);
+            }
             
             // Vérifier que nous avons au moins quelques données
             $hasData = !empty($related) || !empty($competitors);
@@ -166,13 +199,14 @@ class SeoAutomationManager
             if (!$hasData) {
                 Log::warning('SeoAutomationManager: Aucune donnée de recherche (related queries ou competitors)', [
                     'keyword' => $keyword,
-                    'city' => $city->name
+                    'city' => $city->name,
+                    'serpapi_enabled' => $serpapiEnabled
                 ]);
                 // Continuer quand même, GPT peut générer sans ces données
             }
             
             $steps[count($steps) - 1]['status'] = $hasData ? 'success' : 'warning';
-            $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés' . (!$hasData ? ' (fallback ChatGPT utilisé)' : '');
+            $steps[count($steps) - 1]['message'] = count($related) . ' requêtes associées et ' . count($competitors) . ' concurrents analysés' . ($serpapiEnabled ? '' : ' (via ChatGPT)');
             
             // Préparer les données des concurrents avec titres et liens
             $competitorsData = [];
