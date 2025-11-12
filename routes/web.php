@@ -33,12 +33,16 @@ Route::get('/test-phone-tracking', function () {
         Route::get('/setup', [ConfigController::class, 'showSetup'])->name('config.setup');
         Route::post('/setup', [ConfigController::class, 'processSetup'])->name('config.setup.process');
         
-        // Route pour exécuter le scheduler via HTTP (pour services externes comme cron-job.org)
+        // Route pour exécuter le scheduler via HTTP (pour services externes comme EasyCron, cron-job.org)
         // Protégée par token pour la sécurité
+        // EasyCron peut attendre jusqu'à 5 minutes - on exécute tout et on répond uniquement à la fin
         Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
-            // Augmenter le timeout pour permettre la génération complète
+            // Augmenter le timeout pour permettre la génération complète (5 minutes max pour EasyCron)
             set_time_limit(300); // 5 minutes
             ini_set('max_execution_time', 300);
+            ini_set('default_socket_timeout', 300);
+            
+            $startTime = microtime(true);
             
             $token = $request->query('token');
             $configuredToken = \App\Models\Setting::where('key', 'schedule_run_token')->value('value');
