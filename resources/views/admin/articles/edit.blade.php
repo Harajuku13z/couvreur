@@ -839,11 +839,26 @@ document.querySelector('form').addEventListener('submit', function(e) {
     console.log('Form action:', this.action);
     console.log('Form method:', this.method);
     
-    // Synchroniser le contenu Quill avant soumission
+    // Synchroniser le contenu Quill avant soumission (vérification finale)
     const hiddenTextarea = document.getElementById('content_html_hidden');
     if (hiddenTextarea && quill) {
-        hiddenTextarea.value = quill.root.innerHTML;
-        console.log('Content HTML synchronisé, longueur:', hiddenTextarea.value.length);
+        const quillContent = quill.root.innerHTML;
+        hiddenTextarea.value = quillContent;
+        hiddenTextarea.name = 'content_html'; // S'assurer que le nom est correct
+        console.log('Content HTML synchronisé (étape 2), longueur:', hiddenTextarea.value.length);
+        
+        // Vérification finale du contenu
+        if (!hiddenTextarea.value || hiddenTextarea.value.trim() === '' || hiddenTextarea.value.trim() === '<p><br></p>') {
+            console.error('ERREUR: Le contenu est vide après synchronisation!');
+            e.preventDefault();
+            alert('Le contenu de l\'article ne peut pas être vide. Veuillez ajouter du contenu.');
+            return false;
+        }
+    } else {
+        console.error('ERREUR: Quill ou textarea non disponible lors de la soumission', {
+            quill: !!quill,
+            textarea: !!hiddenTextarea
+        });
     }
     
     // Supprimer les anciens inputs cachés s'ils existent
