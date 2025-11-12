@@ -1023,24 +1023,49 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 {$relatedKeywordsContext}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔍 **ANALYSE CONCURRENTIELLE & OPPORTUNITÉS**
+🔍 **ÉTAPE 1 : RECHERCHE APPROFONDIE OBLIGATOIRE (AVANT TOUT)**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Sujets déjà traités par les concurrents :**
-{$this->formatTopics($competitorTopics)}
+⚠️ **CRITIQUE : AVANT de commencer à rédiger, tu DOIS effectuer une recherche approfondie complète.**
 
-**Questions fréquentes identifiées :**
+**INSTRUCTIONS DE RECHERCHE :**
+
+1. **ANALYSE DU MOT-CLÉ ET DE L'INTENTION :**
+   - Comprendre en profondeur ce que recherche l'utilisateur avec "{$keyword}"
+   - Identifier les questions sous-jacentes (pourquoi, comment, combien, où, quand, qui)
+   - Déterminer le niveau d'expertise attendu (débutant, intermédiaire, expert)
+   - Analyser l'intention : information, comparaison, achat, localisation
+
+2. **ANALYSE APPROFONDIE DES CONCURRENTS :**
+   - Examiner CHAQUE résultat SERP fourni ci-dessous en détail
+   - Identifier les sujets traités par chaque concurrent
+   - Repérer les angles d'approche utilisés
+   - Noter les informations manquantes ou superficielles
+   - Détecter les erreurs ou imprécisions dans leurs contenus
+   - Analyser leur structure (comment ils organisent l'information)
+   - Identifier leurs points forts et leurs faiblesses
+
+**RÉSULTATS SERP DES CONCURRENTS À ANALYSER :**
+{$this->formatSerpResultsForAnalysis($serpResults)}
+
+**QUESTIONS FRÉQUENTES IDENTIFIÉES :**
 {$this->formatQuestions($commonQuestions)}
 
-**🎯 OPPORTUNITÉS DE DIFFÉRENCIATION (Gaps concurrentiels) :**
-{$this->formatCompetitorGaps($competitorGaps)}
+3. **SYNTHÈSE DE RECHERCHE :**
+   Après avoir analysé tous les concurrents, créer une synthèse qui identifie :
+   - Les sujets les plus importants à couvrir (basés sur ce que les concurrents traitent)
+   - Les angles uniques à développer (ce que les concurrents ne font pas bien)
+   - Les informations manquantes ou incomplètes chez les concurrents
+   - La meilleure structure d'article (basée sur ce qui fonctionne, mais améliorée)
+   - Les questions non répondues ou mal répondues par les concurrents
 
-**STRATÉGIE DE DOMINATION :**
-1. Traiter TOUS les sujets concurrents en mieux (plus de détails, exemples concrets)
-2. Combler les gaps identifiés avec sections dédiées
+**🎯 STRATÉGIE DE DOMINATION :**
+1. Créer un contenu qui SURPASSE tous les concurrents en profondeur et qualité
+2. Combler TOUS les gaps identifiés dans l'analyse concurrentielle
 3. Ajouter perspective unique : spécificités locales {$city}, tendances {$currentYear}, innovations
 4. Intégrer expertise terrain : erreurs courantes, conseils pro, cas réels
 5. Fournir outils actionnables : checklists, calculateurs mentaux, guides étape par étape
+6. Répondre à TOUTES les questions fréquentes de manière plus complète que les concurrents
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💰 **RECHERCHE APPROFONDIE DES PRIX - OBLIGATOIRE**
@@ -1085,12 +1110,36 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 - ✅ Adapter les prix à la région {$city} si pertinente
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏗️ **ARCHITECTURE DE CONTENU ULTRA-PERFORMANTE**
+🏗️ **ÉTAPE 2 : CRÉATION D'UNE STRUCTURE NATURELLE ET UNIQUE**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**STRUCTURE OBLIGATOIRE :**
+⚠️ **CRITIQUE : Ne JAMAIS utiliser une structure prédéfinie ou répétitive.**
 
-**1. INTRODUCTION MAGNÉTIQUE** (250-300 mots)
+**RÈGLES ABSOLUES POUR LA STRUCTURE :**
+
+1. **CRÉER UNE STRUCTURE UNIQUE** basée sur :
+   - L'analyse approfondie des concurrents (étape 1)
+   - Les sujets réellement importants pour "{$keyword}"
+   - Les questions fréquentes identifiées
+   - L'intention de l'utilisateur
+   - Les gaps concurrentiels détectés
+
+2. **INTERDICTIONS ABSOLUES :**
+   - ❌ JAMAIS utiliser une structure prédéfinie comme "Les avantages d'un...", "Comment obtenir votre devis ?", "Choix de matériaux et techniques", etc.
+   - ❌ JAMAIS créer un sommaire avec les mêmes sections que les autres articles
+   - ❌ JAMAIS répéter des titres de sections génériques
+   - ❌ JAMAIS utiliser des formules toutes faites
+
+3. **CE QUI EST OBLIGATOIRE :**
+   - ✅ Créer une structure adaptée au sujet spécifique "{$keyword}"
+   - ✅ Développer les sections les plus pertinentes pour répondre à l'intention de recherche
+   - ✅ Organiser le contenu de manière logique et naturelle
+   - ✅ Chaque section doit avoir un titre unique et pertinent (pas de copier-coller)
+   - ✅ Le sommaire doit refléter la structure réelle de l'article
+
+**STRUCTURE DE BASE (À ADAPTER SELON LE SUJET) :**
+
+**1. INTRODUCTION MAGNÉTIQUE** (250-400 mots)
 ```html
 <div class="article-intro">
   <p><strong>[Accroche émotionnelle : problème concret du lecteur]</strong></p>
@@ -1108,43 +1157,62 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 ✅ Promesse claire (3-5 bénéfices listés)
 ✅ Ton empathique et professionnel
 
-**2. SOMMAIRE CLIQUABLE** (Navigation UX)
+**2. SOMMAIRE CLIQUABLE** (Créé APRÈS avoir défini la structure)
 ```html
 <nav class="table-of-contents" aria-label="Sommaire de l'article">
   <h2>📑 Au Sommaire</h2>
   <ul>
-    <li><a href="#section-1">[Titre section 1 avec mot-clé]</a></li>
-    <li><a href="#section-2">[Titre section 2 avec variante]</a></li>
-    <li><a href="#section-3">[Titre section 3]</a></li>
-    <li><a href="#section-4">[Titre section 4]</a></li>
-    <li><a href="#section-5">[Titre section 5]</a></li>
-    <li><a href="#section-6">[Titre section 6]</a></li>
+    <li><a href="#section-1">[Titre section 1 UNIQUE et PERTINENT]</a></li>
+    <li><a href="#section-2">[Titre section 2 UNIQUE et PERTINENT]</a></li>
+    <li><a href="#section-3">[Titre section 3 UNIQUE et PERTINENT]</a></li>
+    <!-- Ajouter autant de sections que nécessaire selon l'analyse -->
     <li><a href="#faq">Questions Fréquentes</a></li>
   </ul>
 </nav>
 ```
 
-**3. SECTIONS PRINCIPALES** (6-8 sections H2 OBLIGATOIRES)
+**⚠️ IMPORTANT : Le sommaire doit être créé APRÈS avoir analysé les concurrents et défini la structure unique de l'article. Ne JAMAIS utiliser un sommaire générique.**
 
-**🚨 RÈGLE ABSOLUE CRITIQUE - À RESPECTER IMPÉRATIVEMENT - VIOLATION = ÉCHEC TOTAL :**
+**3. SECTIONS PRINCIPALES** (6-10 sections H2 selon le sujet)
 
-**1. TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement (700-900 mots chacune)**
-**2. Les sections DOIVENT être développées DANS L'ORDRE du sommaire, sans exception**
-**3. AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots)**
-**4. CHAQUE section doit faire MINIMUM 700-900 mots (pas de section avec 2-3 lignes ou vide)**
-**5. INTERDIT ABSOLUMENT de créer un titre H2 suivi de rien ou de seulement 2-3 lignes**
-**6. INTERDIT de mettre des placeholders comme "Cette section sera développée" ou "Contenu à venir"**
-**7. Si une section est trop courte, AJOUTER immédiatement : exemples, détails techniques, conseils, données chiffrées, cas pratiques, procédures étape par étape, avantages/inconvénients, coûts, durées, matériaux, techniques, normes, réglementations**
-**8. CHAQUE section doit contenir IMMÉDIATEMENT après le titre H2 : 3-5 paragraphes de 100-150 mots, des exemples concrets, des informations pratiques, des conseils d'experts**
+**🚨 RÈGLES ABSOLUES CRITIQUES - À RESPECTER IMPÉRATIVEMENT :**
 
-**THÈMES OBLIGATOIRES À COUVRIR (développer CHACUN en profondeur) :**
-- ✅ **Les avantages d'un {$keyword}** (700-900 mots) : Développer tous les avantages, bénéfices, retours sur investissement, comparaisons avant/après
-- ✅ **Comment obtenir votre devis ?** (700-900 mots) : Processus complet étape par étape, documents nécessaires, délais, ce qui est inclus
-- ✅ **Choix de matériaux et techniques** (700-900 mots) : Comparatif détaillé de tous les matériaux, avantages/inconvénients, prix, durabilité, recommandations
-- ✅ **Comprendre les coûts d'une {$keyword}** (700-900 mots) : Détail de tous les postes de dépense, fourchettes LARGES et RÉALISTES basées sur une recherche approfondie du marché français {$currentYear} pour {$city}, facteurs influençant le prix, exemples chiffrés détaillés par type de prestation (petite réparation, réparation moyenne, rénovation complète, installation neuve). IMPORTANT : Fournir plusieurs fourchettes selon le type de prestation, jamais une seule fourchette trop étroite.
-- ✅ **Réglementations et normes {$currentYear}** (700-900 mots) : Toutes les normes applicables, obligations légales, certifications requises, évolutions récentes
-- ✅ **Maintenance et entretien** (700-900 mots) : Guide complet d'entretien, fréquence, coûts, conseils pro, erreurs à éviter
-- ✅ **Questions Fréquentes** (10-12 questions avec réponses détaillées 80-150 mots chacune)
+**1. CRÉER DES SECTIONS UNIQUES ET PERTINENTES :**
+   - Baser les sections sur l'analyse approfondie des concurrents (étape 1)
+   - Chaque section doit répondre à une question ou un besoin réel identifié
+   - Les titres de sections doivent être spécifiques au sujet "{$keyword}"
+   - Éviter les titres génériques ou répétitifs
+
+**2. DÉVELOPPEMENT COMPLET DE CHAQUE SECTION :**
+   - TOUTES les sections listées dans le sommaire DOIVENT être développées intégralement (600-1000 mots chacune)
+   - Les sections DOIVENT être développées DANS L'ORDRE du sommaire, sans exception
+   - AUCUNE section ne doit être omise, même si l'article devient très long (3000+ mots)
+   - CHAQUE section doit faire MINIMUM 600 mots (pas de section avec 2-3 lignes ou vide)
+   - INTERDIT ABSOLUMENT de créer un titre H2 suivi de rien ou de seulement 2-3 lignes
+   - INTERDIT de mettre des placeholders comme "Cette section sera développée" ou "Contenu à venir"
+   - Si une section est trop courte, AJOUTER immédiatement : exemples, détails techniques, conseils, données chiffrées, cas pratiques, procédures étape par étape, avantages/inconvénients, coûts, durées, matériaux, techniques, normes, réglementations
+   - CHAQUE section doit contenir IMMÉDIATEMENT après le titre H2 : 3-5 paragraphes de 100-150 mots, des exemples concrets, des informations pratiques, des conseils d'experts
+
+**3. EXEMPLES DE SECTIONS PERTINENTES (À ADAPTER SELON LE SUJET) :**
+   Les sections suivantes sont des EXEMPLES. Tu DOIS créer des sections adaptées au sujet "{$keyword}" basées sur :
+   - L'analyse des concurrents
+   - Les questions fréquentes identifiées
+   - Les gaps concurrentiels
+   - L'intention de recherche
+   
+   **Exemples de sections possibles (à adapter) :**
+   - Si le sujet concerne les prix : "Quel est le coût réel de {$keyword} à {$city} en {$currentYear} ?"
+   - Si le sujet concerne les matériaux : "Quels matériaux choisir pour {$keyword} ? Guide comparatif complet"
+   - Si le sujet concerne les erreurs : "Les erreurs à éviter lors de {$keyword} : conseils d'un expert"
+   - Si le sujet concerne les techniques : "Techniques modernes de {$keyword} : innovations {$currentYear}"
+   - Si le sujet concerne les réglementations : "Normes et réglementations {$keyword} : ce qu'il faut savoir en {$currentYear}"
+   - Si le sujet concerne l'entretien : "Maintenance et entretien {$keyword} : guide pratique"
+   - Si le sujet concerne le processus : "Comment se déroule un projet de {$keyword} ? Étapes détaillées"
+   - Si le sujet concerne les avantages : "Pourquoi opter pour {$keyword} ? Bénéfices et retours sur investissement"
+   
+   **⚠️ IMPORTANT : Ces exemples sont des GUIDES. Tu DOIS créer des sections UNIQUES adaptées au sujet spécifique "{$keyword}" en t'appuyant sur l'analyse des concurrents.**
+
+**4. QUESTIONS FRÉQUENTES** (10-15 questions avec réponses détaillées 80-200 mots chacune)
 
 **⚠️ INTERDICTIONS ABSOLUES - VIOLATION = ÉCHEC TOTAL :**
 - ❌ JAMAIS de section avec seulement 2-3 lignes ou vide
