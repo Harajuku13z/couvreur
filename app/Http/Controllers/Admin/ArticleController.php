@@ -78,10 +78,13 @@ class ArticleController extends Controller
             }
         }
 
+        // Normaliser les URLs d'images dans le contenu HTML
+        $normalizedContent = $this->normalizeImageUrlsInContent($validated['content_html']);
+
         $article = Article::create([
             'title' => $validated['title'],
             'slug' => Str::slug($validated['title']),
-            'content_html' => $validated['content_html'],
+            'content_html' => $normalizedContent,
             'meta_title' => $validated['meta_title'],
             'meta_description' => $validated['meta_description'],
             'meta_keywords' => $validated['meta_keywords'],

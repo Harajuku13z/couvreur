@@ -87,14 +87,22 @@ Route::get('/test-phone-tracking', function () {
                     ], 200);
                 }
                 
-                // Exécuter directement la génération d'articles (sans vérifier l'heure)
-                // En arrière-plan pour éviter timeout
-                \Artisan::call('seo:run-automations');
-                $output = \Artisan::output();
+                // Dispatcher les jobs de manière asynchrone pour éviter timeout
+                // Récupérer les villes favorites et dispatcher les jobs
+                $favoriteCities = \App\Models\City::where('is_favorite', true)->get();
+                $jobsCount = 0;
                 
-                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération directe', [
+                foreach ($favoriteCities as $city) {
+                    // Dispatcher le job pour chaque ville
+                    \App\Jobs\ProcessSeoCityJob::dispatch($city->id)
+                        ->onQueue('seo-automation');
+                    $jobsCount++;
+                }
+                
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Jobs dispatchés', [
                     'ip' => $request->ip(),
-                    'output' => $output,
+                    'cities_count' => $favoriteCities->count(),
+                    'jobs_count' => $jobsCount,
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ]);
                 
@@ -102,9 +110,10 @@ Route::get('/test-phone-tracking', function () {
                 return response()->json([
                     'success' => true,
                     'message' => 'Génération d\'articles lancée à ' . now()->format('Y-m-d H:i:s'),
-                    'output' => substr($output, 0, 500) . (strlen($output) > 500 ? '...' : ''),
-                    'note' => 'Les articles sont générés directement (mode exécution directe). Le traitement peut prendre quelques minutes.',
-                    'status' => 'processing'
+                    'cities_count' => $favoriteCities->count(),
+                    'jobs_count' => $jobsCount,
+                    'note' => 'Les jobs ont été dispatchés dans la queue. Exécutez "php artisan queue:work --queue=seo-automation" pour traiter les jobs.',
+                    'status' => 'queued'
                 ], 200);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [
