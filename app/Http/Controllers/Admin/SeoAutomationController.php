@@ -201,7 +201,7 @@ class SeoAutomationController extends Controller
     }
 
     /**
-     * Relancer une automation échouée
+     * Relancer une automation échouée ou en attente
      */
     public function retry(SeoAutomation $seoAutomation)
     {
@@ -210,11 +210,53 @@ class SeoAutomationController extends Controller
                 ->with('error', 'Ville non trouvée pour cette automation.');
         }
 
-        ProcessSeoCityJob::dispatch($seoAutomation->city_id, null)
+        // Utiliser le mot-clé du log s'il existe
+        $keyword = $seoAutomation->keyword;
+        
+        ProcessSeoCityJob::dispatch($seoAutomation->city_id, $keyword)
             ->onQueue('seo-automation');
         
         return redirect()->back()
             ->with('success', "Automation relancée pour {$seoAutomation->city->name}.");
+    }
+
+    /**
+     * Supprimer un log d'automation et son article associé
+     */
+    public function destroy(SeoAutomation $seoAutomation)
+    {
+        try {
+            $articleId = $seoAutomation->article_id;
+            $cityName = $seoAutomation->city->name ?? 'N/A';
+            
+            // Supprimer l'article associé s'il existe
+            if ($articleId) {
+                $article = \App\Models\Article::find($articleId);
+                if ($article) {
+                    $article->delete();
+                    Log::info('Article supprimé avec le log SEO automation', [
+                        'article_id' => $articleId,
+                        'log_id' => $seoAutomation->id
+                    ]);
+                }
+            }
+            
+            // Supprimer le log
+            $seoAutomation->delete();
+            
+            return redirect()->back()
+                ->with('success', "Log et article supprimés avec succès pour {$cityName}.");
+                
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la suppression du log SEO automation', [
+                'log_id' => $seoAutomation->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de la suppression: ' . $e->getMessage());
+        }
     }
 
     /**

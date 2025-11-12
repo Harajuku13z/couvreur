@@ -783,14 +783,27 @@
                         {{ $log->created_at->format('d/m/Y H:i') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        @if($log->status === 'failed')
-                            <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-redo mr-1"></i> Relancer
-                                </button>
-                            </form>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            @if($log->status === 'pending' || $log->status === 'failed')
+                                <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-blue-600 hover:text-blue-900" title="Régénérer">
+                                        <i class="fas fa-redo mr-1"></i> Régénérer
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            @if($log->article_id)
+                                <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="inline" 
+                                      onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                        <i class="fas fa-trash mr-1"></i> Supprimer
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -881,14 +894,27 @@
                 @endif
             @endif
             
-            @if($log->status === 'failed')
-                <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="mt-2">
-                    @csrf
-                    <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
-                        <i class="fas fa-redo mr-1"></i> Relancer
-                    </button>
-                </form>
-            @endif
+            <div class="flex gap-2 mt-3">
+                @if($log->status === 'pending' || $log->status === 'failed')
+                    <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+                            <i class="fas fa-redo mr-1"></i> Régénérer
+                        </button>
+                    </form>
+                @endif
+                
+                @if($log->article_id)
+                    <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="flex-1"
+                          onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">
+                            <i class="fas fa-trash mr-1"></i> Supprimer
+                        </button>
+                    </form>
+                @endif
+            </div>
             
             @if($log->error_message)
                 <div class="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">

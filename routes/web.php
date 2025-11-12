@@ -409,6 +409,7 @@ Route::middleware(['check.setup'])->group(function () {
             Route::post('/seo-automation/save-keywords', [App\Http\Controllers\Admin\SeoAutomationController::class, 'saveKeywords'])->name('seo-automation.save-keywords');
             Route::post('/seo-automation/run/{city}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'runForCity'])->name('seo-automation.run-city');
             Route::post('/seo-automation/{seoAutomation}/retry', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retry'])->name('seo-automation.retry');
+            Route::delete('/seo-automation/{seoAutomation}', [App\Http\Controllers\Admin\SeoAutomationController::class, 'destroy'])->name('seo-automation.destroy');
             Route::post('/seo-automation/retry-pending-failed', [App\Http\Controllers\Admin\SeoAutomationController::class, 'retryPendingAndFailed'])->name('seo-automation.retry-pending-failed');
             Route::post('/seo-automation/force-run', [App\Http\Controllers\Admin\SeoAutomationController::class, 'forceRun'])->name('seo-automation.force-run');
             Route::post('/seo-automation/execute-now', [App\Http\Controllers\Admin\SeoAutomationController::class, 'executeNow'])->name('seo-automation.execute-now');
