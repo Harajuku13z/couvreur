@@ -218,6 +218,94 @@ class SeoAutomationController extends Controller
     }
 
     /**
+     * Relancer tous les articles en attente ou en échec
+     */
+    public function retryPendingAndFailed(Request $request)
+    {
+        try {
+            // Récupérer tous les logs en attente ou en échec
+            $pendingLogs = SeoAutomation::where('status', 'pending')
+                ->with('city')
+                ->get();
+            
+            $failedLogs = SeoAutomation::where('status', 'failed')
+                ->with('city')
+                ->get();
+            
+            $totalLogs = $pendingLogs->count() + $failedLogs->count();
+            
+            if ($totalLogs === 0) {
+                return redirect()->back()
+                    ->with('info', 'Aucun article en attente ou en échec à relancer.');
+            }
+            
+            $relaunchedCount = 0;
+            $errors = [];
+            
+            // Relancer les logs en attente
+            foreach ($pendingLogs as $log) {
+                if ($log->city) {
+                    try {
+                        ProcessSeoCityJob::dispatch($log->city_id, $log->keyword)
+                            ->onQueue('seo-automation');
+                        $relaunchedCount++;
+                    } catch (\Exception $e) {
+                        $errors[] = "Erreur pour {$log->city->name}: " . $e->getMessage();
+                        Log::error('Erreur relance automation pending', [
+                            'log_id' => $log->id,
+                            'city_id' => $log->city_id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+            
+            // Relancer les logs en échec
+            foreach ($failedLogs as $log) {
+                if ($log->city) {
+                    try {
+                        ProcessSeoCityJob::dispatch($log->city_id, $log->keyword)
+                            ->onQueue('seo-automation');
+                        $relaunchedCount++;
+                    } catch (\Exception $e) {
+                        $errors[] = "Erreur pour {$log->city->name}: " . $e->getMessage();
+                        Log::error('Erreur relance automation failed', [
+                            'log_id' => $log->id,
+                            'city_id' => $log->city_id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+            
+            $message = "✅ {$relaunchedCount} article(s) relancé(s) avec succès";
+            if (count($errors) > 0) {
+                $message .= ". ⚠️ " . count($errors) . " erreur(s) lors de la relance.";
+            }
+            
+            Log::info('Relance manuelle des articles pending/failed', [
+                'pending_count' => $pendingLogs->count(),
+                'failed_count' => $failedLogs->count(),
+                'relaunched_count' => $relaunchedCount,
+                'errors_count' => count($errors)
+            ]);
+            
+            return redirect()->back()
+                ->with('success', $message)
+                ->with('relaunch_errors', $errors);
+                
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la relance des articles pending/failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de la relance: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Lancer la génération avec paramètres personnalisés
      */
     public function run(Request $request)

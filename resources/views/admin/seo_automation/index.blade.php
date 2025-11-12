@@ -577,6 +577,34 @@
         </div>
     </div>
 
+    <!-- Bouton de relance manuelle -->
+    @if($stats['pending'] > 0 || $stats['failed'] > 0)
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-redo-alt text-yellow-600 mr-2"></i>
+                <div>
+                    <p class="text-sm font-medium text-yellow-900">
+                        Articles en attente ou en échec
+                    </p>
+                    <p class="text-xs text-yellow-700 mt-1">
+                        {{ $stats['pending'] }} en attente, {{ $stats['failed'] }} échoué(s)
+                    </p>
+                </div>
+            </div>
+            <form action="{{ route('admin.seo-automation.retry-pending-failed') }}" method="POST" class="inline" 
+                  onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir relancer {{ $stats['pending'] + $stats['failed'] }} article(s) en attente ou en échec ?');">
+                @csrf
+                <button type="submit" 
+                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i>
+                    Relancer tous les articles en attente/échec
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <!-- Formulaire de lancement -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">
