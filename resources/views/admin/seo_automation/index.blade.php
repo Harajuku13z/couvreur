@@ -559,10 +559,9 @@
             <div class="text-sm text-gray-600">Total</div>
             <div class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</div>
         </div>
-        <div class="bg-yellow-50 rounded-lg shadow p-4 opacity-50">
+        <div class="bg-yellow-50 rounded-lg shadow p-4">
             <div class="text-sm text-gray-600">En attente</div>
-            <div class="text-2xl font-bold text-yellow-600">0</div>
-            <div class="text-xs text-gray-500 mt-1">(Désactivé)</div>
+            <div class="text-2xl font-bold text-yellow-600">{{ $stats['pending'] }}</div>
         </div>
         <div class="bg-blue-50 rounded-lg shadow p-4">
             <div class="text-sm text-gray-600">Publiés</div>
@@ -738,14 +737,14 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         @php
                             $statusColors = [
-                                'pending' => 'bg-red-100 text-red-800', // Traiter comme échec
+                                'pending' => 'bg-yellow-100 text-yellow-800',
                                 'generated' => 'bg-blue-100 text-blue-800',
                                 'published' => 'bg-blue-100 text-blue-800',
                                 'indexed' => 'bg-green-100 text-green-800',
                                 'failed' => 'bg-red-100 text-red-800',
                             ];
                             $statusLabels = [
-                                'pending' => 'Échoué', // Afficher comme échoué
+                                'pending' => 'En attente',
                                 'generated' => 'Généré',
                                 'published' => 'Publié',
                                 'indexed' => 'Indexé',
@@ -829,14 +828,14 @@
                 </div>
                 @php
                     $statusColors = [
-                        'pending' => 'bg-red-100 text-red-800', // Traiter comme échec
+                        'pending' => 'bg-yellow-100 text-yellow-800',
                         'generated' => 'bg-blue-100 text-blue-800',
                         'published' => 'bg-blue-100 text-blue-800',
                         'indexed' => 'bg-green-100 text-green-800',
                         'failed' => 'bg-red-100 text-red-800',
                     ];
                     $statusLabels = [
-                        'pending' => 'Échoué', // Afficher comme échoué
+                        'pending' => 'En attente',
                         'generated' => 'Généré',
                         'published' => 'Publié',
                         'indexed' => 'Indexé',

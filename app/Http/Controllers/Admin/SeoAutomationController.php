@@ -64,17 +64,21 @@ class SeoAutomationController extends Controller
      */
     public function index()
     {
-        // Convertir tous les logs "pending" en "failed" (nettoyage automatique)
-        $pendingLogs = SeoAutomation::where('status', 'pending')->get();
-        if ($pendingLogs->count() > 0) {
-            foreach ($pendingLogs as $pendingLog) {
+        // Convertir uniquement les logs "pending" anciens (> 10 minutes) en "failed" (nettoyage automatique)
+        // Les logs "pending" récents (< 10 minutes) sont probablement en cours d'exécution
+        $oldPendingLogs = SeoAutomation::where('status', 'pending')
+            ->where('created_at', '<', now()->subMinutes(10))
+            ->get();
+        
+        if ($oldPendingLogs->count() > 0) {
+            foreach ($oldPendingLogs as $pendingLog) {
                 $pendingLog->update([
                     'status' => 'failed',
-                    'error_message' => $pendingLog->error_message ?? 'Traitement interrompu - statut en attente converti en échec'
+                    'error_message' => $pendingLog->error_message ?? 'Traitement interrompu - statut en attente trop ancien (> 10 min)'
                 ]);
             }
-            Log::info('SeoAutomationController: Logs "pending" convertis en "failed"', [
-                'count' => $pendingLogs->count()
+            Log::info('SeoAutomationController: Logs "pending" anciens convertis en "failed"', [
+                'count' => $oldPendingLogs->count()
             ]);
         }
         
@@ -82,10 +86,10 @@ class SeoAutomationController extends Controller
             ->latest()
             ->paginate(30);
         
-        // Statistiques (sans "pending" car ils sont convertis en "failed")
+        // Statistiques (inclure les "pending" récents qui sont en cours d'exécution)
         $stats = [
             'total' => SeoAutomation::count(),
-            'pending' => 0, // Plus de pending, tous convertis
+            'pending' => SeoAutomation::where('status', 'pending')->count(),
             'published' => SeoAutomation::where('status', 'published')->count(),
             'indexed' => SeoAutomation::where('status', 'indexed')->count(),
             'failed' => SeoAutomation::where('status', 'failed')->count(),
@@ -339,8 +343,8 @@ class SeoAutomationController extends Controller
                 $message .= ". ⚠️ " . count($errors) . " erreur(s) lors de la relance.";
             }
             
-            Log::info('Relance manuelle des articles failed', [
-                'pending_converted' => $pendingLogs->count(),
+            Log::info('Relance manuelle des articles pending/failed', [
+                'pending_count' => $pendingLogs->count(),
                 'failed_count' => $failedLogs->count(),
                 'relaunched_count' => $relaunchedCount,
                 'errors_count' => count($errors)
