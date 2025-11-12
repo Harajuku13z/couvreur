@@ -379,10 +379,11 @@ class SeoAutomationManager
                 $seoAnalysis = null;
             }
 
-            // 8. Update log
+            // 8. Update log - FORCER le statut à "indexed" ou "published" (jamais "pending")
+            $finalStatus = $indexed ? 'indexed' : 'published';
             $log->update([
                 'keyword' => $keyword,
-                'status' => $indexed ? 'indexed' : 'published',
+                'status' => $finalStatus, // Toujours "indexed" ou "published", jamais "pending"
                 'article_id' => (string)$article->id,
                 'article_url' => $url,
                 'metadata' => [
@@ -396,26 +397,30 @@ class SeoAutomationManager
                 'error_message' => null,
             ]);
 
+            // Vérification finale : s'assurer que le statut n'est JAMAIS resté "pending"
+            $log->refresh(); // Recharger depuis la DB
+            if ($log->status === 'pending') {
+                Log::error('SeoAutomationManager: Le statut est resté "pending" après update - FORCAGE en "published"', [
+                    'city_id' => $city->id,
+                    'log_id' => $log->id,
+                    'article_id' => $article->id
+                ]);
+                // Forcer le statut à "published" si l'article existe
+                $log->update([
+                    'status' => 'published',
+                    'error_message' => null
+                ]);
+            }
+
             Log::info('SeoAutomationManager: Article créé avec succès', [
                 'city' => $city->name,
                 'keyword' => $keyword,
                 'article_id' => $article->id,
                 'url' => $url,
+                'status' => $log->status,
                 'seo_score' => $seoAnalysis['percentage'] ?? null,
                 'seo_grade' => $seoAnalysis['grade'] ?? null
             ]);
-
-            // Vérification finale : s'assurer que le statut n'est jamais resté "pending"
-            if ($log && $log->status === 'pending') {
-                Log::error('SeoAutomationManager: Le statut est resté "pending" après traitement complet', [
-                    'city_id' => $city->id,
-                    'log_id' => $log->id
-                ]);
-                $log->update([
-                    'status' => 'failed',
-                    'error_message' => 'Le traitement n\'a pas abouti - statut resté en attente'
-                ]);
-            }
             
             return $log;
         } catch (Exception $e) {

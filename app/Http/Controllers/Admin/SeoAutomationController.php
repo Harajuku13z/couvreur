@@ -64,14 +64,28 @@ class SeoAutomationController extends Controller
      */
     public function index()
     {
+        // Convertir tous les logs "pending" en "failed" (nettoyage automatique)
+        $pendingLogs = SeoAutomation::where('status', 'pending')->get();
+        if ($pendingLogs->count() > 0) {
+            foreach ($pendingLogs as $pendingLog) {
+                $pendingLog->update([
+                    'status' => 'failed',
+                    'error_message' => $pendingLog->error_message ?? 'Traitement interrompu - statut en attente converti en échec'
+                ]);
+            }
+            Log::info('SeoAutomationController: Logs "pending" convertis en "failed"', [
+                'count' => $pendingLogs->count()
+            ]);
+        }
+        
         $logs = SeoAutomation::with('city')
             ->latest()
             ->paginate(30);
         
-        // Statistiques
+        // Statistiques (sans "pending" car ils sont convertis en "failed")
         $stats = [
             'total' => SeoAutomation::count(),
-            'pending' => SeoAutomation::where('status', 'pending')->count(),
+            'pending' => 0, // Plus de pending, tous convertis
             'published' => SeoAutomation::where('status', 'published')->count(),
             'indexed' => SeoAutomation::where('status', 'indexed')->count(),
             'failed' => SeoAutomation::where('status', 'failed')->count(),
@@ -325,8 +339,8 @@ class SeoAutomationController extends Controller
                 $message .= ". ⚠️ " . count($errors) . " erreur(s) lors de la relance.";
             }
             
-            Log::info('Relance manuelle des articles pending/failed', [
-                'pending_count' => $pendingLogs->count(),
+            Log::info('Relance manuelle des articles failed', [
+                'pending_converted' => $pendingLogs->count(),
                 'failed_count' => $failedLogs->count(),
                 'relaunched_count' => $relaunchedCount,
                 'errors_count' => count($errors)

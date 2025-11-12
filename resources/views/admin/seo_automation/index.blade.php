@@ -559,9 +559,10 @@
             <div class="text-sm text-gray-600">Total</div>
             <div class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</div>
         </div>
-        <div class="bg-yellow-50 rounded-lg shadow p-4">
+        <div class="bg-yellow-50 rounded-lg shadow p-4 opacity-50">
             <div class="text-sm text-gray-600">En attente</div>
-            <div class="text-2xl font-bold text-yellow-600">{{ $stats['pending'] }}</div>
+            <div class="text-2xl font-bold text-yellow-600">0</div>
+            <div class="text-xs text-gray-500 mt-1">(Désactivé)</div>
         </div>
         <div class="bg-blue-50 rounded-lg shadow p-4">
             <div class="text-sm text-gray-600">Publiés</div>
@@ -578,27 +579,27 @@
     </div>
 
     <!-- Bouton de relance manuelle -->
-    @if($stats['pending'] > 0 || $stats['failed'] > 0)
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+    @if($stats['failed'] > 0)
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
-                <i class="fas fa-redo-alt text-yellow-600 mr-2"></i>
+                <i class="fas fa-redo-alt text-red-600 mr-2"></i>
                 <div>
-                    <p class="text-sm font-medium text-yellow-900">
-                        Articles en attente ou en échec
+                    <p class="text-sm font-medium text-red-900">
+                        Articles en échec
                     </p>
-                    <p class="text-xs text-yellow-700 mt-1">
-                        {{ $stats['pending'] }} en attente, {{ $stats['failed'] }} échoué(s)
+                    <p class="text-xs text-red-700 mt-1">
+                        {{ $stats['failed'] }} article(s) échoué(s)
                     </p>
                 </div>
             </div>
             <form action="{{ route('admin.seo-automation.retry-pending-failed') }}" method="POST" class="inline" 
-                  onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir relancer {{ $stats['pending'] + $stats['failed'] }} article(s) en attente ou en échec ?');">
+                  onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir relancer {{ $stats['failed'] }} article(s) en échec ?');">
                 @csrf
                 <button type="submit" 
-                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
+                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center">
                     <i class="fas fa-play-circle mr-2"></i>
-                    Relancer tous les articles en attente/échec
+                    Relancer tous les articles en échec
                 </button>
             </form>
         </div>
@@ -737,14 +738,14 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         @php
                             $statusColors = [
-                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                'pending' => 'bg-red-100 text-red-800', // Traiter comme échec
                                 'generated' => 'bg-blue-100 text-blue-800',
                                 'published' => 'bg-blue-100 text-blue-800',
                                 'indexed' => 'bg-green-100 text-green-800',
                                 'failed' => 'bg-red-100 text-red-800',
                             ];
                             $statusLabels = [
-                                'pending' => 'En attente',
+                                'pending' => 'Échoué', // Afficher comme échoué
                                 'generated' => 'Généré',
                                 'published' => 'Publié',
                                 'indexed' => 'Indexé',
@@ -784,7 +785,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
-                            @if($log->status === 'pending' || $log->status === 'failed')
+                            @if($log->status === 'failed')
                                 <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="text-blue-600 hover:text-blue-900" title="Régénérer">
@@ -828,14 +829,14 @@
                 </div>
                 @php
                     $statusColors = [
-                        'pending' => 'bg-yellow-100 text-yellow-800',
+                        'pending' => 'bg-red-100 text-red-800', // Traiter comme échec
                         'generated' => 'bg-blue-100 text-blue-800',
                         'published' => 'bg-blue-100 text-blue-800',
                         'indexed' => 'bg-green-100 text-green-800',
                         'failed' => 'bg-red-100 text-red-800',
                     ];
                     $statusLabels = [
-                        'pending' => 'En attente',
+                        'pending' => 'Échoué', // Afficher comme échoué
                         'generated' => 'Généré',
                         'published' => 'Publié',
                         'indexed' => 'Indexé',
@@ -895,7 +896,7 @@
             @endif
             
             <div class="flex gap-2 mt-3">
-                @if($log->status === 'pending' || $log->status === 'failed')
+                @if($log->status === 'failed')
                     <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="flex-1">
                         @csrf
                         <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
