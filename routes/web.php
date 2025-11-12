@@ -109,30 +109,51 @@ Route::get('/test-phone-tracking', function () {
                 $totalFailed = 0;
                 $results = [];
                 
-                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération directe', [
+                \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Début génération', [
                     'ip' => $request->ip(),
                     'cities_count' => $favoriteCities->count(),
                     'articles_per_city' => $articlesPerCity,
-                    'timestamp' => now()->format('Y-m-d H:i:s')
+                    'timestamp' => now()->format('Y-m-d H:i:s'),
+                    'timeout_configured' => ini_get('max_execution_time')
                 ]);
                 
-                // Générer les articles pour chaque ville
+                // Générer les articles pour chaque ville - ATTENDRE LA FIN COMPLÈTE
                 foreach ($favoriteCities as $cityIndex => $city) {
+                    \Illuminate\Support\Facades\Log::info('Schedule HTTP - Traitement ville', [
+                        'city' => $city->name,
+                        'city_index' => $cityIndex + 1,
+                        'total_cities' => $favoriteCities->count()
+                    ]);
+                    
                     // Générer le nombre d'articles demandé pour chaque ville
                     for ($articleIndex = 0; $articleIndex < $articlesPerCity; $articleIndex++) {
                         try {
+                            \Illuminate\Support\Facades\Log::info('Schedule HTTP - Début génération article', [
+                                'city' => $city->name,
+                                'article_index' => $articleIndex + 1,
+                                'articles_per_city' => $articlesPerCity
+                            ]);
+                            
+                            // Exécuter la génération - cette méthode est synchrone et attend la fin
                             $log = $manager->runForCity($city, null);
                             
                             $totalProcessed++;
                             
-                            if ($log->status === 'indexed' || $log->status === 'published') {
+                            if ($log && ($log->status === 'indexed' || $log->status === 'published')) {
                                 $totalSuccess++;
                                 $results[] = [
                                     'city' => $city->name,
-                                    'keyword' => $log->keyword,
+                                    'keyword' => $log->keyword ?? 'N/A',
                                     'status' => 'success',
                                     'url' => $log->article_url ?? null,
+                                    'article_id' => $log->article_id ?? null,
                                 ];
+                                
+                                \Illuminate\Support\Facades\Log::info('Schedule HTTP - Article généré avec succès', [
+                                    'city' => $city->name,
+                                    'keyword' => $log->keyword,
+                                    'article_id' => $log->article_id
+                                ]);
                             } else {
                                 $totalFailed++;
                                 $results[] = [
@@ -141,9 +162,15 @@ Route::get('/test-phone-tracking', function () {
                                     'status' => 'failed',
                                     'error' => $log->error_message ?? 'Erreur inconnue',
                                 ];
+                                
+                                \Illuminate\Support\Facades\Log::warning('Schedule HTTP - Article échoué', [
+                                    'city' => $city->name,
+                                    'status' => $log->status ?? 'unknown',
+                                    'error' => $log->error_message ?? 'N/A'
+                                ]);
                             }
                             
-                            // Délai entre les articles pour éviter les rate limits
+                            // Délai entre les articles pour éviter les rate limits (seulement si pas le dernier)
                             if ($articleIndex < $articlesPerCity - 1) {
                                 sleep(2);
                             }
@@ -156,24 +183,31 @@ Route::get('/test-phone-tracking', function () {
                             ];
                             \Illuminate\Support\Facades\Log::error('Erreur génération article via schedule HTTP', [
                                 'city_id' => $city->id,
-                                'error' => $e->getMessage()
+                                'city_name' => $city->name,
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString()
                             ]);
                         }
                     }
                     
-                    // Délai entre les villes
+                    // Délai entre les villes (seulement si pas la dernière)
                     if ($cityIndex < $favoriteCities->count() - 1) {
                         sleep(3);
                     }
                 }
                 
+                $endTime = microtime(true);
+                $executionTime = round($endTime - $startTime, 2);
+                
                 \Illuminate\Support\Facades\Log::info('Schedule exécuté via HTTP - Génération terminée', [
                     'total_processed' => $totalProcessed,
                     'total_success' => $totalSuccess,
-                    'total_failed' => $totalFailed
+                    'total_failed' => $totalFailed,
+                    'execution_time_seconds' => $executionTime,
+                    'timestamp_end' => now()->format('Y-m-d H:i:s')
                 ]);
                 
-                // Retourner les résultats
+                // Répondre UNIQUEMENT après avoir terminé toutes les générations
                 return response()->json([
                     'success' => true,
                     'message' => 'Génération d\'articles terminée à ' . now()->format('Y-m-d H:i:s'),
@@ -182,18 +216,29 @@ Route::get('/test-phone-tracking', function () {
                     'total_processed' => $totalProcessed,
                     'total_success' => $totalSuccess,
                     'total_failed' => $totalFailed,
+                    'execution_time_seconds' => $executionTime,
                     'results' => $results,
-                    'status' => 'completed'
+                    'status' => 'completed',
+                    'timestamp' => now()->toIso8601String()
                 ], 200);
             } catch (\Exception $e) {
+                $endTime = microtime(true);
+                $executionTime = round($endTime - $startTime, 2);
+                
                 \Illuminate\Support\Facades\Log::error('Erreur exécution schedule via HTTP', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
+                    'execution_time_seconds' => $executionTime,
+                    'timestamp' => now()->format('Y-m-d H:i:s')
                 ]);
                 
+                // Répondre avec l'erreur même en cas d'échec (pour que EasyCron voie le résultat)
                 return response()->json([
+                    'success' => false,
                     'error' => 'Erreur lors de l\'exécution',
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
+                    'execution_time_seconds' => $executionTime,
+                    'timestamp' => now()->toIso8601String()
                 ], 500);
             }
         })->name('schedule.run');
