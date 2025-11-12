@@ -1457,6 +1457,63 @@ GÉNÈRE LES MOTS-CLÉS:";
     }
 
     /**
+     * Normaliser les URLs d'images dans le contenu HTML
+     * Convertit les URLs absolues en chemins relatifs pour un stockage cohérent
+     */
+    private function normalizeImageUrlsInContent($content)
+    {
+        if (empty($content)) {
+            return $content;
+        }
+        
+        // Récupérer le domaine de base
+        $baseUrl = config('app.url', url('/'));
+        $baseUrl = rtrim($baseUrl, '/');
+        
+        // Pattern pour trouver toutes les balises <img> avec src
+        $content = preg_replace_callback(
+            '/<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>/i',
+            function($matches) use ($baseUrl) {
+                $originalSrc = $matches[1];
+                $fullMatch = $matches[0];
+                
+                // Si c'est déjà un chemin relatif (commence par uploads/ ou images/), le garder tel quel
+                if (str_starts_with($originalSrc, 'uploads/') || str_starts_with($originalSrc, 'images/')) {
+                    return $fullMatch;
+                }
+                
+                // Si c'est une URL absolue avec notre domaine, convertir en chemin relatif
+                if (str_starts_with($originalSrc, $baseUrl)) {
+                    $relativePath = str_replace($baseUrl, '', $originalSrc);
+                    $relativePath = ltrim($relativePath, '/');
+                    
+                    // Vérifier que c'est bien un chemin d'image valide
+                    if (str_starts_with($relativePath, 'uploads/') || str_starts_with($relativePath, 'images/')) {
+                        // Remplacer l'URL absolue par le chemin relatif dans la balise
+                        $newSrc = str_replace($originalSrc, $relativePath, $fullMatch);
+                        Log::info('Image URL normalisée', [
+                            'original' => $originalSrc,
+                            'normalized' => $relativePath
+                        ]);
+                        return $newSrc;
+                    }
+                }
+                
+                // Si c'est une URL externe (autre domaine), la garder telle quelle
+                if (filter_var($originalSrc, FILTER_VALIDATE_URL) && !str_starts_with($originalSrc, $baseUrl)) {
+                    return $fullMatch;
+                }
+                
+                // Pour les autres cas, garder tel quel
+                return $fullMatch;
+            },
+            $content
+        );
+        
+        return $content;
+    }
+
+    /**
      * Upload d'image pour article
      */
     private function handleImageUpload($file)
