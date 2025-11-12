@@ -805,7 +805,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
-                            @if($log->status === 'pending' || $log->status === 'failed')
+                            @if($log->status === 'pending')
                                 <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="text-blue-600 hover:text-blue-900" title="Régénérer">
@@ -814,7 +814,7 @@
                                 </form>
                             @endif
                             
-                            @if($log->article_id)
+                            @if($log->status === 'failed' || $log->article_id)
                                 <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="inline" 
                                       onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
                                     @csrf
@@ -916,7 +916,7 @@
             @endif
             
             <div class="flex gap-2 mt-3">
-                @if($log->status === 'pending' || $log->status === 'failed')
+                @if($log->status === 'pending')
                     <form action="{{ route('admin.seo-automation.retry', $log) }}" method="POST" class="flex-1">
                         @csrf
                         <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
@@ -925,7 +925,7 @@
                     </form>
                 @endif
                 
-                @if($log->article_id)
+                @if($log->status === 'failed' || $log->article_id)
                     <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="flex-1"
                           onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
                         @csrf

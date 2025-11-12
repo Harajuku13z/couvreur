@@ -207,7 +207,27 @@ Route::get('/test-phone-tracking', function () {
                     'timestamp_end' => now()->format('Y-m-d H:i:s')
                 ]);
                 
+                // Vérifier si tous les articles ont échoué
+                $allFailed = ($totalProcessed > 0 && $totalSuccess === 0 && $totalFailed > 0);
+                
                 // Répondre UNIQUEMENT après avoir terminé toutes les générations
+                // Si tous les articles ont échoué, retourner une erreur
+                if ($allFailed) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tous les articles ont échoué lors de la génération',
+                        'cities_count' => $favoriteCities->count(),
+                        'articles_per_city' => $articlesPerCity,
+                        'total_processed' => $totalProcessed,
+                        'total_success' => $totalSuccess,
+                        'total_failed' => $totalFailed,
+                        'execution_time_seconds' => $executionTime,
+                        'results' => $results,
+                        'status' => 'failed',
+                        'timestamp' => now()->toIso8601String()
+                    ], 500);
+                }
+                
                 return response()->json([
                     'success' => true,
                     'message' => 'Génération d\'articles terminée à ' . now()->format('Y-m-d H:i:s'),
