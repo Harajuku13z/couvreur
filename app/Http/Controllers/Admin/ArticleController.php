@@ -206,6 +206,10 @@ class ArticleController extends Controller
                 }
             }
 
+            // Normaliser les URLs d'images dans le contenu HTML
+            $normalizedContent = $this->normalizeImageUrlsInContent($validated['content_html']);
+            $validated['content_html'] = $normalizedContent;
+
             $validated['featured_image'] = $featuredImagePath;
             $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
             
