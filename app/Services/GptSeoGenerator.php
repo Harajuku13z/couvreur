@@ -1633,6 +1633,52 @@ EOT;
     }
     
     /**
+     * Formater les résultats SERP pour l'analyse approfondie dans le prompt
+     */
+    protected function formatSerpResultsForAnalysis($serpResults, $keyword = '')
+    {
+        if (empty($serpResults)) {
+            $keywordText = !empty($keyword) ? "le sujet '{$keyword}'" : "ce sujet";
+            return "Aucun résultat SERP fourni. Effectue une recherche approfondie sur {$keywordText} pour identifier les sujets importants, les questions fréquentes, et les angles d'approche utilisés par les concurrents.";
+        }
+        
+        $formatted = "**Analyse détaillée de chaque résultat concurrent :**\n\n";
+        
+        foreach ($serpResults as $index => $result) {
+            $title = $result['title'] ?? 'Sans titre';
+            $snippet = $result['snippet'] ?? 'Aucun extrait disponible';
+            $link = $result['link'] ?? '';
+            
+            $formatted .= "**Concurrent #" . ($index + 1) . " :**\n";
+            $formatted .= "- **Titre :** {$title}\n";
+            $formatted .= "- **Extrait :** {$snippet}\n";
+            if (!empty($link)) {
+                $formatted .= "- **URL :** {$link}\n";
+            }
+            $formatted .= "\n";
+            $formatted .= "**À analyser :**\n";
+            $formatted .= "- Quels sujets sont traités dans ce résultat ?\n";
+            $formatted .= "- Quel angle d'approche est utilisé ?\n";
+            $formatted .= "- Quelles informations sont présentes ou manquantes ?\n";
+            $formatted .= "- Quelle est la structure apparente du contenu ?\n";
+            $formatted .= "- Quelles questions sont abordées ou non abordées ?\n";
+            $formatted .= "\n";
+        }
+        
+        $formatted .= "**🎯 SYNTHÈSE À FAIRE :**\n";
+        $formatted .= "Après avoir analysé tous les concurrents ci-dessus, identifie :\n";
+        $formatted .= "1. Les sujets les plus importants à couvrir (basés sur ce que les concurrents traitent)\n";
+        $formatted .= "2. Les angles uniques à développer (ce que les concurrents ne font pas bien)\n";
+        $formatted .= "3. Les informations manquantes ou incomplètes chez les concurrents\n";
+        $formatted .= "4. La meilleure structure d'article (basée sur ce qui fonctionne, mais améliorée)\n";
+        $formatted .= "5. Les questions non répondues ou mal répondues par les concurrents\n";
+        $formatted .= "\n";
+        $formatted .= "**⚠️ CRITIQUE :** Utilise cette analyse pour créer une structure UNIQUE et PERTINENTE, pas une structure générique ou répétitive.\n";
+        
+        return $formatted;
+    }
+    
+    /**
      * Imploder les mots-clés pour affichage
      */
     protected function implodeKeywords($keywords)
