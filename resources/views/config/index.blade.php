@@ -1119,6 +1119,27 @@
                             @endif
                         </div>
                     </div>
+                    
+                    <!-- Image Simulateur -->
+                    <div class="border-t pt-4">
+                        <h3 class="text-lg font-semibold mb-3">💰 Image Simulateur de Coût</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Image pour le simulateur (affichée dans les articles de blog)</label>
+                            <input type="file" 
+                                   name="simulator_image" 
+                                   accept="image/*" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Format recommandé : JPG ou PNG carré (400x400px ou plus). Cette image apparaîtra à gauche de la section CTA dans les articles.</p>
+                            @if(setting('simulator_image') && file_exists(public_path(setting('simulator_image'))))
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
+                                <img src="{{ asset(setting('simulator_image')) }}" 
+                                     alt="Simulateur" 
+                                     class="h-32 w-32 object-cover border border-gray-200 rounded">
+                            </div>
+                            @endif
+                        </div>
+                    </div>
 
                     <!-- Couleurs du site -->
                     <div class="border-t pt-4">

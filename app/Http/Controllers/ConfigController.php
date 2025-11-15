@@ -231,6 +231,7 @@ class ConfigController extends Controller
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'favicon' => 'nullable|image|mimes:ico,png,jpg|max:512',
             'contact_hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+            'simulator_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
@@ -308,6 +309,27 @@ class ConfigController extends Controller
             
             $heroImage->move($uploadsDir, $heroImageName);
             Setting::set('contact_hero_image', 'uploads/' . $heroImageName, 'file', 'branding');
+        }
+
+        // Handle simulator image upload
+        if ($request->hasFile('simulator_image')) {
+            $simulatorImage = $request->file('simulator_image');
+            $simulatorImageName = 'simulator-' . time() . '.' . $simulatorImage->getClientOriginalExtension();
+            
+            // Créer le dossier uploads/images s'il n'existe pas
+            $imagesDir = public_path('uploads/images');
+            if (!file_exists($imagesDir)) {
+                mkdir($imagesDir, 0755, true);
+            }
+            
+            // Supprimer l'ancienne image si elle existe
+            $oldSimulatorImage = Setting::get('simulator_image');
+            if ($oldSimulatorImage && file_exists(public_path($oldSimulatorImage))) {
+                @unlink(public_path($oldSimulatorImage));
+            }
+            
+            $simulatorImage->move($imagesDir, $simulatorImageName);
+            Setting::set('simulator_image', 'uploads/images/' . $simulatorImageName, 'file', 'branding');
         }
 
         // Colors and typography

@@ -157,7 +157,11 @@
     .hero-title {
         font-size: clamp(2.25rem, 6vw, 4rem);
         font-weight: 800;
-        line-height: 1.1;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%;
         color: #fff;
         margin: 0 0 1.5rem 0;
         text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -716,7 +720,7 @@
         width: 100%;
     }
     
-    /* CTA Section Ultra-Moderne */
+    /* CTA Section Ultra-Moderne avec Image */
     .cta-section {
         margin-top: 4rem;
         padding-top: 4rem;
@@ -727,11 +731,14 @@
         position: relative;
         background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
         border-radius: 24px;
-        padding: 4rem 3rem;
+        padding: 0;
         color: #fff;
         margin-bottom: 2.5rem;
         overflow: hidden;
         box-shadow: 0 20px 60px rgba(37, 99, 235, 0.25);
+        display: flex;
+        align-items: center;
+        min-height: 400px;
     }
     
     .cta-hero::before {
@@ -757,19 +764,36 @@
         }
     }
     
+    .cta-hero-image {
+        flex: 0 0 400px;
+        width: 400px;
+        height: 400px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px 0 0 24px;
+    }
+    
+    .cta-hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+    
     .cta-hero-content {
         position: relative;
         z-index: 1;
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
+        flex: 1;
+        padding: 4rem 3rem;
+        text-align: left;
     }
     
     .cta-title {
-        font-size: 2.25rem;
+        font-size: 2.5rem;
         font-weight: 800;
         margin: 0 0 1.25rem 0;
         letter-spacing: -0.01em;
+        line-height: 1.2;
     }
     
     .cta-subtitle {
@@ -777,6 +801,7 @@
         margin: 0 0 2.5rem 0;
         opacity: 0.95;
         line-height: 1.6;
+        text-align: left;
     }
     
     .cta-benefits-grid {
@@ -825,7 +850,7 @@
     .cta-buttons {
         display: flex;
         gap: 1.25rem;
-        justify-content: center;
+        justify-content: flex-start;
         flex-wrap: wrap;
         margin: 2.5rem 0 2rem 0;
     }
@@ -1352,11 +1377,28 @@
         }
         
         .cta-hero {
+            flex-direction: column;
+            min-height: auto;
+        }
+        
+        .cta-hero-image {
+            flex: 0 0 auto;
+            width: 100%;
+            height: 300px;
+            border-radius: 24px 24px 0 0;
+        }
+        
+        .cta-hero-content {
             padding: 2.5rem 1.5rem;
+            text-align: center;
         }
         
         .cta-title {
             font-size: 1.75rem;
+        }
+        
+        .cta-subtitle {
+            text-align: center;
         }
         
         .cta-benefits-grid {
@@ -1365,6 +1407,7 @@
         
         .cta-buttons {
             flex-direction: column;
+            justify-content: center;
         }
         
         .btn-modern {
@@ -1878,8 +1921,16 @@
                     <!-- CTA Section -->
                     <div class="cta-section">
                         <div class="cta-hero">
+                            @php
+                                $simulatorImage = setting('simulator_image', 'images/simulator-default.jpg');
+                            @endphp
+                            @if($simulatorImage && file_exists(public_path($simulatorImage)))
+                            <div class="cta-hero-image">
+                                <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux">
+                            </div>
+                            @endif
                             <div class="cta-hero-content">
-                                <h2 class="cta-title">🚀 Lancez Votre Projet en Toute Confiance</h2>
+                                <h2 class="cta-title">💰 Simulateur de Coût de Travaux</h2>
                                 <p class="cta-subtitle">
                                     <strong>{{ setting('company_name') }}</strong>, votre partenaire expert local. Nous vous garantissons :
                                 </p>
@@ -1925,7 +1976,7 @@
                                 <div class="cta-buttons">
                                     <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white">
                                         <i class="fas fa-calculator"></i>
-                                        <span>Demander mon devis gratuit</span>
+                                        <span>Simuler le coût de vos travaux</span>
                                     </a>
                                     @if(setting('company_phone_raw'))
                                     <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-outline" style="color: #fff; border-color: #fff;">
