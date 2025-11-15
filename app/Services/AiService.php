@@ -30,12 +30,30 @@ class AiService
         $chatgptEnabled = $chatgptEnabledSetting ? ($chatgptEnabledSetting->type === 'boolean' ? filter_var($chatgptEnabledSetting->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabledSetting->value) : true;
         
         $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
-        $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
-        
-        // La clé API sera utilisée directement pour créer le client
+        $chatgptApiKey = $chatgptApiKeySetting ? trim($chatgptApiKeySetting->value) : null;
+        // Nettoyer la clé API (supprimer espaces, retours à la ligne, etc.)
+        if ($chatgptApiKey) {
+            $chatgptApiKey = trim($chatgptApiKey);
+            // Supprimer les caractères invisibles
+            $chatgptApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $chatgptApiKey);
+            // Vérifier que la clé n'est pas vide après nettoyage
+            if (empty($chatgptApiKey)) {
+                $chatgptApiKey = null;
+            }
+        }
         
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
-        $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
+        $groqApiKey = $groqApiKeySetting ? trim($groqApiKeySetting->value) : null;
+        // Nettoyer la clé API (supprimer espaces, retours à la ligne, etc.)
+        if ($groqApiKey) {
+            $groqApiKey = trim($groqApiKey);
+            // Supprimer les caractères invisibles
+            $groqApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $groqApiKey);
+            // Vérifier que la clé n'est pas vide après nettoyage
+            if (empty($groqApiKey)) {
+                $groqApiKey = null;
+            }
+        }
         
         // Vérifier le fournisseur par défaut
         $defaultProviderSetting = \App\Models\Setting::where('key', 'default_ai_provider')->first();
@@ -298,7 +316,7 @@ class AiService
                     'adjusted_max_tokens' => $groqMaxTokens
                 ]);
                 
-                $groqResponse = Http::withToken($groqApiKey)
+                $groqResponse = Http::withToken($cleanGroqKey)
                     ->timeout($timeout)
                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model' => $groqModel,
