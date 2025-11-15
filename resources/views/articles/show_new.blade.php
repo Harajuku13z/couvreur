@@ -1343,6 +1343,10 @@
         
         .hero-title {
             font-size: 2rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            max-width: 100%;
         }
         
         .hero-meta {
@@ -1922,14 +1926,15 @@
                     <div class="cta-section">
                         <div class="cta-hero">
                             @php
-                                $simulatorImage = setting('simulator_image', 'images/simulator-default.jpg');
+                                $simulatorImage = setting('simulator_image');
+                                $hasSimulatorImage = $simulatorImage && file_exists(public_path($simulatorImage));
                             @endphp
-                            @if($simulatorImage && file_exists(public_path($simulatorImage)))
+                            @if($hasSimulatorImage)
                             <div class="cta-hero-image">
-                                <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux">
+                                <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux" loading="lazy">
                             </div>
                             @endif
-                            <div class="cta-hero-content">
+                            <div class="cta-hero-content {{ !$hasSimulatorImage ? 'w-full' : '' }}">
                                 <h2 class="cta-title">💰 Simulateur de Coût de Travaux</h2>
                                 <p class="cta-subtitle">
                                     <strong>{{ setting('company_name') }}</strong>, votre partenaire expert local. Nous vous garantissons :
