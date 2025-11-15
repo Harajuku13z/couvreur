@@ -1376,8 +1376,20 @@
         text-decoration: underline;
     }
     
-    /* Responsive Design */
+    /* Responsive Design - WordPress Style */
     @media (max-width: 1024px) {
+        .article-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem;
+        }
+        
+        .article-sidebar {
+            position: static;
+            max-height: none;
+            padding-left: 0;
+            margin-left: 0;
+        }
+        
         .related-articles-grid {
             grid-template-columns: 1fr;
         }
@@ -1387,14 +1399,11 @@
         }
         
         .article-container {
-            margin-top: -60px;
-            padding: 0 1rem;
-            max-width: 100%;
+            padding: 2rem 1rem;
         }
         
         .article-content-container {
-            padding: 2rem;
-            margin: 0 auto 3rem;
+            padding: 0;
         }
     }
     
