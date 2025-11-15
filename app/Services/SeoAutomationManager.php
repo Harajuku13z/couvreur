@@ -248,7 +248,17 @@ class SeoAutomationManager
                 }
             };
             
-            $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors, $gptProgressCallback);
+            try {
+                $gptData = $this->gpt->generateSeoArticle($keyword, $city->name, $related, $competitors, $gptProgressCallback);
+            } catch (\Exception $gptException) {
+                Log::error('SeoAutomationManager: Exception lors de la génération GPT', [
+                    'city' => $city->name,
+                    'keyword' => $keyword,
+                    'error' => $gptException->getMessage(),
+                    'trace' => $gptException->getTraceAsString()
+                ]);
+                $gptData = null;
+            }
 
             if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
                 $errorMessage = 'Génération GPT échouée ou réponse invalide';

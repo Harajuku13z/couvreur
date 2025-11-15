@@ -115,24 +115,24 @@ class SeoArticleScheduler
         
         // Si on ignore le quota, permettre la création sans restriction de période ni d'heure
         if ($ignoreQuota) {
-            // Vérifier si un article a déjà été créé récemment (dans les 2 dernières minutes seulement)
+            // Vérifier si un article a déjà été créé récemment (dans les 1 minute seulement)
             // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
             $recentArticle = \App\Models\Article::whereDate('created_at', today())
-                ->where('created_at', '>=', now()->subMinutes(2))
+                ->where('created_at', '>=', now()->subMinute())
                 ->exists();
             
             if ($recentArticle) {
-                return false; // Un article vient d'être créé il y a moins de 2 minutes, attendre un peu
+                return false; // Un article vient d'être créé il y a moins d'1 minute, attendre un peu
             }
             
             // En mode test (ignore quota), permettre la création si :
-            // - On est dans une fenêtre de 4 heures après l'heure prévue (plus permissif)
-            // - Ou si on est proche de l'heure (30 minutes avant ou après)
+            // - On est dans une fenêtre de 6 heures après l'heure prévue (très permissif pour les tests)
+            // - Ou si on est proche de l'heure (1 heure avant ou après)
             if ($nextTime->isPast()) {
-                return $diffMinutes <= 240; // 4 heures de marge en mode test
+                return $diffMinutes <= 360; // 6 heures de marge en mode test
             }
-            // Permettre aussi si on est proche de l'heure (30 minutes avant)
-            return $diffMinutes <= 30;
+            // Permettre aussi si on est proche de l'heure (1 heure avant)
+            return $diffMinutes <= 60;
         }
         
         // Vérifier si un article a déjà été créé récemment (dans les 5 dernières minutes)
