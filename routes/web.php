@@ -433,6 +433,7 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/force-run', [SeoAutomationController::class, 'forceRun'])->name('force-run');
     Route::post('/execute-now', [SeoAutomationController::class, 'executeNow'])->name('execute-now');
     Route::get('/schedule/token', [SeoAutomationController::class, 'getScheduleToken'])->name('get-schedule-token');
+    Route::get('/schedule-token', [SeoAutomationController::class, 'getScheduleToken'])->name('schedule-token');
     Route::post('/schedule/token/regenerate', [SeoAutomationController::class, 'regenerateScheduleToken'])->name('regenerate-schedule-token');
     Route::post('/schedule/test', [SeoAutomationController::class, 'testScheduleHttp'])->name('test-schedule-http');
     Route::post('/scheduler/test', [SeoAutomationController::class, 'testScheduler'])->name('test-scheduler');
