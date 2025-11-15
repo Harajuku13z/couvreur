@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use App\Models\Service;
 use App\Models\City;
 use App\Models\Article;
@@ -81,7 +82,7 @@ class ValidateSeoSetup extends Command
     protected function checkSitemap(): bool
     {
         try {
-            $response = \Http::timeout(5)->get(url('/sitemap.xml'));
+            $response = Http::timeout(5)->get(url('/sitemap.xml'));
             return $response->successful() && str_contains($response->body(), '<urlset');
         } catch (\Exception $e) {
             return File::exists(public_path('sitemap.xml'));
@@ -91,7 +92,7 @@ class ValidateSeoSetup extends Command
     protected function checkRobots(): bool
     {
         try {
-            $response = \Http::timeout(5)->get(url('/robots.txt'));
+            $response = Http::timeout(5)->get(url('/robots.txt'));
             return $response->successful();
         } catch (\Exception $e) {
             return true; // Route existe

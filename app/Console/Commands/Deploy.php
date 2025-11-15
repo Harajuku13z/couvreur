@@ -22,7 +22,10 @@ class Deploy extends Command
 
             // Optimiser l'autoloader
             $this->line('  📦 Optimisation de l\'autoloader...');
-            $this->call('composer', ['install', '--optimize-autoloader', '--no-dev']);
+            exec('composer install --optimize-autoloader --no-dev', $output, $returnCode);
+            if ($returnCode !== 0) {
+                $this->warn('  ⚠️  Erreur lors de l\'optimisation de l\'autoloader');
+            }
 
             // Migrations
             $this->line('  🗄️  Exécution des migrations...');
