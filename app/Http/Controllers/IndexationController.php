@@ -97,7 +97,7 @@ class IndexationController extends Controller
             'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
             'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
         ];
-
+        
         return view('admin.indexation.index', compact(
             'indexationConfig', 
             'googleCredentialsArray', 

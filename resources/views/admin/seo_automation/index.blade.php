@@ -83,8 +83,8 @@
                 </div>
             </div>
             @endforeach
-        </div>
-        
+            </div>
+            
         @if(isset($scheduleStats))
         <div class="mt-4 p-3 bg-gray-50 rounded-lg">
             <div class="text-xs text-gray-600 space-y-1">
@@ -92,7 +92,7 @@
                 <div><strong>Intervalle entre articles :</strong> {{ $scheduleStats['interval_minutes'] ?? 0 }} minutes</div>
                 <div><strong>Prochain créneau :</strong> {{ $scheduleStats['next_scheduled_time'] ?? 'N/A' }}</div>
                 <div><strong>Articles créés aujourd'hui :</strong> {{ $scheduleStats['articles_today'] ?? 0 }}/{{ $scheduleStats['total_articles_per_day'] ?? 0 }}</div>
-            </div>
+        </div>
         </div>
         @endif
     </div>
@@ -107,7 +107,7 @@
                 <div class="flex items-center mb-2">
                     <div class="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
                         <i class="fas fa-clock text-white text-xl"></i>
-                    </div>
+            </div>
                     <h3 class="text-xl font-bold text-white">
                         Configuration du Cron
                     </h3>
@@ -185,26 +185,43 @@
                         Total : <strong>{{ $totalArticlesPerDay }} articles/jour</strong> pour {{ $citiesCount }} ville(s) favorite(s)
                     </div>
                     @endif
-                    <div class="flex items-center gap-2">
-                        <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">
-                            <input type="checkbox" 
-                                   id="direct_execution" 
-                                   name="direct_execution" 
-                                   value="1"
-                                   {{ \App\Models\Setting::where('key', 'seo_automation_direct_execution')->value('value') ? 'checked' : '' }}
-                                   class="rounded">
-                            <span>Exécution directe (sans queue)</span>
-                        </label>
-                    </div>
+                            <div class="flex items-center gap-2">
+                                <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">
+                                    <input type="checkbox" 
+                                           id="direct_execution" 
+                                           name="direct_execution" 
+                                           value="1"
+                                           {{ \App\Models\Setting::where('key', 'seo_automation_direct_execution')->value('value') ? 'checked' : '' }}
+                                           class="rounded">
+                                    <span>Exécution directe (sans queue)</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="ignore_quota" class="text-xs text-gray-600 flex items-center gap-1">
+                                    <input type="checkbox" 
+                                           id="ignore_quota" 
+                                           name="ignore_quota" 
+                                           value="1"
+                                           {{ \App\Models\Setting::where('key', 'seo_automation_ignore_quota')->value('value') ? 'checked' : '' }}
+                                           class="rounded">
+                                    <span>Ignorer le quota journalier (mode test)</span>
+                                </label>
+                            </div>
                     <button type="submit" 
                             class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
                         <i class="fas fa-save mr-1"></i>Enregistrer
                     </button>
                 </form>
-                <div class="mt-2 text-xs text-gray-600">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    <strong>Exécution directe :</strong> Les articles sont générés immédiatement sans passer par la queue (plus fiable, pas besoin de worker).
-                </div>
+                        <div class="mt-2 text-xs text-gray-600 space-y-1">
+                            <div>
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <strong>Exécution directe :</strong> Les articles sont générés immédiatement sans passer par la queue (plus fiable, pas besoin de worker).
+                            </div>
+                            <div>
+                                <i class="fas fa-flask mr-1 text-yellow-600"></i>
+                                <strong>Ignorer le quota :</strong> En mode test, ignore la limite d'articles par jour pour permettre des tests sans restriction.
+                            </div>
+                        </div>
             </div>
         </div>
     @else
@@ -577,11 +594,11 @@
         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
         <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
         <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div class="flex-1">
+                                <div class="flex-1">
                 <div class="flex items-center mb-2">
                     <div class="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
                         <i class="fas fa-tags text-white text-xl"></i>
-                    </div>
+                                </div>
                     <h3 class="text-xl font-bold text-white">
                         Gestion des Mots-clés
                     </h3>
@@ -590,7 +607,7 @@
                             {{ count($customKeywords) }} configuré(s)
                         </span>
                     @endif
-                </div>
+                    </div>
                 <p class="text-indigo-100 text-sm leading-relaxed">
                     Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
                 </p>
@@ -673,15 +690,15 @@
                     <div>
                         <h2 class="text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                             🚀 Génération d'Articles SEO
-                        </h2>
+        </h2>
                         <p class="text-sm text-gray-600 mt-1 font-medium">Créez des articles optimisés automatiquement avec l'IA</p>
                     </div>
                 </div>
             </div>
-            
+        
             <form action="{{ route('admin.seo-automation.run') }}" method="POST" class="space-y-6">
-                @csrf
-                
+            @csrf
+            
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Nombre d'articles -->
                 <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
@@ -787,7 +804,7 @@
 
                 <!-- Bouton de soumission Premium -->
                 <div class="md:col-span-2 flex justify-end pt-4 border-t border-blue-200">
-                    <button type="submit" 
+                <button type="submit" 
                             class="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-offset-2 flex items-center space-x-3">
                         <!-- Effet de brillance au survol -->
                         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -805,9 +822,9 @@
                             <div class="absolute bottom-2 right-8 w-2 h-2 bg-white rounded-full animate-ping" style="animation-delay: 0.2s"></div>
                             <div class="absolute top-1/2 right-4 w-1.5 h-1.5 bg-white rounded-full animate-ping" style="animation-delay: 0.4s"></div>
                         </div>
-                    </button>
-                </div>
-            </form>
+                </button>
+            </div>
+        </form>
         </div>
     </div>
     
@@ -901,17 +918,17 @@
                                         <span class="text-yellow-600">En attente d'indexation</span>
                                     </div>
                                 @endif
-                                @if($seoAnalysis)
+                            @if($seoAnalysis)
                                     <div>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                            @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
-                                            @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
-                                            @else bg-red-100 text-red-800
-                                            @endif">
-                                            <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
-                                        </span>
-                                    </div>
-                                @endif
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                        @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
+                                        @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
+                                        @else bg-red-100 text-red-800
+                                        @endif">
+                                        <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
+                                    </span>
+                                </div>
+                            @endif
                             </div>
                         @else
                             <span class="text-gray-400 text-sm">-</span>
@@ -1759,14 +1776,14 @@ function testApi(apiName, button) {
     <!-- Lien vers la gestion des mots-clés -->
     <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
         <div class="flex items-center justify-between">
-            <div>
+                        <div>
                 <h3 class="text-lg font-semibold text-indigo-900 mb-1">
                     <i class="fas fa-tags mr-2"></i>Gestion des Mots-clés
                 </h3>
                 <p class="text-sm text-indigo-700">
                     Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
                 </p>
-            </div>
+                        </div>
             <a href="{{ route('admin.keywords.index') }}" 
                class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
                 <i class="fas fa-arrow-right mr-2"></i>

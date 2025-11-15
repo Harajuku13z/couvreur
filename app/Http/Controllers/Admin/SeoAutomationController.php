@@ -865,6 +865,7 @@ class SeoAutomationController extends Controller
             'articles_per_day' => 'nullable|integer|min:1|max:50',
             'articles_per_city' => 'nullable|integer|min:1|max:10', // Gardé pour compatibilité
             'direct_execution' => 'nullable|boolean',
+            'ignore_quota' => 'nullable|boolean',
         ]);
         
         \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
@@ -886,6 +887,10 @@ class SeoAutomationController extends Controller
         // Sauvegarder le mode d'exécution (direct ou queue)
         $directExecution = $request->has('direct_execution') && $request->boolean('direct_execution');
         \App\Models\Setting::set('seo_automation_direct_execution', $directExecution ? '1' : '0', 'boolean', 'seo');
+        
+        // Sauvegarder l'option pour ignorer le quota (mode test)
+        $ignoreQuota = $request->has('ignore_quota') && $request->boolean('ignore_quota');
+        \App\Models\Setting::set('seo_automation_ignore_quota', $ignoreQuota ? '1' : '0', 'boolean', 'seo');
         
         $articlesPerDay = $validated['articles_per_day'] ?? 5;
         $citiesCount = \App\Models\City::where('is_favorite', true)->count();

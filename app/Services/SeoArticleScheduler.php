@@ -92,16 +92,22 @@ class SeoArticleScheduler
             return false;
         }
         
-        // Vérifier d'abord si on a atteint le quota du jour
-        $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
-        $citiesCount = City::where('is_favorite', true)->count();
-        $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+        // Vérifier si on ignore le quota (mode test)
+        $ignoreQuota = Setting::get('seo_automation_ignore_quota', false);
+        $ignoreQuota = filter_var($ignoreQuota, FILTER_VALIDATE_BOOLEAN);
         
-        $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
-        
-        // Si on a atteint le quota, ne pas créer d'article
-        if ($articlesToday >= $totalArticlesPerDay) {
-            return false;
+        // Vérifier d'abord si on a atteint le quota du jour (sauf si on ignore le quota)
+        if (!$ignoreQuota) {
+            $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
+            $citiesCount = City::where('is_favorite', true)->count();
+            $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+            
+            $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+            
+            // Si on a atteint le quota, ne pas créer d'article
+            if ($articlesToday >= $totalArticlesPerDay) {
+                return false;
+            }
         }
         
         // Vérifier si un article a déjà été créé récemment (dans les 5 dernières minutes)
@@ -129,8 +135,8 @@ class SeoArticleScheduler
             $startMinute = (int)($startTimeParts[1] ?? 0);
             $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
             
-            // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
-            if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
+            // Si on ignore le quota ou si on est encore dans la période de travail et qu'on n'a pas atteint le quota
+            if ($ignoreQuota || ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay)) {
                 // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
                 return $diffMinutes <= 120; // 2 heures de marge
             }
