@@ -30,113 +30,22 @@
     <!-- Résultat du test scheduler -->
     <div id="schedulerTestResult" class="hidden mb-4"></div>
     
-    <!-- Configuration Cron (Hostinger) -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-clock mr-2 text-blue-600"></i>Configuration du Cron (Hostinger)
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">
-            Configurez le cron dans Hostinger pour exécuter l'automatisation SEO automatiquement. Deux méthodes disponibles : <strong>Script shell direct</strong> (recommandé) ou <strong>Route HTTP</strong>.
-        </p>
-        
-        <!-- Méthode 1: Script Shell (Recommandé) -->
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 class="text-lg font-semibold text-green-900 mb-3">
-                <i class="fas fa-terminal mr-2"></i>Méthode 1 : Script Shell Direct (Recommandé)
-            </h3>
-            <p class="text-sm text-gray-700 mb-3">
-                Cette méthode exécute directement la commande Artisan, similaire à votre <code>queue-worker.sh</code>. Plus simple, plus rapide et plus fiable.
-            </p>
-            
-            <div class="space-y-3">
-                <div>
-                    <p class="text-sm font-medium text-gray-700 mb-2">📋 Instructions :</p>
-                    <ol class="list-decimal list-inside space-y-1 text-sm text-gray-600 ml-2">
-                        <li>Le script <code class="bg-gray-100 px-1 rounded">seo-automation-cron.sh</code> doit être présent dans votre répertoire public_html</li>
-                        <li>Dans Hostinger → Avancé → Cron Jobs, créez une nouvelle tâche :</li>
-                    </ol>
-                </div>
-                
-                <div class="p-3 bg-gray-100 border border-gray-300 rounded font-mono text-xs">
-                    <div class="mb-2"><strong>Type:</strong> Personnalisé</div>
-                    <div class="mb-2"><strong>Commande:</strong></div>
-                    <code>/usr/bin/php /home/u570136219/domains/couvreur-chevigny-saint-sauveur.fr/public_html/artisan seo:run-automations</code>
-                    <div class="mt-2 text-xs text-gray-600">
-                        <strong>Ou avec le script shell (si vous l'avez uploadé) :</strong><br>
-                        <code>/home/u570136219/domains/couvreur-chevigny-saint-sauveur.fr/public_html/seo-automation-cron.sh</code>
-                    </div>
-                </div>
-                
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-                    <p class="font-semibold text-blue-900 mb-1">Fréquence (selon l'intervalle configuré) :</p>
-                    <ul class="list-disc list-inside space-y-1 text-blue-800">
-                        <li><strong>Toutes les minutes</strong> (intervalle = 1) : <code>* * * * *</code></li>
-                        <li><strong>Toutes les 5 minutes</strong> (intervalle = 5) : <code>*/5 * * * *</code></li>
-                        <li><strong>Toutes les 10 minutes</strong> (intervalle = 10) : <code>*/10 * * * *</code></li>
-                    </ul>
-                    <p class="mt-2 text-blue-700">Le système vérifie automatiquement si l'heure configurée est arrivée avant d'exécuter.</p>
-                </div>
+    <!-- Lien vers la configuration du cron -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900 mb-1">
+                    <i class="fas fa-clock mr-2"></i>Configuration du Cron
+                </h3>
+                <p class="text-sm text-blue-700">
+                    Instructions détaillées pour configurer le cron dans Hostinger. Deux méthodes disponibles : Script shell direct (recommandé) ou Route HTTP.
+                </p>
             </div>
-        </div>
-        
-        <!-- Méthode 2: Route HTTP (Alternative) -->
-        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 class="text-lg font-semibold text-yellow-900 mb-3">
-                <i class="fas fa-globe mr-2"></i>Méthode 2 : Route HTTP (Alternative)
-            </h3>
-            <p class="text-sm text-gray-700 mb-3">
-                Si vous préférez utiliser une route HTTP (nécessite curl et un token de sécurité).
-            </p>
-        
-        <div class="space-y-4">
-            <div class="flex items-center gap-3 flex-wrap">
-                <button type="button" 
-                        id="getScheduleTokenBtn"
-                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-key mr-2"></i>
-                    Afficher le token et l'URL
-                </button>
-                <button type="button" 
-                        id="regenerateTokenBtn"
-                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-sync-alt mr-2"></i>
-                    Régénérer le token
-                </button>
-                <button type="button" 
-                        id="testScheduleHttpBtn"
-                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-vial mr-2"></i>
-                    Tester la route HTTP
-                </button>
-            </div>
-            
-            <div id="scheduleTokenResult" class="hidden"></div>
-        </div>
-        
-        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-            <p class="font-semibold text-blue-900 mb-2">📋 Instructions pour configurer le cron dans Hostinger :</p>
-            <ol class="list-decimal list-inside space-y-1 text-blue-800">
-                <li>Cliquez sur "Afficher le token et l'URL" pour obtenir votre URL complète avec token</li>
-                <li>Connectez-vous à votre <strong>hPanel Hostinger</strong></li>
-                <li>Allez dans <strong>Avancé → Cron Jobs</strong></li>
-                <li>Créez un nouveau cron job avec cette commande :</li>
-            </ol>
-            <div class="mt-3 p-3 bg-gray-100 border border-gray-300 rounded font-mono text-xs">
-                <code id="cronCommand">curl -s "{{ url('/schedule/run?token=TOKEN') }}" > /dev/null 2>&1</code>
-            </div>
-            <ol class="list-decimal list-inside space-y-1 text-blue-800 mt-3" start="5">
-                <li>Configurez la fréquence selon l'<strong>intervalle cron</strong> configuré ci-dessus (par défaut: <code class="bg-blue-100 px-1 rounded">*/1 * * * *</code> = toutes les minutes)</li>
-                <li>Le système vérifiera automatiquement si l'heure configurée est arrivée et exécutera l'automatisation</li>
-                <li>Sauvegardez le cron job</li>
-            </ol>
-            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                <p class="font-semibold mb-1">💡 Note importante :</p>
-                <p>La commande <code>seo:run-automations</code> vérifie automatiquement les conditions (heure, activation, villes favorites) avant d'exécuter. Vous pouvez configurer le cron pour qu'il s'exécute toutes les minutes (ou selon l'intervalle configuré), le système ne générera les articles que lorsque toutes les conditions sont remplies.</p>
-            </div>
-            <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <p class="font-semibold mb-1">📝 Logs :</p>
-                <p>Les logs sont disponibles dans <code>storage/logs/seo-automation-cron.log</code> (si vous utilisez le script) ou <code>storage/logs/laravel.log</code> (pour la commande directe).</p>
-            </div>
+            <a href="{{ route('admin.cron-config.index') }}" 
+               class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
+                <i class="fas fa-arrow-right mr-2"></i>
+                Voir les instructions
+            </a>
         </div>
     </div>
     

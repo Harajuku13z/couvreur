@@ -574,6 +574,14 @@ Route::prefix('admin/keywords')->name('admin.keywords.')->middleware(['admin.aut
     Route::delete('/image/{keywordImage}', [App\Http\Controllers\Admin\KeywordController::class, 'destroyImage'])->name('image.destroy');
 });
 
+// Routes admin pour la configuration du cron
+Route::prefix('admin/cron-config')->name('admin.cron-config.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\CronConfigController::class, 'index'])->name('index');
+    Route::get('/token', [App\Http\Controllers\Admin\CronConfigController::class, 'getToken'])->name('token');
+    Route::post('/regenerate-token', [App\Http\Controllers\Admin\CronConfigController::class, 'regenerateToken'])->name('regenerate-token');
+    Route::post('/test-http', [App\Http\Controllers\Admin\CronConfigController::class, 'testHttp'])->name('test-http');
+});
+
 // Routes admin pour l'automatisation SEO
 Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [SeoAutomationController::class, 'index'])->name('index');
