@@ -1363,11 +1363,13 @@ class ConfigController extends Controller
         $cleanApiKey = trim($apiKey);
         $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
         
-        // Valider le format
-        if (empty($cleanApiKey) || !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+        // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
+        if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)'
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total)',
+                'key_length' => strlen($cleanApiKey ?? ''),
+                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
         }
 
@@ -1513,11 +1515,13 @@ class ConfigController extends Controller
         $cleanApiKey = trim($apiKey);
         $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
         
-        // Valider le format
-        if (empty($cleanApiKey) || !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+        // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
+        if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)'
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total)',
+                'key_length' => strlen($cleanApiKey ?? ''),
+                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
         }
 
