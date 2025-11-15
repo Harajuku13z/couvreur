@@ -18,19 +18,10 @@ class IndexationController extends Controller
         $seoConfigData = Setting::get('seo_config', '[]');
         $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
         
-        // Valeurs par défaut pour l'indexation
-        $defaults = [
-            'robots_index' => true,
-            'robots_follow' => true,
-            'robots_archive' => true,
-            'robots_snippet' => true,
-            'robots_imageindex' => true,
+        // Configuration simplifiée - on garde seulement l'essentiel
+        $indexationConfig = [
             'sitemap_enabled' => true,
-            'sitemap_priority' => 0.8,
-            'sitemap_changefreq' => 'weekly',
         ];
-        
-        $indexationConfig = array_merge($defaults, array_intersect_key($seoConfig, $defaults));
         
         // Récupérer les credentials Google Search Console
         $googleCredentials = Setting::get('google_search_console_credentials', '');
@@ -99,37 +90,6 @@ class IndexationController extends Controller
             \Log::warning('Impossible de compter les URLs: ' . $e->getMessage());
         }
 
-        // Récupérer les statuts d'indexation réels
-        $indexationStats = [
-            'total' => \App\Models\UrlIndexationStatus::count(),
-            'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
-            'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
-            'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
-            'recently_verified' => \App\Models\UrlIndexationStatus::whereNotNull('last_verification_time')
-                ->where('last_verification_time', '>=', now()->subDays(7))
-                ->count(),
-        ];
-        
-        // Vérifier si IndexJump est configuré
-        $indexJumpService = new IndexJumpService();
-        $isIndexJumpConfigured = $indexJumpService->isConfigured();
-        $indexJumpToken = Setting::get('indexjump_token', '3d93dd2657466b97a401e540aaf9c72e');
-        
-        // Récupérer le solde IndexJump (mettre en cache pour éviter trop de requêtes)
-        $indexJumpBalance = null;
-        if ($isIndexJumpConfigured) {
-            try {
-                // Utiliser le cache pour éviter trop de requêtes API
-                $balanceCacheKey = 'indexjump_balance_' . md5($indexJumpToken);
-                $indexJumpBalance = \Cache::remember($balanceCacheKey, 300, function () use ($indexJumpService) {
-                    $result = $indexJumpService->getBalance();
-                    return $result['success'] ? $result['balance'] : null;
-                });
-            } catch (\Exception $e) {
-                \Log::warning('Impossible de récupérer le solde IndexJump: ' . $e->getMessage());
-            }
-        }
-        
         return view('admin.indexation.index', compact(
             'indexationConfig', 
             'googleCredentialsArray', 
@@ -139,11 +99,7 @@ class IndexationController extends Controller
             'totalUrlsInSitemap',
             'dailyIndexingEnabled',
             'dailyStats',
-            'indexedCount',
-            'isIndexJumpConfigured',
-            'indexJumpToken',
-            'indexJumpBalance',
-            'indexationStats'
+            'indexedCount'
         ));
     }
 
@@ -252,35 +208,9 @@ class IndexationController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'robots_index' => 'nullable|boolean',
-            'robots_follow' => 'nullable|boolean',
-            'robots_archive' => 'nullable|boolean',
-            'robots_snippet' => 'nullable|boolean',
-            'robots_imageindex' => 'nullable|boolean',
-            'sitemap_enabled' => 'nullable|boolean',
-            'sitemap_priority' => 'nullable|numeric|min:0|max:1',
-            'sitemap_changefreq' => 'nullable|string|in:always,hourly,daily,weekly,monthly,yearly,never',
             'google_search_console_credentials' => 'nullable|string',
             'site_url' => 'nullable|url'
         ]);
-
-        // Récupérer la configuration SEO existante
-        $existingConfig = Setting::get('seo_config', '[]');
-        $existingConfig = is_string($existingConfig) ? json_decode($existingConfig, true) : ($existingConfig ?? []);
-        
-        // Mettre à jour uniquement les paramètres d'indexation
-        $existingConfig['robots_index'] = $request->boolean('robots_index', true);
-        $existingConfig['robots_follow'] = $request->boolean('robots_follow', true);
-        $existingConfig['robots_archive'] = $request->boolean('robots_archive', true);
-        $existingConfig['robots_snippet'] = $request->boolean('robots_snippet', true);
-        $existingConfig['robots_imageindex'] = $request->boolean('robots_imageindex', true);
-        $existingConfig['sitemap_enabled'] = $request->boolean('sitemap_enabled', true);
-        $existingConfig['sitemap_priority'] = $request->input('sitemap_priority', 0.8);
-        $existingConfig['sitemap_changefreq'] = $request->input('sitemap_changefreq', 'weekly');
-        
-        // Sauvegarder la configuration
-        Setting::set('seo_config', json_encode($existingConfig), 'json', 'seo');
-        Setting::clearCache();
         
         // Sauvegarder les credentials Google Search Console
         if ($request->has('google_search_console_credentials')) {

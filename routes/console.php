@@ -24,6 +24,20 @@ Schedule::command('index:urls-daily')
         return \App\Models\Setting::get('daily_indexing_enabled', false);
     });
 
+// Génération automatique du sitemap chaque jour à 3h du matin
+Schedule::call(function () {
+    try {
+        \Illuminate\Support\Facades\Log::info('🔄 Génération automatique du sitemap...');
+        $sitemapController = app(\App\Http\Controllers\SitemapController::class);
+        $sitemapController->index(); // Génère et met en cache le sitemap
+        \Illuminate\Support\Facades\Log::info('✅ Sitemap généré automatiquement avec succès');
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('❌ Erreur génération automatique sitemap: ' . $e->getMessage());
+    }
+})->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Automatisation SEO : génération d'articles quotidiens pour les villes favorites
 // Note: L'heure est récupérée dynamiquement dans when() pour permettre les changements en temps réel
 // Utilise le fuseau horaire configuré dans config/app.php (Europe/Paris)
