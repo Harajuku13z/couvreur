@@ -37,6 +37,10 @@ class AiService
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
         $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
+        // Vérifier le fournisseur par défaut
+        $defaultProviderSetting = \App\Models\Setting::where('key', 'default_ai_provider')->first();
+        $defaultProvider = $defaultProviderSetting ? $defaultProviderSetting->value : 'chatgpt';
+        
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
         $timeout = $options['timeout'] ?? 60;
@@ -92,6 +96,7 @@ class AiService
             'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
             'groq_api_key_exists' => !empty($groqApiKey),
             'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
+            'default_provider' => $defaultProvider,
             'model' => $model
         ]);
         
@@ -101,8 +106,13 @@ class AiService
         }
         $messages[] = ['role' => 'user', 'content' => $prompt];
         
-        // Essayer ChatGPT d'abord si activé et clé disponible
-        if ($chatgptEnabled && $chatgptApiKey) {
+        // Si Groq est le fournisseur par défaut et disponible, l'utiliser directement
+        if ($defaultProvider === 'groq' && $groqApiKey) {
+            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe');
+            // Passer directement à Groq (le code Groq est plus bas)
+        }
+        // Essayer ChatGPT d'abord si activé et clé disponible (et que ce n'est pas Groq par défaut)
+        elseif ($chatgptEnabled && $chatgptApiKey && $defaultProvider !== 'groq') {
             try {
                 // DERNIÈRE VÉRIFICATION CRITIQUE juste avant l'appel API
                 // Si max_tokens > 4096, FORCER gpt-4o (même si déjà vérifié)
