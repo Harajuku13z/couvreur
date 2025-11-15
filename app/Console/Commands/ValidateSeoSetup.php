@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Service;
 use App\Models\City;
 use App\Models\Article;
@@ -103,8 +104,26 @@ class ValidateSeoSetup extends Command
 
     protected function checkRobots(): bool
     {
-        // Vérifier d'abord si la route existe
-        if (!\Route::has('robots.txt')) {
+        // Vérifier si la route existe (peut avoir un point dans le nom)
+        $routeExists = false;
+        try {
+            $routeExists = \Route::has('robots.txt');
+        } catch (\Exception $e) {
+            // Vérifier autrement si la route existe
+            try {
+                $routes = \Route::getRoutes();
+                foreach ($routes as $route) {
+                    if ($route->uri() === 'robots.txt' || $route->getName() === 'robots.txt') {
+                        $routeExists = true;
+                        break;
+                    }
+                }
+            } catch (\Exception $e2) {
+                // Ignorer
+            }
+        }
+        
+        if (!$routeExists) {
             return false;
         }
         
@@ -121,17 +140,33 @@ class ValidateSeoSetup extends Command
     protected function checkServices(): bool
     {
         try {
-            // Vérifier si la table existe et a des données
-            if (\Schema::hasTable('services')) {
-                return Service::count() > 0;
+            // D'abord vérifier dans Settings (système actuel utilisé)
+            try {
+                $servicesData = \App\Models\Setting::get('services', '[]');
+                $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+                if (is_array($services) && count($services) > 0) {
+                    return true;
+                }
+            } catch (\Exception $e) {
+                // Ignorer les erreurs de Settings
             }
             
-            // Sinon, vérifier si les services sont dans Settings (ancien système)
-            $servicesData = \App\Models\Setting::get('services', '[]');
-            $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
-            return is_array($services) && count($services) > 0;
+            // Ensuite vérifier si la table existe et a des données
+            try {
+                if (Schema::hasTable('services')) {
+                    $count = Service::count();
+                    return $count > 0;
+                }
+            } catch (\Exception $e) {
+                // Ignorer les erreurs de table
+            }
+            
+            // Si aucun service trouvé, retourner false
+            return false;
         } catch (\Exception $e) {
-            // Si erreur, considérer comme OK (peut être dû à la connexion DB)
+            // En cas d'erreur générale, considérer comme OK (peut être dû à la connexion DB)
+            // Mais loguer l'erreur pour debug
+            \Log::debug('Erreur checkServices: ' . $e->getMessage());
             return true;
         }
     }
