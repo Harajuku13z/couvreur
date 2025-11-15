@@ -10,12 +10,14 @@ Artisan::command('inspire', function () {
 
 // Planification des tâches automatiques
 Schedule::command('submissions:mark-abandoned')
+    ->name('mark-abandoned-submissions')
     ->hourly() // Exécuter toutes les heures
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->runInBackground(); // Exécuter en arrière-plan
 
 // Indexation quotidienne de 200 URLs via Google Indexing API
 Schedule::command('index:urls-daily')
+    ->name('index-urls-daily')
     ->dailyAt('02:00') // Exécuter chaque jour à 2h du matin
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->runInBackground() // Exécuter en arrière-plan
@@ -35,6 +37,7 @@ Schedule::command('sitemap:generate-daily')
 // Note: L'heure est récupérée dynamiquement dans when() pour permettre les changements en temps réel
 // Utilise le fuseau horaire configuré dans config/app.php (Europe/Paris)
 Schedule::command('seo:run-automations')
+    ->name('seo-run-automations')
     ->everyMinute() // Vérifier chaque minute (le when() déterminera si on exécute à l'heure exacte)
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
