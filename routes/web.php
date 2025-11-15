@@ -191,6 +191,60 @@ Route::get('/test-phone-tracking', function () {
 Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
 Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
 
+// Routes publiques pour le formulaire
+Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
+Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
+Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
+
+// Routes publiques de fallback (pour éviter les erreurs si les pages n'existent pas encore)
+Route::get('/portfolio', function () {
+    return view('portfolio.index', ['currentPage' => 'portfolio'])->exists() 
+        ? view('portfolio.index', ['currentPage' => 'portfolio']) 
+        : redirect('/');
+})->name('portfolio.index');
+
+Route::get('/blog', function () {
+    return view()->exists('blog.index') 
+        ? view('blog.index', ['currentPage' => 'blog']) 
+        : redirect('/');
+})->name('blog.index');
+
+Route::get('/contact', function () {
+    return view()->exists('contact.index') 
+        ? view('contact.index', ['currentPage' => 'contact']) 
+        : redirect('/');
+})->name('contact');
+
+Route::get('/ads', function () {
+    return view()->exists('ads.index') 
+        ? view('ads.index', ['currentPage' => 'ads']) 
+        : redirect('/');
+})->name('ads.index');
+
+Route::get('/reviews', function () {
+    return view()->exists('reviews.all') 
+        ? view('reviews.all', ['currentPage' => 'reviews']) 
+        : redirect('/');
+})->name('reviews.all');
+
+Route::get('/legal/mentions', function () {
+    return view()->exists('legal.mentions') 
+        ? view('legal.mentions') 
+        : redirect('/');
+})->name('legal.mentions');
+
+Route::get('/legal/privacy', function () {
+    return view()->exists('legal.privacy') 
+        ? view('legal.privacy') 
+        : redirect('/');
+})->name('legal.privacy');
+
+Route::get('/legal/cgv', function () {
+    return view()->exists('legal.cgv') 
+        ? view('legal.cgv') 
+        : redirect('/');
+})->name('legal.cgv');
+
 // Route pour le sitemap index (retourne le sitemap_index.xml)
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.xml');
 Route::get('/sitemap_index.xml', function () {
