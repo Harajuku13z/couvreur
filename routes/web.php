@@ -242,11 +242,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
         Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
         Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
+        Route::get('/submissions/{id}/create-client', [AdminController::class, 'createClientFromSubmission'])->name('submission.create-client');
+        Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');
+        Route::post('/submissions/delete-all', [AdminController::class, 'deleteAllSubmissions'])->name('submissions.delete-all');
         Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
         Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');
         Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
         Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
         Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+        Route::post('/phone-calls/{id}/update-city', [AdminController::class, 'updatePhoneCallCity'])->name('phone-calls.update-city');
+        Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
         Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
         
         // Routes pour les devis
