@@ -34,7 +34,8 @@ Schedule::call(function () {
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('❌ Erreur génération automatique sitemap: ' . $e->getMessage());
     }
-})->dailyAt('03:00')
+})->name('generate-sitemap')
+    ->dailyAt('03:00')
     ->withoutOverlapping()
     ->runInBackground();
 
