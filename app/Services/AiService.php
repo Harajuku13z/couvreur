@@ -106,13 +106,13 @@ class AiService
         }
         $messages[] = ['role' => 'user', 'content' => $prompt];
         
-        // Si Groq est le fournisseur par défaut et disponible, l'utiliser directement
+        // Si Groq est le fournisseur par défaut et disponible, l'utiliser directement (sauter ChatGPT)
         if ($defaultProvider === 'groq' && $groqApiKey) {
-            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe');
-            // Passer directement à Groq (le code Groq est plus bas)
+            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe (saut de ChatGPT)');
+            // Passer directement à Groq (le code Groq est plus bas, après la section ChatGPT)
         }
         // Essayer ChatGPT d'abord si activé et clé disponible (et que ce n'est pas Groq par défaut)
-        elseif ($chatgptEnabled && $chatgptApiKey && $defaultProvider !== 'groq') {
+        elseif ($chatgptEnabled && $chatgptApiKey) {
             try {
                 // DERNIÈRE VÉRIFICATION CRITIQUE juste avant l'appel API
                 // Si max_tokens > 4096, FORCER gpt-4o (même si déjà vérifié)
