@@ -389,6 +389,7 @@ Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(func
     Route::post('/branding', [ConfigController::class, 'updateBranding'])->name('update.branding');
     Route::post('/email', [ConfigController::class, 'updateEmail'])->name('update.email');
     Route::post('/ai', [ConfigController::class, 'updateAI'])->name('update.ai');
+    Route::post('/security', [ConfigController::class, 'updateSecurity'])->name('update.security');
     Route::post('/social', [ConfigController::class, 'updateSocial'])->name('update.social');
     Route::post('/seo', [ConfigController::class, 'updateSeo'])->name('update.seo');
     Route::post('/reviews', [ConfigController::class, 'updateReviews'])->name('update.reviews');
