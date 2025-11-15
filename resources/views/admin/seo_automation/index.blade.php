@@ -1568,6 +1568,12 @@ function testApi(apiName, button) {
                 btn.innerHTML = originalText;
                 
                 if (data.status === 'success') {
+                    // Mettre à jour la commande cron avec le token réel
+                    const cronCommandEl = document.getElementById('cronCommand');
+                    if (cronCommandEl) {
+                        cronCommandEl.textContent = 'curl -s "' + data.url + '" > /dev/null 2>&1';
+                    }
+                    
                     let html = '<div class="bg-white border border-gray-200 rounded-lg p-4">';
                     html += '<h3 class="font-bold text-gray-900 mb-3"><i class="fas fa-link mr-2 text-blue-600"></i>URL de la route HTTP</h3>';
                     html += '<div class="space-y-3">';
@@ -1589,12 +1595,15 @@ function testApi(apiName, button) {
                     html += '</button>';
                     html += '</div>';
                     html += '</div>';
+                    html += '<div class="mt-4 p-3 bg-green-50 border border-green-200 rounded text-xs">';
+                    html += '<p class="font-semibold mb-2 text-green-800">✅ Commande cron mise à jour ci-dessus</p>';
+                    html += '</div>';
                     html += '<div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">';
                     html += '<p class="font-semibold mb-2">⚠️ Important :</p>';
                     html += '<ul class="list-disc list-inside space-y-1 text-gray-700">';
                     html += '<li>Gardez ce token secret et ne le partagez pas</li>';
-                    html += '<li>Utilisez cette URL dans votre service externe (cron-job.org, UptimeRobot, etc.)</li>';
-                    html += '<li>Configurez le service pour appeler cette URL <strong>une fois par jour</strong> à l\'heure configurée</li>';
+                    html += '<li>Utilisez cette URL dans votre cron Hostinger ou service externe</li>';
+                    html += '<li>Configurez la fréquence selon l\'intervalle cron configuré (par défaut: toutes les minutes)</li>';
                     html += '</ul>';
                     html += '</div>';
                     html += '</div>';
@@ -1638,6 +1647,12 @@ function testApi(apiName, button) {
                 btn.innerHTML = originalText;
                 
                 if (data.status === 'success') {
+                    // Mettre à jour la commande cron avec le nouveau token
+                    const cronCommandEl = document.getElementById('cronCommand');
+                    if (cronCommandEl) {
+                        cronCommandEl.textContent = 'curl -s "' + data.url + '" > /dev/null 2>&1';
+                    }
+                    
                     let html = '<div class="bg-green-50 border border-green-200 rounded-lg p-4">';
                     html += '<p class="text-green-800 font-semibold mb-2"><i class="fas fa-check-circle mr-2"></i>Token régénéré avec succès !</p>';
                     html += '<div class="mt-3 space-y-2">';
