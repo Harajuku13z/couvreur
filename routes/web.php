@@ -7,6 +7,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\ReviewsController;
+use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\AdPublicController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Admin\DevisController;
 use App\Http\Controllers\Admin\FactureController;
 use App\Http\Controllers\Admin\ClientController;
@@ -200,62 +205,29 @@ Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('for
 Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
 Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
 
-// Routes publiques de fallback (pour éviter les erreurs si les pages n'existent pas encore)
-Route::get('/portfolio', function () {
-    if (\Illuminate\Support\Facades\View::exists('portfolio.index')) {
-        return view('portfolio.index', ['currentPage' => 'portfolio']);
-    }
-    abort(404);
-})->name('portfolio.index');
+// Routes publiques pour le portfolio
+Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+Route::get('/portfolio/{slug}', [PortfolioController::class, 'show'])->name('portfolio.show');
 
-Route::get('/blog', function () {
-    if (\Illuminate\Support\Facades\View::exists('blog.index')) {
-        return view('blog.index', ['currentPage' => 'blog']);
-    }
-    abort(404);
-})->name('blog.index');
+// Routes publiques pour le blog
+Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');
+Route::get('/blog/{article}', [ArticleController::class, 'show'])->name('blog.show');
 
-Route::get('/contact', function () {
-    if (\Illuminate\Support\Facades\View::exists('contact.index')) {
-        return view('contact.index', ['currentPage' => 'contact']);
-    }
-    abort(404);
-})->name('contact');
+// Route publique pour le contact
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
-Route::get('/ads', function () {
-    if (\Illuminate\Support\Facades\View::exists('ads.index')) {
-        return view('ads.index', ['currentPage' => 'ads']);
-    }
-    abort(404);
-})->name('ads.index');
+// Routes publiques pour les annonces
+Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
+Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show');
 
-Route::get('/reviews', function () {
-    if (\Illuminate\Support\Facades\View::exists('reviews.all')) {
-        return view('reviews.all', ['currentPage' => 'reviews']);
-    }
-    abort(404);
-})->name('reviews.all');
+// Routes publiques pour les avis
+Route::get('/reviews', [FormControllerSimple::class, 'allReviews'])->name('reviews.all');
 
-Route::get('/legal/mentions', function () {
-    if (\Illuminate\Support\Facades\View::exists('legal.mentions')) {
-        return view('legal.mentions');
-    }
-    abort(404);
-})->name('legal.mentions');
-
-Route::get('/legal/privacy', function () {
-    if (\Illuminate\Support\Facades\View::exists('legal.privacy')) {
-        return view('legal.privacy');
-    }
-    abort(404);
-})->name('legal.privacy');
-
-Route::get('/legal/cgv', function () {
-    if (\Illuminate\Support\Facades\View::exists('legal.cgv')) {
-        return view('legal.cgv');
-    }
-    abort(404);
-})->name('legal.cgv');
+// Routes publiques pour les pages légales
+Route::get('/legal/mentions', [LegalController::class, 'mentionsLegales'])->name('legal.mentions');
+Route::get('/legal/privacy', [LegalController::class, 'politiqueConfidentialite'])->name('legal.privacy');
+Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
 
 // Route pour le sitemap index (retourne le sitemap_index.xml)
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.xml');
