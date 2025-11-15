@@ -187,6 +187,19 @@ Route::get('/test-phone-tracking', function () {
             }
         })->name('schedule.run');
 
+// Route pour le sitemap index (retourne le sitemap_index.xml)
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.xml');
+Route::get('/sitemap_index.xml', function () {
+    $indexPath = public_path('sitemap_index.xml');
+    if (file_exists($indexPath)) {
+        return response(file_get_contents($indexPath), 200)
+            ->header('Content-Type', 'application/xml');
+    }
+    // Si le fichier n'existe pas, générer via le contrôleur
+    $controller = app(\App\Http\Controllers\SitemapController::class);
+    return $controller->index();
+})->name('sitemap_index.xml');
+
 // Routes admin pour l'indexation
 Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
