@@ -529,17 +529,25 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
         // Utiliser le scheduler pour vérifier si c'est le bon moment
         $scheduler = app(\App\Services\SeoArticleScheduler::class);
         
+        // Récupérer les stats pour le debug
+        $scheduleStats = $scheduler->getScheduleStats();
+        $nextTime = $scheduler->getNextScheduledTime();
+        $nextTimeStr = $nextTime ? $nextTime->format('H:i') : 'N/A';
+        
         // Vérifier si c'est le moment de créer un article
         if (!$scheduler->shouldCreateArticle()) {
-            $nextTime = $scheduler->getNextScheduledTime();
-            $nextTimeStr = $nextTime ? $nextTime->format('H:i') : 'N/A';
-            
             return response()->json([
                 'status' => 'skipped',
                 'message' => "Ce n'est pas encore le moment de créer un article. Prochain créneau: {$nextTimeStr}",
                 'next_scheduled_time' => $nextTimeStr,
                 'current_time' => $now->format('H:i'),
-                'timestamp' => $now->format('Y-m-d H:i:s')
+                'timestamp' => $now->format('Y-m-d H:i:s'),
+                'debug' => [
+                    'articles_today' => $scheduleStats['articles_today'] ?? 0,
+                    'total_articles_per_day' => $scheduleStats['total_articles_per_day'] ?? 0,
+                    'remaining_today' => $scheduleStats['remaining_today'] ?? 0,
+                    'should_create_now' => $scheduleStats['should_create_now'] ?? false,
+                ]
             ]);
         }
         

@@ -92,27 +92,54 @@ class SeoArticleScheduler
             return false;
         }
         
-        // Vérifier si on est dans la fenêtre de temps (10 minutes avant ou après pour plus de flexibilité)
+        // Vérifier d'abord si on a atteint le quota du jour
+        $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
+        $citiesCount = City::where('is_favorite', true)->count();
+        $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+        
+        $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+        
+        // Si on a atteint le quota, ne pas créer d'article
+        if ($articlesToday >= $totalArticlesPerDay) {
+            return false;
+        }
+        
+        // Vérifier si un article a déjà été créé récemment (dans les 5 dernières minutes)
+        // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
+        $recentArticle = \App\Models\Article::whereDate('created_at', today())
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->exists();
+        
+        if ($recentArticle) {
+            return false; // Un article vient d'être créé, attendre un peu
+        }
+        
         $now = now();
         $diffMinutes = abs($now->diffInMinutes($nextTime));
         
-        // Si on est passé l'heure prévue, vérifier qu'on n'a pas déjà créé l'article
+        // Si on est passé l'heure prévue, permettre la création si :
+        // 1. On n'a pas atteint le quota
+        // 2. On est dans une fenêtre raisonnable (max 2 heures après l'heure prévue)
+        // 3. On est toujours dans la période de travail (12h après le début)
         if ($nextTime->isPast()) {
-            // Vérifier si un article a déjà été créé récemment (dans les 15 dernières minutes)
-            $recentArticle = \App\Models\Article::whereDate('created_at', today())
-                ->where('created_at', '>=', now()->subMinutes(15))
-                ->exists();
+            // Calculer l'heure de fin de la période de travail
+            $startTimeStr = Setting::get('seo_automation_time', '08:00');
+            $startTimeParts = explode(':', $startTimeStr);
+            $startHour = (int)($startTimeParts[0] ?? 8);
+            $startMinute = (int)($startTimeParts[1] ?? 0);
+            $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
             
-            if ($recentArticle) {
-                return false; // Un article vient d'être créé
+            // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
+            if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
+                // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
+                return $diffMinutes <= 120; // 2 heures de marge
             }
             
-            // Si on est passé l'heure mais pas trop (max 30 minutes), permettre la création
-            return $diffMinutes <= 30;
+            return false;
         }
         
-        // Si on est avant l'heure, vérifier qu'on est proche (10 minutes avant max)
-        return $diffMinutes <= 10;
+        // Si on est avant l'heure, vérifier qu'on est proche (15 minutes avant max)
+        return $diffMinutes <= 15;
     }
     
     /**
