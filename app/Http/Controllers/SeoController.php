@@ -485,7 +485,24 @@ class SeoController extends Controller
         $robots .= "Disallow: /.gitignore\n";
         $robots .= "Disallow: /README.md\n";
         
-        $robots .= "\nSitemap: " . url('/sitemap.xml') . "\n";
+        // Ajouter tous les sitemaps trouvés
+        $robots .= "\n";
+        
+        // Sitemap index principal (liste tous les autres sitemaps)
+        $robots .= "Sitemap: " . url('/sitemap_index.xml') . "\n";
+        
+        // Sitemap principal
+        $robots .= "Sitemap: " . url('/sitemap.xml') . "\n";
+        
+        // Trouver tous les autres sitemaps (sitemap2.xml, sitemap3.xml, etc.)
+        $sitemapFiles = glob(public_path('sitemap*.xml'));
+        foreach ($sitemapFiles as $sitemapFile) {
+            $filename = basename($sitemapFile);
+            // Ignorer sitemap_index.xml et sitemap.xml (déjà ajoutés)
+            if ($filename !== 'sitemap_index.xml' && $filename !== 'sitemap.xml') {
+                $robots .= "Sitemap: " . url('/' . $filename) . "\n";
+            }
+        }
         
         // Debug temporaire
         \Log::info('Robots.txt generated:', ['content' => $robots]);

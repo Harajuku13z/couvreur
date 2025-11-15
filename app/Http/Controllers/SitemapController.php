@@ -12,107 +12,196 @@ use App\Models\Article;
 
 class SitemapController extends Controller
 {
+    protected $maxUrlsPerSitemap = 3000; // Limite augmentée à 3000 URLs par sitemap
+
     /**
-     * Générer le sitemap avec cache
+     * Générer le sitemap index qui liste tous les autres sitemaps
      */
     public function index()
     {
         // Cache pendant 24 heures
-        $sitemapXml = Cache::remember('sitemap_xml', 86400, function () {
-            $sitemap = Sitemap::create();
+        $sitemapIndexXml = Cache::remember('sitemap_index_xml', 86400, function () {
+            // Collecter toutes les URLs
+            $allUrls = $this->collectAllUrls();
+            
+            // Diviser en chunks de 3000 URLs maximum
+            $urlChunks = array_chunk($allUrls, $this->maxUrlsPerSitemap);
+            $sitemapFiles = [];
+            
+            // Générer un sitemap pour chaque chunk
+            foreach ($urlChunks as $index => $urlChunk) {
+                $sitemapNumber = $index + 1;
+                $filename = $index === 0 ? 'sitemap.xml' : "sitemap{$sitemapNumber}.xml";
+                $sitemapPath = public_path($filename);
+                
+                // Créer le sitemap
+                $sitemap = Sitemap::create();
+                foreach ($urlChunk as $urlData) {
+                    try {
+                        $url = Url::create($urlData['url'])
+                            ->setPriority($urlData['priority'] ?? 0.8)
+                            ->setChangeFrequency($urlData['changefreq'] ?? Url::CHANGE_FREQUENCY_WEEKLY);
+                        
+                        if (isset($urlData['lastmod'])) {
+                            $url->setLastModificationDate($urlData['lastmod']);
+                        }
+                        
+                        $sitemap->add($url);
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+                }
+                
+                // Sauvegarder le sitemap
+                $sitemap->writeToFile($sitemapPath);
+                $sitemapFiles[] = [
+                    'filename' => $filename,
+                    'url' => url($filename),
+                    'urls_count' => count($urlChunk)
+                ];
+            }
+            
+            // Créer le sitemap index qui liste tous les sitemaps
+            $sitemapIndex = Sitemap::create();
+            foreach ($sitemapFiles as $sitemapFile) {
+                $sitemapIndex->add($sitemapFile['url']);
+            }
+            
+            // Sauvegarder le sitemap index
+            $indexPath = public_path('sitemap_index.xml');
+            $sitemapIndex->writeToFile($indexPath);
+            
+            // Retourner le XML du sitemap index
+            return $sitemapIndex->render();
+        });
 
-            // Page d'accueil (priorité maximale)
-            $sitemap->add(Url::create(route('home'))
-                ->setPriority(1.0)
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY));
+        return response($sitemapIndexXml, 200)
+            ->header('Content-Type', 'application/xml');
+    }
 
-            // Services actifs
+    /**
+     * Collecter toutes les URLs du site
+     */
+    protected function collectAllUrls()
+    {
+        $urls = [];
+
+        // Page d'accueil (priorité maximale)
+        try {
+            $urls[] = [
+                'url' => route('home'),
+                'priority' => 1.0,
+                'changefreq' => Url::CHANGE_FREQUENCY_DAILY,
+                'lastmod' => now()
+            ];
+        } catch (\Exception $e) {
+            // Ignorer
+        }
+
+        // Services actifs
+        try {
             $services = Service::active()->ordered()->get();
             foreach ($services as $service) {
                 try {
-                    $sitemap->add(Url::create(route('services.show', $service))
-                        ->setPriority(0.9)
-                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                        ->setLastModificationDate($service->updated_at));
+                    $urls[] = [
+                        'url' => route('services.show', $service),
+                        'priority' => 0.9,
+                        'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                        'lastmod' => $service->updated_at
+                    ];
                 } catch (\Exception $e) {
-                    // Ignorer les erreurs de route
                     continue;
                 }
             }
+        } catch (\Exception $e) {
+            // Ignorer
+        }
 
-            // Villes actives (SEO local)
+        // Villes actives (SEO local)
+        try {
             $cities = City::active()->get();
             foreach ($cities as $city) {
                 try {
-                    $sitemap->add(Url::create(route('locale.show', $city))
-                        ->setPriority(0.8)
-                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                        ->setLastModificationDate($city->updated_at));
+                    $urls[] = [
+                        'url' => route('locale.show', $city),
+                        'priority' => 0.8,
+                        'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                        'lastmod' => $city->updated_at
+                    ];
                 } catch (\Exception $e) {
-                    // Ignorer les erreurs de route
                     continue;
                 }
             }
+        } catch (\Exception $e) {
+            // Ignorer
+        }
 
-            // Articles publiés
+        // Articles publiés
+        try {
             $articles = Article::published()->latest()->get();
             foreach ($articles as $article) {
                 try {
-                    $sitemap->add(Url::create(route('blog.show', $article))
-                        ->setPriority(0.7)
-                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                        ->setLastModificationDate($article->updated_at));
-                } catch (\Exception $e) {
-                    // Ignorer les erreurs de route
-                    continue;
-                }
-            }
-
-            // Pages statiques importantes
-            $staticPages = [
-                ['route' => 'services.index', 'priority' => 0.8, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
-                ['route' => 'blog.index', 'priority' => 0.7, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
-                ['route' => 'devis.gratuit', 'priority' => 0.8, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
-                ['route' => 'contact', 'priority' => 0.7, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
-                ['route' => 'reviews.all', 'priority' => 0.6, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
-                ['route' => 'portfolio.index', 'priority' => 0.6, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
-            ];
-
-            foreach ($staticPages as $page) {
-                try {
-                    if (\Route::has($page['route'])) {
-                        $sitemap->add(Url::create(route($page['route']))
-                            ->setPriority($page['priority'])
-                            ->setChangeFrequency($page['freq']));
-                    }
+                    $urls[] = [
+                        'url' => route('blog.show', $article),
+                        'priority' => 0.7,
+                        'changefreq' => Url::CHANGE_FREQUENCY_WEEKLY,
+                        'lastmod' => $article->updated_at
+                    ];
                 } catch (\Exception $e) {
                     continue;
                 }
             }
+        } catch (\Exception $e) {
+            // Ignorer
+        }
 
-            // Pages légales (priorité faible)
-            $legalPages = [
-                ['route' => 'legal.mentions', 'priority' => 0.3],
-                ['route' => 'legal.privacy', 'priority' => 0.3],
-                ['route' => 'legal.cgv', 'priority' => 0.3],
-            ];
+        // Pages statiques importantes
+        $staticPages = [
+            ['route' => 'services.index', 'priority' => 0.8, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
+            ['route' => 'blog.index', 'priority' => 0.7, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
+            ['route' => 'devis.gratuit', 'priority' => 0.8, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
+            ['route' => 'contact', 'priority' => 0.7, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
+            ['route' => 'reviews.all', 'priority' => 0.6, 'freq' => Url::CHANGE_FREQUENCY_WEEKLY],
+            ['route' => 'portfolio.index', 'priority' => 0.6, 'freq' => Url::CHANGE_FREQUENCY_MONTHLY],
+        ];
 
-            foreach ($legalPages as $page) {
-                try {
-                    if (\Route::has($page['route'])) {
-                        $sitemap->add(Url::create(route($page['route']))
-                            ->setPriority($page['priority'])
-                            ->setChangeFrequency(Url::CHANGE_FREQUENCY_YEARLY));
-                    }
-                } catch (\Exception $e) {
-                    continue;
+        foreach ($staticPages as $page) {
+            try {
+                if (\Route::has($page['route'])) {
+                    $urls[] = [
+                        'url' => route($page['route']),
+                        'priority' => $page['priority'],
+                        'changefreq' => $page['freq'],
+                        'lastmod' => now()
+                    ];
                 }
+            } catch (\Exception $e) {
+                continue;
             }
+        }
 
-            return $sitemap->render();
-        });
+        // Pages légales (priorité faible)
+        $legalPages = [
+            ['route' => 'legal.mentions', 'priority' => 0.3],
+            ['route' => 'legal.privacy', 'priority' => 0.3],
+            ['route' => 'legal.cgv', 'priority' => 0.3],
+        ];
 
-        return response($sitemapXml, 200)
-            ->header('Content-Type', 'application/xml');
+        foreach ($legalPages as $page) {
+            try {
+                if (\Route::has($page['route'])) {
+                    $urls[] = [
+                        'url' => route($page['route']),
+                        'priority' => $page['priority'],
+                        'changefreq' => Url::CHANGE_FREQUENCY_YEARLY,
+                        'lastmod' => now()
+                    ];
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return $urls;
     }
 }
