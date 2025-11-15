@@ -198,49 +198,49 @@ Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('for
 
 // Routes publiques de fallback (pour éviter les erreurs si les pages n'existent pas encore)
 Route::get('/portfolio', function () {
-    return view('portfolio.index', ['currentPage' => 'portfolio'])->exists() 
+    return \Illuminate\Support\Facades\View::exists('portfolio.index') 
         ? view('portfolio.index', ['currentPage' => 'portfolio']) 
         : redirect('/');
 })->name('portfolio.index');
 
 Route::get('/blog', function () {
-    return view()->exists('blog.index') 
+    return \Illuminate\Support\Facades\View::exists('blog.index') 
         ? view('blog.index', ['currentPage' => 'blog']) 
         : redirect('/');
 })->name('blog.index');
 
 Route::get('/contact', function () {
-    return view()->exists('contact.index') 
+    return \Illuminate\Support\Facades\View::exists('contact.index') 
         ? view('contact.index', ['currentPage' => 'contact']) 
         : redirect('/');
 })->name('contact');
 
 Route::get('/ads', function () {
-    return view()->exists('ads.index') 
+    return \Illuminate\Support\Facades\View::exists('ads.index') 
         ? view('ads.index', ['currentPage' => 'ads']) 
         : redirect('/');
 })->name('ads.index');
 
 Route::get('/reviews', function () {
-    return view()->exists('reviews.all') 
+    return \Illuminate\Support\Facades\View::exists('reviews.all') 
         ? view('reviews.all', ['currentPage' => 'reviews']) 
         : redirect('/');
 })->name('reviews.all');
 
 Route::get('/legal/mentions', function () {
-    return view()->exists('legal.mentions') 
+    return \Illuminate\Support\Facades\View::exists('legal.mentions') 
         ? view('legal.mentions') 
         : redirect('/');
 })->name('legal.mentions');
 
 Route::get('/legal/privacy', function () {
-    return view()->exists('legal.privacy') 
+    return \Illuminate\Support\Facades\View::exists('legal.privacy') 
         ? view('legal.privacy') 
         : redirect('/');
 })->name('legal.privacy');
 
 Route::get('/legal/cgv', function () {
-    return view()->exists('legal.cgv') 
+    return \Illuminate\Support\Facades\View::exists('legal.cgv') 
         ? view('legal.cgv') 
         : redirect('/');
 })->name('legal.cgv');
