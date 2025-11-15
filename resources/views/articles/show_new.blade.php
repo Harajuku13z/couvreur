@@ -251,6 +251,7 @@
         position: relative;
         z-index: 1;
         padding: 0;
+        min-width: 0; /* Permet au contenu de se rétrécir dans le grid */
     }
     
     
