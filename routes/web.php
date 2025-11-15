@@ -564,6 +564,16 @@ Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin
     Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
 });
 
+// Routes admin pour la gestion des mots-clés
+Route::prefix('admin/keywords')->name('admin.keywords.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\KeywordController::class, 'index'])->name('index');
+    Route::post('/generate', [App\Http\Controllers\Admin\KeywordController::class, 'generateKeywords'])->name('generate');
+    Route::post('/save', [App\Http\Controllers\Admin\KeywordController::class, 'saveKeywords'])->name('save');
+    Route::post('/image', [App\Http\Controllers\Admin\KeywordController::class, 'storeImage'])->name('image.store');
+    Route::put('/image/{keywordImage}', [App\Http\Controllers\Admin\KeywordController::class, 'updateImage'])->name('image.update');
+    Route::delete('/image/{keywordImage}', [App\Http\Controllers\Admin\KeywordController::class, 'destroyImage'])->name('image.destroy');
+});
+
 // Routes admin pour l'automatisation SEO
 Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [SeoAutomationController::class, 'index'])->name('index');

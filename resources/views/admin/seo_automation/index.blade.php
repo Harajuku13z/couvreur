@@ -11,6 +11,11 @@
             <p class="text-gray-600 mt-1">Gestion des articles SEO générés automatiquement</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('admin.keywords.index') }}" 
+               class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center">
+                <i class="fas fa-tags mr-2"></i>
+                Gérer les mots-clés
+            </a>
             <form action="{{ route('admin.seo-automation.reset-all') }}" method="POST" class="inline" onsubmit="return confirm('⚠️ ATTENTION : Cela supprimera TOUS les logs d\'automation et les jobs en attente. Êtes-vous sûr ?');">
                 @csrf
                 <button type="submit" 
@@ -572,79 +577,25 @@
         </div>
     </div>
 
-    <!-- Gestion des mots-clés personnalisés -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-key mr-2 text-purple-600"></i>Mots-clés personnalisés
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">
-            Ces mots-clés seront utilisés pour la création automatisée des articles. Si aucun mot-clé personnalisé n'est défini, le système utilisera les tendances SerpAPI.
-        </p>
-        
-        <div class="space-y-4">
-            <!-- Bouton pour générer depuis la description -->
-            <div class="flex items-center gap-3">
-                <button type="button" 
-                        id="generateKeywordsBtn"
-                        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-magic mr-2"></i>
-                    Générer les mots-clés via ChatGPT
-                </button>
-                @if(empty($companyDescription))
-                    <span class="text-xs text-yellow-600">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>Description d'entreprise non configurée
-                    </span>
-                @endif
-                <span class="text-xs text-gray-500">
-                    <i class="fas fa-info-circle mr-1"></i>Utilise ChatGPT pour générer des mots-clés pertinents
-                </span>
-            </div>
-            
-            <!-- Liste des mots-clés -->
+    <!-- Lien vers la gestion des mots-clés -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Mots-clés personnalisés ({{ count($customKeywords) }} configuré(s))
-                </label>
-                <form id="keywordsForm" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div id="keywordsContainer" class="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto space-y-2">
-                    @if(empty($customKeywords))
-                        <p class="text-sm text-gray-500 italic">Aucun mot-clé configuré. Cliquez sur "Générer les mots-clés" pour en créer depuis la description de l'entreprise.</p>
-                    @else
-                        @foreach($customKeywords as $index => $keyword)
-                            <div class="flex items-center gap-3 p-2 bg-white rounded border border-gray-200">
-                                <div class="flex-1">
-                                    <input type="text" 
-                                           name="keywords[]" 
-                                           value="{{ $keyword }}"
-                                           class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                           placeholder="Mot-clé">
-                                </div>
-                                <div class="w-32">
-                                    <input type="file" 
-                                           name="keyword_images[{{ $index }}]"
-                                           accept="image/jpeg,image/png,image/jpg,image/webp"
-                                           class="w-full text-xs">
-                                </div>
-                                <button type="button" 
-                                        onclick="removeKeywordItem(this)"
-                                        class="text-red-600 hover:text-red-800 px-2">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        @endforeach
+                <h3 class="text-lg font-semibold text-indigo-900 mb-1">
+                    <i class="fas fa-tags mr-2"></i>Gestion des Mots-clés
+                </h3>
+                <p class="text-sm text-indigo-700">
+                    Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
+                    @if(count($customKeywords) > 0)
+                        <span class="font-medium">{{ count($customKeywords) }} mot(s)-clé(s) configuré(s)</span>
                     @endif
-                    </div>
-                    <button type="button" 
-                            id="saveKeywordsBtn"
-                            class="mt-3 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 {{ empty($customKeywords) ? 'opacity-50 cursor-not-allowed' : '' }}"
-                            {{ empty($customKeywords) ? 'disabled' : '' }}>
-                        <i class="fas fa-save mr-2"></i>
-                        Sauvegarder les mots-clés
-                    </button>
-                    <div id="keywordsResult" class="mt-2 text-sm"></div>
-                </form>
+                </p>
             </div>
+            <a href="{{ route('admin.keywords.index') }}" 
+               class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
+                <i class="fas fa-arrow-right mr-2"></i>
+                Aller à la gestion des mots-clés
+            </a>
         </div>
     </div>
 
@@ -1884,96 +1835,22 @@ function testApi(apiName, button) {
         </div>
     </div>
 
-    <!-- Banque d'images par mot-clé -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-images mr-2 text-indigo-600"></i>Banque d'images par mot-clé
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">
-            Associez une image à chaque mot-clé pour éviter d'utiliser DALL-E à chaque génération. L'image sera utilisée dans la section "Nos Réalisations" des articles générés.
-        </p>
-        
-        <div class="space-y-4">
-            <!-- Formulaire d'ajout -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">Ajouter une image</h3>
-                <form action="{{ route('admin.seo-automation.keyword-image.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
-                    @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Mot-clé</label>
-                            <input type="text" 
-                                   name="keyword" 
-                                   required
-                                   placeholder="Ex: rénovation de toiture"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Image</label>
-                            <input type="file" 
-                                   name="image" 
-                                   accept="image/jpeg,image/png,image/jpg,image/webp"
-                                   required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Titre (optionnel)</label>
-                        <input type="text" 
-                               name="title" 
-                               placeholder="Ex: Toiture rénovée"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    </div>
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
-                        <i class="fas fa-plus mr-1"></i>Ajouter l'image
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Liste des images -->
+    <!-- Lien vers la gestion des mots-clés -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-3">Images configurées</h3>
-                <div id="keywordImagesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @php
-                        $keywordImages = \App\Models\KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
-                    @endphp
-                    @forelse($keywordImages as $keywordImage)
-                        <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                            <div class="mb-2">
-                                <img src="{{ asset($keywordImage->image_path) }}" 
-                                     alt="{{ $keywordImage->title ?? $keywordImage->keyword }}"
-                                     class="w-full h-32 object-cover rounded-lg">
-                            </div>
-                            <div class="text-sm">
-                                <p class="font-medium text-gray-900">{{ $keywordImage->keyword }}</p>
-                                @if($keywordImage->title)
-                                    <p class="text-gray-600 text-xs mt-1">{{ $keywordImage->title }}</p>
-                                @endif
-                                <div class="flex items-center justify-between mt-2">
-                                    <span class="text-xs {{ $keywordImage->is_active ? 'text-green-600' : 'text-gray-400' }}">
-                                        {{ $keywordImage->is_active ? 'Actif' : 'Inactif' }}
-                                    </span>
-                                    <form action="{{ route('admin.seo-automation.keyword-image.destroy', $keywordImage) }}" 
-                                          method="POST" 
-                                          class="inline"
-                                          onsubmit="return confirm('Supprimer cette image ?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 text-xs">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-full text-center py-8 text-gray-500">
-                            <i class="fas fa-images text-4xl mb-2"></i>
-                            <p>Aucune image configurée. Ajoutez une image pour commencer.</p>
-                        </div>
-                    @endforelse
-                </div>
+                <h3 class="text-lg font-semibold text-indigo-900 mb-1">
+                    <i class="fas fa-tags mr-2"></i>Gestion des Mots-clés
+                </h3>
+                <p class="text-sm text-indigo-700">
+                    Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
+                </p>
             </div>
+            <a href="{{ route('admin.keywords.index') }}" 
+               class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
+                <i class="fas fa-arrow-right mr-2"></i>
+                Aller à la gestion des mots-clés
+            </a>
         </div>
     </div>
 
