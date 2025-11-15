@@ -801,16 +801,20 @@
     .cta-hero-image {
         flex: 0 0 auto;
         width: 100%;
-        height: 200px;
+        aspect-ratio: 1 / 1; /* Format carré */
         position: relative;
         overflow: hidden;
         border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-lighter);
     }
     
     .cta-hero-image img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain; /* Afficher l'image à 100% de sa taille réelle */
         object-position: center;
     }
     
