@@ -136,12 +136,24 @@ class KeywordController extends Controller
     public function saveKeywords(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'keywords' => 'required|array',
-                'keywords.*' => 'string|max:255',
-            ]);
+            // Récupérer les mots-clés depuis le textarea (séparés par des retours à la ligne)
+            $keywordsText = $request->input('keywords_text', '');
             
-            $keywords = array_filter(array_map('trim', $validated['keywords']));
+            // Si keywords_text n'existe pas, essayer keywords[] (tableau)
+            if (empty($keywordsText)) {
+                $keywordsArray = $request->input('keywords', []);
+                if (is_array($keywordsArray)) {
+                    $keywordsText = implode("\n", $keywordsArray);
+                }
+            }
+            
+            // Séparer par lignes et nettoyer
+            $keywords = array_filter(
+                array_map('trim', explode("\n", $keywordsText)),
+                function($keyword) {
+                    return !empty($keyword) && strlen($keyword) <= 255;
+                }
+            );
             $keywords = array_values(array_unique($keywords)); // Supprimer les doublons
             
             // Vérifier qu'il y a au moins un mot-clé

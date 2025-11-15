@@ -63,7 +63,7 @@
                         Mots-clés (un par ligne)
                     </label>
                     <textarea 
-                        name="keywords[]" 
+                        name="keywords_text" 
                         id="keywordsTextarea"
                         rows="15"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
