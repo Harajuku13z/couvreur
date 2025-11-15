@@ -30,10 +30,10 @@ class SitemapController extends Controller
             $urlChunks = array_chunk($allUrls, $this->maxUrlsPerSitemap);
             $sitemapFiles = [];
             
-            // Générer un sitemap pour chaque chunk
+            // Générer un sitemap pour chaque chunk (sitemap1.xml, sitemap2.xml, etc.)
             foreach ($urlChunks as $index => $urlChunk) {
                 $sitemapNumber = $index + 1;
-                $filename = $index === 0 ? 'sitemap.xml' : "sitemap{$sitemapNumber}.xml";
+                $filename = "sitemap{$sitemapNumber}.xml";
                 $sitemapPath = public_path($filename);
                 
                 // Créer le sitemap
