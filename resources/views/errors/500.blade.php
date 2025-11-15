@@ -30,7 +30,7 @@
         <!-- Actions principales -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <!-- Bouton Accueil -->
-            <a href="{{ route('home') }}" 
+            <a href="{{ url('/') }}" 
                class="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                 <i class="fas fa-home mr-3"></i>
                 Retour à l'accueil
