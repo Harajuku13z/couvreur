@@ -1259,7 +1259,60 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
    - Les gaps concurrentiels
    - L'intention de recherche
    
-   **Exemples de sections possibles (à adapter) :**
+   **SECTIONS RECOMMANDÉES (inspirées d'articles à fort potentiel) :**
+   
+   **A. Section "Nos prestations" ou "Services proposés"** (si pertinent pour le sujet)
+   - Liste détaillée des prestations liées à {$keyword}
+   - Chaque prestation avec description, avantages, prix indicatifs
+   - Format : liste à puces avec descriptions complètes (100-150 mots par prestation)
+   - Exemple de structure :
+     ```html
+     <section id="prestations">
+       <h2>Nos prestations de {$keyword}</h2>
+       <p>[Introduction 100-150 mots]</p>
+       <ul>
+         <li><strong>[Prestation 1] :</strong> [Description détaillée 100-150 mots avec prix, délais, avantages]</li>
+         <li><strong>[Prestation 2] :</strong> [Description détaillée 100-150 mots]</li>
+         <!-- 8-12 prestations au total -->
+       </ul>
+     </section>
+     ```
+   
+   **B. Section "Pourquoi choisir un artisan local ?" ou "Pourquoi faire appel à {$companyName} ?"**
+   - Avantages de choisir un professionnel local
+   - Différences avec les grandes entreprises
+   - Garanties et assurances (décennale, biennale, RC pro)
+   - Tarifs compétitifs, réactivité, service personnalisé
+   - Format : paragraphes avec liste d'avantages (600-800 mots)
+   
+   **C. Section "Entretien régulier et durabilité"** (si pertinent)
+   - Importance de l'entretien
+   - Fréquence recommandée
+   - Coûts d'entretien vs coûts de réparation
+   - Conseils pratiques pour prolonger la durée de vie
+   - Format : paragraphes détaillés avec conseils actionnables (600-800 mots)
+   
+   **D. Section "Labels qualité et garanties"**
+   - Certifications (RGE, Qualibat, etc.)
+   - Garanties légales (décennale, biennale)
+   - Assurance professionnelle
+   - Aides financières disponibles (MaPrimeRénov', CEE, etc.)
+   - Format : paragraphes avec détails sur chaque label/garantie (600-800 mots)
+   
+   **E. Section "Aides financières et subventions"** (si pertinent)
+   - Liste des aides disponibles (MaPrimeRénov', CEE, éco-PTZ, etc.)
+   - Conditions d'éligibilité
+   - Montants indicatifs
+   - Processus de demande
+   - Format : paragraphes détaillés avec exemples concrets (600-800 mots)
+   
+   **F. Section "Notre zone d'intervention"**
+   - Liste des villes/communes couvertes
+   - Spécificités locales (climat, architecture, réglementations)
+   - Réactivité et proximité
+   - Format : paragraphes avec liste des zones (400-600 mots)
+   
+   **Autres sections possibles (à adapter) :**
    - Si le sujet concerne les prix : "Quel est le coût réel de {$keyword} à {$city} en {$currentYear} ?"
    - Si le sujet concerne les matériaux : "Quels matériaux choisir pour {$keyword} ? Guide comparatif complet"
    - Si le sujet concerne les erreurs : "Les erreurs à éviter lors de {$keyword} : conseils d'un expert"
@@ -1269,7 +1322,11 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
    - Si le sujet concerne le processus : "Comment se déroule un projet de {$keyword} ? Étapes détaillées"
    - Si le sujet concerne les avantages : "Pourquoi opter pour {$keyword} ? Bénéfices et retours sur investissement"
    
-   **⚠️ IMPORTANT : Ces exemples sont des GUIDES. Tu DOIS créer des sections UNIQUES adaptées au sujet spécifique "{$keyword}" en t'appuyant sur l'analyse des concurrents.**
+   **⚠️ IMPORTANT :**
+   - Ces sections sont des GUIDES. Tu DOIS créer des sections UNIQUES adaptées au sujet spécifique "{$keyword}"
+   - Intègre TOUJOURS {$companyName} de manière naturelle dans les sections pertinentes
+   - Mettez en avant l'entreprise, ses compétences, ses garanties, son expertise locale
+   - Adapte le style et le ton de l'exemple fourni : professionnel, détaillé, avec des sections structurées
 
 **4. QUESTIONS FRÉQUENTES** (10-15 questions avec réponses détaillées 80-200 mots chacune)
 
