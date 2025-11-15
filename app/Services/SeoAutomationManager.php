@@ -375,13 +375,58 @@ class SeoAutomationManager
             ];
             if ($progressCallback) $progressCallback($steps);
             
-            // Utiliser la route blog.show pour les articles publics
-            $url = route('blog.show', $article);
-            $indexed = $this->indexer->indexUrl($url);
+            // Utiliser url() au lieu de route() pour éviter localhost
+            $url = url('/blog/' . $article->slug);
             
-            $steps[count($steps) - 1]['status'] = $indexed ? 'success' : 'warning';
-            $steps[count($steps) - 1]['message'] = $indexed ? 'URL notifiée à Google avec succès' : 'Notification envoyée, en attente d\'indexation';
-            $steps[count($steps) - 1]['data'] = ['url' => $url, 'indexed' => $indexed];
+            // Étape 6.1 : Demander l'indexation
+            $indexRequested = $this->indexer->indexUrl($url);
+            
+            $steps[count($steps) - 1]['message'] = $indexRequested ? 'Demande d\'indexation envoyée à Google' : 'Erreur lors de l\'envoi de la demande d\'indexation';
+            $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested];
+            if ($progressCallback) $progressCallback($steps);
+            
+            // Étape 6.2 : Vérifier le statut d'indexation (après un court délai)
+            if ($indexRequested) {
+                sleep(2); // Attendre 2 secondes pour que Google traite la demande
+                
+                try {
+                    $googleSearchConsole = app(\App\Services\GoogleSearchConsoleService::class);
+                    if ($googleSearchConsole->isConfigured()) {
+                        $verificationResult = $googleSearchConsole->verifyIndexationStatus($url);
+                        $isIndexed = $verificationResult['success'] && ($verificationResult['indexed'] ?? false);
+                        
+                        $steps[count($steps) - 1]['status'] = $isIndexed ? 'success' : 'warning';
+                        $steps[count($steps) - 1]['message'] = $isIndexed 
+                            ? '✅ URL indexée dans Google' 
+                            : '⏳ Demande d\'indexation envoyée, vérification en cours...';
+                        $steps[count($steps) - 1]['data'] = [
+                            'url' => $url, 
+                            'index_requested' => $indexRequested,
+                            'indexed' => $isIndexed,
+                            'verification' => $verificationResult
+                        ];
+                    } else {
+                        $isIndexed = false;
+                        $steps[count($steps) - 1]['status'] = 'warning';
+                        $steps[count($steps) - 1]['message'] = 'Demande d\'indexation envoyée (vérification non disponible - Google Search Console non configuré)';
+                        $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested, 'indexed' => false];
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('SeoAutomationManager: Erreur lors de la vérification d\'indexation', [
+                        'url' => $url,
+                        'error' => $e->getMessage()
+                    ]);
+                    $isIndexed = false;
+                    $steps[count($steps) - 1]['status'] = 'warning';
+                    $steps[count($steps) - 1]['message'] = 'Demande d\'indexation envoyée (erreur lors de la vérification)';
+                    $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested, 'indexed' => false];
+                }
+            } else {
+                $isIndexed = false;
+                $steps[count($steps) - 1]['status'] = 'failed';
+                $steps[count($steps) - 1]['message'] = 'Erreur lors de l\'envoi de la demande d\'indexation';
+            }
+            
             if ($progressCallback) $progressCallback($steps);
 
             // 7. Analyser la qualité SEO de l'article
@@ -414,7 +459,7 @@ class SeoAutomationManager
             }
 
             // 8. Update log - FORCER le statut à "indexed" ou "published" (jamais "pending")
-            $finalStatus = $indexed ? 'indexed' : 'published';
+            $finalStatus = $isIndexed ? 'indexed' : 'published';
             $log->update([
                 'keyword' => $keyword,
                 'status' => $finalStatus, // Toujours "indexed" ou "published", jamais "pending"
@@ -424,7 +469,9 @@ class SeoAutomationManager
                     'gpt_data' => $gptData,
                     'related_queries' => $related,
                     'competitors' => $competitors,
-                    'indexed' => $indexed,
+                    'index_requested' => $indexRequested,
+                    'indexed' => $isIndexed,
+                    'verification_result' => $verificationResult ?? null,
                     'steps' => $steps,
                     'seo_analysis' => $seoAnalysis,
                 ],

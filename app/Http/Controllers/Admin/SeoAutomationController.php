@@ -202,7 +202,12 @@ class SeoAutomationController extends Controller
                 // Récupérer les images de mots-clés
                 $keywordImages = KeywordImage::orderBy('keyword')->orderBy('display_order')->get();
                 
-                return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription', 'keywordImages', 'pendingJobs', 'automationTime', 'timezone', 'currentTime', 'nextExecution'));
+                // Récupérer les horaires planifiés
+                $scheduler = app(\App\Services\SeoArticleScheduler::class);
+                $scheduledTimes = $scheduler->getScheduledTimes();
+                $scheduleStats = $scheduler->getScheduleStats();
+                
+                return view('admin.seo_automation.index', compact('logs', 'stats', 'favoriteCities', 'services', 'apiConfig', 'automationEnabled', 'customKeywords', 'companyDescription', 'keywordImages', 'pendingJobs', 'automationTime', 'timezone', 'currentTime', 'nextExecution', 'scheduledTimes', 'scheduleStats'));
     }
 
     /**

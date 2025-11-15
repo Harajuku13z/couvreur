@@ -30,6 +30,55 @@
     <!-- Résultat du test scheduler -->
     <div id="schedulerTestResult" class="hidden mb-4"></div>
     
+    <!-- Liste des horaires planifiés -->
+    @if(isset($scheduledTimes) && count($scheduledTimes) > 0)
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>Horaires Planifiés pour Aujourd'hui
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+            Liste des créneaux horaires prévus pour la création des articles aujourd'hui ({{ count($scheduledTimes) }} article(s) planifié(s))
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            @foreach($scheduledTimes as $schedule)
+            <div class="p-3 rounded-lg border {{ $schedule['is_past'] ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200' }}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-gray-900">
+                            <i class="fas fa-clock mr-1 {{ $schedule['is_past'] ? 'text-gray-500' : 'text-blue-600' }}"></i>
+                            {{ $schedule['time'] }}
+                        </div>
+                        <div class="text-xs text-gray-600 mt-1">
+                            Article #{{ $schedule['article_number'] }}
+                            @if($schedule['is_past'])
+                                <span class="text-gray-500">(passé)</span>
+                            @else
+                                <span class="text-blue-600">(à venir)</span>
+                            @endif
+                        </div>
+                    </div>
+                    @if(!$schedule['is_past'])
+                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+        
+        @if(isset($scheduleStats))
+        <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div class="text-xs text-gray-600 space-y-1">
+                <div><strong>Heure de début :</strong> {{ $scheduleStats['start_time'] ?? 'N/A' }}</div>
+                <div><strong>Intervalle entre articles :</strong> {{ $scheduleStats['interval_minutes'] ?? 0 }} minutes</div>
+                <div><strong>Prochain créneau :</strong> {{ $scheduleStats['next_scheduled_time'] ?? 'N/A' }}</div>
+                <div><strong>Articles créés aujourd'hui :</strong> {{ $scheduleStats['articles_today'] ?? 0 }}/{{ $scheduleStats['total_articles_per_day'] ?? 0 }}</div>
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
     <!-- Lien vers la configuration du cron -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div class="flex items-center justify-between">
@@ -722,25 +771,50 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        @if($log->article_url)
-                            <a href="{{ $log->article_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
-                                <i class="fas fa-external-link-alt mr-1"></i> Voir
-                            </a>
+                        @if($log->article_id)
                             @php
+                                $article = \App\Models\Article::find($log->article_id);
+                                $articleUrl = $article ? url('/blog/' . $article->slug) : null;
                                 $metadata = is_array($log->metadata) ? $log->metadata : json_decode($log->metadata, true);
                                 $seoAnalysis = $metadata['seo_analysis'] ?? null;
+                                $indexRequested = $metadata['index_requested'] ?? false;
+                                $isIndexed = $metadata['indexed'] ?? false;
                             @endphp
-                            @if($seoAnalysis)
-                                <div class="mt-1">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                        @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
-                                        @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
-                                        @else bg-red-100 text-red-800
-                                        @endif">
-                                        <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
-                                    </span>
-                                </div>
+                            @if($articleUrl)
+                                <a href="{{ $articleUrl }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-external-link-alt mr-1"></i> Voir
+                                </a>
                             @endif
+                            <div class="mt-1 space-y-1">
+                                @if($indexRequested)
+                                    <div class="flex items-center gap-1 text-xs">
+                                        <i class="fas fa-paper-plane text-blue-500"></i>
+                                        <span class="text-blue-600">Demande d'indexation envoyée</span>
+                                    </div>
+                                @endif
+                                @if($isIndexed)
+                                    <div class="flex items-center gap-1 text-xs">
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                        <span class="text-green-600 font-semibold">Indexé</span>
+                                    </div>
+                                @elseif($indexRequested)
+                                    <div class="flex items-center gap-1 text-xs">
+                                        <i class="fas fa-clock text-yellow-500"></i>
+                                        <span class="text-yellow-600">En attente d'indexation</span>
+                                    </div>
+                                @endif
+                                @if($seoAnalysis)
+                                    <div>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                            @if($seoAnalysis['percentage'] >= 75) bg-green-100 text-green-800
+                                            @elseif($seoAnalysis['percentage'] >= 60) bg-yellow-100 text-yellow-800
+                                            @else bg-red-100 text-red-800
+                                            @endif">
+                                            <i class="fas fa-star mr-1"></i>{{ $seoAnalysis['grade'] }} ({{ $seoAnalysis['percentage'] }}%)
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
                         @else
                             <span class="text-gray-400 text-sm">-</span>
                         @endif
@@ -828,13 +902,40 @@
                 <i class="far fa-calendar mr-1"></i> {{ $log->created_at->format('d/m/Y H:i') }}
             </div>
             
-            @if($log->article_url)
-                <a href="{{ $log->article_url }}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm mb-2">
-                    <i class="fas fa-external-link-alt mr-1"></i> Voir l'article
-                </a>
+            @if($log->article_id)
                 @php
+                    $article = \App\Models\Article::find($log->article_id);
+                    $articleUrl = $article ? url('/blog/' . $article->slug) : null;
                     $metadata = is_array($log->metadata) ? $log->metadata : json_decode($log->metadata, true);
                     $seoAnalysis = $metadata['seo_analysis'] ?? null;
+                    $indexRequested = $metadata['index_requested'] ?? false;
+                    $isIndexed = $metadata['indexed'] ?? false;
+                @endphp
+                @if($articleUrl)
+                    <a href="{{ $articleUrl }}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm mb-2">
+                        <i class="fas fa-external-link-alt mr-1"></i> Voir l'article
+                    </a>
+                @endif
+                <div class="mb-2 space-y-1">
+                    @if($indexRequested)
+                        <div class="flex items-center gap-1 text-xs text-blue-600">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Demande d'indexation envoyée</span>
+                        </div>
+                    @endif
+                    @if($isIndexed)
+                        <div class="flex items-center gap-1 text-xs text-green-600 font-semibold">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Indexé dans Google</span>
+                        </div>
+                    @elseif($indexRequested)
+                        <div class="flex items-center gap-1 text-xs text-yellow-600">
+                            <i class="fas fa-clock"></i>
+                            <span>En attente d'indexation</span>
+                        </div>
+                    @endif
+                </div>
+                @php
                 @endphp
                 @if($seoAnalysis)
                     <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">

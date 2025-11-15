@@ -188,7 +188,49 @@ class SeoArticleScheduler
             'interval_minutes' => $intervalMinutes,
             'next_scheduled_time' => $nextTime ? $nextTime->format('H:i') : null,
             'should_create_now' => $this->shouldCreateArticle(),
+            'start_time' => sprintf('%02d:%02d', $startHour, $startMinute),
         ];
+    }
+    
+    /**
+     * Génère la liste complète des horaires planifiés pour aujourd'hui
+     */
+    public function getScheduledTimes(): array
+    {
+        $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
+        $citiesCount = City::where('is_favorite', true)->count();
+        
+        if ($citiesCount === 0) {
+            return [];
+        }
+        
+        $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+        
+        // Récupérer l'heure de début configurée
+        $startTimeStr = Setting::get('seo_automation_time', '08:00');
+        $startTimeParts = explode(':', $startTimeStr);
+        $startHour = (int)($startTimeParts[0] ?? 8);
+        $startMinute = (int)($startTimeParts[1] ?? 0);
+        
+        // Calculer l'intervalle entre chaque article
+        $workingHours = 12 * 60; // 720 minutes
+        $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
+        
+        // Générer tous les horaires
+        $scheduledTimes = [];
+        $currentTime = Carbon::today()->setTime($startHour, $startMinute);
+        
+        for ($i = 0; $i < $totalArticlesPerDay; $i++) {
+            $scheduledTimes[] = [
+                'time' => $currentTime->format('H:i'),
+                'datetime' => $currentTime->copy(),
+                'article_number' => $i + 1,
+                'is_past' => $currentTime->isPast(),
+            ];
+            $currentTime->addMinutes($intervalMinutes);
+        }
+        
+        return $scheduledTimes;
     }
 }
 
