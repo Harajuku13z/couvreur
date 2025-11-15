@@ -317,6 +317,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Routes pour les annonces
         Route::prefix('ads')->name('ads.')->group(function () {
             Route::get('/', [App\Http\Controllers\AdAdminController::class, 'index'])->name('index');
+            Route::get('/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'index'])->name('manual');
+            Route::post('/manual', [App\Http\Controllers\Admin\ManualAdController::class, 'store'])->name('manual.store');
+            Route::get('/manual/cities-by-region', [App\Http\Controllers\Admin\ManualAdController::class, 'getCitiesByRegion'])->name('manual.cities-by-region');
+            Route::get('/manual/favorite-cities', [App\Http\Controllers\Admin\ManualAdController::class, 'getFavoriteCities'])->name('manual.favorite-cities');
             Route::post('/{ad}/publish', [App\Http\Controllers\AdAdminController::class, 'publish'])->name('publish');
             Route::post('/{ad}/archive', [App\Http\Controllers\AdAdminController::class, 'archive'])->name('archive');
             Route::delete('/{ad}', [App\Http\Controllers\AdAdminController::class, 'destroy'])->name('destroy');
