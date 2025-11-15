@@ -1556,6 +1556,102 @@
         <div class="article-grid">
             <!-- Sidebar WordPress (à gauche sur desktop, après contenu sur mobile) -->
             <aside class="article-sidebar">
+                <!-- CTA Simulateur -->
+                <div class="sidebar-card cta-card">
+                    <div class="cta-hero">
+                        @php
+                            $simulatorImage = setting('simulator_image');
+                            $hasSimulatorImage = $simulatorImage && file_exists(public_path($simulatorImage));
+                        @endphp
+                        @if($hasSimulatorImage)
+                        <div class="cta-hero-image">
+                            <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux" loading="lazy">
+                        </div>
+                        @endif
+                        <div class="cta-hero-content">
+                            <h2 class="cta-title">💰 Simulateur de Coût de Travaux</h2>
+                            <p class="cta-subtitle">
+                                <strong>{{ setting('company_name') }}</strong>, votre partenaire expert local. Nous vous garantissons :
+                            </p>
+                            
+                            <div class="cta-benefits-grid">
+                                <div class="cta-benefit-card">
+                                    <span class="cta-benefit-icon">✅</span>
+                                    <div class="cta-benefit-text">
+                                        <strong>Devis détaillé gratuit</strong>
+                                        <span>Sous 24h, sans engagement</span>
+                                    </div>
+                                </div>
+                                <div class="cta-benefit-card">
+                                    <span class="cta-benefit-icon">✅</span>
+                                    <div class="cta-benefit-text">
+                                        <strong>Artisans certifiés</strong>
+                                        <span>RGE et assurés décennale</span>
+                                    </div>
+                                </div>
+                                <div class="cta-benefit-card">
+                                    <span class="cta-benefit-icon">✅</span>
+                                    <div class="cta-benefit-text">
+                                        <strong>Matériaux premium</strong>
+                                        <span>Sélection rigoureuse</span>
+                                    </div>
+                                </div>
+                                <div class="cta-benefit-card">
+                                    <span class="cta-benefit-icon">✅</span>
+                                    <div class="cta-benefit-text">
+                                        <strong>Respect des délais</strong>
+                                        <span>Transparence totale</span>
+                                    </div>
+                                </div>
+                                <div class="cta-benefit-card">
+                                    <span class="cta-benefit-icon">✅</span>
+                                    <div class="cta-benefit-text">
+                                        <strong>Service après-vente</strong>
+                                        <span>Suivi personnalisé</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="cta-buttons">
+                                <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white">
+                                    <i class="fas fa-calculator"></i>
+                                    <span>Simuler le coût de vos travaux</span>
+                                </a>
+                                @if(setting('company_phone_raw'))
+                                <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-outline">
+                                    <i class="fas fa-phone"></i>
+                                    <span>{{ setting('company_phone') }}</span>
+                                </a>
+                                @endif
+                            </div>
+                            
+                            <p class="cta-footer">
+                                🔒 Vos données sont protégées · 500+ clients satisfaits nous font confiance
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Résumé -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-card-title">
+                        <i class="fas fa-file-alt"></i>
+                        En Résumé
+                    </h3>
+                    <div class="sidebar-card-body">
+                        <p>Vous l'avez découvert dans ce guide expert, les bénéfices d'un devis clair et détaillé ne sont pas négligeables.</p>
+                        <p><strong>Faire appel à {{ setting('company_name') }}</strong> pour votre projet, c'est choisir :</p>
+                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                            <li>Une expertise reconnue</li>
+                            <li>Un accompagnement personnalisé</li>
+                            <li>Une transparence totale</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Article -->
+            <article class="article-card">
                 <div class="article-content-wrapper">
                     <div class="article-content">
                         @php
@@ -2014,102 +2110,6 @@
                     </div>
                 </div>
             </article>
-            
-            <!-- Sidebar WordPress -->
-            <aside class="article-sidebar">
-                <!-- CTA Simulateur -->
-                <div class="sidebar-card cta-card">
-                    <div class="cta-hero">
-                        @php
-                            $simulatorImage = setting('simulator_image');
-                            $hasSimulatorImage = $simulatorImage && file_exists(public_path($simulatorImage));
-                        @endphp
-                        @if($hasSimulatorImage)
-                        <div class="cta-hero-image">
-                            <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux" loading="lazy">
-                        </div>
-                        @endif
-                        <div class="cta-hero-content">
-                            <h2 class="cta-title">💰 Simulateur de Coût de Travaux</h2>
-                            <p class="cta-subtitle">
-                                <strong>{{ setting('company_name') }}</strong>, votre partenaire expert local. Nous vous garantissons :
-                            </p>
-                            
-                            <div class="cta-benefits-grid">
-                                <div class="cta-benefit-card">
-                                    <span class="cta-benefit-icon">✅</span>
-                                    <div class="cta-benefit-text">
-                                        <strong>Devis détaillé gratuit</strong>
-                                        <span>Sous 24h, sans engagement</span>
-                                    </div>
-                                </div>
-                                <div class="cta-benefit-card">
-                                    <span class="cta-benefit-icon">✅</span>
-                                    <div class="cta-benefit-text">
-                                        <strong>Artisans certifiés</strong>
-                                        <span>RGE et assurés décennale</span>
-                                    </div>
-                                </div>
-                                <div class="cta-benefit-card">
-                                    <span class="cta-benefit-icon">✅</span>
-                                    <div class="cta-benefit-text">
-                                        <strong>Matériaux premium</strong>
-                                        <span>Sélection rigoureuse</span>
-                                    </div>
-                                </div>
-                                <div class="cta-benefit-card">
-                                    <span class="cta-benefit-icon">✅</span>
-                                    <div class="cta-benefit-text">
-                                        <strong>Respect des délais</strong>
-                                        <span>Transparence totale</span>
-                                    </div>
-                                </div>
-                                <div class="cta-benefit-card">
-                                    <span class="cta-benefit-icon">✅</span>
-                                    <div class="cta-benefit-text">
-                                        <strong>Service après-vente</strong>
-                                        <span>Suivi personnalisé</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="cta-buttons">
-                                <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white">
-                                    <i class="fas fa-calculator"></i>
-                                    <span>Simuler le coût de vos travaux</span>
-                                </a>
-                                @if(setting('company_phone_raw'))
-                                <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-outline">
-                                    <i class="fas fa-phone"></i>
-                                    <span>{{ setting('company_phone') }}</span>
-                                </a>
-                                @endif
-                            </div>
-                            
-                            <p class="cta-footer">
-                                🔒 Vos données sont protégées · 500+ clients satisfaits nous font confiance
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Résumé -->
-                <div class="sidebar-card">
-                    <h3 class="sidebar-card-title">
-                        <i class="fas fa-file-alt"></i>
-                        En Résumé
-                    </h3>
-                    <div class="sidebar-card-body">
-                        <p>Vous l'avez découvert dans ce guide expert, les bénéfices d'un devis clair et détaillé ne sont pas négligeables.</p>
-                        <p><strong>Faire appel à {{ setting('company_name') }}</strong> pour votre projet, c'est choisir :</p>
-                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                            <li>Une expertise reconnue</li>
-                            <li>Un accompagnement personnalisé</li>
-                            <li>Une transparence totale</li>
-                        </ul>
-                    </div>
-                </div>
-            </aside>
         </div>
         
         <!-- Section Nos Réalisations -->
