@@ -121,11 +121,18 @@
                             <i class="fas fa-calendar mr-1"></i>{{ $call->clicked_at->format('d/m/Y H:i:s') }}
                         </div>
                     </div>
-                    <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
-                            class="text-blue-600 hover:text-blue-900 p-2"
-                            title="Corriger la ville">
-                        <i class="fas fa-edit"></i>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.phone-calls.show', $call->id) }}" 
+                           class="text-blue-600 hover:text-blue-900 p-2"
+                           title="Voir les détails">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                                class="text-blue-600 hover:text-blue-900 p-2"
+                                title="Corriger la ville">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="space-y-2 text-sm">
