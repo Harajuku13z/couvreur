@@ -199,44 +199,40 @@
         opacity: 0.9;
     }
     
-    /* Layout principal */
+    /* Layout principal - Style WordPress */
     .article-container {
         max-width: 1200px;
-        margin: -100px auto 0;
-        padding: 0 1.5rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
         position: relative;
         z-index: 10;
         width: 100%;
         box-sizing: border-box;
     }
     
-    /* Conteneur avec border pour tout le contenu */
+    /* Grille WordPress - Contenu + Sidebar */
     .article-content-container {
-        background: var(--bg-white);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 3rem;
-        margin: 0 auto 5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
         max-width: 100%;
     }
     
     .article-grid {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* S'assurer que la grille fonctionne correctement */
-    .article-grid > * {
-        min-width: 0;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 3rem;
+        width: 100%;
+        max-width: 100%;
         box-sizing: border-box;
     }
     
     /* Card Article Principale */
     .article-card {
-        background: transparent;
+        background: var(--bg-white);
         border-radius: 0;
         box-shadow: none;
         overflow: visible;
@@ -246,22 +242,24 @@
         box-sizing: border-box;
         position: relative;
         z-index: 1;
+        padding: 0;
     }
     
     
     .article-content-wrapper {
-        padding: 2.5rem;
+        padding: 0;
     }
     
-    /* Styles du contenu enrichis */
+    /* Styles du contenu enrichis - Style WordPress */
     .article-content {
-        font-size: 1.0625rem;
-        line-height: 1.5;
-        color: var(--text-medium);
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: #1e293b;
         max-width: 100%;
-        overflow-x: auto; /* Permet le scroll horizontal si nécessaire */
+        overflow-x: auto;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        padding: 0;
     }
     
     /* ISOLATION COMPLÈTE du contenu HTML généré */
@@ -577,16 +575,16 @@
         color: var(--text-dark);
     }
     
-    /* Sidebar moderne */
+    /* Sidebar WordPress */
     .article-sidebar {
         position: sticky;
-        top: 20px;
+        top: 100px;
         display: flex;
         flex-direction: column;
-        gap: 1.75rem;
+        gap: 2rem;
         align-self: start;
         z-index: 5;
-        max-height: calc(100vh - 40px);
+        max-height: calc(100vh - 120px);
         overflow-y: auto;
     }
     
@@ -722,24 +720,26 @@
     
     /* CTA Section Ultra-Moderne avec Image */
     .cta-section {
-        margin-top: 4rem;
-        padding-top: 4rem;
-        border-top: 2px solid var(--border);
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
     }
     
+    /* CTA dans la sidebar - Style WordPress */
     .cta-hero {
         position: relative;
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
-        border-radius: 32px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 8px;
         padding: 0;
         color: #fff;
-        margin-bottom: 3rem;
+        margin-bottom: 0;
         overflow: hidden;
-        box-shadow: 0 25px 80px rgba(37, 99, 235, 0.4), 0 10px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         display: flex;
-        align-items: center;
-        min-height: 450px;
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        flex-direction: column;
+        align-items: stretch;
+        min-height: auto;
+        border: none;
     }
     
     .cta-hero::before {
@@ -778,12 +778,12 @@
     }
     
     .cta-hero-image {
-        flex: 0 0 400px;
-        width: 400px;
-        height: 400px;
+        flex: 0 0 auto;
+        width: 100%;
+        height: 200px;
         position: relative;
         overflow: hidden;
-        border-radius: 24px 0 0 24px;
+        border-radius: 8px 8px 0 0;
     }
     
     .cta-hero-image img {
@@ -797,71 +797,51 @@
         position: relative;
         z-index: 1;
         flex: 1;
-        padding: 4rem 3rem;
+        padding: 1.5rem;
         text-align: left;
     }
     
     .cta-title {
-        font-size: 3rem;
-        font-weight: 900;
-        margin: 0 0 1.5rem 0;
-        letter-spacing: -0.02em;
-        line-height: 1.1;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-        position: relative;
-    }
-    
-    .cta-title::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        left: 0;
-        width: 80px;
-        height: 4px;
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
-        border-radius: 2px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+        color: #ffffff;
     }
     
     .cta-subtitle {
-        font-size: 1.25rem;
-        margin: 0 0 2.5rem 0;
-        opacity: 0.98;
-        line-height: 1.7;
+        font-size: 0.9375rem;
+        margin: 0 0 1.5rem 0;
+        opacity: 0.95;
+        line-height: 1.6;
         text-align: left;
-        font-weight: 500;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.95);
     }
     
     .cta-benefits-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin: 2.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 1.5rem 0;
         text-align: left;
     }
     
     .cta-benefit-card {
         display: flex;
-        gap: 1.25rem;
+        gap: 0.75rem;
         align-items: flex-start;
-        padding: 1.5rem;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(15px);
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.3s;
     }
     
     .cta-benefit-card:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.15);
     }
     
     .cta-benefit-icon {
@@ -884,70 +864,56 @@
     
     .cta-buttons {
         display: flex;
-        gap: 1.5rem;
+        flex-direction: column;
+        gap: 0.75rem;
         justify-content: flex-start;
-        flex-wrap: wrap;
-        margin: 3rem 0 2rem 0;
+        margin: 1.5rem 0 1rem 0;
     }
     
     .cta-buttons .btn-modern {
-        padding: 1.25rem 2.5rem;
-        font-size: 1.0625rem;
-        font-weight: 700;
-        border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
         position: relative;
         overflow: hidden;
-    }
-    
-    .cta-buttons .btn-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
         width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
-    }
-    
-    .cta-buttons .btn-modern:hover::before {
-        left: 100%;
+        text-align: center;
     }
     
     .cta-buttons .btn-modern.btn-white {
         background: #ffffff;
-        color: #1e40af;
-        border: 2px solid #ffffff;
+        color: var(--primary);
+        border: 1px solid #ffffff;
     }
     
     .cta-buttons .btn-modern.btn-white:hover {
         background: #f8fafc;
-        transform: translateY(-3px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
     
     .cta-buttons .btn-modern.btn-outline {
         background: transparent;
-        border: 2px solid rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.8);
         color: #ffffff;
     }
     
     .cta-buttons .btn-modern.btn-outline:hover {
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.1);
         border-color: #ffffff;
-        transform: translateY(-3px);
-        box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
     }
     
     .cta-footer {
-        font-size: 0.9375rem;
-        opacity: 0.95;
+        font-size: 0.8125rem;
+        opacity: 0.9;
         margin: 0;
         text-align: center;
-        padding-top: 1.5rem;
+        padding-top: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.9);
     }
     
     /* Summary Box Premium */
@@ -2011,107 +1977,6 @@
                         {!! $content !!}
                     </div>
                     
-                    <!-- CTA Section -->
-                    <div class="cta-section">
-                        <div class="cta-hero">
-                            @php
-                                $simulatorImage = setting('simulator_image');
-                                $hasSimulatorImage = $simulatorImage && file_exists(public_path($simulatorImage));
-                            @endphp
-                            @if($hasSimulatorImage)
-                            <div class="cta-hero-image">
-                                <img src="{{ asset($simulatorImage) }}" alt="Simulateur de coût de travaux" loading="lazy">
-                            </div>
-                            @endif
-                            <div class="cta-hero-content {{ !$hasSimulatorImage ? 'w-full' : '' }}">
-                                <h2 class="cta-title">💰 Simulateur de Coût de Travaux</h2>
-                                <p class="cta-subtitle">
-                                    <strong>{{ setting('company_name') }}</strong>, votre partenaire expert local. Nous vous garantissons :
-                                </p>
-                                
-                                <div class="cta-benefits-grid">
-                                    <div class="cta-benefit-card">
-                                        <span class="cta-benefit-icon">✅</span>
-                                        <div class="cta-benefit-text">
-                                            <strong>Devis détaillé gratuit</strong>
-                                            <span>Sous 24h, sans engagement</span>
-                                        </div>
-                                    </div>
-                                    <div class="cta-benefit-card">
-                                        <span class="cta-benefit-icon">✅</span>
-                                        <div class="cta-benefit-text">
-                                            <strong>Artisans certifiés</strong>
-                                            <span>RGE et assurés décennale</span>
-                                        </div>
-                                    </div>
-                                    <div class="cta-benefit-card">
-                                        <span class="cta-benefit-icon">✅</span>
-                                        <div class="cta-benefit-text">
-                                            <strong>Matériaux premium</strong>
-                                            <span>Sélection rigoureuse</span>
-                                        </div>
-                                    </div>
-                                    <div class="cta-benefit-card">
-                                        <span class="cta-benefit-icon">✅</span>
-                                        <div class="cta-benefit-text">
-                                            <strong>Respect des délais</strong>
-                                            <span>Transparence totale</span>
-                                        </div>
-                                    </div>
-                                    <div class="cta-benefit-card">
-                                        <span class="cta-benefit-icon">✅</span>
-                                        <div class="cta-benefit-text">
-                                            <strong>Service après-vente</strong>
-                                            <span>Suivi personnalisé</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="cta-buttons">
-                                    <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white">
-                                        <i class="fas fa-calculator"></i>
-                                        <span>Simuler le coût de vos travaux</span>
-                                    </a>
-                                    @if(setting('company_phone_raw'))
-                                    <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-outline" style="color: #fff; border-color: #fff;">
-                                        <i class="fas fa-phone"></i>
-                                        <span>{{ setting('company_phone') }}</span>
-                                    </a>
-                                    @endif
-                                </div>
-                                
-                                <p class="cta-footer">
-                                    🔒 Vos données sont protégées · 500+ clients satisfaits nous font confiance
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="cta-summary-box">
-                            <h3 class="cta-summary-title">En Résumé : Votre Référence Complète</h3>
-                            
-                            <p class="cta-summary-text">
-                                Vous l'avez découvert dans ce guide expert, les bénéfices d'un devis clair et détaillé ne sont pas négligeables. Il vous offre non seulement une vision précise des coûts, mais aussi une assurance contre les imprévus.
-                            </p>
-                            
-                            <p class="cta-summary-text">
-                                Faire appel à <strong>{{ setting('company_name') }}</strong> pour votre projet, c'est choisir :
-                            </p>
-                            
-                            <ul class="cta-summary-list">
-                                <li>Une expertise reconnue et des matériaux de qualité supérieure</li>
-                                <li>Un accompagnement personnalisé du début à la fin du projet</li>
-                                <li>Une transparence totale et des tarifs compétitifs</li>
-                            </ul>
-                            
-                            <p class="cta-summary-text">
-                                <strong>Ne laissez pas votre projet en suspens.</strong> Que vous soyez en phase de réflexion ou prêt à vous lancer, notre équipe d'experts certifiés est là pour vous conseiller sans engagement. Obtenez votre devis personnalisé gratuit et découvrez comment transformer votre vision en réalité.
-                            </p>
-                            
-                            <p class="cta-summary-footer">
-                                🏆 <strong>{{ setting('company_name') }}</strong>, votre expert de confiance{{ setting('company_city') ? ' à ' . setting('company_city') : '' }}
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </article>
         </div>
