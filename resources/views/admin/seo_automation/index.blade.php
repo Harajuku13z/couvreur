@@ -96,11 +96,23 @@
                 <form action="{{ route('admin.seo-automation.save-time') }}" method="POST" class="flex items-center gap-2 flex-wrap">
                     @csrf
                     <div class="flex items-center gap-2">
+                        <label for="automation_time" class="text-xs text-gray-600 whitespace-nowrap">Heure:</label>
                         <input type="time" 
                                id="automation_time" 
                                name="time" 
                                value="{{ $automationTime }}"
                                class="px-2 py-1 border border-gray-300 rounded text-sm">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="cron_interval" class="text-xs text-gray-600 whitespace-nowrap">Intervalle cron (min):</label>
+                        <input type="number" 
+                               id="cron_interval" 
+                               name="cron_interval" 
+                               value="{{ \App\Models\Setting::where('key', 'seo_automation_cron_interval')->value('value') ?? 1 }}"
+                               min="1" 
+                               max="60"
+                               class="px-2 py-1 border border-gray-300 rounded text-sm w-16"
+                               title="Fréquence de vérification du cron (en minutes). Le système vérifie toutes les X minutes si l'heure configurée est arrivée.">
                     </div>
                     <div class="flex items-center gap-2">
                         <input type="number" 
@@ -109,7 +121,9 @@
                                value="{{ \App\Models\Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?? 1 }}"
                                min="1" 
                                max="10"
-                               class="px-2 py-1 border border-gray-300 rounded text-sm w-16">
+                               class="px-2 py-1 border border-gray-300 rounded text-sm w-16"
+                               title="Nombre d'articles par ville">
+                        <label for="articles_per_city" class="text-xs text-gray-600 whitespace-nowrap">article(s)/ville</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">

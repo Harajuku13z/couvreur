@@ -36,13 +36,24 @@ Schedule::command('sitemap:generate-daily')
 // Automatisation SEO : génération d'articles quotidiens pour les villes favorites
 // Note: L'heure est récupérée dynamiquement dans when() pour permettre les changements en temps réel
 // Utilise le fuseau horaire configuré dans config/app.php (Europe/Paris)
-Schedule::command('seo:run-automations')
+// L'intervalle d'exécution est configurable dans l'admin (par défaut: 1 minute)
+$cronInterval = (int)\App\Models\Setting::get('seo_automation_cron_interval', 1);
+$cronInterval = max(1, min(60, $cronInterval)); // Limiter entre 1 et 60 minutes
+
+$schedule = Schedule::command('seo:run-automations')
     ->name('seo-run-automations')
-    ->everyMinute() // Vérifier chaque minute (le when() déterminera si on exécute à l'heure exacte)
     ->withoutOverlapping() // Éviter les exécutions simultanées
     ->onOneServer() // Exécuter sur un seul serveur (pour éviter les doublons)
-    ->runInBackground() // Exécuter en arrière-plan
-    ->when(function () {
+    ->runInBackground(); // Exécuter en arrière-plan
+
+// Utiliser l'intervalle configuré (1-60 minutes)
+if ($cronInterval === 1) {
+    $schedule->everyMinute();
+} else {
+    $schedule->everyXMinutes($cronInterval);
+}
+
+$schedule->when(function () {
         // Vérifier si l'automatisation est activée
         $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
         if (!filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN)) {

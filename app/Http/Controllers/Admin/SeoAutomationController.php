@@ -856,11 +856,16 @@ class SeoAutomationController extends Controller
     {
         $validated = $request->validate([
             'time' => ['required', 'regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
+            'cron_interval' => 'nullable|integer|min:1|max:60',
             'articles_per_city' => 'nullable|integer|min:1|max:10',
             'direct_execution' => 'nullable|boolean',
         ]);
         
         \App\Models\Setting::set('seo_automation_time', $validated['time'], 'string', 'seo');
+        
+        // Sauvegarder l'intervalle d'exécution du cron (en minutes)
+        $cronInterval = $validated['cron_interval'] ?? 1;
+        \App\Models\Setting::set('seo_automation_cron_interval', (string)$cronInterval, 'string', 'seo');
         
         if (isset($validated['articles_per_city'])) {
             \App\Models\Setting::set('seo_automation_articles_per_city', (string)$validated['articles_per_city'], 'string', 'seo');
@@ -874,7 +879,7 @@ class SeoAutomationController extends Controller
         $executionMode = $directExecution ? 'directe (sans queue)' : 'via queue (nécessite worker)';
         
         return redirect()->back()
-            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, {$articlesPerCity} article(s) par ville, exécution {$executionMode}");
+            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, intervalle cron {$cronInterval} min, {$articlesPerCity} article(s) par ville, exécution {$executionMode}");
     }
 
     /**
