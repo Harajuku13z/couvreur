@@ -264,11 +264,17 @@ class AiService
                 // Ne pas retourner null, continuer vers Groq
             }
         } else {
-            Log::info('ChatGPT désactivé ou clé manquante, utilisation de Groq');
+            if ($defaultProvider === 'groq') {
+                Log::info('Groq sélectionné comme fournisseur par défaut, utilisation directe');
+            } else {
+                Log::info('ChatGPT désactivé ou clé manquante, fallback vers Groq');
+            }
         }
         
-        // Fallback sur Groq si ChatGPT n'est pas disponible (désactivé, clé manquante, ou erreur)
-        if ($groqApiKey) {
+        // Utiliser Groq si :
+        // 1. C'est le fournisseur par défaut ET disponible
+        // 2. OU ChatGPT n'est pas disponible (désactivé, clé manquante, ou erreur)
+        if ($groqApiKey && ($defaultProvider === 'groq' || !$chatgptEnabled || !$chatgptApiKey)) {
             try {
                 $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
                 $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');
