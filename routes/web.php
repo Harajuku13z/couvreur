@@ -286,7 +286,71 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/search', [ClientController::class, 'search'])->name('search');
             Route::delete('/{id}', [ClientController::class, 'destroy'])->name('destroy');
         });
+        
+        // Routes pour les articles
+        Route::prefix('articles')->name('articles.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\ArticleController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Admin\ArticleController::class, 'create'])->name('create');
+            Route::get('/generate', [App\Http\Controllers\Admin\ArticleController::class, 'generate'])->name('generate');
+            Route::post('/', [App\Http\Controllers\Admin\ArticleController::class, 'store'])->name('store');
+            Route::get('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('show');
+            Route::get('/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('edit');
+            Route::put('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'update'])->name('update');
+            Route::delete('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'destroy'])->name('destroy');
+            Route::delete('/', [App\Http\Controllers\Admin\ArticleController::class, 'destroyAll'])->name('destroy-all');
+            Route::post('/generate-titles', [App\Http\Controllers\Admin\ArticleController::class, 'generateTitles'])->name('generate-titles');
+            Route::post('/generate-content', [App\Http\Controllers\Admin\ArticleController::class, 'generateContent'])->name('generate-content');
+            Route::post('/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('upload-image');
+            Route::post('/images/{imageId}/metadata', [App\Http\Controllers\Admin\ArticleController::class, 'updateImageMetadata'])->name('update-image-metadata');
+            Route::get('/{articleId}/images', [App\Http\Controllers\Admin\ArticleController::class, 'getArticleImages'])->name('get-images');
+            Route::get('/menu/links', [App\Http\Controllers\Admin\ArticleController::class, 'getMenuLinks'])->name('get-menu-links');
+            Route::get('/images/available', [App\Http\Controllers\Admin\ArticleController::class, 'getAvailableImages'])->name('get-available-images');
+            Route::post('/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('create-from-titles');
+        });
+        
+        // Routes pour les annonces
+        Route::prefix('ads')->name('ads.')->group(function () {
+            Route::get('/', [App\Http\Controllers\AdAdminController::class, 'index'])->name('index');
+            Route::post('/{ad}/publish', [App\Http\Controllers\AdAdminController::class, 'publish'])->name('publish');
+            Route::post('/{ad}/archive', [App\Http\Controllers\AdAdminController::class, 'archive'])->name('archive');
+            Route::delete('/{ad}', [App\Http\Controllers\AdAdminController::class, 'destroy'])->name('destroy');
+            Route::post('/create-manual', [App\Http\Controllers\AdAdminController::class, 'createManual'])->name('create-manual');
+            Route::post('/remove-duplicates', [App\Http\Controllers\AdAdminController::class, 'removeDuplicates'])->name('remove-duplicates');
+            Route::delete('/', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('delete-all');
+        });
+        
+        // Routes pour les avis
+        Route::prefix('reviews')->name('reviews.')->group(function () {
+            Route::get('/', [ReviewsController::class, 'index'])->name('index');
+            Route::get('/serp-config', [ReviewsController::class, 'serpConfig'])->name('serp-config');
+            Route::post('/serp-config', [ReviewsController::class, 'saveSerpConfig'])->name('save-serp-config');
+            Route::post('/test-serp', [ReviewsController::class, 'testSerpConnection'])->name('test-serp');
+            Route::post('/import-serp', [ReviewsController::class, 'importSerpReviews'])->name('import-serp');
+            Route::get('/create', [ReviewsController::class, 'create'])->name('create');
+            Route::post('/', [ReviewsController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [ReviewsController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [ReviewsController::class, 'update'])->name('update');
+            Route::delete('/', [ReviewsController::class, 'deleteAll'])->name('delete-all');
+            Route::post('/{id}/toggle', [ReviewsController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{id}', [ReviewsController::class, 'delete'])->name('delete');
+        });
     });
+});
+
+// Routes admin pour les services (hors du groupe admin pour éviter les conflits)
+Route::prefix('admin/services')->name('services.admin.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [ServicesController::class, 'index'])->name('index');
+    Route::get('/create', [ServicesController::class, 'create'])->name('create');
+    Route::post('/', [ServicesController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [ServicesController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ServicesController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ServicesController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/regenerate', [ServicesController::class, 'regenerate'])->name('regenerate');
+});
+
+// Routes admin pour le portfolio (hors du groupe admin pour éviter les conflits)
+Route::prefix('admin/portfolio')->name('portfolio.admin.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [PortfolioController::class, 'index'])->name('index');
 });
 
 // Route pour le sitemap index (retourne le sitemap_index.xml)
