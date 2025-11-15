@@ -152,7 +152,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <form method="POST" action="{{ route('admin.cities.destroy', $city) }}" onsubmit="return confirm('Supprimer ?')" class="inline">
+                    <form method="POST" action="{{ route('admin.cities.destroy', $city->id) }}" onsubmit="return confirm('Supprimer ?')" class="inline">
                         @csrf
                         @method('DELETE')
                         <button class="text-red-600 hover:text-red-900 p-2" title="Supprimer">
@@ -163,7 +163,7 @@
             </div>
             
             <div class="flex flex-wrap gap-2">
-                <form method="POST" action="{{ route('admin.cities.update', $city) }}" class="inline">
+                <form method="POST" action="{{ route('admin.cities.update', $city->id) }}" class="inline">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="active" value="{{ $city->active ? 0 : 1 }}">
@@ -205,7 +205,7 @@
                     <td class="p-3">{{ $city->department }}</td>
                     <td class="p-3">{{ $city->region }}</td>
                     <td class="p-3">
-                        <form method="POST" action="{{ route('admin.cities.update', $city) }}">
+                        <form method="POST" action="{{ route('admin.cities.update', $city->id) }}">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="active" value="{{ $city->active ? 0 : 1 }}">
@@ -224,7 +224,7 @@
                         </button>
                     </td>
                     <td class="p-3">
-                        <form method="POST" action="{{ route('admin.cities.destroy', $city) }}" onsubmit="return confirm('Supprimer ?')">
+                        <form method="POST" action="{{ route('admin.cities.destroy', $city->id) }}" onsubmit="return confirm('Supprimer ?')">
                             @csrf
                             @method('DELETE')
                             <button class="text-red-600">Supprimer</button>

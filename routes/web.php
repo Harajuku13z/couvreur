@@ -362,9 +362,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('cities')->name('cities.')->group(function () {
             Route::get('/', [App\Http\Controllers\CityController::class, 'index'])->name('index');
             Route::post('/', [App\Http\Controllers\CityController::class, 'store'])->name('store');
-            Route::put('/{city}', [App\Http\Controllers\CityController::class, 'update'])->name('update');
-            Route::delete('/{city}', [App\Http\Controllers\CityController::class, 'destroy'])->name('destroy');
-            Route::post('/{city}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('toggle-favorite');
+            Route::put('/{id}', [App\Http\Controllers\CityController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\CityController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('toggle-favorite');
             Route::delete('/destroy/all', [App\Http\Controllers\CityController::class, 'destroyAll'])->name('destroy.all');
             Route::post('/import/json', [App\Http\Controllers\CityController::class, 'importFromJson'])->name('import.json');
             Route::post('/import/department', [App\Http\Controllers\CityController::class, 'importByDepartment'])->name('import.department');

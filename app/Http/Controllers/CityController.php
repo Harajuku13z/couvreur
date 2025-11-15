@@ -61,8 +61,9 @@ class CityController extends Controller
         return back()->with('success', 'Ville créée');
     }
 
-    public function update(Request $request, City $city)
+    public function update(Request $request, $id)
     {
+        $city = City::findOrFail($id);
         $data = $request->validate([
             'name' => 'sometimes|string|max:100',
             'postal_code' => 'sometimes|string|max:16',
@@ -75,8 +76,9 @@ class CityController extends Controller
         return back()->with('success', 'Ville mise à jour');
     }
 
-    public function destroy(City $city)
+    public function destroy($id)
     {
+        $city = City::findOrFail($id);
         $city->delete();
         return back()->with('success', 'Ville supprimée');
     }
@@ -233,9 +235,10 @@ class CityController extends Controller
     /**
      * Toggle favorite status for a city
      */
-    public function toggleFavorite(City $city)
+    public function toggleFavorite($id)
     {
         try {
+            $city = City::findOrFail($id);
             $city->is_favorite = !$city->is_favorite;
             $city->save();
             
