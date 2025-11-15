@@ -153,19 +153,35 @@ class AiService
                     }
                 }
                 
+                // Nettoyer à nouveau la clé API juste avant utilisation
+                $cleanApiKey = trim($chatgptApiKey);
+                $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+                
+                // Vérifier que la clé est valide (format OpenAI: sk-...)
+                if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+                    Log::error('ChatGPT: Clé API invalide ou mal formatée', [
+                        'key_length' => strlen($cleanApiKey ?? ''),
+                        'key_preview' => substr($cleanApiKey ?? '', 0, 10) . '...',
+                        'key_starts_with' => substr($cleanApiKey ?? '', 0, 3)
+                    ]);
+                    throw new \Exception('Clé API ChatGPT invalide. Format attendu: sk-... (au moins 20 caractères après sk-)');
+                }
+                
                 Log::info('Tentative appel ChatGPT via openai-php/laravel', [
                     'model' => $model,
                     'max_tokens' => $maxTokens,
                     'temperature' => $temperature,
                     'messages_count' => count($messages),
-                    'total_prompt_length' => strlen($prompt)
+                    'total_prompt_length' => strlen($prompt),
+                    'api_key_length' => strlen($cleanApiKey),
+                    'api_key_starts_with' => substr($cleanApiKey, 0, 7) . '...'
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                // Créer le client directement avec la clé API
+                // Créer le client directement avec la clé API nettoyée
                 // Utiliser Factory pour éviter les conflits de nom de classe
                 $openaiClient = (new \OpenAI\Factory())
-                    ->withApiKey($chatgptApiKey)
+                    ->withApiKey($cleanApiKey)
                     ->make();
                 $response = $openaiClient->chat()->create([
                     'model' => $model,
@@ -216,8 +232,9 @@ class AiService
                         ]);
                         
                         try {
+                            // Utiliser la clé nettoyée
                             $openaiClient = (new \OpenAI\Factory())
-                                ->withApiKey($chatgptApiKey)
+                                ->withApiKey($cleanApiKey)
                                 ->make();
                             $response = $openaiClient->chat()->create([
                                 'model' => 'gpt-4o',
