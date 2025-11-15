@@ -216,7 +216,7 @@ Route::get('/blog/{article}', [ArticleController::class, 'show'])->name('blog.sh
 
 // Route publique pour le contact
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
 // Routes publiques pour les annonces
 Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
