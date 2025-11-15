@@ -320,6 +320,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         
         // Note: Les routes pour les avis sont définies dans routes/reviews.php
+        
+        // Routes pour la page d'accueil
+        Route::prefix('homepage')->name('homepage.')->group(function () {
+            Route::get('/edit', [ConfigController::class, 'editHomepage'])->name('edit');
+            Route::post('/update', [ConfigController::class, 'updateHomepage'])->name('update');
+        });
     });
 });
 
