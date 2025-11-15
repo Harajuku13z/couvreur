@@ -63,7 +63,7 @@
                     
                     <!-- Actions -->
                     <div class="grid md:grid-cols-3 gap-4 mt-8">
-                        <a href="{{ route('home') }}" 
+                        <a href="{{ url('/') }}" 
                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 text-center">
                             <i class="fas fa-home mr-2"></i>
                             Accueil

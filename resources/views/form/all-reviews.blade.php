@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Storage;
     <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
         <div class="container mx-auto px-4">
             <div class="text-center">
-                <a href="{{ route('home') }}" class="text-blue-200 hover:text-white mb-6 inline-block transition">
+                <a href="{{ url('/') }}" class="text-blue-200 hover:text-white mb-6 inline-block transition">
                     <i class="fas fa-arrow-left mr-2"></i>Retour à l'accueil
                 </a>
                 <h1 class="text-5xl md:text-6xl font-bold mb-6">
@@ -175,7 +175,7 @@ use Illuminate\Support\Facades\Storage;
                         Obtenez votre devis personnalisé gratuitement
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="{{ route('home') }}" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        <a href="{{ url('/') }}" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl">
                             <i class="fas fa-calculator mr-2"></i>Démarrer mon projet
                         </a>
                         <a href="{{ route('reviews.create') }}" class="inline-block bg-blue-500 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-blue-400 transition-all duration-300 shadow-lg hover:shadow-xl">

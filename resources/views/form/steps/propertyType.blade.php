@@ -72,7 +72,7 @@
 
             <!-- Navigation -->
             <div class="flex justify-between">
-                <a href="{{ route('home') }}" 
+                <a href="{{ url('/') }}" 
                    class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Retour

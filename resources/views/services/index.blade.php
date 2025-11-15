@@ -76,7 +76,7 @@
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Aucun service disponible</h3>
                     <p class="text-gray-600 mb-8">Nos services sont en cours de mise à jour. Revenez bientôt !</p>
-                    <a href="{{ route('home') }}" 
+                    <a href="{{ url('/') }}" 
                        class="inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold text-white bg-primary hover:bg-secondary transition-all duration-300 transform hover:scale-105">
                         <i class="fas fa-home mr-2"></i>
                         Retour à l'accueil

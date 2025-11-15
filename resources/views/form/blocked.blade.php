@@ -66,7 +66,7 @@
                 
                 <!-- Bouton retour -->
                 <div class="pt-4 border-t border-gray-200">
-                    <a href="{{ route('home') }}" 
+                    <a href="{{ url('/') }}" 
                        class="inline-flex items-center text-gray-600 hover:text-gray-800 transition">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Retour à l'accueil

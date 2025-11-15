@@ -25,7 +25,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-3 header-mobile">
             <div class="flex items-center">
-                <a href="{{ route('home') }}" class="flex items-center">
+                <a href="{{ url('/') }}" class="flex items-center">
                     @if(setting('company_logo'))
                         <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-12 w-auto logo-mobile">
                     @else
@@ -38,7 +38,7 @@
             
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8">
-                <a href="{{ route('home') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
+                <a href="{{ url('/') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
                 
                 @php
                     $servicesData = \App\Models\Setting::get('services', '[]');
@@ -151,7 +151,7 @@
         <!-- Mobile Navigation -->
         <div id="mobileMenu" class="md:hidden hidden border-t border-gray-200 py-4 max-h-screen overflow-y-auto">
             <nav class="flex flex-col space-y-4 px-4">
-                <a href="{{ route('home') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
+                <a href="{{ url('/') }}" class="text-gray-700 hover:text-primary font-medium">Accueil</a>
                 
                 @if(count($featuredServices) > 0)
                 <div class="space-y-2">

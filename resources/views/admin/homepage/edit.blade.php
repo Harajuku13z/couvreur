@@ -10,7 +10,7 @@
             <p class="text-gray-600 mt-1">Personnalisez tous les aspects de votre page d'accueil</p>
         </div>
         <div class="flex gap-3">
-            <a href="{{ route('home') }}" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <a href="{{ url('/') }}" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
                 <i class="fas fa-eye mr-2"></i>Prévisualiser
             </a>
         </div>

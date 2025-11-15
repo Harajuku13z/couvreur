@@ -97,7 +97,7 @@
             <div>
                 <h4 class="text-lg font-semibold mb-4">Liens Rapides</h4>
                 <ul class="space-y-2">
-                    <li><a href="{{ route('home') }}" class="text-gray-400 hover:text-white transition-colors">Accueil</a></li>
+                    <li><a href="{{ url('/') }}" class="text-gray-400 hover:text-white transition-colors">Accueil</a></li>
                     <li><a href="{{ route('services.index') }}" class="text-gray-400 hover:text-white transition-colors">Nos Services</a></li>
                     <li><a href="{{ route('portfolio.index') }}" class="text-gray-400 hover:text-white transition-colors">Nos Réalisations</a></li>
                     <li><a href="{{ route('blog.index') }}" class="text-gray-400 hover:text-white transition-colors">Blog et Astuces</a></li>

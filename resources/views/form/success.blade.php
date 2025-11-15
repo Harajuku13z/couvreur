@@ -157,7 +157,7 @@
 
                     <!-- Actions -->
                     <div class="text-center space-y-4">
-                        <a href="{{ route('home') }}" 
+                        <a href="{{ url('/') }}" 
                            class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
                             <i class="fas fa-home mr-2"></i>
                             Retour à l'accueil
