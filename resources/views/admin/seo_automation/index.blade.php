@@ -1452,8 +1452,6 @@ function testApi(apiName, button) {
             div.textContent = text;
             return div.innerHTML;
         }
-        
-        // Gestion de la route HTTP Schedule
         </script>
         
     <!-- Image Open Graph par défaut (Blog) -->
