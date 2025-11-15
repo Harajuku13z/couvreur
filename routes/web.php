@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormControllerSimple;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ServicesController;
@@ -188,7 +189,7 @@ Route::get('/test-phone-tracking', function () {
         })->name('schedule.run');
 
 // Route publique pour la page d'accueil
-Route::get('/', [FormControllerSimple::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Routes publiques pour les services
 Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
