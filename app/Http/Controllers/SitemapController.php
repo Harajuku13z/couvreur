@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\SitemapIndex;
 use Spatie\Sitemap\Tags\Url;
+use Spatie\Sitemap\Tags\Sitemap as SitemapTag;
 use App\Models\Service;
 use App\Models\City;
 use App\Models\Article;
@@ -62,7 +64,7 @@ class SitemapController extends Controller
             }
             
             // Créer le sitemap index qui liste tous les sitemaps
-            $sitemapIndex = Sitemap::create();
+            $sitemapIndex = SitemapIndex::create();
             foreach ($sitemapFiles as $sitemapFile) {
                 $sitemapIndex->add($sitemapFile['url']);
             }
