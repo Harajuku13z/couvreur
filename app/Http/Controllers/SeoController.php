@@ -488,18 +488,20 @@ class SeoController extends Controller
         // Ajouter tous les sitemaps trouvés
         $robots .= "\n";
         
-        // Sitemap index principal (liste tous les autres sitemaps)
-        $robots .= "Sitemap: " . url('/sitemap_index.xml') . "\n";
-        
-        // Sitemap principal
+        // Sitemap index principal (sitemap.xml liste tous les autres sitemaps)
         $robots .= "Sitemap: " . url('/sitemap.xml') . "\n";
         
-        // Trouver tous les autres sitemaps (sitemap2.xml, sitemap3.xml, etc.)
+        // Optionnel : Ajouter aussi sitemap_index.xml si il existe
+        if (file_exists(public_path('sitemap_index.xml'))) {
+            $robots .= "Sitemap: " . url('/sitemap_index.xml') . "\n";
+        }
+        
+        // Trouver tous les sitemaps numérotés (sitemap1.xml, sitemap2.xml, etc.)
         $sitemapFiles = glob(public_path('sitemap*.xml'));
         foreach ($sitemapFiles as $sitemapFile) {
             $filename = basename($sitemapFile);
-            // Ignorer sitemap_index.xml et sitemap.xml (déjà ajoutés)
-            if ($filename !== 'sitemap_index.xml' && $filename !== 'sitemap.xml') {
+            // Ignorer sitemap.xml (c'est l'index) et sitemap_index.xml
+            if ($filename !== 'sitemap.xml' && $filename !== 'sitemap_index.xml') {
                 $robots .= "Sitemap: " . url('/' . $filename) . "\n";
             }
         }
