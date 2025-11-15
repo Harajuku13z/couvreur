@@ -19,7 +19,6 @@ class ProcessSeoCityJob implements ShouldQueue
     public $customKeyword;
     public $tries = 3;
     public $timeout = 600; // Augmenté à 10 minutes pour la génération complète
-    public $queue = 'seo-automation'; // Définir la queue par défaut
 
     /**
      * Create a new job instance.
@@ -28,6 +27,7 @@ class ProcessSeoCityJob implements ShouldQueue
     {
         $this->cityId = $cityId;
         $this->customKeyword = $customKeyword;
+        $this->onQueue('seo-automation'); // Définir la queue par défaut
     }
 
     /**
