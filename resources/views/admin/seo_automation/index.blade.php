@@ -80,20 +80,27 @@
     @endif
 
     <!-- Lien vers la configuration du cron -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-semibold text-blue-900 mb-1">
-                    <i class="fas fa-clock mr-2"></i>Configuration du Cron
-                </h3>
-                <p class="text-sm text-blue-700">
+    <div class="relative overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 rounded-xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl hover:scale-[1.01]">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+        <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex-1">
+                <div class="flex items-center mb-2">
+                    <div class="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">
+                        Configuration du Cron
+                    </h3>
+                </div>
+                <p class="text-blue-100 text-sm leading-relaxed">
                     Instructions détaillées pour configurer le cron dans Hostinger. Deux méthodes disponibles : Script shell direct (recommandé) ou Route HTTP.
                 </p>
             </div>
             <a href="{{ route('admin.cron-config.index') }}" 
-               class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
-                <i class="fas fa-arrow-right mr-2"></i>
-                Voir les instructions
+               class="group bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 flex items-center whitespace-nowrap transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                <span>Voir les instructions</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
             </a>
         </div>
     </div>
@@ -547,23 +554,32 @@
     </div>
 
     <!-- Lien vers la gestion des mots-clés -->
-    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-semibold text-indigo-900 mb-1">
-                    <i class="fas fa-tags mr-2"></i>Gestion des Mots-clés
-                </h3>
-                <p class="text-sm text-indigo-700">
-                    Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 rounded-xl shadow-lg p-6 mb-6 transform transition-all hover:shadow-xl hover:scale-[1.01]">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+        <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex-1">
+                <div class="flex items-center mb-2">
+                    <div class="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
+                        <i class="fas fa-tags text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">
+                        Gestion des Mots-clés
+                    </h3>
                     @if(count($customKeywords) > 0)
-                        <span class="font-medium">{{ count($customKeywords) }} mot(s)-clé(s) configuré(s)</span>
+                        <span class="ml-3 bg-white bg-opacity-20 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                            {{ count($customKeywords) }} configuré(s)
+                        </span>
                     @endif
+                </div>
+                <p class="text-indigo-100 text-sm leading-relaxed">
+                    Gérez vos mots-clés SEO et leurs images associées sur une page dédiée pour une meilleure organisation.
                 </p>
             </div>
             <a href="{{ route('admin.keywords.index') }}" 
-               class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center whitespace-nowrap">
-                <i class="fas fa-arrow-right mr-2"></i>
-                Aller à la gestion des mots-clés
+               class="group bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 flex items-center whitespace-nowrap transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                <span>Gérer les mots-clés</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
             </a>
         </div>
     </div>
@@ -620,20 +636,39 @@
     </div>
     @endif
 
-    <!-- Formulaire de lancement -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-play-circle mr-2 text-blue-600"></i>Lancer la génération d'articles
-        </h2>
+    <!-- Formulaire de lancement - Design Premium -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl shadow-2xl border-2 border-blue-200 mb-8">
+        <!-- Effet de brillance animé -->
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>
         
-        <form action="{{ route('admin.seo-automation.run') }}" method="POST" class="space-y-4">
-            @csrf
+        <div class="relative p-8">
+            <!-- Header avec icône animée -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl blur-xl opacity-50 animate-pulse"></div>
+                        <div class="relative bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-300">
+                            <i class="fas fa-rocket text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            🚀 Génération d'Articles SEO
+                        </h2>
+                        <p class="text-sm text-gray-600 mt-1 font-medium">Créez des articles optimisés automatiquement avec l'IA</p>
+                    </div>
+                </div>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form action="{{ route('admin.seo-automation.run') }}" method="POST" class="space-y-6">
+                @csrf
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Nombre d'articles -->
-                <div>
-                    <label for="number_of_articles" class="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre d'articles à créer <span class="text-red-500">*</span>
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                    <label for="number_of_articles" class="block text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>
+                        Nombre d'articles à créer <span class="text-red-500 ml-1">*</span>
                     </label>
                     <input type="number" 
                            id="number_of_articles" 
@@ -642,18 +677,22 @@
                            min="1" 
                            max="50" 
                            required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Entre 1 et 50 articles par ville</p>
+                           class="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
+                    <p class="text-xs text-gray-600 mt-2 flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                        Entre 1 et 50 articles par ville
+                    </p>
                 </div>
 
                 <!-- Sélection de service -->
-                <div>
-                    <label for="service_id" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                    <label for="service_id" class="block text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-briefcase text-indigo-600 mr-2"></i>
                         Service (optionnel)
                     </label>
                     <select id="service_id" 
                             name="service_id" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
                         <option value="">-- Aucun service --</option>
                         @foreach($services as $service)
                             <option value="{{ $service['id'] ?? '' }}" {{ old('service_id') == ($service['id'] ?? '') ? 'selected' : '' }}>
@@ -661,13 +700,17 @@
                             </option>
                         @endforeach
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">Sélectionner un service pour utiliser son nom comme mot-clé</p>
+                    <p class="text-xs text-gray-600 mt-2 flex items-center">
+                        <i class="fas fa-info-circle text-indigo-500 mr-1"></i>
+                        Sélectionner un service pour utiliser son nom comme mot-clé
+                    </p>
                 </div>
             </div>
 
             <!-- Mot-clé personnalisé -->
-            <div>
-                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                <label for="keyword" class="block text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                    <i class="fas fa-keyboard text-purple-600 mr-2"></i>
                     Mot-clé personnalisé (optionnel)
                 </label>
                 <input type="text" 
@@ -676,16 +719,20 @@
                        value="{{ old('keyword') }}"
                        placeholder="Ex: couvreur, toiture, rénovation..."
                        maxlength="255"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p class="text-xs text-gray-500 mt-1">Si rempli, ce mot-clé sera utilisé au lieu des tendances. Priorité sur le service.</p>
+                       class="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
+                <p class="text-xs text-gray-600 mt-2 flex items-center">
+                    <i class="fas fa-info-circle text-purple-500 mr-1"></i>
+                    Si rempli, ce mot-clé sera utilisé au lieu des tendances. Priorité sur le service.
+                </p>
             </div>
 
             <!-- Sélection des villes -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                <label class="block text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                    <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
                     Villes à cibler
                 </label>
-                <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
+                <div class="border-2 border-blue-200 rounded-xl p-4 max-h-48 overflow-y-auto bg-white shadow-inner">
                     @if($favoriteCities->isEmpty())
                         <p class="text-sm text-gray-500 italic">Aucune ville favorite configurée. Allez dans <strong>Villes</strong> pour en marquer comme favorites.</p>
                     @else
@@ -713,19 +760,51 @@
                         </div>
                     @endif
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Si aucune ville n'est sélectionnée, toutes les villes favorites seront utilisées</p>
+                <p class="text-xs text-gray-600 mt-2 flex items-center">
+                    <i class="fas fa-info-circle text-green-500 mr-1"></i>
+                    Si aucune ville n'est sélectionnée, toutes les villes favorites seront utilisées
+                </p>
             </div>
 
-            <!-- Bouton de soumission -->
-            <div class="flex justify-end">
-                <button type="submit" 
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
-                    <i class="fas fa-rocket mr-2"></i>
-                    Lancer la génération
-                </button>
-            </div>
-        </form>
+                <!-- Bouton de soumission Premium -->
+                <div class="md:col-span-2 flex justify-end pt-4 border-t border-blue-200">
+                    <button type="submit" 
+                            class="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-offset-2 flex items-center space-x-3">
+                        <!-- Effet de brillance au survol -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                        
+                        <!-- Contenu du bouton -->
+                        <span class="relative z-10 flex items-center space-x-3">
+                            <i class="fas fa-rocket text-xl animate-bounce group-hover:animate-none"></i>
+                            <span>Lancer la Génération</span>
+                            <i class="fas fa-arrow-right text-lg transform group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                        
+                        <!-- Particules animées -->
+                        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="absolute top-2 left-4 w-2 h-2 bg-white rounded-full animate-ping"></div>
+                            <div class="absolute bottom-2 right-8 w-2 h-2 bg-white rounded-full animate-ping" style="animation-delay: 0.2s"></div>
+                            <div class="absolute top-1/2 right-4 w-1.5 h-1.5 bg-white rounded-full animate-ping" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+    
+    <style>
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        .animate-shimmer {
+            animation: shimmer 3s infinite;
+        }
+    </style>
 
     <!-- Table Desktop -->
     <div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
