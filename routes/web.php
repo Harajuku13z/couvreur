@@ -230,6 +230,26 @@ Route::get('/legal/mentions', [LegalController::class, 'mentionsLegales'])->name
 Route::get('/legal/privacy', [LegalController::class, 'politiqueConfidentialite'])->name('legal.privacy');
 Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
 
+// Routes admin (login/logout - publiques)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [AdminController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AdminController::class, 'authenticate'])->name('authenticate');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+    
+    // Routes protégées (nécessitent authentification)
+    Route::middleware(['admin.auth'])->group(function () {
+        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
+        Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
+        Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
+        Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
+        Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');
+        Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
+        Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
+        Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+    });
+});
+
 // Route pour le sitemap index (retourne le sitemap_index.xml)
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.xml');
 Route::get('/sitemap_index.xml', function () {
