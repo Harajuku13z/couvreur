@@ -109,6 +109,7 @@
                         <i class="fas fa-info-circle mr-1"></i>
                         Total : <strong>{{ $totalArticlesPerDay }} articles/jour</strong> pour {{ $citiesCount }} ville(s) favorite(s)
                     </div>
+                    @endif
                     <div class="flex items-center gap-2">
                         <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">
                             <input type="checkbox" 
