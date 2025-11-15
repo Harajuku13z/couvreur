@@ -247,6 +247,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
         Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
         Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+        Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
         
         // Routes pour les devis
         Route::prefix('devis')->name('devis.')->group(function () {
