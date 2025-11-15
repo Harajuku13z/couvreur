@@ -1404,11 +1404,23 @@ class ConfigController extends Controller
             ]);
         }
 
+        // Nettoyer la clé API
+        $cleanApiKey = trim($apiKey);
+        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+        
+        // Valider le format
+        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères après sk-)'
+            ]);
+        }
+
         try {
             $model = setting('chatgpt_model', 'gpt-4o');
             
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer ' . $cleanApiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
@@ -1472,10 +1484,22 @@ class ConfigController extends Controller
             ]);
         }
 
+        // Nettoyer la clé API
+        $cleanApiKey = trim($apiKey);
+        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+        
+        // Valider le format
+        if (empty($cleanApiKey) || !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)'
+            ]);
+        }
+
         try {
             $model = setting('groq_model', 'llama-3.1-8b-instant');
             
-            $response = Http::withToken($apiKey)
+            $response = Http::withToken($cleanApiKey)
                 ->timeout(60)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model' => $model,
