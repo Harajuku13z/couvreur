@@ -110,6 +110,31 @@ class SeoArticleScheduler
             }
         }
         
+        $now = now();
+        $diffMinutes = abs($now->diffInMinutes($nextTime));
+        
+        // Si on ignore le quota, permettre la création sans restriction de période ni d'heure
+        if ($ignoreQuota) {
+            // Vérifier si un article a déjà été créé récemment (dans les 2 dernières minutes seulement)
+            // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
+            $recentArticle = \App\Models\Article::whereDate('created_at', today())
+                ->where('created_at', '>=', now()->subMinutes(2))
+                ->exists();
+            
+            if ($recentArticle) {
+                return false; // Un article vient d'être créé il y a moins de 2 minutes, attendre un peu
+            }
+            
+            // En mode test (ignore quota), permettre la création si :
+            // - On est dans une fenêtre de 4 heures après l'heure prévue (plus permissif)
+            // - Ou si on est proche de l'heure (30 minutes avant ou après)
+            if ($nextTime->isPast()) {
+                return $diffMinutes <= 240; // 4 heures de marge en mode test
+            }
+            // Permettre aussi si on est proche de l'heure (30 minutes avant)
+            return $diffMinutes <= 30;
+        }
+        
         // Vérifier si un article a déjà été créé récemment (dans les 5 dernières minutes)
         // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
         $recentArticle = \App\Models\Article::whereDate('created_at', today())
@@ -118,19 +143,6 @@ class SeoArticleScheduler
         
         if ($recentArticle) {
             return false; // Un article vient d'être créé, attendre un peu
-        }
-        
-        $now = now();
-        $diffMinutes = abs($now->diffInMinutes($nextTime));
-        
-        // Si on ignore le quota, permettre la création sans restriction de période
-        if ($ignoreQuota) {
-            // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
-            if ($nextTime->isPast()) {
-                return $diffMinutes <= 120; // 2 heures de marge
-            }
-            // Ou si on est proche de l'heure (15 minutes avant)
-            return $diffMinutes <= 15;
         }
         
         // Si on est passé l'heure prévue, permettre la création si :
