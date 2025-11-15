@@ -25,17 +25,17 @@
     <!-- Résultat du test scheduler -->
     <div id="schedulerTestResult" class="hidden mb-4"></div>
     
-    <!-- Configuration Route HTTP Schedule -->
+    <!-- Configuration Cron HTTP (Hostinger) -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            <i class="fas fa-globe mr-2 text-blue-600"></i>Route HTTP Alternative (si le cron ne fonctionne pas)
+            <i class="fas fa-clock mr-2 text-blue-600"></i>Configuration du Cron HTTP (Hostinger)
         </h2>
         <p class="text-sm text-gray-600 mb-4">
-            Si le cron via hPanel ne fonctionne pas, vous pouvez utiliser un service externe (cron-job.org, UptimeRobot, etc.) pour appeler cette URL <strong>une fois par jour</strong> à l'heure configurée. Chaque appel génère directement les articles pour toutes les villes favorites.
+            Le système utilise maintenant un <strong>cron HTTP</strong> au lieu des jobs Laravel. Configurez cette URL dans le gestionnaire de cron de Hostinger pour exécuter l'automatisation SEO automatiquement.
         </p>
         
         <div class="space-y-4">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <button type="button" 
                         id="getScheduleTokenBtn"
                         class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center">
@@ -60,17 +60,28 @@
         </div>
         
         <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-            <p class="font-semibold text-blue-900 mb-2">📋 Instructions pour configurer un service externe :</p>
+            <p class="font-semibold text-blue-900 mb-2">📋 Instructions pour configurer le cron dans Hostinger :</p>
             <ol class="list-decimal list-inside space-y-1 text-blue-800">
-                <li>Cliquez sur "Afficher le token et l'URL" pour obtenir votre URL complète</li>
-                <li>Créez un compte sur <a href="https://cron-job.org" target="_blank" class="underline font-semibold">cron-job.org</a> (gratuit) ou utilisez un autre service (UptimeRobot, etc.)</li>
-                <li>Créez un nouveau cron job avec cette URL</li>
-                <li>Configurez la fréquence : <code class="bg-blue-100 px-1 rounded">Une fois par jour</code> à l'heure configurée ci-dessus (ex: {{ $automationTime ?? '20:24' }})</li>
-                <li>Sauvegardez et le service appellera automatiquement votre URL une fois par jour</li>
+                <li>Cliquez sur "Afficher le token et l'URL" pour obtenir votre URL complète avec token</li>
+                <li>Connectez-vous à votre <strong>hPanel Hostinger</strong></li>
+                <li>Allez dans <strong>Avancé → Cron Jobs</strong></li>
+                <li>Créez un nouveau cron job avec cette commande :</li>
+            </ol>
+            <div class="mt-3 p-3 bg-gray-100 border border-gray-300 rounded font-mono text-xs">
+                <code id="cronCommand">curl -s "{{ url('/schedule/run?token=TOKEN') }}" > /dev/null 2>&1</code>
+            </div>
+            <ol class="list-decimal list-inside space-y-1 text-blue-800 mt-3" start="5">
+                <li>Configurez la fréquence selon l'<strong>intervalle cron</strong> configuré ci-dessus (par défaut: <code class="bg-blue-100 px-1 rounded">*/1 * * * *</code> = toutes les minutes)</li>
+                <li>Le système vérifiera automatiquement si l'heure configurée est arrivée et exécutera l'automatisation</li>
+                <li>Sauvegardez le cron job</li>
             </ol>
             <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
                 <p class="font-semibold mb-1">💡 Note importante :</p>
-                <p>La route exécute directement la génération d'articles (mode exécution directe). Chaque appel génère les articles pour toutes les villes favorites configurées. Pas besoin d'appeler toutes les minutes, une fois par jour suffit.</p>
+                <p>Le cron HTTP vérifie automatiquement les conditions (heure, activation, villes favorites) avant d'exécuter. Vous pouvez configurer le cron pour qu'il s'exécute toutes les minutes (ou selon l'intervalle configuré), le système ne générera les articles que lorsque toutes les conditions sont remplies.</p>
+            </div>
+            <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded text-xs text-green-800">
+                <p class="font-semibold mb-1">✅ Alternative : Service externe</p>
+                <p>Si le cron Hostinger ne fonctionne pas, vous pouvez utiliser un service externe comme <a href="https://cron-job.org" target="_blank" class="underline font-semibold">cron-job.org</a> (gratuit) ou UptimeRobot. Configurez l'URL avec le token et la fréquence selon l'intervalle configuré.</p>
             </div>
         </div>
     </div>

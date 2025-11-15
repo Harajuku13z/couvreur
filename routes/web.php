@@ -426,6 +426,125 @@ Route::get('/sitemap_index.xml', function () {
     return $controller->index();
 })->name('sitemap_index.xml');
 
+// Route HTTP pour exécuter l'automatisation SEO (pour Hostinger et services externes)
+// Cette route vérifie les conditions et exécute seo:run-automations
+Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
+    // Augmenter le timeout pour permettre l'exécution complète
+    set_time_limit(300); // 5 minutes
+    ini_set('max_execution_time', 300);
+    ini_set('default_socket_timeout', 300);
+    
+    $startTime = microtime(true);
+    
+    // Récupérer le token depuis la requête ou les settings
+    $token = $request->query('token');
+    $configuredToken = \App\Models\Setting::get('schedule_run_token', null);
+    
+    // Si aucun token n'est configuré, générer un token et le retourner avec instructions
+    if (empty($configuredToken)) {
+        $newToken = \Illuminate\Support\Str::random(32);
+        \App\Models\Setting::set('schedule_run_token', $newToken, 'string', 'seo');
+        
+        return response()->json([
+            'message' => 'Token généré. Utilisez cette URL pour exécuter l\'automatisation SEO :',
+            'url' => url('/schedule/run?token=' . $newToken),
+            'token' => $newToken,
+            'instructions' => [
+                '1. Configurez cette URL dans le gestionnaire de cron de Hostinger',
+                '2. Ou utilisez un service externe (cron-job.org, UptimeRobot, etc.)',
+                '3. Appelez cette URL selon l\'intervalle configuré (par défaut: toutes les minutes)',
+                '4. Le système vérifiera automatiquement si l\'heure configurée est arrivée',
+            ]
+        ]);
+    }
+    
+    // Vérifier le token
+    if ($token !== $configuredToken) {
+        return response()->json([
+            'error' => 'Token invalide ou manquant',
+            'message' => 'Utilisez le token correct pour accéder à cette route.'
+        ], 403);
+    }
+    
+    try {
+        // Vérifier si l'automatisation est activée
+        $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
+        $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+        
+        if (!$automationEnabled) {
+            return response()->json([
+                'status' => 'skipped',
+                'message' => 'Automatisation SEO désactivée',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+        }
+        
+        // Vérifier si on est à l'heure configurée
+        $automationTime = \App\Models\Setting::get('seo_automation_time', '04:00');
+        $currentTime = now()->format('H:i');
+        
+        // Vérifier qu'il y a des villes favorites
+        $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
+        
+        if ($currentTime !== $automationTime) {
+            return response()->json([
+                'status' => 'skipped',
+                'message' => "Heure non atteinte. Heure actuelle: {$currentTime}, Heure configurée: {$automationTime}",
+                'current_time' => $currentTime,
+                'automation_time' => $automationTime,
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+        }
+        
+        if ($favoriteCitiesCount === 0) {
+            return response()->json([
+                'status' => 'skipped',
+                'message' => 'Aucune ville favorite configurée',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+        }
+        
+        // Exécuter la commande seo:run-automations
+        $exitCode = \Artisan::call('seo:run-automations');
+        $output = \Artisan::output();
+        
+        $executionTime = round(microtime(true) - $startTime, 2);
+        
+        // Parser la sortie
+        $citiesCount = 0;
+        $jobsCount = 0;
+        
+        if (preg_match('/Traitement de (\d+) ville\(s\) favorite\(s\)\.\.\./', $output, $matches)) {
+            $citiesCount = (int)$matches[1];
+        }
+        if (preg_match('/(\d+) job\(s\) planifié\(s\)/', $output, $matches)) {
+            $jobsCount = (int)$matches[1];
+        }
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => "Automatisation SEO exécutée avec succès",
+            'cities_processed' => $citiesCount,
+            'jobs_queued' => $jobsCount,
+            'execution_time' => $executionTime . 's',
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'output' => $output
+        ]);
+        
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Schedule HTTP: Erreur lors de l\'exécution de l\'automatisation SEO', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Erreur lors de l\'exécution: ' . $e->getMessage(),
+            'timestamp' => now()->format('Y-m-d H:i:s')
+        ], 500);
+    }
+})->name('schedule.run');
+
 // Routes admin pour l'indexation
 Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
