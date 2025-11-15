@@ -223,18 +223,27 @@
     
     .article-grid {
         display: grid;
-        grid-template-columns: 1fr 350px;
+        grid-template-columns: 350px 1fr;
         gap: 3rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
     }
     
-    /* Forcer le layout en colonnes sur desktop */
+    /* Forcer le layout en colonnes sur desktop (sidebar à gauche) */
     @media (min-width: 1025px) {
         .article-grid {
-            grid-template-columns: 1fr 350px !important;
+            grid-template-columns: 350px 1fr !important;
             display: grid !important;
+        }
+        
+        /* Ordre d'affichage desktop : sidebar d'abord, puis article */
+        .article-sidebar {
+            order: 1;
+        }
+        
+        .article-card {
+            order: 2;
         }
     }
     
@@ -596,8 +605,8 @@
         z-index: 5;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
-        padding-left: 1rem;
-        margin-left: 0;
+        padding-right: 1rem;
+        margin-right: 0;
     }
     
     /* Style pour le scroll de la sidebar */
@@ -1384,11 +1393,17 @@
             gap: 2rem;
         }
         
+        /* Sur mobile : sidebar après le contenu */
         .article-sidebar {
+            order: 2; /* Après le contenu */
             position: static;
             max-height: none;
-            padding-left: 0;
-            margin-left: 0;
+            padding-right: 0;
+            margin-right: 0;
+        }
+        
+        .article-card {
+            order: 1; /* Avant la sidebar */
         }
         
         .related-articles-grid {
@@ -1539,8 +1554,8 @@
     <div class="article-container">
         <div class="article-content-container">
         <div class="article-grid">
-            <!-- Article -->
-            <article class="article-card">
+            <!-- Sidebar WordPress (à gauche sur desktop, après contenu sur mobile) -->
+            <aside class="article-sidebar">
                 <div class="article-content-wrapper">
                     <div class="article-content">
                         @php
