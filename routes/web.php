@@ -297,6 +297,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\ArticleController::class, 'index'])->name('index');
             Route::get('/create', [App\Http\Controllers\Admin\ArticleController::class, 'create'])->name('create');
             Route::get('/generate', [App\Http\Controllers\Admin\ArticleController::class, 'generate'])->name('generate');
+            Route::get('/ai/form', [App\Http\Controllers\Admin\ArticleController::class, 'generate'])->name('ai.form');
             Route::post('/', [App\Http\Controllers\Admin\ArticleController::class, 'store'])->name('store');
             Route::get('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('show');
             Route::get('/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('edit');
@@ -322,6 +323,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/create-manual', [App\Http\Controllers\AdAdminController::class, 'createManual'])->name('create-manual');
             Route::post('/remove-duplicates', [App\Http\Controllers\AdAdminController::class, 'removeDuplicates'])->name('remove-duplicates');
             Route::delete('/', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('delete-all');
+            
+            // Routes pour les templates d'annonces
+            Route::prefix('templates')->name('templates.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\AdTemplateController::class, 'index'])->name('index');
+                Route::get('/create', [App\Http\Controllers\Admin\AdTemplateController::class, 'create'])->name('create');
+                Route::post('/', [App\Http\Controllers\Admin\AdTemplateController::class, 'store'])->name('store');
+                Route::get('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('show');
+                Route::get('/{template}/edit', [App\Http\Controllers\Admin\AdTemplateController::class, 'edit'])->name('edit');
+                Route::put('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'update'])->name('update');
+                Route::delete('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'destroy'])->name('destroy');
+                Route::post('/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks'])->name('generate-all-links');
+                Route::post('/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('generate-ads');
+            });
         });
         
         // Note: Les routes pour les avis sont définies dans routes/reviews.php
@@ -330,6 +344,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('homepage')->name('homepage.')->group(function () {
             Route::get('/edit', [ConfigController::class, 'editHomepage'])->name('edit');
             Route::post('/update', [ConfigController::class, 'updateHomepage'])->name('update');
+            Route::post('/generate-ai', [ConfigController::class, 'generateHomepageContentAI'])->name('generate-ai');
+            Route::post('/generate-all-ai', [ConfigController::class, 'generateAllHomepageContentAI'])->name('generate-all-ai');
         });
         
         // Routes pour le SEO
