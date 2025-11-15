@@ -314,7 +314,25 @@ class AiService
                 $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
                 $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');
                 
-                Log::info('Tentative avec Groq', ['model' => $groqModel]);
+                // Nettoyer à nouveau la clé API juste avant utilisation
+                $cleanGroqKey = trim($groqApiKey);
+                $cleanGroqKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanGroqKey);
+                
+                // Vérifier que la clé est valide (format Groq: gsk_...)
+                if (empty($cleanGroqKey) || !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $cleanGroqKey)) {
+                    Log::error('Groq: Clé API invalide ou mal formatée', [
+                        'key_length' => strlen($cleanGroqKey ?? ''),
+                        'key_preview' => substr($cleanGroqKey ?? '', 0, 10) . '...',
+                        'key_starts_with' => substr($cleanGroqKey ?? '', 0, 4)
+                    ]);
+                    throw new \Exception('Clé API Groq invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)');
+                }
+                
+                Log::info('Tentative avec Groq', [
+                    'model' => $groqModel,
+                    'api_key_length' => strlen($cleanGroqKey),
+                    'api_key_starts_with' => substr($cleanGroqKey, 0, 8) . '...'
+                ]);
                 
                 // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
                 // Estimation: ~1 token = 4 caractères pour le texte
