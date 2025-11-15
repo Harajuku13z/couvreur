@@ -397,6 +397,7 @@ Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(func
     Route::post('/reviews', [ConfigController::class, 'updateReviews'])->name('update.reviews');
     Route::delete('/reviews/{id}', [ConfigController::class, 'deleteReview'])->name('reviews.delete');
     Route::post('/test-email', [ConfigController::class, 'testEmail'])->name('test.email');
+    Route::post('/generate/faqs', [ConfigController::class, 'generateFaqsWithAI'])->name('generate.faqs');
     Route::get('/reset', [ConfigController::class, 'showReset'])->name('reset');
     Route::post('/reset', [ConfigController::class, 'resetConfiguration'])->name('reset.confirm');
 });
