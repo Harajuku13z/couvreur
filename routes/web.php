@@ -319,21 +319,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/', [App\Http\Controllers\AdAdminController::class, 'deleteAll'])->name('delete-all');
         });
         
-        // Routes pour les avis
-        Route::prefix('reviews')->name('reviews.')->group(function () {
-            Route::get('/', [ReviewsController::class, 'index'])->name('index');
-            Route::get('/serp-config', [ReviewsController::class, 'serpConfig'])->name('serp-config');
-            Route::post('/serp-config', [ReviewsController::class, 'saveSerpConfig'])->name('save-serp-config');
-            Route::post('/test-serp', [ReviewsController::class, 'testSerpConnection'])->name('test-serp');
-            Route::post('/import-serp', [ReviewsController::class, 'importSerpReviews'])->name('import-serp');
-            Route::get('/create', [ReviewsController::class, 'create'])->name('create');
-            Route::post('/', [ReviewsController::class, 'store'])->name('store');
-            Route::get('/{id}/edit', [ReviewsController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [ReviewsController::class, 'update'])->name('update');
-            Route::delete('/', [ReviewsController::class, 'deleteAll'])->name('delete-all');
-            Route::post('/{id}/toggle', [ReviewsController::class, 'toggleStatus'])->name('toggle-status');
-            Route::delete('/{id}', [ReviewsController::class, 'delete'])->name('delete');
-        });
+        // Note: Les routes pour les avis sont définies dans routes/reviews.php
     });
 });
 
