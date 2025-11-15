@@ -1230,9 +1230,33 @@ class ConfigController extends Controller
 
         // Sauvegarder les paramètres IA
         Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
-        Setting::set('chatgpt_api_key', $validated['chatgpt_api_key'] ?? null, 'string', 'ai');
+        
+        // Nettoyer et valider la clé ChatGPT avant sauvegarde
+        $chatgptKey = $validated['chatgpt_api_key'] ?? null;
+        if ($chatgptKey) {
+            $chatgptKey = trim($chatgptKey);
+            $chatgptKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $chatgptKey);
+            // Valider le format
+            if (!empty($chatgptKey) && !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $chatgptKey)) {
+                return redirect()->back()->with('error', 'Clé API ChatGPT invalide. Format attendu: sk-... (au moins 20 caractères après sk-)');
+            }
+        }
+        Setting::set('chatgpt_api_key', $chatgptKey, 'string', 'ai');
+        
         Setting::set('chatgpt_model', $validated['chatgpt_model'], 'string', 'ai');
-        Setting::set('groq_api_key', $validated['groq_api_key'] ?? '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', 'string', 'ai');
+        
+        // Nettoyer et valider la clé Groq avant sauvegarde
+        $groqKey = $validated['groq_api_key'] ?? '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';
+        if ($groqKey) {
+            $groqKey = trim($groqKey);
+            $groqKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $groqKey);
+            // Valider le format
+            if (!empty($groqKey) && !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $groqKey)) {
+                return redirect()->back()->with('error', 'Clé API Groq invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)');
+            }
+        }
+        Setting::set('groq_api_key', $groqKey, 'string', 'ai');
+        
         Setting::set('groq_model', $validated['groq_model'] ?? 'llama-3.1-8b-instant', 'string', 'ai');
         Setting::set('default_ai_provider', $validated['default_ai_provider'] ?? 'chatgpt', 'string', 'ai');
         
