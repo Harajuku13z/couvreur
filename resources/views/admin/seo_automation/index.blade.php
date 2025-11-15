@@ -42,24 +42,43 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             @foreach($scheduledTimes as $schedule)
-            <div class="p-3 rounded-lg border {{ $schedule['is_past'] ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200' }}">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="font-semibold text-gray-900">
-                            <i class="fas fa-clock mr-1 {{ $schedule['is_past'] ? 'text-gray-500' : 'text-blue-600' }}"></i>
-                            {{ $schedule['time'] }}
-                        </div>
-                        <div class="text-xs text-gray-600 mt-1">
-                            Article #{{ $schedule['article_number'] }}
-                            @if($schedule['is_past'])
-                                <span class="text-gray-500">(passé)</span>
-                            @else
-                                <span class="text-blue-600">(à venir)</span>
+            <div class="p-4 rounded-xl border-2 {{ $schedule['is_past'] ? ($schedule['article_created'] ?? false ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300') : 'bg-blue-50 border-blue-200' }} shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i class="fas fa-clock {{ $schedule['is_past'] ? 'text-gray-500' : 'text-blue-600' }}"></i>
+                            <span class="font-bold text-lg text-gray-900">{{ $schedule['time'] }}</span>
+                            @if(isset($schedule['article_created']) && $schedule['article_created'])
+                                <span class="px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded-full">
+                                    <i class="fas fa-check mr-1"></i>Créé
+                                </span>
+                            @elseif($schedule['is_past'])
+                                <span class="px-2 py-0.5 bg-red-500 text-white text-xs font-semibold rounded-full">
+                                    <i class="fas fa-times mr-1"></i>Manqué
+                                </span>
                             @endif
                         </div>
+                        <div class="text-sm text-gray-700 mb-2">
+                            <span class="font-medium">Article #{{ $schedule['article_number'] }}</span>
+                        </div>
+                        @if(isset($schedule['city']))
+                        <div class="flex items-center space-x-2 text-sm">
+                            <i class="fas fa-map-marker-alt text-green-600"></i>
+                            <span class="font-semibold text-gray-800">{{ $schedule['city']['name'] }}</span>
+                            @if($schedule['city']['postal_code'])
+                                <span class="text-gray-500">({{ $schedule['city']['postal_code'] }})</span>
+                            @endif
+                        </div>
+                        @endif
+                        @if($schedule['is_past'] && !($schedule['article_created'] ?? false))
+                        <div class="mt-2 text-xs text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            <span>Aucun article généré à cette heure</span>
+                        </div>
+                        @endif
                     </div>
                     @if(!$schedule['is_past'])
-                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse ml-2"></div>
                     @endif
                 </div>
             </div>

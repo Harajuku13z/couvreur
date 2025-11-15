@@ -92,11 +92,27 @@ class SeoArticleScheduler
             return false;
         }
         
-        // Vérifier si on est dans la fenêtre de temps (5 minutes avant ou après)
+        // Vérifier si on est dans la fenêtre de temps (10 minutes avant ou après pour plus de flexibilité)
         $now = now();
         $diffMinutes = abs($now->diffInMinutes($nextTime));
         
-        return $diffMinutes <= 5;
+        // Si on est passé l'heure prévue, vérifier qu'on n'a pas déjà créé l'article
+        if ($nextTime->isPast()) {
+            // Vérifier si un article a déjà été créé récemment (dans les 15 dernières minutes)
+            $recentArticle = \App\Models\Article::whereDate('created_at', today())
+                ->where('created_at', '>=', now()->subMinutes(15))
+                ->exists();
+            
+            if ($recentArticle) {
+                return false; // Un article vient d'être créé
+            }
+            
+            // Si on est passé l'heure mais pas trop (max 30 minutes), permettre la création
+            return $diffMinutes <= 30;
+        }
+        
+        // Si on est avant l'heure, vérifier qu'on est proche (10 minutes avant max)
+        return $diffMinutes <= 10;
     }
     
     /**
@@ -193,17 +209,18 @@ class SeoArticleScheduler
     }
     
     /**
-     * Génère la liste complète des horaires planifiés pour aujourd'hui
+     * Génère la liste complète des horaires planifiés pour aujourd'hui avec les villes associées
      */
     public function getScheduledTimes(): array
     {
         $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
-        $citiesCount = City::where('is_favorite', true)->count();
+        $cities = City::where('is_favorite', true)->orderBy('id')->get();
         
-        if ($citiesCount === 0) {
+        if ($cities->isEmpty()) {
             return [];
         }
         
+        $citiesCount = $cities->count();
         $totalArticlesPerDay = $articlesPerDay * $citiesCount;
         
         // Récupérer l'heure de début configurée
@@ -216,16 +233,51 @@ class SeoArticleScheduler
         $workingHours = 12 * 60; // 720 minutes
         $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
         
-        // Générer tous les horaires
+        // Récupérer le dernier article créé aujourd'hui pour déterminer la rotation
+        $lastArticle = \App\Models\Article::whereDate('created_at', today())
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        // Déterminer l'index de départ pour la rotation
+        $startCityIndex = 0;
+        if ($lastArticle && $lastArticle->city_id) {
+            $lastCityIndex = $cities->search(function($city) use ($lastArticle) {
+                return $city->id === $lastArticle->city_id;
+            });
+            if ($lastCityIndex !== false) {
+                // Commencer à la ville suivante
+                $startCityIndex = ($lastCityIndex + 1) % $citiesCount;
+            }
+        }
+        
+        // Générer tous les horaires avec les villes associées
         $scheduledTimes = [];
         $currentTime = Carbon::today()->setTime($startHour, $startMinute);
         
         for ($i = 0; $i < $totalArticlesPerDay; $i++) {
+            // Calculer quelle ville sera utilisée (rotation)
+            $cityIndex = ($startCityIndex + $i) % $citiesCount;
+            $city = $cities[$cityIndex];
+            
+            // Vérifier si un article a déjà été créé à cette heure pour cette ville
+            $articleCreated = \App\Models\Article::where('city_id', $city->id)
+                ->whereDate('created_at', today())
+                ->whereTime('created_at', '>=', $currentTime->copy()->subMinutes(5))
+                ->whereTime('created_at', '<=', $currentTime->copy()->addMinutes(5))
+                ->exists();
+            
             $scheduledTimes[] = [
                 'time' => $currentTime->format('H:i'),
                 'datetime' => $currentTime->copy(),
                 'article_number' => $i + 1,
                 'is_past' => $currentTime->isPast(),
+                'city' => [
+                    'id' => $city->id,
+                    'name' => $city->name,
+                    'postal_code' => $city->postal_code,
+                ],
+                'city_index' => $cityIndex + 1,
+                'article_created' => $articleCreated,
             ];
             $currentTime->addMinutes($intervalMinutes);
         }
