@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\DevisController;
 use App\Http\Controllers\Admin\FactureController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\QuotationStatsController;
+use App\Http\Controllers\Admin\SeoAutomationController;
 
 // Inclure les routes des avis
 require __DIR__.'/reviews.php';
@@ -201,8 +202,8 @@ Route::get('/services', [ServicesController::class, 'publicIndex'])->name('servi
 Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
 
 // Routes publiques pour le formulaire
-Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
-Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
+    Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
+    Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
 Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
 
 // Routes publiques pour le portfolio
@@ -259,4 +260,35 @@ Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin
     Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
     Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
     Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
+});
+
+// Routes admin pour l'automatisation SEO
+Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [SeoAutomationController::class, 'index'])->name('index');
+    Route::get('/password', [SeoAutomationController::class, 'passwordForm'])->name('password');
+    Route::post('/password', [SeoAutomationController::class, 'verifyPassword'])->name('verify-password');
+    Route::post('/run', [SeoAutomationController::class, 'run'])->name('run');
+    Route::get('/run', [SeoAutomationController::class, 'redirectRunGet'])->name('run.get');
+    Route::post('/city/{city}', [SeoAutomationController::class, 'runForCity'])->name('run-city');
+    Route::post('/{seoAutomation}/retry', [SeoAutomationController::class, 'retry'])->name('retry');
+    Route::delete('/{seoAutomation}', [SeoAutomationController::class, 'destroy'])->name('destroy');
+    Route::post('/retry-pending-failed', [SeoAutomationController::class, 'retryPendingAndFailed'])->name('retry-pending-failed');
+    Route::post('/toggle', [SeoAutomationController::class, 'toggle'])->name('toggle');
+    Route::post('/force-run', [SeoAutomationController::class, 'forceRun'])->name('force-run');
+    Route::post('/execute-now', [SeoAutomationController::class, 'executeNow'])->name('execute-now');
+    Route::get('/schedule/token', [SeoAutomationController::class, 'getScheduleToken'])->name('get-schedule-token');
+    Route::post('/schedule/token/regenerate', [SeoAutomationController::class, 'regenerateScheduleToken'])->name('regenerate-schedule-token');
+    Route::post('/schedule/test', [SeoAutomationController::class, 'testScheduleHttp'])->name('test-schedule-http');
+    Route::post('/scheduler/test', [SeoAutomationController::class, 'testScheduler'])->name('test-scheduler');
+    Route::post('/reset-all', [SeoAutomationController::class, 'resetAll'])->name('reset-all');
+    Route::post('/save-time', [SeoAutomationController::class, 'saveTime'])->name('save-time');
+    Route::post('/upload-og-image', [SeoAutomationController::class, 'uploadOgImage'])->name('upload-og-image');
+    Route::post('/save-og-image', [SeoAutomationController::class, 'saveOgImage'])->name('save-og-image');
+    Route::post('/generate-keywords', [SeoAutomationController::class, 'generateKeywords'])->name('generate-keywords');
+    Route::post('/save-keywords', [SeoAutomationController::class, 'saveKeywords'])->name('save-keywords');
+    Route::post('/test-connections', [SeoAutomationController::class, 'testConnections'])->name('test-connections');
+    Route::post('/save-config', [SeoAutomationController::class, 'saveApiConfig'])->name('save-config');
+    Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
+    Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('store-keyword-image');
+    Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('destroy-keyword-image');
 });
