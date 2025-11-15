@@ -326,7 +326,43 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/edit', [ConfigController::class, 'editHomepage'])->name('edit');
             Route::post('/update', [ConfigController::class, 'updateHomepage'])->name('update');
         });
+        
+        // Routes pour le SEO
+        Route::prefix('seo')->name('seo.')->group(function () {
+            Route::get('/', [App\Http\Controllers\SeoController::class, 'index'])->name('index');
+            Route::post('/update', [App\Http\Controllers\SeoController::class, 'update'])->name('update');
+        });
+        
+        // Routes pour les villes
+        Route::prefix('cities')->name('cities.')->group(function () {
+            Route::get('/', [App\Http\Controllers\CityController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\CityController::class, 'store'])->name('store');
+            Route::put('/{id}', [App\Http\Controllers\CityController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\CityController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('toggle-favorite');
+        });
+        
+        // Routes pour la configuration légale
+        Route::prefix('legal')->name('legal.')->group(function () {
+            Route::get('/config', [App\Http\Controllers\LegalAdminController::class, 'index'])->name('config');
+            Route::post('/config', [App\Http\Controllers\LegalAdminController::class, 'update'])->name('config.update');
+        });
     });
+});
+
+// Routes pour la configuration générale (hors du groupe admin pour éviter les conflits)
+Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [ConfigController::class, 'index'])->name('index');
+    Route::post('/company', [ConfigController::class, 'updateCompany'])->name('update.company');
+    Route::post('/branding', [ConfigController::class, 'updateBranding'])->name('update.branding');
+    Route::post('/email', [ConfigController::class, 'updateEmail'])->name('update.email');
+    Route::post('/social', [ConfigController::class, 'updateSocial'])->name('update.social');
+    Route::post('/seo', [ConfigController::class, 'updateSeo'])->name('update.seo');
+    Route::post('/reviews', [ConfigController::class, 'updateReviews'])->name('update.reviews');
+    Route::delete('/reviews/{id}', [ConfigController::class, 'deleteReview'])->name('reviews.delete');
+    Route::post('/test-email', [ConfigController::class, 'testEmail'])->name('test.email');
+    Route::get('/reset', [ConfigController::class, 'showReset'])->name('reset');
+    Route::post('/reset', [ConfigController::class, 'resetConfiguration'])->name('reset.confirm');
 });
 
 // Routes admin pour les services (hors du groupe admin pour éviter les conflits)
