@@ -123,6 +123,16 @@ class SeoArticleScheduler
         $now = now();
         $diffMinutes = abs($now->diffInMinutes($nextTime));
         
+        // Si on ignore le quota, permettre la création sans restriction de période
+        if ($ignoreQuota) {
+            // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
+            if ($nextTime->isPast()) {
+                return $diffMinutes <= 120; // 2 heures de marge
+            }
+            // Ou si on est proche de l'heure (15 minutes avant)
+            return $diffMinutes <= 15;
+        }
+        
         // Si on est passé l'heure prévue, permettre la création si :
         // 1. On n'a pas atteint le quota
         // 2. On est dans une fenêtre raisonnable (max 2 heures après l'heure prévue)
@@ -135,8 +145,14 @@ class SeoArticleScheduler
             $startMinute = (int)($startTimeParts[1] ?? 0);
             $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
             
-            // Si on ignore le quota ou si on est encore dans la période de travail et qu'on n'a pas atteint le quota
-            if ($ignoreQuota || ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay)) {
+            // Récupérer les valeurs si pas déjà fait
+            $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
+            $citiesCount = City::where('is_favorite', true)->count();
+            $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+            $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+            
+            // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
+            if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
                 // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
                 return $diffMinutes <= 120; // 2 heures de marge
             }
