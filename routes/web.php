@@ -415,6 +415,8 @@ Route::prefix('admin/services')->name('services.admin.')->middleware(['admin.aut
 // Routes admin pour le portfolio (hors du groupe admin pour éviter les conflits)
 Route::prefix('admin/portfolio')->name('portfolio.admin.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [PortfolioController::class, 'index'])->name('index');
+    Route::get('/edit/{id}', [ConfigController::class, 'editPortfolioItem'])->name('edit');
+    Route::post('/update/{id}', [ConfigController::class, 'updatePortfolioItem'])->name('update');
 });
 
 // Route pour le sitemap index (retourne le sitemap_index.xml)
