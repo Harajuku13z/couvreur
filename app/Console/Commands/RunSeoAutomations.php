@@ -101,10 +101,17 @@ class RunSeoAutomations extends Command
         $useDirectExecution = \App\Models\Setting::where('key', 'seo_automation_direct_execution')->value('value');
         $useDirectExecution = filter_var($useDirectExecution, FILTER_VALIDATE_BOOLEAN);
         
-        // Par défaut, utiliser l'exécution directe si non défini (plus fiable)
+        // Par défaut, utiliser la queue si non défini (pour permettre le suivi)
+        // L'exécution directe est plus fiable mais ne permet pas de voir les jobs en attente
         if ($useDirectExecution === false && $useDirectExecution !== true) {
-            $useDirectExecution = true;
+            $useDirectExecution = false; // Par défaut, utiliser la queue
         }
+        
+        \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Mode d\'exécution', [
+            'direct_execution' => $useDirectExecution,
+            'city_id' => $city->id,
+            'keyword' => $keyword
+        ]);
         
         try {
             if ($useDirectExecution) {
@@ -136,15 +143,19 @@ class RunSeoAutomations extends Command
                 // EXÉCUTION VIA QUEUE (ancien système)
                 $this->info("📦 Mode queue (nécessite worker)");
                 
-                ProcessSeoCityJob::dispatch($city->id)
+                // Passer le mot-clé au job
+                ProcessSeoCityJob::dispatch($city->id, $keyword)
                     ->onQueue('seo-automation');
                 
                 $this->info("✅ Job planifié dans la queue 'seo-automation'");
+                $this->info("   Ville: {$city->name} (#{$city->id})");
+                $this->info("   Mot-clé: {$keyword}");
                 $this->info("💡 Exécutez: php artisan queue:work --queue=seo-automation");
                 
                 \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Job dispatché', [
                     'city_id' => $city->id,
-                    'city_name' => $city->name
+                    'city_name' => $city->name,
+                    'keyword' => $keyword
                 ]);
                 
                 return 0;
