@@ -229,43 +229,36 @@ class AiService
                     return null;
                 }
                 
-                // Si c'est une erreur de quota ou rate limit, logger mais continuer
+                // Si c'est une erreur de quota ou rate limit, logger et continuer vers Groq
                 if (strpos(strtolower($errorMessage), 'rate limit') !== false ||
                     strpos(strtolower($errorMessage), 'quota') !== false ||
                     strpos(strtolower($errorMessage), 'billing') !== false ||
                     $errorCode === 429) {
-                    Log::error('ChatGPT: Quota ou rate limit dépassé', [
+                    Log::warning('ChatGPT: Quota ou rate limit dépassé, fallback vers Groq', [
                         'error_message' => $errorMessage
                     ]);
-                    return null;
-                }
-                
-                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
-                // Forcer l'utilisation de ChatGPT uniquement
-                if ($chatgptEnabled) {
-                    Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
+                    // Continuer vers Groq au lieu de retourner null
+                } else {
+                    // Pour les autres erreurs, logger et continuer vers Groq
+                    Log::warning('ChatGPT: Erreur API, fallback vers Groq', [
                         'error_message' => $errorMessage,
                         'error_code' => $errorCode
                     ]);
-                    return null;
                 }
+                // Ne pas retourner null, continuer vers Groq
             } catch (\Exception $e) {
-                Log::error('Erreur appel ChatGPT', [
+                Log::warning('Erreur appel ChatGPT, fallback vers Groq', [
                     'message' => $e->getMessage(),
                     'trace' => config('app.debug') ? $e->getTraceAsString() : null
                 ]);
-                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
-                if ($chatgptEnabled) {
-                    return null;
-                }
+                // Ne pas retourner null, continuer vers Groq
             }
         } else {
             Log::info('ChatGPT désactivé ou clé manquante, utilisation de Groq');
         }
         
-        // Fallback sur Groq UNIQUEMENT si ChatGPT est désactivé ou clé manquante
-        // Si ChatGPT est activé mais échoue, on ne doit PAS utiliser Groq
-        if (!$chatgptEnabled && $groqApiKey) {
+        // Fallback sur Groq si ChatGPT n'est pas disponible (désactivé, clé manquante, ou erreur)
+        if ($groqApiKey) {
             try {
                 $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
                 $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');
