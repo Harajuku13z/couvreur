@@ -69,9 +69,13 @@ class SitemapController extends Controller
                 $sitemapIndex->add($sitemapFile['url']);
             }
             
-            // Sauvegarder le sitemap index
-            $indexPath = public_path('sitemap_index.xml');
+            // Sauvegarder le sitemap index dans sitemap.xml (c'est le fichier principal)
+            $indexPath = public_path('sitemap.xml');
             $sitemapIndex->writeToFile($indexPath);
+            
+            // Optionnel : Sauvegarder aussi dans sitemap_index.xml pour compatibilité
+            $indexPathAlt = public_path('sitemap_index.xml');
+            $sitemapIndex->writeToFile($indexPathAlt);
             
             // Retourner le XML du sitemap index
             return $sitemapIndex->render();
