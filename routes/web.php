@@ -247,6 +247,44 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
         Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
         Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+        
+        // Routes pour les devis
+        Route::prefix('devis')->name('devis.')->group(function () {
+            Route::get('/', [DevisController::class, 'index'])->name('index');
+            Route::get('/create', [DevisController::class, 'create'])->name('create');
+            Route::post('/generate-lines', [DevisController::class, 'generateLines'])->name('generate-lines');
+            Route::post('/', [DevisController::class, 'store'])->name('store');
+            Route::get('/{id}', [DevisController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [DevisController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [DevisController::class, 'update'])->name('update');
+            Route::post('/{id}/validate', [DevisController::class, 'validate'])->name('validate');
+            Route::delete('/{id}', [DevisController::class, 'destroy'])->name('destroy');
+            Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
+            Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
+            Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
+            Route::get('/public/{id}/{token}', [DevisController::class, 'publicPdf'])->name('public-pdf');
+        });
+        
+        // Routes pour les factures
+        Route::prefix('factures')->name('factures.')->group(function () {
+            Route::get('/', [FactureController::class, 'index'])->name('index');
+            Route::get('/{id}', [FactureController::class, 'show'])->name('show');
+            Route::post('/{id}/mark-as-paid', [FactureController::class, 'markAsPaid'])->name('mark-as-paid');
+            Route::get('/{id}/pdf', [FactureController::class, 'pdf'])->name('pdf');
+            Route::get('/{id}/download-pdf', [FactureController::class, 'downloadPdf'])->name('download-pdf');
+            Route::post('/{id}/send-email', [FactureController::class, 'sendEmail'])->name('send-email');
+            Route::post('/{id}/send-reminder', [FactureController::class, 'sendReminder'])->name('send-reminder');
+            Route::post('/{id}/record-payment', [FactureController::class, 'recordPayment'])->name('record-payment');
+            Route::delete('/{id}', [FactureController::class, 'destroy'])->name('destroy');
+        });
+        
+        // Routes pour les clients
+        Route::prefix('clients')->name('clients.')->group(function () {
+            Route::get('/', [ClientController::class, 'index'])->name('index');
+            Route::post('/', [ClientController::class, 'store'])->name('store');
+            Route::get('/search', [ClientController::class, 'search'])->name('search');
+            Route::delete('/{id}', [ClientController::class, 'destroy'])->name('destroy');
+        });
     });
 });
 
