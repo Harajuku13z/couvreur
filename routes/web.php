@@ -448,5 +448,7 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/save-config', [SeoAutomationController::class, 'saveApiConfig'])->name('save-config');
     Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
     Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('store-keyword-image');
+    Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('keyword-image.store');
     Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('destroy-keyword-image');
+    Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('keyword-image.destroy');
 });
