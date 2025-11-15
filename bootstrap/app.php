@@ -17,9 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'seo.automation.password' => \App\Http\Middleware\SeoAutomationPassword::class,
         ]);
         
-        // Ajouter le tracking des visites au groupe web
+        // Ajouter le tracking des visites et canonical URL au groupe web
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisits::class,
+            \App\Http\Middleware\CanonicalUrl::class,
         ]);
         
         // Exclure la route de tracking des appels du CSRF (sendBeacon ne peut pas envoyer de token)

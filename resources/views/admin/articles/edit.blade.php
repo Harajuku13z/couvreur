@@ -104,12 +104,12 @@
                         <input type="file" id="featured_image_file" name="featured_image" accept="image/*" 
                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                onchange="previewFeaturedImage(this)">
-                        @if($article->featured_image)
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
-                                <img src="{{ asset($article->featured_image) }}" alt="Image actuelle" class="w-32 h-20 object-cover rounded">
-                            </div>
-                        @endif
+                    @if($article->featured_image)
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-600 mb-2">Image actuelle :</p>
+                            <img src="{{ asset($article->featured_image) }}" alt="Image actuelle" class="w-32 h-20 object-cover rounded">
+                        </div>
+                    @endif
                     </div>
 
                     <!-- Contenu onglet Galerie -->

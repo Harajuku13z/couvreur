@@ -814,7 +814,18 @@
                                 </form>
                             @endif
                             
-                            @if($log->status === 'failed' || $log->article_id)
+                            @if($log->status === 'failed' && !$log->article_id)
+                                <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="inline" 
+                                      onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce log d\'échec ? Cette action est irréversible.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                        <i class="fas fa-trash mr-1"></i> Supprimer
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            @if($log->article_id)
                                 <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="inline" 
                                       onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
                                     @csrf
@@ -925,7 +936,18 @@
                     </form>
                 @endif
                 
-                @if($log->status === 'failed' || $log->article_id)
+                @if($log->status === 'failed' && !$log->article_id)
+                    <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="flex-1"
+                          onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce log d\'échec ? Cette action est irréversible.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">
+                            <i class="fas fa-trash mr-1"></i> Supprimer
+                        </button>
+                    </form>
+                @endif
+                
+                @if($log->article_id)
                     <form action="{{ route('admin.seo-automation.destroy', $log) }}" method="POST" class="flex-1"
                           onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet article et son log ? Cette action est irréversible.');">
                         @csrf

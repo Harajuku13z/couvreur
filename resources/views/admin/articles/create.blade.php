@@ -101,7 +101,7 @@
                     <div id="content-gallery" class="tab-content hidden">
                         <div class="mb-3">
                             <input type="text" id="gallery-search" placeholder="Rechercher une image..." 
-                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div id="gallery-loading" class="text-center py-4">
                             <i class="fas fa-spinner fa-spin text-gray-400"></i> Chargement des images...

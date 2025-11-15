@@ -70,7 +70,7 @@ class ArticleController extends Controller
                 $fullPath = public_path($imageInput);
                 if (file_exists($fullPath) && is_file($fullPath)) {
                     $featuredImagePath = $imageInput;
-                }
+        }
             }
             // Cas 3: URL externe (commence par http:// ou https://)
             elseif (filter_var($imageInput, FILTER_VALIDATE_URL)) {
@@ -122,12 +122,12 @@ class ArticleController extends Controller
 
             // Validation conditionnelle selon le type d'input
             $rules = [
-                'title' => 'required|string|max:500',
-                'content_html' => 'required|string',
-                'meta_title' => 'nullable|string|max:500',
-                'meta_description' => 'nullable|string|max:500',
-                'meta_keywords' => 'nullable|string|max:2000',
-                'status' => 'required|in:draft,published'
+            'title' => 'required|string|max:500',
+            'content_html' => 'required|string',
+            'meta_title' => 'nullable|string|max:500',
+            'meta_description' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:2000',
+            'status' => 'required|in:draft,published'
             ];
             
             // Si c'est un fichier uploadé, valider comme image
@@ -164,7 +164,7 @@ class ArticleController extends Controller
             ]);
             
             // Cas 1: Upload de fichier
-            if ($request->hasFile('featured_image')) {
+        if ($request->hasFile('featured_image')) {
                 $file = $request->file('featured_image');
                 $featuredImagePath = $this->handleImageUpload($file);
                 Log::info('ArticleController::update - Fichier uploadé', [
@@ -203,7 +203,7 @@ class ArticleController extends Controller
                     Log::info('ArticleController::update - URL externe détectée', [
                         'url' => $imageInput,
                     ]);
-                }
+        }
             }
 
             // Normaliser les URLs d'images dans le contenu HTML
@@ -211,7 +211,7 @@ class ArticleController extends Controller
             $validated['content_html'] = $normalizedContent;
 
             $validated['featured_image'] = $featuredImagePath;
-            $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
+        $validated['published_at'] = $validated['status'] === 'published' ? now() : null;
             
             Log::info('ArticleController::update - Données avant update', [
                 'featured_image' => $validated['featured_image'],
@@ -220,7 +220,7 @@ class ArticleController extends Controller
                 'status' => $validated['status'],
             ]);
             
-            $article->update($validated);
+        $article->update($validated);
             
             Log::info('ArticleController::update - Update réussi', [
                 'article_id' => $article->id,
@@ -229,8 +229,8 @@ class ArticleController extends Controller
                 'updated_status' => $article->status,
             ]);
 
-            return redirect()->route('admin.articles.show', $article)
-                ->with('success', 'Article modifié avec succès');
+        return redirect()->route('admin.articles.show', $article)
+            ->with('success', 'Article modifié avec succès');
                 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('ArticleController::update - Erreur de validation', [

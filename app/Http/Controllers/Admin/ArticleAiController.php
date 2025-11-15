@@ -201,8 +201,8 @@ class ArticleAiController extends Controller
         // Si pas de mot-clé trouvé, utiliser le titre complet
         if (empty($keyword)) {
             $keyword = strtolower($title);
-        }
-        
+            }
+
         return $keyword;
     }
 
