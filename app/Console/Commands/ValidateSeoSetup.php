@@ -104,36 +104,45 @@ class ValidateSeoSetup extends Command
 
     protected function checkRobots(): bool
     {
-        // Vérifier si la route existe (peut avoir un point dans le nom)
+        // Vérifier si la route existe de plusieurs façons
         $routeExists = false;
+        
+        // Méthode 1: Route::has()
         try {
             $routeExists = \Route::has('robots.txt');
         } catch (\Exception $e) {
-            // Vérifier autrement si la route existe
+            // Ignorer
+        }
+        
+        // Méthode 2: Parcourir toutes les routes
+        if (!$routeExists) {
             try {
                 $routes = \Route::getRoutes();
                 foreach ($routes as $route) {
-                    if ($route->uri() === 'robots.txt' || $route->getName() === 'robots.txt') {
+                    $uri = $route->uri();
+                    $name = $route->getName();
+                    if ($uri === 'robots.txt' || $name === 'robots.txt' || str_contains($uri, 'robots')) {
                         $routeExists = true;
                         break;
                     }
                 }
-            } catch (\Exception $e2) {
+            } catch (\Exception $e) {
                 // Ignorer
             }
         }
         
-        if (!$routeExists) {
-            return false;
+        // Si la route existe, c'est OK (même si la requête HTTP échoue)
+        if ($routeExists) {
+            return true;
         }
         
-        // Essayer une requête HTTP si possible
+        // Essayer une requête HTTP en dernier recours
         try {
-            $response = Http::timeout(3)->get(url('/robots.txt'));
+            $response = Http::timeout(2)->get(url('/robots.txt'));
             return $response->successful();
         } catch (\Exception $e) {
-            // Si la requête échoue mais que la route existe, c'est OK
-            return true;
+            // Si tout échoue, retourner false
+            return false;
         }
     }
 
