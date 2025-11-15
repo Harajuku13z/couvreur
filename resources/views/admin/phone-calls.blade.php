@@ -261,11 +261,18 @@
                             {{ $call->ip_address ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
-                                    class="text-blue-600 hover:text-blue-900"
-                                    title="Corriger la ville">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('admin.phone-calls.show', $call->id) }}" 
+                                   class="text-blue-600 hover:text-blue-900"
+                                   title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                                        class="text-blue-600 hover:text-blue-900"
+                                        title="Corriger la ville">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty

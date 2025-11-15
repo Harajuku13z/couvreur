@@ -250,6 +250,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
             Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
             Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+            Route::get('/phone-calls/{id}', [AdminController::class, 'showPhoneCall'])->name('phone-calls.show');
         Route::post('/phone-calls/{id}/update-city', [AdminController::class, 'updatePhoneCallCity'])->name('phone-calls.update-city');
             Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
             Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');

@@ -798,6 +798,16 @@ class AdminController extends Controller
     }
 
     /**
+     * Afficher les détails d'un appel téléphonique
+     */
+    public function showPhoneCall($id)
+    {
+        $phoneCall = PhoneCall::with('submission')->findOrFail($id);
+        
+        return view('admin.phone-calls-show', compact('phoneCall'));
+    }
+
+    /**
      * Mettre à jour la ville d'un appel téléphonique
      */
     public function updatePhoneCallCity(Request $request, $id)
