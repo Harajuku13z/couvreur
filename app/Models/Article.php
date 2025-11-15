@@ -6,14 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
-use RalphJSmit\Laravel\SEO\Support\HasSEO;
-use RalphJSmit\Laravel\SEO\Support\SEOData;
-use Spatie\Sluggable\HasSlug;
-use Spatie\Sluggable\SlugOptions;
 
 class Article extends Model
 {
-    use HasFactory, HasSEO, HasSlug;
+    use HasFactory;
 
     protected $fillable = [
         'title',
@@ -46,13 +42,16 @@ class Article extends Model
     ];
 
     /**
-     * Configuration du slug automatique
+     * Configuration du slug automatique (si HasSlug est disponible)
      */
-    public function getSlugOptions(): SlugOptions
+    public function getSlugOptions()
     {
-        return SlugOptions::create()
-            ->generateSlugsFrom('title')
-            ->saveSlugsTo('slug');
+        if (class_exists(\Spatie\Sluggable\SlugOptions::class)) {
+            return \Spatie\Sluggable\SlugOptions::create()
+                ->generateSlugsFrom('title')
+                ->saveSlugsTo('slug');
+        }
+        return null;
     }
 
     public function getRouteKeyName()
@@ -61,11 +60,15 @@ class Article extends Model
     }
 
     /**
-     * Données SEO dynamiques pour les articles
+     * Données SEO dynamiques pour les articles (si SEO package est disponible)
      */
-    public function getDynamicSEOData(): SEOData
+    public function getDynamicSEOData()
     {
-        $seoData = SEOData::make()
+        if (!class_exists(\RalphJSmit\Laravel\SEO\Support\SEOData::class)) {
+            return null;
+        }
+        
+        $seoData = \RalphJSmit\Laravel\SEO\Support\SEOData::make()
             ->title($this->meta_title ?: $this->title)
             ->description($this->meta_description ?: $this->excerpt)
             ->image($this->featured_image ? asset($this->featured_image) : null)

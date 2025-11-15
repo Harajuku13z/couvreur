@@ -4,14 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use RalphJSmit\Laravel\SEO\Support\HasSEO;
-use RalphJSmit\Laravel\SEO\Support\SEOData;
-use Spatie\Sluggable\HasSlug;
-use Spatie\Sluggable\SlugOptions;
 
 class Service extends Model
 {
-    use HasFactory, HasSEO, HasSlug;
+    use HasFactory;
 
     protected $fillable = [
         'title',
@@ -36,13 +32,16 @@ class Service extends Model
     ];
 
     /**
-     * Configuration du slug automatique
+     * Configuration du slug automatique (si HasSlug est disponible)
      */
-    public function getSlugOptions(): SlugOptions
+    public function getSlugOptions()
     {
-        return SlugOptions::create()
-            ->generateSlugsFrom('title')
-            ->saveSlugsTo('slug');
+        if (class_exists(\Spatie\Sluggable\SlugOptions::class)) {
+            return \Spatie\Sluggable\SlugOptions::create()
+                ->generateSlugsFrom('title')
+                ->saveSlugsTo('slug');
+        }
+        return null;
     }
 
     /**
@@ -54,11 +53,15 @@ class Service extends Model
     }
 
     /**
-     * Données SEO dynamiques
+     * Données SEO dynamiques (si SEO package est disponible)
      */
-    public function getDynamicSEOData(): SEOData
+    public function getDynamicSEOData()
     {
-        return SEOData::make()
+        if (!class_exists(\RalphJSmit\Laravel\SEO\Support\SEOData::class)) {
+            return null;
+        }
+        
+        return \RalphJSmit\Laravel\SEO\Support\SEOData::make()
             ->title($this->meta_title ?: $this->title . ' | Couvreur Expert')
             ->description($this->meta_description ?: \Str::limit(strip_tags($this->description ?? ''), 160))
             ->image($this->og_image ? asset($this->og_image) : ($this->image_path ? asset($this->image_path) : null))
