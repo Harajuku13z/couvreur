@@ -351,18 +351,71 @@ class SeoAutomationManager
                 }
             }
             
-            $article = Article::create([
-                'title' => $gptData['titre'],
-                'slug' => $slug,
-                'content_html' => $contentHtml,
-                'meta_description' => $gptData['meta_description'] ?? null,
-                'meta_keywords' => $metaKeywords,
-                'focus_keyword' => $keyword,
-                'featured_image' => $featuredImage,
-                'status' => 'published',
-                'published_at' => now(),
-                'city_id' => $city->id,
-            ]);
+            try {
+                $article = Article::create([
+                    'title' => $gptData['titre'],
+                    'slug' => $slug,
+                    'content_html' => $contentHtml,
+                    'meta_description' => $gptData['meta_description'] ?? null,
+                    'meta_keywords' => $metaKeywords,
+                    'focus_keyword' => $keyword,
+                    'featured_image' => $featuredImage,
+                    'status' => 'published',
+                    'published_at' => now(),
+                    'city_id' => $city->id,
+                ]);
+            } catch (\Exception $createException) {
+                Log::error('SeoAutomationManager: Erreur lors de la création de l\'article', [
+                    'city' => $city->name,
+                    'keyword' => $keyword,
+                    'slug' => $slug,
+                    'error' => $createException->getMessage(),
+                    'trace' => $createException->getTraceAsString()
+                ]);
+                
+                // Essayer avec un slug différent si erreur de duplication
+                if (str_contains($createException->getMessage(), 'Duplicate') || str_contains($createException->getMessage(), 'unique')) {
+                    $slug = $slug . '-' . time() . '-' . rand(1000, 9999);
+                    try {
+                        $article = Article::create([
+                            'title' => $gptData['titre'],
+                            'slug' => $slug,
+                            'content_html' => $contentHtml,
+                            'meta_description' => $gptData['meta_description'] ?? null,
+                            'meta_keywords' => $metaKeywords,
+                            'focus_keyword' => $keyword,
+                            'featured_image' => $featuredImage,
+                            'status' => 'published',
+                            'published_at' => now(),
+                            'city_id' => $city->id,
+                        ]);
+                        Log::info('SeoAutomationManager: Article créé avec slug modifié', [
+                            'article_id' => $article->id,
+                            'slug' => $slug
+                        ]);
+                    } catch (\Exception $retryException) {
+                        $steps[count($steps) - 1]['status'] = 'failed';
+                        $steps[count($steps) - 1]['message'] = 'Erreur lors de la création de l\'article: ' . $retryException->getMessage();
+                        if ($progressCallback) $progressCallback($steps);
+                        $log->update([
+                            'status' => 'failed',
+                            'error_message' => 'Erreur lors de la création de l\'article: ' . $retryException->getMessage(),
+                            'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
+                        ]);
+                        return $log;
+                    }
+                } else {
+                    $steps[count($steps) - 1]['status'] = 'failed';
+                    $steps[count($steps) - 1]['message'] = 'Erreur lors de la création de l\'article: ' . $createException->getMessage();
+                    if ($progressCallback) $progressCallback($steps);
+                    $log->update([
+                        'status' => 'failed',
+                        'error_message' => 'Erreur lors de la création de l\'article: ' . $createException->getMessage(),
+                        'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
+                    ]);
+                    return $log;
+                }
+            }
             
             Log::info('Article créé avec mots-clés', [
                 'article_id' => $article->id,
