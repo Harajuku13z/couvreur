@@ -187,6 +187,9 @@ Route::get('/test-phone-tracking', function () {
             }
         })->name('schedule.run');
 
+// Route publique pour la page d'accueil
+Route::get('/', [FormControllerSimple::class, 'index'])->name('home');
+
 // Routes publiques pour les services
 Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
 Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
@@ -198,51 +201,59 @@ Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('for
 
 // Routes publiques de fallback (pour éviter les erreurs si les pages n'existent pas encore)
 Route::get('/portfolio', function () {
-    return \Illuminate\Support\Facades\View::exists('portfolio.index') 
-        ? view('portfolio.index', ['currentPage' => 'portfolio']) 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('portfolio.index')) {
+        return view('portfolio.index', ['currentPage' => 'portfolio']);
+    }
+    abort(404);
 })->name('portfolio.index');
 
 Route::get('/blog', function () {
-    return \Illuminate\Support\Facades\View::exists('blog.index') 
-        ? view('blog.index', ['currentPage' => 'blog']) 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('blog.index')) {
+        return view('blog.index', ['currentPage' => 'blog']);
+    }
+    abort(404);
 })->name('blog.index');
 
 Route::get('/contact', function () {
-    return \Illuminate\Support\Facades\View::exists('contact.index') 
-        ? view('contact.index', ['currentPage' => 'contact']) 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('contact.index')) {
+        return view('contact.index', ['currentPage' => 'contact']);
+    }
+    abort(404);
 })->name('contact');
 
 Route::get('/ads', function () {
-    return \Illuminate\Support\Facades\View::exists('ads.index') 
-        ? view('ads.index', ['currentPage' => 'ads']) 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('ads.index')) {
+        return view('ads.index', ['currentPage' => 'ads']);
+    }
+    abort(404);
 })->name('ads.index');
 
 Route::get('/reviews', function () {
-    return \Illuminate\Support\Facades\View::exists('reviews.all') 
-        ? view('reviews.all', ['currentPage' => 'reviews']) 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('reviews.all')) {
+        return view('reviews.all', ['currentPage' => 'reviews']);
+    }
+    abort(404);
 })->name('reviews.all');
 
 Route::get('/legal/mentions', function () {
-    return \Illuminate\Support\Facades\View::exists('legal.mentions') 
-        ? view('legal.mentions') 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('legal.mentions')) {
+        return view('legal.mentions');
+    }
+    abort(404);
 })->name('legal.mentions');
 
 Route::get('/legal/privacy', function () {
-    return \Illuminate\Support\Facades\View::exists('legal.privacy') 
-        ? view('legal.privacy') 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('legal.privacy')) {
+        return view('legal.privacy');
+    }
+    abort(404);
 })->name('legal.privacy');
 
 Route::get('/legal/cgv', function () {
-    return \Illuminate\Support\Facades\View::exists('legal.cgv') 
-        ? view('legal.cgv') 
-        : redirect('/');
+    if (\Illuminate\Support\Facades\View::exists('legal.cgv')) {
+        return view('legal.cgv');
+    }
+    abort(404);
 })->name('legal.cgv');
 
 // Route pour le sitemap index (retourne le sitemap_index.xml)
