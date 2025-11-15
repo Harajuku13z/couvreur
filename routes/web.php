@@ -187,4 +187,21 @@ Route::get('/test-phone-tracking', function () {
             }
         })->name('schedule.run');
 
-// ... existing code ...
+// Routes admin pour l'indexation
+Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+    Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
+    Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+    Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
+    Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
+    Route::post('/submit-all-to-google', [App\Http\Controllers\IndexationController::class, 'submitAllUrlsToGoogle'])->name('submit-all-to-google');
+    Route::post('/submit-sitemap-to-google', [App\Http\Controllers\IndexationController::class, 'submitSitemapToGoogle'])->name('submit-sitemap-to-google');
+    Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
+    Route::post('/toggle-daily-indexing', [App\Http\Controllers\IndexationController::class, 'toggleDailyIndexing'])->name('toggle-daily-indexing');
+    Route::post('/reset-indexed-urls', [App\Http\Controllers\IndexationController::class, 'resetIndexedUrls'])->name('reset-indexed-urls');
+    Route::post('/run-daily-indexing', [App\Http\Controllers\IndexationController::class, 'runDailyIndexing'])->name('run-daily-indexing');
+    Route::post('/test-single-url', [App\Http\Controllers\IndexationController::class, 'testSingleUrl'])->name('test-single-url');
+    Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
+    Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
+    Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
+});
