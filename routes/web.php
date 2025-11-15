@@ -443,6 +443,7 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/generate-keywords', [SeoAutomationController::class, 'generateKeywords'])->name('generate-keywords');
     Route::post('/save-keywords', [SeoAutomationController::class, 'saveKeywords'])->name('save-keywords');
     Route::post('/test-connections', [SeoAutomationController::class, 'testConnections'])->name('test-connections');
+    Route::post('/test', [SeoAutomationController::class, 'testConnections'])->name('test');
     Route::post('/save-config', [SeoAutomationController::class, 'saveApiConfig'])->name('save-config');
     Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
     Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('store-keyword-image');
