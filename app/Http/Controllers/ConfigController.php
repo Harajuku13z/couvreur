@@ -1250,9 +1250,10 @@ class ConfigController extends Controller
         if ($groqKey) {
             $groqKey = trim($groqKey);
             $groqKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $groqKey);
-            // Valider le format
-            if (!empty($groqKey) && !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $groqKey)) {
-                return redirect()->back()->with('error', 'Clé API Groq invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)');
+            // Valider le format (plus permissif)
+            // Vérifier que ça commence par gsk_ et fait au moins 30 caractères
+            if (!empty($groqKey) && (strpos($groqKey, 'gsk_') !== 0 || strlen($groqKey) < 30)) {
+                return redirect()->back()->with('error', 'Clé API Groq invalide. Format attendu: gsk_... (au moins 30 caractères au total)');
             }
         }
         Setting::set('groq_api_key', $groqKey, 'string', 'ai');

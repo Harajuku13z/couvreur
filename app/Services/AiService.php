@@ -319,13 +319,14 @@ class AiService
                 $cleanGroqKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanGroqKey);
                 
                 // Vérifier que la clé est valide (format Groq: gsk_...)
-                if (empty($cleanGroqKey) || !preg_match('/^gsk_[a-zA-Z0-9]{20,}$/', $cleanGroqKey)) {
+                // Validation permissive : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères
+                if (empty($cleanGroqKey) || strpos($cleanGroqKey, 'gsk_') !== 0 || strlen($cleanGroqKey) < 30) {
                     Log::error('Groq: Clé API invalide ou mal formatée', [
                         'key_length' => strlen($cleanGroqKey ?? ''),
-                        'key_preview' => substr($cleanGroqKey ?? '', 0, 10) . '...',
+                        'key_preview' => substr($cleanGroqKey ?? '', 0, 20) . '...',
                         'key_starts_with' => substr($cleanGroqKey ?? '', 0, 4)
                     ]);
-                    throw new \Exception('Clé API Groq invalide. Format attendu: gsk_... (au moins 20 caractères après gsk_)');
+                    throw new \Exception('Clé API Groq invalide. Format attendu: gsk_... (au moins 30 caractères au total)');
                 }
                 
                 Log::info('Tentative avec Groq', [
