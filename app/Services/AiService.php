@@ -219,14 +219,14 @@ class AiService
                     }
                 }
                 
-                // Si c'est une erreur de clé API invalide, arrêter les tentatives
+                // Si c'est une erreur de clé API invalide, logger et continuer vers Groq
                 if (strpos(strtolower($errorMessage), 'invalid api key') !== false ||
                     strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
                     $errorCode === 401) {
-                    Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
+                    Log::warning('ChatGPT: Clé API invalide, fallback vers Groq', [
                         'error_message' => $errorMessage
                     ]);
-                    return null;
+                    // Continuer vers Groq au lieu de retourner null
                 }
                 
                 // Si c'est une erreur de quota ou rate limit, logger et continuer vers Groq
