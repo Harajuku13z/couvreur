@@ -426,7 +426,7 @@ class AiService
                             $reducedMaxTokens = min($maxTokens, max(500, 5500 - $reducedInputTokens));
                             
                             try {
-                                $retryResponse = Http::withToken($groqApiKey)
+                                $retryResponse = Http::withToken($cleanGroqKey)
                                     ->timeout($timeout)
                                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                                         'model' => $groqModel,
