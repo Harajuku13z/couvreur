@@ -231,59 +231,59 @@ Route::get('/legal/privacy', [LegalController::class, 'politiqueConfidentialite'
 Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
 
 // Routes admin (login/logout - publiques)
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [AdminController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AdminController::class, 'authenticate'])->name('authenticate');
-    Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
-    
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/login', [AdminController::class, 'showLogin'])->name('login');
+        Route::post('/login', [AdminController::class, 'authenticate'])->name('authenticate');
+        Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+        
     // Routes protégées (nécessitent authentification)
-    Route::middleware(['admin.auth'])->group(function () {
-        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-        Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
-        Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
-        Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
+        Route::middleware(['admin.auth'])->group(function () {
+            Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/submissions', [AdminController::class, 'submissions'])->name('submissions');
+            Route::get('/abandoned-submissions', [AdminController::class, 'abandonedSubmissions'])->name('abandoned-submissions');
+            Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
         Route::get('/submissions/{id}/create-client', [AdminController::class, 'createClientFromSubmission'])->name('submission.create-client');
-        Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');
+            Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');
         Route::post('/submissions/delete-all', [AdminController::class, 'deleteAllSubmissions'])->name('submissions.delete-all');
-        Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
-        Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');
-        Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
-        Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
-        Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
+            Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
+            Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');
+            Route::get('/export/abandoned-submissions', [AdminController::class, 'exportAbandonedSubmissions'])->name('export.abandoned-submissions');
+            Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
+            Route::get('/phone-calls', [AdminController::class, 'phoneCalls'])->name('phone-calls');
         Route::post('/phone-calls/{id}/update-city', [AdminController::class, 'updatePhoneCallCity'])->name('phone-calls.update-city');
-        Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
-        Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
+            Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
+            Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
         
         // Routes pour les devis
-        Route::prefix('devis')->name('devis.')->group(function () {
-            Route::get('/', [DevisController::class, 'index'])->name('index');
-            Route::get('/create', [DevisController::class, 'create'])->name('create');
-            Route::post('/generate-lines', [DevisController::class, 'generateLines'])->name('generate-lines');
-            Route::post('/', [DevisController::class, 'store'])->name('store');
-            Route::get('/{id}', [DevisController::class, 'show'])->name('show');
-            Route::get('/{id}/edit', [DevisController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [DevisController::class, 'update'])->name('update');
-            Route::post('/{id}/validate', [DevisController::class, 'validate'])->name('validate');
+            Route::prefix('devis')->name('devis.')->group(function () {
+                Route::get('/', [DevisController::class, 'index'])->name('index');
+                Route::get('/create', [DevisController::class, 'create'])->name('create');
+                Route::post('/generate-lines', [DevisController::class, 'generateLines'])->name('generate-lines');
+                Route::post('/', [DevisController::class, 'store'])->name('store');
+                Route::get('/{id}', [DevisController::class, 'show'])->name('show');
+                Route::get('/{id}/edit', [DevisController::class, 'edit'])->name('edit');
+                Route::put('/{id}', [DevisController::class, 'update'])->name('update');
+                Route::post('/{id}/validate', [DevisController::class, 'validate'])->name('validate');
             Route::delete('/{id}', [DevisController::class, 'destroy'])->name('destroy');
-            Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
-            Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
-            Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
+                Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
+                Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
+                Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
             Route::get('/public/{id}/{token}', [DevisController::class, 'publicPdf'])->name('public-pdf');
-        });
-        
+            });
+            
         // Routes pour les factures
-        Route::prefix('factures')->name('factures.')->group(function () {
-            Route::get('/', [FactureController::class, 'index'])->name('index');
-            Route::get('/{id}', [FactureController::class, 'show'])->name('show');
+            Route::prefix('factures')->name('factures.')->group(function () {
+                Route::get('/', [FactureController::class, 'index'])->name('index');
+                Route::get('/{id}', [FactureController::class, 'show'])->name('show');
             Route::post('/{id}/mark-as-paid', [FactureController::class, 'markAsPaid'])->name('mark-as-paid');
-            Route::get('/{id}/pdf', [FactureController::class, 'pdf'])->name('pdf');
-            Route::get('/{id}/download-pdf', [FactureController::class, 'downloadPdf'])->name('download-pdf');
-            Route::post('/{id}/send-email', [FactureController::class, 'sendEmail'])->name('send-email');
-            Route::post('/{id}/send-reminder', [FactureController::class, 'sendReminder'])->name('send-reminder');
-            Route::post('/{id}/record-payment', [FactureController::class, 'recordPayment'])->name('record-payment');
-            Route::delete('/{id}', [FactureController::class, 'destroy'])->name('destroy');
-        });
-        
+                Route::get('/{id}/pdf', [FactureController::class, 'pdf'])->name('pdf');
+                Route::get('/{id}/download-pdf', [FactureController::class, 'downloadPdf'])->name('download-pdf');
+                Route::post('/{id}/send-email', [FactureController::class, 'sendEmail'])->name('send-email');
+                Route::post('/{id}/send-reminder', [FactureController::class, 'sendReminder'])->name('send-reminder');
+                Route::post('/{id}/record-payment', [FactureController::class, 'recordPayment'])->name('record-payment');
+                Route::delete('/{id}', [FactureController::class, 'destroy'])->name('destroy');
+            });
+            
         // Routes pour les clients
         Route::prefix('clients')->name('clients.')->group(function () {
             Route::get('/', [ClientController::class, 'index'])->name('index');
@@ -379,28 +379,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/config', [App\Http\Controllers\LegalAdminController::class, 'index'])->name('config');
             Route::post('/config', [App\Http\Controllers\LegalAdminController::class, 'update'])->name('config.update');
         });
+        });
     });
-});
 
 // Routes pour la configuration générale (hors du groupe admin pour éviter les conflits)
-Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(function () {
-    Route::get('/', [ConfigController::class, 'index'])->name('index');
-    Route::post('/company', [ConfigController::class, 'updateCompany'])->name('update.company');
-    Route::post('/branding', [ConfigController::class, 'updateBranding'])->name('update.branding');
-    Route::post('/email', [ConfigController::class, 'updateEmail'])->name('update.email');
+    Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(function () {
+        Route::get('/', [ConfigController::class, 'index'])->name('index');
+        Route::post('/company', [ConfigController::class, 'updateCompany'])->name('update.company');
+        Route::post('/branding', [ConfigController::class, 'updateBranding'])->name('update.branding');
+        Route::post('/email', [ConfigController::class, 'updateEmail'])->name('update.email');
     Route::post('/ai', [ConfigController::class, 'updateAI'])->name('update.ai');
-    Route::post('/security', [ConfigController::class, 'updateSecurity'])->name('update.security');
-    Route::post('/analytics', [ConfigController::class, 'updateAnalytics'])->name('update.analytics');
+        Route::post('/security', [ConfigController::class, 'updateSecurity'])->name('update.security');
+        Route::post('/analytics', [ConfigController::class, 'updateAnalytics'])->name('update.analytics');
     Route::post('/conversion', [ConfigController::class, 'updateConversion'])->name('update.conversion');
     Route::post('/social', [ConfigController::class, 'updateSocial'])->name('update.social');
     Route::post('/seo', [ConfigController::class, 'updateSeo'])->name('update.seo');
     Route::post('/reviews', [ConfigController::class, 'updateReviews'])->name('update.reviews');
     Route::delete('/reviews/{id}', [ConfigController::class, 'deleteReview'])->name('reviews.delete');
-    Route::post('/test-email', [ConfigController::class, 'testEmail'])->name('test.email');
+        Route::post('/test-email', [ConfigController::class, 'testEmail'])->name('test.email');
     Route::post('/generate/faqs', [ConfigController::class, 'generateFaqsWithAI'])->name('generate.faqs');
-    Route::get('/reset', [ConfigController::class, 'showReset'])->name('reset');
-    Route::post('/reset', [ConfigController::class, 'resetConfiguration'])->name('reset.confirm');
-});
+        Route::get('/reset', [ConfigController::class, 'showReset'])->name('reset');
+        Route::post('/reset', [ConfigController::class, 'resetConfiguration'])->name('reset.confirm');
+    });
 
 // Routes admin pour les services (hors du groupe admin pour éviter les conflits)
 Route::prefix('admin/services')->name('services.admin.')->middleware(['admin.auth'])->group(function () {
@@ -414,10 +414,10 @@ Route::prefix('admin/services')->name('services.admin.')->middleware(['admin.aut
 });
 
 // Routes admin pour le portfolio (hors du groupe admin pour éviter les conflits)
-Route::prefix('admin/portfolio')->name('portfolio.admin.')->middleware(['admin.auth'])->group(function () {
+    Route::prefix('admin/portfolio')->name('portfolio.admin.')->middleware(['admin.auth'])->group(function () {
     Route::get('/', [PortfolioController::class, 'index'])->name('index');
-    Route::get('/edit/{id}', [ConfigController::class, 'editPortfolioItem'])->name('edit');
-    Route::post('/update/{id}', [ConfigController::class, 'updatePortfolioItem'])->name('update');
+        Route::get('/edit/{id}', [ConfigController::class, 'editPortfolioItem'])->name('edit');
+        Route::post('/update/{id}', [ConfigController::class, 'updatePortfolioItem'])->name('update');
 });
 
 // Route pour le sitemap index (retourne le sitemap_index.xml)
@@ -486,22 +486,8 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
             ]);
         }
         
-        // Vérifier si on est à l'heure configurée
-        $automationTime = \App\Models\Setting::get('seo_automation_time', '04:00');
-        $currentTime = now()->format('H:i');
-        
         // Vérifier qu'il y a des villes favorites
         $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
-        
-        if ($currentTime !== $automationTime) {
-            return response()->json([
-                'status' => 'skipped',
-                'message' => "Heure non atteinte. Heure actuelle: {$currentTime}, Heure configurée: {$automationTime}",
-                'current_time' => $currentTime,
-                'automation_time' => $automationTime,
-                'timestamp' => now()->format('Y-m-d H:i:s')
-            ]);
-        }
         
         if ($favoriteCitiesCount === 0) {
             return response()->json([
@@ -510,6 +496,55 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
                 'timestamp' => now()->format('Y-m-d H:i:s')
             ]);
         }
+        
+        // Récupérer l'intervalle configuré (en minutes)
+        $cronInterval = (int)\App\Models\Setting::get('seo_automation_cron_interval', 1);
+        $cronInterval = max(1, min(60, $cronInterval));
+        
+        // Vérifier le dernier timestamp d'exécution
+        $lastExecutionKey = 'seo_automation_last_execution';
+        $lastExecution = \App\Models\Setting::get($lastExecutionKey, null);
+        $now = now();
+        
+        // Si une exécution récente existe, vérifier l'intervalle
+        if ($lastExecution) {
+            $lastExecutionTime = \Carbon\Carbon::parse($lastExecution);
+            $minutesSinceLastExecution = $now->diffInMinutes($lastExecutionTime);
+            
+            // Si moins de X minutes se sont écoulées, ignorer cette exécution
+            if ($minutesSinceLastExecution < $cronInterval) {
+                $remainingMinutes = $cronInterval - $minutesSinceLastExecution;
+                return response()->json([
+                    'status' => 'skipped',
+                    'message' => "Intervalle non atteint. Dernière exécution il y a {$minutesSinceLastExecution} minute(s). Prochaine exécution dans {$remainingMinutes} minute(s).",
+                    'last_execution' => $lastExecutionTime->format('Y-m-d H:i:s'),
+                    'current_time' => $now->format('Y-m-d H:i:s'),
+                    'interval_minutes' => $cronInterval,
+                    'minutes_since_last' => $minutesSinceLastExecution,
+                    'timestamp' => $now->format('Y-m-d H:i:s')
+                ]);
+            }
+        }
+        
+        // Utiliser le scheduler pour vérifier si c'est le bon moment
+        $scheduler = app(\App\Services\SeoArticleScheduler::class);
+        
+        // Vérifier si c'est le moment de créer un article
+        if (!$scheduler->shouldCreateArticle()) {
+            $nextTime = $scheduler->getNextScheduledTime();
+            $nextTimeStr = $nextTime ? $nextTime->format('H:i') : 'N/A';
+            
+            return response()->json([
+                'status' => 'skipped',
+                'message' => "Ce n'est pas encore le moment de créer un article. Prochain créneau: {$nextTimeStr}",
+                'next_scheduled_time' => $nextTimeStr,
+                'current_time' => $now->format('H:i'),
+                'timestamp' => $now->format('Y-m-d H:i:s')
+            ]);
+        }
+        
+        // Enregistrer le timestamp de cette exécution
+        \App\Models\Setting::set($lastExecutionKey, $now->toDateTimeString(), 'string', 'seo');
         
         // Exécuter la commande seo:run-automations
         $exitCode = \Artisan::call('seo:run-automations');
@@ -553,22 +588,22 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
 })->name('schedule.run');
 
 // Routes admin pour l'indexation
-Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
-    Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
-    Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
-    Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
-    Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
-    Route::post('/submit-all-to-google', [App\Http\Controllers\IndexationController::class, 'submitAllUrlsToGoogle'])->name('submit-all-to-google');
-    Route::post('/submit-sitemap-to-google', [App\Http\Controllers\IndexationController::class, 'submitSitemapToGoogle'])->name('submit-sitemap-to-google');
-    Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
-    Route::post('/toggle-daily-indexing', [App\Http\Controllers\IndexationController::class, 'toggleDailyIndexing'])->name('toggle-daily-indexing');
-    Route::post('/reset-indexed-urls', [App\Http\Controllers\IndexationController::class, 'resetIndexedUrls'])->name('reset-indexed-urls');
-    Route::post('/run-daily-indexing', [App\Http\Controllers\IndexationController::class, 'runDailyIndexing'])->name('run-daily-indexing');
-    Route::post('/test-single-url', [App\Http\Controllers\IndexationController::class, 'testSingleUrl'])->name('test-single-url');
-    Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
-    Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
-    Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
+    Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
+        Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+        Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
+        Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+        Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
+        Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
+        Route::post('/submit-all-to-google', [App\Http\Controllers\IndexationController::class, 'submitAllUrlsToGoogle'])->name('submit-all-to-google');
+        Route::post('/submit-sitemap-to-google', [App\Http\Controllers\IndexationController::class, 'submitSitemapToGoogle'])->name('submit-sitemap-to-google');
+        Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
+        Route::post('/toggle-daily-indexing', [App\Http\Controllers\IndexationController::class, 'toggleDailyIndexing'])->name('toggle-daily-indexing');
+        Route::post('/reset-indexed-urls', [App\Http\Controllers\IndexationController::class, 'resetIndexedUrls'])->name('reset-indexed-urls');
+        Route::post('/run-daily-indexing', [App\Http\Controllers\IndexationController::class, 'runDailyIndexing'])->name('run-daily-indexing');
+        Route::post('/test-single-url', [App\Http\Controllers\IndexationController::class, 'testSingleUrl'])->name('test-single-url');
+        Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
+        Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
+        Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
 });
 
 // Routes admin pour la gestion des mots-clés
