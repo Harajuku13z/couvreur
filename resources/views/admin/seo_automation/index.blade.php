@@ -90,14 +90,24 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <input type="number" 
-                               id="articles_per_city" 
-                               name="articles_per_city" 
-                               value="{{ \App\Models\Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?? 1 }}"
+                               id="articles_per_day" 
+                               name="articles_per_day" 
+                               value="{{ \App\Models\Setting::where('key', 'seo_automation_articles_per_day')->value('value') ?? 5 }}"
                                min="1" 
-                               max="10"
+                               max="50"
                                class="px-2 py-1 border border-gray-300 rounded text-sm w-16"
-                               title="Nombre d'articles par ville">
-                        <label for="articles_per_city" class="text-xs text-gray-600 whitespace-nowrap">article(s)/ville</label>
+                               title="Nombre d'articles par jour par ville (répartis sur la journée)">
+                        <label for="articles_per_day" class="text-xs text-gray-600 whitespace-nowrap">article(s)/jour/ville</label>
+                    </div>
+                    @php
+                        $citiesCount = \App\Models\City::where('is_favorite', true)->count();
+                        $articlesPerDay = (int)(\App\Models\Setting::where('key', 'seo_automation_articles_per_day')->value('value') ?? 5);
+                        $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+                    @endphp
+                    @if($citiesCount > 0)
+                    <div class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Total : <strong>{{ $totalArticlesPerDay }} articles/jour</strong> pour {{ $citiesCount }} ville(s) favorite(s)
                     </div>
                     <div class="flex items-center gap-2">
                         <label for="direct_execution" class="text-xs text-gray-600 flex items-center gap-1">

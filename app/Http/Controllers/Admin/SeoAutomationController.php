@@ -857,7 +857,8 @@ class SeoAutomationController extends Controller
         $validated = $request->validate([
             'time' => ['required', 'regex:/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/'],
             'cron_interval' => 'nullable|integer|min:1|max:60',
-            'articles_per_city' => 'nullable|integer|min:1|max:10',
+            'articles_per_day' => 'nullable|integer|min:1|max:50',
+            'articles_per_city' => 'nullable|integer|min:1|max:10', // Gardé pour compatibilité
             'direct_execution' => 'nullable|boolean',
         ]);
         
@@ -867,6 +868,12 @@ class SeoAutomationController extends Controller
         $cronInterval = $validated['cron_interval'] ?? 1;
         \App\Models\Setting::set('seo_automation_cron_interval', (string)$cronInterval, 'string', 'seo');
         
+        // Nouveau système : articles par jour (répartis sur toutes les villes)
+        if (isset($validated['articles_per_day'])) {
+            \App\Models\Setting::set('seo_automation_articles_per_day', (string)$validated['articles_per_day'], 'string', 'seo');
+        }
+        
+        // Ancien système : articles par ville (gardé pour compatibilité)
         if (isset($validated['articles_per_city'])) {
             \App\Models\Setting::set('seo_automation_articles_per_city', (string)$validated['articles_per_city'], 'string', 'seo');
         }
@@ -875,11 +882,13 @@ class SeoAutomationController extends Controller
         $directExecution = $request->has('direct_execution') && $request->boolean('direct_execution');
         \App\Models\Setting::set('seo_automation_direct_execution', $directExecution ? '1' : '0', 'boolean', 'seo');
         
-        $articlesPerCity = $validated['articles_per_city'] ?? 1;
+        $articlesPerDay = $validated['articles_per_day'] ?? 5;
+        $citiesCount = \App\Models\City::where('is_favorite', true)->count();
+        $totalArticlesPerDay = $articlesPerDay * $citiesCount;
         $executionMode = $directExecution ? 'directe (sans queue)' : 'via queue (nécessite worker)';
         
         return redirect()->back()
-            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, intervalle cron {$cronInterval} min, {$articlesPerCity} article(s) par ville, exécution {$executionMode}");
+            ->with('success', "✅ Configuration mise à jour : Heure {$validated['time']}, intervalle cron {$cronInterval} min, {$articlesPerDay} article(s) par jour par ville ({$totalArticlesPerDay} total pour {$citiesCount} ville(s)), exécution {$executionMode}");
     }
 
     /**

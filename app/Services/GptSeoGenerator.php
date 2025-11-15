@@ -262,6 +262,20 @@ class GptSeoGenerator
         $currentYear = date('Y');
         $intent = $semanticAnalysis['user_intent'] ?? 'informational';
         
+        // Titres inspirants fournis par l'utilisateur (à fort potentiel de conversion)
+        $highConvertingTitles = [
+            "Fuite de Toiture : Que Faire Immédiatement Avant l'Arrivée du Couvreur ?",
+            "Rénover sa Toiture en {$currentYear} : Prix, Aides, Erreurs à Éviter",
+            "Toiture Abîmée : 7 Signes Qui Doivent Vous Alerter Immédiatement",
+            "Tuiles Cassées, Infiltrations : Combien Coûte Une Intervention d'Urgence ?",
+            "Pourquoi une Toiture Mal Isolée Peut Faire Exploser Votre Facture de Chauffage",
+            "Couverture Zinc, Ardoise ou Tuiles : Quelle Toiture Choisir en {$currentYear} ?",
+            "Nettoyage de Toiture : Le Guide Complet (Prix + Fréquence + Risques)",
+            "Urgence Toiture Après Tempête : Les 5 Gestes Qui Sauvent Votre Maison",
+            "Comment Savoir Si Votre Toiture a Plus de 20 Ans ? (Checklist Téléchargeable)",
+            "Étanchéité de Toiture : Causes, Solutions et Prix des Réparations en {$currentYear}",
+        ];
+        
         // Templates optimisés par intention
         $templates = [
             'transactional' => [
@@ -289,6 +303,9 @@ class GptSeoGenerator
         $selectedTemplates = $templates[$intent] ?? $templates['informational'];
         $template = $selectedTemplates[0]; // Prendre le premier template (meilleur CTR)
         
+        // Sélectionner un titre inspirant aléatoire
+        $inspirationTitle = $highConvertingTitles[array_rand($highConvertingTitles)];
+        
         $prompt = <<<EOT
 Génère un titre SEO ULTRA-OPTIMISÉ pour maximiser le CTR (Click-Through Rate).
 
@@ -298,6 +315,20 @@ Génère un titre SEO ULTRA-OPTIMISÉ pour maximiser le CTR (Click-Through Rate)
 **Année :** {$currentYear}
 
 **Template de référence :** {$template}
+
+**INSPIRATION - Titres à fort potentiel de conversion :**
+Ces titres ont un excellent taux de conversion car ils :
+- Attirent les urgences et prospects chauds
+- Incluent des mots-clés puissants (prix, aide, erreurs, signes, coût, urgence)
+- Créent de l'urgence ou de la curiosité
+- Promettent des solutions concrètes
+
+Exemple d'inspiration : "{$inspirationTitle}"
+
+**ADAPTE ce style au mot-clé "{$keyword}" et à la ville "{$city}"** en créant un titre qui :
+- Utilise le même format accrocheur (question, liste, urgence, prix, etc.)
+- Intègre naturellement "{$keyword}" et "{$city}"
+- Maximise le CTR avec des power words (Immédiatement, Urgence, Prix, Guide, Erreurs, Signes, etc.)
 
 **Critères STRICTS (Score SEO 95%+) :**
 ✅ Longueur : 50-60 caractères (affichage optimal SERP mobile & desktop)
