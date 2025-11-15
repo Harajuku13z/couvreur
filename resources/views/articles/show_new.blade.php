@@ -1438,7 +1438,7 @@
                 <span>{{ $article->focus_keyword ?? 'Rénovation' }}</span>
             </div>
             
-            <h1 class="hero-title">{{ $article->title }}</h1>
+            <h1 class="hero-title" style="word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; max-width: 100%;">{{ $article->title }}</h1>
             
             <div class="hero-meta">
                 @if($article->published_at)
