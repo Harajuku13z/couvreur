@@ -22,6 +22,25 @@ class PortfolioController extends Controller
             $portfolioItems = $this->getTestPortfolioData();
         }
         
+        // S'assurer que $portfolioItems est toujours un tableau
+        if (!is_array($portfolioItems)) {
+            $portfolioItems = [];
+        }
+        
+        // Ajouter un ID aux éléments qui n'en ont pas
+        foreach ($portfolioItems as $index => &$item) {
+            if (!isset($item['id'])) {
+                $item['id'] = time() . rand(1000, 9999) . '_' . $index;
+            }
+        }
+        
+        // Détecter si c'est un accès admin ou public
+        if (request()->is('admin/portfolio*')) {
+            // Accès admin - vue complète avec gestion
+            return view('admin.portfolio', compact('portfolioItems'));
+        }
+        
+        // Accès public - vue simple avec seulement les éléments visibles
         // Filtrer les éléments visibles
         $visiblePortfolio = collect(array_filter($portfolioItems, function($item) {
             return isset($item['is_visible']) ? $item['is_visible'] : true;
