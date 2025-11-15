@@ -935,8 +935,6 @@
                         </div>
                     @endif
                 </div>
-                @php
-                @endphp
                 @if($seoAnalysis)
                     <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div class="flex items-center gap-2 mb-2">
