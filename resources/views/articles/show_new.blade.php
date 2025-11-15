@@ -729,16 +729,17 @@
     
     .cta-hero {
         position: relative;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        border-radius: 24px;
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
+        border-radius: 32px;
         padding: 0;
         color: #fff;
-        margin-bottom: 2.5rem;
+        margin-bottom: 3rem;
         overflow: hidden;
-        box-shadow: 0 20px 60px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 25px 80px rgba(37, 99, 235, 0.4), 0 10px 30px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
-        min-height: 400px;
+        min-height: 450px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
     }
     
     .cta-hero::before {
@@ -746,21 +747,33 @@
         position: absolute;
         top: -50%;
         right: -20%;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
         border-radius: 50%;
-        animation: pulse 8s ease-in-out infinite;
+        animation: pulse 10s ease-in-out infinite;
+    }
+    
+    .cta-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(147, 197, 253, 0.2) 0%, transparent 60%);
+        border-radius: 50%;
+        animation: pulse 12s ease-in-out infinite reverse;
     }
     
     @keyframes pulse {
         0%, 100% {
-            transform: scale(1);
+            transform: scale(1) rotate(0deg);
             opacity: 1;
         }
         50% {
-            transform: scale(1.1);
-            opacity: 0.8;
+            transform: scale(1.15) rotate(5deg);
+            opacity: 0.9;
         }
     }
     
@@ -789,19 +802,38 @@
     }
     
     .cta-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        margin: 0 0 1.25rem 0;
-        letter-spacing: -0.01em;
-        line-height: 1.2;
+        font-size: 3rem;
+        font-weight: 900;
+        margin: 0 0 1.5rem 0;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        position: relative;
+    }
+    
+    .cta-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        border-radius: 2px;
     }
     
     .cta-subtitle {
-        font-size: 1.125rem;
+        font-size: 1.25rem;
         margin: 0 0 2.5rem 0;
-        opacity: 0.95;
-        line-height: 1.6;
+        opacity: 0.98;
+        line-height: 1.7;
         text-align: left;
+        font-weight: 500;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
     .cta-benefits-grid {
@@ -814,19 +846,22 @@
     
     .cta-benefit-card {
         display: flex;
-        gap: 1rem;
+        gap: 1.25rem;
         align-items: flex-start;
-        padding: 1.25rem;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        transition: all 0.3s;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     
     .cta-benefit-card:hover {
-        background: rgba(255, 255, 255, 0.15);
-        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
     }
     
     .cta-benefit-icon {
@@ -849,16 +884,70 @@
     
     .cta-buttons {
         display: flex;
-        gap: 1.25rem;
+        gap: 1.5rem;
         justify-content: flex-start;
         flex-wrap: wrap;
-        margin: 2.5rem 0 2rem 0;
+        margin: 3rem 0 2rem 0;
+    }
+    
+    .cta-buttons .btn-modern {
+        padding: 1.25rem 2.5rem;
+        font-size: 1.0625rem;
+        font-weight: 700;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-buttons .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .cta-buttons .btn-modern:hover::before {
+        left: 100%;
+    }
+    
+    .cta-buttons .btn-modern.btn-white {
+        background: #ffffff;
+        color: #1e40af;
+        border: 2px solid #ffffff;
+    }
+    
+    .cta-buttons .btn-modern.btn-white:hover {
+        background: #f8fafc;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .cta-buttons .btn-modern.btn-outline {
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        color: #ffffff;
+    }
+    
+    .cta-buttons .btn-modern.btn-outline:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #ffffff;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
     }
     
     .cta-footer {
         font-size: 0.9375rem;
-        opacity: 0.9;
+        opacity: 0.95;
         margin: 0;
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     /* Summary Box Premium */
