@@ -230,6 +230,14 @@
         box-sizing: border-box;
     }
     
+    /* Forcer le layout en colonnes sur desktop */
+    @media (min-width: 1025px) {
+        .article-grid {
+            grid-template-columns: 1fr 350px !important;
+            display: grid !important;
+        }
+    }
+    
     /* Card Article Principale */
     .article-card {
         background: var(--bg-white);
@@ -248,6 +256,7 @@
     
     .article-content-wrapper {
         padding: 0;
+        min-width: 0; /* Permet au contenu de se rétrécir dans le grid */
     }
     
     /* Styles du contenu enrichis - Style WordPress */
@@ -586,6 +595,8 @@
         z-index: 5;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
+        padding-left: 1rem;
+        margin-left: 0;
     }
     
     /* Style pour le scroll de la sidebar */
