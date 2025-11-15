@@ -27,10 +27,19 @@ class SeoArticleScheduler
         // Calculer le nombre total d'articles par jour (articles par ville × nombre de villes)
         $totalArticlesPerDay = $articlesPerDay * $citiesCount;
         
+        // Récupérer l'heure de début configurée (par défaut 8h)
+        $startTimeStr = Setting::get('seo_automation_time', '08:00');
+        $startTimeParts = explode(':', $startTimeStr);
+        $startHour = (int)($startTimeParts[0] ?? 8);
+        $startMinute = (int)($startTimeParts[1] ?? 0);
+        
         // Calculer l'intervalle entre chaque article (en minutes)
-        // Répartir sur 12 heures (8h-20h) = 720 minutes
+        // Répartir sur 12 heures à partir de l'heure de début = 720 minutes
         $workingHours = 12 * 60; // 720 minutes
         $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
+        
+        // Calculer l'heure de fin (12h après l'heure de début)
+        $endHour = ($startHour + 12) % 24;
         
         // Récupérer le dernier article créé aujourd'hui
         $lastArticle = \App\Models\Article::whereDate('created_at', today())
@@ -39,23 +48,33 @@ class SeoArticleScheduler
         
         if ($lastArticle) {
             // Prochain créneau = dernier article + intervalle
-            $nextTime = $lastArticle->created_at->addMinutes($intervalMinutes);
+            $nextTime = $lastArticle->created_at->copy()->addMinutes($intervalMinutes);
             
-            // S'assurer qu'on ne dépasse pas 20h
-            if ($nextTime->hour >= 20) {
-                // Si on dépasse 20h, commencer demain à 8h
-                $nextTime = Carbon::tomorrow()->setTime(8, 0);
+            // S'assurer qu'on ne dépasse pas l'heure de fin
+            if ($nextTime->hour > $endHour || ($nextTime->hour == $endHour && $nextTime->minute > 0)) {
+                // Si on dépasse l'heure de fin, commencer demain à l'heure de début
+                $nextTime = Carbon::tomorrow()->setTime($startHour, $startMinute);
             }
             
-            // S'assurer qu'on ne commence pas avant 8h
-            if ($nextTime->hour < 8) {
-                $nextTime->setTime(8, 0);
+            // S'assurer qu'on ne commence pas avant l'heure de début
+            if ($nextTime->hour < $startHour || ($nextTime->hour == $startHour && $nextTime->minute < $startMinute)) {
+                $nextTime->setTime($startHour, $startMinute);
             }
         } else {
-            // Premier article de la journée : 8h ou maintenant si après 8h
-            $nextTime = Carbon::today()->setTime(8, 0);
+            // Premier article de la journée : à l'heure de début configurée
+            $nextTime = Carbon::today()->setTime($startHour, $startMinute);
             if ($nextTime->isPast()) {
-                $nextTime = now()->addMinutes($intervalMinutes);
+                // Si l'heure de début est passée, commencer maintenant ou au prochain intervalle
+                $nextTime = now();
+                // Ajuster pour être aligné sur l'intervalle depuis l'heure de début
+                $minutesSinceStart = $nextTime->diffInMinutes(Carbon::today()->setTime($startHour, $startMinute));
+                $intervalsPassed = floor($minutesSinceStart / $intervalMinutes);
+                $nextTime = Carbon::today()->setTime($startHour, $startMinute)->addMinutes(($intervalsPassed + 1) * $intervalMinutes);
+                
+                // Si on dépasse l'heure de fin, commencer demain
+                if ($nextTime->hour > $endHour || ($nextTime->hour == $endHour && $nextTime->minute > 0)) {
+                    $nextTime = Carbon::tomorrow()->setTime($startHour, $startMinute);
+                }
             }
         }
         
@@ -148,6 +167,12 @@ class SeoArticleScheduler
         $totalArticlesPerDay = $articlesPerDay * $citiesCount;
         
         $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+        
+        // Récupérer l'heure de début configurée
+        $startTimeStr = Setting::get('seo_automation_time', '08:00');
+        $startTimeParts = explode(':', $startTimeStr);
+        $startHour = (int)($startTimeParts[0] ?? 8);
+        $startMinute = (int)($startTimeParts[1] ?? 0);
         
         $workingHours = 12 * 60; // 720 minutes
         $intervalMinutes = $totalArticlesPerDay > 0 ? max(5, floor($workingHours / $totalArticlesPerDay)) : 0;
