@@ -187,6 +187,10 @@ Route::get('/test-phone-tracking', function () {
             }
         })->name('schedule.run');
 
+// Routes publiques pour les services
+Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
+Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
+
 // Route pour le sitemap index (retourne le sitemap_index.xml)
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.xml');
 Route::get('/sitemap_index.xml', function () {
