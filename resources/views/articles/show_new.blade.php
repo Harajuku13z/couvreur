@@ -1479,7 +1479,7 @@
         .cta-hero-image {
             flex: 0 0 auto;
             width: 100%;
-            height: 300px;
+            aspect-ratio: 1 / 1; /* Format carré sur mobile aussi */
             border-radius: 24px 24px 0 0;
         }
         
@@ -1632,22 +1632,6 @@
                     </div>
                 </div>
                 
-                <!-- Résumé -->
-                <div class="sidebar-card">
-                    <h3 class="sidebar-card-title">
-                        <i class="fas fa-file-alt"></i>
-                        En Résumé
-                    </h3>
-                    <div class="sidebar-card-body">
-                        <p>Vous l'avez découvert dans ce guide expert, les bénéfices d'un devis clair et détaillé ne sont pas négligeables.</p>
-                        <p><strong>Faire appel à {{ setting('company_name') }}</strong> pour votre projet, c'est choisir :</p>
-                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                            <li>Une expertise reconnue</li>
-                            <li>Un accompagnement personnalisé</li>
-                            <li>Une transparence totale</li>
-                        </ul>
-                    </div>
-                </div>
             </aside>
             
             <!-- Article -->
