@@ -75,14 +75,31 @@ class SeoAutomationManager
                 if (!empty($customKeywords) && is_array($customKeywords)) {
                     // Utiliser les mots-clés personnalisés
                     $keywords = $customKeywords;
+                    
+                    // Sélectionner un mot-clé aléatoire si disponible
+                    $keyword = !empty($keywords) ? $keywords[array_rand($keywords)] : null;
+                    
+                    // Mettre à jour le log avec le mot-clé sélectionné
+                    if ($keyword) {
+                        $log->update(['keyword' => $keyword]);
+                    }
+                    
                     $steps[] = [
                         'step' => 'keyword_selection',
                         'title' => 'Sélection du mot-clé',
-                        'status' => 'processing',
-                        'message' => 'Utilisation des mots-clés personnalisés...',
-                        'data' => []
+                        'status' => $keyword ? 'success' : 'failed',
+                        'message' => $keyword ? "Mot-clé sélectionné: {$keyword}" : 'Aucun mot-clé disponible',
+                        'data' => $keyword ? ['keyword' => $keyword] : []
                     ];
                     if ($progressCallback) $progressCallback($steps);
+                    
+                    if (!$keyword) {
+                        $log->update([
+                            'status' => 'failed',
+                            'error_message' => 'Aucun mot-clé personnalisé disponible'
+                        ]);
+                        return $log;
+                    }
                 } else {
                     // Vérifier si SerpAPI est activé pour l'automatisation
                     $serpapiEnabled = \App\Models\Setting::where('key', 'seo_automation_serpapi_enabled')->value('value');
