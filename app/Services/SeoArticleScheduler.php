@@ -215,9 +215,24 @@ class SeoArticleScheduler
     public function getRandomKeyword(): ?string
     {
         $customKeywordsData = Setting::get('seo_custom_keywords', '[]');
-        $customKeywords = json_decode($customKeywordsData, true) ?? [];
+        
+        // Si c'est déjà un array, l'utiliser directement
+        if (is_array($customKeywordsData)) {
+            $customKeywords = $customKeywordsData;
+        } else {
+            // Sinon, essayer de le décoder en JSON
+            if (is_string($customKeywordsData)) {
+                $customKeywords = json_decode($customKeywordsData, true) ?? [];
+            } else {
+                $customKeywords = [];
+            }
+        }
         
         if (empty($customKeywords) || !is_array($customKeywords)) {
+            Log::warning('SeoArticleScheduler: Aucun mot-clé disponible ou format invalide', [
+                'data_type' => gettype($customKeywordsData),
+                'data_preview' => is_string($customKeywordsData) ? substr($customKeywordsData, 0, 100) : 'N/A'
+            ]);
             return null;
         }
         
@@ -227,6 +242,7 @@ class SeoArticleScheduler
         });
         
         if (empty($customKeywords)) {
+            Log::warning('SeoArticleScheduler: Tous les mots-clés sont vides après filtrage');
             return null;
         }
         
