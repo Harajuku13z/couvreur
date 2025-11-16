@@ -35,9 +35,18 @@ class SeoAutomationManager
      */
     public function runForCity(City $city, ?string $customKeyword = null, ?callable $progressCallback = null): SeoAutomation
     {
+        // Créer le log AVANT toute opération pour qu'il soit toujours visible
         $log = SeoAutomation::create([
             'city_id' => $city->id,
+            'keyword' => $customKeyword, // Enregistrer le mot-clé dès le début
             'status' => 'pending',
+        ]);
+        
+        Log::info('SeoAutomationManager: Log créé', [
+            'log_id' => $log->id,
+            'city_id' => $city->id,
+            'city_name' => $city->name,
+            'keyword' => $customKeyword
         ]);
 
         try {
@@ -149,6 +158,9 @@ class SeoAutomationManager
                     ]);
                     return $log;
                 }
+                
+                // Mettre à jour le log avec le mot-clé sélectionné
+                $log->update(['keyword' => $keyword]);
                 
                 $steps[count($steps) - 1]['status'] = 'success';
                 $steps[count($steps) - 1]['message'] = "Mot-clé sélectionné: {$keyword}";
