@@ -153,16 +153,23 @@ class AiService
                     }
                 }
                 
-                // Nettoyer à nouveau la clé API juste avant utilisation
+                // Nettoyer à nouveau la clé API juste avant utilisation (nettoyage approfondi)
                 $cleanApiKey = trim($chatgptApiKey);
-                $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+                // Supprimer tous les caractères non-ASCII et caractères de contrôle
+                $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
+                // Supprimer les espaces, tabulations, retours à la ligne
+                $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
+                // Vérifier qu'il ne reste que des caractères alphanumériques et tirets
+                $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
                 
                 // Vérifier que la clé est valide (format OpenAI: sk-...)
                 if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
-                    Log::error('ChatGPT: Clé API invalide ou mal formatée', [
+                    Log::error('ChatGPT: Clé API invalide ou mal formatée après nettoyage', [
                         'key_length' => strlen($cleanApiKey ?? ''),
                         'key_preview' => substr($cleanApiKey ?? '', 0, 10) . '...',
-                        'key_starts_with' => substr($cleanApiKey ?? '', 0, 3)
+                        'key_starts_with' => substr($cleanApiKey ?? '', 0, 3),
+                        'original_key_length' => strlen($chatgptApiKey ?? ''),
+                        'original_key_preview' => substr($chatgptApiKey ?? '', 0, 10) . '...'
                     ]);
                     throw new \Exception('Clé API ChatGPT invalide. Format attendu: sk-... (au moins 20 caractères après sk-)');
                 }
@@ -180,9 +187,24 @@ class AiService
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
                 // Créer le client directement avec la clé API nettoyée
                 // Utiliser Factory pour éviter les conflits de nom de classe
-                $openaiClient = (new \OpenAI\Factory())
-                    ->withApiKey($cleanApiKey)
-                    ->make();
+                try {
+                    $openaiClient = (new \OpenAI\Factory())
+                        ->withApiKey($cleanApiKey)
+                        ->make();
+                } catch (\Exception $factoryException) {
+                    // Capturer l'erreur "The string did not match the expected pattern"
+                    if (strpos($factoryException->getMessage(), 'expected pattern') !== false || 
+                        strpos($factoryException->getMessage(), 'string did not match') !== false) {
+                        Log::error('ChatGPT: Erreur validation clé API par le package OpenAI', [
+                            'error' => $factoryException->getMessage(),
+                            'key_length' => strlen($cleanApiKey),
+                            'key_starts_with' => substr($cleanApiKey, 0, 10),
+                            'key_ends_with' => substr($cleanApiKey, -10)
+                        ]);
+                        throw new \Exception('Clé API ChatGPT invalide. Le format ne correspond pas aux attentes. Vérifiez que votre clé commence par "sk-" et ne contient pas d\'espaces ou de caractères spéciaux.');
+                    }
+                    throw $factoryException;
+                }
                 $response = $openaiClient->chat()->create([
                     'model' => $model,
                     'messages' => $messages,
