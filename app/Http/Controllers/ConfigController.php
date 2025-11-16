@@ -1229,7 +1229,10 @@ class ConfigController extends Controller
         ]);
 
         // Sauvegarder les paramètres IA
-        Setting::set('chatgpt_enabled', $request->boolean('chatgpt_enabled', true), 'boolean', 'ai');
+        // Pour une checkbox, si elle n'est pas présente dans la requête, elle n'est pas cochée (false)
+        // Si elle est présente, elle est cochée (true)
+        $chatgptEnabled = $request->has('chatgpt_enabled') ? $request->boolean('chatgpt_enabled') : false;
+        Setting::set('chatgpt_enabled', $chatgptEnabled, 'boolean', 'ai');
         
         // Sauvegarder la clé ChatGPT telle quelle (pas de nettoyage, pas de validation)
         if (isset($validated['chatgpt_api_key'])) {

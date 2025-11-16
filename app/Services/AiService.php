@@ -27,7 +27,20 @@ class AiService
         
         // Lire directement depuis DB pour éviter le cache
         $chatgptEnabledSetting = \App\Models\Setting::where('key', 'chatgpt_enabled')->first();
-        $chatgptEnabled = $chatgptEnabledSetting ? ($chatgptEnabledSetting->type === 'boolean' ? filter_var($chatgptEnabledSetting->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabledSetting->value) : true;
+        // Si le setting n'existe pas, par défaut ChatGPT est activé (true)
+        // Si le setting existe, lire sa valeur (peut être '0', '1', 'true', 'false', etc.)
+        if ($chatgptEnabledSetting) {
+            if ($chatgptEnabledSetting->type === 'boolean') {
+                $chatgptEnabled = filter_var($chatgptEnabledSetting->value, FILTER_VALIDATE_BOOLEAN);
+            } else {
+                // Si c'est stocké comme string, convertir
+                $value = strtolower(trim($chatgptEnabledSetting->value));
+                $chatgptEnabled = in_array($value, ['1', 'true', 'yes', 'on'], true);
+            }
+        } else {
+            // Par défaut, ChatGPT est activé si le setting n'existe pas
+            $chatgptEnabled = true;
+        }
         
         $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
         $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
