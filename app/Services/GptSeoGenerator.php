@@ -684,12 +684,26 @@ EOT;
         
         // Vérifier que le résultat n'est pas null
         if (!$result || !isset($result['content'])) {
+            $provider = $result['provider'] ?? 'unknown';
+            $errorDetails = 'L\'API IA (' . $provider . ') n\'a pas retourné de contenu.';
+            
             Log::error('GptSeoGenerator: Résultat AI null ou vide', [
                 'result' => $result,
                 'keyword' => $keyword,
-                'city' => $city
+                'city' => $city,
+                'provider' => $provider
             ]);
-            throw new \Exception('L\'API IA n\'a pas retourné de contenu. Vérifiez vos clés API et vos quotas.');
+            
+            // Message d'erreur plus détaillé
+            if ($provider === 'chatgpt') {
+                $errorDetails .= ' Vérifiez votre clé API ChatGPT et vos quotas. Si le problème persiste, configurez Groq comme alternative.';
+            } elseif ($provider === 'groq') {
+                $errorDetails .= ' Vérifiez votre clé API Groq et vos quotas. Si le problème persiste, configurez ChatGPT comme alternative.';
+            } else {
+                $errorDetails .= ' Vérifiez vos clés API (ChatGPT et/ou Groq) et vos quotas.';
+            }
+            
+            throw new \Exception($errorDetails);
         }
         
         $contenuHtml = trim($result['content'] ?? '');
