@@ -82,9 +82,18 @@ class SeoAutomationController extends Controller
             ]);
         }
         
+        // Récupérer tous les logs, même ceux sans ville (avec leftJoin pour éviter les problèmes)
         $logs = SeoAutomation::with('city')
-            ->latest()
+            ->orderBy('created_at', 'desc')
             ->paginate(30);
+        
+        // Log pour debug
+        Log::info('SeoAutomationController: Logs récupérés', [
+            'total_count' => SeoAutomation::count(),
+            'logs_count' => $logs->count(),
+            'failed_count' => SeoAutomation::where('status', 'failed')->count(),
+            'pending_count' => SeoAutomation::where('status', 'pending')->count()
+        ]);
         
         // Statistiques (inclure les "pending" récents qui sont en cours d'exécution)
         $stats = [
