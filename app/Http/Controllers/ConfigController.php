@@ -1267,16 +1267,22 @@ class ConfigController extends Controller
      */
     public function testChatGPT(Request $request)
     {
-        $apiKey = $request->input('api_key');
-        
-        if (empty($apiKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API manquante'
-            ]);
-        }
-
         try {
+            $apiKey = $request->input('api_key');
+            
+            if (empty($apiKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Clé API manquante'
+                ]);
+            }
+
+            // Log pour debug
+            \Log::info('testChatGPT: Début test', [
+                'api_key_length' => strlen($apiKey),
+                'api_key_start' => substr($apiKey, 0, 7)
+            ]);
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
@@ -1304,16 +1310,32 @@ class ConfigController extends Controller
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? 'Erreur API inconnue';
             
+            \Log::error('testChatGPT: Erreur API', [
+                'status' => $response->status(),
+                'error_message' => $errorMessage,
+                'error_data' => $errorData
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage,
                 'status' => $response->status()
             ]);
             
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            \Log::error('testChatGPT: Erreur de connexion', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Erreur de connexion: ' . $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('testChatGPT: Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
             ]);
         }
     }
@@ -1324,16 +1346,22 @@ class ConfigController extends Controller
      */
     public function testGroq(Request $request)
     {
-        $apiKey = $request->input('api_key');
-        
-        if (empty($apiKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API manquante'
-            ]);
-        }
-
         try {
+            $apiKey = $request->input('api_key');
+            
+            if (empty($apiKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Clé API manquante'
+                ]);
+            }
+
+            // Log pour debug
+            \Log::info('testGroq: Début test', [
+                'api_key_length' => strlen($apiKey),
+                'api_key_start' => substr($apiKey, 0, 7)
+            ]);
+
             $response = Http::withToken($apiKey)
                 ->timeout(30)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
@@ -1360,16 +1388,32 @@ class ConfigController extends Controller
             $errorData = $response->json();
             $errorMessage = $errorData['error']['message'] ?? 'Erreur API inconnue';
             
+            \Log::error('testGroq: Erreur API', [
+                'status' => $response->status(),
+                'error_message' => $errorMessage,
+                'error_data' => $errorData
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage,
                 'status' => $response->status()
             ]);
             
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            \Log::error('testGroq: Erreur de connexion', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Erreur de connexion: ' . $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('testGroq: Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
             ]);
         }
     }
