@@ -214,40 +214,65 @@ class SeoArticleScheduler
      */
     public function getRandomKeyword(): ?string
     {
-        $customKeywordsData = Setting::get('seo_custom_keywords', '[]');
-        
-        // Si c'est déjà un array, l'utiliser directement
-        if (is_array($customKeywordsData)) {
-            $customKeywords = $customKeywordsData;
-        } else {
-            // Sinon, essayer de le décoder en JSON
-            if (is_string($customKeywordsData)) {
-                $customKeywords = json_decode($customKeywordsData, true) ?? [];
+        try {
+            $customKeywordsData = Setting::get('seo_custom_keywords', '[]');
+            
+            // Protection robuste : vérifier le type AVANT toute opération
+            $customKeywords = [];
+            
+            if (is_array($customKeywordsData)) {
+                // Si c'est déjà un array, l'utiliser directement
+                $customKeywords = $customKeywordsData;
+            } elseif (is_string($customKeywordsData)) {
+                // Si c'est une string, essayer de le décoder en JSON
+                // Protection supplémentaire : vérifier que ce n'est pas déjà un array encodé
+                $decoded = json_decode($customKeywordsData, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $customKeywords = $decoded;
+                } else {
+                    // Si le décodage échoue, essayer de traiter comme une liste séparée par virgules
+                    $customKeywords = array_filter(array_map('trim', explode(',', $customKeywordsData)));
+                }
             } else {
-                $customKeywords = [];
+                // Type inattendu, logger et retourner null
+                Log::warning('SeoArticleScheduler: Type de données inattendu pour seo_custom_keywords', [
+                    'data_type' => gettype($customKeywordsData),
+                    'value' => is_scalar($customKeywordsData) ? $customKeywordsData : 'non-scalar'
+                ]);
+                return null;
             }
-        }
-        
-        if (empty($customKeywords) || !is_array($customKeywords)) {
-            Log::warning('SeoArticleScheduler: Aucun mot-clé disponible ou format invalide', [
-                'data_type' => gettype($customKeywordsData),
-                'data_preview' => is_string($customKeywordsData) ? substr($customKeywordsData, 0, 100) : 'N/A'
+            
+            // Vérifier que nous avons un array valide
+            if (!is_array($customKeywords)) {
+                Log::warning('SeoArticleScheduler: customKeywords n\'est pas un array après traitement', [
+                    'data_type' => gettype($customKeywords)
+                ]);
+                return null;
+            }
+            
+            // Filtrer les mots-clés vides
+            $customKeywords = array_filter($customKeywords, function($keyword) {
+                return !empty(trim($keyword));
+            });
+            
+            if (empty($customKeywords)) {
+                Log::warning('SeoArticleScheduler: Tous les mots-clés sont vides après filtrage');
+                return null;
+            }
+            
+            // Réindexer le array après filtrage
+            $customKeywords = array_values($customKeywords);
+            
+            // Retourner un mot-clé aléatoire
+            return $customKeywords[array_rand($customKeywords)];
+            
+        } catch (\Exception $e) {
+            Log::error('SeoArticleScheduler: Exception lors de la récupération du mot-clé', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return null;
         }
-        
-        // Filtrer les mots-clés vides
-        $customKeywords = array_filter($customKeywords, function($keyword) {
-            return !empty(trim($keyword));
-        });
-        
-        if (empty($customKeywords)) {
-            Log::warning('SeoArticleScheduler: Tous les mots-clés sont vides après filtrage');
-            return null;
-        }
-        
-        // Retourner un mot-clé aléatoire
-        return $customKeywords[array_rand($customKeywords)];
     }
     
     /**
