@@ -177,7 +177,8 @@ class SeoArticleScheduler
     }
     
     /**
-     * Récupère la prochaine ville à traiter (rotation)
+     * Récupère la prochaine ville à traiter (rotation équitable)
+     * Choisit la ville qui a le moins d'articles aujourd'hui
      */
     public function getNextCity(): ?City
     {
@@ -187,26 +188,88 @@ class SeoArticleScheduler
             return null;
         }
         
-        // Récupérer la dernière ville traitée aujourd'hui
+        // Si une seule ville, la retourner directement
+        if ($cities->count() === 1) {
+            return $cities->first();
+        }
+        
+        // Compter les articles créés aujourd'hui pour chaque ville
+        $articlesCountByCity = \App\Models\Article::whereDate('created_at', today())
+            ->whereIn('city_id', $cities->pluck('id'))
+            ->selectRaw('city_id, COUNT(*) as count')
+            ->groupBy('city_id')
+            ->pluck('count', 'city_id')
+            ->toArray();
+        
+        // Récupérer la dernière ville traitée pour la rotation
         $lastArticle = \App\Models\Article::whereDate('created_at', today())
             ->orderBy('created_at', 'desc')
             ->first();
         
-        if ($lastArticle && $lastArticle->city_id) {
-            // Trouver l'index de la dernière ville
-            $lastCityIndex = $cities->search(function($city) use ($lastArticle) {
-                return $city->id === $lastArticle->city_id;
-            });
+        $lastCityId = $lastArticle ? $lastArticle->city_id : null;
+        
+        // Trouver la ville avec le moins d'articles
+        $minCount = PHP_INT_MAX;
+        $citiesWithMinCount = [];
+        
+        foreach ($cities as $city) {
+            $count = $articlesCountByCity[$city->id] ?? 0;
             
-            if ($lastCityIndex !== false) {
-                // Prendre la ville suivante (rotation)
-                $nextIndex = ($lastCityIndex + 1) % $cities->count();
-                return $cities[$nextIndex];
+            if ($count < $minCount) {
+                $minCount = $count;
+                $citiesWithMinCount = [$city];
+            } elseif ($count === $minCount) {
+                $citiesWithMinCount[] = $city;
             }
         }
         
-        // Par défaut, prendre la première ville
-        return $cities->first();
+        // Si plusieurs villes ont le même nombre minimum, utiliser la rotation
+        if (count($citiesWithMinCount) > 1 && $lastCityId) {
+            // Trouver l'index de la dernière ville dans la liste des villes favorites
+            $lastCityIndex = $cities->search(function($city) use ($lastCityId) {
+                return $city->id === $lastCityId;
+            });
+            
+            if ($lastCityIndex !== false) {
+                // Trouver la prochaine ville dans la liste des villes avec le minimum
+                // qui n'est pas la dernière ville traitée
+                $nextCity = null;
+                $startIndex = ($lastCityIndex + 1) % $cities->count();
+                
+                // Chercher la prochaine ville dans l'ordre qui a le minimum
+                for ($i = 0; $i < $cities->count(); $i++) {
+                    $checkIndex = ($startIndex + $i) % $cities->count();
+                    $checkCity = $cities[$checkIndex];
+                    
+                    if (in_array($checkCity, $citiesWithMinCount) && $checkCity->id !== $lastCityId) {
+                        $nextCity = $checkCity;
+                        break;
+                    }
+                }
+                
+                if ($nextCity) {
+                    Log::info('SeoArticleScheduler: Ville sélectionnée par rotation', [
+                        'city_id' => $nextCity->id,
+                        'city_name' => $nextCity->name,
+                        'last_city_id' => $lastCityId,
+                        'min_count' => $minCount
+                    ]);
+                    return $nextCity;
+                }
+            }
+        }
+        
+        // Si pas de rotation possible ou première exécution, prendre la première ville avec le minimum
+        $selectedCity = $citiesWithMinCount[0];
+        
+        Log::info('SeoArticleScheduler: Ville sélectionnée (minimum d\'articles)', [
+            'city_id' => $selectedCity->id,
+            'city_name' => $selectedCity->name,
+            'articles_count' => $minCount,
+            'total_cities_with_min' => count($citiesWithMinCount)
+        ]);
+        
+        return $selectedCity;
     }
     
     /**
