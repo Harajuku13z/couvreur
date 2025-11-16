@@ -1290,20 +1290,18 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage approfondi)
+        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
         $cleanApiKey = trim($apiKey);
-        // Supprimer tous les caractères non-ASCII et caractères de contrôle
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
-        // Supprimer les espaces, tabulations, retours à la ligne
-        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
-        // Vérifier qu'il ne reste que des caractères alphanumériques et tirets
-        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
+        // Supprimer uniquement les espaces, tabulations et retours à la ligne
+        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
+        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
+        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
-        // Valider le format
-        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+        // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
+        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères après sk-). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
+                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
@@ -1311,20 +1309,23 @@ class ConfigController extends Controller
 
         try {
             // Test avec le package OpenAI pour valider la clé
+            // Le package validera lui-même le format exact
             try {
                 $openaiClient = (new \OpenAI\Factory())
                     ->withApiKey($cleanApiKey)
                     ->make();
             } catch (\Exception $factoryException) {
                 // Capturer l'erreur "The string did not match the expected pattern"
-                if (strpos($factoryException->getMessage(), 'expected pattern') !== false || 
-                    strpos($factoryException->getMessage(), 'string did not match') !== false) {
+                $errorMessage = $factoryException->getMessage();
+                if (strpos($errorMessage, 'expected pattern') !== false || 
+                    strpos($errorMessage, 'string did not match') !== false ||
+                    strpos($errorMessage, 'Invalid API key') !== false) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Clé API ChatGPT invalide. Le format ne correspond pas aux attentes. Vérifiez que votre clé commence par "sk-" et ne contient pas d\'espaces ou de caractères spéciaux.',
+                        'message' => 'Clé API ChatGPT invalide. Vérifiez que votre clé est correcte et commence par "sk-". Si vous avez copié-collé la clé, assurez-vous qu\'il n\'y a pas d\'espaces avant ou après.',
                         'key_length' => strlen($cleanApiKey),
-                        'key_starts_with' => substr($cleanApiKey, 0, 10),
-                        'key_ends_with' => substr($cleanApiKey, -10)
+                        'key_preview' => substr($cleanApiKey, 0, 7) . '...' . substr($cleanApiKey, -5),
+                        'original_length' => strlen($apiKey)
                     ]);
                 }
                 throw $factoryException;
@@ -1389,20 +1390,18 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage approfondi)
+        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
         $cleanApiKey = trim($apiKey);
-        // Supprimer tous les caractères non-ASCII et caractères de contrôle
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
-        // Supprimer les espaces, tabulations, retours à la ligne
-        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
-        // Vérifier qu'il ne reste que des caractères alphanumériques, tirets et underscores
-        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
+        // Supprimer uniquement les espaces, tabulations et retours à la ligne
+        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
+        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
+        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
-        // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
+        // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
@@ -1466,20 +1465,18 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage approfondi)
+        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
         $cleanApiKey = trim($apiKey);
-        // Supprimer tous les caractères non-ASCII et caractères de contrôle
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
-        // Supprimer les espaces, tabulations, retours à la ligne
-        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
-        // Vérifier qu'il ne reste que des caractères alphanumériques et tirets
-        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
+        // Supprimer uniquement les espaces, tabulations et retours à la ligne
+        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
+        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
+        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
-        // Valider le format
-        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
+        // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
+        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères après sk-). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
+                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
@@ -1553,20 +1550,18 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage approfondi)
+        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
         $cleanApiKey = trim($apiKey);
-        // Supprimer tous les caractères non-ASCII et caractères de contrôle
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
-        // Supprimer les espaces, tabulations, retours à la ligne
-        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
-        // Vérifier qu'il ne reste que des caractères alphanumériques, tirets et underscores
-        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
+        // Supprimer uniquement les espaces, tabulations et retours à la ligne
+        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
+        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
+        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
-        // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
+        // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
