@@ -1566,7 +1566,7 @@
                                     <span class="cta-benefit-icon">✅</span>
                                     <div class="cta-benefit-text">
                                         <strong>Artisans certifiés</strong>
-                                        <span>RGE et assurés décennale</span>
+                                        <span>et assurés décennale</span>
                                     </div>
                                 </div>
                                 <div class="cta-benefit-card">
@@ -1595,7 +1595,7 @@
                             <div class="cta-buttons">
                                 <a href="{{ route('form.step', 'propertyType') }}" class="btn-modern btn-white">
                                     <i class="fas fa-calculator"></i>
-                                    <span>Simuler le coût de vos travaux</span>
+                                    <span>Simulateur</span>
                                 </a>
                                 @if(setting('company_phone_raw'))
                                 <a href="tel:{{ setting('company_phone_raw') }}" class="btn-modern btn-outline">
