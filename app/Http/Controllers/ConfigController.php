@@ -1438,15 +1438,22 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API
+        // Nettoyer la clé API (nettoyage approfondi)
         $cleanApiKey = trim($apiKey);
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+        // Supprimer tous les caractères non-ASCII et caractères de contrôle
+        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
+        // Supprimer les espaces, tabulations, retours à la ligne
+        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
+        // Vérifier qu'il ne reste que des caractères alphanumériques et tirets
+        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
         
         // Valider le format
         if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères après sk-)'
+                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères après sk-). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
+                'key_length' => strlen($cleanApiKey ?? ''),
+                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
         }
 
