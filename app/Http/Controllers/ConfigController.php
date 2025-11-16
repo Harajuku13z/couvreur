@@ -1290,12 +1290,8 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
+        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
         $cleanApiKey = trim($apiKey);
-        // Supprimer uniquement les espaces, tabulations et retours à la ligne
-        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
-        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
-        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
         // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
         if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
@@ -1308,31 +1304,11 @@ class ConfigController extends Controller
         }
 
         try {
-            // Test avec le package OpenAI pour valider la clé
-            // Le package validera lui-même le format exact
-            try {
-                $openaiClient = (new \OpenAI\Factory())
-                    ->withApiKey($cleanApiKey)
-                    ->make();
-            } catch (\Exception $factoryException) {
-                // Capturer l'erreur "The string did not match the expected pattern"
-                $errorMessage = $factoryException->getMessage();
-                if (strpos($errorMessage, 'expected pattern') !== false || 
-                    strpos($errorMessage, 'string did not match') !== false ||
-                    strpos($errorMessage, 'Invalid API key') !== false) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Clé API ChatGPT invalide. Vérifiez que votre clé est correcte et commence par "sk-". Si vous avez copié-collé la clé, assurez-vous qu\'il n\'y a pas d\'espaces avant ou après.',
-                        'key_length' => strlen($cleanApiKey),
-                        'key_preview' => substr($cleanApiKey, 0, 7) . '...' . substr($cleanApiKey, -5),
-                        'original_length' => strlen($apiKey)
-                    ]);
-                }
-                throw $factoryException;
-            }
-            
-            // Test simple avec l'API OpenAI via le package
-            $response = $openaiClient->chat()->create([
+            // Test direct avec Http (évite la validation stricte du package OpenAI)
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $cleanApiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
                     [
@@ -1344,30 +1320,37 @@ class ConfigController extends Controller
                 'temperature' => 0.1
             ]);
 
-            $content = $response->choices[0]->message->content ?? '';
-            
-            if (!empty($content)) {
-                // Sauvegarder la clé API nettoyée si le test réussit
-                Setting::set('chatgpt_api_key', $cleanApiKey, 'string', 'ai');
-                Setting::clearCache();
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '';
+                
+                if (!empty($content)) {
+                    // Sauvegarder la clé API nettoyée si le test réussit
+                    Setting::set('chatgpt_api_key', $cleanApiKey, 'string', 'ai');
+                    Setting::clearCache();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Connexion ChatGPT réussie !',
+                        'usage' => $data['usage'] ?? null
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Réponse vide de l\'API'
+                    ]);
+                }
+            } else {
+                $errorBody = $response->json();
+                $errorMessage = $errorBody['error']['message'] ?? 'Erreur API inconnue';
                 
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Connexion ChatGPT réussie !',
-                    'usage' => $response->usage ?? null
-                ]);
-            } else {
-                return response()->json([
                     'success' => false,
-                    'message' => 'Réponse vide de l\'API'
+                    'message' => 'Erreur API OpenAI: ' . $errorMessage,
+                    'status' => $response->status(),
+                    'error_code' => $errorBody['error']['code'] ?? null
                 ]);
             }
-        } catch (\OpenAI\Exceptions\ErrorException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur API OpenAI: ' . $e->getMessage(),
-                'error_code' => $e->getCode()
-            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
