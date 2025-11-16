@@ -30,34 +30,12 @@ class AiService
         $chatgptEnabled = $chatgptEnabledSetting ? ($chatgptEnabledSetting->type === 'boolean' ? filter_var($chatgptEnabledSetting->value, FILTER_VALIDATE_BOOLEAN) : $chatgptEnabledSetting->value) : true;
         
         $chatgptApiKeySetting = \App\Models\Setting::where('key', 'chatgpt_api_key')->first();
-        $chatgptApiKey = $chatgptApiKeySetting ? trim($chatgptApiKeySetting->value) : null;
-        // Nettoyer la clé API (supprimer espaces, retours à la ligne, etc.)
-        if ($chatgptApiKey) {
-            $chatgptApiKey = trim($chatgptApiKey);
-            // Supprimer les caractères invisibles
-            $chatgptApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $chatgptApiKey);
-            // Vérifier que la clé n'est pas vide après nettoyage
-            if (empty($chatgptApiKey)) {
-                $chatgptApiKey = null;
-            }
-        }
+        $chatgptApiKey = $chatgptApiKeySetting ? $chatgptApiKeySetting->value : null;
+        
+        // La clé API sera utilisée directement pour créer le client
         
         $groqApiKeySetting = \App\Models\Setting::where('key', 'groq_api_key')->first();
-        $groqApiKey = $groqApiKeySetting ? trim($groqApiKeySetting->value) : null;
-        // Nettoyer la clé API (supprimer espaces, retours à la ligne, etc.)
-        if ($groqApiKey) {
-            $groqApiKey = trim($groqApiKey);
-            // Supprimer les caractères invisibles
-            $groqApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $groqApiKey);
-            // Vérifier que la clé n'est pas vide après nettoyage
-            if (empty($groqApiKey)) {
-                $groqApiKey = null;
-            }
-        }
-        
-        // Vérifier le fournisseur par défaut
-        $defaultProviderSetting = \App\Models\Setting::where('key', 'default_ai_provider')->first();
-        $defaultProvider = $defaultProviderSetting ? $defaultProviderSetting->value : 'chatgpt';
+        $groqApiKey = $groqApiKeySetting ? $groqApiKeySetting->value : null;
         
         $temperature = $options['temperature'] ?? 0.7;
         $maxTokens = $options['max_tokens'] ?? 4000;
@@ -114,7 +92,6 @@ class AiService
             'chatgpt_api_key_length' => $chatgptApiKey ? strlen($chatgptApiKey) : 0,
             'groq_api_key_exists' => !empty($groqApiKey),
             'groq_api_key_length' => $groqApiKey ? strlen($groqApiKey) : 0,
-            'default_provider' => $defaultProvider,
             'model' => $model
         ]);
         
@@ -124,27 +101,8 @@ class AiService
         }
         $messages[] = ['role' => 'user', 'content' => $prompt];
         
-        // Calculer la taille estimée du prompt pour décider quel fournisseur utiliser
-        $totalMessageLength = 0;
-        foreach ($messages as $msg) {
-            $totalMessageLength += strlen($msg['content'] ?? '');
-        }
-        $estimatedInputTokens = (int)($totalMessageLength / 4);
-        
-        // Si le prompt est trop volumineux pour Groq (>5000 tokens), forcer ChatGPT
-        $isLargePrompt = $estimatedInputTokens > 5000;
-        
-        // Si Groq est le fournisseur par défaut mais le prompt est trop volumineux, utiliser ChatGPT
-        if ($defaultProvider === 'groq' && $groqApiKey && !$isLargePrompt) {
-            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe (saut de ChatGPT)', [
-                'estimated_tokens' => $estimatedInputTokens
-            ]);
-            // Passer directement à Groq (le code Groq est plus bas, après la section ChatGPT)
-        }
-        // Essayer ChatGPT d'abord si :
-        // 1. Activé et clé disponible ET (ce n'est pas Groq par défaut OU prompt trop volumineux)
-        // 2. ChatGPT est le fournisseur par défaut
-        elseif ($chatgptEnabled && $chatgptApiKey && ($defaultProvider !== 'groq' || $isLargePrompt)) {
+        // Essayer ChatGPT d'abord si activé et clé disponible
+        if ($chatgptEnabled && $chatgptApiKey) {
             try {
                 // DERNIÈRE VÉRIFICATION CRITIQUE juste avant l'appel API
                 // Si max_tokens > 4096, FORCER gpt-4o (même si déjà vérifié)
@@ -167,58 +125,20 @@ class AiService
                     }
                 }
                 
-                // Nettoyer à nouveau la clé API juste avant utilisation (nettoyage approfondi)
-                $cleanApiKey = trim($chatgptApiKey);
-                // Supprimer tous les caractères non-ASCII et caractères de contrôle
-                $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
-                // Supprimer les espaces, tabulations, retours à la ligne
-                $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
-                // Vérifier qu'il ne reste que des caractères alphanumériques et tirets
-                $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
-                
-                // Vérifier que la clé est valide (format OpenAI: sk-...)
-                if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanApiKey)) {
-                    Log::error('ChatGPT: Clé API invalide ou mal formatée après nettoyage', [
-                        'key_length' => strlen($cleanApiKey ?? ''),
-                        'key_preview' => substr($cleanApiKey ?? '', 0, 10) . '...',
-                        'key_starts_with' => substr($cleanApiKey ?? '', 0, 3),
-                        'original_key_length' => strlen($chatgptApiKey ?? ''),
-                        'original_key_preview' => substr($chatgptApiKey ?? '', 0, 10) . '...'
-                    ]);
-                    throw new \Exception('Clé API ChatGPT invalide. Format attendu: sk-... (au moins 20 caractères après sk-)');
-                }
-                
                 Log::info('Tentative appel ChatGPT via openai-php/laravel', [
                     'model' => $model,
                     'max_tokens' => $maxTokens,
                     'temperature' => $temperature,
                     'messages_count' => count($messages),
-                    'total_prompt_length' => strlen($prompt),
-                    'api_key_length' => strlen($cleanApiKey),
-                    'api_key_starts_with' => substr($cleanApiKey, 0, 7) . '...'
+                    'total_prompt_length' => strlen($prompt)
                 ]);
                 
                 // Utiliser le package openai-php/laravel qui gère automatiquement les modèles
-                // Créer le client directement avec la clé API nettoyée
+                // Créer le client directement avec la clé API
                 // Utiliser Factory pour éviter les conflits de nom de classe
-                try {
-                    $openaiClient = (new \OpenAI\Factory())
-                        ->withApiKey($cleanApiKey)
-                        ->make();
-                } catch (\Exception $factoryException) {
-                    // Capturer l'erreur "The string did not match the expected pattern"
-                    if (strpos($factoryException->getMessage(), 'expected pattern') !== false || 
-                        strpos($factoryException->getMessage(), 'string did not match') !== false) {
-                        Log::error('ChatGPT: Erreur validation clé API par le package OpenAI', [
-                            'error' => $factoryException->getMessage(),
-                            'key_length' => strlen($cleanApiKey),
-                            'key_starts_with' => substr($cleanApiKey, 0, 10),
-                            'key_ends_with' => substr($cleanApiKey, -10)
-                        ]);
-                        throw new \Exception('Clé API ChatGPT invalide. Le format ne correspond pas aux attentes. Vérifiez que votre clé commence par "sk-" et ne contient pas d\'espaces ou de caractères spéciaux.');
-                    }
-                    throw $factoryException;
-                }
+                $openaiClient = (new \OpenAI\Factory())
+                    ->withApiKey($chatgptApiKey)
+                    ->make();
                 $response = $openaiClient->chat()->create([
                     'model' => $model,
                     'messages' => $messages,
@@ -268,9 +188,8 @@ class AiService
                         ]);
                         
                         try {
-                            // Utiliser la clé nettoyée
                             $openaiClient = (new \OpenAI\Factory())
-                                ->withApiKey($cleanApiKey)
+                                ->withApiKey($chatgptApiKey)
                                 ->make();
                             $response = $openaiClient->chat()->create([
                                 'model' => 'gpt-4o',
@@ -300,80 +219,66 @@ class AiService
                     }
                 }
                 
-                // Si c'est une erreur de clé API invalide, logger et continuer vers Groq
+                // Si c'est une erreur de clé API invalide, arrêter les tentatives
                 if (strpos(strtolower($errorMessage), 'invalid api key') !== false ||
                     strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
                     $errorCode === 401) {
-                    Log::warning('ChatGPT: Clé API invalide, fallback vers Groq', [
+                    Log::error('ChatGPT: Clé API invalide, arrêt des tentatives', [
                         'error_message' => $errorMessage
                     ]);
-                    // Continuer vers Groq au lieu de retourner null
+                    return null;
                 }
                 
-                // Si c'est une erreur de quota ou rate limit, logger et continuer vers Groq
+                // Si c'est une erreur de quota ou rate limit, logger mais continuer
                 if (strpos(strtolower($errorMessage), 'rate limit') !== false ||
                     strpos(strtolower($errorMessage), 'quota') !== false ||
                     strpos(strtolower($errorMessage), 'billing') !== false ||
                     $errorCode === 429) {
-                    Log::warning('ChatGPT: Quota ou rate limit dépassé, fallback vers Groq', [
+                    Log::error('ChatGPT: Quota ou rate limit dépassé', [
                         'error_message' => $errorMessage
                     ]);
-                    // Continuer vers Groq au lieu de retourner null
-                } else {
-                    // Pour les autres erreurs, logger et continuer vers Groq
-                    Log::warning('ChatGPT: Erreur API, fallback vers Groq', [
+                    return null;
+                }
+                
+                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
+                // Forcer l'utilisation de ChatGPT uniquement
+                if ($chatgptEnabled) {
+                    Log::error('ChatGPT: Erreur API, mais ChatGPT est activé donc pas de fallback Groq', [
                         'error_message' => $errorMessage,
                         'error_code' => $errorCode
                     ]);
+                    return null;
                 }
-                // Ne pas retourner null, continuer vers Groq
             } catch (\Exception $e) {
-                Log::warning('Erreur appel ChatGPT, fallback vers Groq', [
+                Log::error('Erreur appel ChatGPT', [
                     'message' => $e->getMessage(),
                     'trace' => config('app.debug') ? $e->getTraceAsString() : null
                 ]);
-                // Ne pas retourner null, continuer vers Groq
+                // Si ChatGPT est activé, ne pas utiliser Groq en fallback
+                if ($chatgptEnabled) {
+                    return null;
+                }
             }
         } else {
-            if ($defaultProvider === 'groq') {
-                Log::info('Groq sélectionné comme fournisseur par défaut, utilisation directe');
-            } else {
-                Log::info('ChatGPT désactivé ou clé manquante, fallback vers Groq');
-            }
+            Log::info('ChatGPT désactivé ou clé manquante, utilisation de Groq');
         }
         
-        // Utiliser Groq si :
-        // 1. C'est le fournisseur par défaut ET disponible
-        // 2. OU ChatGPT n'est pas disponible (désactivé, clé manquante, ou erreur)
-        if ($groqApiKey && ($defaultProvider === 'groq' || !$chatgptEnabled || !$chatgptApiKey)) {
+        // Fallback sur Groq UNIQUEMENT si ChatGPT est désactivé ou clé manquante
+        // Si ChatGPT est activé mais échoue, on ne doit PAS utiliser Groq
+        if (!$chatgptEnabled && $groqApiKey) {
             try {
                 $groqModelSetting = \App\Models\Setting::where('key', 'groq_model')->first();
                 $groqModel = $options['groq_model'] ?? ($groqModelSetting ? $groqModelSetting->value : 'llama-3.1-8b-instant');
                 
-                // Nettoyer à nouveau la clé API juste avant utilisation
-                $cleanGroqKey = trim($groqApiKey);
-                $cleanGroqKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanGroqKey);
-                
-                // Vérifier que la clé est valide (format Groq: gsk_...)
-                // Validation permissive : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères
-                if (empty($cleanGroqKey) || strpos($cleanGroqKey, 'gsk_') !== 0 || strlen($cleanGroqKey) < 30) {
-                    Log::error('Groq: Clé API invalide ou mal formatée', [
-                        'key_length' => strlen($cleanGroqKey ?? ''),
-                        'key_preview' => substr($cleanGroqKey ?? '', 0, 20) . '...',
-                        'key_starts_with' => substr($cleanGroqKey ?? '', 0, 4)
-                    ]);
-                    throw new \Exception('Clé API Groq invalide. Format attendu: gsk_... (au moins 30 caractères au total)');
-                }
-                
-                Log::info('Tentative avec Groq', [
-                    'model' => $groqModel,
-                    'api_key_length' => strlen($cleanGroqKey),
-                    'api_key_starts_with' => substr($cleanGroqKey, 0, 8) . '...'
-                ]);
+                Log::info('Tentative avec Groq', ['model' => $groqModel]);
                 
                 // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
                 // Estimation: ~1 token = 4 caractères pour le texte
-                // (Note: $totalMessageLength et $estimatedInputTokens sont déjà calculés plus haut)
+                $totalMessageLength = 0;
+                foreach ($messages as $msg) {
+                    $totalMessageLength += strlen($msg['content'] ?? '');
+                }
+                $estimatedInputTokens = (int)($totalMessageLength / 4);
                 // Laisser une marge de sécurité: limiter à 5500 tokens totaux
                 // Réduire max_tokens si nécessaire pour respecter la limite
                 $groqMaxTokens = min($maxTokens, max(500, 5500 - $estimatedInputTokens));
@@ -384,7 +289,7 @@ class AiService
                     'adjusted_max_tokens' => $groqMaxTokens
                 ]);
                 
-                $groqResponse = Http::withToken($cleanGroqKey)
+                $groqResponse = Http::withToken($groqApiKey)
                     ->timeout($timeout)
                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model' => $groqModel,
@@ -436,67 +341,9 @@ class AiService
                         return null;
                     }
                     
-                    // Gérer spécifiquement l'erreur 413 (Request too large) ou 429 (Rate limit)
-                    if ($status === 413 || $status === 429 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false || strpos($errorMessage, 'Rate limit') !== false)) {
-                        Log::warning('Limite TPM Groq dépassée, tentative avec ChatGPT comme fallback', [
-                            'original_input_length' => $totalMessageLength,
-                            'estimated_tokens' => $estimatedInputTokens,
-                            'status' => $status,
-                            'error_message' => $errorMessage
-                        ]);
-                        
-                        // Si ChatGPT est disponible, l'utiliser comme fallback
-                        if ($chatgptEnabled && $chatgptApiKey) {
-                            Log::info('Groq a échoué (limite tokens), fallback vers ChatGPT', [
-                                'estimated_tokens' => $estimatedInputTokens
-                            ]);
-                            
-                            try {
-                                // Nettoyer la clé API ChatGPT
-                                $cleanChatGptKey = trim($chatgptApiKey);
-                                $cleanChatGptKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanChatGptKey);
-                                $cleanChatGptKey = preg_replace('/\s+/', '', $cleanChatGptKey);
-                                $cleanChatGptKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanChatGptKey);
-                                
-                                if (!empty($cleanChatGptKey) && preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanChatGptKey)) {
-                                    // Forcer gpt-4o pour les gros prompts
-                                    $fallbackModel = ($maxTokens > 4096 || $estimatedInputTokens > 5000) ? 'gpt-4o' : $model;
-                                    
-                                    $openaiClient = (new \OpenAI\Factory())
-                                        ->withApiKey($cleanChatGptKey)
-                                        ->make();
-                                    
-                                    $chatgptResponse = $openaiClient->chat()->create([
-                                        'model' => $fallbackModel,
-                                        'messages' => $messages,
-                                        'temperature' => $temperature,
-                                        'max_tokens' => $maxTokens,
-                                    ]);
-                                    
-                                    $chatgptContent = $chatgptResponse->choices[0]->message->content ?? '';
-                                    
-                                    if (!empty($chatgptContent)) {
-                                        Log::info('Réponse ChatGPT réussie après échec Groq', [
-                                            'content_length' => strlen($chatgptContent),
-                                            'model' => $fallbackModel
-                                        ]);
-                                        
-                                        return [
-                                            'content' => $chatgptContent,
-                                            'provider' => 'chatgpt',
-                                            'model' => $fallbackModel
-                                        ];
-                                    }
-                                }
-                            } catch (\Exception $chatgptFallbackException) {
-                                Log::error('Échec fallback ChatGPT après erreur Groq', [
-                                    'error' => $chatgptFallbackException->getMessage()
-                                ]);
-                            }
-                        }
-                        
-                        // Si ChatGPT n'est pas disponible, essayer avec un prompt réduit
-                        Log::warning('ChatGPT non disponible, tentative Groq avec prompt réduit', [
+                    // Gérer spécifiquement l'erreur 413 (Request too large)
+                    if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {
+                        Log::warning('Limite TPM Groq dépassée, tentative avec prompt réduit', [
                             'original_input_length' => $totalMessageLength,
                             'estimated_tokens' => $estimatedInputTokens
                         ]);
@@ -517,17 +364,11 @@ class AiService
                             $reducedMaxTokens = min($maxTokens, max(500, 5500 - $reducedInputTokens));
                             
                             try {
-                                // Nettoyer les caractères UTF-8 malformés avant l'envoi
-                                $cleanedMessages = array_map(function($msg) {
-                                    $msg['content'] = mb_convert_encoding($msg['content'], 'UTF-8', 'UTF-8');
-                                    return $msg;
-                                }, $reducedMessages);
-                                
-                                $retryResponse = Http::withToken($cleanGroqKey)
+                                $retryResponse = Http::withToken($groqApiKey)
                                     ->timeout($timeout)
                                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                                         'model' => $groqModel,
-                                        'messages' => $cleanedMessages,
+                                        'messages' => $reducedMessages,
                                         'temperature' => $temperature,
                                         'max_tokens' => $reducedMaxTokens,
                                     ]);
@@ -624,4 +465,3 @@ class AiService
         return null;
     }
 }
-
