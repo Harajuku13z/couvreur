@@ -676,6 +676,30 @@ EXIGENCES ABSOLUES :
 - ZÉRO texte de conclusion type "Ce contenu HTML..." (INTERDIT)
 EOT;
         
+        // Vérifier si Groq est utilisé (ChatGPT désactivé)
+        $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->first();
+        $chatgptEnabled = $chatgptEnabled ? filter_var($chatgptEnabled->value, FILTER_VALIDATE_BOOLEAN) : true;
+        
+        // Si Groq est utilisé, réduire le prompt et le system message pour respecter les limites TPM (6000 tokens)
+        if (!$chatgptEnabled) {
+            Log::info('GptSeoGenerator: Groq détecté, réduction du prompt pour respecter les limites TPM', [
+                'original_prompt_length' => strlen($prompt),
+                'original_system_length' => strlen($systemMessage)
+            ]);
+            
+            // Réduire le system message de 30% (garder l'essentiel)
+            $systemMessage = substr($systemMessage, 0, (int)(strlen($systemMessage) * 0.7));
+            
+            // Réduire le prompt de 40% (garder les informations essentielles)
+            $prompt = substr($prompt, 0, (int)(strlen($prompt) * 0.6));
+            
+            Log::info('GptSeoGenerator: Prompt réduit pour Groq', [
+                'reduced_prompt_length' => strlen($prompt),
+                'reduced_system_length' => strlen($systemMessage),
+                'estimated_tokens' => (int)((strlen($prompt) + strlen($systemMessage)) / 4)
+            ]);
+        }
+        
         $result = AiService::callAI($prompt, $systemMessage, [
             'max_tokens' => $this->maxTokens,
             'temperature' => 0.68, // Sweet spot créativité/cohérence
