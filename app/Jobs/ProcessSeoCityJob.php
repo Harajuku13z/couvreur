@@ -93,11 +93,14 @@ class ProcessSeoCityJob implements ShouldQueue
                 'line' => $e->getLine()
             ]);
             
+            // Nettoyer le message d'erreur pour éviter les problèmes UTF-8
+            $cleanedErrorMessage = $this->cleanErrorMessage($e->getMessage());
+            
             // Mettre à jour le log si disponible
             if ($log) {
                 $log->update([
                     'status' => 'failed',
-                    'error_message' => $e->getMessage()
+                    'error_message' => $cleanedErrorMessage
                 ]);
             } else {
                 // Créer un log d'échec si aucun log n'existe
@@ -107,12 +110,12 @@ class ProcessSeoCityJob implements ShouldQueue
                         \App\Models\SeoAutomation::create([
                             'city_id' => $city->id,
                             'status' => 'failed',
-                            'error_message' => $e->getMessage()
+                            'error_message' => $cleanedErrorMessage
                         ]);
                     }
                 } catch (\Exception $logException) {
                     Log::error('ProcessSeoCityJob: Impossible de créer le log d\'échec', [
-                        'error' => $logException->getMessage()
+                        'error' => $this->cleanErrorMessage($logException->getMessage())
                     ]);
                 }
             }
@@ -123,6 +126,31 @@ class ProcessSeoCityJob implements ShouldQueue
     }
     
     /**
+     * Nettoie les messages d'erreur pour éviter les problèmes UTF-8
+     */
+    protected function cleanErrorMessage($message)
+    {
+        if (!is_string($message)) {
+            return (string)$message;
+        }
+        
+        // Supprimer les caractères UTF-8 invalides
+        $cleaned = mb_convert_encoding($message, 'UTF-8', 'UTF-8');
+        // Supprimer les caractères de contrôle non valides
+        $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $cleaned);
+        // Vérifier que c'est bien de l'UTF-8 valide
+        if (!mb_check_encoding($cleaned, 'UTF-8')) {
+            // Si toujours invalide, utiliser iconv avec ignore
+            $cleaned = @iconv('UTF-8', 'UTF-8//IGNORE', $message);
+            if ($cleaned === false) {
+                // Dernier recours : supprimer tous les caractères non-ASCII
+                $cleaned = preg_replace('/[^\x20-\x7E]/', '', $message);
+            }
+        }
+        return $cleaned;
+    }
+    
+    /**
      * Handle a job failure.
      */
     public function failed(\Throwable $exception): void
@@ -130,8 +158,8 @@ class ProcessSeoCityJob implements ShouldQueue
         Log::error('ProcessSeoCityJob: Job échoué définitivement', [
             'city_id' => $this->cityId,
             'custom_keyword' => $this->customKeyword,
-            'exception' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
+            'exception' => $this->cleanErrorMessage($exception->getMessage()),
+            'trace' => $this->cleanErrorMessage($exception->getTraceAsString())
         ]);
     }
 }

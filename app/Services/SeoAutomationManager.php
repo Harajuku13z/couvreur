@@ -25,6 +25,34 @@ class SeoAutomationManager
         $this->gpt = $gpt;
         $this->indexer = $indexer;
     }
+    
+    /**
+     * Nettoie les données pour éviter les erreurs UTF-8 malformées
+     */
+    protected function cleanForJson($data)
+    {
+        if (is_array($data)) {
+            return array_map([$this, 'cleanForJson'], $data);
+        } elseif (is_string($data)) {
+            // Supprimer les caractères UTF-8 invalides
+            $cleaned = mb_convert_encoding($data, 'UTF-8', 'UTF-8');
+            // Supprimer les caractères de contrôle non valides
+            $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $cleaned);
+            // Vérifier que c'est bien de l'UTF-8 valide
+            if (!mb_check_encoding($cleaned, 'UTF-8')) {
+                // Si toujours invalide, utiliser iconv avec ignore
+                $cleaned = @iconv('UTF-8', 'UTF-8//IGNORE', $data);
+                if ($cleaned === false) {
+                    // Dernier recours : supprimer tous les caractères non-ASCII
+                    $cleaned = preg_replace('/[^\x20-\x7E]/', '', $data);
+                }
+            }
+            return $cleaned;
+        } elseif (is_object($data)) {
+            return $this->cleanForJson((array)$data);
+        }
+        return $data;
+    }
 
     /**
      * Exécute la génération pour une ville
@@ -142,7 +170,7 @@ class SeoAutomationManager
                     $log->update([
                         'status' => 'failed',
                         'error_message' => 'Aucun mot-clé récupéré (SerpAPI et ChatGPT ont échoué)',
-                        'metadata' => ['steps' => $steps]
+                        'metadata' => $this->cleanForJson(['steps' => $steps])
                     ]);
                     return $log;
                 }
@@ -168,11 +196,11 @@ class SeoAutomationManager
                     $steps[count($steps) - 1]['status'] = 'failed';
                     $steps[count($steps) - 1]['message'] = 'Aucun mot-clé disponible (tous déjà utilisés récemment)';
                     if ($progressCallback) $progressCallback($steps);
-                    $log->update([
-                        'status' => 'failed',
-                        'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)',
-                        'metadata' => ['steps' => $steps]
-                    ]);
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => 'Aucun mot-clé disponible (tous déjà utilisés récemment)',
+                    'metadata' => $this->cleanForJson(['steps' => $steps])
+                ]);
                     return $log;
                 }
                 
@@ -310,8 +338,8 @@ class SeoAutomationManager
                 if ($progressCallback) $progressCallback($steps);
                 $log->update([
                     'status' => 'failed',
-                    'error_message' => $errorMessage,
-                    'metadata' => ['gpt_data' => null, 'steps' => $steps, 'exception' => $gptException->getMessage()]
+                    'error_message' => $this->cleanForJson($errorMessage),
+                    'metadata' => $this->cleanForJson(['gpt_data' => null, 'steps' => $steps, 'exception' => $gptException->getMessage()])
                 ]);
                 return $log;
             }
@@ -342,8 +370,8 @@ class SeoAutomationManager
                 if ($progressCallback) $progressCallback($steps);
                 $log->update([
                     'status' => 'failed',
-                    'error_message' => $errorMessage,
-                    'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
+                    'error_message' => $this->cleanForJson($errorMessage),
+                    'metadata' => $this->cleanForJson(['gpt_data' => $gptData, 'steps' => $steps])
                 ]);
                 return $log;
             }
@@ -457,8 +485,8 @@ class SeoAutomationManager
                         if ($progressCallback) $progressCallback($steps);
                         $log->update([
                             'status' => 'failed',
-                            'error_message' => 'Erreur lors de la création de l\'article: ' . $retryException->getMessage(),
-                            'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
+                            'error_message' => $this->cleanForJson('Erreur lors de la création de l\'article: ' . $retryException->getMessage()),
+                            'metadata' => $this->cleanForJson(['gpt_data' => $gptData, 'steps' => $steps])
                         ]);
                         return $log;
                     }
@@ -468,8 +496,8 @@ class SeoAutomationManager
                     if ($progressCallback) $progressCallback($steps);
                     $log->update([
                         'status' => 'failed',
-                        'error_message' => 'Erreur lors de la création de l\'article: ' . $createException->getMessage(),
-                        'metadata' => ['gpt_data' => $gptData, 'steps' => $steps]
+                        'error_message' => $this->cleanForJson('Erreur lors de la création de l\'article: ' . $createException->getMessage()),
+                        'metadata' => $this->cleanForJson(['gpt_data' => $gptData, 'steps' => $steps])
                     ]);
                     return $log;
                 }
@@ -586,7 +614,7 @@ class SeoAutomationManager
                 'status' => $finalStatus, // Toujours "indexed" ou "published", jamais "pending"
                 'article_id' => (string)$article->id,
                 'article_url' => $url,
-                'metadata' => [
+                'metadata' => $this->cleanForJson([
                     'gpt_data' => $gptData,
                     'related_queries' => $related,
                     'competitors' => $competitors,
@@ -595,7 +623,7 @@ class SeoAutomationManager
                     'verification_result' => $verificationResult ?? null,
                     'steps' => $steps,
                     'seo_analysis' => $seoAnalysis,
-                ],
+                ]),
                 'error_message' => null,
             ]);
 
@@ -633,10 +661,12 @@ class SeoAutomationManager
             ]);
             
             // S'assurer que le log existe et mettre à jour son statut
+            $cleanedErrorMessage = $this->cleanForJson($e->getMessage());
+            
             if ($log) {
                 $log->update([
                     'status' => 'failed',
-                    'error_message' => $e->getMessage()
+                    'error_message' => $cleanedErrorMessage
                 ]);
             } else {
                 // Créer un log d'échec si le log n'existe pas
@@ -644,11 +674,11 @@ class SeoAutomationManager
                     $log = SeoAutomation::create([
                         'city_id' => $city->id,
                         'status' => 'failed',
-                        'error_message' => $e->getMessage()
+                        'error_message' => $cleanedErrorMessage
                     ]);
                 } catch (\Exception $logException) {
                     Log::error('SeoAutomationManager: Impossible de créer le log d\'échec', [
-                        'error' => $logException->getMessage()
+                        'error' => $this->cleanForJson($logException->getMessage())
                     ]);
                 }
             }
@@ -659,12 +689,12 @@ class SeoAutomationManager
                     $log = SeoAutomation::create([
                         'city_id' => $city->id,
                         'status' => 'failed',
-                        'error_message' => $e->getMessage()
+                        'error_message' => $cleanedErrorMessage
                     ]);
                 } catch (\Exception $logException) {
                     // Si même la création échoue, retourner null
                     Log::error('SeoAutomationManager: Impossible de créer le log d\'échec', [
-                        'error' => $logException->getMessage()
+                        'error' => $this->cleanForJson($logException->getMessage())
                     ]);
                     return null;
                 }
