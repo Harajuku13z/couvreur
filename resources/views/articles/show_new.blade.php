@@ -596,39 +596,12 @@
     
     /* Sidebar WordPress */
     .article-sidebar {
-        position: sticky;
-        top: 100px;
         display: flex;
         flex-direction: column;
         gap: 2rem;
         align-self: start;
-        z-index: 5;
-        max-height: calc(100vh - 120px);
-        overflow-y: auto;
-        overflow-x: hidden;
         padding-right: 1rem;
         margin-right: 0;
-        /* Permettre le scroll fluide */
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Style pour le scroll de la sidebar */
-    .article-sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .article-sidebar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    .article-sidebar::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 10px;
-    }
-    
-    .article-sidebar::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
     }
     
     .sidebar-card {
