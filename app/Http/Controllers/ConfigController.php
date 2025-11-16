@@ -1290,25 +1290,12 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
-        $cleanApiKey = trim($apiKey);
-        
-        // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
-        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
-                'key_length' => strlen($cleanApiKey ?? ''),
-                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
-            ]);
-        }
-
         try {
-            // Test direct avec Http (évite la validation stricte du package OpenAI)
+            // Test simple avec l'API OpenAI
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $cleanApiKey,
+                'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+            ])->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
                     [
@@ -1322,33 +1309,20 @@ class ConfigController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
-                $content = $data['choices'][0]['message']['content'] ?? '';
                 
-                if (!empty($content)) {
-                    // Sauvegarder la clé API nettoyée si le test réussit
-                    Setting::set('chatgpt_api_key', $cleanApiKey, 'string', 'ai');
-                    Setting::clearCache();
-                    
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Connexion ChatGPT réussie !',
-                        'usage' => $data['usage'] ?? null
-                    ]);
-                } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Réponse vide de l\'API'
-                    ]);
-                }
-            } else {
-                $errorBody = $response->json();
-                $errorMessage = $errorBody['error']['message'] ?? 'Erreur API inconnue';
+                // Sauvegarder la clé API si le test réussit
+                Setting::set('chatgpt_api_key', $apiKey, 'string', 'ai');
+                Setting::clearCache();
                 
                 return response()->json([
+                    'success' => true,
+                    'message' => 'Connexion ChatGPT réussie !',
+                    'usage' => $data['usage'] ?? null
+                ]);
+            } else {
+                return response()->json([
                     'success' => false,
-                    'message' => 'Erreur API OpenAI: ' . $errorMessage,
-                    'status' => $response->status(),
-                    'error_code' => $errorBody['error']['code'] ?? null
+                    'message' => 'Erreur API: ' . ($response->json()['error']['message'] ?? 'Clé API invalide')
                 ]);
             }
         } catch (\Exception $e) {
@@ -1373,22 +1347,9 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
-        $cleanApiKey = trim($apiKey);
-        
-        // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
-        if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
-                'key_length' => strlen($cleanApiKey ?? ''),
-                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
-            ]);
-        }
-
         try {
             // Test simple avec l'API Groq
-            $response = Http::withToken($cleanApiKey)
+            $response = Http::withToken($apiKey)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model' => 'llama-3.1-8b-instant',
                     'messages' => [
@@ -1404,8 +1365,8 @@ class ConfigController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
                 
-                // Sauvegarder la clé API nettoyée si le test réussit
-                Setting::set('groq_api_key', $cleanApiKey, 'string', 'ai');
+                // Sauvegarder la clé API si le test réussit
+                Setting::set('groq_api_key', $apiKey, 'string', 'ai');
                 Setting::clearCache();
                 
                 return response()->json([
@@ -1444,24 +1405,11 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
-        $cleanApiKey = trim($apiKey);
-        
-        // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
-        if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API invalide. Format attendu: sk-... (au moins 20 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
-                'key_length' => strlen($cleanApiKey ?? ''),
-                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
-            ]);
-        }
-
         try {
             $model = setting('chatgpt_model', 'gpt-4o');
             
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $cleanApiKey,
+                'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
@@ -1525,23 +1473,10 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
-        $cleanApiKey = trim($apiKey);
-        
-        // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
-        if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères). Vérifiez qu\'il n\'y a pas d\'espaces.',
-                'key_length' => strlen($cleanApiKey ?? ''),
-                'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
-            ]);
-        }
-
         try {
             $model = setting('groq_model', 'llama-3.1-8b-instant');
             
-            $response = Http::withToken($cleanApiKey)
+            $response = Http::withToken($apiKey)
                 ->timeout(60)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model' => $model,
