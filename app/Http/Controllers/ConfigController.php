@@ -1390,12 +1390,8 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
+        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
         $cleanApiKey = trim($apiKey);
-        // Supprimer uniquement les espaces, tabulations et retours à la ligne
-        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
-        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
-        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
         // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
@@ -1465,12 +1461,8 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
+        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
         $cleanApiKey = trim($apiKey);
-        // Supprimer uniquement les espaces, tabulations et retours à la ligne
-        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
-        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
-        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
         // Valider le format basique (juste vérifier qu'elle commence par sk- et a une longueur minimale)
         if (empty($cleanApiKey) || !preg_match('/^sk-[a-zA-Z0-9\-_]+$/', $cleanApiKey) || strlen($cleanApiKey) < 20) {
@@ -1550,12 +1542,8 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API (nettoyage minimal : seulement espaces et caractères invisibles)
+        // Nettoyer la clé API (uniquement trim pour enlever espaces début/fin)
         $cleanApiKey = trim($apiKey);
-        // Supprimer uniquement les espaces, tabulations et retours à la ligne
-        $cleanApiKey = preg_replace('/[\s\t\n\r]+/', '', $cleanApiKey);
-        // Supprimer uniquement les caractères de contrôle invisibles (mais garder tous les caractères valides)
-        $cleanApiKey = preg_replace('/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/', '', $cleanApiKey);
         
         // Valider le format basique (juste vérifier qu'elle commence par gsk_ et a une longueur minimale)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
