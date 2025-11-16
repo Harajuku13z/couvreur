@@ -83,16 +83,28 @@ class SeoAutomationController extends Controller
         }
         
         // Récupérer tous les logs, même ceux sans ville (avec leftJoin pour éviter les problèmes)
-        $logs = SeoAutomation::with('city')
-            ->orderBy('created_at', 'desc')
+        // Utiliser leftJoin pour inclure les logs même si la ville a été supprimée
+        $logs = SeoAutomation::leftJoin('cities', 'seo_automations.city_id', '=', 'cities.id')
+            ->select('seo_automations.*')
+            ->orderBy('seo_automations.created_at', 'desc')
             ->paginate(30);
+        
+        // Charger les relations city pour chaque log
+        $logs->getCollection()->transform(function ($log) {
+            if ($log->city_id) {
+                $log->load('city');
+            }
+            return $log;
+        });
         
         // Log pour debug
         Log::info('SeoAutomationController: Logs récupérés', [
             'total_count' => SeoAutomation::count(),
             'logs_count' => $logs->count(),
             'failed_count' => SeoAutomation::where('status', 'failed')->count(),
-            'pending_count' => SeoAutomation::where('status', 'pending')->count()
+            'pending_count' => SeoAutomation::where('status', 'pending')->count(),
+            'with_city' => SeoAutomation::whereNotNull('city_id')->count(),
+            'without_city' => SeoAutomation::whereNull('city_id')->count()
         ]);
         
         // Statistiques (inclure les "pending" récents qui sont en cours d'exécution)
