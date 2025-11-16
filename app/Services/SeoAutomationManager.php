@@ -257,7 +257,34 @@ class SeoAutomationManager
                     'error' => $gptException->getMessage(),
                     'trace' => $gptException->getTraceAsString()
                 ]);
-                $gptData = null;
+                
+                // Utiliser le message d'erreur de l'exception (qui contient déjà les détails)
+                $errorMessage = $gptException->getMessage();
+                
+                // Vérifier si c'est une erreur Groq spécifique
+                $chatgptEnabled = \App\Models\Setting::where('key', 'chatgpt_enabled')->value('value');
+                $chatgptEnabled = filter_var($chatgptEnabled, FILTER_VALIDATE_BOOLEAN);
+                
+                if (!$chatgptEnabled && strpos($errorMessage, 'Groq') !== false) {
+                    // Si c'est Groq qui est utilisé et qu'il y a une erreur, améliorer le message
+                    if (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false) {
+                        $errorMessage = 'Erreur Groq: Le prompt est trop long pour les limites de Groq (TPM: 6000 tokens). Le système a tenté de réduire le prompt automatiquement mais cela n\'a pas suffi. Essayez de réduire la longueur du prompt ou utilisez ChatGPT.';
+                    } elseif (strpos($errorMessage, 'Clé API') !== false) {
+                        $errorMessage = 'Erreur Groq: ' . $errorMessage . ' Vérifiez votre clé API Groq dans la configuration.';
+                    } else {
+                        $errorMessage = 'Erreur Groq: ' . $errorMessage;
+                    }
+                }
+                
+                $steps[count($steps) - 1]['status'] = 'failed';
+                $steps[count($steps) - 1]['message'] = $errorMessage;
+                if ($progressCallback) $progressCallback($steps);
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => $errorMessage,
+                    'metadata' => ['gpt_data' => null, 'steps' => $steps, 'exception' => $gptException->getMessage()]
+                ]);
+                return $log;
             }
 
             if (!$gptData || empty($gptData['titre']) || empty($gptData['contenu_html'])) {
@@ -275,6 +302,8 @@ class SeoAutomationManager
                     $errorMessage = 'Clé API ChatGPT invalide ou quota dépassé. Vérifiez votre clé ou configurez Groq.';
                 } elseif (empty($chatgptApiKey) && empty($groqApiKey)) {
                     $errorMessage = 'Aucune clé API configurée. Configurez ChatGPT ou Groq dans "Configuration des APIs".';
+                } elseif (!$chatgptEnabled && !empty($groqApiKey)) {
+                    $errorMessage = 'Erreur lors de l\'appel à Groq. Vérifiez votre clé API Groq et vos quotas (TPM: 6000 tokens). Le prompt peut être trop long.';
                 } elseif (!empty($chatgptApiKey) && !empty($groqApiKey)) {
                     $errorMessage = 'Erreur lors de l\'appel aux APIs. Vérifiez vos clés API et vos quotas (ChatGPT et Groq).';
                 }

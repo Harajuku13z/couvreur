@@ -331,9 +331,24 @@ class AiService
                     $errorType = $errorBody['error']['type'] ?? 'unknown';
                     $errorCode = $errorBody['error']['code'] ?? null;
                     
+                    // Construire un message d'erreur détaillé
+                    $detailedErrorMessage = 'Erreur API Groq';
+                    if ($status === 401) {
+                        $detailedErrorMessage = 'Clé API Groq invalide ou expirée. Vérifiez votre clé API dans la configuration.';
+                    } elseif ($status === 413 || strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false) {
+                        $detailedErrorMessage = 'Limite de tokens Groq dépassée (TPM: 6000). Le prompt est trop long. Réduction automatique en cours...';
+                    } elseif ($status === 429) {
+                        $detailedErrorMessage = 'Quota Groq dépassé. Attendez quelques minutes ou passez à un plan supérieur.';
+                    } elseif ($status === 500 || $status === 502 || $status === 503) {
+                        $detailedErrorMessage = 'Erreur serveur Groq (code ' . $status . '). Réessayez dans quelques instants.';
+                    } else {
+                        $detailedErrorMessage = 'Erreur API Groq: ' . $errorMessage . ' (code: ' . $status . ')';
+                    }
+                    
                     Log::error('Erreur API Groq', [
                         'status' => $status,
                         'error_message' => $errorMessage,
+                        'detailed_error' => $detailedErrorMessage,
                         'error_type' => $errorType,
                         'error_code' => $errorCode,
                         'estimated_input_tokens' => $estimatedInputTokens ?? 0,
@@ -348,10 +363,12 @@ class AiService
                         strpos(strtolower($errorMessage), 'invalid_api_key') !== false ||
                         ($errorCode && strpos(strtolower($errorCode), 'invalid_api_key') !== false)) {
                         Log::error('Groq: Clé API invalide, arrêt des tentatives', [
-                            'error_message' => $errorMessage
+                            'error_message' => $errorMessage,
+                            'detailed_error' => $detailedErrorMessage
                         ]);
                         // Ne pas continuer avec les retries si la clé est invalide
-                        return null;
+                        // Lancer une exception avec le message détaillé pour qu'il soit remonté
+                        throw new \Exception($detailedErrorMessage);
                     }
                     
                     // Gérer spécifiquement l'erreur 413 (Request too large)
@@ -361,12 +378,20 @@ class AiService
                             'estimated_tokens' => $estimatedInputTokens
                         ]);
                         
-                        // Essayer avec un prompt réduit (tronquer le prompt utilisateur de 30%)
+                        // Essayer avec un prompt réduit (tronquer le prompt utilisateur de 50% pour être sûr)
                         $reducedMessages = $messages;
                         if (isset($reducedMessages[count($reducedMessages) - 1]) && $reducedMessages[count($reducedMessages) - 1]['role'] === 'user') {
                             $originalUserPrompt = $reducedMessages[count($reducedMessages) - 1]['content'];
-                            $reducedUserPrompt = substr($originalUserPrompt, 0, (int)(strlen($originalUserPrompt) * 0.7));
+                            // Réduire de 50% au lieu de 30% pour Groq
+                            $reducedUserPrompt = substr($originalUserPrompt, 0, (int)(strlen($originalUserPrompt) * 0.5));
                             $reducedMessages[count($reducedMessages) - 1]['content'] = $reducedUserPrompt;
+                            
+                            // Réduire aussi le system message si présent
+                            if (isset($reducedMessages[0]) && $reducedMessages[0]['role'] === 'system') {
+                                $originalSystemMessage = $reducedMessages[0]['content'];
+                                $reducedSystemMessage = substr($originalSystemMessage, 0, (int)(strlen($originalSystemMessage) * 0.7));
+                                $reducedMessages[0]['content'] = $reducedSystemMessage;
+                            }
                             
                             // Recalculer avec le prompt réduit
                             $reducedLength = 0;
@@ -392,7 +417,9 @@ class AiService
                                     
                                     Log::info('Réponse Groq reçue après réduction du prompt', [
                                         'content_length' => strlen($groqContent),
-                                        'model' => $groqModel
+                                        'model' => $groqModel,
+                                        'original_tokens' => $estimatedInputTokens,
+                                        'reduced_tokens' => $reducedInputTokens
                                     ]);
                                     
                                     return [
@@ -401,21 +428,36 @@ class AiService
                                     ];
                                 } else {
                                     $retryErrorBody = $retryResponse->json();
+                                    $retryErrorMessage = $retryErrorBody['error']['message'] ?? 'Unknown error';
+                                    $retryDetailedError = 'Erreur API Groq après réduction du prompt: ' . $retryErrorMessage . ' (code: ' . $retryResponse->status() . '). Le prompt a été réduit de 50% mais reste trop long pour Groq.';
+                                    
                                     Log::error('Échec retry Groq avec prompt réduit', [
                                         'status' => $retryResponse->status(),
-                                        'error_message' => $retryErrorBody['error']['message'] ?? 'Unknown error',
+                                        'error_message' => $retryErrorMessage,
+                                        'detailed_error' => $retryDetailedError,
                                         'reduced_input_length' => $reducedLength ?? 0,
                                         'reduced_input_tokens' => $reducedInputTokens ?? 0,
                                         'reduced_max_tokens' => $reducedMaxTokens ?? 0
                                     ]);
+                                    
+                                    // Lancer une exception avec le message détaillé
+                                    throw new \Exception($retryDetailedError);
                                 }
                             } catch (\Exception $retryException) {
                                 Log::error('Exception lors du retry Groq avec prompt réduit', [
                                     'message' => $retryException->getMessage(),
                                     'trace' => config('app.debug') ? $retryException->getTraceAsString() : null
                                 ]);
+                                // Relancer l'exception pour qu'elle soit capturée plus haut
+                                throw $retryException;
                             }
+                        } else {
+                            // Si on ne peut pas réduire le prompt, lancer une exception
+                            throw new \Exception($detailedErrorMessage);
                         }
+                    } else {
+                        // Pour les autres erreurs, lancer une exception avec le message détaillé
+                        throw new \Exception($detailedErrorMessage);
                     }
                 }
             } catch (\Exception $e) {
@@ -423,6 +465,8 @@ class AiService
                     'message' => $e->getMessage(),
                     'trace' => config('app.debug') ? $e->getTraceAsString() : null
                 ]);
+                // Relancer l'exception pour qu'elle soit capturée et affichée
+                throw $e;
             }
         } else {
             Log::warning('Clé API Groq manquante, impossible d\'utiliser le fallback');
