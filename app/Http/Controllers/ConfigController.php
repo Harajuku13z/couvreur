@@ -1310,11 +1310,28 @@ class ConfigController extends Controller
         }
 
         try {
-            // Test simple avec l'API OpenAI
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $cleanApiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
+            // Test avec le package OpenAI pour valider la clé
+            try {
+                $openaiClient = (new \OpenAI\Factory())
+                    ->withApiKey($cleanApiKey)
+                    ->make();
+            } catch (\Exception $factoryException) {
+                // Capturer l'erreur "The string did not match the expected pattern"
+                if (strpos($factoryException->getMessage(), 'expected pattern') !== false || 
+                    strpos($factoryException->getMessage(), 'string did not match') !== false) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Clé API ChatGPT invalide. Le format ne correspond pas aux attentes. Vérifiez que votre clé commence par "sk-" et ne contient pas d\'espaces ou de caractères spéciaux.',
+                        'key_length' => strlen($cleanApiKey),
+                        'key_starts_with' => substr($cleanApiKey, 0, 10),
+                        'key_ends_with' => substr($cleanApiKey, -10)
+                    ]);
+                }
+                throw $factoryException;
+            }
+            
+            // Test simple avec l'API OpenAI via le package
+            $response = $openaiClient->chat()->create([
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
                     [
@@ -1326,9 +1343,9 @@ class ConfigController extends Controller
                 'temperature' => 0.1
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                
+            $content = $response->choices[0]->message->content ?? '';
+            
+            if (!empty($content)) {
                 // Sauvegarder la clé API nettoyée si le test réussit
                 Setting::set('chatgpt_api_key', $cleanApiKey, 'string', 'ai');
                 Setting::clearCache();
@@ -1336,14 +1353,20 @@ class ConfigController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Connexion ChatGPT réussie !',
-                    'usage' => $data['usage'] ?? null
+                    'usage' => $response->usage ?? null
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur API: ' . ($response->json()['error']['message'] ?? 'Clé API invalide')
+                    'message' => 'Réponse vide de l\'API'
                 ]);
             }
+        } catch (\OpenAI\Exceptions\ErrorException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur API OpenAI: ' . $e->getMessage(),
+                'error_code' => $e->getCode()
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1366,15 +1389,20 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API
+        // Nettoyer la clé API (nettoyage approfondi)
         $cleanApiKey = trim($apiKey);
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+        // Supprimer tous les caractères non-ASCII et caractères de contrôle
+        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
+        // Supprimer les espaces, tabulations, retours à la ligne
+        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
+        // Vérifier qu'il ne reste que des caractères alphanumériques, tirets et underscores
+        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
         
         // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total)',
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);
@@ -1525,15 +1553,20 @@ class ConfigController extends Controller
             ]);
         }
 
-        // Nettoyer la clé API
+        // Nettoyer la clé API (nettoyage approfondi)
         $cleanApiKey = trim($apiKey);
-        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F]/u', '', $cleanApiKey);
+        // Supprimer tous les caractères non-ASCII et caractères de contrôle
+        $cleanApiKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanApiKey);
+        // Supprimer les espaces, tabulations, retours à la ligne
+        $cleanApiKey = preg_replace('/\s+/', '', $cleanApiKey);
+        // Vérifier qu'il ne reste que des caractères alphanumériques, tirets et underscores
+        $cleanApiKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanApiKey);
         
         // Valider le format (plus permissif : juste vérifier que ça commence par gsk_ et fait au moins 30 caractères)
         if (empty($cleanApiKey) || strpos($cleanApiKey, 'gsk_') !== 0 || strlen($cleanApiKey) < 30) {
             return response()->json([
                 'success' => false,
-                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total)',
+                'message' => 'Clé API invalide. Format attendu: gsk_... (au moins 30 caractères au total). Vérifiez qu\'il n\'y a pas d\'espaces ou de caractères spéciaux.',
                 'key_length' => strlen($cleanApiKey ?? ''),
                 'key_starts_with' => substr($cleanApiKey ?? '', 0, 10)
             ]);

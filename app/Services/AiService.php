@@ -124,13 +124,27 @@ class AiService
         }
         $messages[] = ['role' => 'user', 'content' => $prompt];
         
-        // Si Groq est le fournisseur par défaut et disponible, l'utiliser directement (sauter ChatGPT)
-        if ($defaultProvider === 'groq' && $groqApiKey) {
-            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe (saut de ChatGPT)');
+        // Calculer la taille estimée du prompt pour décider quel fournisseur utiliser
+        $totalMessageLength = 0;
+        foreach ($messages as $msg) {
+            $totalMessageLength += strlen($msg['content'] ?? '');
+        }
+        $estimatedInputTokens = (int)($totalMessageLength / 4);
+        
+        // Si le prompt est trop volumineux pour Groq (>5000 tokens), forcer ChatGPT
+        $isLargePrompt = $estimatedInputTokens > 5000;
+        
+        // Si Groq est le fournisseur par défaut mais le prompt est trop volumineux, utiliser ChatGPT
+        if ($defaultProvider === 'groq' && $groqApiKey && !$isLargePrompt) {
+            Log::info('AiService: Groq sélectionné comme fournisseur par défaut, utilisation directe (saut de ChatGPT)', [
+                'estimated_tokens' => $estimatedInputTokens
+            ]);
             // Passer directement à Groq (le code Groq est plus bas, après la section ChatGPT)
         }
-        // Essayer ChatGPT d'abord si activé et clé disponible (et que ce n'est pas Groq par défaut)
-        elseif ($chatgptEnabled && $chatgptApiKey) {
+        // Essayer ChatGPT d'abord si :
+        // 1. Activé et clé disponible ET (ce n'est pas Groq par défaut OU prompt trop volumineux)
+        // 2. ChatGPT est le fournisseur par défaut
+        elseif ($chatgptEnabled && $chatgptApiKey && ($defaultProvider !== 'groq' || $isLargePrompt)) {
             try {
                 // DERNIÈRE VÉRIFICATION CRITIQUE juste avant l'appel API
                 // Si max_tokens > 4096, FORCER gpt-4o (même si déjà vérifié)
@@ -359,11 +373,7 @@ class AiService
                 
                 // Pour Groq on-demand: ajuster max_tokens pour respecter la limite TPM (6000)
                 // Estimation: ~1 token = 4 caractères pour le texte
-                $totalMessageLength = 0;
-                foreach ($messages as $msg) {
-                    $totalMessageLength += strlen($msg['content'] ?? '');
-                }
-                $estimatedInputTokens = (int)($totalMessageLength / 4);
+                // (Note: $totalMessageLength et $estimatedInputTokens sont déjà calculés plus haut)
                 // Laisser une marge de sécurité: limiter à 5500 tokens totaux
                 // Réduire max_tokens si nécessaire pour respecter la limite
                 $groqMaxTokens = min($maxTokens, max(500, 5500 - $estimatedInputTokens));
@@ -426,9 +436,67 @@ class AiService
                         return null;
                     }
                     
-                    // Gérer spécifiquement l'erreur 413 (Request too large)
-                    if ($status === 413 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false)) {
-                        Log::warning('Limite TPM Groq dépassée, tentative avec prompt réduit', [
+                    // Gérer spécifiquement l'erreur 413 (Request too large) ou 429 (Rate limit)
+                    if ($status === 413 || $status === 429 || (strpos($errorMessage, 'Request too large') !== false || strpos($errorMessage, 'TPM') !== false || strpos($errorMessage, 'Rate limit') !== false)) {
+                        Log::warning('Limite TPM Groq dépassée, tentative avec ChatGPT comme fallback', [
+                            'original_input_length' => $totalMessageLength,
+                            'estimated_tokens' => $estimatedInputTokens,
+                            'status' => $status,
+                            'error_message' => $errorMessage
+                        ]);
+                        
+                        // Si ChatGPT est disponible, l'utiliser comme fallback
+                        if ($chatgptEnabled && $chatgptApiKey) {
+                            Log::info('Groq a échoué (limite tokens), fallback vers ChatGPT', [
+                                'estimated_tokens' => $estimatedInputTokens
+                            ]);
+                            
+                            try {
+                                // Nettoyer la clé API ChatGPT
+                                $cleanChatGptKey = trim($chatgptApiKey);
+                                $cleanChatGptKey = preg_replace('/[\x00-\x1F\x7F-\x9F]/u', '', $cleanChatGptKey);
+                                $cleanChatGptKey = preg_replace('/\s+/', '', $cleanChatGptKey);
+                                $cleanChatGptKey = preg_replace('/[^a-zA-Z0-9\-_]/', '', $cleanChatGptKey);
+                                
+                                if (!empty($cleanChatGptKey) && preg_match('/^sk-[a-zA-Z0-9]{20,}$/', $cleanChatGptKey)) {
+                                    // Forcer gpt-4o pour les gros prompts
+                                    $fallbackModel = ($maxTokens > 4096 || $estimatedInputTokens > 5000) ? 'gpt-4o' : $model;
+                                    
+                                    $openaiClient = (new \OpenAI\Factory())
+                                        ->withApiKey($cleanChatGptKey)
+                                        ->make();
+                                    
+                                    $chatgptResponse = $openaiClient->chat()->create([
+                                        'model' => $fallbackModel,
+                                        'messages' => $messages,
+                                        'temperature' => $temperature,
+                                        'max_tokens' => $maxTokens,
+                                    ]);
+                                    
+                                    $chatgptContent = $chatgptResponse->choices[0]->message->content ?? '';
+                                    
+                                    if (!empty($chatgptContent)) {
+                                        Log::info('Réponse ChatGPT réussie après échec Groq', [
+                                            'content_length' => strlen($chatgptContent),
+                                            'model' => $fallbackModel
+                                        ]);
+                                        
+                                        return [
+                                            'content' => $chatgptContent,
+                                            'provider' => 'chatgpt',
+                                            'model' => $fallbackModel
+                                        ];
+                                    }
+                                }
+                            } catch (\Exception $chatgptFallbackException) {
+                                Log::error('Échec fallback ChatGPT après erreur Groq', [
+                                    'error' => $chatgptFallbackException->getMessage()
+                                ]);
+                            }
+                        }
+                        
+                        // Si ChatGPT n'est pas disponible, essayer avec un prompt réduit
+                        Log::warning('ChatGPT non disponible, tentative Groq avec prompt réduit', [
                             'original_input_length' => $totalMessageLength,
                             'estimated_tokens' => $estimatedInputTokens
                         ]);
@@ -449,11 +517,17 @@ class AiService
                             $reducedMaxTokens = min($maxTokens, max(500, 5500 - $reducedInputTokens));
                             
                             try {
+                                // Nettoyer les caractères UTF-8 malformés avant l'envoi
+                                $cleanedMessages = array_map(function($msg) {
+                                    $msg['content'] = mb_convert_encoding($msg['content'], 'UTF-8', 'UTF-8');
+                                    return $msg;
+                                }, $reducedMessages);
+                                
                                 $retryResponse = Http::withToken($cleanGroqKey)
                                     ->timeout($timeout)
                                     ->post('https://api.groq.com/openai/v1/chat/completions', [
                                         'model' => $groqModel,
-                                        'messages' => $reducedMessages,
+                                        'messages' => $cleanedMessages,
                                         'temperature' => $temperature,
                                         'max_tokens' => $reducedMaxTokens,
                                     ]);
