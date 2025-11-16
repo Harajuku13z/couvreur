@@ -82,20 +82,13 @@ class SeoAutomationController extends Controller
             ]);
         }
         
-        // Récupérer tous les logs, même ceux sans ville (avec leftJoin pour éviter les problèmes)
-        // Utiliser leftJoin pour inclure les logs même si la ville a été supprimée
-        $logs = SeoAutomation::leftJoin('cities', 'seo_automations.city_id', '=', 'cities.id')
-            ->select('seo_automations.*')
-            ->orderBy('seo_automations.created_at', 'desc')
+        // Récupérer tous les logs, même ceux sans ville
+        // Utiliser with() avec une closure pour gérer les villes manquantes
+        $logs = SeoAutomation::with(['city' => function($query) {
+            // Ne pas exclure les logs si la ville n'existe plus
+        }])
+            ->orderBy('created_at', 'desc')
             ->paginate(30);
-        
-        // Charger les relations city pour chaque log
-        $logs->getCollection()->transform(function ($log) {
-            if ($log->city_id) {
-                $log->load('city');
-            }
-            return $log;
-        });
         
         // Log pour debug
         Log::info('SeoAutomationController: Logs récupérés', [
