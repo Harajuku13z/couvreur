@@ -605,8 +605,11 @@
         z-index: 5;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
+        overflow-x: hidden;
         padding-right: 1rem;
         margin-right: 0;
+        /* Permettre le scroll fluide */
+        -webkit-overflow-scrolling: touch;
     }
     
     /* Style pour le scroll de la sidebar */

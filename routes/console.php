@@ -34,24 +34,37 @@ Schedule::command('sitemap:generate-daily')
     ->runInBackground();
 
 // Automatisation SEO : génération d'articles quotidiens pour les villes favorites
-// NOTE: Cette tâche est maintenant exécutée via HTTP (route /schedule/run) pour Hostinger
-// Le système utilise un cron HTTP au lieu du scheduler Laravel
-// Configuration: Configurez un cron dans Hostinger qui appelle /schedule/run?token=XXX
+// NOTE: Le système peut être exécuté via HTTP (route /schedule/run) OU via le scheduler Laravel
+// Si le cron HTTP n'est pas configuré, le scheduler Laravel prendra le relais
+// Configuration HTTP: Configurez un cron dans Hostinger qui appelle /schedule/run?token=XXX
+// Configuration Laravel: Le scheduler Laravel s'exécute automatiquement si configuré
 // L'intervalle d'exécution est configurable dans l'admin (par défaut: 1 minute)
-// 
-// Ancien code (désactivé - utilise maintenant HTTP):
-// $cronInterval = (int)\App\Models\Setting::get('seo_automation_cron_interval', 1);
-// $cronInterval = max(1, min(60, $cronInterval));
-// $schedule = Schedule::command('seo:run-automations')
-//     ->name('seo-run-automations')
-//     ->withoutOverlapping()
-//     ->onOneServer()
-//     ->runInBackground();
-// if ($cronInterval === 1) {
-//     $schedule->everyMinute();
-// } else {
-//     $schedule->everyXMinutes($cronInterval);
-// }
-// $schedule->when(function () {
-//     // ... vérifications ...
-// });
+
+$cronInterval = (int)\App\Models\Setting::get('seo_automation_cron_interval', 1);
+$cronInterval = max(1, min(60, $cronInterval));
+
+$schedule = Schedule::command('seo:run-automations')
+    ->name('seo-run-automations')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Configurer la fréquence selon l'intervalle
+if ($cronInterval === 1) {
+    $schedule->everyMinute();
+} else {
+    $schedule->everyXMinutes($cronInterval);
+}
+
+// Vérifier que l'automatisation est activée et qu'il y a des villes favorites
+$schedule->when(function () {
+    $automationEnabled = \App\Models\Setting::get('seo_automation_enabled', true);
+    $automationEnabled = filter_var($automationEnabled, FILTER_VALIDATE_BOOLEAN);
+    
+    if (!$automationEnabled) {
+        return false;
+    }
+    
+    $favoriteCitiesCount = \App\Models\City::where('is_favorite', true)->count();
+    
+    return $favoriteCitiesCount > 0;
+});
