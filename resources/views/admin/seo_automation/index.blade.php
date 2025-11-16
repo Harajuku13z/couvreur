@@ -936,6 +936,12 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $log->created_at->format('d/m/Y H:i') }}
+                        @if($log->status === 'failed' && $log->error_message)
+                            <div class="mt-1 text-xs text-red-600">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <span class="font-semibold">Erreur:</span> {{ Str::limit($log->error_message, 80) }}
+                            </div>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
@@ -1119,8 +1125,14 @@
             </div>
             
             @if($log->error_message)
-                <div class="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                    <i class="fas fa-exclamation-triangle mr-1"></i> {{ $log->error_message }}
+                <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-red-600 mr-2 mt-0.5"></i>
+                        <div class="flex-1">
+                            <div class="font-semibold text-red-800 text-sm mb-1">Raison de l'échec :</div>
+                            <div class="text-red-700 text-sm">{{ $log->error_message }}</div>
+                        </div>
+                    </div>
                 </div>
             @endif
         </div>
