@@ -22,6 +22,34 @@ class GptSeoGenerator
     }
     
     /**
+     * Nettoie les données pour éviter les erreurs UTF-8 malformées
+     */
+    protected function cleanUtf8($data)
+    {
+        if (is_array($data)) {
+            return array_map([$this, 'cleanUtf8'], $data);
+        } elseif (is_string($data)) {
+            // Supprimer les caractères UTF-8 invalides
+            $cleaned = mb_convert_encoding($data, 'UTF-8', 'UTF-8');
+            // Supprimer les caractères de contrôle non valides (sauf \n, \r, \t)
+            $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $cleaned);
+            // Vérifier que c'est bien de l'UTF-8 valide
+            if (!mb_check_encoding($cleaned, 'UTF-8')) {
+                // Si toujours invalide, utiliser iconv avec ignore
+                $cleaned = @iconv('UTF-8', 'UTF-8//IGNORE', $data);
+                if ($cleaned === false) {
+                    // Dernier recours : supprimer tous les caractères non-ASCII problématiques
+                    $cleaned = preg_replace('/[^\x20-\x7E\x0A\x0D\x09]/', '', $data);
+                }
+            }
+            return $cleaned;
+        } elseif (is_object($data)) {
+            return $this->cleanUtf8((array)$data);
+        }
+        return $data;
+    }
+    
+    /**
      * Générer un article SEO complet optimisé avec score 95%+
      */
     public function generateSeoArticle($keyword, $city, $serpResults = [], $keywordImages = [])
@@ -61,6 +89,12 @@ class GptSeoGenerator
             // Étape 6 : Générer le slug optimisé
             $slug = $this->generateOptimizedSlug($titre, $keyword);
             
+            // Nettoyer toutes les données UTF-8 avant retour
+            $titre = $this->cleanUtf8($titre);
+            $metaDescription = $this->cleanUtf8($metaDescription);
+            $contenuHtml = $this->cleanUtf8($contenuHtml);
+            $metaKeywords = $this->cleanUtf8($metaKeywords);
+            
             Log::info('Article généré avec succès', [
                 'seo_score' => $seoScore,
                 'word_count' => str_word_count(strip_tags($contenuHtml)),
@@ -68,7 +102,7 @@ class GptSeoGenerator
                 'meta_length' => strlen($metaDescription)
             ]);
             
-            return [
+            $result = [
                 'titre' => $titre,
                 'slug' => $slug,
                 'meta_description' => $metaDescription,
@@ -80,6 +114,9 @@ class GptSeoGenerator
                 'semantic_keywords' => $semanticAnalysis['related_keywords'] ?? [],
                 'word_count' => str_word_count(strip_tags($contenuHtml))
             ];
+            
+            // Nettoyer le résultat complet avant retour
+            return $this->cleanUtf8($result);
             
         } catch (\Exception $e) {
             Log::error('Erreur génération article SEO', [
@@ -370,6 +407,9 @@ EOT;
         
         $titre = trim($result['content'] ?? '');
         $titre = trim($titre, '"\'');
+        
+        // Nettoyer UTF-8 immédiatement
+        $titre = $this->cleanUtf8($titre);
         
         // Fallback optimisé
         if (empty($titre)) {
