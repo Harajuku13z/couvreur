@@ -525,6 +525,7 @@ EOT;
         ]);
         
         $metaDescription = trim($result['content'] ?? '');
+        $metaDescription = $this->cleanUtf8($metaDescription);
         $metaDescription = trim($metaDescription, '"\'');
         
         // Fallback optimisé
@@ -610,6 +611,7 @@ EOT;
             ]);
             
             $keywordsString = trim($result['content'] ?? '');
+            $keywordsString = $this->cleanUtf8($keywordsString);
             
             // Nettoyer la réponse
             $keywordsString = trim($keywordsString, '"\'');
@@ -771,6 +773,7 @@ EOT;
         }
         
         $contenuHtml = trim($result['content'] ?? '');
+        $contenuHtml = $this->cleanUtf8($contenuHtml);
         
         Log::info('GptSeoGenerator: Contenu brut reçu', [
             'length' => strlen($contenuHtml),
