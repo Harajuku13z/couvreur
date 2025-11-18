@@ -147,7 +147,7 @@ class SeoArticleScheduler
         
         // Si on est passé l'heure prévue, permettre la création si :
         // 1. On n'a pas atteint le quota
-        // 2. On est dans une fenêtre raisonnable (max 2 heures après l'heure prévue)
+        // 2. On est dans une fenêtre raisonnable (max 4 heures après l'heure prévue pour gérer les retards de Hostinger)
         // 3. On est toujours dans la période de travail (12h après le début)
         if ($nextTime->isPast()) {
             // Calculer l'heure de fin de la période de travail
@@ -165,15 +165,16 @@ class SeoArticleScheduler
             
             // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
             if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
-                // Permettre la création si on est dans une fenêtre de 2 heures après l'heure prévue
-                return $diffMinutes <= 120; // 2 heures de marge
+                // Permettre la création si on est dans une fenêtre de 4 heures après l'heure prévue
+                // (augmenté de 2h à 4h pour mieux gérer les retards de Hostinger)
+                return $diffMinutes <= 240; // 4 heures de marge
             }
             
             return false;
         }
         
-        // Si on est avant l'heure, vérifier qu'on est proche (15 minutes avant max)
-        return $diffMinutes <= 15;
+        // Si on est avant l'heure, vérifier qu'on est proche (30 minutes avant max pour gérer les avances)
+        return $diffMinutes <= 30;
     }
     
     /**
@@ -424,12 +425,56 @@ class SeoArticleScheduler
             $cityIndex = ($startCityIndex + $i) % $citiesCount;
             $city = $cities[$cityIndex];
             
-            // Vérifier si un article a déjà été créé à cette heure pour cette ville
-            $articleCreated = \App\Models\Article::where('city_id', $city->id)
+            // Vérifier si un article a déjà été créé à cette heure
+            // Fenêtre élargie à ±30 minutes pour gérer les retards de Hostinger
+            $windowStart = $currentTime->copy()->subMinutes(30);
+            $windowEnd = $currentTime->copy()->addMinutes(30);
+            
+            // Vérifier d'abord si un article a été créé pour cette ville dans cette fenêtre
+            $articleCreatedForCity = \App\Models\Article::where('city_id', $city->id)
                 ->whereDate('created_at', today())
-                ->whereTime('created_at', '>=', $currentTime->copy()->subMinutes(5))
-                ->whereTime('created_at', '<=', $currentTime->copy()->addMinutes(5))
+                ->where('created_at', '>=', $windowStart)
+                ->where('created_at', '<=', $windowEnd)
                 ->exists();
+            
+            // Si pas d'article pour cette ville, vérifier s'il y a un article créé dans cette fenêtre
+            // (peut arriver si la rotation a changé ou si le système a créé un article pour une autre ville)
+            $articleCreated = $articleCreatedForCity;
+            if (!$articleCreated) {
+                $articleCreated = \App\Models\Article::whereDate('created_at', today())
+                    ->where('created_at', '>=', $windowStart)
+                    ->where('created_at', '<=', $windowEnd)
+                    ->exists();
+            }
+            
+            // Si pas d'article créé et que c'est dans le passé, vérifier les erreurs
+            $errorMessage = null;
+            if (!$articleCreated && $currentTime->isPast()) {
+                // Vérifier s'il y a des logs d'erreur pour cette ville dans cette fenêtre
+                $errorLog = \App\Models\SeoAutomation::where('city_id', $city->id)
+                    ->whereDate('created_at', today())
+                    ->where('created_at', '>=', $windowStart)
+                    ->where('created_at', '<=', $windowEnd)
+                    ->where('status', 'failed')
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                if ($errorLog) {
+                    $errorMessage = $errorLog->error_message ?? 'Erreur inconnue';
+                } else {
+                    // Vérifier s'il y a des erreurs générales dans cette fenêtre (peu importe la ville)
+                    $generalErrorLog = \App\Models\SeoAutomation::whereDate('created_at', today())
+                        ->where('created_at', '>=', $windowStart)
+                        ->where('created_at', '<=', $windowEnd)
+                        ->where('status', 'failed')
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    
+                    if ($generalErrorLog) {
+                        $errorMessage = $generalErrorLog->error_message ?? 'Erreur inconnue';
+                    }
+                }
+            }
             
             $scheduledTimes[] = [
                 'time' => $currentTime->format('H:i'),
@@ -443,6 +488,7 @@ class SeoArticleScheduler
                 ],
                 'city_index' => $cityIndex + 1,
                 'article_created' => $articleCreated,
+                'error_message' => $errorMessage,
             ];
             $currentTime->addMinutes($intervalMinutes);
         }

@@ -71,9 +71,21 @@
                         </div>
                         @endif
                         @if($schedule['is_past'] && !($schedule['article_created'] ?? false))
-                        <div class="mt-2 text-xs text-red-600 flex items-center">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            <span>Aucun article généré à cette heure</span>
+                        <div class="mt-2 text-xs text-red-600">
+                            <div class="flex items-center mb-1">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <span>Aucun article généré à cette heure</span>
+                            </div>
+                            @if(isset($schedule['error_message']) && !empty($schedule['error_message']))
+                            <div class="mt-1 p-2 bg-red-100 rounded border border-red-300">
+                                <div class="font-semibold text-red-800 mb-1">Erreur :</div>
+                                <div class="text-red-700 break-words">{{ $schedule['error_message'] }}</div>
+                            </div>
+                            @else
+                            <div class="mt-1 text-red-500 italic">
+                                Raison possible : Le cron Hostinger n'a pas été exécuté à temps ou a échoué silencieusement.
+                            </div>
+                            @endif
                         </div>
                         @endif
                     </div>

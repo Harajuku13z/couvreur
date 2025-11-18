@@ -99,12 +99,75 @@ class DiagnoseSeoScheduler extends Command
             $this->line('Le scheduler se déclenchera automatiquement quand toutes les conditions seront remplies.');
         }
         
-        // 5. Informations supplémentaires
+        // 5. Vérifier le scheduler et les horaires planifiés
+        $this->line('');
+        $this->info('📅 Vérification du scheduler :');
+        
+        $scheduler = app(\App\Services\SeoArticleScheduler::class);
+        $scheduleStats = $scheduler->getScheduleStats();
+        $nextTime = $scheduler->getNextScheduledTime();
+        $shouldCreate = $scheduler->shouldCreateArticle();
+        
+        $this->line('   - Articles aujourd\'hui : ' . ($scheduleStats['articles_today'] ?? 0) . '/' . ($scheduleStats['total_articles_per_day'] ?? 0));
+        $this->line('   - Prochain créneau : ' . ($scheduleStats['next_scheduled_time'] ?? 'N/A'));
+        $this->line('   - Doit créer maintenant : ' . ($shouldCreate ? '✅ OUI' : '❌ NON'));
+        
+        if ($nextTime) {
+            $diffMinutes = abs(now()->diffInMinutes($nextTime));
+            $this->line('   - Différence avec maintenant : ' . $diffMinutes . ' minutes');
+        }
+        
+        // 6. Vérifier les articles créés aujourd'hui
+        $this->line('');
+        $this->info('📝 Articles créés aujourd\'hui :');
+        $articlesToday = \App\Models\Article::whereDate('created_at', today())
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        if ($articlesToday->count() > 0) {
+            foreach ($articlesToday as $article) {
+                $cityName = $article->city ? $article->city->name : 'N/A';
+                $this->line('   - ' . $article->created_at->format('H:i') . ' : ' . $cityName . ' (ID: ' . $article->id . ')');
+            }
+        } else {
+            $this->warn('   - Aucun article créé aujourd\'hui');
+        }
+        
+        // 7. Vérifier les erreurs récentes
+        $this->line('');
+        $this->info('❌ Erreurs récentes (dernières 24h) :');
+        $recentErrors = \App\Models\SeoAutomation::where('status', 'failed')
+            ->where('created_at', '>=', now()->subDay())
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        if ($recentErrors->count() > 0) {
+            foreach ($recentErrors as $error) {
+                $cityName = $error->city ? $error->city->name : 'N/A';
+                $errorMsg = substr($error->error_message ?? 'Erreur inconnue', 0, 80);
+                $this->line('   - ' . $error->created_at->format('Y-m-d H:i') . ' : ' . $cityName);
+                $this->line('     → ' . $errorMsg);
+            }
+        } else {
+            $this->info('   ✅ Aucune erreur récente');
+        }
+        
+        // 8. Informations supplémentaires
         $this->line('');
         $this->info('ℹ️  Informations supplémentaires :');
-        $articlesPerCity = (int)Setting::where('key', 'seo_automation_articles_per_city')->value('value') ?: 1;
-        $this->line('   - Articles par ville : ' . $articlesPerCity);
+        $articlesPerDay = (int)Setting::where('key', 'seo_automation_articles_per_day')->value('value') ?: 5;
+        $this->line('   - Articles par jour par ville : ' . $articlesPerDay);
+        $this->line('   - Intervalle entre articles : ' . ($scheduleStats['interval_minutes'] ?? 0) . ' minutes');
         $this->line('   - Prochaine exécution prévue : ' . ($currentTime < $automationTime ? 'Aujourd\'hui à ' . $automationTime : 'Demain à ' . $automationTime));
+        
+        // 9. Commandes de test
+        $this->line('');
+        $this->info('🧪 Commandes de test :');
+        $this->line('   - Tester maintenant (force) : php artisan seo:run-automations --force');
+        $this->line('   - Vérifier le scheduler : php artisan schedule:run');
+        $this->line('   - Voir les tâches planifiées : php artisan schedule:list');
         
         return 0;
     }
