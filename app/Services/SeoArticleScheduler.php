@@ -135,24 +135,9 @@ class SeoArticleScheduler
             return $diffMinutes <= 60;
         }
         
-        // Vérifier si un article a déjà été créé récemment (dans les 2 dernières minutes)
-        // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
-        // Réduit de 5 à 2 minutes pour être plus tolérant
-        $recentArticle = \App\Models\Article::whereDate('created_at', today())
-            ->where('created_at', '>=', now()->subMinutes(2))
-            ->exists();
-        
-        if ($recentArticle) {
-            Log::info('SeoArticleScheduler: Article créé récemment, skip', [
-                'next_time' => $nextTime->format('H:i'),
-                'current_time' => $now->format('H:i')
-            ]);
-            return false; // Un article vient d'être créé, attendre un peu
-        }
-        
         // Si on est passé l'heure prévue, permettre la création si :
         // 1. On n'a pas atteint le quota
-        // 2. On est dans une fenêtre raisonnable (max 4 heures après l'heure prévue pour gérer les retards de Hostinger)
+        // 2. On est dans une fenêtre raisonnable (max 6 heures après l'heure prévue pour gérer les retards de Hostinger)
         // 3. On est toujours dans la période de travail (12h après le début)
         if ($nextTime->isPast()) {
             // Calculer l'heure de fin de la période de travail
@@ -170,11 +155,33 @@ class SeoArticleScheduler
             
             // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
             if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
+                // Vérifier d'abord si un article a été créé récemment (dans les 2 dernières minutes)
+                // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
+                $recentArticle = \App\Models\Article::whereDate('created_at', today())
+                    ->where('created_at', '>=', now()->subMinutes(2))
+                    ->exists();
+                
+                if ($recentArticle) {
+                    Log::info('SeoArticleScheduler: Article créé récemment, skip', [
+                        'next_time' => $nextTime->format('H:i'),
+                        'current_time' => $now->format('H:i')
+                    ]);
+                    return false; // Un article vient d'être créé, attendre un peu
+                }
+                
                 // Permettre la création si on est dans une fenêtre de 6 heures après l'heure prévue
                 // (augmenté à 6h pour mieux gérer les retards importants de Hostinger)
                 $allowed = $diffMinutes <= 360; // 6 heures de marge
                 
-                if (!$allowed) {
+                if ($allowed) {
+                    Log::info('SeoArticleScheduler: Création autorisée - créneau passé', [
+                        'next_time' => $nextTime->format('H:i'),
+                        'current_time' => $now->format('H:i'),
+                        'diff_minutes' => $diffMinutes,
+                        'articles_today' => $articlesToday,
+                        'total_per_day' => $totalArticlesPerDay
+                    ]);
+                } else {
                     Log::info('SeoArticleScheduler: Heure prévue dépassée de plus de 6h', [
                         'next_time' => $nextTime->format('H:i'),
                         'current_time' => $now->format('H:i'),
@@ -200,6 +207,12 @@ class SeoArticleScheduler
         }
         
         // Si on est avant l'heure, vérifier qu'on est proche (30 minutes avant max pour gérer les avances)
+        // Mais aussi permettre si on est très proche (5 minutes avant)
+        if ($diffMinutes <= 5) {
+            // Permettre la création 5 minutes avant l'heure prévue
+            return true;
+        }
+        
         return $diffMinutes <= 30;
     }
     
