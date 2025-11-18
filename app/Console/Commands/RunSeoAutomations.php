@@ -56,10 +56,33 @@ class RunSeoAutomations extends Command
         // Vérifier si c'est le moment de créer un article (sauf si --force)
         if (!$force && !$scheduler->shouldCreateArticle()) {
             $stats = $scheduler->getScheduleStats();
+            $nextTime = $scheduler->getNextScheduledTime();
+            $now = now();
+            
             $this->info("⏰ Pas encore le moment de créer un article.");
             $this->info("   Prochain créneau : " . ($stats['next_scheduled_time'] ?? 'N/A'));
             $this->info("   Articles aujourd'hui : {$stats['articles_today']}/{$stats['total_articles_per_day']}");
+            $this->info("   Heure actuelle : " . $now->format('H:i'));
+            
+            if ($nextTime) {
+                $isPast = $nextTime->isPast();
+                $diffMinutes = abs($now->diffInMinutes($nextTime));
+                $this->info("   Créneau dans le passé : " . ($isPast ? 'OUI' : 'NON'));
+                $this->info("   Différence : {$diffMinutes} minutes");
+            }
+            
             $this->info("   Utilisez --force pour forcer la création maintenant.");
+            
+            // Logger pour debug
+            \Illuminate\Support\Facades\Log::info('RunSeoAutomations: Création refusée', [
+                'next_time' => $nextTime ? $nextTime->format('H:i') : 'N/A',
+                'current_time' => $now->format('H:i'),
+                'is_past' => $nextTime ? $nextTime->isPast() : false,
+                'diff_minutes' => $nextTime ? abs($now->diffInMinutes($nextTime)) : 0,
+                'articles_today' => $stats['articles_today'],
+                'total_per_day' => $stats['total_articles_per_day']
+            ]);
+            
             return 0;
         }
         

@@ -50,6 +50,10 @@ class SeoArticleScheduler
             // Prochain créneau = dernier article + intervalle
             $nextTime = $lastArticle->created_at->copy()->addMinutes($intervalMinutes);
             
+            // Si le prochain créneau est dans le passé, on doit quand même le retourner
+            // pour que shouldCreateArticle() puisse détecter qu'un créneau a été manqué
+            // On ne recalcule pas pour éviter de sauter des créneaux
+            
             // S'assurer qu'on ne dépasse pas l'heure de fin
             if ($nextTime->hour > $endHour || ($nextTime->hour == $endHour && $nextTime->minute > 0)) {
                 // Si on dépasse l'heure de fin, commencer demain à l'heure de début
@@ -59,6 +63,20 @@ class SeoArticleScheduler
             // S'assurer qu'on ne commence pas avant l'heure de début
             if ($nextTime->hour < $startHour || ($nextTime->hour == $startHour && $nextTime->minute < $startMinute)) {
                 $nextTime->setTime($startHour, $startMinute);
+            }
+            
+            // Si le créneau calculé est dans le passé ET qu'on est encore dans la période de travail,
+            // retourner ce créneau pour permettre la création
+            $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
+            if ($nextTime->isPast() && now()->isBefore($endTime)) {
+                // Le créneau est passé mais on est encore dans la période de travail
+                // Retourner ce créneau pour permettre la création
+                Log::info('SeoArticleScheduler: Créneau passé détecté dans getNextScheduledTime', [
+                    'next_time' => $nextTime->format('H:i'),
+                    'current_time' => now()->format('H:i'),
+                    'last_article_time' => $lastArticle->created_at->format('H:i')
+                ]);
+                return $nextTime;
             }
         } else {
             // Premier article de la journée : à l'heure de début configurée
@@ -113,6 +131,15 @@ class SeoArticleScheduler
         $now = now();
         $diffMinutes = abs($now->diffInMinutes($nextTime));
         
+        // DEBUG: Logger les valeurs pour comprendre
+        Log::info('SeoArticleScheduler: shouldCreateArticle - Début vérification', [
+            'next_time' => $nextTime->format('H:i'),
+            'current_time' => $now->format('H:i'),
+            'is_past' => $nextTime->isPast(),
+            'diff_minutes' => $diffMinutes,
+            'ignore_quota' => $ignoreQuota
+        ]);
+        
         // Si on ignore le quota, permettre la création sans restriction de période ni d'heure
         if ($ignoreQuota) {
             // Vérifier si un article a déjà été créé récemment (dans les 1 minute seulement)
@@ -152,6 +179,16 @@ class SeoArticleScheduler
             $citiesCount = City::where('is_favorite', true)->count();
             $totalArticlesPerDay = $articlesPerDay * $citiesCount;
             $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+            
+            Log::info('SeoArticleScheduler: Créneau passé - Vérification conditions', [
+                'next_time' => $nextTime->format('H:i'),
+                'current_time' => $now->format('H:i'),
+                'end_time' => $endTime->format('H:i'),
+                'is_before_end' => $now->isBefore($endTime),
+                'articles_today' => $articlesToday,
+                'total_per_day' => $totalArticlesPerDay,
+                'quota_ok' => $articlesToday < $totalArticlesPerDay
+            ]);
             
             // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
             if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
