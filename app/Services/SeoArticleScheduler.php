@@ -135,13 +135,18 @@ class SeoArticleScheduler
             return $diffMinutes <= 60;
         }
         
-        // Vérifier si un article a déjà été créé récemment (dans les 5 dernières minutes)
+        // Vérifier si un article a déjà été créé récemment (dans les 2 dernières minutes)
         // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
+        // Réduit de 5 à 2 minutes pour être plus tolérant
         $recentArticle = \App\Models\Article::whereDate('created_at', today())
-            ->where('created_at', '>=', now()->subMinutes(5))
+            ->where('created_at', '>=', now()->subMinutes(2))
             ->exists();
         
         if ($recentArticle) {
+            Log::info('SeoArticleScheduler: Article créé récemment, skip', [
+                'next_time' => $nextTime->format('H:i'),
+                'current_time' => $now->format('H:i')
+            ]);
             return false; // Un article vient d'être créé, attendre un peu
         }
         
@@ -165,10 +170,31 @@ class SeoArticleScheduler
             
             // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
             if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
-                // Permettre la création si on est dans une fenêtre de 4 heures après l'heure prévue
-                // (augmenté de 2h à 4h pour mieux gérer les retards de Hostinger)
-                return $diffMinutes <= 240; // 4 heures de marge
+                // Permettre la création si on est dans une fenêtre de 6 heures après l'heure prévue
+                // (augmenté à 6h pour mieux gérer les retards importants de Hostinger)
+                $allowed = $diffMinutes <= 360; // 6 heures de marge
+                
+                if (!$allowed) {
+                    Log::info('SeoArticleScheduler: Heure prévue dépassée de plus de 6h', [
+                        'next_time' => $nextTime->format('H:i'),
+                        'current_time' => $now->format('H:i'),
+                        'diff_minutes' => $diffMinutes,
+                        'articles_today' => $articlesToday,
+                        'total_per_day' => $totalArticlesPerDay
+                    ]);
+                }
+                
+                return $allowed;
             }
+            
+            Log::info('SeoArticleScheduler: Période de travail terminée ou quota atteint', [
+                'next_time' => $nextTime->format('H:i'),
+                'current_time' => $now->format('H:i'),
+                'end_time' => $endTime->format('H:i'),
+                'articles_today' => $articlesToday,
+                'total_per_day' => $totalArticlesPerDay,
+                'is_before_end' => $now->isBefore($endTime)
+            ]);
             
             return false;
         }

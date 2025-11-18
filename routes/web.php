@@ -541,6 +541,16 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
         
         // Vérifier si c'est le moment de créer un article
         if (!$scheduler->shouldCreateArticle()) {
+            // Logger pourquoi l'article n'est pas créé pour le debug
+            \Illuminate\Support\Facades\Log::info('Schedule HTTP: Article non créé - Conditions non remplies', [
+                'next_scheduled_time' => $nextTimeStr,
+                'current_time' => $now->format('H:i'),
+                'articles_today' => $scheduleStats['articles_today'] ?? 0,
+                'total_articles_per_day' => $scheduleStats['total_articles_per_day'] ?? 0,
+                'remaining_today' => $scheduleStats['remaining_today'] ?? 0,
+                'should_create_now' => $scheduleStats['should_create_now'] ?? false,
+            ]);
+            
             return response()->json([
                 'status' => 'skipped',
                 'message' => "Ce n'est pas encore le moment de créer un article. Prochain créneau: {$nextTimeStr}",
@@ -559,9 +569,22 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
         // Enregistrer le timestamp de cette exécution
         \App\Models\Setting::set($lastExecutionKey, $now->toDateTimeString(), 'string', 'seo');
         
+        // Logger le début de l'exécution
+        \Illuminate\Support\Facades\Log::info('Schedule HTTP: Début création article', [
+            'current_time' => $now->format('H:i'),
+            'next_scheduled_time' => $nextTimeStr,
+            'articles_today' => $scheduleStats['articles_today'] ?? 0,
+        ]);
+        
         // Exécuter la commande seo:run-automations
         $exitCode = \Artisan::call('seo:run-automations');
         $output = \Artisan::output();
+        
+        // Logger le résultat
+        \Illuminate\Support\Facades\Log::info('Schedule HTTP: Résultat exécution', [
+            'exit_code' => $exitCode,
+            'output_preview' => substr($output, 0, 200),
+        ]);
         
         $executionTime = round(microtime(true) - $startTime, 2);
         

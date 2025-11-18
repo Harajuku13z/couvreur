@@ -49,10 +49,21 @@ $schedule = Schedule::command('seo:run-automations')
     ->runInBackground();
 
 // Configurer la fréquence selon l'intervalle
+// Laravel ne supporte pas everyXMinutes(), on utilise cron() pour les intervalles personnalisés
 if ($cronInterval === 1) {
     $schedule->everyMinute();
+} elseif ($cronInterval === 5) {
+    $schedule->everyFiveMinutes();
+} elseif ($cronInterval === 10) {
+    $schedule->everyTenMinutes();
+} elseif ($cronInterval === 15) {
+    $schedule->everyFifteenMinutes();
+} elseif ($cronInterval === 30) {
+    $schedule->everyThirtyMinutes();
 } else {
-    $schedule->everyXMinutes($cronInterval);
+    // Pour les autres intervalles, utiliser une expression cron
+    // Exemple: */X * * * * signifie toutes les X minutes
+    $schedule->cron("*/{$cronInterval} * * * *");
 }
 
 // Vérifier que l'automatisation est activée et qu'il y a des villes favorites
