@@ -55,15 +55,31 @@ class SeoArticleScheduler
             // Prochain créneau = dernier article + intervalle
             $nextTime = $lastArticle->created_at->copy()->addMinutes($intervalMinutes);
             
+            // IMPORTANT: Vérifier qu'au moins l'intervalle minimum s'est écoulé depuis le dernier article
+            // pour éviter de créer plusieurs articles trop rapidement
+            $minutesSinceLastArticle = $now->diffInMinutes($lastArticle->created_at);
+            
+            // Si moins de l'intervalle minimum s'est écoulé, retourner le prochain créneau futur
+            if ($minutesSinceLastArticle < $intervalMinutes) {
+                // Un article vient d'être créé, retourner le prochain créneau (qui sera dans le futur)
+                Log::info('SeoArticleScheduler: Article créé récemment, prochain créneau dans le futur', [
+                    'last_article_time' => $lastArticle->created_at->format('H:i'),
+                    'next_time' => $nextTime->format('H:i'),
+                    'minutes_since_last' => $minutesSinceLastArticle,
+                    'interval_minutes' => $intervalMinutes
+                ]);
+                return $nextTime;
+            }
+            
             // Si le créneau calculé est dans le passé ET qu'on est encore dans la période de travail,
-            // retourner ce créneau pour permettre la création
+            // retourner ce créneau pour permettre la création (mais seulement si l'intervalle minimum est respecté)
             if ($nextTime->isPast() && $nextTime->isToday() && $now->isBefore($endTime)) {
                 Log::info('SeoArticleScheduler: Créneau passé détecté (aujourd\'hui)', [
                     'next_time' => $nextTime->format('Y-m-d H:i:s'),
                     'current_time' => $now->format('Y-m-d H:i:s'),
                     'last_article_time' => $lastArticle->created_at->format('Y-m-d H:i:s'),
-                    'is_today' => $nextTime->isToday(),
-                    'is_past' => $nextTime->isPast()
+                    'minutes_since_last' => $minutesSinceLastArticle,
+                    'interval_minutes' => $intervalMinutes
                 ]);
                 return $nextTime;
             }
@@ -228,18 +244,26 @@ class SeoArticleScheduler
             
             // Si on est encore dans la période de travail et qu'on n'a pas atteint le quota
             if ($now->isBefore($endTime) && $articlesToday < $totalArticlesPerDay) {
-                // Vérifier d'abord si un article a été créé récemment (dans les 2 dernières minutes)
+                // Calculer l'intervalle minimum entre les articles
+                $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
+                $citiesCount = City::where('is_favorite', true)->count();
+                $totalArticlesPerDay = $articlesPerDay * $citiesCount;
+                $workingHours = 12 * 60; // 720 minutes
+                $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
+                
+                // Vérifier si un article a été créé récemment (dans l'intervalle minimum)
                 // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
                 $recentArticle = \App\Models\Article::whereDate('created_at', today())
-                    ->where('created_at', '>=', now()->subMinutes(2))
+                    ->where('created_at', '>=', now()->subMinutes($intervalMinutes))
                     ->exists();
                 
                 if ($recentArticle) {
-                    Log::info('SeoArticleScheduler: Article créé récemment, skip', [
+                    Log::info('SeoArticleScheduler: Article créé récemment, skip (intervalle minimum non respecté)', [
                         'next_time' => $nextTime->format('H:i'),
-                        'current_time' => $now->format('H:i')
+                        'current_time' => $now->format('H:i'),
+                        'interval_minutes' => $intervalMinutes
                     ]);
-                    return false; // Un article vient d'être créé, attendre un peu
+                    return false; // Un article vient d'être créé, attendre l'intervalle minimum
                 }
                 
                 // Permettre la création si on est dans une fenêtre de 6 heures après l'heure prévue
