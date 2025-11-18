@@ -46,37 +46,73 @@ class SeoArticleScheduler
             ->orderBy('created_at', 'desc')
             ->first();
         
+        // Calculer l'heure de fin de la période de travail
+        $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
+        $now = now();
+        $firstCreneau = Carbon::today()->setTime($startHour, $startMinute);
+        
         if ($lastArticle) {
             // Prochain créneau = dernier article + intervalle
             $nextTime = $lastArticle->created_at->copy()->addMinutes($intervalMinutes);
             
-            // Si le prochain créneau est dans le passé, on doit quand même le retourner
-            // pour que shouldCreateArticle() puisse détecter qu'un créneau a été manqué
-            // On ne recalcule pas pour éviter de sauter des créneaux
+            // Si le créneau calculé est dans le passé ET qu'on est encore dans la période de travail,
+            // retourner ce créneau pour permettre la création
+            if ($nextTime->isPast() && $nextTime->isToday() && $now->isBefore($endTime)) {
+                Log::info('SeoArticleScheduler: Créneau passé détecté (aujourd\'hui)', [
+                    'next_time' => $nextTime->format('Y-m-d H:i:s'),
+                    'current_time' => $now->format('Y-m-d H:i:s'),
+                    'last_article_time' => $lastArticle->created_at->format('Y-m-d H:i:s'),
+                    'is_today' => $nextTime->isToday(),
+                    'is_past' => $nextTime->isPast()
+                ]);
+                return $nextTime;
+            }
+            
+            // Si le créneau calculé est demain ou après-demain, trouver le dernier créneau manqué aujourd'hui
+            if (!$nextTime->isToday() || ($nextTime->isFuture() && $now->isBefore($endTime))) {
+                // Calculer tous les créneaux prévus aujourd'hui depuis le début
+                $currentCreneau = $firstCreneau->copy();
+                $lastMissedCreneau = null;
+                
+                // Trouver le dernier créneau qui devrait avoir été créé
+                while ($currentCreneau->isBefore($endTime) && $currentCreneau->isBefore($now)) {
+                    $lastMissedCreneau = $currentCreneau->copy();
+                    $currentCreneau->addMinutes($intervalMinutes);
+                }
+                
+                if ($lastMissedCreneau && $now->isBefore($endTime)) {
+                    Log::info('SeoArticleScheduler: Créneau manqué trouvé (calcul)', [
+                        'creneau' => $lastMissedCreneau->format('Y-m-d H:i:s'),
+                        'current_time' => $now->format('Y-m-d H:i:s'),
+                        'next_calculated' => $nextTime->format('Y-m-d H:i:s')
+                    ]);
+                    return $lastMissedCreneau;
+                }
+            }
             
             // S'assurer qu'on ne dépasse pas l'heure de fin
             if ($nextTime->hour > $endHour || ($nextTime->hour == $endHour && $nextTime->minute > 0)) {
-                // Si on dépasse l'heure de fin, commencer demain à l'heure de début
+                // Si on dépasse l'heure de fin mais qu'on est encore dans la période de travail,
+                // trouver le dernier créneau manqué aujourd'hui
+                if ($now->isBefore($endTime)) {
+                    $currentCreneau = $firstCreneau->copy();
+                    $lastMissedCreneau = null;
+                    
+                    while ($currentCreneau->isBefore($endTime) && $currentCreneau->isBefore($now)) {
+                        $lastMissedCreneau = $currentCreneau->copy();
+                        $currentCreneau->addMinutes($intervalMinutes);
+                    }
+                    
+                    if ($lastMissedCreneau) {
+                        return $lastMissedCreneau;
+                    }
+                }
                 $nextTime = Carbon::tomorrow()->setTime($startHour, $startMinute);
             }
             
             // S'assurer qu'on ne commence pas avant l'heure de début
             if ($nextTime->hour < $startHour || ($nextTime->hour == $startHour && $nextTime->minute < $startMinute)) {
                 $nextTime->setTime($startHour, $startMinute);
-            }
-            
-            // Si le créneau calculé est dans le passé ET qu'on est encore dans la période de travail,
-            // retourner ce créneau pour permettre la création
-            $endTime = Carbon::today()->setTime($startHour, $startMinute)->addHours(12);
-            if ($nextTime->isPast() && now()->isBefore($endTime)) {
-                // Le créneau est passé mais on est encore dans la période de travail
-                // Retourner ce créneau pour permettre la création
-                Log::info('SeoArticleScheduler: Créneau passé détecté dans getNextScheduledTime', [
-                    'next_time' => $nextTime->format('H:i'),
-                    'current_time' => now()->format('H:i'),
-                    'last_article_time' => $lastArticle->created_at->format('H:i')
-                ]);
-                return $nextTime;
             }
         } else {
             // Premier article de la journée : à l'heure de début configurée
