@@ -483,7 +483,8 @@ Génère une meta description SEO ULTRA-PERSUASIVE pour maximiser le CTR.
 **Mots-clés connexes à intégrer :** {$this->implodeKeywords($relatedKeywords)}
 
 **Critères STRICTS (Score SEO 95%+) :**
-✅ Longueur : 150-160 caractères EXACTEMENT (optimal pour affichage complet)
+✅ Longueur : 150-160 caractères MAXIMUM (optimal pour affichage complet dans les SERP)
+⚠️ **IMPORTANT : La meta description ne doit JAMAIS dépasser 160 caractères. Si elle dépasse, elle sera tronquée dans les résultats Google.**
 ✅ Mot-clé principal "{$keyword}" dans les 120 premiers caractères
 ✅ Ville "{$city}" mentionnée naturellement
 ✅ 1-2 mots-clés connexes intégrés subtilement
@@ -533,12 +534,26 @@ EOT;
             $metaDescription = "Expert {$keyword} à {$city}. {$companyName} : devis gratuit, artisans certifiés, intervention rapide. Qualité garantie, tarifs transparents.";
         }
         
-        // Optimisation longueur - Google peut afficher jusqu'à 320 caractères maintenant
-        // On ne tronque plus, on laisse Google gérer l'affichage
+        // Optimisation longueur - Limiter à 160 caractères pour un affichage optimal
+        // Google peut afficher jusqu'à 320 caractères mais 160 est le sweet spot pour éviter la troncature
         $currentLength = strlen($metaDescription);
+        if ($currentLength > 160) {
+            // Tronquer intelligemment à 160 caractères (couper sur un espace, pas au milieu d'un mot)
+            $metaDescription = substr($metaDescription, 0, 160);
+            $lastSpace = strrpos($metaDescription, ' ');
+            if ($lastSpace !== false && $lastSpace > 140) {
+                $metaDescription = substr($metaDescription, 0, $lastSpace);
+            }
+            $metaDescription = rtrim($metaDescription) . '...';
+            
+            Log::warning('Meta description tronquée à 160 caractères', [
+                'original_length' => $currentLength,
+                'truncated_length' => strlen($metaDescription)
+            ]);
+        }
         
-        // Ne plus tronquer - laisser le contenu complet
-        // Google peut afficher jusqu'à 320 caractères dans les résultats de recherche
+        // Si la meta description est trop courte (< 140 caractères), enrichir avec un CTA
+        // Note: La troncature à 160 caractères a déjà été effectuée ci-dessus si nécessaire
         if ($currentLength < 140) {
             // Trop court, ajouter CTA si absent
             if (strpos(strtolower($metaDescription), 'devis') === false && 
@@ -578,15 +593,16 @@ Génère 12-15 mots-clés SEO pertinents pour cet article.
 **Entreprise :** {$companyName}
 **Mots-clés connexes identifiés :** {$this->implodeKeywords($topRelatedKeywords)}
 
-**Critères STRICTS :**
-✅ 12-15 mots-clés au total
-✅ Inclure le mot-clé principal "{$keyword}"
-✅ Inclure la ville "{$city}" dans au moins 2-3 variantes
-✅ Inclure 3-5 mots-clés connexes pertinents
+**Critères STRICTS (Score SEO optimal) :**
+✅ 12-15 mots-clés au total (optimal pour SEO)
+✅ Inclure le mot-clé principal "{$keyword}" (obligatoire)
+✅ Inclure la ville "{$city}" dans au moins 2-3 variantes (ex: "{$keyword} {$city}", "expert {$keyword} {$city}")
+✅ Inclure 3-5 mots-clés connexes pertinents de la liste fournie
 ✅ Inclure des variantes locales (ex: "{$keyword} {$city}", "{$keyword} {département}")
-✅ Inclure des mots-clés techniques du secteur (toiture, couverture, isolation, etc.)
-✅ Inclure des mots-clés d'intention (devis, prix, tarif, expert, professionnel)
-✅ Format: liste séparée par des virgules, sans numérotation, sans puces
+✅ Inclure des mots-clés techniques du secteur (toiture, couverture, isolation, rénovation, etc.)
+✅ Inclure des mots-clés d'intention (devis, prix, tarif, expert, professionnel, artisan, certifié)
+✅ Éviter les mots-clés trop génériques ou non pertinents
+✅ Format: liste séparée par des virgules, sans numérotation, sans puces, sans guillemets
 
 **Exemples de format attendu :**
 {$keyword}, {$keyword} {$city}, expert {$keyword}, devis {$keyword}, prix {$keyword}, {$keyword} professionnel, couverture {$city}, toiture {$city}, isolation {$city}
@@ -802,8 +818,19 @@ EOT;
         }
         
         $wordCount = str_word_count(strip_tags($contenuHtml));
-        if ($wordCount < 2500) {
-            Log::warning('Contenu en dessous du minimum recommandé', ['word_count' => $wordCount, 'minimum' => 2500]);
+        if ($wordCount < 2000) {
+            Log::warning('Contenu en dessous du minimum requis (2000 mots)', [
+                'word_count' => $wordCount, 
+                'minimum' => 2000,
+                'recommended' => 2500,
+                'keyword' => $keyword,
+                'city' => $city
+            ]);
+        } else if ($wordCount < 2500) {
+            Log::info('Contenu en dessous du recommandé (2500 mots)', [
+                'word_count' => $wordCount, 
+                'recommended' => 2500
+            ]);
         }
         
         Log::info('Contenu HTML premium généré', [
@@ -988,15 +1015,15 @@ EOT;
         $lowerText = strtolower($text);
         $lowerKeyword = strtolower($keyword);
         
-        // 1. Longueur du contenu (15 points)
+        // 1. Longueur du contenu (15 points) - Minimum 2000 mots requis
         if ($wordCount >= 3000) {
             $score += 15;
         } else if ($wordCount >= 2500) {
             $score += 12;
         } else if ($wordCount >= 2000) {
-            $score += 8;
+            $score += 10; // Augmenté de 8 à 10 pour encourager 2000+ mots
         } else {
-            $score += 5;
+            $score += 3; // Réduit de 5 à 3 pour pénaliser les articles < 2000 mots
         }
         
         // 2. Densité mots-clés (15 points)
@@ -1078,12 +1105,16 @@ EOT;
             $score += 3;
         }
         
-        // 10. Longueur meta description (5 points)
+        // 10. Longueur meta description (5 points) - DOIT être entre 150-160 caractères
         $metaLength = strlen($metaDescription);
         if ($metaLength >= 150 && $metaLength <= 160) {
             $score += 5;
-        } else if ($metaLength >= 140 && $metaLength <= 165) {
+        } else if ($metaLength >= 140 && $metaLength < 150) {
             $score += 3;
+        } else if ($metaLength > 160 && $metaLength <= 165) {
+            $score += 2; // Pénalité pour dépassement
+        } else {
+            $score += 1; // Pénalité forte pour trop court ou trop long
         }
         
         return min($maxScore, $score);
@@ -1129,7 +1160,8 @@ EOT;
         $serpInsights = $this->extractSerpInsights($serpResults);
         $competitorTopics = $serpInsights['topics'] ?? [];
         $commonQuestions = $serpInsights['questions'] ?? [];
-        $targetWordCount = $semanticAnalysis['content_depth_required'] ?? 2200;
+        // FORCER un minimum de 2000 mots pour un bon score SEO
+        $targetWordCount = max(2000, $semanticAnalysis['content_depth_required'] ?? 2200);
         $competitorGaps = $semanticAnalysis['competitor_weaknesses'] ?? [];
         $relatedKeywords = $semanticAnalysis['related_keywords'] ?? [];
         $userIntent = $semanticAnalysis['user_intent'] ?? 'informational';
@@ -1154,7 +1186,8 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 **Localisation :** {$city}
 **Entreprise :** {$companyName}
 **Intention utilisateur :** {$userIntent}
-**Objectif longueur :** {$targetWordCount}+ mots
+**Objectif longueur :** MINIMUM {$targetWordCount} mots (idéalement 2500-3500 mots pour un score SEO optimal)
+**⚠️ CRITIQUE : L'article DOIT faire au minimum 2000 mots. Si l'article fait moins de 2000 mots, il sera considéré comme incomplet et refusé.**
 **Année de référence :** {$currentYear}
 
 **À propos de {$companyName} :**
@@ -1698,7 +1731,8 @@ Créer l'article de référence ABSOLU sur "{$keyword}" à {$city} :
 6. **INTERDIT de mettre des placeholders ou des descriptions** (exemple INTERDIT : "Cette section sera développée plus tard" ou "Contenu à venir")
 7. **Vérifier que chaque section H2 fait minimum 700 mots AVANT de passer à la suivante** (compter les mots)
 8. **Si une section est trop courte, AJOUTER immédiatement** : exemples concrets détaillés, détails techniques approfondis, conseils d'experts, données chiffrées précises, cas pratiques réels, comparaisons détaillées, témoignages, statistiques, procédures étape par étape, avantages/inconvénients, coûts détaillés, durées, matériaux, techniques, normes, réglementations
-9. **L'article total doit faire minimum {$targetWordCount} mots** (idéalement 3500-4500 mots pour couvrir toutes les sections)
+9. **L'article total doit faire MINIMUM {$targetWordCount} mots (2000 mots minimum absolu)** (idéalement 2500-3500 mots pour un score SEO optimal)
+   ⚠️ **CRITIQUE : Si l'article fait moins de 2000 mots, il sera considéré comme incomplet et refusé.**
 10. **Ne JAMAIS terminer l'article avant d'avoir développé TOUTES les sections du sommaire**
 11. **Chaque section doit contenir au minimum :**
     - 3-5 paragraphes de 100-150 mots chacun
@@ -1718,12 +1752,17 @@ Créer l'article de référence ABSOLU sur "{$keyword}" à {$city} :
 7. SEULEMENT APRÈS avoir complété la section, passer à la suivante
 
 **PROCESSUS DE VÉRIFICATION FINALE OBLIGATOIRE AVANT DE TERMINER :**
-1. Compter toutes les sections H2 dans l'article
-2. Comparer avec le nombre de sections dans le sommaire
-3. Vérifier que CHAQUE section du sommaire a son équivalent H2 développé dans l'article
-4. Vérifier que CHAQUE section H2 fait minimum 700 mots
-5. Si une section manque ou est trop courte, AJOUTER du contenu immédiatement
-6. Ne JAMAIS envoyer l'article si une section est manquante ou incomplète
+1. **COMPTER LE NOMBRE TOTAL DE MOTS DE L'ARTICLE** (doit être ≥ {$targetWordCount} mots, minimum 2000)
+2. Compter toutes les sections H2 dans l'article
+3. Comparer avec le nombre de sections dans le sommaire
+4. Vérifier que CHAQUE section du sommaire a son équivalent H2 développé dans l'article
+5. Vérifier que CHAQUE section H2 fait minimum 700 mots
+6. **Si l'article fait moins de {$targetWordCount} mots, AJOUTER immédiatement du contenu** : développer davantage chaque section, ajouter des exemples, des détails techniques, des conseils, des données chiffrées
+7. Si une section manque ou est trop courte, AJOUTER du contenu immédiatement
+8. Ne JAMAIS envoyer l'article si :
+   - Le nombre total de mots est < {$targetWordCount} (minimum 2000)
+   - Une section est manquante ou incomplète
+   - Le contenu est superficiel ou manque de profondeur
 
 **EXEMPLE DE CE QUI EST INTERDIT (NE JAMAIS FAIRE CELA) :**
 ```html

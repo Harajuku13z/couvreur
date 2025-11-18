@@ -349,9 +349,21 @@
                                                             <div class="font-medium text-sm text-gray-900">
                                                                 {{ $step['title'] ?? 'Étape ' . ($stepIndex + 1) }}
                                                             </div>
+                                                            @php
+                                                                // Masquer les messages d'indexation intermédiaires lors de l'automatisation
+                                                                $stepMessage = $step['message'] ?? '';
+                                                                $isIndexationStep = ($step['step'] ?? '') === 'google_indexing';
+                                                                $hideIndexationMessages = $isIndexationStep && (
+                                                                    strpos($stepMessage, 'Demande d\'indexation envoyée') !== false ||
+                                                                    strpos($stepMessage, 'En attente d\'indexation') !== false ||
+                                                                    strpos($stepMessage, 'vérification en cours') !== false
+                                                                );
+                                                            @endphp
+                                                            @if(!$hideIndexationMessages)
                                                             <div class="text-xs text-gray-600 mt-1">
-                                                                {{ $step['message'] ?? '' }}
+                                                                {{ $stepMessage }}
                                                             </div>
+                                                            @endif
                                                             @if(isset($step['data']) && is_array($step['data']) && !empty($step['data']))
                                                                 <div class="mt-2 text-xs">
                                                                     @if(isset($step['data']['keywords']) && is_array($step['data']['keywords']))
@@ -913,21 +925,11 @@
                                 </a>
                             @endif
                             <div class="mt-1 space-y-1">
-                                @if($indexRequested)
-                                    <div class="flex items-center gap-1 text-xs">
-                                        <i class="fas fa-paper-plane text-blue-500"></i>
-                                        <span class="text-blue-600">Demande d'indexation envoyée</span>
-                                    </div>
-                                @endif
+                                {{-- Messages d'indexation masqués lors de l'automatisation --}}
                                 @if($isIndexed)
                                     <div class="flex items-center gap-1 text-xs">
                                         <i class="fas fa-check-circle text-green-500"></i>
                                         <span class="text-green-600 font-semibold">Indexé</span>
-                                    </div>
-                                @elseif($indexRequested)
-                                    <div class="flex items-center gap-1 text-xs">
-                                        <i class="fas fa-clock text-yellow-500"></i>
-                                        <span class="text-yellow-600">En attente d'indexation</span>
                                     </div>
                                 @endif
                             @if($seoAnalysis)
@@ -1050,21 +1052,11 @@
                     </a>
                 @endif
                 <div class="mb-2 space-y-1">
-                    @if($indexRequested)
-                        <div class="flex items-center gap-1 text-xs text-blue-600">
-                            <i class="fas fa-paper-plane"></i>
-                            <span>Demande d'indexation envoyée</span>
-                        </div>
-                    @endif
+                    {{-- Messages d'indexation masqués lors de l'automatisation --}}
                     @if($isIndexed)
                         <div class="flex items-center gap-1 text-xs text-green-600 font-semibold">
                             <i class="fas fa-check-circle"></i>
                             <span>Indexé dans Google</span>
-                        </div>
-                    @elseif($indexRequested)
-                        <div class="flex items-center gap-1 text-xs text-yellow-600">
-                            <i class="fas fa-clock"></i>
-                            <span>En attente d'indexation</span>
                         </div>
                     @endif
                 </div>
