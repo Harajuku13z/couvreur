@@ -527,53 +527,102 @@ class SeoAutomationManager
             // Utiliser url() au lieu de route() pour éviter localhost
             $url = url('/blog/' . $article->slug);
             
-            // Étape 6.1 : Demander l'indexation
-            $indexRequested = $this->indexer->indexUrl($url);
+            // Vérifier si le service Google est configuré AVANT d'essayer d'indexer
+            $googleSearchConsole = app(\App\Services\GoogleSearchConsoleService::class);
+            $isConfigured = $googleSearchConsole->isConfigured();
             
-            $steps[count($steps) - 1]['message'] = $indexRequested ? 'Demande d\'indexation envoyée à Google' : 'Erreur lors de l\'envoi de la demande d\'indexation';
-            $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested];
-            if ($progressCallback) $progressCallback($steps);
+            Log::info('SeoAutomationManager: Vérification configuration Google avant indexation', [
+                'url' => $url,
+                'is_configured' => $isConfigured
+            ]);
+            
+            if (!$isConfigured) {
+                $steps[count($steps) - 1]['status'] = 'warning';
+                $steps[count($steps) - 1]['message'] = 'Google Search Console non configuré - Indexation non disponible';
+                $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => false, 'reason' => 'service_not_configured'];
+                if ($progressCallback) $progressCallback($steps);
+                
+                Log::warning('SeoAutomationManager: Indexation ignorée - Google Search Console non configuré', [
+                    'url' => $url,
+                    'article_id' => $article->id
+                ]);
+                
+                $indexRequested = false;
+            } else {
+                // Étape 6.1 : Demander l'indexation
+                Log::info('SeoAutomationManager: Tentative d\'indexation', [
+                    'url' => $url,
+                    'article_id' => $article->id
+                ]);
+                
+                $indexRequested = $this->indexer->indexUrl($url);
+                
+                Log::info('SeoAutomationManager: Résultat indexation', [
+                    'url' => $url,
+                    'index_requested' => $indexRequested,
+                    'article_id' => $article->id
+                ]);
+                
+                $steps[count($steps) - 1]['message'] = $indexRequested ? 'Demande d\'indexation envoyée à Google' : 'Erreur lors de l\'envoi de la demande d\'indexation';
+                $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested];
+                if ($progressCallback) $progressCallback($steps);
+            }
             
             // Étape 6.2 : Vérifier le statut d'indexation (après un court délai)
-            if ($indexRequested) {
+            $isIndexed = false;
+            $verificationResult = null;
+            
+            if ($indexRequested && $isConfigured) {
                 sleep(2); // Attendre 2 secondes pour que Google traite la demande
                 
                 try {
-                    $googleSearchConsole = app(\App\Services\GoogleSearchConsoleService::class);
-                    if ($googleSearchConsole->isConfigured()) {
-                        $verificationResult = $googleSearchConsole->verifyIndexationStatus($url);
-                        $isIndexed = $verificationResult['success'] && ($verificationResult['indexed'] ?? false);
-                        
-                        $steps[count($steps) - 1]['status'] = $isIndexed ? 'success' : 'warning';
-                        $steps[count($steps) - 1]['message'] = $isIndexed 
-                            ? '✅ URL indexée dans Google' 
-                            : '⏳ Demande d\'indexation envoyée, vérification en cours...';
-                        $steps[count($steps) - 1]['data'] = [
-                            'url' => $url, 
-                            'index_requested' => $indexRequested,
-                            'indexed' => $isIndexed,
-                            'verification' => $verificationResult
-                        ];
-                    } else {
-                        $isIndexed = false;
-                        $steps[count($steps) - 1]['status'] = 'warning';
-                        $steps[count($steps) - 1]['message'] = 'Demande d\'indexation envoyée (vérification non disponible - Google Search Console non configuré)';
-                        $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested, 'indexed' => false];
-                    }
-                } catch (\Exception $e) {
-                    Log::warning('SeoAutomationManager: Erreur lors de la vérification d\'indexation', [
+                    $verificationResult = $googleSearchConsole->verifyIndexationStatus($url);
+                    $isIndexed = $verificationResult['success'] && ($verificationResult['indexed'] ?? false);
+                    
+                    Log::info('SeoAutomationManager: Vérification indexation', [
                         'url' => $url,
-                        'error' => $e->getMessage()
+                        'is_indexed' => $isIndexed,
+                        'verification_result' => $verificationResult
+                    ]);
+                    
+                    $steps[count($steps) - 1]['status'] = $isIndexed ? 'success' : 'warning';
+                    $steps[count($steps) - 1]['message'] = $isIndexed 
+                        ? '✅ URL indexée dans Google' 
+                        : '⏳ Demande d\'indexation envoyée, vérification en cours...';
+                    $steps[count($steps) - 1]['data'] = [
+                        'url' => $url, 
+                        'index_requested' => $indexRequested,
+                        'indexed' => $isIndexed,
+                        'verification' => $verificationResult
+                    ];
+                } catch (\Exception $e) {
+                    Log::error('SeoAutomationManager: Erreur lors de la vérification d\'indexation', [
+                        'url' => $url,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                     $isIndexed = false;
                     $steps[count($steps) - 1]['status'] = 'warning';
-                    $steps[count($steps) - 1]['message'] = 'Demande d\'indexation envoyée (erreur lors de la vérification)';
-                    $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested, 'indexed' => false];
+                    $steps[count($steps) - 1]['message'] = 'Demande d\'indexation envoyée (erreur lors de la vérification: ' . substr($e->getMessage(), 0, 100) . ')';
+                    $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested, 'indexed' => false, 'error' => $e->getMessage()];
                 }
-            } else {
-                $isIndexed = false;
-                $steps[count($steps) - 1]['status'] = 'failed';
-                $steps[count($steps) - 1]['message'] = 'Erreur lors de l\'envoi de la demande d\'indexation';
+            } elseif (!$indexRequested) {
+                // Si l'indexation a échoué, récupérer plus de détails depuis les logs
+                Log::warning('SeoAutomationManager: Indexation échouée', [
+                    'url' => $url,
+                    'article_id' => $article->id,
+                    'is_configured' => $isConfigured
+                ]);
+                
+                $steps[count($steps) - 1]['status'] = 'warning';
+                $steps[count($steps) - 1]['message'] = $isConfigured 
+                    ? 'Erreur lors de l\'envoi de la demande d\'indexation. Vérifiez les logs pour plus de détails.'
+                    : 'Indexation non disponible - Google Search Console non configuré';
+                $steps[count($steps) - 1]['data'] = [
+                    'url' => $url, 
+                    'index_requested' => false,
+                    'is_configured' => $isConfigured
+                ];
             }
             
             if ($progressCallback) $progressCallback($steps);
