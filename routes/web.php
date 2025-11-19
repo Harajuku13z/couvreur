@@ -629,7 +629,14 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
 
 // Routes admin pour l'indexation
     Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
-        Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+        // Interface simplifiée (par défaut)
+        Route::get('/', [App\Http\Controllers\SimpleIndexationController::class, 'index'])->name('index');
+        Route::post('/simple/verify', [App\Http\Controllers\SimpleIndexationController::class, 'verify'])->name('simple.verify');
+        Route::post('/simple/index-now', [App\Http\Controllers\SimpleIndexationController::class, 'indexNow'])->name('simple.index');
+        Route::post('/simple/config', [App\Http\Controllers\SimpleIndexationController::class, 'saveConfig'])->name('simple.config');
+        
+        // Interface avancée (ancienne, gardée pour compatibilité)
+        Route::get('/advanced', [App\Http\Controllers\IndexationController::class, 'index'])->name('advanced');
         Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
         Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
         Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
