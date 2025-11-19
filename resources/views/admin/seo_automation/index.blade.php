@@ -1749,6 +1749,8 @@ function testApi(apiName, button) {
         
         // Fonction pour indexer un article manuellement
         function indexerArticle(articleUrl, btn) {
+            console.log('Indexation demandée pour :', articleUrl);
+            
             if (!confirm(`Indexer cet article dans Google ?\n\nURL : ${articleUrl}\n\nLa demande sera envoyée à Google Indexing API.`)) {
                 return;
             }
@@ -1757,28 +1759,43 @@ function testApi(apiName, button) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
             
+            // Nettoyer l'URL (enlever espaces, etc.)
+            const cleanUrl = articleUrl.trim();
+            
+            console.log('URL nettoyée :', cleanUrl);
+            console.log('Envoi requête à /admin/seo-automation/index-article');
+            
             fetch('/admin/seo-automation/index-article', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ url: articleUrl })
+                body: JSON.stringify({ url: cleanUrl })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                return response.json();
+            })
             .then(data => {
+                console.log('Réponse serveur:', data);
+                
                 if (data.success) {
-                    alert(`✅ Demande d'indexation envoyée avec succès !\n\nL'article sera indexé par Google dans 3-7 jours.\n\nURL : ${articleUrl}`);
+                    alert(`✅ Demande d'indexation envoyée avec succès !\n\nL'article sera indexé par Google dans 3-7 jours.\n\nURL : ${cleanUrl}`);
                     window.location.reload();
                 } else {
-                    alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+                    const errorMsg = data.message || 'Erreur inconnue';
+                    alert(`❌ Erreur : ${errorMsg}\n\nConsultez les logs Laravel pour plus de détails.`);
+                    console.error('Erreur serveur:', data);
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
                 }
             })
             .catch(error => {
-                console.error('Erreur indexation article:', error);
-                alert('❌ Erreur réseau : ' + error.message + '\n\nVérifiez que Google Search Console est configuré dans /admin/indexation');
+                console.error('Erreur réseau ou parsing:', error);
+                alert(`❌ Erreur : ${error.message}\n\nVérifications :\n1. Google Search Console configuré dans /admin/indexation\n2. Credentials JSON valides\n3. Logs Laravel : tail -f storage/logs/laravel.log`);
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
             });
