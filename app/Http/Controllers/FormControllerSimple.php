@@ -513,10 +513,25 @@ class FormControllerSimple extends Controller
     public function success()
     {
         $sessionId = Session::getId();
-        $submission = Submission::where('session_id', $sessionId)->completed()->first();
+        
+        // Chercher submission COMPLETED pour cette session
+        $submission = Submission::where('session_id', $sessionId)
+            ->where('status', 'COMPLETED')
+            ->first();
+        
+        \Log::info('Page succès demandée', [
+            'session_id' => $sessionId,
+            'submission_found' => $submission ? 'Oui' : 'Non',
+            'submission_status' => $submission ? $submission->status : 'N/A'
+        ]);
+        
         if (!$submission) {
+            \Log::warning('Pas de submission COMPLETED trouvée, redirection accueil', [
+                'session_id' => $sessionId
+            ]);
             return redirect()->route('home');
         }
+        
         return view('form.success', compact('submission'));
     }
 
