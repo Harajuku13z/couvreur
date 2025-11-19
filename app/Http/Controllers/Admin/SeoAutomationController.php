@@ -1938,29 +1938,58 @@ mot-clé 3
     public function indexArticle(Request $request)
     {
         try {
-            $request->validate([
-                'url' => 'required|url'
-            ]);
-            
+            // Valider manuellement (pas avec validate() qui cause l'erreur pattern)
             $url = $request->input('url');
             
-            // Vérifier Google configuré
-            $googleService = new \App\Services\GoogleSearchConsoleService();
-            if (!$googleService->isConfigured()) {
+            if (empty($url)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Google Search Console non configuré. Configurez-le dans /admin/indexation'
+                    'message' => 'URL manquante'
                 ], 400);
             }
             
-            // Indexer l'URL
-            $result = $googleService->indexUrl($url);
+            // Vérifier que c'est une URL valide
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'URL invalide : ' . $url
+                ], 400);
+            }
             
-            if ($result['success'] ?? false) {
-                Log::info('Article indexé manuellement via admin', [
+            Log::info('Tentative indexation manuelle article', [
+                'url' => $url,
+                'user' => auth()->user()->name ?? 'admin'
+            ]);
+            
+            // Vérifier Google configuré
+            $googleService = new \App\Services\GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                Log::warning('Google Search Console non configuré pour indexation manuelle');
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console non configuré. Allez dans /admin/indexation pour configurer les credentials JSON.'
+                ], 400);
+            }
+            
+            // Indexer l'URL via GoogleIndexingService (pas GoogleSearchConsoleService)
+            $indexingService = new \App\Services\GoogleIndexingService();
+            $result = $indexingService->indexUrl($url);
+            
+            if ($result) {
+                // Succès
+                Log::info('Article indexé manuellement avec succès', [
                     'url' => $url,
                     'user' => auth()->user()->name ?? 'admin'
                 ]);
+                
+                // Enregistrer dans UrlIndexationStatus
+                try {
+                    \App\Models\UrlIndexationStatus::recordSubmission($url);
+                } catch (\Exception $e) {
+                    Log::warning('Erreur enregistrement soumission', ['error' => $e->getMessage()]);
+                }
                 
                 return response()->json([
                     'success' => true,
@@ -1969,26 +1998,26 @@ mot-clé 3
                 ]);
             }
             
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'] ?? 'Erreur lors de l\'indexation'
-            ], 400);
-            
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'URL invalide',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            Log::error('Erreur indexation manuelle article', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            Log::warning('Échec indexation manuelle article', [
+                'url' => $url,
+                'result' => $result
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur : ' . $e->getMessage()
+                'message' => 'Erreur lors de l\'envoi de la demande d\'indexation. Vérifiez les logs Laravel.'
+            ], 400);
+            
+        } catch (\Exception $e) {
+            Log::error('Exception indexation manuelle article', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'url' => $request->input('url')
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique : ' . $e->getMessage()
             ], 500);
         }
     }
