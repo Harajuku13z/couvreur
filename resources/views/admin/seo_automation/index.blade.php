@@ -1763,7 +1763,7 @@ function testApi(apiName, button) {
             const cleanUrl = articleUrl.trim();
             
             console.log('URL nettoyée :', cleanUrl);
-            const submitUrl = '/admin/seo-automation/submit-to-google';
+            const submitUrl = '/admin/seo-automation/google-index-url';
             console.log('Envoi requête à', submitUrl);
             
             fetch(submitUrl, {

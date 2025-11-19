@@ -666,6 +666,9 @@ Route::prefix('admin/cron-config')->name('admin.cron-config.')->middleware(['adm
 
 // Routes admin pour l'automatisation SEO
 Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
+    // IMPORTANT : Routes POST spécifiques AVANT les autres pour éviter conflits
+    Route::post('/google-index-url', [SeoAutomationController::class, 'indexArticle'])->name('google-index-url');
+    
     Route::get('/', [SeoAutomationController::class, 'index'])->name('index');
     Route::get('/password', [SeoAutomationController::class, 'passwordForm'])->name('password');
     Route::post('/password', [SeoAutomationController::class, 'verifyPassword'])->name('verify-password');
@@ -695,5 +698,4 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
     Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('keyword-image.store');
     Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('keyword-image.destroy');
-    Route::post('/submit-to-google', [SeoAutomationController::class, 'indexArticle'])->name('submit-to-google');
 });
