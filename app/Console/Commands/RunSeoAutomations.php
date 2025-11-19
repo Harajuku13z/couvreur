@@ -141,11 +141,14 @@ class RunSeoAutomations extends Command
                 // EXÉCUTION DIRECTE (sans queue) - Plus fiable, pas besoin de worker
                 $this->info("⚡ Mode exécution directe");
                 
+                // Récupérer l'heure planifiée pour la publication
+                $scheduledTime = $scheduler->getNextScheduledTime();
+                
                 $manager = app(SeoAutomationManager::class);
                 
                 $log = $manager->runForCity($city, $keyword, function($steps) {
                     // Callback pour le suivi (optionnel)
-                });
+                }, $scheduledTime);
                 
                 if ($log->status === 'indexed' || $log->status === 'published') {
                     $this->info("✅ Succès : " . ($log->article_url ?? 'Article créé'));

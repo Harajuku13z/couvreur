@@ -59,9 +59,11 @@ class SeoAutomationManager
      * 
      * @param City $city Ville à traiter
      * @param string|null $customKeyword Mot-clé personnalisé (optionnel)
+     * @param callable|null $progressCallback Callback pour le suivi de progression
+     * @param \Carbon\Carbon|null $scheduledTime Heure planifiée pour la publication (optionnel)
      * @return SeoAutomation Instance du log créé
      */
-    public function runForCity(City $city, ?string $customKeyword = null, ?callable $progressCallback = null): SeoAutomation
+    public function runForCity(City $city, ?string $customKeyword = null, ?callable $progressCallback = null, ?\Carbon\Carbon $scheduledTime = null): SeoAutomation
     {
         // Créer le log AVANT toute opération pour qu'il soit toujours visible
         $log = SeoAutomation::create([
@@ -437,6 +439,9 @@ class SeoAutomationManager
                 }
             }
             
+            // Utiliser l'heure planifiée si fournie, sinon utiliser maintenant
+            $publishTime = $scheduledTime ?? now();
+            
             try {
                 $article = Article::create([
                     'title' => $gptData['titre'],
@@ -447,8 +452,14 @@ class SeoAutomationManager
                     'focus_keyword' => $keyword,
                     'featured_image' => $featuredImage,
                     'status' => 'published',
-                    'published_at' => now(),
+                    'published_at' => $publishTime,
                     'city_id' => $city->id,
+                ]);
+                
+                Log::info('SeoAutomationManager: Article créé avec heure planifiée', [
+                    'article_id' => $article->id,
+                    'published_at' => $publishTime->format('Y-m-d H:i:s'),
+                    'scheduled_time_provided' => $scheduledTime !== null
                 ]);
             } catch (\Exception $createException) {
                 Log::error('SeoAutomationManager: Erreur lors de la création de l\'article', [
@@ -472,7 +483,7 @@ class SeoAutomationManager
                             'focus_keyword' => $keyword,
                             'featured_image' => $featuredImage,
                             'status' => 'published',
-                            'published_at' => now(),
+                            'published_at' => $publishTime,
                             'city_id' => $city->id,
                         ]);
                         Log::info('SeoAutomationManager: Article créé avec slug modifié', [
@@ -563,9 +574,25 @@ class SeoAutomationManager
                     'article_id' => $article->id
                 ]);
                 
-                $steps[count($steps) - 1]['message'] = $indexRequested ? 'Demande d\'indexation envoyée à Google' : 'Erreur lors de l\'envoi de la demande d\'indexation';
+                $steps[count($steps) - 1]['status'] = $indexRequested ? 'success' : 'warning';
+                $steps[count($steps) - 1]['message'] = $indexRequested ? '✅ Demande d\'indexation envoyée à Google' : '❌ Erreur lors de l\'envoi de la demande d\'indexation';
                 $steps[count($steps) - 1]['data'] = ['url' => $url, 'index_requested' => $indexRequested];
                 if ($progressCallback) $progressCallback($steps);
+                
+                // Logger explicitement pour le suivi
+                if ($indexRequested) {
+                    Log::info('SeoAutomationManager: ✅ Demande d\'indexation envoyée avec succès', [
+                        'url' => $url,
+                        'article_id' => $article->id,
+                        'log_id' => $log->id
+                    ]);
+                } else {
+                    Log::warning('SeoAutomationManager: ❌ Échec de la demande d\'indexation', [
+                        'url' => $url,
+                        'article_id' => $article->id,
+                        'log_id' => $log->id
+                    ]);
+                }
             }
             
             // Étape 6.2 : Vérifier le statut d'indexation (après un court délai)
@@ -658,22 +685,39 @@ class SeoAutomationManager
 
             // 8. Update log - FORCER le statut à "indexed" ou "published" (jamais "pending")
             $finalStatus = $isIndexed ? 'indexed' : 'published';
+            
+            // Préparer les métadonnées avec les informations d'indexation bien visibles
+            $metadata = [
+                'gpt_data' => $gptData,
+                'related_queries' => $related,
+                'competitors' => $competitors,
+                'index_requested' => $indexRequested,
+                'indexed' => $isIndexed,
+                'index_requested_at' => $indexRequested ? now()->toIso8601String() : null,
+                'verification_result' => $verificationResult ?? null,
+                'steps' => $steps,
+                'seo_analysis' => $seoAnalysis,
+                'published_at' => $publishTime->toIso8601String(),
+                'scheduled_time' => $scheduledTime ? $scheduledTime->toIso8601String() : null,
+            ];
+            
             $log->update([
                 'keyword' => $keyword,
                 'status' => $finalStatus, // Toujours "indexed" ou "published", jamais "pending"
                 'article_id' => (string)$article->id,
                 'article_url' => $url,
-                'metadata' => $this->cleanForJson([
-                    'gpt_data' => $gptData,
-                    'related_queries' => $related,
-                    'competitors' => $competitors,
-                    'index_requested' => $indexRequested,
-                    'indexed' => $isIndexed,
-                    'verification_result' => $verificationResult ?? null,
-                    'steps' => $steps,
-                    'seo_analysis' => $seoAnalysis,
-                ]),
+                'metadata' => $this->cleanForJson($metadata),
                 'error_message' => null,
+            ]);
+            
+            // Logger explicitement le statut d'indexation pour le suivi
+            Log::info('SeoAutomationManager: Log mis à jour avec statut d\'indexation', [
+                'log_id' => $log->id,
+                'status' => $finalStatus,
+                'index_requested' => $indexRequested,
+                'indexed' => $isIndexed,
+                'article_id' => $article->id,
+                'url' => $url
             ]);
 
             // Vérification finale : s'assurer que le statut n'est JAMAIS resté "pending"
