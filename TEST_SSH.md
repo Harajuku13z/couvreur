@@ -137,3 +137,4 @@ echo "=== DERNIÈRES ERREURS ===" && \
 php artisan tinker --execute="echo \App\Models\SeoAutomation::where('status', 'failed')->where('created_at', '>=', now()->subDay())->count() . ' erreurs dans les dernières 24h';"
 ```
 
+

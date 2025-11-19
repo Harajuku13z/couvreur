@@ -218,6 +218,10 @@ Route::get('/blog/{article}', [ArticleController::class, 'show'])->name('blog.sh
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
+// Routes publiques pour le simulateur de coûts
+Route::get('/simulateur', [App\Http\Controllers\CostSimulatorController::class, 'index'])->name('simulator.index');
+Route::post('/simulateur/calculate', [App\Http\Controllers\CostSimulatorController::class, 'calculate'])->name('simulator.calculate');
+
 // Routes publiques pour les annonces
 Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
 Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show');
@@ -640,6 +644,7 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
         Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
         Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
         Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
+        Route::post('/verify-all-statuses', [App\Http\Controllers\IndexationController::class, 'verifyAllStatuses'])->name('verify-all-statuses');
 });
 
 // Routes admin pour la gestion des mots-clés
@@ -650,6 +655,12 @@ Route::prefix('admin/keywords')->name('admin.keywords.')->middleware(['admin.aut
     Route::post('/image', [App\Http\Controllers\Admin\KeywordController::class, 'storeImage'])->name('image.store');
     Route::put('/image/{keywordImage}', [App\Http\Controllers\Admin\KeywordController::class, 'updateImage'])->name('image.update');
     Route::delete('/image/{keywordImage}', [App\Http\Controllers\Admin\KeywordController::class, 'destroyImage'])->name('image.destroy');
+});
+
+// Routes admin pour le simulateur de coûts
+Route::prefix('admin/simulator')->name('admin.simulator.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/config', [App\Http\Controllers\CostSimulatorController::class, 'config'])->name('config');
+    Route::post('/save-config', [App\Http\Controllers\CostSimulatorController::class, 'saveConfig'])->name('save-config');
 });
 
 // Routes admin pour la configuration du cron

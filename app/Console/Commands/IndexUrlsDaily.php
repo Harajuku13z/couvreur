@@ -71,25 +71,41 @@ class IndexUrlsDaily extends Command
         }
         
         $urls = array_unique($urls); // Éviter les doublons
+        $this->info("📊 Total URLs dans sitemap : " . count($urls));
 
-        // Récupérer les URLs déjà indexées
-        $indexedUrls = $this->getIndexedUrls();
+        // NOUVEAU : Vérifier le statut réel d'indexation depuis la base de données
+        $urlsToIndex = [];
+        $alreadyIndexedCount = 0;
         
-        // Filtrer les URLs déjà indexées
-        $urlsToIndex = array_filter($urls, function($url) use ($indexedUrls) {
-            return !in_array($url, $indexedUrls);
-        });
+        foreach ($urls as $url) {
+            // Vérifier dans la table url_indexation_statuses
+            $status = \App\Models\UrlIndexationStatus::where('url', $url)->first();
+            
+            if ($status && $status->indexed) {
+                // URL déjà indexée selon Google
+                $alreadyIndexedCount++;
+                
+                // Mais si la vérification date de plus de 7 jours, on peut re-vérifier
+                if ($status->last_verification_time && $status->last_verification_time->lt(now()->subDays(7))) {
+                    // Ajouter à la liste de vérification (pas indexation)
+                    // Pour l'instant on skip, mais on pourrait implémenter une re-vérification périodique
+                }
+            } else {
+                // URL non indexée ou jamais vérifiée → à indexer
+                $urlsToIndex[] = $url;
+            }
+        }
 
+        $this->info("✅ URLs déjà indexées (selon statuts vérifiés) : {$alreadyIndexedCount}");
+        
         if (empty($urlsToIndex)) {
-            $this->info('✅ Toutes les URLs ont déjà été indexées !');
+            $this->info('🎉 Toutes les URLs sont déjà indexées selon les vérifications précédentes !');
+            $this->info('💡 Pour re-vérifier les statuts, utilisez : php artisan indexation:verify-all');
             return 0;
         }
 
-        // Réindexer le tableau pour avoir des indices séquentiels
-        $urlsToIndex = array_values($urlsToIndex);
-        
         $totalUrls = count($urlsToIndex);
-        $this->info("📊 {$totalUrls} URLs restantes à indexer");
+        $this->info("📤 URLs restantes à indexer : {$totalUrls}");
 
         // Limite quotidienne : 150 URLs
         $dailyLimit = 150;

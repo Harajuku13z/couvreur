@@ -1219,5 +1219,129 @@ class IndexationController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Vérifier le statut de toutes les URLs du sitemap (par batch)
+     */
+    public function verifyAllStatuses(Request $request)
+    {
+        try {
+            $limit = $request->input('limit', 50);
+            
+            $googleService = new GoogleSearchConsoleService();
+            
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console non configuré'
+                ], 400);
+            }
+            
+            // Récupérer toutes les URLs du sitemap
+            $sitemapService = new SitemapService();
+            $allUrls = $sitemapService->getAllUrls();
+            
+            // Extraire les URLs
+            $urls = [];
+            foreach ($allUrls as $item) {
+                if (is_array($item)) {
+                    $url = $item['url'] ?? null;
+                } else {
+                    $url = $item;
+                }
+                if (!empty($url) && is_string($url)) {
+                    $urls[] = $url;
+                }
+            }
+            
+            $urls = array_unique($urls);
+            
+            // Trouver les URLs qui n'ont jamais été vérifiées ou vérifiées il y a > 7 jours
+            $urlsToVerify = [];
+            foreach ($urls as $url) {
+                $status = \App\Models\UrlIndexationStatus::where('url', $url)->first();
+                
+                if (!$status || !$status->last_verification_time || 
+                    $status->last_verification_time->lt(now()->subDays(7))) {
+                    $urlsToVerify[] = $url;
+                }
+            }
+            
+            if (empty($urlsToVerify)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Toutes les URLs ont été vérifiées récemment (< 7 jours)',
+                    'stats' => [
+                        'total_urls' => count($urls),
+                        'to_verify' => 0,
+                        'verified' => 0,
+                        'indexed' => 0,
+                        'not_indexed' => 0
+                    ]
+                ]);
+            }
+            
+            // Limiter le batch
+            $totalToVerify = count($urlsToVerify);
+            $urlsToVerify = array_slice($urlsToVerify, 0, $limit);
+            
+            // Vérifier chaque URL
+            $verified = 0;
+            $indexed = 0;
+            $notIndexed = 0;
+            $errors = 0;
+            
+            foreach ($urlsToVerify as $url) {
+                try {
+                    $result = $googleService->verifyIndexationStatus($url);
+                    $verified++;
+                    
+                    if ($result['success']) {
+                        if ($result['indexed'] ?? false) {
+                            $indexed++;
+                        } else {
+                            $notIndexed++;
+                        }
+                    } else {
+                        $errors++;
+                    }
+                    
+                    // Pause 2 secondes entre chaque requête (limite API Google)
+                    if ($verified < count($urlsToVerify)) {
+                        sleep(2);
+                    }
+                    
+                } catch (\Exception $e) {
+                    $errors++;
+                    \Log::error('Erreur vérification URL', [
+                        'url' => $url,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => "{$verified} URLs vérifiées sur {$totalToVerify} à vérifier",
+                'stats' => [
+                    'total_urls_sitemap' => count($urls),
+                    'to_verify_total' => $totalToVerify,
+                    'verified_now' => $verified,
+                    'indexed' => $indexed,
+                    'not_indexed' => $notIndexed,
+                    'errors' => $errors,
+                    'remaining' => max(0, $totalToVerify - $verified)
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur vérification batch: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

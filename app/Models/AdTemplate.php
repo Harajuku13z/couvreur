@@ -80,10 +80,44 @@ class AdTemplate extends Model
     }
 
     /**
-     * Obtenir le contenu HTML avec remplacement des variables de ville
+     * Obtenir le contenu HTML avec personnalisation IA avancée pour la ville
+     * Utilise l'IA pour créer du contenu 100% UNIQUE au lieu de simples remplacements
      */
     public function getContentForCity($city)
     {
+        // Vérifier si la personnalisation IA est activée
+        $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', true);
+        $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        
+        if ($useAiPersonalization) {
+            try {
+                $personalizer = app(\App\Services\CityContentPersonalizer::class);
+                $serviceData = [
+                    'name' => $this->service_name,
+                    'slug' => $this->service_slug,
+                    'description' => $this->short_description
+                ];
+                
+                // Générer du contenu UNIQUE avec l'IA
+                $personalizedContent = $personalizer->generatePersonalizedContent(
+                    $this->content_html, 
+                    $serviceData, 
+                    $city
+                );
+                
+                return $personalizedContent;
+                
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Échec personnalisation IA, fallback sur méthode basique', [
+                    'service' => $this->service_name,
+                    'city' => $city->name,
+                    'error' => $e->getMessage()
+                ]);
+                // Continuer avec la méthode basique en cas d'erreur
+            }
+        }
+        
+        // Fallback : méthode basique (remplacement de variables)
         $content = $this->content_html;
         
         // Remplacer les variables dynamiques
@@ -91,23 +125,64 @@ class AdTemplate extends Model
             '[VILLE]' => $city->name,
             '[RÉGION]' => $city->region ?? '',
             '[DÉPARTEMENT]' => $city->department ?? '',
+            '[CODE_POSTAL]' => $city->postal_code ?? '',
             '[FORM_URL]' => url('/form/propertyType'),
             '[URL]' => url('/annonces/' . \Illuminate\Support\Str::slug($this->service_name . '-' . $city->name)),
             '[TITRE]' => $this->service_name . ' à ' . $city->name,
+            '[PHONE]' => \App\Models\Setting::get('company_phone', ''),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $content);
     }
 
     /**
-     * Obtenir les métadonnées avec remplacement des variables de ville
+     * Obtenir les métadonnées avec personnalisation IA avancée pour la ville
      */
     public function getMetaForCity($city)
     {
+        // Vérifier si la personnalisation IA est activée
+        $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', true);
+        $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        
+        if ($useAiPersonalization) {
+            try {
+                $personalizer = app(\App\Services\CityContentPersonalizer::class);
+                
+                // Générer des métadonnées UNIQUES avec l'IA
+                $personalizedMeta = $personalizer->generatePersonalizedMeta(
+                    $this->service_name, 
+                    $city, 
+                    [
+                        'meta_title' => $this->meta_title,
+                        'meta_description' => $this->meta_description,
+                        'meta_keywords' => $this->meta_keywords
+                    ]
+                );
+                
+                // Compléter avec les autres champs (OG, Twitter)
+                $personalizedMeta['og_title'] = $personalizedMeta['meta_title'];
+                $personalizedMeta['og_description'] = $personalizedMeta['meta_description'];
+                $personalizedMeta['twitter_title'] = $personalizedMeta['meta_title'];
+                $personalizedMeta['twitter_description'] = $personalizedMeta['meta_description'];
+                
+                return $personalizedMeta;
+                
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Échec personnalisation meta IA, fallback sur méthode basique', [
+                    'service' => $this->service_name,
+                    'city' => $city->name,
+                    'error' => $e->getMessage()
+                ]);
+                // Continuer avec la méthode basique
+            }
+        }
+        
+        // Fallback : remplacement basique de variables
         $replacements = [
             '[VILLE]' => $city->name,
             '[RÉGION]' => $city->region ?? '',
             '[DÉPARTEMENT]' => $city->department ?? '',
+            '[CODE_POSTAL]' => $city->postal_code ?? '',
         ];
 
         return [
