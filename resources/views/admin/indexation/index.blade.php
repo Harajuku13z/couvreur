@@ -71,57 +71,122 @@
     </div>
 
     <!-- Actions Rapides -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">⚡ Actions Rapides</h6>
+    <div class="card shadow mb-4 border-left-primary">
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-bolt mr-2"></i>Actions Rapides
+            </h6>
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row text-center">
                 <div class="col-md-4 mb-3">
-                    <button onclick="verifierUrls()" class="btn btn-info btn-block btn-lg" id="btn-verify">
-                        <i class="fas fa-search mr-2"></i>Vérifier 50 URLs
+                    <button onclick="verifierUrls()" class="btn btn-info btn-block btn-lg shadow-sm" id="btn-verify">
+                        <i class="fas fa-search-plus fa-2x mb-2 d-block"></i>
+                        <span class="d-block">Vérifier 50 URLs</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Vérifie le statut via Google Search Console</small>
+                    <small class="text-muted d-block mt-2">Interroge Google Search Console</small>
                 </div>
 
                 <div class="col-md-4 mb-3">
-                    <button onclick="indexerUrls()" class="btn btn-success btn-block btn-lg" id="btn-index">
-                        <i class="fas fa-paper-plane mr-2"></i>Indexer 150 URLs
+                    <button onclick="indexerUrls()" class="btn btn-success btn-block btn-lg shadow-sm" id="btn-index">
+                        <i class="fas fa-rocket fa-2x mb-2 d-block"></i>
+                        <span class="d-block">Indexer 150 URLs</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Envoie demandes d'indexation à Google</small>
+                    <small class="text-muted d-block mt-2">Envoie à Google Indexing API</small>
                 </div>
 
                 <div class="col-md-4 mb-3">
-                    <button onclick="window.location.reload()" class="btn btn-primary btn-block btn-lg">
-                        <i class="fas fa-sync-alt mr-2"></i>Actualiser
+                    <button onclick="window.location.reload()" class="btn btn-primary btn-block btn-lg shadow-sm">
+                        <i class="fas fa-sync-alt fa-2x mb-2 d-block"></i>
+                        <span class="d-block">Actualiser Stats</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Recharge les statistiques</small>
+                    <small class="text-muted d-block mt-2">Recharge les données</small>
                 </div>
             </div>
 
             <!-- Zone résultats -->
             <div id="results-zone" class="mt-4" style="display:none;">
+                <hr>
                 <div id="results-content"></div>
             </div>
         </div>
     </div>
 
-    <!-- Sitemap -->
+    <!-- Liste des Sitemaps -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">🗺️ Sitemap</h6>
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">🗺️ Sitemaps du Site</h6>
+            <button onclick="regenererSitemap()" class="btn btn-warning btn-sm" id="btn-sitemap">
+                <i class="fas fa-sync mr-2"></i>Régénérer Tous
+            </button>
         </div>
         <div class="card-body">
-            <p><strong>URL :</strong> <a href="{{ url('/sitemap.xml') }}" target="_blank">{{ url('/sitemap.xml') }}</a></p>
+            <?php
+            $sitemapFiles = glob(public_path('sitemap*.xml'));
+            $sitemapFiles = array_filter($sitemapFiles, function($file) {
+                return basename($file) !== 'sitemap_index.xml';
+            });
+            ?>
             
-            <button onclick="regenererSitemap()" class="btn btn-warning mr-2" id="btn-sitemap">
-                <i class="fas fa-sync mr-2"></i>Régénérer Sitemap
-            </button>
-            
-            @if($isGoogleConfigured)
-            <button onclick="soumettreGoogle()" class="btn btn-success" id="btn-submit">
-                <i class="fas fa-upload mr-2"></i>Soumettre à Google (200 URLs max)
-            </button>
+            @if(!empty($sitemapFiles))
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Fichier</th>
+                                <th class="text-center">URLs</th>
+                                <th class="text-center">Taille</th>
+                                <th class="text-center">Modifié</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($sitemapFiles as $file)
+                            <?php
+                            $filename = basename($file);
+                            $urlCount = 0;
+                            try {
+                                $xml = simplexml_load_file($file);
+                                if ($xml && isset($xml->url)) {
+                                    $urlCount = count($xml->url);
+                                }
+                            } catch (\Exception $e) {
+                                $urlCount = 0;
+                            }
+                            ?>
+                            <tr>
+                                <td><strong>{{ $filename }}</strong></td>
+                                <td class="text-center">
+                                    <span class="badge badge-info badge-pill">{{ number_format($urlCount) }}</span>
+                                </td>
+                                <td class="text-center">{{ number_format(filesize($file) / 1024, 1) }} KB</td>
+                                <td class="text-center text-muted small">{{ date('d/m/Y H:i', filemtime($file)) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url($filename) }}" target="_blank" class="btn btn-sm btn-primary mr-1">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
+                                    @if($isGoogleConfigured)
+                                    <button onclick="soumettreGoogle('{{ $filename }}')" class="btn btn-sm btn-success">
+                                        <i class="fas fa-upload"></i> Soumettre
+                                    </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Info :</strong> Le sitemap principal est <code>sitemap.xml</code>. 
+                    Si vous avez beaucoup d'URLs (> 2000), plusieurs fichiers sont créés automatiquement.
+                </div>
+            @else
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Aucun sitemap généré. Cliquez sur "Régénérer Tous" pour créer le sitemap.
+                </div>
             @endif
         </div>
     </div>
@@ -344,12 +409,13 @@ function regenererSitemap() {
 }
 
 // Fonction soumettre sitemap
-function soumettreGoogle() {
-    if (!confirm('Soumettre le sitemap à Google ?\n\nCela va indexer jusqu\'à 200 URLs (limite).\nDurée : 1-2 minutes.')) return;
+function soumettreGoogle(filename) {
+    if (!confirm(`Soumettre "${filename}" à Google ?\n\nCela va indexer jusqu'à 200 URLs.\nDurée : 1-2 minutes.`)) return;
     
-    const btn = document.getElementById('btn-submit');
+    const btn = event.target;
+    const originalHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
     fetch('{{ route("admin.indexation.submit-sitemap") }}', {
         method: 'POST',
@@ -357,7 +423,7 @@ function soumettreGoogle() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ filename: 'sitemap.xml' })
+        body: JSON.stringify({ filename: filename })
     })
     .then(response => response.json())
     .then(data => {
@@ -373,7 +439,7 @@ function soumettreGoogle() {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-upload mr-2"></i>Soumettre à Google (200 URLs max)';
+        btn.innerHTML = originalHtml;
     });
 }
 </script>
