@@ -21,7 +21,7 @@ class SitemapService
         // 1. Vérifier le setting site_url
         try {
             $settingUrl = Setting::get('site_url', null);
-            if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') === false) {
+            if (!empty($settingUrl)) {
                 $siteUrl = $settingUrl;
             }
         } catch (\Exception $e) {
@@ -32,7 +32,7 @@ class SitemapService
         // 2. Vérifier APP_URL depuis .env
         if (empty($siteUrl)) {
             $envUrl = config('app.url', null);
-            if (!empty($envUrl) && strpos($envUrl, 'sausercouverture.fr') === false) {
+            if (!empty($envUrl)) {
                 $siteUrl = $envUrl;
             }
         }
@@ -41,12 +41,7 @@ class SitemapService
         if (empty($siteUrl)) {
             $siteUrl = config('app.url', 'http://localhost');
         }
-        
-        // Rejeter explicitement sausercouverture.fr (ancien site)
-        if (strpos($siteUrl, 'sausercouverture.fr') !== false) {
-            \Log::warning('⚠️ Ancienne URL sausercouverture.fr détectée, utilisation de APP_URL');
-            $siteUrl = config('app.url', 'http://localhost');
-        }
+        // Ne jamais forcer/rejeter un domaine ici: utiliser la configuration réelle du site
         
         // S'assurer que l'URL a un protocole (https:// ou http://)
         if (!preg_match('/^https?:\/\//', $siteUrl)) {

@@ -19,35 +19,22 @@ class GenerateSitemap extends Command
     {
         $this->info('🚀 Génération du sitemap en cours...');
         
-        // URL depuis la config ou les settings - FORCER normesrenovationbretagne.fr
-        $baseUrl = null;
-        
-        // 1. Vérifier le setting (mais REJETER sausercouverture.fr)
-        $settingUrl = \App\Models\Setting::get('site_url', null);
-        if (!empty($settingUrl) && strpos($settingUrl, 'sausercouverture.fr') === false) {
-            if (strpos($settingUrl, 'normesrenovationbretagne.fr') !== false) {
-                $baseUrl = $settingUrl;
+        // Déterminer dynamiquement le domaine de base (sans forcer de domaine tiers)
+        // Ordre de priorité: Setting(site_url) > APP_URL > domaine de la requête (si disponible)
+        $baseUrl = \App\Models\Setting::get('site_url', null);
+        if (empty($baseUrl)) {
+            $baseUrl = config('app.url', null);
+        }
+        if (empty($baseUrl)) {
+            try {
+                $baseUrl = request()->getSchemeAndHttpHost();
+            } catch (\Throwable $e) {
+                $baseUrl = 'http://localhost';
             }
         }
-        
-        // 2. Vérifier APP_URL depuis .env (mais REJETER sausercouverture.fr)
-        if (empty($baseUrl)) {
-            $envUrl = config('app.url', null);
-            if (!empty($envUrl) && strpos($envUrl, 'sausercouverture.fr') === false) {
-                if (strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
-                    $baseUrl = $envUrl;
-                }
-            }
-        }
-        
-        // 3. Par défaut, utiliser normesrenovationbretagne.fr (TOUJOURS)
-        if (empty($baseUrl)) {
-            $baseUrl = 'https://normesrenovationbretagne.fr';
-        }
-        
-        // S'assurer que l'URL a un protocole
+        // Normaliser le format de l'URL
         if (!preg_match('/^https?:\/\//', $baseUrl)) {
-            $baseUrl = 'https://' . $baseUrl;
+            $baseUrl = 'https://' . ltrim($baseUrl, '/');
         }
         $baseUrl = rtrim($baseUrl, '/');
         
