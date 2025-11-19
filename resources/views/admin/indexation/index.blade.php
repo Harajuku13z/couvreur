@@ -455,41 +455,49 @@ function testGoogleConnection() {
 }
 
 function submitSitemapToGoogle(filename) {
-    if (!confirm(`Envoyer le sitemap "${filename}" à Google ?`)) {
+    if (!confirm(`Envoyer toutes les URLs du sitemap "${filename}" à Google pour indexation ?\n\n⚠️ Cela peut prendre plusieurs minutes selon le nombre d'URLs.`)) {
         return;
     }
     
     const button = event.target;
     const originalText = button.innerHTML;
     
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Envoi...';
     button.disabled = true;
     
     fetch('{{ route("admin.indexation.submit-sitemap-to-google") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         },
         body: JSON.stringify({ filename: filename })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Résultat soumission sitemap:', data);
+        
         if (data.success) {
-            showNotification(`✅ ${data.success_count} URLs envoyées${data.failed_count > 0 ? `, ${data.failed_count} échouées` : ''}`, 'success');
+            const message = `✅ Sitemap soumis avec succès !\n\n${data.success_count || 0} URLs envoyées à Google${data.failed_count > 0 ? `\n${data.failed_count} URLs échouées` : ''}`;
+            alert(message);
             setTimeout(() => window.location.reload(), 2000);
         } else {
-            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
+            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
         }
     })
     .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de l\'envoi', 'error');
+        console.error('Erreur soumission sitemap:', error);
+        alert('❌ Erreur lors de l\'envoi : ' + error.message);
     })
     .finally(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
+        button.innerHTML = originalText;
+        button.disabled = false;
     });
 }
 
@@ -1316,20 +1324,28 @@ function verifyAllStatuses() {
 
 // Vérifier l'indexation de toutes les URLs d'un sitemap spécifique
 function verifySitemapIndexation(sitemapFilename) {
-    // Trouver l'index du sitemap dans la boucle
-    const buttons = document.querySelectorAll('[onclick^="verifySitemapIndexation"]');
-    let index = 0;
-    buttons.forEach((b, i) => {
-        if (b.getAttribute('onclick').includes(sitemapFilename)) {
-            index = i;
-        }
-    });
-    
-    const resultsDiv = document.getElementById(`sitemap-results-${index}`);
-    const statsDiv = document.getElementById(`sitemap-stats-${index}`);
-    const progressDiv = document.getElementById(`sitemap-progress-${index}`);
-    const detailsDiv = document.getElementById(`sitemap-details-${index}`);
     const btn = event.target;
+    
+    // Trouver l'index du sitemap - méthode plus robuste
+    const sitemapContainer = btn.closest('.p-3');
+    if (!sitemapContainer) {
+        console.error('Container parent non trouvé');
+        alert('❌ Erreur : Container non trouvé');
+        return;
+    }
+    
+    const resultsDiv = sitemapContainer.querySelector('[id^="sitemap-results-"]');
+    const statsDiv = sitemapContainer.querySelector('[id^="sitemap-stats-"]');
+    const progressDiv = sitemapContainer.querySelector('[id^="sitemap-progress-"]');
+    const detailsDiv = sitemapContainer.querySelector('[id^="sitemap-details-"]');
+    
+    if (!resultsDiv || !statsDiv || !progressDiv || !detailsDiv) {
+        console.error('Éléments DOM non trouvés:', {resultsDiv, statsDiv, progressDiv, detailsDiv});
+        alert('❌ Erreur : Éléments DOM manquants. Rechargez la page.');
+        return;
+    }
+    
+    const index = resultsDiv.id.match(/\d+/)[0];
     const originalHtml = btn.innerHTML;
     
     btn.disabled = true;
