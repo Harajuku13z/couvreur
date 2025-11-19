@@ -366,14 +366,18 @@ class FormControllerSimple extends Controller
         }
         
         if (!$submission) {
-            // Créer submission dès l'étape 1 pour que le formulaire fonctionne
             $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
             $userAgent = request()->userAgent();
+            
+            // Créer submission avec statut différent selon l'étape
+            // Étape 1 : STARTED (simple visite, pas comptée dans stats principales)
+            // Étape 2+ : IN_PROGRESS (utilisateur engagé, comptée dans stats)
+            $status = ($step === 'propertyType') ? 'STARTED' : 'IN_PROGRESS';
             
             $submission = Submission::create([
                 'session_id' => $sessionId,
                 'user_identifier' => $this->generateUserIdentifier(),
-                'status' => 'IN_PROGRESS',
+                'status' => $status,
                 'current_step' => $step,
                 'ip_address' => $ipAddress,
                 'city' => $location['city'],
@@ -384,14 +388,25 @@ class FormControllerSimple extends Controller
                 'tracking_data' => [
                     'created_at' => now()->toDateTimeString(),
                     'first_visit' => true,
+                    'initial_step' => $step,
                 ],
             ]);
             
             \Log::info('Nouvelle soumission créée', [
                 'session_id' => $sessionId,
                 'step' => $step,
+                'status' => $status,
                 'country' => $location['country']
             ]);
+        } else {
+            // Si submission existe avec statut STARTED et on passe à l'étape 2+, passer en IN_PROGRESS
+            if ($submission->status === 'STARTED' && $step !== 'propertyType') {
+                $submission->update(['status' => 'IN_PROGRESS']);
+                \Log::info('Submission passée de STARTED à IN_PROGRESS', [
+                    'session_id' => $sessionId,
+                    'step' => $step
+                ]);
+            }
         }
 
         // Métadonnées SEO pour la page propertyType (simulateur de devis)
