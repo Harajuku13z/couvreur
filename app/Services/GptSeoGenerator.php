@@ -1196,6 +1196,64 @@ Tu vas créer l'article le PLUS COMPLET et le MIEUX OPTIMISÉ jamais rédigé su
 {$relatedKeywordsContext}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏆 **CRITÈRES E-E-A-T GOOGLE (OBLIGATOIRE)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **CRITIQUE : Tu DOIS démontrer Experience, Expertise, Authoritativeness, Trust (E-E-A-T)**
+
+**1. EXPERIENCE (Expérience terrain) :**
+- Partager des observations réelles de chantiers (anonymisées)
+- Mentionner des situations courantes rencontrées en 10+ ans de métier
+- Évoquer des défis techniques résolus
+- Exemples : "Dans notre expérience à {$city}, nous constatons que..." ou "Après plus de 500 chantiers, nous observons que..."
+
+**2. EXPERTISE (Compétence technique) :**
+- Citer des normes DTU pertinentes (DTU 40.11, 40.14, 40.24, etc.)
+- Mentionner certification RGE et Qualibat
+- Expliquer les aspects techniques avec précision
+- Utiliser le vocabulaire professionnel correct
+- Exemples : "Selon la norme DTU 40.11..." ou "Notre certification RGE nous impose..."
+
+**3. AUTHORITATIVENESS (Autorité) :**
+- Référencer des sources officielles (ADEME, ANAH, FFB)
+- Citer les réglementations (RE2020, aides Ma Prime Rénov')
+- Mentionner les évolutions du secteur
+- Exemples : "Selon l'ADEME, les économies d'énergie..." ou "Ma Prime Rénov' {$currentYear} permet..."
+
+**4. TRUSTWORTHINESS (Confiance) :**
+- Être transparent sur les prix (fourchettes réalistes)
+- Mentionner garantie décennale et assurances
+- Évoquer les garanties et certifications
+- Avertir sur les arnaques courantes
+- Exemples : "Garantie décennale obligatoire..." ou "Attention aux devis anormalement bas..."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 **OPTIMISATION FEATURED SNIPPETS (Position 0)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**STRATÉGIE FEATURED SNIPPETS :**
+
+1. **Réponses directes en début de section (40-60 mots) :**
+   - Chaque question "Qu'est-ce que X ?" doit avoir réponse immédiate
+   - Format : Question + Réponse courte et claire en premier paragraphe
+   - Puis développement détaillé après
+
+2. **Listes à puces optimisées :**
+   - Listes de 5-8 éléments (idéal pour snippets)
+   - Chaque puce = phrase complète et actionnable
+   - Éviter les listes trop longues (> 10 éléments)
+
+3. **Tableaux comparatifs :**
+   - Créer des tableaux HTML simples
+   - Comparer matériaux, prix, avantages/inconvénients
+   - Format clair et scannable
+
+4. **Définitions précises :**
+   - Définir chaque terme technique dès la première mention
+   - Format : "X est [définition courte claire]."
+   - Puis élaboration
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔍 **ÉTAPE 1 : RECHERCHE APPROFONDIE OBLIGATOIRE (AVANT TOUT)**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
