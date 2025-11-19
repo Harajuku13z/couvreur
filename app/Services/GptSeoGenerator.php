@@ -416,10 +416,25 @@ EOT;
             $titre = ucfirst($keyword) . " " . $city . " : Guide Expert " . $currentYear;
         }
         
-        // Optimisation longueur (sweet spot 50-60 caractères)
-        if (strlen($titre) > 60) {
+        // Éviter répétition du nom de ville dans le titre
+        $villeLower = strtolower($city);
+        $titreLower = strtolower($titre);
+        $villeCount = substr_count($titreLower, $villeLower);
+        
+        if ($villeCount > 1) {
+            // Enlever les répétitions de la ville (garder seulement la première occurrence)
+            $titre = preg_replace('/\b' . preg_quote($city, '/') . '\b/iu', '', $titre, $villeCount - 1);
+            // Nettoyer les espaces multiples et signes de ponctuation dupliqués
+            $titre = preg_replace('/\s+/', ' ', $titre);
+            $titre = preg_replace('/\s*:\s*:/', ':', $titre);
+            $titre = preg_replace('/\s*-\s*-/', '-', $titre);
+            $titre = trim($titre);
+        }
+        
+        // Optimisation longueur (sweet spot 50-65 caractères pour éviter troncature)
+        if (strlen($titre) > 65) {
             // Tronquer intelligemment (garder mot-clé + ville)
-            $titre = $this->smartTruncate($titre, 57, $keyword, $city);
+            $titre = $this->smartTruncate($titre, 62, $keyword, $city);
         } else if (strlen($titre) < 45) {
             // Trop court, ajouter année si absente
             if (strpos($titre, $currentYear) === false) {
