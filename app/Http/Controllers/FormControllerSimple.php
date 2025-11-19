@@ -323,67 +323,62 @@ class FormControllerSimple extends Controller
         $sessionId = Session::getId();
         $submission = Submission::where('session_id', $sessionId)->first();
         
-        if (!$submission) {
-            // Capturer toutes les informations de tracking dès la création
-            $ipAddress = $this->getClientIp(request());
-            $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
-            $userAgent = request()->userAgent();
+        // Vérifier blocage géographique AVANT de créer submission
+        $ipAddress = $this->getClientIp(request());
+        $geoService = new IpGeolocationService();
+        $location = $geoService->getLocationFromIp($ipAddress);
+        
+        $blockNonFrance = setting('block_non_france', false);
+        
+        if ($blockNonFrance) {
+            $allowedCountries = ['FR', 'France'];
+            $countryCode = strtoupper($location['country_code'] ?? '');
+            $countryName = $location['country'] ?? '';
             
-            // Géolocalisation
-            $geoService = new IpGeolocationService();
-            $location = $geoService->getLocationFromIp($ipAddress);
-            
-            // Vérifier si le blocage géographique est activé
-            $blockNonFrance = setting('block_non_france', false);
-            
-            if ($blockNonFrance) {
-                // Vérifier si l'accès est autorisé (France uniquement)
-                $allowedCountries = ['FR', 'France'];
-                $countryCode = strtoupper($location['country_code'] ?? '');
-                $countryName = $location['country'] ?? '';
-                
-                // Bloquer si le pays n'est pas la France
-                if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
-                    return view('form.blocked', [
-                        'country' => $countryName ?: 'votre pays',
-                        'countryCode' => $countryCode,
-                        'ipAddress' => $ipAddress
-                    ]);
-                }
+            if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
+                return view('form.blocked', [
+                    'country' => $countryName ?: 'votre pays',
+                    'countryCode' => $countryCode,
+                    'ipAddress' => $ipAddress
+                ]);
             }
-            
-            $submission = Submission::create([
-                'session_id' => $sessionId,
-                'user_identifier' => $this->generateUserIdentifier(),
-                'status' => 'IN_PROGRESS',
-                'current_step' => $step,
-                'ip_address' => $ipAddress,
-                'city' => $location['city'],
-                'country' => $location['country'],
-                'country_code' => $location['country_code'],
-                'referrer_url' => $referrerUrl,
-                'user_agent' => $userAgent,
-                'tracking_data' => [
-                    'created_at' => now()->toDateTimeString(),
-                    'first_visit' => true,
-                ],
-            ]);
-        } else {
-            // Vérifier aussi pour les soumissions existantes si le blocage est activé
-            $blockNonFrance = setting('block_non_france', false);
-            
-            if ($blockNonFrance) {
-                $allowedCountries = ['FR', 'France'];
-                $countryCode = strtoupper($submission->country_code ?? '');
-                $countryName = $submission->country ?? '';
+        }
+        
+        if (!$submission) {
+            // NOUVEAU : Créer submission SEULEMENT à l'étape 2 (surface) pour ne pas compter les simples visiteurs
+            // Étape 1 (propertyType) = juste visite, pas comptabilisée comme soumission
+            if ($step === 'propertyType') {
+                // Stocker temporairement en session pour l'étape suivante
+                Session::put('form_started', true);
+                Session::put('form_geo_data', $location);
+            } else {
+                // Étape 2+ : Créer la submission (utilisateur engagé)
+                $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
+                $userAgent = request()->userAgent();
                 
-                if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
-                    return view('form.blocked', [
-                        'country' => $countryName ?: 'votre pays',
-                        'countryCode' => $countryCode,
-                        'ipAddress' => $submission->ip_address
-                    ]);
-                }
+                $submission = Submission::create([
+                    'session_id' => $sessionId,
+                    'user_identifier' => $this->generateUserIdentifier(),
+                    'status' => 'IN_PROGRESS',
+                    'current_step' => $step,
+                    'ip_address' => $ipAddress,
+                    'city' => $location['city'],
+                    'country' => $location['country'],
+                    'country_code' => $location['country_code'],
+                    'referrer_url' => $referrerUrl,
+                    'user_agent' => $userAgent,
+                    'tracking_data' => [
+                        'created_at' => now()->toDateTimeString(),
+                        'first_visit' => true,
+                        'started_at_step' => $step, // Étape où vraiment démarré
+                    ],
+                ]);
+                
+                \Log::info('Nouvelle soumission créée à l\'étape ' . $step, [
+                    'session_id' => $sessionId,
+                    'step' => $step,
+                    'country' => $location['country']
+                ]);
             }
         }
 
