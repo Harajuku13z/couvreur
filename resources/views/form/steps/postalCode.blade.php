@@ -81,7 +81,7 @@
 
                     <!-- Navigation -->
                     <div class="flex justify-between mt-8">
-                        <a href="{{ route('form.previous', 'postalCode') }}" 
+                        <a href="{{ route('form.step', 'propertyType') }}" 
                            class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Précédent
