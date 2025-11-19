@@ -65,27 +65,57 @@
         @if(!empty($sitemapInfo))
         <div class="space-y-2">
             @foreach($sitemapInfo as $sitemap)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex-1">
-                    <p class="font-medium">{{ $sitemap['filename'] }}</p>
-                    <p class="text-sm text-gray-600">
-                        {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
-                        <span class="font-semibold text-blue-600">{{ $sitemap['urls_count'] ?? 0 }} URLs</span> - 
-                        Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
-                    </p>
+            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex-1">
+                        <p class="font-medium">{{ $sitemap['filename'] }}</p>
+                        <p class="text-sm text-gray-600">
+                            {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
+                            <span class="font-semibold text-blue-600">{{ $sitemap['urls_count'] ?? 0 }} URLs</span> - 
+                            Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ $sitemap['url'] }}" target="_blank" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-external-link-alt mr-1"></i>Voir
+                        </a>
+                        @if($isGoogleConfigured)
+                        <button type="button" 
+                                onclick="verifySitemapIndexation('{{ $sitemap['filename'] }}')" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition"
+                                id="verify-btn-{{ $loop->index }}">
+                            <i class="fas fa-search mr-1"></i>Vérifier indexation
+                        </button>
+                        <button type="button" 
+                                onclick="submitSitemapToGoogle('{{ $sitemap['filename'] }}')" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-paper-plane mr-1"></i>Soumettre
+                        </button>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <a href="{{ $sitemap['url'] }}" target="_blank" 
-                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                        <i class="fas fa-external-link-alt mr-2"></i>Voir
-                    </a>
-                    @if($isGoogleConfigured)
-                    <button type="button" 
-                            onclick="submitSitemapToGoogle('{{ $sitemap['filename'] }}')" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                        <i class="fas fa-paper-plane mr-2"></i>Envoyer à Google
-                    </button>
-                    @endif
+                
+                <!-- Résultats vérification (caché par défaut) -->
+                <div id="sitemap-results-{{ $loop->index }}" class="mt-3 hidden">
+                    <div class="bg-white rounded-lg p-4 border border-gray-300">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-semibold text-gray-700">Résultats vérification</h4>
+                            <button onclick="document.getElementById('sitemap-results-{{ $loop->index }}').classList.add('hidden')" 
+                                    class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="sitemap-stats-{{ $loop->index }}" class="grid grid-cols-4 gap-3 mb-3">
+                            <!-- Stats dynamiques -->
+                        </div>
+                        <div id="sitemap-progress-{{ $loop->index }}" class="mb-3">
+                            <!-- Barre progression -->
+                        </div>
+                        <div id="sitemap-details-{{ $loop->index }}" class="text-xs text-gray-600">
+                            <!-- Détails -->
+                        </div>
+                    </div>
                 </div>
             </div>
             @endforeach
@@ -1243,6 +1273,168 @@ function verifyAllStatuses() {
         alert('❌ Erreur réseau');
         console.error(error);
     });
+}
+
+// Vérifier l'indexation de toutes les URLs d'un sitemap spécifique
+function verifySitemapIndexation(sitemapFilename) {
+    // Trouver l'index du sitemap dans la boucle
+    const buttons = document.querySelectorAll('[onclick^="verifySitemapIndexation"]');
+    let index = 0;
+    buttons.forEach((b, i) => {
+        if (b.getAttribute('onclick').includes(sitemapFilename)) {
+            index = i;
+        }
+    });
+    
+    const resultsDiv = document.getElementById(`sitemap-results-${index}`);
+    const statsDiv = document.getElementById(`sitemap-stats-${index}`);
+    const progressDiv = document.getElementById(`sitemap-progress-${index}`);
+    const detailsDiv = document.getElementById(`sitemap-details-${index}`);
+    const btn = event.target;
+    const originalHtml = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyse...';
+    
+    // Afficher conteneur résultats
+    resultsDiv.classList.remove('hidden');
+    
+    // Initialiser stats
+    statsDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+            <div class="text-lg font-bold text-blue-600">...</div>
+            <div class="text-xs text-gray-600">Total</div>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded p-2 text-center">
+            <div class="text-lg font-bold text-green-600">0</div>
+            <div class="text-xs text-gray-600">Indexées ✅</div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded p-2 text-center">
+            <div class="text-lg font-bold text-yellow-600">0</div>
+            <div class="text-xs text-gray-600">Non indexées ⚠️</div>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded p-2 text-center">
+            <div class="text-lg font-bold text-red-600">0</div>
+            <div class="text-xs text-gray-600">Erreurs ❌</div>
+        </div>
+    `;
+    
+    progressDiv.innerHTML = '<div class="w-full bg-gray-200 rounded-full h-2.5"><div id="sitemap-progress-bar-' + index + '" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>';
+    detailsDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Récupération des URLs...';
+    
+    // Parser le sitemap
+    fetch(`/${sitemapFilename}`)
+        .then(response => response.text())
+        .then(xmlText => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            const urlElements = xmlDoc.getElementsByTagName('loc');
+            const urls = Array.from(urlElements).map(el => el.textContent);
+            
+            if (urls.length === 0) {
+                throw new Error('Aucune URL trouvée');
+            }
+            
+            const stats = {
+                total: urls.length,
+                verified: 0,
+                indexed: 0,
+                notIndexed: 0,
+                errors: 0
+            };
+            
+            // Mettre à jour total
+            statsDiv.querySelector('.bg-blue-50 .text-lg').textContent = stats.total;
+            detailsDiv.innerHTML = `📊 ${stats.total} URLs à vérifier. Vérification intelligente en cours...<br><small class="text-gray-500">Utilise cache base de données pour URLs récemment vérifiées</small>`;
+            
+            // Vérifier par batch de 20 (plus rapide avec cache BDD)
+            const batchSize = 20;
+            let processed = 0;
+            
+            async function processBatch(startIdx) {
+                const endIdx = Math.min(startIdx + batchSize, urls.length);
+                const batchUrls = urls.slice(startIdx, endIdx);
+                
+                for (const url of batchUrls) {
+                    try {
+                        // Vérifier via BDD d'abord (rapide)
+                        const result = await fetch(`/admin/indexation/verify-status`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ url: url })
+                        }).then(r => r.json());
+                        
+                        stats.verified++;
+                        
+                        if (result.success) {
+                            if (result.indexed) {
+                                stats.indexed++;
+                            } else {
+                                stats.notIndexed++;
+                            }
+                        } else {
+                            stats.errors++;
+                        }
+                        
+                        // Pause courte pour ne pas surcharger
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                    } catch (error) {
+                        stats.errors++;
+                        stats.verified++;
+                    }
+                    
+                    // Mettre à jour UI
+                    processed++;
+                    const progress = (processed / stats.total) * 100;
+                    document.getElementById(`sitemap-progress-bar-${index}`).style.width = progress + '%';
+                    statsDiv.querySelector('.bg-green-50 .text-lg').textContent = stats.indexed;
+                    statsDiv.querySelector('.bg-yellow-50 .text-lg').textContent = stats.notIndexed;
+                    statsDiv.querySelector('.bg-red-50 .text-lg').textContent = stats.errors;
+                    detailsDiv.innerHTML = `⏳ ${processed}/${stats.total} URLs vérifiées (${Math.round(progress)}%)`;
+                }
+                
+                // Batch suivant ?
+                if (endIdx < urls.length) {
+                    await processBatch(endIdx);
+                } else {
+                    // Terminé !
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    
+                    const indexRate = Math.round((stats.indexed / stats.total) * 100);
+                    let message = `✅ Vérification terminée !\n\n`;
+                    message += `📊 ${stats.indexed}/${stats.total} URLs indexées (${indexRate}%)\n`;
+                    
+                    if (stats.notIndexed > 0) {
+                        message += `⚠️ ${stats.notIndexed} URLs non indexées\n`;
+                        message += `💡 Activez "Indexation quotidienne" pour les indexer automatiquement`;
+                    }
+                    
+                    detailsDiv.innerHTML = message.replace(/\n/g, '<br>');
+                    
+                    if (indexRate >= 80) {
+                        detailsDiv.classList.add('text-green-600');
+                    } else if (indexRate >= 50) {
+                        detailsDiv.classList.add('text-yellow-600');
+                    } else {
+                        detailsDiv.classList.add('text-red-600');
+                    }
+                }
+            }
+            
+            // Démarrer traitement
+            processBatch(0);
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            detailsDiv.innerHTML = `❌ Erreur : ${error.message}`;
+        });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
