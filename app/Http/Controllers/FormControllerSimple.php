@@ -366,41 +366,32 @@ class FormControllerSimple extends Controller
         }
         
         if (!$submission) {
-            // NOUVEAU : Créer submission SEULEMENT à l'étape 2 (surface) pour ne pas compter les simples visiteurs
-            // Étape 1 (propertyType) = juste visite, pas comptabilisée comme soumission
-            if ($step === 'propertyType') {
-                // Stocker temporairement en session pour l'étape suivante
-                Session::put('form_started', true);
-                Session::put('form_geo_data', $location);
-            } else {
-                // Étape 2+ : Créer la submission (utilisateur engagé)
-                $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
-                $userAgent = request()->userAgent();
-                
-                $submission = Submission::create([
-                    'session_id' => $sessionId,
-                    'user_identifier' => $this->generateUserIdentifier(),
-                    'status' => 'IN_PROGRESS',
-                    'current_step' => $step,
-                    'ip_address' => $ipAddress,
-                    'city' => $location['city'],
-                    'country' => $location['country'],
-                    'country_code' => $location['country_code'],
-                    'referrer_url' => $referrerUrl,
-                    'user_agent' => $userAgent,
-                    'tracking_data' => [
-                        'created_at' => now()->toDateTimeString(),
-                        'first_visit' => true,
-                        'started_at_step' => $step, // Étape où vraiment démarré
-                    ],
-                ]);
-                
-                \Log::info('Nouvelle soumission créée à l\'étape ' . $step, [
-                    'session_id' => $sessionId,
-                    'step' => $step,
-                    'country' => $location['country']
-                ]);
-            }
+            // Créer submission dès l'étape 1 pour que le formulaire fonctionne
+            $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
+            $userAgent = request()->userAgent();
+            
+            $submission = Submission::create([
+                'session_id' => $sessionId,
+                'user_identifier' => $this->generateUserIdentifier(),
+                'status' => 'IN_PROGRESS',
+                'current_step' => $step,
+                'ip_address' => $ipAddress,
+                'city' => $location['city'],
+                'country' => $location['country'],
+                'country_code' => $location['country_code'],
+                'referrer_url' => $referrerUrl,
+                'user_agent' => $userAgent,
+                'tracking_data' => [
+                    'created_at' => now()->toDateTimeString(),
+                    'first_visit' => true,
+                ],
+            ]);
+            
+            \Log::info('Nouvelle soumission créée', [
+                'session_id' => $sessionId,
+                'step' => $step,
+                'country' => $location['country']
+            ]);
         }
 
         // Métadonnées SEO pour la page propertyType (simulateur de devis)
