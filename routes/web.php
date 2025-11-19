@@ -666,7 +666,7 @@ Route::prefix('admin/cron-config')->name('admin.cron-config.')->middleware(['adm
 
 // Routes admin pour l'automatisation SEO
 Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
-    // IMPORTANT : Routes POST spécifiques AVANT les autres pour éviter conflits
+    // CRITIQUE : Routes POST/GET spécifiques AVANT routes avec paramètres {seoAutomation}
     Route::post('/google-index-url', [SeoAutomationController::class, 'indexArticle'])->name('google-index-url');
     
     Route::get('/', [SeoAutomationController::class, 'index'])->name('index');
@@ -674,9 +674,6 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/password', [SeoAutomationController::class, 'verifyPassword'])->name('verify-password');
     Route::post('/run', [SeoAutomationController::class, 'run'])->name('run');
     Route::get('/run', [SeoAutomationController::class, 'redirectRunGet'])->name('run.get');
-    Route::post('/city/{city}', [SeoAutomationController::class, 'runForCity'])->name('run-city');
-    Route::post('/{seoAutomation}/retry', [SeoAutomationController::class, 'retry'])->name('retry');
-    Route::delete('/{seoAutomation}', [SeoAutomationController::class, 'destroy'])->name('destroy');
     Route::post('/retry-pending-failed', [SeoAutomationController::class, 'retryPendingAndFailed'])->name('retry-pending-failed');
     Route::post('/toggle', [SeoAutomationController::class, 'toggle'])->name('toggle');
     Route::post('/force-run', [SeoAutomationController::class, 'forceRun'])->name('force-run');
@@ -698,4 +695,9 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
     Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('keyword-image.store');
     Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('keyword-image.destroy');
+    
+    // IMPORTANT : Routes avec paramètres EN DERNIER (après toutes les routes spécifiques)
+    Route::post('/city/{city}', [SeoAutomationController::class, 'runForCity'])->name('run-city');
+    Route::post('/{seoAutomation}/retry', [SeoAutomationController::class, 'retry'])->name('retry');
+    Route::delete('/{seoAutomation}', [SeoAutomationController::class, 'destroy'])->name('destroy');
 });
