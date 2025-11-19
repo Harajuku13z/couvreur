@@ -594,26 +594,65 @@ function loadStatuses(filter = 'all', page = 1) {
     });
     
     fetch(`{{ route("admin.indexation.statuses") }}?filter=${currentFilter}&page=${currentPage}&per_page=50`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Données reçues:', data); // Debug
+            
             if (data.success) {
                 displayStatuses(data.data, data.stats);
             } else {
-                container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Erreur: ' + (data.error || 'Erreur inconnue') + '</div>';
+                container.innerHTML = `<div class="text-center text-red-500 py-8">❌ Erreur: ${data.message || data.error || 'Erreur inconnue'}</div>`;
+                console.error('Erreur API:', data);
             }
         })
         .catch(error => {
-            console.error('Erreur:', error);
-            container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Erreur lors du chargement</div>';
+            console.error('Erreur chargement statuts:', error);
+            container.innerHTML = `<div class="text-center text-red-500 py-8">
+                <i class="fas fa-exclamation-triangle mb-3 text-4xl"></i>
+                <p class="text-lg font-semibold mb-2">❌ Erreur de chargement</p>
+                <p class="text-sm text-gray-600">${error.message}</p>
+                <button onclick="loadStatuses()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <i class="fas fa-sync-alt mr-2"></i>Réessayer
+                </button>
+            </div>`;
         });
 }
 
 function displayStatuses(data, stats) {
     const container = document.getElementById('statuses-container');
-    if (!container) return;
+    if (!container) {
+        console.error('Container statuses-container non trouvé');
+        return;
+    }
     
-    if (!data.data || data.data.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-500 py-8">Aucun statut à afficher pour ce filtre</div>';
+    console.log('displayStatuses appelé avec:', data, stats); // Debug
+    
+    // Vérifier la structure des données
+    if (!data || typeof data !== 'object') {
+        console.error('Data invalide:', data);
+        container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Format de données invalide</div>';
+        return;
+    }
+    
+    // Gérer structure paginated Laravel
+    const items = data.data || data;
+    
+    if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-500 py-8">
+            <i class="fas fa-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-semibold">Aucun statut à afficher</p>
+            <p class="text-sm text-gray-600 mt-2">
+                ${currentFilter === 'all' ? 'Aucune URL vérifiée pour le moment' : 'Aucune URL dans cette catégorie'}
+            </p>
+            <button onclick="verifyAllStatuses()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <i class="fas fa-search mr-2"></i>Vérifier les URLs du sitemap
+            </button>
+        </div>`;
         return;
     }
     

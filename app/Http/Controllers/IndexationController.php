@@ -1182,40 +1182,66 @@ class IndexationController extends Controller
     public function getStatuses(Request $request)
     {
         try {
-            $perPage = $request->get('per_page', 50);
-            $status = $request->get('status'); // 'indexed', 'not_indexed', null pour tous
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 50);
+            $filter = $request->input('filter', 'all'); // all, indexed, not_indexed, never_verified, needs_verification
             
             $query = \App\Models\UrlIndexationStatus::query();
             
-            if ($status === 'indexed') {
-                $query->where('indexed', true);
-            } elseif ($status === 'not_indexed') {
-                $query->where('indexed', false);
+            // Filtrer selon le statut
+            switch ($filter) {
+                case 'indexed':
+                    $query->where('indexed', true);
+                    break;
+                case 'not_indexed':
+                    $query->where('indexed', false)
+                          ->whereNotNull('last_verification_time'); // Exclure jamais vérifiées
+                    break;
+                case 'never_verified':
+                    $query->whereNull('last_verification_time');
+                    break;
+                case 'needs_verification':
+                    $query->where(function($q) {
+                        $q->whereNull('last_verification_time')
+                          ->orWhere('last_verification_time', '<', now()->subDays(7));
+                    });
+                    break;
             }
             
+            // Trier par dernière vérification (plus récent en premier)
             $statuses = $query->orderBy('last_verification_time', 'desc')
-                             ->orderBy('created_at', 'desc')
-                             ->paginate($perPage);
-
+                ->orderBy('updated_at', 'desc')
+                ->paginate($perPage);
+            
             // Statistiques globales
             $stats = [
                 'total' => \App\Models\UrlIndexationStatus::count(),
                 'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
                 'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
                 'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
+                'needs_verification' => \App\Models\UrlIndexationStatus::where(function($q) {
+                    $q->whereNull('last_verification_time')
+                      ->orWhere('last_verification_time', '<', now()->subDays(7));
+                })->count(),
             ];
 
             return response()->json([
                 'success' => true,
-                'statuses' => $statuses,
+                'data' => $statuses,
                 'stats' => $stats
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur récupération statuts: ' . $e->getMessage());
+            \Log::error('Erreur récupération statuts IndexationController::getStatuses', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'filter' => $request->input('filter'),
+                'page' => $request->input('page')
+            ]);
             
             return response()->json([
                 'success' => false,
-                'error' => 'Erreur lors de la récupération: ' . $e->getMessage()
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
     }

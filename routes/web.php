@@ -644,6 +644,7 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
         Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
         Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
         Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
+        Route::post('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses.post');
         Route::post('/verify-all-statuses', [App\Http\Controllers\IndexationController::class, 'verifyAllStatuses'])->name('verify-all-statuses');
 });
 
