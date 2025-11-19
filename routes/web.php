@@ -628,15 +628,15 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
 })->name('schedule.run');
 
 // Routes admin pour l'indexation (SIMPLIFIÉES)
-Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
+    Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
     // Page principale
-    Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+        Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
     
     // Actions
-    Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
-    Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+        Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
+        Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
     Route::post('/verify-urls', [App\Http\Controllers\IndexationController::class, 'verifyUrls'])->name('verify-urls');
-    Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
+        Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
     Route::post('/submit-sitemap', [App\Http\Controllers\IndexationController::class, 'submitSitemap'])->name('submit-sitemap');
 });
 
