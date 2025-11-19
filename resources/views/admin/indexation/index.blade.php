@@ -2,8 +2,54 @@
 
 @section('title', 'Indexation Google')
 
+@push('styles')
+<style>
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+.bg-gradient-primary {
+    background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+}
+.card {
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+.btn-lg {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 0.35rem;
+}
+.btn-block {
+    display: block;
+    width: 100%;
+}
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+.badge-pill {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+}
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace;
+}
+</style>
+@endpush
+
 @section('content')
-<div class="container-fluid px-4 py-6">
+<div class="container-fluid px-4 py-4">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -80,27 +126,33 @@
         <div class="card-body">
             <div class="row text-center">
                 <div class="col-md-4 mb-3">
-                    <button onclick="verifierUrls()" class="btn btn-info btn-block btn-lg shadow-sm" id="btn-verify">
-                        <i class="fas fa-search-plus fa-2x mb-2 d-block"></i>
-                        <span class="d-block">Vérifier 50 URLs</span>
+                    <button onclick="verifierUrls()" class="btn btn-info btn-block btn-lg shadow-sm" id="btn-verify" style="min-height: 100px;">
+                        <i class="fas fa-search-plus fa-3x mb-2 d-block"></i>
+                        <span class="d-block font-weight-bold">Vérifier 50 URLs</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Interroge Google Search Console</small>
+                    <small class="text-muted d-block mt-2 text-center">
+                        <i class="fas fa-info-circle mr-1"></i>Interroge Google Search Console
+                    </small>
                 </div>
 
                 <div class="col-md-4 mb-3">
-                    <button onclick="indexerUrls()" class="btn btn-success btn-block btn-lg shadow-sm" id="btn-index">
-                        <i class="fas fa-rocket fa-2x mb-2 d-block"></i>
-                        <span class="d-block">Indexer 150 URLs</span>
+                    <button onclick="indexerUrls()" class="btn btn-success btn-block btn-lg shadow-sm" id="btn-index" style="min-height: 100px;">
+                        <i class="fas fa-rocket fa-3x mb-2 d-block"></i>
+                        <span class="d-block font-weight-bold">Indexer 150 URLs</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Envoie à Google Indexing API</small>
+                    <small class="text-muted d-block mt-2 text-center">
+                        <i class="fas fa-paper-plane mr-1"></i>Envoie à Google Indexing API
+                    </small>
                 </div>
 
                 <div class="col-md-4 mb-3">
-                    <button onclick="window.location.reload()" class="btn btn-primary btn-block btn-lg shadow-sm">
-                        <i class="fas fa-sync-alt fa-2x mb-2 d-block"></i>
-                        <span class="d-block">Actualiser Stats</span>
+                    <button onclick="window.location.reload()" class="btn btn-primary btn-block btn-lg shadow-sm" style="min-height: 100px;">
+                        <i class="fas fa-sync-alt fa-3x mb-2 d-block"></i>
+                        <span class="d-block font-weight-bold">Actualiser Stats</span>
                     </button>
-                    <small class="text-muted d-block mt-2">Recharge les données</small>
+                    <small class="text-muted d-block mt-2 text-center">
+                        <i class="fas fa-chart-line mr-1"></i>Recharge les données
+                    </small>
                 </div>
             </div>
 
