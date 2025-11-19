@@ -571,12 +571,22 @@ class FormControllerSimple extends Controller
                 break;
             case 'email':
                 $submission->update(['email' => $request->email]);
+                
+                \Log::info('Étape email complétée', [
+                    'submission_id' => $submission->id,
+                    'email' => $request->email
+                ]);
                 break;
         }
     }
 
     private function getNextStep(string $currentStep, array $data): ?string
     {
+        // Email est la dernière étape, retourner null pour déclencher la complétion
+        if ($currentStep === 'email') {
+            return null;
+        }
+        
         $currentIndex = array_search($currentStep, $this->steps, true);
         if ($currentIndex === false) {
             return null;
