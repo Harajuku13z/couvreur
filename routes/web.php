@@ -627,32 +627,17 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
     }
 })->name('schedule.run');
 
-// Routes admin pour l'indexation
-    Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
-        // Interface simplifiée (par défaut)
-        Route::get('/', [App\Http\Controllers\SimpleIndexationController::class, 'index'])->name('index');
-        Route::post('/simple/verify', [App\Http\Controllers\SimpleIndexationController::class, 'verify'])->name('simple.verify');
-        Route::post('/simple/index-now', [App\Http\Controllers\SimpleIndexationController::class, 'indexNow'])->name('simple.index');
-        Route::post('/simple/config', [App\Http\Controllers\SimpleIndexationController::class, 'saveConfig'])->name('simple.config');
-        
-        // Interface avancée (ancienne, gardée pour compatibilité)
-        Route::get('/advanced', [App\Http\Controllers\IndexationController::class, 'index'])->name('advanced');
-        Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
-        Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
-        Route::get('/urls', [App\Http\Controllers\IndexationController::class, 'getAllUrls'])->name('urls');
-        Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
-        Route::post('/submit-all-to-google', [App\Http\Controllers\IndexationController::class, 'submitAllUrlsToGoogle'])->name('submit-all-to-google');
-        Route::post('/submit-sitemap-to-google', [App\Http\Controllers\IndexationController::class, 'submitSitemapToGoogle'])->name('submit-sitemap-to-google');
-        Route::post('/test-google', [App\Http\Controllers\IndexationController::class, 'testGoogleConnection'])->name('test-google');
-        Route::post('/toggle-daily-indexing', [App\Http\Controllers\IndexationController::class, 'toggleDailyIndexing'])->name('toggle-daily-indexing');
-        Route::post('/reset-indexed-urls', [App\Http\Controllers\IndexationController::class, 'resetIndexedUrls'])->name('reset-indexed-urls');
-        Route::post('/run-daily-indexing', [App\Http\Controllers\IndexationController::class, 'runDailyIndexing'])->name('run-daily-indexing');
-        Route::post('/test-single-url', [App\Http\Controllers\IndexationController::class, 'testSingleUrl'])->name('test-single-url');
-        Route::post('/verify-status', [App\Http\Controllers\IndexationController::class, 'verifyStatus'])->name('verify-status');
-        Route::post('/verify-statuses', [App\Http\Controllers\IndexationController::class, 'verifyStatuses'])->name('verify-statuses');
-        Route::get('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses');
-        Route::post('/statuses', [App\Http\Controllers\IndexationController::class, 'getStatuses'])->name('statuses.post');
-        Route::post('/verify-all-statuses', [App\Http\Controllers\IndexationController::class, 'verifyAllStatuses'])->name('verify-all-statuses');
+// Routes admin pour l'indexation (SIMPLIFIÉES)
+Route::prefix('admin/indexation')->name('admin.indexation.')->middleware(['admin.auth'])->group(function () {
+    // Page principale
+    Route::get('/', [App\Http\Controllers\IndexationController::class, 'index'])->name('index');
+    
+    // Actions
+    Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
+    Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+    Route::post('/verify-urls', [App\Http\Controllers\IndexationController::class, 'verifyUrls'])->name('verify-urls');
+    Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
+    Route::post('/submit-sitemap', [App\Http\Controllers\IndexationController::class, 'submitSitemap'])->name('submit-sitemap');
 });
 
 // Routes admin pour la gestion des mots-clés

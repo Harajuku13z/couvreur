@@ -3,1369 +3,293 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Setting;
+use App\Services\SimpleIndexationService;
 use App\Services\SitemapService;
 use App\Services\GoogleSearchConsoleService;
-use App\Services\IndexJumpService;
+use App\Models\Setting;
+use App\Models\UrlIndexationStatus;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Contrôleur d'indexation SIMPLIFIÉ et FONCTIONNEL
+ */
 class IndexationController extends Controller
 {
+    protected $indexationService;
+    
+    public function __construct()
+    {
+        $this->indexationService = app(SimpleIndexationService::class);
+    }
+    
     /**
-     * Afficher la page de gestion de l'indexation
+     * Page principale d'indexation
      */
     public function index()
     {
-        $seoConfigData = Setting::get('seo_config', '[]');
-        $seoConfig = is_string($seoConfigData) ? json_decode($seoConfigData, true) : ($seoConfigData ?? []);
+        // Stats
+        $stats = $this->indexationService->getStats();
         
-        // Configuration simplifiée - on garde seulement l'essentiel
-        $indexationConfig = [
-            'sitemap_enabled' => true,
-        ];
+        // Config Google
+        $isGoogleConfigured = app(GoogleSearchConsoleService::class)->isConfigured();
         
-        // Récupérer les credentials Google Search Console
         $googleCredentials = Setting::get('google_search_console_credentials', '');
-        $googleCredentialsArray = [];
-        if (!empty($googleCredentials)) {
-            $googleCredentialsArray = is_string($googleCredentials) ? json_decode($googleCredentials, true) : $googleCredentials;
+        if (is_array($googleCredentials)) {
+            $googleCredentials = json_encode($googleCredentials, JSON_PRETTY_PRINT);
         }
         
-        // Récupérer l'état de l'indexation quotidienne
+        // Indexation quotidienne
         $dailyIndexingEnabled = Setting::get('daily_indexing_enabled', false);
+        $dailyIndexingEnabled = filter_var($dailyIndexingEnabled, FILTER_VALIDATE_BOOLEAN);
         
-        // Récupérer les statistiques d'indexation quotidienne
-        $dailyStats = Setting::get('daily_indexing_stats', '[]');
-        $dailyStats = is_string($dailyStats) ? json_decode($dailyStats, true) : ($dailyStats ?? []);
-        
-        // Récupérer les URLs déjà indexées
-        $indexedUrls = Setting::get('indexed_urls', '[]');
-        $indexedUrls = is_string($indexedUrls) ? json_decode($indexedUrls, true) : ($indexedUrls ?? []);
-        $indexedCount = is_array($indexedUrls) ? count($indexedUrls) : 0;
-        
-        // Récupérer les informations sur les sitemaps
-        $sitemapService = new SitemapService();
-        $sitemapFiles = glob(public_path('sitemap*.xml'));
-        $sitemapInfo = [];
-        foreach ($sitemapFiles as $file) {
-            $filename = basename($file);
-            if ($filename === 'sitemap_index.xml') {
-                continue;
-            }
-            
-            // Compter le nombre d'URLs dans le sitemap
-            $urlsCount = 0;
-            try {
-                $xml = file_get_contents($file);
-                $xmlObj = simplexml_load_string($xml);
-                if ($xmlObj && isset($xmlObj->url)) {
-                    $urlsCount = count($xmlObj->url);
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Impossible de compter les URLs dans le sitemap: ' . $e->getMessage());
-            }
-            
-            $sitemapInfo[] = [
-                'filename' => $filename,
-                'url' => url($filename),
-                'size' => filesize($file),
-                'last_modified' => filemtime($file),
-                'urls_count' => $urlsCount
-            ];
-        }
-        
-        // Vérifier si Google Search Console est configuré
-        $googleService = new GoogleSearchConsoleService();
-        $isGoogleConfigured = $googleService->isConfigured();
-        
-        // Récupérer l'historique des envois à Google
-        $submissionHistory = Setting::get('google_indexing_history', '[]');
-        $submissionHistory = is_string($submissionHistory) ? json_decode($submissionHistory, true) : ($submissionHistory ?? []);
-        
-        // Récupérer le nombre total d'URLs dans les sitemaps
-        $totalUrlsInSitemap = 0;
-        try {
-            $allUrls = $sitemapService->getAllUrls();
-            $totalUrlsInSitemap = count($allUrls);
-        } catch (\Exception $e) {
-            \Log::warning('Impossible de compter les URLs: ' . $e->getMessage());
-        }
-
-        // Récupérer les statuts d'indexation réels
-        $indexationStats = [
-            'total' => \App\Models\UrlIndexationStatus::count(),
-            'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
-            'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
-            'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
-        ];
+        // URL du site
+        $siteUrl = Setting::get('site_url', request()->getSchemeAndHttpHost());
         
         return view('admin.indexation.index', compact(
-            'indexationConfig', 
-            'googleCredentialsArray', 
-            'sitemapInfo', 
+            'stats',
             'isGoogleConfigured',
-            'submissionHistory',
-            'totalUrlsInSitemap',
+            'googleCredentials',
             'dailyIndexingEnabled',
-            'dailyStats',
-            'indexedCount',
-            'indexationStats'
+            'siteUrl'
         ));
     }
-
+    
     /**
-     * Réinitialiser et régénérer tous les sitemaps
-     */
-    public function resetSitemaps(Request $request)
-    {
-        try {
-            // Supprimer tous les anciens sitemaps
-            $sitemapFiles = glob(public_path('sitemap*.xml'));
-            $deletedCount = 0;
-            
-            foreach ($sitemapFiles as $file) {
-                if (unlink($file)) {
-                    $deletedCount++;
-                    \Log::info("🗑️ Sitemap supprimé: " . basename($file));
-                }
-            }
-            
-            // FORCER la bonne URL
-            $siteUrl = 'https://normesrenovationbretagne.fr';
-            
-            // Vérifier aussi depuis .env
-            $envUrl = config('app.url', null);
-            if (!empty($envUrl) && strpos($envUrl, 'normesrenovationbretagne.fr') !== false) {
-                if (!preg_match('/^https?:\/\//', $envUrl)) {
-                    $envUrl = 'https://' . $envUrl;
-                }
-                $siteUrl = rtrim($envUrl, '/');
-            }
-            
-            // FORCER la mise à jour du setting
-            Setting::set('site_url', $siteUrl, 'string', 'seo');
-            
-            // Vider TOUS les caches
-            Setting::clearCache();
-            \Artisan::call('cache:clear');
-            \Artisan::call('config:clear');
-            \Artisan::call('view:clear');
-            
-            \Log::info("✅ site_url FORCÉ à: {$siteUrl}");
-            
-            // Attendre un peu pour que les caches soient bien vidés
-            sleep(1);
-            
-            // Régénérer tous les sitemaps avec un nouveau service (pour forcer la nouvelle URL)
-            $sitemapService = new SitemapService();
-            $result = $sitemapService->generateSitemap();
-            
-            // Vérifier que TOUS les sitemaps ont la bonne URL
-            $allSitemaps = glob(public_path('sitemap*.xml'));
-            $hasOldUrl = false;
-            foreach ($allSitemaps as $sitemapFile) {
-                $content = file_get_contents($sitemapFile);
-                if (strpos($content, 'sausercouverture.fr') !== false) {
-                    \Log::warning("⚠️ Le sitemap " . basename($sitemapFile) . " contient encore l'ancienne URL sausercouverture.fr, suppression...");
-                    unlink($sitemapFile);
-                    $hasOldUrl = true;
-                }
-            }
-            
-            // Si des sitemaps avec l'ancienne URL ont été supprimés, régénérer
-            if ($hasOldUrl) {
-                \Log::info("🔄 Régénération des sitemaps avec la bonne URL...");
-                $result = $sitemapService->generateSitemap();
-            }
-            
-            // Vérification finale : s'assurer qu'aucun sitemap ne contient sausercouverture.fr
-            $finalCheck = glob(public_path('sitemap*.xml'));
-            foreach ($finalCheck as $sitemapFile) {
-                $content = file_get_contents($sitemapFile);
-                if (strpos($content, 'sausercouverture.fr') !== false) {
-                    \Log::error("❌ ERREUR: Le sitemap " . basename($sitemapFile) . " contient encore sausercouverture.fr après régénération !");
-                    // Supprimer et régénérer une dernière fois
-                    unlink($sitemapFile);
-                }
-            }
-            
-            // Si des sitemaps ont été supprimés lors de la vérification finale, régénérer
-            if (count($finalCheck) !== count(glob(public_path('sitemap*.xml')))) {
-                $result = $sitemapService->generateSitemap();
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Réinitialisation réussie : {$deletedCount} ancien(s) sitemap(s) supprimé(s), " . count($result['sitemaps']) . " nouveau(x) sitemap(s) généré(s)",
-                'deleted_count' => $deletedCount,
-                'generated_count' => count($result['sitemaps']),
-                'total_urls' => $result['total_urls'],
-                'site_url' => $siteUrl
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur réinitialisation sitemaps: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la réinitialisation: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Sauvegarder la configuration d'indexation
+     * Sauvegarder configuration
      */
     public function update(Request $request)
     {
         $request->validate([
+            'site_url' => 'required|url',
             'google_search_console_credentials' => 'nullable|string',
-            'site_url' => 'nullable|url'
         ]);
         
-        // Sauvegarder les credentials Google Search Console
-        if ($request->has('google_search_console_credentials')) {
+        Setting::set('site_url', $request->input('site_url'), 'string', 'seo');
+        
+        if ($request->filled('google_search_console_credentials')) {
             $credentials = $request->input('google_search_console_credentials');
             
-            // Valider que c'est un JSON valide
-            if (!empty($credentials)) {
-                $decoded = json_decode($credentials, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return back()->with('error', 'Le JSON des credentials Google Search Console est invalide: ' . json_last_error_msg());
-                }
-                
-                // Vérifier que c'est bien un service account
-                if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
-                    return back()->with('error', 'Les credentials doivent être de type "service_account"');
-                }
+            // Valider JSON
+            $decoded = json_decode($credentials, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->with('error', 'JSON invalide : ' . json_last_error_msg());
+            }
+            
+            // Valider service_account
+            if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
+                return back()->with('error', 'Le JSON doit être un compte de service (type: service_account)');
             }
             
             Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
-            Setting::clearCache(); // Vider le cache pour que les nouvelles credentials soient prises en compte
-            
-            // Vérifier immédiatement si la configuration est correcte
-            try {
-                $googleService = new GoogleSearchConsoleService();
-                $isConfigured = $googleService->isConfigured();
-                
-                if ($isConfigured) {
-                    \Log::info('✅ Google Search Console configuré avec succès après sauvegarde');
-                } else {
-                    \Log::warning('⚠️ Google Search Console non configuré après sauvegarde - vérifiez le format des credentials');
-                }
-            } catch (\Exception $e) {
-                \Log::error('Erreur lors de la vérification de la configuration Google Search Console: ' . $e->getMessage());
-            }
         }
         
-        // Sauvegarder l'URL du site
-        if ($request->has('site_url')) {
-            Setting::set('site_url', $request->input('site_url'), 'string', 'general');
+        // Indexation quotidienne
+        if ($request->has('daily_indexing_enabled')) {
+            $enabled = $request->boolean('daily_indexing_enabled');
+            Setting::set('daily_indexing_enabled', $enabled, 'boolean', 'seo');
         }
         
-        return redirect()->route('admin.indexation.index')->with('success', 'Configuration d\'indexation sauvegardée avec succès !');
+        Setting::clearCache();
+        
+        return back()->with('success', '✅ Configuration sauvegardée avec succès !');
     }
-
+    
     /**
-     * Mettre à jour le sitemap via AJAX
+     * Régénérer sitemap
      */
     public function updateSitemap(Request $request)
     {
         try {
-            $sitemapService = new SitemapService();
+            $sitemapService = app(SitemapService::class);
             $result = $sitemapService->generateSitemap();
             
             if ($result['success']) {
-                $sitemapFiles = [];
-                foreach ($result['sitemaps'] as $sitemap) {
-                    $filePath = public_path($sitemap['filename']);
-                    if (file_exists($filePath)) {
-                        $sitemapFiles[] = [
-                            'filename' => $sitemap['filename'],
-                            'url' => $sitemap['url'],
-                            'urls_count' => $sitemap['urls_count'],
-                            'size' => filesize($filePath),
-                            'last_modified' => date('d/m/Y H:i:s', filemtime($filePath))
-                        ];
-                    }
-                }
-                
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sitemap(s) mis à jour avec succès',
-                    'total_urls' => $result['total_urls'],
-                    'sitemaps' => $sitemapFiles
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur: ' . ($result['error'] ?? 'Erreur inconnue')
-                ], 500);
-            }
-        } catch (\Exception $e) {
-            \Log::error('Erreur mise à jour sitemap: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la mise à jour du sitemap: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Récupérer toutes les URLs des sitemaps
-     */
-    public function getAllUrls(Request $request)
-    {
-        try {
-            $sitemapService = new SitemapService();
-            $urls = $sitemapService->getAllUrls();
-            
-            $page = $request->input('page', 1);
-            $perPage = $request->input('per_page', 100);
-            $total = count($urls);
-            $offset = ($page - 1) * $perPage;
-            $paginatedUrls = array_slice($urls, $offset, $perPage);
-            
-            return response()->json([
-                'success' => true,
-                'total' => $total,
-                'page' => $page,
-                'per_page' => $perPage,
-                'last_page' => ceil($total / $perPage),
-                'urls' => $paginatedUrls
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur récupération URLs: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des URLs: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Indexer des URLs via Google Search Console API
-     */
-    public function indexUrls(Request $request)
-    {
-        try {
-            $request->validate([
-                'urls' => 'required|array',
-                'urls.*' => 'required|url'
-            ]);
-            
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
-                ], 400);
-            }
-            
-            $urls = $request->input('urls');
-            $result = $googleService->indexUrls($urls);
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Indexation terminée: {$result['success']} réussies, {$result['failed']} échouées",
-                'total' => $result['total'],
-                'success_count' => $result['success'],
-                'failed_count' => $result['failed'],
-                'results' => $result['results']
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur indexation URLs: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'indexation: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Tester la connexion Google Search Console
-     */
-    public function testGoogleConnection(Request $request)
-    {
-        try {
-            $googleService = new GoogleSearchConsoleService();
-            $result = $googleService->testConnection();
-            
-            // Si la connexion réussit, tester aussi l'indexation
-            if ($result['success']) {
-                $indexingTest = $googleService->testIndexing();
-                $result['indexing_test'] = $indexingTest;
-            }
-            
-            return response()->json($result);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Envoyer toutes les URLs du sitemap à Google (par sitemap et par batch)
-     */
-    public function submitAllUrlsToGoogle(Request $request)
-    {
-        try {
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
-                ], 400);
-            }
-            
-            $sitemapService = new SitemapService();
-            
-            // Récupérer tous les fichiers sitemap (sauf l'index)
-            $sitemapFiles = glob(public_path('sitemap*.xml'));
-            $sitemapFiles = array_filter($sitemapFiles, function($file) {
-                return basename($file) !== 'sitemap_index.xml';
-            });
-            
-            if (empty($sitemapFiles)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Aucun sitemap trouvé. Veuillez d\'abord générer le sitemap.'
-                ], 400);
-            }
-            
-            // Taille des batches (200 URLs par batch pour éviter les limites)
-            $batchSize = 200;
-            $totalSuccess = 0;
-            $totalFailed = 0;
-            $totalProcessed = 0;
-            $sitemapResults = [];
-            
-            // Traiter chaque sitemap séparément
-            foreach ($sitemapFiles as $sitemapFile) {
-                $filename = basename($sitemapFile);
-                \Log::info("Traitement du sitemap: {$filename}");
-                
-                // Lire le sitemap
-                $xml = file_get_contents($sitemapFile);
-                $xml = simplexml_load_string($xml);
-                
-                if (!$xml || !isset($xml->url)) {
-                    \Log::warning("Sitemap {$filename} vide ou invalide");
-                    continue;
-                }
-                
-                // Extraire les URLs de ce sitemap
-                $sitemapUrls = [];
-                foreach ($xml->url as $url) {
-                    $sitemapUrls[] = (string)$url->loc;
-                }
-                
-                if (empty($sitemapUrls)) {
-                    continue;
-                }
-                
-                // Traiter par batch
-                $batches = array_chunk($sitemapUrls, $batchSize);
-                $sitemapSuccess = 0;
-                $sitemapFailed = 0;
-                
-                foreach ($batches as $batchIndex => $batch) {
-                    \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
-                    
-                    // Envoyer le batch à Google
-                    $batchResult = $googleService->indexUrls($batch, $batchSize);
-                    
-                    $sitemapSuccess += $batchResult['success'];
-                    $sitemapFailed += $batchResult['failed'];
-                    $totalSuccess += $batchResult['success'];
-                    $totalFailed += $batchResult['failed'];
-                    $totalProcessed += count($batch);
-                    
-                    // Pause entre les batches pour éviter les limites de rate
-                    if ($batchIndex < count($batches) - 1) {
-                        sleep(2); // 2 secondes entre chaque batch
-                    }
-                }
-                
-                $sitemapResults[] = [
-                    'sitemap' => $filename,
-                    'total' => count($sitemapUrls),
-                    'success' => $sitemapSuccess,
-                    'failed' => $sitemapFailed
-                ];
-                
-                // Pause entre les sitemaps
-                sleep(1);
-            }
-            
-            // Sauvegarder l'historique
-            $history = Setting::get('google_indexing_history', '[]');
-            $history = is_string($history) ? json_decode($history, true) : ($history ?? []);
-            
-            $history[] = [
-                'date' => now()->toDateTimeString(),
-                'total' => $totalProcessed,
-                'success' => $totalSuccess,
-                'failed' => $totalFailed,
-                'sitemaps_processed' => count($sitemapResults),
-                'timestamp' => time()
-            ];
-            
-            // Garder seulement les 50 derniers envois
-            $history = array_slice($history, -50);
-            
-            Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
-            
-            \Log::info("Indexation terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur {$totalProcessed} URLs");
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Indexation terminée: {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
-                'total' => $totalProcessed,
-                'success_count' => $totalSuccess,
-                'failed_count' => $totalFailed,
-                'sitemaps_processed' => count($sitemapResults),
-                'sitemap_results' => $sitemapResults,
-                'date' => now()->toDateTimeString()
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur envoi URLs à Google: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Envoyer les URLs d'un sitemap spécifique à Google (par batch de 200)
-     */
-    public function submitSitemapToGoogle(Request $request)
-    {
-        try {
-            $request->validate([
-                'filename' => 'required|string'
-            ]);
-
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
-                ], 400);
-            }
-            
-            $filename = $request->input('filename');
-            $sitemapFile = public_path($filename);
-            
-            if (!file_exists($sitemapFile)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Le fichier sitemap '{$filename}' n'existe pas."
-                ], 404);
-            }
-            
-            // Lire le sitemap
-            $xml = file_get_contents($sitemapFile);
-            $xml = simplexml_load_string($xml);
-            
-            if (!$xml || !isset($xml->url)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Le sitemap '{$filename}' est vide ou invalide."
-                ], 400);
-            }
-            
-            // Extraire les URLs
-            $sitemapUrls = [];
-            foreach ($xml->url as $url) {
-                $sitemapUrls[] = (string)$url->loc;
-            }
-            
-            if (empty($sitemapUrls)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Aucune URL trouvée dans le sitemap '{$filename}'."
-                ], 400);
-            }
-            
-            // Taille des batches (200 URLs par batch)
-            $batchSize = 200;
-            $batches = array_chunk($sitemapUrls, $batchSize);
-            $totalSuccess = 0;
-            $totalFailed = 0;
-            
-            \Log::info("Traitement du sitemap {$filename}: " . count($sitemapUrls) . " URLs en " . count($batches) . " batch(s)");
-            
-            // Traiter chaque batch
-            foreach ($batches as $batchIndex => $batch) {
-                \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
-                
-                // Envoyer le batch à Google
-                $batchResult = $googleService->indexUrls($batch, $batchSize);
-                
-                $totalSuccess += $batchResult['success'];
-                $totalFailed += $batchResult['failed'];
-                
-                // Pause entre les batches pour éviter les limites de rate
-                if ($batchIndex < count($batches) - 1) {
-                    sleep(2); // 2 secondes entre chaque batch
-                }
-            }
-            
-            // Sauvegarder l'historique
-            $history = Setting::get('google_indexing_history', '[]');
-            $history = is_string($history) ? json_decode($history, true) : ($history ?? []);
-            
-            $history[] = [
-                'date' => now()->toDateTimeString(),
-                'total' => count($sitemapUrls),
-                'success' => $totalSuccess,
-                'failed' => $totalFailed,
-                'sitemap' => $filename,
-                'timestamp' => time()
-            ];
-            
-            // Garder seulement les 50 derniers envois
-            $history = array_slice($history, -50);
-            
-            Setting::set('google_indexing_history', json_encode($history), 'json', 'seo');
-            
-            \Log::info("Indexation sitemap {$filename} terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur " . count($sitemapUrls) . " URLs");
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Sitemap '{$filename}': {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
-                'total' => count($sitemapUrls),
-                'success_count' => $totalSuccess,
-                'failed_count' => $totalFailed,
-                'sitemap' => $filename,
-                'date' => now()->toDateTimeString()
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur envoi sitemap à Google: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Activer/désactiver l'indexation quotidienne
-     */
-    public function toggleDailyIndexing(Request $request)
-    {
-        try {
-            // Récupérer enabled depuis le body JSON ou les paramètres
-            $enabled = $request->input('enabled', false);
-            if (is_string($enabled)) {
-                $enabled = $enabled === 'true' || $enabled === '1' || $enabled === 1;
-            }
-            $enabled = (bool) $enabled;
-            Setting::set('daily_indexing_enabled', $enabled, 'boolean', 'seo');
-            Setting::clearCache();
-            
-            return response()->json([
-                'success' => true,
-                'message' => $enabled ? 'Indexation quotidienne activée' : 'Indexation quotidienne désactivée',
-                'enabled' => $enabled
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur toggle indexation quotidienne: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Réinitialiser la liste des URLs indexées
-     */
-    public function resetIndexedUrls(Request $request)
-    {
-        try {
-            // Réinitialiser la liste des URLs indexées
-            Setting::set('indexed_urls', json_encode([]), 'json', 'seo');
-            
-            // Réinitialiser aussi les statistiques quotidiennes
-            Setting::set('daily_indexing_stats', json_encode([]), 'json', 'seo');
-            
-            // Vider le cache
-            Setting::clearCache();
-            
-            \Log::info('Liste des URLs indexées réinitialisée');
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Liste des URLs indexées réinitialisée avec succès'
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur réinitialisation URLs indexées: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Exécuter manuellement l'indexation quotidienne
-     */
-    public function runDailyIndexing(Request $request)
-    {
-        try {
-            // Vérifier que Google Search Console est configuré
-            $googleService = new GoogleSearchConsoleService();
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré. Veuillez configurer les identifiants dans les paramètres.'
-                ], 400);
-            }
-            
-            // Vérifier que l'indexation quotidienne est activée (ou forcer l'exécution manuelle)
-            $dailyIndexingEnabled = Setting::get('daily_indexing_enabled', false);
-            if (!$dailyIndexingEnabled) {
-                // Pour l'exécution manuelle, on peut quand même exécuter
-                // Mais on va temporairement activer pour la commande
-                Setting::set('daily_indexing_enabled', true, 'boolean', 'seo');
-            }
-            
-            // Exécuter la commande
-            $exitCode = \Artisan::call('index:urls-daily');
-            $output = \Artisan::output();
-            
-            // Si on avait désactivé temporairement, remettre l'état original
-            if (!$dailyIndexingEnabled) {
-                Setting::set('daily_indexing_enabled', false, 'boolean', 'seo');
-            }
-            
-            // Vider le cache pour que les nouvelles statistiques soient visibles
-            Setting::clearCache();
-            
-            // Parser la sortie pour extraire les informations
-            $successCount = 0;
-            $failedCount = 0;
-            $totalProcessed = 0;
-            
-            // Essayer d'extraire les nombres depuis la sortie
-            if (preg_match('/(\d+)\s+URLs?\s+indexées?\s+avec\s+succès/i', $output, $matches)) {
-                $successCount = (int)$matches[1];
-            }
-            if (preg_match('/(\d+)\s+URLs?\s+échouées?/i', $output, $matches)) {
-                $failedCount = (int)$matches[1];
-            }
-            
-            // Récupérer les statistiques mises à jour
-            $dailyStats = Setting::get('daily_indexing_stats', '[]');
-            $dailyStats = is_string($dailyStats) ? json_decode($dailyStats, true) : ($dailyStats ?? []);
-            $today = date('Y-m-d');
-            $todayStats = $dailyStats[$today] ?? null;
-            
-            // Récupérer le nombre d'URLs indexées
-            $indexedUrls = Setting::get('indexed_urls', '[]');
-            $indexedUrls = is_string($indexedUrls) ? json_decode($indexedUrls, true) : ($indexedUrls ?? []);
-            $indexedCount = is_array($indexedUrls) ? count($indexedUrls) : 0;
-            
-            $message = 'Indexation quotidienne exécutée';
-            if ($successCount > 0) {
-                $message .= " : {$successCount} URLs indexées avec succès";
-            } else if ($exitCode === 0 && strpos($output, 'déjà été indexées') !== false) {
-                $message = 'Toutes les URLs ont déjà été indexées';
-            } else if ($exitCode !== 0) {
-                $message = 'Erreur lors de l\'exécution de l\'indexation';
-            }
-            
-            \Log::info("Indexation quotidienne exécutée manuellement", [
-                'exit_code' => $exitCode,
-                'success_count' => $successCount,
-                'failed_count' => $failedCount,
-                'indexed_count' => $indexedCount
-            ]);
-            
-            return response()->json([
-                'success' => $exitCode === 0,
-                'message' => $message,
-                'output' => $output,
-                'exit_code' => $exitCode,
-                'success_count' => $successCount,
-                'failed_count' => $failedCount,
-                'indexed_count' => $indexedCount,
-                'today_stats' => $todayStats
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur exécution indexation quotidienne: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Tester l'indexation d'une seule URL
-     */
-    public function testSingleUrl(Request $request)
-    {
-        try {
-            $request->validate([
-                'url' => 'required|url'
-            ]);
-
-            $url = $request->input('url');
-            
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré. Veuillez ajouter vos credentials.'
-                ], 400);
-            }
-
-            // Indexer l'URL
-            $result = $googleService->indexUrl($url);
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "URL indexée avec succès: {$url}",
-                    'url' => $url
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erreur lors de l\'indexation',
-                    'error_code' => $result['error_code'] ?? null,
-                    'error_details' => $result['error_details'] ?? null,
-                    'url' => $url
-                ], 400);
-            }
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            \Log::error('Erreur test indexation URL: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Récupérer le solde IndexJump
-     */
-    public function getIndexJumpBalance(Request $request)
-    {
-        try {
-            $indexJumpService = new IndexJumpService();
-            
-            if (!$indexJumpService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'IndexJump n\'est pas configuré'
-                ], 400);
-            }
-            
-            $result = $indexJumpService->getBalance();
-            
-            if ($result['success']) {
-                // Mettre en cache le solde pour 5 minutes
-                $token = Setting::get('indexjump_token', '');
-                $balanceCacheKey = 'indexjump_balance_' . md5($token);
-                \Cache::put($balanceCacheKey, $result['balance'], 300);
-                
-                return response()->json([
-                    'success' => true,
-                    'balance' => $result['balance'],
-                    'message' => 'Solde récupéré avec succès'
+                    'message' => 'Sitemap régénéré avec succès',
+                    'total_urls' => $result['total_urls'] ?? 0
                 ]);
             }
             
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Erreur lors de la récupération du solde'
-            ], 400);
-        } catch (\Exception $e) {
-            \Log::error('Erreur récupération solde IndexJump: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => $result['error'] ?? 'Erreur inconnue'
             ], 500);
-        }
-    }
-
-    /**
-     * Tester la connexion IndexJump
-     */
-    public function testIndexJumpConnection(Request $request)
-    {
-        try {
-            $indexJumpService = new IndexJumpService();
-            $result = $indexJumpService->getBalance();
             
-            return response()->json($result);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Tester l'indexation d'une seule URL via IndexJump
-     */
-    public function testIndexJumpUrl(Request $request)
-    {
-        try {
-            $request->validate([
-                'url' => 'required|url'
-            ]);
-
-            $url = $request->input('url');
-            $bot = $request->input('bot', 0); // 0 = GoogleBot par défaut
-            
-            $indexJumpService = new IndexJumpService();
-            
-            if (!$indexJumpService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'IndexJump n\'est pas configuré. Veuillez ajouter votre token.'
-                ], 400);
-            }
-
-            $result = $indexJumpService->indexUrl($url, $bot);
-            
-            return response()->json($result);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'URL invalide. Veuillez entrer une URL complète (ex: https://example.com/page)',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            \Log::error('Erreur test IndexJump URL: ' . $e->getMessage());
+            Log::error('Erreur régénération sitemap', ['error' => $e->getMessage()]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Envoyer un sitemap à IndexJump
-     */
-    public function submitSitemapToIndexJump(Request $request)
-    {
-        try {
-            $request->validate([
-                'filename' => 'required|string',
-                'bot' => 'nullable|integer|in:0,1,2'
-            ]);
-
-            $indexJumpService = new IndexJumpService();
-            
-            if (!$indexJumpService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'IndexJump n\'est pas configuré. Veuillez ajouter votre token.'
-                ], 400);
-            }
-            
-            $filename = $request->input('filename');
-            $bot = $request->input('bot', 0);
-            $sitemapFile = public_path($filename);
-            
-            if (!file_exists($sitemapFile)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Le fichier sitemap '{$filename}' n'existe pas."
-                ], 404);
-            }
-            
-            $xml = file_get_contents($sitemapFile);
-            $xml = simplexml_load_string($xml);
-            
-            if (!$xml || !isset($xml->url)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Le sitemap '{$filename}' est vide ou invalide."
-                ], 400);
-            }
-            
-            $sitemapUrls = [];
-            foreach ($xml->url as $url) {
-                $sitemapUrls[] = (string)$url->loc;
-            }
-            
-            if (empty($sitemapUrls)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Aucune URL trouvée dans le sitemap '{$filename}'."
-                ], 400);
-            }
-            
-            // Envoyer par batch de 100 URLs (limite recommandée pour IndexJump)
-            $batchSize = 100;
-            $batches = array_chunk($sitemapUrls, $batchSize);
-            $totalSuccess = 0;
-            $totalFailed = 0;
-            
-            \Log::info("Traitement du sitemap {$filename} avec IndexJump: " . count($sitemapUrls) . " URLs en " . count($batches) . " batch(s)");
-            
-            foreach ($batches as $batchIndex => $batch) {
-                \Log::info("Traitement batch " . ($batchIndex + 1) . "/" . count($batches) . " du sitemap {$filename} (" . count($batch) . " URLs)");
-                
-                $batchResult = $indexJumpService->indexUrls($batch, $bot);
-                
-                if ($batchResult['success']) {
-                    $totalSuccess += count($batch);
-                } else {
-                    $totalFailed += count($batch);
-                    \Log::warning("Échec batch IndexJump: " . ($batchResult['message'] ?? 'Erreur inconnue'));
-                }
-                
-                // Pause entre les batches pour éviter les limites de rate
-                if ($batchIndex < count($batches) - 1) {
-                    sleep(2);
-                }
-            }
-            
-            \Log::info("Indexation IndexJump sitemap {$filename} terminée: {$totalSuccess} réussies, {$totalFailed} échouées sur " . count($sitemapUrls) . " URLs");
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Sitemap '{$filename}': {$totalSuccess} URLs envoyées avec succès, {$totalFailed} échouées",
-                'total' => count($sitemapUrls),
-                'success_count' => $totalSuccess,
-                'failed_count' => $totalFailed,
-                'sitemap' => $filename,
-                'date' => now()->toDateTimeString()
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur envoi sitemap à IndexJump: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'envoi: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Sauvegarder le token IndexJump
-     */
-    public function updateIndexJumpToken(Request $request)
-    {
-        try {
-            $request->validate([
-                'indexjump_token' => 'nullable|string|max:255'
-            ]);
-
-            if ($request->has('indexjump_token')) {
-                Setting::set('indexjump_token', $request->input('indexjump_token'), 'string', 'seo');
-                Setting::clearCache();
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Token IndexJump sauvegardé avec succès'
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur sauvegarde token IndexJump: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Vérifier le statut réel d'indexation d'une URL
-     */
-    public function verifyStatus(Request $request)
-    {
-        try {
-            $request->validate([
-                'url' => 'required|url'
-            ]);
-
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré.'
-                ], 400);
-            }
-
-            $url = $request->input('url');
-            $result = $googleService->verifyIndexationStatus($url);
-
-            return response()->json($result);
-        } catch (\Exception $e) {
-            \Log::error('Erreur vérification statut URL: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Erreur lors de la vérification: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Vérifier le statut de plusieurs URLs
-     */
-    public function verifyStatuses(Request $request)
-    {
-        try {
-            $request->validate([
-                'urls' => 'required|array',
-                'urls.*' => 'required|url'
-            ]);
-
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console n\'est pas configuré.'
-                ], 400);
-            }
-
-            $urls = $request->input('urls');
-            $result = $googleService->verifyIndexationStatuses($urls);
-
-            return response()->json([
-                'success' => true,
-                'results' => $result
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur vérification statuts URLs: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Erreur lors de la vérification: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Obtenir tous les statuts d'indexation enregistrés
-     */
-    public function getStatuses(Request $request)
-    {
-        try {
-            $page = $request->input('page', 1);
-            $perPage = $request->input('per_page', 50);
-            $filter = $request->input('filter', 'all'); // all, indexed, not_indexed, never_verified, needs_verification
-            
-            $query = \App\Models\UrlIndexationStatus::query();
-            
-            // Filtrer selon le statut
-            switch ($filter) {
-                case 'indexed':
-                    $query->where('indexed', true);
-                    break;
-                case 'not_indexed':
-                    $query->where('indexed', false)
-                          ->whereNotNull('last_verification_time'); // Exclure jamais vérifiées
-                    break;
-                case 'never_verified':
-                    $query->whereNull('last_verification_time');
-                    break;
-                case 'needs_verification':
-                    $query->where(function($q) {
-                        $q->whereNull('last_verification_time')
-                          ->orWhere('last_verification_time', '<', now()->subDays(7));
-                    });
-                    break;
-            }
-            
-            // Trier par dernière vérification (plus récent en premier)
-            $statuses = $query->orderBy('last_verification_time', 'desc')
-                ->orderBy('updated_at', 'desc')
-                ->paginate($perPage);
-            
-            // Statistiques globales
-            $stats = [
-                'total' => \App\Models\UrlIndexationStatus::count(),
-                'indexed' => \App\Models\UrlIndexationStatus::where('indexed', true)->count(),
-                'not_indexed' => \App\Models\UrlIndexationStatus::where('indexed', false)->count(),
-                'never_verified' => \App\Models\UrlIndexationStatus::whereNull('last_verification_time')->count(),
-                'needs_verification' => \App\Models\UrlIndexationStatus::where(function($q) {
-                    $q->whereNull('last_verification_time')
-                      ->orWhere('last_verification_time', '<', now()->subDays(7));
-                })->count(),
-            ];
-
-            return response()->json([
-                'success' => true,
-                'data' => $statuses,
-                'stats' => $stats
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Erreur récupération statuts IndexationController::getStatuses', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'filter' => $request->input('filter'),
-                'page' => $request->input('page')
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération: ' . $e->getMessage(),
-                'error' => $e->getMessage()
+                'message' => 'Erreur : ' . $e->getMessage()
             ], 500);
         }
     }
     
     /**
-     * Vérifier le statut de toutes les URLs du sitemap (par batch)
+     * Vérifier URLs (AJAX)
      */
-    public function verifyAllStatuses(Request $request)
+    public function verifyUrls(Request $request)
     {
         try {
             $limit = $request->input('limit', 50);
             
-            $googleService = new GoogleSearchConsoleService();
-            
-            if (!$googleService->isConfigured()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Google Search Console non configuré'
-                ], 400);
-            }
-            
-            // Récupérer toutes les URLs du sitemap
-            $sitemapService = new SitemapService();
-            $allUrls = $sitemapService->getAllUrls();
-            
-            // Extraire les URLs
-            $urls = [];
-            foreach ($allUrls as $item) {
-                if (is_array($item)) {
-                    $url = $item['url'] ?? null;
-                } else {
-                    $url = $item;
-                }
-                if (!empty($url) && is_string($url)) {
-                    $urls[] = $url;
-                }
-            }
-            
-            $urls = array_unique($urls);
-            
-            // Trouver les URLs qui n'ont jamais été vérifiées ou vérifiées il y a > 7 jours
+            // Récupérer URLs non vérifiées
+            $allUrls = $this->indexationService->getAllSiteUrls();
             $urlsToVerify = [];
-            foreach ($urls as $url) {
-                $status = \App\Models\UrlIndexationStatus::where('url', $url)->first();
+            
+            foreach ($allUrls as $url) {
+                $status = UrlIndexationStatus::where('url', $url)->first();
                 
-                if (!$status || !$status->last_verification_time || 
-                    $status->last_verification_time->lt(now()->subDays(7))) {
+                if (!$status || !$status->last_verification_time) {
                     $urlsToVerify[] = $url;
+                }
+                
+                if (count($urlsToVerify) >= $limit) {
+                    break;
                 }
             }
             
             if (empty($urlsToVerify)) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Toutes les URLs ont été vérifiées récemment (< 7 jours)',
+                    'message' => 'Toutes les URLs ont déjà été vérifiées',
                     'stats' => [
-                        'total_urls' => count($urls),
-                        'to_verify' => 0,
                         'verified' => 0,
                         'indexed' => 0,
-                        'not_indexed' => 0
+                        'not_indexed' => 0,
+                        'errors' => 0,
+                        'remaining' => 0
                     ]
                 ]);
             }
             
-            // Limiter le batch
-            $totalToVerify = count($urlsToVerify);
-            $urlsToVerify = array_slice($urlsToVerify, 0, $limit);
+            // Vérifier
+            $results = $this->indexationService->verifyUrls($urlsToVerify, $limit);
             
-            // Vérifier chaque URL
-            $verified = 0;
-            $indexed = 0;
-            $notIndexed = 0;
-            $errors = 0;
-            
-            foreach ($urlsToVerify as $url) {
-                try {
-                    $result = $googleService->verifyIndexationStatus($url);
-                    $verified++;
-                    
-                    if ($result['success']) {
-                        if ($result['indexed'] ?? false) {
-                            $indexed++;
-                        } else {
-                            $notIndexed++;
-                        }
-                    } else {
-                        $errors++;
-                    }
-                    
-                    // Pause 2 secondes entre chaque requête (limite API Google)
-                    if ($verified < count($urlsToVerify)) {
-                        sleep(2);
-                    }
-                    
-                } catch (\Exception $e) {
-                    $errors++;
-                    \Log::error('Erreur vérification URL', [
-                        'url' => $url,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            // Calculer restantes
+            $totalVerified = UrlIndexationStatus::whereNotNull('last_verification_time')->count();
+            $remaining = count($allUrls) - $totalVerified;
             
             return response()->json([
                 'success' => true,
-                'message' => "{$verified} URLs vérifiées sur {$totalToVerify} à vérifier",
+                'message' => "{$results['total']} URLs vérifiées",
                 'stats' => [
-                    'total_urls_sitemap' => count($urls),
-                    'to_verify_total' => $totalToVerify,
-                    'verified_now' => $verified,
-                    'indexed' => $indexed,
-                    'not_indexed' => $notIndexed,
-                    'errors' => $errors,
-                    'remaining' => max(0, $totalToVerify - $verified)
+                    'verified' => $results['total'],
+                    'indexed' => $results['indexed'],
+                    'not_indexed' => $results['not_indexed'],
+                    'errors' => $results['errors'],
+                    'remaining' => max(0, $remaining)
                 ]
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('Erreur vérification batch: ' . $e->getMessage());
+            Log::error('Erreur vérification URLs AJAX', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Indexer URLs non indexées (AJAX)
+     */
+    public function indexUrls(Request $request)
+    {
+        try {
+            $limit = $request->input('limit', 150);
+            
+            $result = $this->indexationService->runDailyIndexing($limit);
+            
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'] ?? 'Indexation terminée',
+                'success_count' => $result['success'] ?? 0,
+                'failed_count' => $result['failed'] ?? 0,
+                'total' => $result['total'] ?? 0
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur indexation URLs AJAX', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Soumettre sitemap à Google
+     */
+    public function submitSitemap(Request $request)
+    {
+        try {
+            $request->validate([
+                'filename' => 'required|string'
+            ]);
+            
+            $filename = $request->input('filename', 'sitemap.xml');
+            $sitemapPath = public_path($filename);
+            
+            if (!file_exists($sitemapPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Sitemap '{$filename}' non trouvé"
+                ], 404);
+            }
+            
+            // Lire sitemap
+            $xml = simplexml_load_file($sitemapPath);
+            if (!$xml) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sitemap XML invalide'
+                ], 400);
+            }
+            
+            // Extraire URLs
+            $urls = [];
+            foreach ($xml->url as $url) {
+                $urls[] = (string)$url->loc;
+            }
+            
+            if (empty($urls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucune URL dans le sitemap'
+                ], 400);
+            }
+            
+            // Indexer (max 200)
+            $urlsToIndex = array_slice($urls, 0, 200);
+            $results = $this->indexationService->indexUrls($urlsToIndex, 200);
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Sitemap soumis : {$results['success']} URLs envoyées",
+                'success_count' => $results['success'],
+                'failed_count' => $results['failed'],
+                'total' => $results['total']
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur soumission sitemap', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
             ], 500);
         }
     }

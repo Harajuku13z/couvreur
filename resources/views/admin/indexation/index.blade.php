@@ -1,1501 +1,381 @@
 @extends('layouts.admin')
 
-@section('title', 'Gestion de l\'Indexation')
+@section('title', 'Indexation Google')
 
 @section('content')
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">🗺️ Gestion du Sitemap & Indexation</h1>
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-2 text-gray-800">
+                <i class="fas fa-search mr-2"></i>Indexation Google
+            </h1>
+            <p class="text-muted">Vérifiez et indexez vos pages dans Google</p>
+        </div>
     </div>
-    
+
+    <!-- Messages -->
     @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-        {{ session('success') }}
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        {{ session('error') }}
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('error') }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
     </div>
     @endif
 
-    <!-- Sitemap XML - Section principale -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h2 class="text-lg font-semibold">🗺️ Sitemap XML</h2>
-                <p class="text-sm text-gray-600 mt-1">Génération automatique du sitemap pour les moteurs de recherche</p>
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">URLs Sitemap</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ number_format($stats['total_sitemap'] ?? 0) }}</div>
                 </div>
-            <div class="flex items-center space-x-3">
-                <a href="{{ url('/sitemap.xml') }}" target="_blank" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-external-link-alt mr-2"></i>Voir le sitemap
-                </a>
-                <button type="button" onclick="updateSitemap()" 
-                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-sync-alt mr-2"></i>Régénérer
-                </button>
-                </div>
-                </div>
-                
-        <!-- Statistiques sitemap -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div class="text-2xl font-bold text-blue-600">{{ $totalUrlsInSitemap ?? 0 }}</div>
-                <div class="text-sm text-gray-600">URLs dans le sitemap</div>
-                </div>
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="text-2xl font-bold text-green-600">{{ count($sitemapInfo ?? []) }}</div>
-                <div class="text-sm text-gray-600">Fichiers sitemap</div>
-                </div>
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div class="text-2xl font-bold text-purple-600">
-                    @if(!empty($sitemapInfo))
-                        {{ date('d/m/Y H:i', max(array_column($sitemapInfo, 'last_modified'))) }}
-                    @else
-                        Jamais
-                    @endif
-            </div>
-                <div class="text-sm text-gray-600">Dernière génération</div>
-        </div>
-                </div>
-                
-        <!-- Liste des sitemaps -->
-        @if(!empty($sitemapInfo))
-        <div class="space-y-2">
-            @foreach($sitemapInfo as $sitemap)
-            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex-1">
-                        <p class="font-medium">{{ $sitemap['filename'] }}</p>
-                        <p class="text-sm text-gray-600">
-                            {{ number_format($sitemap['size'] / 1024, 2) }} KB - 
-                            <span class="font-semibold text-blue-600">{{ $sitemap['urls_count'] ?? 0 }} URLs</span> - 
-                            Modifié le {{ date('d/m/Y H:i', $sitemap['last_modified']) }}
-                        </p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="{{ $sitemap['url'] }}" target="_blank" 
-                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fas fa-external-link-alt mr-1"></i>Voir
-                        </a>
-                        @if($isGoogleConfigured)
-                        <button type="button" 
-                                onclick="verifySitemapIndexation('{{ $sitemap['filename'] }}')" 
-                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition"
-                                id="verify-btn-{{ $loop->index }}">
-                            <i class="fas fa-search mr-1"></i>Vérifier indexation
-                        </button>
-                        <button type="button" 
-                                onclick="submitSitemapToGoogle('{{ $sitemap['filename'] }}')" 
-                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fas fa-paper-plane mr-1"></i>Soumettre
-                        </button>
-                        @endif
-                    </div>
-                </div>
-                
-                <!-- Résultats vérification (caché par défaut) -->
-                <div id="sitemap-results-{{ $loop->index }}" class="mt-3 hidden">
-                    <div class="bg-white rounded-lg p-4 border border-gray-300">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-sm font-semibold text-gray-700">Résultats vérification</h4>
-                            <button onclick="document.getElementById('sitemap-results-{{ $loop->index }}').classList.add('hidden')" 
-                                    class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div id="sitemap-stats-{{ $loop->index }}" class="grid grid-cols-4 gap-3 mb-3">
-                            <!-- Stats dynamiques -->
-                        </div>
-                        <div id="sitemap-progress-{{ $loop->index }}" class="mb-3">
-                            <!-- Barre progression -->
-                        </div>
-                        <div id="sitemap-details-{{ $loop->index }}" class="text-xs text-gray-600">
-                            <!-- Détails -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-        @else
-        <div class="text-center py-8 bg-gray-50 rounded-lg">
-            <p class="text-gray-500 mb-4">Aucun sitemap généré</p>
-                <button type="button" onclick="updateSitemap()" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition">
-                <i class="fas fa-plus-circle mr-2"></i>Générer le sitemap
-                </button>
-        </div>
-        @endif
-
-        <!-- Automatisation -->
-        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h4 class="text-sm font-semibold text-blue-800 mb-1">
-                        <i class="fas fa-clock mr-1"></i>Génération automatique
-                    </h4>
-                    <p class="text-xs text-blue-600">
-                        Le sitemap est régénéré automatiquement chaque jour à 2h du matin
-                    </p>
-                </div>
-                <span class="text-sm font-medium text-green-600">
-                    <i class="fas fa-check-circle mr-1"></i>Activée
-                </span>
-            </div>
             </div>
         </div>
 
-    <!-- Google Search Console -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">🔐 Google Search Console</h2>
-        <p class="text-sm text-gray-600 mb-4">Configuration de l'API Google pour l'indexation automatique</p>
-        
-        <form action="{{ route('admin.indexation.update') }}" method="POST">
-            @csrf
-            
-            <div class="mb-4">
-                <label for="site_url" class="block text-sm font-medium mb-2">URL du site</label>
-                <input type="url" id="site_url" name="site_url" 
-                       value="{{ setting('site_url', request()->getSchemeAndHttpHost()) }}"
-                       placeholder="https://votre-site.com"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <p class="text-xs text-gray-500 mt-1">URL de base de votre site (sans slash final)</p>
-            </div>
-            
-            <div class="mb-4">
-                <label for="google_search_console_credentials" class="block text-sm font-medium mb-2">
-                    Credentials JSON Google Search Console
-                </label>
-                <textarea id="google_search_console_credentials" name="google_search_console_credentials" 
-                          rows="8"
-                          placeholder='{"type": "service_account", "project_id": "...", ...}'
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs">{{ !empty($googleCredentialsArray) ? json_encode($googleCredentialsArray, JSON_PRETTY_PRINT) : '' }}</textarea>
-                <p class="text-xs text-gray-500 mt-1">Collez ici le JSON de votre compte de service Google</p>
-            </div>
-            
-            <div class="flex items-center space-x-4 mb-4">
-                <button type="button" onclick="testGoogleConnection()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-plug mr-2"></i>Tester la connexion
-                </button>
-                @if($isGoogleConfigured)
-                <span class="text-sm text-green-600">
-                    <i class="fas fa-check-circle mr-1"></i>API configurée
-                </span>
-                @else
-                <span class="text-sm text-gray-500">
-                    <i class="fas fa-exclamation-circle mr-1"></i>API non configurée
-                </span>
-                @endif
-            </div>
-
-            <!-- Indexation quotidienne automatique -->
-            @if($isGoogleConfigured)
-            <div class="border-t pt-4 mt-4">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <h3 class="text-md font-semibold text-gray-800">🔄 Indexation Quotidienne Automatique</h3>
-                        <p class="text-sm text-gray-600 mt-1">
-                            Indexe automatiquement 150 URLs par jour pour respecter le quota Google
-                        </p>
-                        <p class="text-xs text-gray-500 mt-1">
-                            @if($dailyIndexingEnabled)
-                                <span class="text-green-600">✅ Activée</span> - 
-                            @else
-                                <span class="text-gray-500">⏸️ Désactivée</span> - 
-                            @endif
-                            {{ $indexedCount ?? 0 }} liens déjà indexés sur {{ $totalUrlsInSitemap ?? 0 }} total
-                        </p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button type="button" 
-                                onclick="toggleDailyIndexing({{ $dailyIndexingEnabled ? 'false' : 'true' }})" 
-                                class="text-white px-4 py-2 rounded-lg text-sm font-medium transition {{ $dailyIndexingEnabled ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' }}">
-                            <i class="fas fa-{{ $dailyIndexingEnabled ? 'pause' : 'play' }} mr-2"></i>
-                            {{ $dailyIndexingEnabled ? 'Désactiver' : 'Activer' }}
-                        </button>
-                        <button type="button" 
-                                onclick="runDailyIndexing()" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fas fa-play-circle mr-2"></i>Exécuter maintenant
-                        </button>
-                    </div>
+        <div class="col-md-3">
+            <div class="card border-left-success shadow py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Indexées ✅</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ number_format($stats['indexed'] ?? 0) }}</div>
                 </div>
-
-                <!-- Statistiques -->
-                @if(!empty($dailyStats))
-                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">📊 Statistiques des 7 derniers jours</h4>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-                        @foreach(array_reverse(array_slice($dailyStats, -7, 7, true)) as $date => $stat)
-                        <div class="flex items-center justify-between text-xs bg-white p-2 rounded">
-                                <span class="font-medium">{{ date('d/m/Y', strtotime($date)) }}</span>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-green-600 font-medium">{{ $stat['success'] ?? 0 }} réussies</span>
-                                @if(($stat['failed'] ?? 0) > 0)
-                                <span class="text-red-600 font-medium">{{ $stat['failed'] ?? 0 }} échouées</span>
-                                @endif
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-                    </div>
-                            @endif
-
-            <div class="mt-6">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg">
-                    <i class="fas fa-save mr-2"></i>Sauvegarder la configuration
-                        </button>
-                    </div>
-        </form>
+            </div>
         </div>
 
-    <!-- Vérification des pages indexées -->
-    @if($isGoogleConfigured)
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                <h2 class="text-lg font-semibold">📊 Vérification des Pages Indexées</h2>
-                <p class="text-sm text-gray-600 mt-1">Vérifiez le statut d'indexation de vos pages via Google Search Console</p>
-                </div>
-                <button type="button" onclick="verifyAllStatuses()" 
-                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-search mr-2"></i>Vérifier les statuts
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="text-2xl font-bold text-blue-600">{{ $indexationStats['total'] ?? 0 }}</div>
-                    <div class="text-sm text-gray-600">URLs suivies</div>
-                </div>
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div class="text-2xl font-bold text-green-600">{{ $indexationStats['indexed'] ?? 0 }}</div>
-                    <div class="text-sm text-gray-600">Indexées ✅</div>
-                </div>
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div class="text-2xl font-bold text-yellow-600">{{ $indexationStats['not_indexed'] ?? 0 }}</div>
-                    <div class="text-sm text-gray-600">Non indexées ⚠️</div>
-                </div>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div class="text-2xl font-bold text-gray-600">{{ $indexationStats['never_verified'] ?? 0 }}</div>
-                    <div class="text-sm text-gray-600">Jamais vérifiées</div>
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Non Indexées ⚠️</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ number_format($stats['not_indexed'] ?? 0) }}</div>
                 </div>
             </div>
+        </div>
 
-            <div class="mt-4">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-md font-semibold">Derniers statuts vérifiés</h3>
-                    <button type="button" onclick="loadStatuses()" 
-                            class="text-sm text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-sync-alt mr-1"></i>Actualiser
+        <div class="col-md-3">
+            <div class="card border-left-info shadow py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Taux Indexation</div>
+                    <div class="h5 mb-0 font-weight-bold">
+                        {{ $stats['total_tracked'] > 0 ? round($stats['indexed'] / $stats['total_tracked'] * 100, 1) : 0 }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">⚡ Actions Rapides</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <button onclick="verifierUrls()" class="btn btn-info btn-block btn-lg" id="btn-verify">
+                        <i class="fas fa-search mr-2"></i>Vérifier 50 URLs
                     </button>
+                    <small class="text-muted d-block mt-2">Vérifie le statut via Google Search Console</small>
                 </div>
-                <!-- Filtres de statut -->
-                <div class="flex items-center space-x-2 mb-3">
-                    <label class="text-sm font-medium text-gray-700">Filtrer :</label>
-                    <button onclick="loadStatuses('all')" class="filter-btn px-3 py-1 rounded text-sm font-medium bg-gray-200 hover:bg-gray-300" data-filter="all">Tous</button>
-                    <button onclick="loadStatuses('indexed')" class="filter-btn px-3 py-1 rounded text-sm font-medium bg-green-100 hover:bg-green-200 text-green-700" data-filter="indexed">✅ Indexées</button>
-                    <button onclick="loadStatuses('not_indexed')" class="filter-btn px-3 py-1 rounded text-sm font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-700" data-filter="not_indexed">⚠️ Non indexées</button>
-                    <button onclick="loadStatuses('never_verified')" class="filter-btn px-3 py-1 rounded text-sm font-medium bg-red-100 hover:bg-red-200 text-red-700" data-filter="never_verified">❌ Jamais vérifiées</button>
-                    <button onclick="loadStatuses('needs_verification')" class="filter-btn px-3 py-1 rounded text-sm font-medium bg-purple-100 hover:bg-purple-200 text-purple-700" data-filter="needs_verification">🔄 À vérifier</button>
+
+                <div class="col-md-4 mb-3">
+                    <button onclick="indexerUrls()" class="btn btn-success btn-block btn-lg" id="btn-index">
+                        <i class="fas fa-paper-plane mr-2"></i>Indexer 150 URLs
+                    </button>
+                    <small class="text-muted d-block mt-2">Envoie demandes d'indexation à Google</small>
                 </div>
-                
-                <div id="statuses-container" class="space-y-2">
-                    <div class="text-center text-gray-500 py-4">
-                        <i class="fas fa-spinner fa-spin mr-2"></i>Chargement des statuts...
+
+                <div class="col-md-4 mb-3">
+                    <button onclick="window.location.reload()" class="btn btn-primary btn-block btn-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>Actualiser
+                    </button>
+                    <small class="text-muted d-block mt-2">Recharge les statistiques</small>
                 </div>
             </div>
-            
-            <!-- Pagination -->
-            <div id="statuses-pagination" class="mt-4 flex justify-center">
-                <!-- Sera rempli dynamiquement -->
+
+            <!-- Zone résultats -->
+            <div id="results-zone" class="mt-4" style="display:none;">
+                <div id="results-content"></div>
             </div>
         </div>
+    </div>
 
-        <!-- Test d'une URL -->
-        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 class="text-sm font-semibold text-blue-800 mb-2">
-                <i class="fas fa-flask mr-1"></i>Vérifier une URL spécifique
-            </h4>
-            <div class="flex items-center space-x-2">
-                <input type="url" 
-                       id="verify-url-input" 
-                       placeholder="https://votredomaine.com/page"
-                       value="{{ rtrim(setting('site_url', request()->getSchemeAndHttpHost()), '/') }}/"
-                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm">
-                <button type="button" 
-                        onclick="verifySingleUrl()" 
-                        id="verify-url-btn"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-search mr-2"></i>Vérifier
-                </button>
-            </div>
-                    </div>
-                    </div>
-    @endif
-
-        <!-- Robots.txt -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">🤖 Robots.txt</h2>
-            <p class="text-sm text-gray-600 mb-4">Fichier de configuration pour les robots des moteurs de recherche</p>
-            
-        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
-                            <div>
-                                <p class="font-medium">Fichier robots.txt</p>
-                <p class="text-sm text-gray-600">Configuration automatique des robots</p>
-                            </div>
-                            <a href="{{ url('/robots.txt') }}" target="_blank" 
-                               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                <i class="fas fa-external-link-alt mr-2"></i>Voir robots.txt
-            </a>
-            </div>
-            
-        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 class="font-medium text-yellow-800 mb-2">💡 Instructions pour Google Search Console</h4>
-            <ol class="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
-                <li>Connectez-vous à <a href="https://search.google.com/search-console" target="_blank" class="text-blue-600 hover:underline">Google Search Console</a></li>
-                <li>Sélectionnez votre propriété</li>
-                <li>Allez dans "Sitemaps" et ajoutez : <code class="bg-yellow-100 px-1 rounded">{{ url('/sitemap.xml') }}</code></li>
-                <li>Vérifiez que votre site respecte le fichier robots.txt</li>
-                </ol>
-            </div>
+    <!-- Sitemap -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">🗺️ Sitemap</h6>
         </div>
-</div>
-@endsection
-
-@push('scripts')
-<script>
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
-        type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-    }`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-function updateSitemap() {
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération...';
-    button.disabled = true;
-    button.classList.add('opacity-75');
-    
-    fetch('{{ route("admin.indexation.update-sitemap") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('✅ Sitemap régénéré avec succès !', 'success');
-            setTimeout(() => window.location.reload(), 1500);
-        } else {
-            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de la génération', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-        button.classList.remove('opacity-75');
-    });
-}
-
-function testGoogleConnection() {
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test...';
-    button.disabled = true;
-    
-    fetch('{{ route("admin.indexation.test-google") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('✅ Connexion réussie !', 'success');
-                } else {
-            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors du test', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-function submitSitemapToGoogle(filename) {
-    if (!confirm(`Envoyer toutes les URLs du sitemap "${filename}" à Google pour indexation ?\n\n⚠️ Cela peut prendre plusieurs minutes selon le nombre d'URLs.`)) {
-        return;
-    }
-    
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Envoi...';
-    button.disabled = true;
-    
-    fetch('{{ route("admin.indexation.submit-sitemap-to-google") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ filename: filename })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Résultat soumission sitemap:', data);
-        
-        if (data.success) {
-            const message = `✅ Sitemap soumis avec succès !\n\n${data.success_count || 0} URLs envoyées à Google${data.failed_count > 0 ? `\n${data.failed_count} URLs échouées` : ''}`;
-            alert(message);
-            setTimeout(() => window.location.reload(), 2000);
-        } else {
-            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
-        }
-    })
-    .catch(error => {
-        console.error('Erreur soumission sitemap:', error);
-        alert('❌ Erreur lors de l\'envoi : ' + error.message);
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-function toggleDailyIndexing(enabled) {
-    if (!confirm(enabled ? 'Activer l\'indexation quotidienne ?' : 'Désactiver l\'indexation quotidienne ?')) {
-        return;
-    }
-    
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>...';
-    button.disabled = true;
-    
-    fetch('{{ route("admin.indexation.toggle-daily-indexing") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ enabled: enabled })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message, 'success');
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-function runDailyIndexing() {
-    if (!confirm('Exécuter l\'indexation quotidienne maintenant ? (150 URLs maximum)')) {
-        return;
-    }
-    
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Exécution...';
-    button.disabled = true;
-    
-    fetch('{{ route("admin.indexation.run-daily-indexing") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            let message = data.message || 'Indexation exécutée !';
-            if (data.success_count > 0) {
-                message += ` (${data.success_count} URLs)`;
-            }
-            showNotification(message, 'success');
-            setTimeout(() => window.location.reload(), 2000);
-        } else {
-            showNotification('❌ Erreur: ' + (data.message || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de l\'exécution', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-// Fonctions pour la vérification des statuts
-function loadStatuses(filter = 'all', page = 1) {
-    currentFilter = filter || 'all';
-    currentPage = page;
-    
-    const container = document.getElementById('statuses-container');
-    if (!container) return;
-    
-    container.innerHTML = '<div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>';
-    
-    // Mettre à jour apparence boutons filtres
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        if (btn.dataset.filter === currentFilter) {
-            btn.classList.add('ring-2', 'ring-blue-500');
-        } else {
-            btn.classList.remove('ring-2', 'ring-blue-500');
-        }
-    });
-    
-    fetch(`{{ route("admin.indexation.statuses") }}?filter=${currentFilter}&page=${currentPage}&per_page=50`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données reçues:', data); // Debug
+        <div class="card-body">
+            <p><strong>URL :</strong> <a href="{{ url('/sitemap.xml') }}" target="_blank">{{ url('/sitemap.xml') }}</a></p>
             
-            if (data.success) {
-                displayStatuses(data.data, data.stats);
-            } else {
-                container.innerHTML = `<div class="text-center text-red-500 py-8">❌ Erreur: ${data.message || data.error || 'Erreur inconnue'}</div>`;
-                console.error('Erreur API:', data);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur chargement statuts:', error);
-            container.innerHTML = `<div class="text-center text-red-500 py-8">
-                <i class="fas fa-exclamation-triangle mb-3 text-4xl"></i>
-                <p class="text-lg font-semibold mb-2">❌ Erreur de chargement</p>
-                <p class="text-sm text-gray-600">${error.message}</p>
-                <button onclick="loadStatuses()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    <i class="fas fa-sync-alt mr-2"></i>Réessayer
-                </button>
-            </div>`;
-        });
-}
-
-function displayStatuses(data, stats) {
-    const container = document.getElementById('statuses-container');
-    if (!container) {
-        console.error('Container statuses-container non trouvé');
-        return;
-    }
-    
-    console.log('displayStatuses appelé avec:', data, stats); // Debug
-    
-    // Vérifier la structure des données
-    if (!data || typeof data !== 'object') {
-        console.error('Data invalide:', data);
-        container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Format de données invalide</div>';
-        return;
-    }
-    
-    // Gérer structure paginated Laravel
-    const items = data.data || data;
-    
-    if (!Array.isArray(items) || items.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-500 py-8">
-            <i class="fas fa-inbox text-4xl mb-3"></i>
-            <p class="text-lg font-semibold">Aucun statut à afficher</p>
-            <p class="text-sm text-gray-600 mt-2">
-                ${currentFilter === 'all' ? 'Aucune URL vérifiée pour le moment' : 'Aucune URL dans cette catégorie'}
-            </p>
-            <button onclick="verifyAllStatuses()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                <i class="fas fa-search mr-2"></i>Vérifier les URLs du sitemap
+            <button onclick="regenererSitemap()" class="btn btn-warning mr-2" id="btn-sitemap">
+                <i class="fas fa-sync mr-2"></i>Régénérer Sitemap
             </button>
-        </div>`;
-        return;
-    }
-    
-    let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">';
-    html += '<thead class="bg-gray-50"><tr>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière vérif.</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Soumissions</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>';
-    html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
-    
-    data.data.forEach(status => {
-        const truncatedUrl = status.url.length > 70 ? status.url.substring(0, 70) + '...' : status.url;
-        const statusBadge = status.indexed 
-            ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">✅ Indexée</span>'
-            : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">⚠️ Non indexée</span>';
-        
-        const lastVerif = status.last_verification_time 
-            ? formatRelativeDate(status.last_verification_time)
-            : '<span class="text-gray-400 text-xs">Jamais</span>';
-        
-        const submissionCount = status.submission_count || 0;
-        const submissionBadge = submissionCount > 0 
-            ? `<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">${submissionCount}</span>`
-            : '<span class="text-gray-400 text-xs">0</span>';
-        
-        html += '<tr class="hover:bg-gray-50 transition">';
-        html += `<td class="px-4 py-3 text-sm"><a href="${status.url}" target="_blank" class="text-blue-600 hover:underline truncate block max-w-md" title="${status.url}">${truncatedUrl}</a></td>`;
-        html += `<td class="px-4 py-3 whitespace-nowrap">${statusBadge}</td>`;
-        html += `<td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${lastVerif}</td>`;
-        html += `<td class="px-4 py-3 text-center">${submissionBadge}</td>`;
-        html += '<td class="px-4 py-3 text-sm whitespace-nowrap">';
-        html += `<button onclick='reverifyUrlInline("${status.url.replace(/'/g, "\\'")}")' class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2 hover:underline"><i class="fas fa-sync-alt mr-1"></i>Re-vérifier</button>`;
-        if (!status.indexed) {
-            html += `<button onclick='indexUrlInline("${status.url.replace(/'/g, "\\'")}")' class="text-green-600 hover:text-green-800 text-xs font-medium hover:underline"><i class="fas fa-paper-plane mr-1"></i>Indexer</button>`;
-        }
-        html += '</td>';
-        html += '</tr>';
-    });
-    
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
-    
-    // Afficher pagination
-    if (data.last_page > 1) {
-        displayPagination(data);
-    } else {
-        const paginationContainer = document.getElementById('statuses-pagination');
-        if (paginationContainer) paginationContainer.innerHTML = '';
-    }
-}
+            
+            @if($isGoogleConfigured)
+            <button onclick="soumettreGoogle()" class="btn btn-success" id="btn-submit">
+                <i class="fas fa-upload mr-2"></i>Soumettre à Google (200 URLs max)
+            </button>
+            @endif
+        </div>
+    </div>
 
-function formatRelativeDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 60) {
-        return `<span class="text-xs text-gray-600">Il y a ${diffMins} min</span>`;
-    } else if (diffHours < 24) {
-        return `<span class="text-xs text-gray-600">Il y a ${diffHours}h</span>`;
-    } else if (diffDays < 7) {
-        return `<span class="text-xs text-gray-600">Il y a ${diffDays}j</span>`;
-    } else {
-        return `<span class="text-xs text-gray-600">${date.toLocaleDateString('fr-FR')}</span>`;
-    }
-}
-
-function displayPagination(data) {
-    const paginationContainer = document.getElementById('statuses-pagination');
-    if (!paginationContainer) return;
-    
-    let html = '<div class="flex items-center justify-center space-x-2">';
-    
-    if (data.current_page > 1) {
-        html += `<button onclick="loadStatuses(currentFilter, ${data.current_page - 1})" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 rounded text-sm font-medium transition">← Précédent</button>`;
-    }
-    
-    html += `<span class="px-4 py-2 text-sm text-gray-700">Page <strong>${data.current_page}</strong> sur <strong>${data.last_page}</strong> (${data.total} URLs)</span>`;
-    
-    if (data.current_page < data.last_page) {
-        html += `<button onclick="loadStatuses(currentFilter, ${data.current_page + 1})" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 rounded text-sm font-medium transition">Suivant →</button>`;
-    }
-    
-    html += '</div>';
-    paginationContainer.innerHTML = html;
-}
-
-function reverifyUrlInline(url) {
-    const btn = event.target.closest('button');
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    fetch('{{ route("admin.indexation.verify-status") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        
-        if (data.success) {
-            showNotification(`✅ Vérifié : ${data.indexed ? '✅ INDEXÉE' : '⚠️ NON INDEXÉE'}`, data.indexed ? 'success' : 'warning');
-            setTimeout(() => loadStatuses(currentFilter, currentPage), 1000);
-        } else {
-            showNotification('❌ Erreur : ' + (data.message || 'Échec'), 'error');
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        showNotification('❌ Erreur réseau', 'error');
-    });
-}
-
-function indexUrlInline(url) {
-    const btn = event.target.closest('button');
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    fetch('{{ route("admin.indexation.test-single-url") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        
-        if (data.success) {
-            showNotification('✅ Demande d\'indexation envoyée !', 'success');
-            setTimeout(() => reverifyUrlInline(url), 3000);
-        } else {
-            showNotification('❌ Erreur : ' + (data.message || 'Échec'), 'error');
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        showNotification('❌ Erreur réseau', 'error');
-    });
-}
-
-// Variables globales pour filtrage
-let currentFilter = 'all';
-let currentPage = 1;
-    
-    statuses.forEach(status => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
-        
-        const indexedBadge = status.indexed 
-            ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">✅ Indexée</span>'
-            : '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">⚠️ Non indexée</span>';
-        
-        const lastVerification = status.last_verification_time 
-            ? new Date(status.last_verification_time).toLocaleString('fr-FR')
-            : 'Jamais vérifiée';
-        
-        div.innerHTML = `
-            <div class="flex items-center flex-1">
-                <div class="flex-1">
-                    <a href="${status.url}" target="_blank" class="text-blue-600 hover:underline font-medium">
-                        ${status.url}
-                    </a>
-                    <div class="text-xs text-gray-500 mt-1">
-                        ${indexedBadge}
-                        <span class="ml-2">Dernière vérification: ${lastVerification}</span>
-                    </div>
+    <!-- Configuration -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                🔐 Configuration Google Search Console
+                @if($isGoogleConfigured)
+                    <span class="badge badge-success ml-2">Configuré ✅</span>
+                @else
+                    <span class="badge badge-danger ml-2">Non configuré ❌</span>
+                @endif
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('admin.indexation.update') }}">
+                @csrf
+                
+                <div class="form-group">
+                    <label>URL du site</label>
+                    <input type="url" class="form-control" name="site_url" value="{{ $siteUrl }}" required>
+                    <small class="form-text text-muted">Ex: https://couvreur-chevigny-saint-sauveur.fr</small>
                 </div>
-                <button type="button" onclick="verifySingleStatus('${status.url}')" 
-                        class="ml-2 text-blue-600 hover:text-blue-800 text-sm">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
 
-function verifySingleStatus(url) {
-    const button = event?.target?.closest('button') || event.target;
-    const originalHTML = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    button.disabled = true;
+                <div class="form-group">
+                    <label>Credentials JSON Google Search Console</label>
+                    <textarea class="form-control font-monospace small" name="google_search_console_credentials" rows="8" placeholder='{"type": "service_account", "project_id": "...", ...}'>{{ $googleCredentials }}</textarea>
+                    <small class="form-text text-muted">Collez le JSON de votre compte de service</small>
+                </div>
+
+                <div class="custom-control custom-switch mb-3">
+                    <input type="checkbox" class="custom-control-input" id="daily_indexing" 
+                           name="daily_indexing_enabled" value="1" {{ $dailyIndexingEnabled ? 'checked' : '' }}>
+                    <label class="custom-control-label" for="daily_indexing">
+                        Activer indexation quotidienne automatique (150 URLs/jour à 02h00)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i>Sauvegarder Configuration
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Instructions CLI -->
+    <div class="card shadow bg-light">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">💡 Alternative : Utiliser CLI (100% fiable)</h6>
+        </div>
+        <div class="card-body">
+            <p><strong>Si les boutons ne fonctionnent pas, utilisez ces commandes :</strong></p>
+            
+            <div class="bg-dark text-white p-3 rounded mb-3">
+                <code class="text-white">
+                    # Voir statistiques<br>
+                    php artisan indexation:simple stats<br><br>
+                    
+                    # Vérifier 100 URLs<br>
+                    php artisan indexation:simple verify --limit=100<br><br>
+                    
+                    # Indexer 150 URLs non indexées<br>
+                    php artisan indexation:simple index --limit=150<br><br>
+                    
+                    # Vérifier 1 URL spécifique<br>
+                    php artisan indexation:simple verify --url="https://..."<br><br>
+                    
+                    # Indexer 1 URL spécifique<br>
+                    php artisan indexation:simple index --url="https://..."
+                </code>
+            </div>
+
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>Guide complet :</strong> Consultez le fichier <code>INDEXATION_REFONTE_COMPLETE.md</code> 
+                dans votre projet pour toutes les instructions détaillées.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fonction vérifier URLs
+function verifierUrls() {
+    const btn = document.getElementById('btn-verify');
+    const resultsZone = document.getElementById('results-zone');
+    const resultsContent = document.getElementById('results-content');
     
-    fetch('{{ route("admin.indexation.verify-status") }}', {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vérification...';
+    
+    resultsZone.style.display = 'block';
+    resultsContent.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin mr-2"></i>Vérification de 50 URLs en cours... Cela peut prendre 2-3 minutes.</div>';
+    
+    fetch('{{ route("admin.indexation.verify-urls") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(
-                data.indexed ? '✅ URL indexée' : '⚠️ URL non indexée',
-                data.indexed ? 'success' : 'warning'
-            );
-            loadStatuses();
-                    } else {
-            showNotification('❌ Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de la vérification', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalHTML;
-        button.disabled = false;
-    });
-}
-
-function verifySingleUrl() {
-    const urlInput = document.getElementById('verify-url-input');
-    const url = urlInput.value.trim();
-    
-    if (!url) {
-        showNotification('Veuillez entrer une URL à vérifier', 'error');
-        urlInput.focus();
-        return;
-    }
-    
-    const button = document.getElementById('verify-url-btn');
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vérification...';
-    button.disabled = true;
-    
-    fetch('{{ route("admin.indexation.verify-status") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(
-                data.indexed ? '✅ URL indexée' : '⚠️ URL non indexée',
-                data.indexed ? 'success' : 'warning'
-            );
-            loadStatuses();
-        } else {
-            showNotification('❌ Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de la vérification', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-function verifyAllStatuses() {
-    if (!confirm('Vérifier le statut d\'indexation de toutes les URLs du sitemap ?\n\n⚠️ Limite : 50 URLs par batch\n⚠️ Durée : ~2 minutes (pause 2s entre chaque URL)\n\nContinuer ?')) {
-        return;
-    }
-    
-    const btn = event.target;
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vérification en cours...';
-    
-    showNotification('🔍 Vérification en cours... Cela peut prendre 2-3 minutes.', 'info');
-    
-    fetch('{{ route("admin.indexation.verify-all-statuses") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ limit: 50 })
-    })
-        .then(response => response.json())
-        .then(data => {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            
-            if (data.success) {
-                const stats = data.stats || {};
-                let message = `✅ Vérification terminée :\n\n`;
-                message += `📊 URLs vérifiées : ${stats.verified_now || 0}\n`;
-                message += `✅ Indexées : ${stats.indexed || 0}\n`;
-                message += `⚠️ Non indexées : ${stats.not_indexed || 0}\n`;
-                
-                if (stats.errors && stats.errors > 0) {
-                    message += `❌ Erreurs : ${stats.errors}\n`;
-                }
-                
-                if (stats.remaining && stats.remaining > 0) {
-                    message += `\n🔄 ${stats.remaining} URLs restantes à vérifier\n`;
-                    message += `💡 Cliquez à nouveau pour continuer`;
-                } else {
-                    message += `\n🎉 Toutes les URLs ont été vérifiées !`;
-                }
-                
-                showNotification(message, stats.not_indexed > stats.indexed ? 'warning' : 'success');
-                setTimeout(() => loadStatuses(currentFilter, 1), 1000);
-            } else {
-                showNotification('❌ Erreur : ' + (data.message || 'Échec de la vérification'), 'error');
-            }
-        })
-        .catch(error => {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            showNotification('❌ Erreur réseau', 'error');
-            console.error(error);
-        });
-                
-                if (urls.length === 0) {
-                    showNotification('Aucune URL à vérifier', 'info');
-                    return;
-                }
-                
-                verifyMultipleStatuses(urls);
-            } else {
-                showNotification('Aucune URL trouvée', 'info');
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            showNotification('Erreur lors de la récupération des URLs', 'error');
-        });
-}
-
-function verifyMultipleStatuses(urls) {
-    let completed = 0;
-    let indexed = 0;
-    let notIndexed = 0;
-    
-    urls.forEach((url, index) => {
-        setTimeout(() => {
-            fetch('{{ route("admin.indexation.verify-status") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ url: url })
-            })
-            .then(response => response.json())
-            .then(data => {
-                completed++;
-                if (data.success) {
-                    if (data.indexed) {
-                        indexed++;
-                    } else {
-                        notIndexed++;
-                    }
-                }
-                
-                if (completed === urls.length) {
-                    showNotification(
-                        `Vérification terminée: ${indexed} indexées, ${notIndexed} non indexées`,
-                        'success'
-                    );
-                    loadStatuses();
-                }
-            })
-            .catch(error => {
-                completed++;
-                if (completed === urls.length) {
-                    showNotification('Vérification terminée avec des erreurs', 'warning');
-                    loadStatuses();
-                }
-            });
-        }, index * 500);
-        });
-    }
-    
-    // Charger les statuts au chargement de la page
-// Variable pour stocker le filtre actuel
-let currentFilter = 'all';
-let currentPage = 1;
-
-// Charger les statuts d'indexation
-function loadStatuses(filter = null, page = 1) {
-    if (filter) {
-        currentFilter = filter;
-    }
-    currentPage = page;
-    
-    const container = document.getElementById('statuses-container');
-    if (!container) return;
-    
-    // Afficher loader
-    container.innerHTML = '<div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>';
-    
-    // Mettre à jour l'apparence des boutons de filtre
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        if (btn.dataset.filter === currentFilter) {
-            btn.classList.add('ring-2', 'ring-blue-500');
-        } else {
-            btn.classList.remove('ring-2', 'ring-blue-500');
-        }
-    });
-    
-    // Charger via API
-    fetch(`/admin/indexation/statuses?filter=${currentFilter}&page=${currentPage}&per_page=50`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayStatuses(data.data, data.stats);
-            } else {
-                container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Erreur lors du chargement</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            container.innerHTML = '<div class="text-center text-red-500 py-8">❌ Erreur réseau</div>';
-        });
-}
-
-// Afficher les statuts
-function displayStatuses(data, stats) {
-    const container = document.getElementById('statuses-container');
-    
-    if (!data.data || data.data.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-500 py-8">Aucun statut à afficher</div>';
-        return;
-    }
-    
-    let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">';
-    html += '<thead class="bg-gray-50"><tr>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">URL</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dernière vérif.</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Soumissions</th>';
-    html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>';
-    html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
-    
-    data.data.forEach(status => {
-        const truncatedUrl = status.url.length > 60 ? status.url.substring(0, 60) + '...' : status.url;
-        const statusBadge = status.indexed 
-            ? '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">✅ Indexée</span>'
-            : '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">⚠️ Non indexée</span>';
-        
-        const lastVerif = status.last_verification_time 
-            ? formatDate(status.last_verification_time)
-            : '<span class="text-gray-400">Jamais</span>';
-        
-        const submissionCount = status.submission_count || 0;
-        
-        html += '<tr class="hover:bg-gray-50">';
-        html += `<td class="px-4 py-3 text-sm"><a href="${status.url}" target="_blank" class="text-blue-600 hover:underline" title="${status.url}">${truncatedUrl}</a></td>`;
-        html += `<td class="px-4 py-3">${statusBadge}</td>`;
-        html += `<td class="px-4 py-3 text-sm text-gray-600">${lastVerif}</td>`;
-        html += `<td class="px-4 py-3 text-sm text-gray-600 text-center">${submissionCount}</td>`;
-        html += '<td class="px-4 py-3 text-sm">';
-        html += `<button onclick="reverifyUrl('${status.url}')" class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2"><i class="fas fa-sync"></i> Re-vérifier</button>`;
-        if (!status.indexed) {
-            html += `<button onclick="indexUrl('${status.url}')" class="text-green-600 hover:text-green-800 text-xs font-medium"><i class="fas fa-paper-plane"></i> Indexer</button>`;
-        }
-        html += '</td>';
-        html += '</tr>';
-    });
-    
-    html += '</tbody></table></div>';
-    
-    container.innerHTML = html;
-    
-    // Afficher pagination
-    displayPagination(data);
-}
-
-// Afficher la pagination
-function displayPagination(data) {
-    const paginationContainer = document.getElementById('statuses-pagination');
-    if (!paginationContainer) return;
-    
-    let html = '<div class="flex items-center space-x-2">';
-    
-    // Bouton précédent
-    if (data.current_page > 1) {
-        html += `<button onclick="loadStatuses(currentFilter, ${data.current_page - 1})" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">← Précédent</button>`;
-    }
-    
-    // Pages
-    html += `<span class="px-3 py-1 text-sm text-gray-600">Page ${data.current_page} sur ${data.last_page}</span>`;
-    
-    // Bouton suivant
-    if (data.current_page < data.last_page) {
-        html += `<button onclick="loadStatuses(currentFilter, ${data.current_page + 1})" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">Suivant →</button>`;
-    }
-    
-    html += '</div>';
-    paginationContainer.innerHTML = html;
-}
-
-// Formater une date
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 60) {
-        return `Il y a ${diffMins} min`;
-    } else if (diffHours < 24) {
-        return `Il y a ${diffHours}h`;
-    } else if (diffDays < 7) {
-        return `Il y a ${diffDays}j`;
-    } else {
-        return date.toLocaleDateString('fr-FR');
-    }
-}
-
-// Re-vérifier une URL spécifique
-function reverifyUrl(url) {
-    if (!confirm('Vérifier le statut réel de cette URL via Google ?')) return;
-    
-    const btn = event.target.closest('button');
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    fetch('/admin/indexation/verify-status', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        
-        if (data.success) {
-            alert(`✅ Statut vérifié :\n${data.indexed ? '✅ URL INDEXÉE' : '⚠️ URL NON INDEXÉE'}\n\nCoverage: ${data.coverage_state || 'N/A'}\nDernière exploration: ${data.last_crawl_time || 'Jamais'}`);
-            loadStatuses(); // Recharger la liste
-        } else {
-            alert('❌ Erreur : ' + (data.message || 'Échec de la vérification'));
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        alert('❌ Erreur réseau');
-        console.error(error);
-    });
-}
-
-// Indexer une URL
-function indexUrl(url) {
-    if (!confirm('Demander l\'indexation de cette URL à Google ?')) return;
-    
-    const btn = event.target.closest('button');
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    fetch('/admin/indexation/test-single-url', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ url: url })
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        
-        if (data.success) {
-            alert('✅ Demande d\'indexation envoyée à Google !');
-            // Re-vérifier après 3 secondes
-            setTimeout(() => reverifyUrl(url), 3000);
-        } else {
-            alert('❌ Erreur : ' + (data.message || 'Échec de l\'indexation'));
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        alert('❌ Erreur réseau');
-        console.error(error);
-    });
-}
-
-// Vérifier toutes les URLs du sitemap (batch par batch)
-function verifyAllStatuses() {
-    if (!confirm('Vérifier le statut d\'indexation de toutes les URLs du sitemap ?\n\n⚠️ Cela peut prendre plusieurs minutes (limite : 50 URLs par batch).\nVous recevrez une notification quand c\'est terminé.')) {
-        return;
-    }
-    
-    const btn = event.target;
-    const originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vérification en cours...';
-    
-    fetch('/admin/indexation/verify-all-statuses', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
         body: JSON.stringify({ limit: 50 })
     })
     .then(response => response.json())
     .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        
         if (data.success) {
             const stats = data.stats || {};
-            let message = `✅ ${stats.verified_now || 0} URLs vérifiées :\n\n`;
-            message += `✅ Indexées : ${stats.indexed || 0}\n`;
-            message += `⚠️ Non indexées : ${stats.not_indexed || 0}\n`;
-            message += `❌ Erreurs : ${stats.errors || 0}\n`;
-            
-            if (stats.remaining && stats.remaining > 0) {
-                message += `\n🔄 ${stats.remaining} URLs restantes à vérifier\n`;
-                message += `💡 Relancez pour continuer la vérification`;
-            } else {
-                message += `\n🎉 Toutes les URLs ont été vérifiées !`;
+            let html = '<div class="alert alert-success">';
+            html += '<h5><i class="fas fa-check-circle mr-2"></i>Vérification terminée !</h5>';
+            html += `<p><strong>${stats.verified || 0} URLs vérifiées</strong></p>`;
+            html += '<ul>';
+            html += `<li>✅ Indexées : ${stats.indexed || 0}</li>`;
+            html += `<li>⚠️ Non indexées : ${stats.not_indexed || 0}</li>`;
+            html += `<li>❌ Erreurs : ${stats.errors || 0}</li>`;
+            if (stats.remaining > 0) {
+                html += `<li>🔄 Restantes : ${stats.remaining} (cliquez à nouveau pour continuer)</li>`;
             }
-            
-            alert(message);
-            loadStatuses(); // Recharger la liste
+            html += '</ul>';
+            html += '</div>';
+            resultsContent.innerHTML = html;
         } else {
-            alert('❌ Erreur : ' + (data.message || 'Échec de la vérification'));
+            resultsContent.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times mr-2"></i>${data.message || 'Erreur'}</div>`;
         }
     })
     .catch(error => {
+        console.error('Erreur:', error);
+        resultsContent.innerHTML = `<div class="alert alert-danger">
+            <i class="fas fa-times mr-2"></i>Erreur réseau. 
+            <p class="mb-0 mt-2">Utilisez CLI : <code>php artisan indexation:simple verify --limit=50</code></p>
+        </div>`;
+    })
+    .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = originalHtml;
-        alert('❌ Erreur réseau');
-        console.error(error);
+        btn.innerHTML = '<i class="fas fa-search mr-2"></i>Vérifier 50 URLs';
     });
 }
 
-// Vérifier l'indexation de toutes les URLs d'un sitemap spécifique
-function verifySitemapIndexation(sitemapFilename) {
-    const btn = event.target;
+// Fonction indexer URLs
+function indexerUrls() {
+    if (!confirm('Indexer 150 URLs non indexées ?\n\nCela peut prendre 1-2 minutes.')) return;
     
-    // Trouver l'index du sitemap - méthode plus robuste
-    const sitemapContainer = btn.closest('.p-3');
-    if (!sitemapContainer) {
-        console.error('Container parent non trouvé');
-        alert('❌ Erreur : Container non trouvé');
-        return;
-    }
-    
-    const resultsDiv = sitemapContainer.querySelector('[id^="sitemap-results-"]');
-    const statsDiv = sitemapContainer.querySelector('[id^="sitemap-stats-"]');
-    const progressDiv = sitemapContainer.querySelector('[id^="sitemap-progress-"]');
-    const detailsDiv = sitemapContainer.querySelector('[id^="sitemap-details-"]');
-    
-    if (!resultsDiv || !statsDiv || !progressDiv || !detailsDiv) {
-        console.error('Éléments DOM non trouvés:', {resultsDiv, statsDiv, progressDiv, detailsDiv});
-        alert('❌ Erreur : Éléments DOM manquants. Rechargez la page.');
-        return;
-    }
-    
-    const index = resultsDiv.id.match(/\d+/)[0];
-    const originalHtml = btn.innerHTML;
+    const btn = document.getElementById('btn-index');
+    const resultsZone = document.getElementById('results-zone');
+    const resultsContent = document.getElementById('results-content');
     
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyse...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Indexation...';
     
-    // Afficher conteneur résultats
-    resultsDiv.classList.remove('hidden');
+    resultsZone.style.display = 'block';
+    resultsContent.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin mr-2"></i>Indexation en cours...</div>';
     
-    // Initialiser stats
-    statsDiv.innerHTML = `
-        <div class="bg-blue-50 border border-blue-200 rounded p-2 text-center">
-            <div class="text-lg font-bold text-blue-600">...</div>
-            <div class="text-xs text-gray-600">Total</div>
-        </div>
-        <div class="bg-green-50 border border-green-200 rounded p-2 text-center">
-            <div class="text-lg font-bold text-green-600">0</div>
-            <div class="text-xs text-gray-600">Indexées ✅</div>
-        </div>
-        <div class="bg-yellow-50 border border-yellow-200 rounded p-2 text-center">
-            <div class="text-lg font-bold text-yellow-600">0</div>
-            <div class="text-xs text-gray-600">Non indexées ⚠️</div>
-        </div>
-        <div class="bg-red-50 border border-red-200 rounded p-2 text-center">
-            <div class="text-lg font-bold text-red-600">0</div>
-            <div class="text-xs text-gray-600">Erreurs ❌</div>
-        </div>
-    `;
-    
-    progressDiv.innerHTML = '<div class="w-full bg-gray-200 rounded-full h-2.5"><div id="sitemap-progress-bar-' + index + '" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>';
-    detailsDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Récupération des URLs...';
-    
-    // Parser le sitemap
-    fetch(`/${sitemapFilename}`)
-        .then(response => response.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-            const urlElements = xmlDoc.getElementsByTagName('loc');
-            const urls = Array.from(urlElements).map(el => el.textContent);
-            
-            if (urls.length === 0) {
-                throw new Error('Aucune URL trouvée');
+    fetch('{{ route("admin.indexation.index-urls") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ limit: 150 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = '<div class="alert alert-success">';
+            html += '<h5><i class="fas fa-check-circle mr-2"></i>Indexation terminée !</h5>';
+            html += `<p><strong>${data.success_count || 0} URLs envoyées à Google</strong></p>`;
+            if (data.failed_count > 0) {
+                html += `<p class="text-warning">${data.failed_count} URLs échouées</p>`;
             }
-            
-            const stats = {
-                total: urls.length,
-                verified: 0,
-                indexed: 0,
-                notIndexed: 0,
-                errors: 0
-            };
-            
-            // Mettre à jour total
-            statsDiv.querySelector('.bg-blue-50 .text-lg').textContent = stats.total;
-            detailsDiv.innerHTML = `📊 ${stats.total} URLs à vérifier. Vérification intelligente en cours...<br><small class="text-gray-500">Utilise cache base de données pour URLs récemment vérifiées</small>`;
-            
-            // Vérifier par batch de 20 (plus rapide avec cache BDD)
-            const batchSize = 20;
-            let processed = 0;
-            
-            async function processBatch(startIdx) {
-                const endIdx = Math.min(startIdx + batchSize, urls.length);
-                const batchUrls = urls.slice(startIdx, endIdx);
-                
-                for (const url of batchUrls) {
-                    try {
-                        // Vérifier via BDD d'abord (rapide)
-                        const result = await fetch(`/admin/indexation/verify-status`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify({ url: url })
-                        }).then(r => r.json());
-                        
-                        stats.verified++;
-                        
-                        if (result.success) {
-                            if (result.indexed) {
-                                stats.indexed++;
-                            } else {
-                                stats.notIndexed++;
-                            }
-                        } else {
-                            stats.errors++;
-                        }
-                        
-                        // Pause courte pour ne pas surcharger
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        
-                    } catch (error) {
-                        stats.errors++;
-                        stats.verified++;
-                    }
-                    
-                    // Mettre à jour UI
-                    processed++;
-                    const progress = (processed / stats.total) * 100;
-                    document.getElementById(`sitemap-progress-bar-${index}`).style.width = progress + '%';
-                    statsDiv.querySelector('.bg-green-50 .text-lg').textContent = stats.indexed;
-                    statsDiv.querySelector('.bg-yellow-50 .text-lg').textContent = stats.notIndexed;
-                    statsDiv.querySelector('.bg-red-50 .text-lg').textContent = stats.errors;
-                    detailsDiv.innerHTML = `⏳ ${processed}/${stats.total} URLs vérifiées (${Math.round(progress)}%)`;
-                }
-                
-                // Batch suivant ?
-                if (endIdx < urls.length) {
-                    await processBatch(endIdx);
-                } else {
-                    // Terminé !
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                    
-                    const indexRate = Math.round((stats.indexed / stats.total) * 100);
-                    let message = `✅ Vérification terminée !\n\n`;
-                    message += `📊 ${stats.indexed}/${stats.total} URLs indexées (${indexRate}%)\n`;
-                    
-                    if (stats.notIndexed > 0) {
-                        message += `⚠️ ${stats.notIndexed} URLs non indexées\n`;
-                        message += `💡 Activez "Indexation quotidienne" pour les indexer automatiquement`;
-                    }
-                    
-                    detailsDiv.innerHTML = message.replace(/\n/g, '<br>');
-                    
-                    if (indexRate >= 80) {
-                        detailsDiv.classList.add('text-green-600');
-                    } else if (indexRate >= 50) {
-                        detailsDiv.classList.add('text-yellow-600');
-                    } else {
-                        detailsDiv.classList.add('text-red-600');
-                    }
-                }
-            }
-            
-            // Démarrer traitement
-            processBatch(0);
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            detailsDiv.innerHTML = `❌ Erreur : ${error.message}`;
-        });
+            html += '<p class="mb-0 small">Les pages seront indexées dans 3-7 jours.</p>';
+            html += '</div>';
+            resultsContent.innerHTML = html;
+        } else {
+            resultsContent.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times mr-2"></i>${data.message || 'Erreur'}</div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        resultsContent.innerHTML = `<div class="alert alert-danger">
+            <i class="fas fa-times mr-2"></i>Erreur réseau.
+            <p class="mb-0 mt-2">Utilisez CLI : <code>php artisan indexation:simple index --limit=150</code></p>
+        </div>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Indexer 150 URLs';
+    });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('statuses-container')) {
-    loadStatuses('all', 1);
-    }
-});
+// Fonction régénérer sitemap
+function regenererSitemap() {
+    if (!confirm('Régénérer le sitemap ?')) return;
+    
+    const btn = document.getElementById('btn-sitemap');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération...';
+    
+    fetch('{{ route("admin.indexation.update-sitemap") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Sitemap régénéré avec succès !');
+            window.location.reload();
+        } else {
+            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        alert('❌ Erreur : ' + error.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync mr-2"></i>Régénérer Sitemap';
+    });
+}
+
+// Fonction soumettre sitemap
+function soumettreGoogle() {
+    if (!confirm('Soumettre le sitemap à Google ?\n\nCela va indexer jusqu\'à 200 URLs (limite).\nDurée : 1-2 minutes.')) return;
+    
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+    
+    fetch('{{ route("admin.indexation.submit-sitemap") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ filename: 'sitemap.xml' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Sitemap soumis !\n\n${data.success_count || 0} URLs envoyées à Google`);
+            window.location.reload();
+        } else {
+            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        alert('❌ Erreur : ' + error.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload mr-2"></i>Soumettre à Google (200 URLs max)';
+    });
+}
 </script>
-@endpush
+@endsection
+
