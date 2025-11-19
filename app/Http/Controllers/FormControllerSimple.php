@@ -331,15 +331,36 @@ class FormControllerSimple extends Controller
         $blockNonFrance = setting('block_non_france', false);
         
         if ($blockNonFrance) {
-            $allowedCountries = ['FR', 'France'];
+            // Pays et territoires autorisés : France + Suisse + DOM-TOM
+            $allowedCountries = [
+                'FR', 'France',           // France métropolitaine
+                'CH', 'Switzerland', 'Suisse',  // Suisse
+                'RE', 'Réunion', 'Reunion',     // Réunion
+                'GP', 'Guadeloupe',             // Guadeloupe
+                'MQ', 'Martinique',             // Martinique
+                'GF', 'Guyane', 'French Guiana', // Guyane
+                'YT', 'Mayotte',                // Mayotte
+                'NC', 'Nouvelle-Calédonie', 'New Caledonia', // Nouvelle-Calédonie
+                'PF', 'Polynésie française', 'French Polynesia', // Polynésie
+                'PM', 'Saint-Pierre-et-Miquelon', // Saint-Pierre-et-Miquelon
+                'BL', 'Saint-Barthélemy',       // Saint-Barthélemy
+                'MF', 'Saint-Martin',           // Saint-Martin
+                'WF', 'Wallis-et-Futuna'        // Wallis-et-Futuna
+            ];
+            
             $countryCode = strtoupper($location['country_code'] ?? '');
             $countryName = $location['country'] ?? '';
             
-            if (!empty($countryCode) && $countryCode !== 'FR' && !in_array($countryName, $allowedCountries)) {
+            // Vérifier si pays/code dans la liste autorisée
+            $isAllowed = in_array($countryCode, $allowedCountries) || 
+                         in_array($countryName, $allowedCountries);
+            
+            if (!empty($countryCode) && !$isAllowed) {
                 return view('form.blocked', [
                     'country' => $countryName ?: 'votre pays',
                     'countryCode' => $countryCode,
-                    'ipAddress' => $ipAddress
+                    'ipAddress' => $ipAddress,
+                    'allowedRegions' => 'France métropolitaine, Suisse et DOM-TOM'
                 ]);
             }
         }

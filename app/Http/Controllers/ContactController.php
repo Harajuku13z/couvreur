@@ -17,6 +17,49 @@ class ContactController extends Controller
      */
     public function index()
     {
+        // Vérifier blocage géographique si activé
+        $blockNonFrance = Setting::get('block_non_france', false);
+        
+        if ($blockNonFrance) {
+            // Géolocalisation
+            $ipAddress = request()->ip();
+            $geoService = new \App\Services\IpGeolocationService();
+            $location = $geoService->getLocationFromIp($ipAddress);
+            
+            // Pays et territoires autorisés : France + Suisse + DOM-TOM
+            $allowedCountries = [
+                'FR', 'France',
+                'CH', 'Switzerland', 'Suisse',
+                'RE', 'Réunion', 'Reunion',
+                'GP', 'Guadeloupe',
+                'MQ', 'Martinique',
+                'GF', 'Guyane', 'French Guiana',
+                'YT', 'Mayotte',
+                'NC', 'Nouvelle-Calédonie', 'New Caledonia',
+                'PF', 'Polynésie française', 'French Polynesia',
+                'PM', 'Saint-Pierre-et-Miquelon',
+                'BL', 'Saint-Barthélemy',
+                'MF', 'Saint-Martin',
+                'WF', 'Wallis-et-Futuna'
+            ];
+            
+            $countryCode = strtoupper($location['country_code'] ?? '');
+            $countryName = $location['country'] ?? '';
+            
+            $isAllowed = in_array($countryCode, $allowedCountries) || 
+                         in_array($countryName, $allowedCountries);
+            
+            if (!empty($countryCode) && !$isAllowed) {
+                return view('form.blocked', [
+                    'country' => $countryName ?: 'votre pays',
+                    'countryCode' => $countryCode,
+                    'ipAddress' => $ipAddress,
+                    'allowedRegions' => 'France métropolitaine, Suisse et DOM-TOM',
+                    'isContactForm' => true
+                ]);
+            }
+        }
+        
         // Récupérer les informations de l'entreprise
         $companySettings = [
             'name' => Setting::get('company_name', 'Votre Entreprise'),

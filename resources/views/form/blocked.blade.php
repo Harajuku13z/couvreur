@@ -21,10 +21,13 @@
             <!-- Message principal -->
             <div class="mb-6">
                 <p class="text-lg text-gray-700 mb-4">
-                    Nous sommes désolés, mais notre service de devis en ligne est actuellement disponible uniquement pour les résidents de <strong>France</strong>.
+                    Nous sommes désolés, mais {{ isset($isContactForm) && $isContactForm ? 'notre formulaire de contact' : 'notre service de devis en ligne' }} est actuellement disponible uniquement pour les résidents de <strong>{{ $allowedRegions ?? 'France métropolitaine, Suisse et DOM-TOM' }}</strong>.
                 </p>
                 <p class="text-gray-600">
                     Votre localisation détectée : <span class="font-semibold text-gray-800">{{ $country }}</span>
+                    @if($countryCode)
+                        <span class="text-sm text-gray-500">({{ $countryCode }})</span>
+                    @endif
                 </p>
             </div>
             
@@ -33,10 +36,20 @@
                 <h2 class="text-lg font-semibold text-blue-800 mb-3">
                     <i class="fas fa-info-circle mr-2"></i>Pourquoi cette restriction ?
                 </h2>
-                <p class="text-sm text-gray-700 text-left">
-                    {{ setting('company_name', 'Notre entreprise') }} opère exclusivement en France. 
-                    Nous ne pouvons malheureusement pas proposer nos services en dehors de notre zone d'intervention.
+                <p class="text-sm text-gray-700 text-left mb-3">
+                    {{ setting('company_name', 'Notre entreprise') }} opère principalement en France métropolitaine. 
+                    Nos services sont également disponibles en Suisse et dans les DOM-TOM français.
                 </p>
+                <div class="text-sm text-gray-600 text-left">
+                    <strong class="text-blue-800">Zones d'intervention :</strong>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>🇫🇷 France métropolitaine</li>
+                        <li>🇨🇭 Suisse</li>
+                        <li>🏝️ La Réunion, Guadeloupe, Martinique</li>
+                        <li>🗺️ Guyane, Mayotte, Nouvelle-Calédonie</li>
+                        <li>🌴 Polynésie française et autres DOM-TOM</li>
+                    </ul>
+                </div>
             </div>
             
             <!-- Options de contact -->
