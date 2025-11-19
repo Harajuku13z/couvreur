@@ -1931,4 +1931,65 @@ mot-clé 3
                 ->with('error', '❌ Erreur lors de la suppression de l\'image : ' . $e->getMessage());
         }
     }
+    
+    /**
+     * Indexer un article manuellement
+     */
+    public function indexArticle(Request $request)
+    {
+        try {
+            $request->validate([
+                'url' => 'required|url'
+            ]);
+            
+            $url = $request->input('url');
+            
+            // Vérifier Google configuré
+            $googleService = new \App\Services\GoogleSearchConsoleService();
+            if (!$googleService->isConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Search Console non configuré. Configurez-le dans /admin/indexation'
+                ], 400);
+            }
+            
+            // Indexer l'URL
+            $result = $googleService->indexUrl($url);
+            
+            if ($result['success'] ?? false) {
+                Log::info('Article indexé manuellement via admin', [
+                    'url' => $url,
+                    'user' => auth()->user()->name ?? 'admin'
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Demande d\'indexation envoyée avec succès à Google',
+                    'url' => $url
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Erreur lors de l\'indexation'
+            ], 400);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'URL invalide',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur indexation manuelle article', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

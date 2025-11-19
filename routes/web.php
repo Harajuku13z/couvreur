@@ -695,4 +695,5 @@ Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware
     Route::post('/test-api', [SeoAutomationController::class, 'testApi'])->name('test-api');
     Route::post('/keyword-image', [SeoAutomationController::class, 'storeKeywordImage'])->name('keyword-image.store');
     Route::delete('/keyword-image/{keywordImage}', [SeoAutomationController::class, 'destroyKeywordImage'])->name('keyword-image.destroy');
+    Route::post('/index-article', [SeoAutomationController::class, 'indexArticle'])->name('index-article');
 });

@@ -920,16 +920,40 @@
                                 $isIndexed = $metadata['indexed'] ?? false;
                             @endphp
                             @if($articleUrl)
-                                <a href="{{ $articleUrl }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                                <a href="{{ $articleUrl }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm mr-3">
                                     <i class="fas fa-external-link-alt mr-1"></i> Voir
                                 </a>
                             @endif
-                            <div class="mt-1 space-y-1">
-                                {{-- Messages d'indexation masqués lors de l'automatisation --}}
+                            
+                            <div class="mt-2 space-y-2">
+                                {{-- Statut indexation --}}
                                 @if($isIndexed)
-                                    <div class="flex items-center gap-1 text-xs">
-                                        <i class="fas fa-check-circle text-green-500"></i>
-                                        <span class="text-green-600 font-semibold">Indexé</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Indexé ✅
+                                        </span>
+                                        <span class="text-xs text-gray-500">
+                                            {{ isset($metadata['index_requested_at']) ? 'Le ' . \Carbon\Carbon::parse($metadata['index_requested_at'])->format('d/m/Y H:i') : '' }}
+                                        </span>
+                                    </div>
+                                @elseif($indexRequested)
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                            <i class="fas fa-clock mr-1"></i>Demande envoyée
+                                        </span>
+                                        <span class="text-xs text-gray-500">En attente Google (3-7j)</span>
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>Non indexé
+                                        </span>
+                                        @if($articleUrl)
+                                        <button onclick="indexerArticle('{{ $articleUrl }}', this)" 
+                                                class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition">
+                                            <i class="fas fa-paper-plane mr-1"></i>Indexer maintenant
+                                        </button>
+                                        @endif
                                     </div>
                                 @endif
                             @if($seoAnalysis)
@@ -1047,16 +1071,45 @@
                     $isIndexed = $metadata['indexed'] ?? false;
                 @endphp
                 @if($articleUrl)
-                    <a href="{{ $articleUrl }}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm mb-2">
+                    <a href="{{ $articleUrl }}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm mb-3">
                         <i class="fas fa-external-link-alt mr-1"></i> Voir l'article
                     </a>
                 @endif
-                <div class="mb-2 space-y-1">
-                    {{-- Messages d'indexation masqués lors de l'automatisation --}}
+                
+                <div class="mb-3 space-y-2">
+                    {{-- Statut indexation détaillé --}}
                     @if($isIndexed)
-                        <div class="flex items-center gap-1 text-xs text-green-600 font-semibold">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Indexé dans Google</span>
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 border border-green-200">
+                            <i class="fas fa-check-circle text-green-600 text-lg"></i>
+                            <div>
+                                <div class="text-sm font-semibold text-green-800">Indexé dans Google ✅</div>
+                                <div class="text-xs text-green-600">
+                                    {{ isset($metadata['index_requested_at']) ? \Carbon\Carbon::parse($metadata['index_requested_at'])->format('d/m/Y H:i') : '' }}
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($indexRequested)
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 border border-blue-200">
+                            <i class="fas fa-hourglass-half text-blue-600 text-lg"></i>
+                            <div>
+                                <div class="text-sm font-semibold text-blue-800">Demande d'indexation envoyée</div>
+                                <div class="text-xs text-blue-600">En attente Google (3-7 jours)</div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="space-y-2">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-50 border border-yellow-200">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 text-lg"></i>
+                                <div class="text-sm font-semibold text-yellow-800">Pas encore indexé</div>
+                            </div>
+                            @if($articleUrl)
+                            <div>
+                                <button onclick="indexerArticle('{{ $articleUrl }}', this)" 
+                                        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow hover:shadow-lg transition">
+                                    <i class="fas fa-paper-plane mr-2"></i>Indexer maintenant
+                                </button>
+                            </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -1692,6 +1745,43 @@ function testApi(apiName, button) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        // Fonction pour indexer un article manuellement
+        function indexerArticle(articleUrl, btn) {
+            if (!confirm(`Indexer cet article dans Google ?\n\nURL : ${articleUrl}\n\nLa demande sera envoyée à Google Indexing API.`)) {
+                return;
+            }
+            
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+            
+            fetch('/admin/seo-automation/index-article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ url: articleUrl })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Demande d'indexation envoyée avec succès !\n\nL'article sera indexé par Google dans 3-7 jours.\n\nURL : ${articleUrl}`);
+                    window.location.reload();
+                } else {
+                    alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur indexation article:', error);
+                alert('❌ Erreur réseau : ' + error.message + '\n\nVérifiez que Google Search Console est configuré dans /admin/indexation');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
         }
         </script>
         
