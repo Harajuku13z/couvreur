@@ -1763,9 +1763,9 @@ function testApi(apiName, button) {
             const cleanUrl = articleUrl.trim();
             
             console.log('URL nettoyée :', cleanUrl);
-            console.log('Envoi requête à /admin/seo-automation/index-article');
+            console.log('Envoi requête à /admin/seo-automation/manually-index-article');
             
-            fetch('/admin/seo-automation/index-article', {
+            fetch('/admin/seo-automation/manually-index-article', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
