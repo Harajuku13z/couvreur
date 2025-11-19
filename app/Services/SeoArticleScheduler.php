@@ -41,9 +41,9 @@ class SeoArticleScheduler
         // Calculer l'heure de fin (12h après l'heure de début)
         $endHour = ($startHour + 12) % 24;
         
-        // Récupérer le dernier article créé aujourd'hui
-        $lastArticle = \App\Models\Article::whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
+        // Récupérer le dernier article créé aujourd'hui (basé sur published_at pour respecter les horaires planifiés)
+        $lastArticle = \App\Models\Article::whereDate('published_at', today())
+            ->orderBy('published_at', 'desc')
             ->first();
         
         // Calculer l'heure de fin de la période de travail
@@ -172,7 +172,7 @@ class SeoArticleScheduler
             $citiesCount = City::where('is_favorite', true)->count();
             $totalArticlesPerDay = $articlesPerDay * $citiesCount;
             
-            $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+            $articlesToday = \App\Models\Article::whereDate('published_at', today())->count();
             
             // Si on a atteint le quota, ne pas créer d'article
             if ($articlesToday >= $totalArticlesPerDay) {
@@ -196,8 +196,8 @@ class SeoArticleScheduler
         if ($ignoreQuota) {
             // Vérifier si un article a déjà été créé récemment (dans les 1 minute seulement)
             // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
-            $recentArticle = \App\Models\Article::whereDate('created_at', today())
-                ->where('created_at', '>=', now()->subMinute())
+            $recentArticle = \App\Models\Article::whereDate('published_at', today())
+                ->where('published_at', '>=', now()->subMinute())
                 ->exists();
             
             if ($recentArticle) {
@@ -230,7 +230,7 @@ class SeoArticleScheduler
             $articlesPerDay = (int)Setting::get('seo_automation_articles_per_day', 5);
             $citiesCount = City::where('is_favorite', true)->count();
             $totalArticlesPerDay = $articlesPerDay * $citiesCount;
-            $articlesToday = \App\Models\Article::whereDate('created_at', today())->count();
+            $articlesToday = \App\Models\Article::whereDate('published_at', today())->count();
             
             Log::info('SeoArticleScheduler: Créneau passé - Vérification conditions', [
                 'next_time' => $nextTime->format('H:i'),
@@ -253,8 +253,8 @@ class SeoArticleScheduler
                 
                 // Vérifier si un article a été créé récemment (dans l'intervalle minimum)
                 // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
-                $recentArticle = \App\Models\Article::whereDate('created_at', today())
-                    ->where('created_at', '>=', now()->subMinutes($intervalMinutes))
+                $recentArticle = \App\Models\Article::whereDate('published_at', today())
+                    ->where('published_at', '>=', now()->subMinutes($intervalMinutes))
                     ->exists();
                 
                 if ($recentArticle) {
@@ -330,17 +330,17 @@ class SeoArticleScheduler
             return $cities->first();
         }
         
-        // Compter les articles créés aujourd'hui pour chaque ville
-        $articlesCountByCity = \App\Models\Article::whereDate('created_at', today())
+        // Compter les articles créés aujourd'hui pour chaque ville (basé sur published_at)
+        $articlesCountByCity = \App\Models\Article::whereDate('published_at', today())
             ->whereIn('city_id', $cities->pluck('id'))
             ->selectRaw('city_id, COUNT(*) as count')
             ->groupBy('city_id')
             ->pluck('count', 'city_id')
             ->toArray();
         
-        // Récupérer la dernière ville traitée pour la rotation
-        $lastArticle = \App\Models\Article::whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
+        // Récupérer la dernière ville traitée pour la rotation (basé sur published_at)
+        $lastArticle = \App\Models\Article::whereDate('published_at', today())
+            ->orderBy('published_at', 'desc')
             ->first();
         
         $lastCityId = $lastArticle ? $lastArticle->city_id : null;
@@ -535,9 +535,9 @@ class SeoArticleScheduler
         $workingHours = 12 * 60; // 720 minutes
         $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
         
-        // Récupérer le dernier article créé aujourd'hui pour déterminer la rotation
-        $lastArticle = \App\Models\Article::whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
+        // Récupérer le dernier article créé aujourd'hui pour déterminer la rotation (basé sur published_at)
+        $lastArticle = \App\Models\Article::whereDate('published_at', today())
+            ->orderBy('published_at', 'desc')
             ->first();
         
         // Déterminer l'index de départ pour la rotation
@@ -566,20 +566,20 @@ class SeoArticleScheduler
             $windowStart = $currentTime->copy()->subMinutes(30);
             $windowEnd = $currentTime->copy()->addMinutes(30);
             
-            // Vérifier d'abord si un article a été créé pour cette ville dans cette fenêtre
+            // Vérifier d'abord si un article a été créé pour cette ville dans cette fenêtre (basé sur published_at)
             $articleCreatedForCity = \App\Models\Article::where('city_id', $city->id)
-                ->whereDate('created_at', today())
-                ->where('created_at', '>=', $windowStart)
-                ->where('created_at', '<=', $windowEnd)
+                ->whereDate('published_at', today())
+                ->where('published_at', '>=', $windowStart)
+                ->where('published_at', '<=', $windowEnd)
                 ->exists();
             
             // Si pas d'article pour cette ville, vérifier s'il y a un article créé dans cette fenêtre
             // (peut arriver si la rotation a changé ou si le système a créé un article pour une autre ville)
             $articleCreated = $articleCreatedForCity;
             if (!$articleCreated) {
-                $articleCreated = \App\Models\Article::whereDate('created_at', today())
-                    ->where('created_at', '>=', $windowStart)
-                    ->where('created_at', '<=', $windowEnd)
+                $articleCreated = \App\Models\Article::whereDate('published_at', today())
+                    ->where('published_at', '>=', $windowStart)
+                    ->where('published_at', '<=', $windowEnd)
                     ->exists();
             }
             

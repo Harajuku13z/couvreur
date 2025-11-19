@@ -61,8 +61,16 @@ class ProcessSeoCityJob implements ShouldQueue
                 'custom_keyword' => $this->customKeyword
             ]);
 
+            // Récupérer l'heure planifiée pour respecter les horaires
+            $scheduler = app(\App\Services\SeoArticleScheduler::class);
+            $scheduledTime = $scheduler->getNextScheduledTime();
+            
+            Log::info('ProcessSeoCityJob: Heure planifiée récupérée', [
+                'scheduled_time' => $scheduledTime ? $scheduledTime->format('Y-m-d H:i:s') : 'null'
+            ]);
+
             // Le manager crée son propre log, pas besoin d'en créer un ici
-            $log = $manager->runForCity($city, $this->customKeyword);
+            $log = $manager->runForCity($city, $this->customKeyword, null, $scheduledTime);
             
             // Vérifier que le statut n'est plus "pending" après traitement
             if ($log && $log->status === 'pending') {
