@@ -52,18 +52,20 @@ class SeoArticleScheduler
         $firstCreneau = Carbon::today()->setTime($startHour, $startMinute);
         
         if ($lastArticle) {
+            // ⚠️ CORRECTION : Utiliser published_at au lieu de created_at pour respecter les horaires planifiés
+            $lastArticleTime = $lastArticle->published_at ?? $lastArticle->created_at;
             // Prochain créneau = dernier article + intervalle
-            $nextTime = $lastArticle->created_at->copy()->addMinutes($intervalMinutes);
+            $nextTime = $lastArticleTime->copy()->addMinutes($intervalMinutes);
             
             // IMPORTANT: Vérifier qu'au moins l'intervalle minimum s'est écoulé depuis le dernier article
             // pour éviter de créer plusieurs articles trop rapidement
-            $minutesSinceLastArticle = $now->diffInMinutes($lastArticle->created_at);
+            $minutesSinceLastArticle = $now->diffInMinutes($lastArticleTime);
             
             // Si moins de l'intervalle minimum s'est écoulé, retourner le prochain créneau futur
             if ($minutesSinceLastArticle < $intervalMinutes) {
                 // Un article vient d'être créé, retourner le prochain créneau (qui sera dans le futur)
                 Log::info('SeoArticleScheduler: Article créé récemment, prochain créneau dans le futur', [
-                    'last_article_time' => $lastArticle->created_at->format('H:i'),
+                    'last_article_time' => $lastArticleTime->format('H:i'),
                     'next_time' => $nextTime->format('H:i'),
                     'minutes_since_last' => $minutesSinceLastArticle,
                     'interval_minutes' => $intervalMinutes
@@ -77,7 +79,7 @@ class SeoArticleScheduler
                 Log::info('SeoArticleScheduler: Créneau passé détecté (aujourd\'hui)', [
                     'next_time' => $nextTime->format('Y-m-d H:i:s'),
                     'current_time' => $now->format('Y-m-d H:i:s'),
-                    'last_article_time' => $lastArticle->created_at->format('Y-m-d H:i:s'),
+                    'last_article_time' => $lastArticleTime->format('Y-m-d H:i:s'),
                     'minutes_since_last' => $minutesSinceLastArticle,
                     'interval_minutes' => $intervalMinutes
                 ]);
@@ -162,6 +164,26 @@ class SeoArticleScheduler
             return false;
         }
         
+        // ⚠️ PROTECTION : Vérifier les erreurs ChatGPT récentes (quota manquant)
+        // Si une erreur ChatGPT s'est produite dans les 30 dernières minutes, arrêter les tentatives
+        $recentChatGptError = \App\Models\SeoAutomation::where('created_at', '>=', now()->subMinutes(30))
+            ->where('status', 'failed')
+            ->where(function($query) {
+                $query->where('error_message', 'like', '%ChatGPT%')
+                    ->orWhere('error_message', 'like', '%API IA%')
+                    ->orWhere('error_message', 'like', '%quota%')
+                    ->orWhere('error_message', 'like', '%rate limit%');
+            })
+            ->exists();
+        
+        if ($recentChatGptError) {
+            Log::warning('SeoArticleScheduler: Erreur ChatGPT récente détectée, arrêt des tentatives', [
+                'next_time' => $nextTime->format('H:i'),
+                'current_time' => now()->format('H:i')
+            ]);
+            return false; // Arrêter les tentatives si erreur ChatGPT récente
+        }
+        
         // Vérifier si on ignore le quota (mode test)
         $ignoreQuota = Setting::get('seo_automation_ignore_quota', false);
         $ignoreQuota = filter_var($ignoreQuota, FILTER_VALIDATE_BOOLEAN);
@@ -189,7 +211,8 @@ class SeoArticleScheduler
             'current_time' => $now->format('H:i'),
             'is_past' => $nextTime->isPast(),
             'diff_minutes' => $diffMinutes,
-            'ignore_quota' => $ignoreQuota
+            'ignore_quota' => $ignoreQuota,
+            'recent_chatgpt_error' => $recentChatGptError
         ]);
         
         // Si on ignore le quota, permettre la création sans restriction de période ni d'heure
@@ -251,24 +274,32 @@ class SeoArticleScheduler
                 $workingHours = 12 * 60; // 720 minutes
                 $intervalMinutes = max(5, floor($workingHours / $totalArticlesPerDay));
                 
-                // Vérifier si un article a été créé récemment (dans l'intervalle minimum)
-                // pour éviter les doublons si le cron s'exécute plusieurs fois rapidement
+                // ⚠️ PROTECTION RENFORCÉE : Vérifier si un article a été créé récemment (dans l'intervalle minimum)
+                // Utiliser published_at pour respecter les horaires planifiés
                 $recentArticle = \App\Models\Article::whereDate('published_at', today())
                     ->where('published_at', '>=', now()->subMinutes($intervalMinutes))
                     ->exists();
                 
-                if ($recentArticle) {
-                    Log::info('SeoArticleScheduler: Article créé récemment, skip (intervalle minimum non respecté)', [
+                // ⚠️ PROTECTION SUPPLÉMENTAIRE : Vérifier aussi les logs d'échec récents
+                // Si un article a échoué récemment (dans les 2 dernières minutes), ne pas réessayer immédiatement
+                $recentFailure = \App\Models\SeoAutomation::where('created_at', '>=', now()->subMinutes(2))
+                    ->where('status', 'failed')
+                    ->exists();
+                
+                if ($recentArticle || $recentFailure) {
+                    Log::info('SeoArticleScheduler: Article créé récemment ou échec récent, skip (intervalle minimum non respecté)', [
                         'next_time' => $nextTime->format('H:i'),
                         'current_time' => $now->format('H:i'),
-                        'interval_minutes' => $intervalMinutes
+                        'interval_minutes' => $intervalMinutes,
+                        'recent_article' => $recentArticle,
+                        'recent_failure' => $recentFailure
                     ]);
-                    return false; // Un article vient d'être créé, attendre l'intervalle minimum
+                    return false; // Un article vient d'être créé ou a échoué, attendre l'intervalle minimum
                 }
                 
-                // Permettre la création si on est dans une fenêtre de 6 heures après l'heure prévue
-                // (augmenté à 6h pour mieux gérer les retards importants de Hostinger)
-                $allowed = $diffMinutes <= 360; // 6 heures de marge
+                // ⚠️ FENÊTRE RÉDUITE : Permettre la création seulement si on est dans une fenêtre de 15 minutes après l'heure prévue
+                // (réduit de 6h à 15min pour éviter les créations toutes les 2 minutes)
+                $allowed = $diffMinutes <= 15; // 15 minutes de marge maximum
                 
                 if ($allowed) {
                     Log::info('SeoArticleScheduler: Création autorisée - créneau passé', [
