@@ -53,7 +53,7 @@ class CityContentPersonalizer
             
             if (!$result || empty($result['content'])) {
                 Log::warning('IA n\'a pas retourné de contenu, utilisation du template de base');
-                return $this->fallbackPersonalization($templateContent, $city);
+                return $this->fallbackPersonalization($templateContent, $city, $service['name'] ?? '');
             }
             
             $personalizedContent = $result['content'];
@@ -78,7 +78,7 @@ class CityContentPersonalizer
             ]);
             
             // Fallback sur méthode basique
-            return $this->fallbackPersonalization($templateContent, $city);
+            return $this->fallbackPersonalization($templateContent, $city, $service['name'] ?? '');
         }
     }
     
@@ -250,6 +250,13 @@ class CityContentPersonalizer
     {
         $serviceName = $service['name'] ?? 'service';
         $companyName = config('app.name', 'Notre Entreprise');
+        $challengesList = isset($cityContext['climate']['challenges']) && is_array($cityContext['climate']['challenges'])
+            ? implode(', ', $cityContext['climate']['challenges'])
+            : '';
+        $materialsList = isset($cityContext['climate']['materials']) && is_array($cityContext['climate']['materials'])
+            ? implode(', ', $cityContext['climate']['materials'])
+            : '';
+        $currentYear = date('Y');
         
         return <<<EOT
 🎯 **MISSION : Créer un contenu 100% UNIQUE et PERSONNALISÉ pour {$city->name}**
@@ -270,8 +277,8 @@ Tu as un template de contenu pour "{$serviceName}" qui est générique. Tu dois 
 **Climat et environnement :**
 - Type climatique : {$cityContext['climate']['type']}
 - Précipitations : {$cityContext['climate']['precipitation']}
-- Défis locaux : " . implode(', ', $cityContext['climate']['challenges']) . "
-- Matériaux recommandés : " . implode(', ', $cityContext['climate']['materials']) . "
+- Défis locaux : {$challengesList}
+- Matériaux recommandés : {$materialsList}
 
 **Architecture locale :**
 {$cityContext['architecture']}
@@ -393,7 +400,7 @@ EOT;
     /**
      * Fallback si l'IA échoue : personnalisation basique mais améliorée
      */
-    protected function fallbackPersonalization($templateContent, City $city)
+    protected function fallbackPersonalization($templateContent, City $city, string $serviceName = '')
     {
         $replacements = [
             '[VILLE]' => $city->name,
@@ -409,7 +416,7 @@ EOT;
         
         // Ajouter au minimum un paragraphe unique sur la ville
         $cityContext = $this->buildCityContext($city);
-        $localParagraph = "<p>À {$city->name} ({$cityContext['postal_code']}), située en {$cityContext['region']}, notre entreprise {$this->getServiceVerb($service['name'] ?? '')} en tenant compte du climat {$cityContext['climate']['type']} caractéristique de la région. Les bâtiments de type {$cityContext['architecture']} nécessitent une attention particulière aux {$cityContext['climate']['challenges'][0]} typiques de cette zone géographique.</p>";
+        $localParagraph = "<p>À {$city->name} ({$cityContext['postal_code']}), située en {$cityContext['region']}, notre entreprise {$this->getServiceVerb($serviceName)} en tenant compte du climat {$cityContext['climate']['type']} caractéristique de la région. Les bâtiments de type {$cityContext['architecture']} nécessitent une attention particulière aux {$cityContext['climate']['challenges'][0]} typiques de cette zone géographique.</p>";
         
         // Insérer ce paragraphe au début du contenu
         if (preg_match('/<p>/', $content)) {
