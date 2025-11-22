@@ -372,6 +372,11 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
         Route::prefix('seo')->name('seo.')->group(function () {
             Route::get('/', [App\Http\Controllers\SeoController::class, 'index'])->name('index');
             Route::post('/update', [App\Http\Controllers\SeoController::class, 'update'])->name('update');
+            Route::get('/pages', [App\Http\Controllers\SeoController::class, 'pages'])->name('pages');
+            Route::post('/pages', [App\Http\Controllers\SeoController::class, 'updatePages'])->name('pages.update');
+            Route::post('/validate', [App\Http\Controllers\SeoController::class, 'validateSeoForGoogle'])->name('validate');
+            Route::post('/generate-ai', [App\Http\Controllers\SeoController::class, 'generateSeoWithAI'])->name('generate-ai');
+            Route::post('/generate-page-ai', [App\Http\Controllers\SeoController::class, 'generatePageSeoWithAI'])->name('generate-page-ai');
         });
         
         // Routes pour les villes
