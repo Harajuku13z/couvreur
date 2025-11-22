@@ -19,10 +19,10 @@
 @section('content')
 
     <!-- Hero Section -->
-    <section class="py-20 bg-primary">
+    <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-6xl font-black text-white mb-6">Nos Services</h1>
-            <p class="text-xl text-gray-200 max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-6xl font-black text-gray-900 mb-6">Nos Services</h1>
+            <p class="text-xl text-gray-900 max-w-3xl mx-auto">
                 Des solutions complètes et professionnelles pour tous vos projets de {{ setting('company_specialization', 'travaux de rénovation') }}
             </p>
         </div>
