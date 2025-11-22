@@ -204,6 +204,7 @@ Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('servi
 // Routes publiques pour le formulaire
     Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
     Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
+    Route::get('/form/{currentStep}/previous', [FormControllerSimple::class, 'previousStep'])->name('form.previous');
 Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
 
 // Routes publiques pour le portfolio
