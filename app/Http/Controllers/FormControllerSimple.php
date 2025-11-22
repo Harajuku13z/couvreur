@@ -33,6 +33,7 @@ class FormControllerSimple extends Controller
         'personalInfo',
         'postalCode',
         'phone',
+        'photos',
         'email',
     ];
 
@@ -491,7 +492,7 @@ class FormControllerSimple extends Controller
 
             $submission->markAsCompleted();
             $this->sendEmails($submission);
-            return redirect()->route('form.success');
+            return redirect()->route('form.success', ['sid' => $submission->id, 'uid' => $submission->user_identifier]);
     }
 
     public function previousStep(string $currentStep)
@@ -511,6 +512,18 @@ class FormControllerSimple extends Controller
         $submission = Submission::where('session_id', $sessionId)
             ->where('status', 'COMPLETED')
             ->first();
+        
+        // Fallback: si non trouvé, accepter un identifiant en paramètre sécurisé
+        if (!$submission) {
+            $sid = request()->query('sid');
+            $uid = request()->query('uid');
+            if ($sid && $uid) {
+                $submission = Submission::where('id', $sid)
+                    ->where('user_identifier', $uid)
+                    ->where('status', 'COMPLETED')
+                    ->first();
+            }
+        }
         
         \Log::info('Page succès demandée', [
             'session_id' => $sessionId,
@@ -576,6 +589,34 @@ class FormControllerSimple extends Controller
                 break;
             case 'phone':
                 $submission->update(['phone' => $request->phone]);
+                break;
+            case 'photos':
+                // Gérer l'upload de 0..5 photos (optionnel)
+                if ($request->hasFile('photos')) {
+                    $files = $request->file('photos');
+                    $stored = [];
+                    $counter = 0;
+                    foreach ($files as $file) {
+                        if (!$file->isValid()) continue;
+                        // Limiter aux images
+                        if (!in_array($file->extension(), ['jpg','jpeg','png','gif','webp'])) continue;
+                        // Limite à 5
+                        if ($counter >= 5) break;
+                        $path = $file->store('uploads/submissions/'.$submission->id, 'public');
+                        if ($path) {
+                            $stored[] = 'storage/'.$path;
+                            $counter++;
+                        }
+                    }
+                    if (!empty($stored)) {
+                        $trackingData = $submission->tracking_data ?? [];
+                        $existing = isset($trackingData['photos']) && is_array($trackingData['photos']) ? $trackingData['photos'] : [];
+                        // Concaténer sans dépasser 5
+                        $merged = array_slice(array_values(array_unique(array_merge($existing, $stored))), 0, 5);
+                        $trackingData['photos'] = $merged;
+                        $submission->update(['tracking_data' => $trackingData]);
+                    }
+                }
                 break;
             case 'email':
                 $submission->update(['email' => $request->email]);

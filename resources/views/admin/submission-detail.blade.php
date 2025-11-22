@@ -152,6 +152,19 @@
 
         <!-- Sidebar -->
         <div class="space-y-6">
+            @php $photos = $submission->tracking_data['photos'] ?? []; @endphp
+            @if(!empty($photos))
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-images mr-2 text-indigo-500"></i>Photos du projet</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    @foreach($photos as $photo)
+                        <a href="{{ asset($photo) }}" target="_blank" class="block border rounded overflow-hidden">
+                            <img src="{{ asset($photo) }}" alt="Photo" class="w-full h-28 object-cover">
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
             <!-- Résumé -->
             <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Résumé</h3>

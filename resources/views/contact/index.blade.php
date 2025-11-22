@@ -471,7 +471,7 @@
                         </div>
                         
                         {{-- reCAPTCHA --}}
-                        @if(setting('recaptcha_site_key'))
+                        @if(setting('recaptcha_enabled', false) && setting('recaptcha_site_key') && setting('recaptcha_secret_key'))
                         <div id="recaptcha-container"></div>
                         <input type="hidden" name="recaptcha_token" id="recaptcha_token">
                         @endif
@@ -585,7 +585,7 @@
 
 @push('scripts')
 {{-- reCAPTCHA --}}
-@if(setting('recaptcha_site_key'))
+@if(setting('recaptcha_enabled', false) && setting('recaptcha_site_key') && setting('recaptcha_secret_key'))
 @include('form.partials.recaptcha')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours... <i class="fas fa-hourglass-half ml-2"></i>';
         
         // Générer le token reCAPTCHA si nécessaire
-        if (typeof grecaptcha !== 'undefined' && '{{ setting('recaptcha_site_key') }}') {
+        if (typeof grecaptcha !== 'undefined' && '{{ setting('recaptcha_site_key') }}' && {{ setting('recaptcha_enabled', false) ? 'true' : 'false' }}) {
             grecaptcha.ready(function() {
                 grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
                     document.getElementById('recaptcha_token').value = token;

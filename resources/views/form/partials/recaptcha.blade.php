@@ -1,8 +1,10 @@
 @php
     $recaptchaSiteKey = setting('recaptcha_site_key');
+    $recaptchaSecretKey = setting('recaptcha_secret_key');
+    $recaptchaEnabled = setting('recaptcha_enabled', false);
 @endphp
 
-@if($recaptchaSiteKey)
+@if($recaptchaEnabled && $recaptchaSiteKey && $recaptchaSecretKey)
 <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}" async defer></script>
 <script>
 // S'assurer que reCAPTCHA est chargé avant utilisation
