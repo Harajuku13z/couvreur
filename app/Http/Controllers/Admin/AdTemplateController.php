@@ -407,15 +407,43 @@ class AdTemplateController extends Controller
      */
     public function generateAdsFromTemplate(Request $request)
     {
-        $request->validate([
-            'template_id' => 'required|exists:ad_templates,id',
-            'city_ids' => 'required|array|min:1',
-            'city_ids.*' => 'required|integer|exists:cities,id',
-        ]);
+        try {
+            $request->validate([
+                'template_id' => 'required|exists:ad_templates,id',
+                'city_ids' => 'required|array|min:1',
+                'city_ids.*' => 'required|integer|exists:cities,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation : ' . implode(', ', $e->errors()),
+                'errors' => $e->errors()
+            ], 422);
+        }
 
-        $template = AdTemplate::findOrFail($request->input('template_id'));
-        $cityIds = $request->input('city_ids');
-        $cities = City::whereIn('id', $cityIds)->get();
+        try {
+            $template = AdTemplate::findOrFail($request->input('template_id'));
+            $cityIds = $request->input('city_ids');
+            $cities = City::whereIn('id', $cityIds)->get();
+            
+            if ($cities->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucune ville valide trouvée pour les IDs fournis'
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la récupération du template ou des villes', [
+                'error' => $e->getMessage(),
+                'template_id' => $request->input('template_id'),
+                'city_ids' => $request->input('city_ids')
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des données : ' . $e->getMessage()
+            ], 500);
+        }
 
         $createdAds = 0;
         $skippedAds = 0;
@@ -437,6 +465,11 @@ class AdTemplateController extends Controller
                 $contentForCity = $template->getContentForCity($city);
                 $metaForCity = $template->getMetaForCity($city);
 
+                // S'assurer que les métadonnées ont des valeurs par défaut
+                $metaTitle = $metaForCity['meta_title'] ?? ($template->service_name . ' à ' . $city->name);
+                $metaDescription = $metaForCity['meta_description'] ?? ($template->short_description ?? '');
+                $metaKeywords = $metaForCity['meta_keywords'] ?? '';
+
                 // Créer l'annonce
                 $ad = \App\Models\Ad::create([
                     'title' => $template->service_name . ' à ' . $city->name,
@@ -446,9 +479,8 @@ class AdTemplateController extends Controller
                     'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
                     'status' => 'published',
                     'published_at' => now(),
-                    'meta_title' => $metaForCity['meta_title'],
-                    'meta_description' => $metaForCity['meta_description'],
-                    'meta_keywords' => $metaForCity['meta_keywords'],
+                    'meta_title' => Str::limit($metaTitle, 160),
+                    'meta_description' => Str::limit($metaDescription, 255),
                     'content_html' => $contentForCity,
                     'content_json' => json_encode([
                         'template_id' => $template->id,
@@ -475,12 +507,19 @@ class AdTemplateController extends Controller
             }
         }
 
+        // Construire le message avec les détails des erreurs si présentes
+        $message = "Génération terminée : {$createdAds} annonce(s) créée(s), {$skippedAds} ignorée(s)";
+        if (!empty($errors)) {
+            $errorCount = count($errors);
+            $message .= ", {$errorCount} erreur(s)";
+        }
+
         return response()->json([
             'success' => true,
             'created' => $createdAds,
             'skipped' => $skippedAds,
             'errors' => $errors,
-            'message' => "Génération terminée : {$createdAds} annonces créées, {$skippedAds} ignorées"
+            'message' => $message
         ]);
     }
 

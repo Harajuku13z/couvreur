@@ -531,18 +531,32 @@ function generateAdsFromSelectedCities() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Erreur lors de la génération');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            alert(`Génération terminée : ${data.created} annonces créées, ${data.skipped} ignorées`);
+            let message = `Génération terminée : ${data.created} annonce(s) créée(s), ${data.skipped} ignorée(s)`;
+            if (data.errors && data.errors.length > 0) {
+                message += `\n\n${data.errors.length} erreur(s) :`;
+                data.errors.forEach((error, index) => {
+                    message += `\n${index + 1}. ${error.city}: ${error.error}`;
+                });
+            }
+            alert(message);
             location.reload(); // Recharger la page pour voir les nouvelles annonces
         } else {
-            alert('Erreur lors de la génération : ' + data.message);
+            alert('Erreur lors de la génération : ' + (data.message || 'Erreur inconnue'));
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        alert('Erreur lors de la génération des annonces');
+        alert('Erreur lors de la génération des annonces : ' + error.message);
     })
     .finally(() => {
         button.textContent = originalText;
