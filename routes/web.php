@@ -12,6 +12,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AdPublicController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\PublicMediaController;
 use App\Http\Controllers\Admin\DevisController;
 use App\Http\Controllers\Admin\FactureController;
 use App\Http\Controllers\Admin\ClientController;
@@ -206,6 +207,11 @@ Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('servi
     Route::get('/form/{currentStep}/previous', [FormControllerSimple::class, 'previousStep'])->name('form.previous');
     Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
     Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
+
+// Route publique pour servir les photos de soumission (email, pas d'auth)
+Route::get('/media/submissions/{id}/{file}', [PublicMediaController::class, 'submissionPhoto'])
+    ->where(['id' => '[0-9]+', 'file' => '[A-Za-z0-9._-]+'])
+    ->name('media.submission.photo');
 
 // Routes publiques pour le portfolio
 Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');

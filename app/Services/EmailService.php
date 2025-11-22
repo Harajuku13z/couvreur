@@ -371,7 +371,7 @@ class EmailService
         if (empty($photos)) return '';
         $items = '';
         foreach ($photos as $photo) {
-            $url = $this->absoluteUrl($photo);
+            $url = $this->publicPhotoUrl($submission, $photo);
             $items .= "<a href='{$url}' target='_blank' style='display:inline-block;margin:4px;border:1px solid #eee;border-radius:6px;overflow:hidden;'>"
                    . "<img src='{$url}' alt='Photo' style='width:120px;height:120px;object-fit:cover;display:block;'>"
                    . "</a>";
@@ -402,5 +402,17 @@ class EmailService
         $full = $siteUrl . $normalizedPath;
         // Forcer https
         return preg_replace('/^http:\\/\\//i', 'https://', $full);
+    }
+
+    /**
+     * Construire l'URL publique sûre d'une photo de soumission via route (évite 403/hotlinking)
+     */
+    private function publicPhotoUrl(Submission $submission, string $photo): string
+    {
+        // Toujours exposer via la route media
+        $file = basename($photo);
+        $url = route('media.submission.photo', ['id' => $submission->id, 'file' => $file]);
+        // Forcer https si nécessaire
+        return preg_replace('/^http:\\/\\//i', 'https://', $url);
     }
 }
