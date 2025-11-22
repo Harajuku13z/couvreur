@@ -405,81 +405,98 @@ class AdTemplateController extends Controller
      */
     public function generateAdsFromTemplate(Request $request)
     {
-        $request->validate([
-            'template_id' => 'required|exists:ad_templates,id',
-            'city_ids' => 'required|array|min:1',
-            'city_ids.*' => 'required|integer|exists:cities,id',
-        ]);
+        try {
+            $request->validate([
+                'template_id' => 'required|exists:ad_templates,id',
+                'city_ids' => 'required|array|min:1',
+                'city_ids.*' => 'required|integer|exists:cities,id',
+            ]);
 
-        $template = AdTemplate::findOrFail($request->input('template_id'));
-        $cityIds = $request->input('city_ids');
-        $cities = City::whereIn('id', $cityIds)->get();
+            $template = AdTemplate::findOrFail($request->input('template_id'));
+            $cityIds = $request->input('city_ids');
+            $cities = City::whereIn('id', $cityIds)->get();
 
-        $createdAds = 0;
-        $skippedAds = 0;
-        $errors = [];
+            $createdAds = 0;
+            $skippedAds = 0;
+            $errors = [];
 
-        foreach ($cities as $city) {
-            try {
-                // Vérifier si une annonce existe déjà pour cette combinaison
-                $existingAd = \App\Models\Ad::where('template_id', $template->id)
-                    ->where('city_id', $city->id)
-                    ->first();
+            foreach ($cities as $city) {
+                try {
+                    // Vérifier si une annonce existe déjà pour cette combinaison
+                    $existingAd = \App\Models\Ad::where('template_id', $template->id)
+                        ->where('city_id', $city->id)
+                        ->first();
 
-                if ($existingAd) {
-                    $skippedAds++;
-                    continue;
-                }
+                    if ($existingAd) {
+                        $skippedAds++;
+                        continue;
+                    }
 
-                // Obtenir le contenu et les métadonnées pour cette ville
-                $contentForCity = $template->getContentForCity($city);
-                $metaForCity = $template->getMetaForCity($city);
+                    // Obtenir le contenu et les métadonnées pour cette ville
+                    $contentForCity = $template->getContentForCity($city);
+                    $metaForCity = $template->getMetaForCity($city);
 
-                // Créer l'annonce
-                $ad = \App\Models\Ad::create([
-                    'title' => $template->service_name . ' à ' . $city->name,
-                    'keyword' => $template->service_name,
-                    'city_id' => $city->id,
-                    'template_id' => $template->id,
-                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
-                    'status' => 'published',
-                    'published_at' => now(),
-                    'meta_title' => $metaForCity['meta_title'],
-                    'meta_description' => $metaForCity['meta_description'],
-                    'meta_keywords' => $metaForCity['meta_keywords'],
-                    'content_html' => $contentForCity,
-                    'content_json' => json_encode([
+                    // Créer l'annonce
+                    $ad = \App\Models\Ad::create([
+                        'title' => $template->service_name . ' à ' . $city->name,
+                        'keyword' => $template->service_name,
+                        'city_id' => $city->id,
                         'template_id' => $template->id,
-                        'city' => $city->toArray(),
-                        'generated_at' => now()->toISOString()
-                    ])
-                ]);
+                        'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                        'status' => 'published',
+                        'published_at' => now(),
+                        'meta_title' => $metaForCity['meta_title'],
+                        'meta_description' => $metaForCity['meta_description'],
+                        'meta_keywords' => $metaForCity['meta_keywords'],
+                        'content_html' => $contentForCity,
+                        'content_json' => json_encode([
+                            'template_id' => $template->id,
+                            'city' => $city->toArray(),
+                            'generated_at' => now()->toISOString()
+                        ])
+                    ]);
 
-                $createdAds++;
-                
-                // Incrémenter le compteur d'utilisation du template
-                $template->incrementUsage();
+                    $createdAds++;
+                    
+                    // Incrémenter le compteur d'utilisation du template
+                    $template->incrementUsage();
 
-            } catch (\Exception $e) {
-                $errors[] = [
-                    'city' => $city->name,
-                    'error' => $e->getMessage()
-                ];
-                Log::error('Erreur création annonce depuis template', [
-                    'template_id' => $template->id,
-                    'city' => $city->name,
-                    'error' => $e->getMessage()
-                ]);
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'city' => $city->name,
+                        'error' => $e->getMessage()
+                    ];
+                    Log::error('Erreur création annonce depuis template', [
+                        'template_id' => $template->id,
+                        'city' => $city->name,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'created' => $createdAds,
-            'skipped' => $skippedAds,
-            'errors' => $errors,
-            'message' => "Génération terminée : {$createdAds} annonces créées, {$skippedAds} ignorées"
-        ]);
+            return response()->json([
+                'success' => true,
+                'created' => $createdAds,
+                'skipped' => $skippedAds,
+                'errors' => $errors,
+                'message' => "Génération terminée : {$createdAds} annonces créées, {$skippedAds} ignorées"
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erreur globale génération annonces', [
+                'template_id' => $request->input('template_id'),
+                'city_ids' => $request->input('city_ids'),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération des annonces (global): ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
