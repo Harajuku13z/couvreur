@@ -437,7 +437,7 @@ if (portfolioForm) {
         url = `/admin/portfolio/update/${window.currentEditId}`;
         console.log('Using UPDATE URL:', url);
     } else {
-        url = '/upload-portfolio';
+        url = '/admin/portfolio';
         console.log('Using ADD URL:', url);
     }
     
