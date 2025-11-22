@@ -342,6 +342,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
                 Route::post('/create-from-keyword', [App\Http\Controllers\Admin\AdTemplateController::class, 'createFromKeyword'])->name('create-from-keyword');
                 Route::get('/cities', [App\Http\Controllers\Admin\AdTemplateController::class, 'getCities'])->name('cities');
                 Route::post('/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks'])->name('generate-all-links');
+                Route::get('/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks']);
                 Route::post('/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('generate-ads');
                 Route::get('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('show');
                 Route::get('/{template}/edit', [App\Http\Controllers\Admin\AdTemplateController::class, 'edit'])->name('edit');

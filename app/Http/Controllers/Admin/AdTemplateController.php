@@ -469,8 +469,12 @@ class AdTemplateController extends Controller
                 $metaTitle = $metaForCity['meta_title'] ?? ($template->service_name . ' à ' . $city->name);
                 $metaDescription = $metaForCity['meta_description'] ?? ($template->short_description ?? '');
 
-                // Générer le slug
-                $generatedSlug = $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name));
+                // Générer le slug avec fallback si vide
+                $baseSlug = Str::slug($template->service_name . '-' . $city->name);
+                if (empty($baseSlug)) {
+                    $baseSlug = 'ad-' . $template->id . '-' . $city->id . '-' . time();
+                }
+                $generatedSlug = $this->generateUniqueSlug($baseSlug);
                 
                 Log::info('=== DEBUG CRÉATION ANNONCE ===', [
                     'template_name' => $template->service_name,
@@ -495,11 +499,11 @@ class AdTemplateController extends Controller
                     'meta_title' => Str::limit($metaTitle, 160) ?: null,
                     'meta_description' => Str::limit($metaDescription, 255) ?: null,
                     'content_html' => $contentForCity,
-                    'content_json' => json_encode([
+                    'content_json' => [
                         'template_id' => $template->id,
                         'city' => $city->toArray(),
                         'generated_at' => now()->toIso8601String()
-                    ])
+                    ]
                 ]);
                 
                 Log::info('=== ANNONCE CRÉÉE AVEC SUCCÈS ===', [
@@ -1484,12 +1488,12 @@ EXEMPLES CONCRETS POUR {$keyword}:
                             'meta_description' => $metaForCity['meta_description'],
                             'meta_keywords' => $metaForCity['meta_keywords'],
                             'content_html' => $contentForCity,
-                            'content_json' => json_encode([
+                            'content_json' => [
                                 'template_id' => $template->id,
                                 'city' => $randomCity->toArray(),
                                 'generated_at' => now()->toIso8601String(),
                                 'auto_generated' => true
-                            ])
+                            ]
                         ]);
 
                         // Incrémenter le compteur d'utilisation du template

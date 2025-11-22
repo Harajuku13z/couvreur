@@ -185,19 +185,26 @@ class BulkAdsController extends Controller
                         'keyword' => $template->service_name,
                             'city_id' => $city->id,
                         'template_id' => $template->id,
-                        'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                        // slug avec fallback si Str::slug() retourne vide
+                        'slug' => (function() use ($template, $city) {
+                            $base = Str::slug($template->service_name . '-' . $city->name);
+                            if (empty($base)) {
+                                $base = 'ad-' . $template->id . '-' . $city->id . '-' . time();
+                            }
+                            return $this->generateUniqueSlug($base);
+                        })(),
                             'status' => 'published',
                         'published_at' => now(),
                         'meta_title' => $metaForCity['meta_title'],
                         'meta_description' => $metaForCity['meta_description'],
                         'meta_keywords' => $metaForCity['meta_keywords'],
                         'content_html' => $contentForCity,
-                            'content_json' => json_encode([
-                            'template_id' => $template->id,
+                            'content_json' => [
+                                'template_id' => $template->id,
                                 'city' => $city->toArray(),
-                            'generated_at' => now()->toIso8601String(),
-                            'bulk_generated' => true
-                            ])
+                                'generated_at' => now()->toIso8601String(),
+                                'bulk_generated' => true
+                            ]
                         ]);
 
                         $createdAds++;
@@ -1032,19 +1039,26 @@ IMPORTANT:
                         'keyword' => $template->service_name,
                             'city_id' => $city->id,
                         'template_id' => $template->id,
-                        'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                        // slug avec fallback si Str::slug() retourne vide
+                        'slug' => (function() use ($template, $city) {
+                            $base = Str::slug($template->service_name . '-' . $city->name);
+                            if (empty($base)) {
+                                $base = 'ad-' . $template->id . '-' . $city->id . '-' . time();
+                            }
+                            return $this->generateUniqueSlug($base);
+                        })(),
                             'status' => 'published',
                         'published_at' => now(),
                         'meta_title' => $metaForCity['meta_title'],
                         'meta_description' => $metaForCity['meta_description'],
                         'meta_keywords' => $metaForCity['meta_keywords'],
                         'content_html' => $contentForCity,
-                            'content_json' => json_encode([
-                            'template_id' => $template->id,
+                            'content_json' => [
+                                'template_id' => $template->id,
                                 'city' => $city->toArray(),
-                            'generated_at' => now()->toIso8601String(),
-                            'bulk_generated' => true
-                            ])
+                                'generated_at' => now()->toIso8601String(),
+                                'bulk_generated' => true
+                            ]
                         ]);
 
                         $createdAds++;
