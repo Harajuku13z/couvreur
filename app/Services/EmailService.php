@@ -371,11 +371,36 @@ class EmailService
         if (empty($photos)) return '';
         $items = '';
         foreach ($photos as $photo) {
-            $url = strpos($photo, 'http') === 0 ? $photo : url($photo);
+            $url = $this->absoluteUrl($photo);
             $items .= "<a href='{$url}' target='_blank' style='display:inline-block;margin:4px;border:1px solid #eee;border-radius:6px;overflow:hidden;'>"
                    . "<img src='{$url}' alt='Photo' style='width:120px;height:120px;object-fit:cover;display:block;'>"
                    . "</a>";
         }
         return "<div style='padding:16px;background:#f8f9fa;border-radius:8px;'><h3 style='margin:0 0 10px 0;'>📷 Photos du projet</h3><div>{$items}</div></div>";
+    }
+
+    /**
+     * Construire une URL absolue HTTPS vers une ressource publique
+     */
+    private function absoluteUrl(string $path): string
+    {
+        // Si déjà une URL absolue
+        if (preg_match('/^https?:\/\//i', $path)) {
+            // Forcer https
+            return preg_replace('/^http:\\/\\//i', 'https://', $path);
+        }
+        $siteUrl = Setting::get('site_url', config('app.url'));
+        if (empty($siteUrl)) {
+            $siteUrl = config('app.url', 'https://'.parse_url(url('/'), PHP_URL_HOST));
+        }
+        if (strpos($siteUrl, 'http') !== 0) {
+            $siteUrl = 'https://' . ltrim($siteUrl, '/');
+        }
+        // Normaliser
+        $siteUrl = rtrim($siteUrl, '/');
+        $normalizedPath = '/' . ltrim($path, '/');
+        $full = $siteUrl . $normalizedPath;
+        // Forcer https
+        return preg_replace('/^http:\\/\\//i', 'https://', $full);
     }
 }
