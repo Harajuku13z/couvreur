@@ -667,7 +667,7 @@ Route::prefix('admin/cron-config')->name('admin.cron-config.')->middleware(['adm
 });
 
 // Routes admin pour l'automatisation SEO
-Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth'])->group(function () {
+Route::prefix('admin/seo-automation')->name('admin.seo-automation.')->middleware(['admin.auth', 'seo.automation.password'])->group(function () {
     // CRITIQUE : Routes POST/GET spécifiques AVANT routes avec paramètres {seoAutomation}
     Route::post('/google-index-url', [SeoAutomationController::class, 'indexArticle'])->name('google-index-url');
     

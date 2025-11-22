@@ -30,13 +30,13 @@ class SeoAutomationPassword
         // Si c'est la route de validation du mot de passe ou le formulaire, laisser passer
         if ($request->is('admin/seo-automation/verify-password') || 
             $request->is('admin/seo-automation/password') ||
-            $request->routeIs('admin.seo-automation.password-form') ||
+            $request->routeIs('admin.seo-automation.password') ||
             $request->routeIs('admin.seo-automation.verify-password')) {
             return $next($request);
         }
         
         // Sinon, rediriger vers le formulaire de mot de passe
-        return redirect()->route('admin.seo-automation.password-form')
+        return redirect()->route('admin.seo-automation.password')
             ->with('redirect_to', $request->fullUrl());
     }
 }
