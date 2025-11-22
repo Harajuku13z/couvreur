@@ -101,6 +101,18 @@ class EmailService
             $this->mailer->isHTML(true);
             $this->mailer->Body = $this->generateAdminEmailBody($submission);
 
+            // Joindre les photos (si présentes)
+            $tracking = $submission->tracking_data ?? [];
+            if (is_array($tracking) && !empty($tracking['photos']) && is_array($tracking['photos'])) {
+                $photos = array_slice($tracking['photos'], 0, 5);
+                foreach ($photos as $photo) {
+                    $path = public_path(ltrim($photo, '/'));
+                    if (file_exists($path)) {
+                        try { $this->mailer->addAttachment($path); } catch (\Throwable $e) { \Log::warning('Attachment error: '.$e->getMessage()); }
+                    }
+                }
+            }
+
             $this->mailer->send();
             \Log::info('Email admin envoyé avec succès à ' . $adminEmail);
             return true;
@@ -142,6 +154,8 @@ class EmailService
     {
         $workTypesString = $this->getWorkTypesString($submission);
         $companyName = setting('company_name', 'Rénovation Expert');
+        $propertyLabel = $this->getPropertyTypeString($submission->property_type ?? '');
+        $photosHtml = $this->generatePhotosHtml($submission);
         
         if ($type === 'client') {
             return "
@@ -167,7 +181,7 @@ class EmailService
                             <h3 style='color: #007bff; margin-top: 0; font-size: 20px;'>📋 Récapitulatif de votre demande</h3>
                             <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 15px;'>
                                 <div>
-                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . ucfirst($submission->property_type) . "</p>
+                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . $propertyLabel . "</p>
                                     <p style='margin: 8px 0;'><strong>Surface :</strong> {$submission->surface} m²</p>
                                     <p style='margin: 8px 0;'><strong>Code postal :</strong> {$submission->postal_code}</p>
                                 </div>
@@ -179,6 +193,7 @@ class EmailService
                             
                             <p style='margin: 15px 0 0 0;'><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>
                         </div>
+                        " . ($photosHtml ? "<div style='margin: 15px 0;'>{$photosHtml}</div>" : "") . "
                         
                         <div style='background: #e8f5e9; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #28a745;'>
                             <h3 style='color: #28a745; margin-top: 0; font-size: 20px;'>📌 Prochaines étapes</h3>
@@ -217,7 +232,7 @@ class EmailService
                             <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 15px;'>
                                 <div>
                                     <p style='margin: 8px 0;'><strong>Nom :</strong> {$submission->first_name} {$submission->last_name}</p>
-                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . ucfirst($submission->property_type) . "</p>
+                                    <p style='margin: 8px 0;'><strong>Type de bien :</strong> " . $propertyLabel . "</p>
                                     <p style='margin: 8px 0;'><strong>Surface :</strong> {$submission->surface} m²</p>
                                 </div>
                                 <div>
@@ -229,6 +244,7 @@ class EmailService
                             
                             <p style='margin: 15px 0 0 0;'><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>
                         </div>
+                        " . ($photosHtml ? "<div style='margin: 15px 0;'>{$photosHtml}</div>" : "") . "
                         
                         <div style='background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 5px solid #ffc107; margin-bottom: 25px;'>
                             <h3 style='color: #856404; margin-top: 0;'>⚠️ Action Requise</h3>
@@ -267,6 +283,9 @@ class EmailService
             '{date}' => date('d/m/Y à H:i')
         ];
 
+        // Ajouter placeholder {photos} si demandé
+        $variables['{photos}'] = $this->generatePhotosHtml($submission);
+
         // Remplacer les variables dans le template
         $processedTemplate = str_replace(array_keys($variables), array_values($variables), $template);
         
@@ -276,6 +295,12 @@ class EmailService
             // Ajouter les types de travaux à la fin du template si pas déjà présents
             $workTypesHtml = "<p><strong>Types de travaux souhaités :</strong> " . $workTypesString . "</p>";
             $processedTemplate = str_replace('</body>', $workTypesHtml . '</body>', $processedTemplate);
+        }
+
+        // Si le template ne contient pas {photos}, ajouter les photos automatiquement
+        $photosHtml = $this->generatePhotosHtml($submission);
+        if (!empty($photosHtml) && strpos($template, '{photos}') === false) {
+            $processedTemplate = str_replace('</body>', $photosHtml . '</body>', $processedTemplate);
         }
 
         return $processedTemplate;
@@ -322,13 +347,35 @@ class EmailService
      */
     private function getPropertyTypeString($propertyType)
     {
-        $propertyTypeLabels = [
-            'house' => 'Maison',
-            'apartment' => 'Appartement',
-            'commercial' => 'Commercial',
-            'other' => 'Autre'
+        $key = strtoupper(trim((string)$propertyType));
+        $map = [
+            'HOUSE' => 'Maison',
+            'APARTMENT' => 'Appartement',
+            'COMMERCIAL' => 'Commercial',
+            'OTHER' => 'Autre',
         ];
-        
-        return $propertyTypeLabels[$propertyType] ?? ucfirst($propertyType);
+        if (isset($map[$key])) return $map[$key];
+        return ucfirst(strtolower((string)$propertyType));
+    }
+
+    /**
+     * Générer le HTML des photos si disponibles
+     */
+    private function generatePhotosHtml(Submission $submission): string
+    {
+        $tracking = $submission->tracking_data ?? [];
+        $photos = [];
+        if (is_array($tracking) && isset($tracking['photos']) && is_array($tracking['photos'])) {
+            $photos = array_slice($tracking['photos'], 0, 5);
+        }
+        if (empty($photos)) return '';
+        $items = '';
+        foreach ($photos as $photo) {
+            $url = strpos($photo, 'http') === 0 ? $photo : url($photo);
+            $items .= "<a href='{$url}' target='_blank' style='display:inline-block;margin:4px;border:1px solid #eee;border-radius:6px;overflow:hidden;'>"
+                   . "<img src='{$url}' alt='Photo' style='width:120px;height:120px;object-fit:cover;display:block;'>"
+                   . "</a>";
+        }
+        return "<div style='padding:16px;background:#f8f9fa;border-radius:8px;'><h3 style='margin:0 0 10px 0;'>📷 Photos du projet</h3><div>{$items}</div></div>";
     }
 }
