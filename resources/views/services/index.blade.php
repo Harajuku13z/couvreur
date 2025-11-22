@@ -19,10 +19,20 @@
 @section('content')
 
     <!-- Hero Section -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-6xl font-black text-gray-900 mb-6">Nos Services</h1>
-            <p class="text-xl text-gray-900 max-w-3xl mx-auto">
+    <section class="py-20 text-white relative overflow-hidden" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <!-- Overlay sombre pour améliorer la lisibilité -->
+        <div class="absolute inset-0 bg-black/30"></div>
+        
+        <!-- Motif de fond subtil -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 class="text-4xl md:text-6xl font-black text-white mb-6 drop-shadow-2xl" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                Nos Services
+            </h1>
+            <p class="text-xl md:text-2xl text-white max-w-3xl mx-auto leading-relaxed drop-shadow-xl font-medium" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
                 Des solutions complètes et professionnelles pour tous vos projets de {{ setting('company_specialization', 'travaux de rénovation') }}
             </p>
         </div>
@@ -87,24 +97,35 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-primary">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl md:text-4xl font-black text-white mb-6">
-                Besoin d'un Devis Personnalisé ?
-            </h2>
-            <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                Contactez-nous pour obtenir un devis gratuit et adapté à vos besoins
-            </p>
+    <section class="py-20 relative overflow-hidden" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <!-- Overlay sombre pour améliorer la lisibilité -->
+        <div class="absolute inset-0 bg-black/40"></div>
+        
+        <!-- Motif de fond subtil -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 drop-shadow-2xl" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                    Besoin d'un Devis Personnalisé ?
+                </h2>
+                <p class="text-xl text-white mb-8 max-w-3xl mx-auto drop-shadow-xl font-medium leading-relaxed" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                    Contactez-nous pour obtenir un devis gratuit et adapté à vos besoins. Nos experts sont à votre écoute pour répondre à toutes vos questions.
+                </p>
+            </div>
             
+            <!-- Boutons d'action -->
             <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-bold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-2xl">
+                   class="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-bold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center justify-center">
                     <i class="fas fa-calculator mr-3"></i>
                     Devis Gratuit
                 </a>
                 
                 <a href="tel:{{ setting('company_phone') }}" 
-                   class="glass-effect text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:bg-opacity-20 transition-all duration-300 transform hover:scale-105">
+                   class="bg-white/10 backdrop-blur-md border-2 border-white/30 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center justify-center">
                     <i class="fas fa-phone mr-3"></i>
                     {{ setting('company_phone') }}
                 </a>
