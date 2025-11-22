@@ -331,30 +331,29 @@ class FormControllerSimple extends Controller
         
         $blockNonFrance = setting('block_non_france', false);
         
-        if ($blockNonFrance) {
+        // IMPORTANT: ne bloquer que si AUCUNE soumission n'existe encore et uniquement à la 1ère étape
+        if ($blockNonFrance && !$submission && $step === 'propertyType') {
             // Pays et territoires autorisés : France + Suisse + DOM-TOM
             $allowedCountries = [
-                'FR', 'France',           // France métropolitaine
-                'CH', 'Switzerland', 'Suisse',  // Suisse
-                'RE', 'Réunion', 'Reunion',     // Réunion
-                'GP', 'Guadeloupe',             // Guadeloupe
-                'MQ', 'Martinique',             // Martinique
-                'GF', 'Guyane', 'French Guiana', // Guyane
-                'YT', 'Mayotte',                // Mayotte
-                'NC', 'Nouvelle-Calédonie', 'New Caledonia', // Nouvelle-Calédonie
-                'PF', 'Polynésie française', 'French Polynesia', // Polynésie
-                'PM', 'Saint-Pierre-et-Miquelon', // Saint-Pierre-et-Miquelon
-                'BL', 'Saint-Barthélemy',       // Saint-Barthélemy
-                'MF', 'Saint-Martin',           // Saint-Martin
-                'WF', 'Wallis-et-Futuna'        // Wallis-et-Futuna
+                'FR', 'France',
+                'CH', 'Switzerland', 'Suisse',
+                'RE', 'Réunion', 'Reunion',
+                'GP', 'Guadeloupe',
+                'MQ', 'Martinique',
+                'GF', 'Guyane', 'French Guiana',
+                'YT', 'Mayotte',
+                'NC', 'Nouvelle-Calédonie', 'New Caledonia',
+                'PF', 'Polynésie française', 'French Polynesia',
+                'PM', 'Saint-Pierre-et-Miquelon',
+                'BL', 'Saint-Barthélemy',
+                'MF', 'Saint-Martin',
+                'WF', 'Wallis-et-Futuna'
             ];
             
             $countryCode = strtoupper($location['country_code'] ?? '');
             $countryName = $location['country'] ?? '';
             
-            // Vérifier si pays/code dans la liste autorisée
-            $isAllowed = in_array($countryCode, $allowedCountries) || 
-                         in_array($countryName, $allowedCountries);
+            $isAllowed = in_array($countryCode, $allowedCountries) || in_array($countryName, $allowedCountries);
             
             if (!empty($countryCode) && !$isAllowed) {
                 return view('form.blocked', [
