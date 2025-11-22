@@ -424,7 +424,26 @@ class FormControllerSimple extends Controller
         $submission = Submission::where('session_id', $sessionId)->first();
 
         if (!$submission) {
-            return redirect()->route('form.step', 'propertyType');
+            // Créer une submission minimale pour éviter la perte de progression (ex. session perdue / géoblocage test)
+            $ipAddress = $this->getClientIp($request);
+            $submission = Submission::create([
+                'session_id' => $sessionId,
+                'user_identifier' => $this->generateUserIdentifier(),
+                'status' => 'IN_PROGRESS',
+                'current_step' => $step,
+                'ip_address' => $ipAddress,
+                'city' => null,
+                'country' => null,
+                'country_code' => null,
+                'referrer_url' => $request->header('referer'),
+                'user_agent' => $request->userAgent(),
+                'tracking_data' => [
+                    'created_at' => now()->toDateTimeString(),
+                    'first_visit' => false,
+                    'initial_step' => $step,
+                    'note' => 'auto-created on submit fallback'
+                ],
+            ]);
         }
 
         // Vérifier reCAPTCHA pour toutes les étapes (dès la première étape)
