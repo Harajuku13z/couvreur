@@ -201,11 +201,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/services', [ServicesController::class, 'publicIndex'])->name('services.index');
 Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
 
-// Routes publiques pour le formulaire
-    Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
-    Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
+// Routes publiques pour le formulaire (placer les routes spécifiques AVANT le wildcard)
+    Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
     Route::get('/form/{currentStep}/previous', [FormControllerSimple::class, 'previousStep'])->name('form.previous');
-Route::get('/form/success', [FormControllerSimple::class, 'success'])->name('form.success');
+    Route::post('/form/{step}/submit', [FormControllerSimple::class, 'submitStep'])->name('form.submit');
+    Route::get('/form/{step}', [FormControllerSimple::class, 'showStep'])->name('form.step');
 
 // Routes publiques pour le portfolio
 Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
