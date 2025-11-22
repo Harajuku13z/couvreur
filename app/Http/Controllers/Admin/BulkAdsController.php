@@ -195,7 +195,7 @@ class BulkAdsController extends Controller
                             'content_json' => json_encode([
                             'template_id' => $template->id,
                                 'city' => $city->toArray(),
-                            'generated_at' => now()->toISOString(),
+                            'generated_at' => now()->toIso8601String(),
                             'bulk_generated' => true
                             ])
                         ]);
@@ -1042,7 +1042,7 @@ IMPORTANT:
                             'content_json' => json_encode([
                             'template_id' => $template->id,
                                 'city' => $city->toArray(),
-                            'generated_at' => now()->toISOString(),
+                            'generated_at' => now()->toIso8601String(),
                             'bulk_generated' => true
                             ])
                         ]);

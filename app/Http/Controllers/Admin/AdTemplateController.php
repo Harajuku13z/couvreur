@@ -469,13 +469,27 @@ class AdTemplateController extends Controller
                 $metaTitle = $metaForCity['meta_title'] ?? ($template->service_name . ' à ' . $city->name);
                 $metaDescription = $metaForCity['meta_description'] ?? ($template->short_description ?? '');
 
+                // Générer le slug
+                $generatedSlug = $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name));
+                
+                Log::info('=== DEBUG CRÉATION ANNONCE ===', [
+                    'template_name' => $template->service_name,
+                    'city_name' => $city->name,
+                    'slug_generated' => $generatedSlug,
+                    'slug_length' => strlen($generatedSlug),
+                    'title' => $template->service_name . ' à ' . $city->name,
+                    'keyword' => $template->service_name,
+                    'meta_title' => Str::limit($metaTitle, 160),
+                    'meta_description' => Str::limit($metaDescription, 255),
+                ]);
+
                 // Créer l'annonce
                 $ad = \App\Models\Ad::create([
                     'title' => $template->service_name . ' à ' . $city->name,
                     'keyword' => $template->service_name,
                     'city_id' => $city->id,
                     'template_id' => $template->id,
-                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                    'slug' => $generatedSlug,
                     'status' => 'published',
                     'published_at' => now(),
                     'meta_title' => Str::limit($metaTitle, 160) ?: null,
@@ -484,8 +498,13 @@ class AdTemplateController extends Controller
                     'content_json' => json_encode([
                         'template_id' => $template->id,
                         'city' => $city->toArray(),
-                        'generated_at' => now()->toISOString()
+                        'generated_at' => now()->toIso8601String()
                     ])
+                ]);
+                
+                Log::info('=== ANNONCE CRÉÉE AVEC SUCCÈS ===', [
+                    'ad_id' => $ad->id,
+                    'slug_final' => $ad->slug
                 ]);
 
                 $createdAds++;
@@ -498,10 +517,16 @@ class AdTemplateController extends Controller
                     'city' => $city->name,
                     'error' => $e->getMessage()
                 ];
-                Log::error('Erreur création annonce depuis template', [
+                Log::error('=== ERREUR CRÉATION ANNONCE ===', [
                     'template_id' => $template->id,
+                    'template_name' => $template->service_name ?? 'N/A',
                     'city' => $city->name,
-                    'error' => $e->getMessage()
+                    'city_id' => $city->id,
+                    'error_message' => $e->getMessage(),
+                    'error_code' => $e->getCode(),
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine(),
+                    'error_trace' => $e->getTraceAsString(),
                 ]);
             }
         }
@@ -1462,7 +1487,7 @@ EXEMPLES CONCRETS POUR {$keyword}:
                             'content_json' => json_encode([
                                 'template_id' => $template->id,
                                 'city' => $randomCity->toArray(),
-                                'generated_at' => now()->toISOString(),
+                                'generated_at' => now()->toIso8601String(),
                                 'auto_generated' => true
                             ])
                         ]);

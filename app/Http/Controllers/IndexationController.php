@@ -53,7 +53,7 @@ class IndexationController extends Controller
             'siteUrl'
         ));
     }
-    
+
     /**
      * Sauvegarder configuration
      */
@@ -70,13 +70,13 @@ class IndexationController extends Controller
             $credentials = $request->input('google_search_console_credentials');
             
             // Valider JSON
-            $decoded = json_decode($credentials, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
+                $decoded = json_decode($credentials, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
                 return back()->with('error', 'JSON invalide : ' . json_last_error_msg());
-            }
-            
+                }
+                
             // Valider service_account
-            if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
+                if (!isset($decoded['type']) || $decoded['type'] !== 'service_account') {
                 return back()->with('error', 'Le JSON doit être un compte de service (type: service_account)');
             }
             
@@ -125,7 +125,7 @@ class IndexationController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Vérifier URLs (AJAX)
      */
@@ -195,7 +195,7 @@ class IndexationController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Indexer URLs non indexées (AJAX)
      */
@@ -226,7 +226,7 @@ class IndexationController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Soumettre sitemap à Google
      */
