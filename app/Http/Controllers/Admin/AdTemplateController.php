@@ -185,6 +185,8 @@ class AdTemplateController extends Controller
                 'og_description' => $validated['og_description'] ?? $validated['meta_description'],
                 'twitter_title' => $validated['twitter_title'] ?? $validated['meta_title'],
                 'twitter_description' => $validated['twitter_description'] ?? $validated['meta_description'],
+                'is_active' => true,
+                'usage_count' => 0,
             ]);
 
             return redirect()
