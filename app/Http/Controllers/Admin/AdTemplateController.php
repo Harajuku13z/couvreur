@@ -489,18 +489,46 @@ class AdTemplateController extends Controller
                 }
                 
                 $slug = $this->generateUniqueSlug($baseSlug);
+                
+                // Valider et nettoyer tous les champs avant création
+                $title = trim($template->service_name . ' à ' . $city->name);
+                $keyword = trim($template->service_name);
+                $finalMetaTitle = Str::limit(trim($metaTitle ?? ''), 160);
+                $finalMetaDescription = Str::limit(trim($metaDescription ?? ''), 255);
+                
+                // S'assurer que le slug est valide (seulement a-z, 0-9, -)
+                $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
+                $slug = preg_replace('/-+/', '-', $slug);
+                $slug = trim($slug, '-');
+                
+                // Si le slug est toujours vide ou invalide, générer un nouveau
+                if (empty($slug) || strlen($slug) > 255) {
+                    $slug = 'ad-' . $template->id . '-' . $city->id . '-' . time();
+                    $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
+                    $slug = $this->generateUniqueSlug($slug);
+                }
+
+                Log::info('Tentative création annonce', [
+                    'title' => $title,
+                    'keyword' => $keyword,
+                    'slug' => $slug,
+                    'slug_length' => strlen($slug),
+                    'slug_pattern_check' => preg_match('/^[a-z0-9-]+$/', $slug) ? 'valid' : 'invalid',
+                    'meta_title_length' => strlen($finalMetaTitle),
+                    'meta_description_length' => strlen($finalMetaDescription),
+                ]);
 
                 // Créer l'annonce
                 $ad = \App\Models\Ad::create([
-                    'title' => $template->service_name . ' à ' . $city->name,
-                    'keyword' => $template->service_name,
+                    'title' => $title,
+                    'keyword' => $keyword,
                     'city_id' => $city->id,
                     'template_id' => $template->id,
                     'slug' => $slug,
                     'status' => 'published',
                     'published_at' => now(),
-                    'meta_title' => Str::limit($metaTitle, 160),
-                    'meta_description' => Str::limit($metaDescription, 255),
+                    'meta_title' => $finalMetaTitle ?: null,
+                    'meta_description' => $finalMetaDescription ?: null,
                     'content_html' => $contentForCity,
                     'content_json' => json_encode([
                         'template_id' => $template->id,
@@ -515,14 +543,27 @@ class AdTemplateController extends Controller
                 $template->incrementUsage();
 
             } catch (\Exception $e) {
+                $errorMessage = $e->getMessage();
+                $errorTrace = $e->getTraceAsString();
+                
                 $errors[] = [
                     'city' => $city->name,
-                    'error' => $e->getMessage()
+                    'error' => $errorMessage
                 ];
+                
                 Log::error('Erreur création annonce depuis template', [
                     'template_id' => $template->id,
+                    'template_name' => $template->service_name ?? 'N/A',
                     'city' => $city->name,
-                    'error' => $e->getMessage()
+                    'city_id' => $city->id,
+                    'error' => $errorMessage,
+                    'error_code' => $e->getCode(),
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine(),
+                    'trace' => substr($errorTrace, 0, 500), // Limiter la taille du trace
+                    'slug_attempted' => $slug ?? 'N/A',
+                    'title_attempted' => $title ?? 'N/A',
+                    'keyword_attempted' => $keyword ?? 'N/A',
                 ]);
             }
         }
@@ -1326,24 +1367,33 @@ EXEMPLES CONCRETS POUR {$keyword}:
      */
     private function generateUniqueSlug($baseSlug)
     {
-        // Nettoyer le slug pour s'assurer qu'il respecte le pattern
-        $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($baseSlug));
+        // Nettoyer le slug pour s'assurer qu'il respecte le pattern (uniquement a-z, 0-9, -)
+        $slug = preg_replace('/[^a-z0-9-]/', '', strtolower(trim($baseSlug)));
         $slug = preg_replace('/-+/', '-', $slug);
         $slug = trim($slug, '-');
         
         // S'assurer que le slug n'est pas vide
         if (empty($slug)) {
             $slug = 'ad-' . time() . '-' . rand(1000, 9999);
+            $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
         }
         
         // Limiter la longueur à 255 caractères (contrainte de la base de données)
         if (strlen($slug) > 255) {
-            $slug = substr($slug, 0, 255);
+            $slug = substr($slug, 0, 250); // Laisser de la marge pour le suffixe
             $slug = rtrim($slug, '-');
+        }
+        
+        // Vérifier que le slug respecte le pattern avant de continuer
+        if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
+            // Si le pattern n'est toujours pas respecté, générer un nouveau slug
+            $slug = 'ad-' . time() . '-' . rand(1000, 9999);
+            $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
         }
         
         $originalSlug = $slug;
         $counter = 1;
+        $maxIterations = 1000;
         
         // Vérifier si le slug existe déjà
         while (\App\Models\Ad::where('slug', $slug)->exists()) {
@@ -1364,19 +1414,55 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 $newSlug = $originalSlug . '-' . $counter;
             }
             
+            // Nettoyer le nouveau slug
+            $newSlug = preg_replace('/[^a-z0-9-]/', '', strtolower($newSlug));
+            $newSlug = preg_replace('/-+/', '-', $newSlug);
+            $newSlug = trim($newSlug, '-');
+            
             // Limiter la longueur
             if (strlen($newSlug) > 255) {
-                $newSlug = substr($originalSlug, 0, 255 - strlen('-' . $counter)) . '-' . $counter;
+                $suffixPart = '-' . ($counter <= count($suffixes) ? $suffixes[$counter - 1] : $counter);
+                $maxBaseLength = 255 - strlen($suffixPart);
+                $newSlug = substr($originalSlug, 0, max(10, $maxBaseLength)) . $suffixPart;
+                $newSlug = preg_replace('/[^a-z0-9-]/', '', strtolower($newSlug));
+                $newSlug = preg_replace('/-+/', '-', $newSlug);
+                $newSlug = trim($newSlug, '-');
+            }
+            
+            // S'assurer que le nouveau slug respecte le pattern
+            if (!preg_match('/^[a-z0-9-]+$/', $newSlug)) {
+                $newSlug = $originalSlug . '-' . time() . '-' . $counter;
+                $newSlug = preg_replace('/[^a-z0-9-]/', '', strtolower($newSlug));
             }
             
             $slug = $newSlug;
             $counter++;
             
             // Protection contre les boucles infinies
-            if ($counter > 1000) {
-                $slug = $originalSlug . '-' . time() . '-' . rand(1000, 9999);
+            if ($counter > $maxIterations) {
+                $slug = $originalSlug . '-' . time() . '-' . rand(10000, 99999);
+                $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
+                $slug = preg_replace('/-+/', '-', $slug);
+                $slug = trim($slug, '-');
+                Log::warning('generateUniqueSlug: Max iterations reached', ['slug' => $slug]);
                 break;
             }
+        }
+        
+        // Dernière validation avant de retourner
+        $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+        
+        // S'assurer que le slug final respecte le pattern et n'est pas vide
+        if (empty($slug) || !preg_match('/^[a-z0-9-]+$/', $slug)) {
+            $slug = 'ad-' . time() . '-' . rand(10000, 99999);
+        }
+        
+        // Limiter à 255 caractères
+        if (strlen($slug) > 255) {
+            $slug = substr($slug, 0, 255);
+            $slug = rtrim($slug, '-');
         }
         
         return $slug;
