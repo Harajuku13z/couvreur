@@ -523,6 +523,10 @@ class FormControllerSimple extends Controller
                     ->where('status', 'COMPLETED')
                     ->first();
             }
+            // Dernier recours: si toujours rien et sid présent, récupérer par id
+            if (!$submission && $sid) {
+                $submission = Submission::find($sid);
+            }
         }
         
         \Log::info('Page succès demandée', [
