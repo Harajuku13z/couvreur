@@ -175,9 +175,9 @@ class BulkAdsController extends Controller
                             continue;
                         }
 
-                    // Obtenir le contenu et les métadonnées personnalisées pour cette ville
-                    $contentForCity = $template->getContentForCity($city);
-                    $metaForCity = $template->getMetaForCity($city);
+                    // Mode rapide : pas de personnalisation IA par ville
+                    $contentForCity = $template->getContentForCity($city, false);
+                    $metaForCity = $template->getMetaForCity($city, false);
                         
                         // Créer l'annonce
                         $ad = Ad::create([
@@ -1029,9 +1029,9 @@ IMPORTANT:
                             continue;
                         }
 
-                    // Obtenir le contenu et les métadonnées personnalisées pour cette ville
-                    $contentForCity = $template->getContentForCity($city);
-                    $metaForCity = $template->getMetaForCity($city);
+                    // Mode rapide : pas de personnalisation IA par ville
+                    $contentForCity = $template->getContentForCity($city, false);
+                    $metaForCity = $template->getMetaForCity($city, false);
                         
                         // Créer l'annonce
                         $ad = Ad::create([

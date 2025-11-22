@@ -83,11 +83,15 @@ class AdTemplate extends Model
      * Obtenir le contenu HTML avec personnalisation IA avancée pour la ville
      * Utilise l'IA pour créer du contenu 100% UNIQUE au lieu de simples remplacements
      */
-    public function getContentForCity($city)
+    public function getContentForCity($city, $useAi = null)
     {
         // Vérifier si la personnalisation IA est activée
-        $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', true);
-        $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        if ($useAi === null) {
+            $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', false);
+            $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $useAiPersonalization = (bool)$useAi;
+        }
         
         if ($useAiPersonalization) {
             try {
@@ -138,11 +142,15 @@ class AdTemplate extends Model
     /**
      * Obtenir les métadonnées avec personnalisation IA avancée pour la ville
      */
-    public function getMetaForCity($city)
+    public function getMetaForCity($city, $useAi = null)
     {
         // Vérifier si la personnalisation IA est activée
-        $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', true);
-        $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        if ($useAi === null) {
+            $useAiPersonalization = \App\Models\Setting::get('ad_template_ai_personalization', false);
+            $useAiPersonalization = filter_var($useAiPersonalization, FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $useAiPersonalization = (bool)$useAi;
+        }
         
         if ($useAiPersonalization) {
             try {
