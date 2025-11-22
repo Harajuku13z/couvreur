@@ -369,10 +369,9 @@ class FormControllerSimple extends Controller
             $referrerUrl = request()->header('referer') ?? request()->input('ref') ?? null;
             $userAgent = request()->userAgent();
             
-            // Créer submission avec statut différent selon l'étape
-            // Étape 1 : STARTED (simple visite, pas comptée dans stats principales)
-            // Étape 2+ : IN_PROGRESS (utilisateur engagé, comptée dans stats)
-            $status = ($step === 'propertyType') ? 'STARTED' : 'IN_PROGRESS';
+            // Créer submission avec statut IN_PROGRESS
+            // Toutes les étapes initiales utilisent IN_PROGRESS
+            $status = 'IN_PROGRESS';
             
             $submission = Submission::create([
                 'session_id' => $sessionId,
@@ -399,14 +398,8 @@ class FormControllerSimple extends Controller
                 'country' => $location['country']
             ]);
         } else {
-            // Si submission existe avec statut STARTED et on passe à l'étape 2+, passer en IN_PROGRESS
-            if ($submission->status === 'STARTED' && $step !== 'propertyType') {
-                $submission->update(['status' => 'IN_PROGRESS']);
-                \Log::info('Submission passée de STARTED à IN_PROGRESS', [
-                    'session_id' => $sessionId,
-                    'step' => $step
-                ]);
-            }
+            // Submission existe déjà, pas besoin de mise à jour du statut
+            // Le statut reste IN_PROGRESS jusqu'à complétion ou abandon
         }
 
         // Métadonnées SEO pour la page propertyType (simulateur de devis)
