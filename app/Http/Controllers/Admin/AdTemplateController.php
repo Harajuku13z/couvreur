@@ -470,13 +470,33 @@ class AdTemplateController extends Controller
                 $metaDescription = $metaForCity['meta_description'] ?? ($template->short_description ?? '');
                 $metaKeywords = $metaForCity['meta_keywords'] ?? '';
 
+                // Générer un slug valide
+                $baseSlug = Str::slug($template->service_name . '-' . $city->name);
+                
+                // S'assurer que le slug n'est pas vide
+                if (empty($baseSlug)) {
+                    $baseSlug = Str::slug('service-' . $template->id . '-' . $city->id);
+                }
+                
+                // Nettoyer le slug pour s'assurer qu'il respecte le pattern
+                $baseSlug = preg_replace('/[^a-z0-9-]/', '', $baseSlug);
+                $baseSlug = preg_replace('/-+/', '-', $baseSlug);
+                $baseSlug = trim($baseSlug, '-');
+                
+                // Si toujours vide après nettoyage, utiliser un slug par défaut
+                if (empty($baseSlug)) {
+                    $baseSlug = 'ad-' . $template->id . '-' . $city->id . '-' . time();
+                }
+                
+                $slug = $this->generateUniqueSlug($baseSlug);
+
                 // Créer l'annonce
                 $ad = \App\Models\Ad::create([
                     'title' => $template->service_name . ' à ' . $city->name,
                     'keyword' => $template->service_name,
                     'city_id' => $city->id,
                     'template_id' => $template->id,
-                    'slug' => $this->generateUniqueSlug(Str::slug($template->service_name . '-' . $city->name)),
+                    'slug' => $slug,
                     'status' => 'published',
                     'published_at' => now(),
                     'meta_title' => Str::limit($metaTitle, 160),
@@ -1306,7 +1326,23 @@ EXEMPLES CONCRETS POUR {$keyword}:
      */
     private function generateUniqueSlug($baseSlug)
     {
-        $slug = $baseSlug;
+        // Nettoyer le slug pour s'assurer qu'il respecte le pattern
+        $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($baseSlug));
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+        
+        // S'assurer que le slug n'est pas vide
+        if (empty($slug)) {
+            $slug = 'ad-' . time() . '-' . rand(1000, 9999);
+        }
+        
+        // Limiter la longueur à 255 caractères (contrainte de la base de données)
+        if (strlen($slug) > 255) {
+            $slug = substr($slug, 0, 255);
+            $slug = rtrim($slug, '-');
+        }
+        
+        $originalSlug = $slug;
         $counter = 1;
         
         // Vérifier si le slug existe déjà
@@ -1323,12 +1359,24 @@ EXEMPLES CONCRETS POUR {$keyword}:
             ];
             
             if ($counter <= count($suffixes)) {
-                $slug = $baseSlug . '-' . $suffixes[$counter - 1];
+                $newSlug = $originalSlug . '-' . $suffixes[$counter - 1];
             } else {
-                $slug = $baseSlug . '-' . $counter;
+                $newSlug = $originalSlug . '-' . $counter;
             }
             
+            // Limiter la longueur
+            if (strlen($newSlug) > 255) {
+                $newSlug = substr($originalSlug, 0, 255 - strlen('-' . $counter)) . '-' . $counter;
+            }
+            
+            $slug = $newSlug;
             $counter++;
+            
+            // Protection contre les boucles infinies
+            if ($counter > 1000) {
+                $slug = $originalSlug . '-' . time() . '-' . rand(1000, 9999);
+                break;
+            }
         }
         
         return $slug;
