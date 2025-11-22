@@ -717,10 +717,10 @@
             </div>
             
             <!-- Partners Logos -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 items-center justify-items-center">
+            <div class="flex flex-wrap justify-center items-center gap-4 md:gap-6">
                 @foreach($partners as $partner)
                     @if(!empty($partner['logo']))
-                    <div class="partner-logo-container w-full max-w-[120px] h-16 md:h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="partner-logo-container w-[120px] sm:w-[140px] md:w-[160px] h-16 md:h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow flex-shrink-0">
                         @if(!empty($partner['url']))
                         <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
                             <img 
