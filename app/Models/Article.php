@@ -60,6 +60,54 @@ class Article extends Model
     }
 
     /**
+     * Get the value of the model's route key.
+     * Fallback to ID if slug is empty or null
+     */
+    public function getRouteKey()
+    {
+        $slug = $this->getAttribute('slug');
+        // Return slug if it exists and is not empty, otherwise return ID
+        if (!empty($slug) && trim($slug) !== '') {
+            return $slug;
+        }
+        return $this->getKey();
+    }
+
+    /**
+     * Retrieve the model for bound route parameters.
+     * Try slug first, fallback to ID if not found or if value is numeric
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null) {
+            $field = $this->getRouteKeyName();
+        }
+
+        // If field is slug and value is numeric or empty, try ID
+        if ($field === 'slug') {
+            if (is_numeric($value)) {
+                $model = $this->where('id', $value)->first();
+                if ($model) {
+                    return $model;
+                }
+            }
+            
+            // Try by slug
+            if (!empty($value) && trim($value) !== '') {
+                $model = $this->where('slug', $value)->first();
+                if ($model) {
+                    return $model;
+                }
+            }
+        } else {
+            // Use the specified field
+            return $this->where($field, $value)->first();
+        }
+        
+        return null;
+    }
+
+    /**
      * Données SEO dynamiques pour les articles (si SEO package est disponible)
      */
     public function getDynamicSEOData()
