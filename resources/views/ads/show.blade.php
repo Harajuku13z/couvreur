@@ -25,6 +25,7 @@
         max-width: 100%;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        hyphens: none;
     }
     
     /* Assurer que tous les conteneurs respectent la largeur */
@@ -38,7 +39,7 @@
         overflow-x: hidden;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: auto;
+        hyphens: none;
     }
     
     /* Forcer les retours à la ligne pour tous les éléments de texte */
@@ -58,6 +59,7 @@
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
         word-break: break-word !important;
+        hyphens: none !important;
         max-width: 100%;
         overflow-x: hidden;
     }
@@ -126,6 +128,7 @@
         overflow-x: hidden;
         width: 100%;
         word-wrap: break-word;
+        hyphens: none;
     }
     
     /* Conteneur de contenu avec overflow hidden */
@@ -133,12 +136,14 @@
         overflow-x: hidden;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        hyphens: none;
     }
     
     .prose * {
         max-width: 100%;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        hyphens: none;
     }
     
     /* Padding responsive pour mobile */
