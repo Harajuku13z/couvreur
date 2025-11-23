@@ -65,13 +65,13 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2 sm:gap-0 sm:space-x-2">
-                            <a href="{{ route('admin.articles.show', $article) }}" class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50" title="Voir">
+                            <a href="{{ route('admin.articles.show', $article->slug ?? $article->id) }}" class="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('admin.articles.edit', $article) }}" class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50" title="Modifier">
+                            <a href="{{ route('admin.articles.edit', $article->slug ?? $article->id) }}" class="text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form method="POST" action="{{ route('admin.articles.destroy', $article) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
+                            <form method="POST" action="{{ route('admin.articles.destroy', $article->slug ?? $article->id) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50" title="Supprimer">

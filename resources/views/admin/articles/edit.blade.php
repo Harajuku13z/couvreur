@@ -162,7 +162,7 @@
         </div>
 
         <div class="flex justify-end space-x-4">
-            <a href="{{ route('admin.articles.show', $article) }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+            <a href="{{ route('admin.articles.show', $article->slug ?? $article->id) }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                 Annuler
             </a>
             <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">

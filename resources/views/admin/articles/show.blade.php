@@ -181,13 +181,13 @@
         </div>
         
         <div class="flex space-x-3">
-            <a href="{{ route('admin.articles.edit', $article) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <a href="{{ route('admin.articles.edit', $article->slug ?? $article->id) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <i class="fas fa-edit mr-2"></i>Modifier
             </a>
-            <a href="{{ route('blog.show', $article) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" target="_blank">
+            <a href="{{ route('blog.show', $article->slug ?? $article->id) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" target="_blank">
                 <i class="fas fa-external-link-alt mr-2"></i>Voir
             </a>
-            <form method="POST" action="{{ route('admin.articles.destroy', $article) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
+            <form method="POST" action="{{ route('admin.articles.destroy', $article->slug ?? $article->id) }}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
