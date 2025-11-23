@@ -18,11 +18,68 @@
         --secondary-color: {{ setting('secondary_color', '#1e40af') }};
         --accent-color: {{ setting('accent_color', '#f59e0b') }};
     }
+    
+    /* Empêcher le scroll horizontal sur mobile */
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+    
+    /* Assurer que tous les conteneurs respectent la largeur */
+    .container, [class*="max-w"] {
+        max-width: 100%;
+    }
+    
+    /* Contenus HTML dans les annonces */
+    .bg-white.rounded-2xl img,
+    .bg-white.rounded-2xl iframe,
+    .bg-white.rounded-2xl video,
+    .bg-white.rounded-2xl embed,
+    .bg-white.rounded-2xl object {
+        max-width: 100% !important;
+        height: auto;
+    }
+    
+    .bg-white.rounded-2xl table {
+        width: 100%;
+        max-width: 100%;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .bg-white.rounded-2xl pre,
+    .bg-white.rounded-2xl code {
+        max-width: 100%;
+        overflow-x: auto;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+    
+    /* Assurer que tous les éléments enfants respectent la largeur */
+    .bg-white.rounded-2xl * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Sections avec overflow */
+    section {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    /* Padding responsive pour mobile */
+    @media (max-width: 640px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 overflow-x-hidden">
     <!-- Hero Section -->
     <section class="relative py-20 text-white overflow-hidden">
         @if(!empty($featuredImage))
@@ -31,7 +88,7 @@
             $imagePath = str_starts_with($featuredImage, 'http') ? $featuredImage : asset($featuredImage);
         @endphp
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ $imagePath }}'); filter: blur(2px); transform: scale(1.1);"></div>
+             style="background-image: url('{{ $imagePath }}'); filter: blur(2px); transform: scale(1.05);"></div>
         <div class="absolute inset-0 bg-black bg-opacity-60"></div>
         @else
         <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
@@ -72,8 +129,10 @@
     <section class="py-16">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
-                    {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
+                <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden">
+                    <div class="prose prose-sm md:prose-base max-w-none overflow-x-auto" style="word-wrap: break-word; overflow-wrap: break-word;">
+                        {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
+                    </div>
                 </div>
 
                 <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
