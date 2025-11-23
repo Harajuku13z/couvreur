@@ -23,14 +23,52 @@
     html, body {
         overflow-x: hidden;
         max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     /* Assurer que tous les conteneurs respectent la largeur */
     .container, [class*="max-w"] {
         max-width: 100%;
+        overflow-x: hidden;
     }
     
-    /* Contenus HTML dans les annonces */
+    /* Contenus HTML dans les annonces - forcer les retours à la ligne */
+    .bg-white.rounded-2xl {
+        overflow-x: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    /* Forcer les retours à la ligne pour tous les éléments de texte */
+    .bg-white.rounded-2xl p,
+    .bg-white.rounded-2xl div,
+    .bg-white.rounded-2xl span,
+    .bg-white.rounded-2xl li,
+    .bg-white.rounded-2xl td,
+    .bg-white.rounded-2xl th,
+    .bg-white.rounded-2xl a,
+    .bg-white.rounded-2xl h1,
+    .bg-white.rounded-2xl h2,
+    .bg-white.rounded-2xl h3,
+    .bg-white.rounded-2xl h4,
+    .bg-white.rounded-2xl h5,
+    .bg-white.rounded-2xl h6 {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* URLs et mots longs */
+    .bg-white.rounded-2xl a {
+        word-break: break-all;
+        overflow-wrap: anywhere;
+    }
+    
+    /* Images et médias */
     .bg-white.rounded-2xl img,
     .bg-white.rounded-2xl iframe,
     .bg-white.rounded-2xl video,
@@ -38,22 +76,43 @@
     .bg-white.rounded-2xl object {
         max-width: 100% !important;
         height: auto;
-    }
-    
-    .bg-white.rounded-2xl table {
-        width: 100%;
-        max-width: 100%;
         display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
     }
     
+    /* Tableaux - forcer les retours à la ligne au lieu du scroll */
+    .bg-white.rounded-2xl table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        border-collapse: collapse;
+    }
+    
+    .bg-white.rounded-2xl td,
+    .bg-white.rounded-2xl th {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        overflow-x: hidden;
+        max-width: 0;
+    }
+    
+    /* Code et pre - retour à la ligne */
     .bg-white.rounded-2xl pre,
     .bg-white.rounded-2xl code {
         max-width: 100%;
-        overflow-x: auto;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: pre-wrap !important;
+        overflow-x: hidden;
+    }
+    
+    /* Listes */
+    .bg-white.rounded-2xl ul,
+    .bg-white.rounded-2xl ol {
+        overflow-x: hidden;
         word-wrap: break-word;
-        white-space: pre-wrap;
     }
     
     /* Assurer que tous les éléments enfants respectent la largeur */
@@ -66,6 +125,20 @@
     section {
         overflow-x: hidden;
         width: 100%;
+        word-wrap: break-word;
+    }
+    
+    /* Conteneur de contenu avec overflow hidden */
+    .prose {
+        overflow-x: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .prose * {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     /* Padding responsive pour mobile */
@@ -73,6 +146,11 @@
         .container {
             padding-left: 1rem;
             padding-right: 1rem;
+        }
+        
+        .bg-white.rounded-2xl {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
         }
     }
 </style>
@@ -130,7 +208,7 @@
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden">
-                    <div class="prose prose-sm md:prose-base max-w-none overflow-x-auto" style="word-wrap: break-word; overflow-wrap: break-word;">
+                    <div class="prose prose-sm md:prose-base max-w-none" style="word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; word-break: break-word;">
                         {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
                     </div>
                 </div>
