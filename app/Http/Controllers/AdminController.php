@@ -9,6 +9,7 @@ use App\Models\PhoneCall;
 use App\Models\Client;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Response;
 
 class AdminController extends Controller
@@ -810,21 +811,26 @@ class AdminController extends Controller
         
         // Statistiques des bots (toujours calculées pour info)
         // Vérifier si la colonne is_bot existe avant d'utiliser onlyBots()
-        try {
-            $botStats = [
-                'today' => PhoneCall::onlyBots()->today()->count(),
-                'this_week' => PhoneCall::onlyBots()->thisWeek()->count(),
-                'this_month' => PhoneCall::onlyBots()->thisMonth()->count(),
-                'total' => PhoneCall::onlyBots()->count(),
-            ];
-        } catch (\Exception $e) {
-            // Si la colonne is_bot n'existe pas encore (migration non exécutée), utiliser des valeurs par défaut
-            $botStats = [
-                'today' => 0,
-                'this_week' => 0,
-                'this_month' => 0,
-                'total' => 0,
-            ];
+        $botStats = [
+            'today' => 0,
+            'this_week' => 0,
+            'this_month' => 0,
+            'total' => 0,
+        ];
+        
+        // Vérifier si la colonne is_bot existe
+        if (\Schema::hasColumn('phone_calls', 'is_bot')) {
+            try {
+                $botStats = [
+                    'today' => PhoneCall::onlyBots()->today()->count(),
+                    'this_week' => PhoneCall::onlyBots()->thisWeek()->count(),
+                    'this_month' => PhoneCall::onlyBots()->thisMonth()->count(),
+                    'total' => PhoneCall::onlyBots()->count(),
+                ];
+            } catch (\Exception $e) {
+                // En cas d'erreur, garder les valeurs par défaut à 0
+                \Log::warning('Erreur lors du calcul des statistiques bots: ' . $e->getMessage());
+            }
         }
 
         // Appels par page (sans bots par défaut)
