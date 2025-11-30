@@ -199,7 +199,8 @@
                        class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
                        style="background-color: var(--primary-color);"
                        onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
+                       onmouseout="this.style.backgroundColor='var(--primary-color)';"
+                       onclick="if(typeof window.trackPhoneCall === 'function') { window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('trackPhoneCall non disponible'); } return true;">
                         <i class="fas fa-phone mr-2"></i>
                         {{ setting('company_phone') }}
                     </a>
@@ -235,7 +236,8 @@
                            class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
                            style="background-color: var(--primary-color);"
                            onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                           onmouseout="this.style.backgroundColor='var(--primary-color)';">
+                           onmouseout="this.style.backgroundColor='var(--primary-color)';"
+                           onclick="if(typeof window.trackPhoneCall === 'function') { window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('trackPhoneCall non disponible'); } return true;">
                             <i class="fas fa-phone mr-2"></i>
                             Appeler Maintenant
                         </a>
@@ -446,4 +448,51 @@
         </div>
     </section>
 </div>
+
+@push('scripts')
+<script>
+// Script de secours pour le tracking des appels si phone-tracking.js n'est pas encore chargé
+(function() {
+    // S'assurer que la fonction trackPhoneCall est disponible même si le script externe n'est pas chargé
+    if (typeof window.trackPhoneCall === 'undefined') {
+        window.trackPhoneCall = function(phoneNumber, sourcePage) {
+            console.log('📞 trackPhoneCall (fallback) appelé', { phoneNumber, sourcePage });
+            
+            // Essayer d'envoyer la requête directement
+            const payload = {
+                phone_number: phoneNumber || '{{ setting('company_phone_raw') }}',
+                source_page: sourcePage || window.location.pathname,
+                referrer_url: document.referrer || window.location.href
+            };
+            
+            // Utiliser fetch avec keepalive pour maximiser les chances de succès
+            fetch('/api/track-phone-call', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify(payload),
+                keepalive: true
+            }).catch(function(err) {
+                console.error('Erreur tracking (fallback):', err);
+            });
+        };
+    }
+})();
+
+// Logger pour debug
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Page ads/show chargée');
+    console.log('trackPhoneCall disponible:', typeof window.trackPhoneCall);
+    
+    // Vérifier que tous les liens tel: sont bien détectés
+    const telLinks = document.querySelectorAll('a[href^="tel:"]');
+    console.log('🔗 Liens tel: trouvés:', telLinks.length);
+    telLinks.forEach(function(link, index) {
+        console.log('  - Lien', index + 1, ':', link.href, link.onclick ? '(avec onclick)' : '(sans onclick)');
+    });
+});
+</script>
+@endpush
 @endsection
