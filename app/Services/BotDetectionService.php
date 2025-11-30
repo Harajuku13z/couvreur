@@ -127,13 +127,13 @@ class BotDetectionService
         }
 
         // Vérifications supplémentaires
-        // User agents très courts (< 10 caractères) sont suspects
-        if (strlen($userAgent) < 10) {
+        // User agents très courts (< 5 caractères) sont suspects (mais pas < 10, trop strict)
+        if (strlen($userAgent) < 5) {
             return true;
         }
 
-        // User agents avec seulement des caractères spéciaux ou numériques
-        if (preg_match('/^[^a-z]*$/i', $userAgent)) {
+        // User agents avec seulement des caractères spéciaux ou numériques (sans lettres)
+        if (preg_match('/^[^a-z]*$/i', $userAgent) && strlen($userAgent) > 0) {
             return true;
         }
 

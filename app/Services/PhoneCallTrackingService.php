@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PhoneCall;
 use App\Models\Submission;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 
@@ -90,21 +91,28 @@ class PhoneCallTrackingService
             // Géolocalisation
             $location = $this->ipGeolocationService->getLocationFromIp($ipAddress);
             
-            // Créer l'enregistrement (bots inclus mais avec is_bot = true)
-            $phoneCall = PhoneCall::create([
+            // Préparer les données pour la création
+            $phoneCallData = [
                 'submission_id' => $submission ? $submission->id : null,
                 'session_id' => $sessionId,
                 'phone_number' => $phoneNumber,
                 'source_page' => $sourcePage,
                 'ip_address' => $ipAddress,
                 'user_agent' => $request->userAgent(),
-                'is_bot' => $isBot, // Marquer comme bot pour pouvoir les filtrer dans les stats
                 'city' => $location['city'],
                 'country' => $location['country'],
                 'country_code' => $location['country_code'],
                 'referrer_url' => $referrerUrl,
                 'clicked_at' => now(),
-            ]);
+            ];
+            
+            // Ajouter is_bot seulement si la colonne existe
+            if (\Schema::hasColumn('phone_calls', 'is_bot')) {
+                $phoneCallData['is_bot'] = $isBot;
+            }
+            
+            // Créer l'enregistrement (bots inclus mais avec is_bot = true si colonne existe)
+            $phoneCall = PhoneCall::create($phoneCallData);
 
             Log::info($isBot ? '🤖 Bot - Appel téléphonique tracké' : '✅ Appel téléphonique tracké', [
                 'id' => $phoneCall->id,
@@ -135,8 +143,48 @@ class PhoneCallTrackingService
             Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
-                'request_method' => $request->method()
+                'request_method' => $request->method(),
+                'phone_number' => $phoneNumber ?? 'N/A',
+                'source_page' => $sourcePage ?? 'N/A',
+                'user_agent' => substr($request->userAgent(), 0, 100),
+                'is_bot' => $isBot ?? false
             ]);
+            
+            // Si c'est une erreur de colonne manquante (is_bot), essayer sans cette colonne
+            if (str_contains($e->getMessage(), 'is_bot') || str_contains($e->getMessage(), 'Unknown column')) {
+                try {
+                    Log::info('🔄 Tentative de tracking sans colonne is_bot');
+                    $location = $this->ipGeolocationService->getLocationFromIp($ipAddress);
+                    $phoneCallData = [
+                        'submission_id' => $submission ? $submission->id : null,
+                        'session_id' => $sessionId,
+                        'phone_number' => $phoneNumber,
+                        'source_page' => $sourcePage,
+                        'ip_address' => $ipAddress,
+                        'user_agent' => $request->userAgent(),
+                        'city' => $location['city'] ?? null,
+                        'country' => $location['country'] ?? null,
+                        'country_code' => $location['country_code'] ?? null,
+                        'referrer_url' => $referrerUrl,
+                        'clicked_at' => now(),
+                    ];
+                    $phoneCall = PhoneCall::create($phoneCallData);
+                    
+                    Log::info('✅ Appel téléphonique tracké (sans is_bot)', [
+                        'id' => $phoneCall->id,
+                        'phone' => $phoneNumber,
+                        'source_page' => $sourcePage
+                    ]);
+                    
+                    return [
+                        'success' => true,
+                        'id' => $phoneCall->id,
+                        'phone_call' => $phoneCall
+                    ];
+                } catch (\Exception $e2) {
+                    Log::error('❌ Erreur tracking même sans is_bot: ' . $e2->getMessage());
+                }
+            }
             
             return [
                 'success' => false,
