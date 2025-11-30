@@ -42,19 +42,78 @@
         </div>
     </div>
 
-    <!-- Statistiques principales -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- CA Total -->
+    <!-- Statistiques principales - Mises en avant -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- CA Total 30 jours -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-green-100 mb-1">Chiffre d'Affaire</p>
+                    <p class="text-xs text-green-200 mb-2">30 derniers jours</p>
+                    <p class="text-3xl font-bold">{{ number_format($totalCA30Jours ?? 0, 2, ',', ' ') }} €</p>
+                </div>
+                <div class="w-14 h-14 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-euro-sign text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devis Envoyés -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-blue-100 mb-1">Devis Envoyés</p>
+                    <p class="text-xs text-blue-200 mb-2">Total</p>
+                    <p class="text-3xl font-bold">{{ number_format($devisEnvoyes ?? 0, 0, ',', ' ') }}</p>
+                </div>
+                <div class="w-14 h-14 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devis Acceptés -->
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-emerald-100 mb-1">Devis Acceptés</p>
+                    <p class="text-xs text-emerald-200 mb-2">Validés</p>
+                    <p class="text-3xl font-bold">{{ number_format($devisAcceptes ?? 0, 0, ',', ' ') }}</p>
+                </div>
+                <div class="w-14 h-14 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-check-circle text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taux de conversion -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-purple-100 mb-1">Taux de Conversion</p>
+                    <p class="text-xs text-purple-200 mb-2">Acceptation</p>
+                    <p class="text-3xl font-bold">{{ number_format($tauxConversion ?? 0, 1) }}%</p>
+                </div>
+                <div class="w-14 h-14 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-percentage text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques secondaires -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- CA Total Global -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                    <div class="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center">
                         <i class="fas fa-euro-sign text-white text-xl"></i>
                     </div>
                 </div>
                 <div class="ml-5">
-                    <p class="text-sm font-medium text-gray-500">Chiffre d'Affaire Total</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalCA, 2, ',', ' ') }} €</p>
+                    <p class="text-sm font-medium text-gray-500">CA Total (Tous temps)</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalCA ?? 0, 2, ',', ' ') }} €</p>
                 </div>
             </div>
         </div>
@@ -69,22 +128,8 @@
                 </div>
                 <div class="ml-5">
                     <p class="text-sm font-medium text-gray-500">CA Potentiel</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($caPotentiel, 2, ',', ' ') }} €</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Taux de conversion -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-percentage text-white text-xl"></i>
-                    </div>
-                </div>
-                <div class="ml-5">
-                    <p class="text-sm font-medium text-gray-500">Taux de Conversion</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($tauxConversion, 1) }}%</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($caPotentiel ?? 0, 2, ',', ' ') }} €</p>
+                    <p class="text-xs text-gray-400 mt-1">Devis acceptés non payés</p>
                 </div>
             </div>
         </div>

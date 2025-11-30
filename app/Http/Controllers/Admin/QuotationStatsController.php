@@ -17,7 +17,21 @@ class QuotationStatsController extends Controller
         try {
             // Utilisation de cursors pour les calculs sur de grandes quantités de données
             
-            // Chiffre d'Affaire Total (CA) - Factures payées uniquement
+            // Chiffre d'Affaire Total (CA) sur les 30 derniers jours - Factures payées uniquement
+            $totalCA30Jours = 0;
+            try {
+                $date30JoursAgo = now()->subDays(30);
+                $paidInvoices30Days = Facture::where('statut', 'Payée')
+                    ->where('date_emission', '>=', $date30JoursAgo)
+                    ->cursor();
+                foreach ($paidInvoices30Days as $invoice) {
+                    $totalCA30Jours += $invoice->prix_total_ttc;
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Erreur calcul CA 30 jours', ['error' => $e->getMessage()]);
+            }
+            
+            // Chiffre d'Affaire Total (CA) - Factures payées uniquement (global)
             $totalCA = 0;
             try {
                 $paidInvoices = Facture::where('statut', 'Payée')->cursor();
@@ -26,6 +40,22 @@ class QuotationStatsController extends Controller
                 }
             } catch (\Exception $e) {
                 \Log::warning('Erreur calcul CA total', ['error' => $e->getMessage()]);
+            }
+            
+            // Nombre de devis envoyés (tous les devis créés)
+            $devisEnvoyes = 0;
+            try {
+                $devisEnvoyes = Devis::count();
+            } catch (\Exception $e) {
+                \Log::warning('Erreur calcul devis envoyés', ['error' => $e->getMessage()]);
+            }
+            
+            // Nombre de devis acceptés
+            $devisAcceptes = 0;
+            try {
+                $devisAcceptes = Devis::where('statut', 'Accepté')->count();
+            } catch (\Exception $e) {
+                \Log::warning('Erreur calcul devis acceptés', ['error' => $e->getMessage()]);
             }
 
             // CA Potentiel - Devis acceptés non encore payés
@@ -44,13 +74,9 @@ class QuotationStatsController extends Controller
             }
 
             // Taux de conversion
-            $totalDevis = 0;
-            $devisAcceptes = 0;
             $tauxConversion = 0;
             try {
-                $totalDevis = Devis::count();
-                $devisAcceptes = Devis::where('statut', 'Accepté')->count();
-                $tauxConversion = $totalDevis > 0 ? ($devisAcceptes / $totalDevis) * 100 : 0;
+                $tauxConversion = $devisEnvoyes > 0 ? ($devisAcceptes / $devisEnvoyes) * 100 : 0;
             } catch (\Exception $e) {
                 \Log::warning('Erreur calcul taux conversion', ['error' => $e->getMessage()]);
             }
@@ -124,6 +150,9 @@ class QuotationStatsController extends Controller
 
             return view('admin.quotations.dashboard', compact(
                 'totalCA',
+                'totalCA30Jours',
+                'devisEnvoyes',
+                'devisAcceptes',
                 'caPotentiel',
                 'tauxConversion',
                 'facturesEnAttente',
@@ -140,6 +169,9 @@ class QuotationStatsController extends Controller
             
             return view('admin.quotations.dashboard', [
                 'totalCA' => 0,
+                'totalCA30Jours' => 0,
+                'devisEnvoyes' => 0,
+                'devisAcceptes' => 0,
                 'caPotentiel' => 0,
                 'tauxConversion' => 0,
                 'facturesEnAttente' => collect([]),
