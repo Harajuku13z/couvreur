@@ -567,16 +567,6 @@ class GenerateTestData extends Command
             ],
         ];
 
-        // Répartition des 32 devis
-        // Total CA souhaité : 87.556 € TTC (pour les devis acceptés uniquement)
-        // Avec TVA à 20% : 87.556 / 1.20 = 72.963,33 € HT
-        $totalTTCAccepted = 87556;
-        $totalHTAccepted = $totalTTCAccepted / 1.20; // TVA 20%
-        $averageHTPerAcceptedDevis = $totalHTAccepted / $acceptedCount;
-        
-        // Pour les autres devis (refusés, en attente, brouillons), montants plus variables
-        $averageHTPerOtherDevis = $averageHTPerAcceptedDevis * 0.8; // 20% de moins en moyenne
-
         // Dates pour novembre 2025
         $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
         $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
@@ -592,6 +582,16 @@ class GenerateTestData extends Command
         $pendingCount = 7;
         $draftCount = 6;
         $totalDevis = $acceptedCount + $refusedCount + $pendingCount + $draftCount; // 32 total
+        
+        // Répartition des 32 devis
+        // Total CA souhaité : 87.556 € TTC (pour les devis acceptés uniquement)
+        // Avec TVA à 20% : 87.556 / 1.20 = 72.963,33 € HT
+        $totalTTCAccepted = 87556;
+        $totalHTAccepted = $totalTTCAccepted / 1.20; // TVA 20%
+        $averageHTPerAcceptedDevis = $acceptedCount > 0 ? $totalHTAccepted / $acceptedCount : 0;
+        
+        // Pour les autres devis (refusés, en attente, brouillons), montants plus variables
+        $averageHTPerOtherDevis = $averageHTPerAcceptedDevis > 0 ? $averageHTPerAcceptedDevis * 0.8 : 10000; // 20% de moins en moyenne
         
         $acceptedCreated = 0;
         $refusedCreated = 0;
