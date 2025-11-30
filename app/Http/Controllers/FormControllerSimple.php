@@ -243,7 +243,17 @@ class FormControllerSimple extends Controller
             ]);
             
             if (empty($phoneNumber)) {
-                \Log::warning('⚠️ Pas de numéro de téléphone dans la requête');
+                \Log::warning('⚠️ Pas de numéro de téléphone dans la requête', [
+                    'all_data' => $request->all(),
+                    'extracted_phone' => $phoneNumber
+                ]);
+                // Retourner une réponse JSON pour le test
+                if ($request->wantsJson() || $request->expectsJson() || $request->header('Content-Type') === 'application/json') {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Pas de numéro de téléphone fourni'
+                    ], 200);
+                }
                 return response('OK', 200);
             }
             
@@ -256,35 +266,56 @@ class FormControllerSimple extends Controller
                     'phone' => $phoneNumber,
                     'source_page' => $sourcePage
                 ]);
-                // Retourner une réponse simple pour sendBeacon
-                if ($request->wantsJson() || $request->expectsJson()) {
+                // Retourner une réponse JSON
+                if ($request->wantsJson() || $request->expectsJson() || $request->header('Content-Type') === 'application/json') {
                     return response()->json([
                         'success' => true, 
-                        'id' => $result['id'] ?? null
-                    ]);
+                        'id' => $result['id'] ?? null,
+                        'message' => 'Appel tracké avec succès'
+                    ], 200);
                 }
                 // Pour sendBeacon, retourner un simple 200 OK
                 return response('OK', 200);
             } else {
-                \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'), [
+                $errorMessage = $result['error'] ?? 'Erreur inconnue lors du tracking';
+                \Log::warning('⚠️ Tracking échoué: ' . $errorMessage, [
                     'phone' => $phoneNumber,
                     'source_page' => $sourcePage,
-                    'result' => $result
+                    'result' => $result,
+                    'full_result' => json_encode($result)
                 ]);
-                // Retourner toujours 200 pour ne pas bloquer l'appel
+                // Retourner toujours 200 pour ne pas bloquer l'appel, mais avec l'erreur
                 return response()->json([
                     'success' => false, 
-                    'error' => $result['error'] ?? 'Erreur inconnue'
+                    'error' => $errorMessage,
+                    'details' => $result ?? null
                 ], 200);
             }
         } catch (\Exception $e) {
+            $errorMessage = 'Erreur serveur: ' . $e->getMessage();
             \Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
                 'method' => $request->method(),
-                'content_type' => $request->header('Content-Type')
+                'content_type' => $request->header('Content-Type'),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
-            // Retourner quand même 200 pour ne pas bloquer l'appel
+            
+            // Retourner une réponse JSON pour le test, sinon OK pour sendBeacon
+            if ($request->wantsJson() || $request->expectsJson() || $request->header('Content-Type') === 'application/json') {
+                return response()->json([
+                    'success' => false,
+                    'error' => $errorMessage,
+                    'exception' => config('app.debug') ? [
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ] : null
+                ], 200);
+            }
+            
+            // Pour sendBeacon, retourner quand même 200 pour ne pas bloquer l'appel
             return response('OK', 200);
         }
     }

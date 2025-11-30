@@ -435,6 +435,8 @@
             referrer_url: document.referrer || window.location.href
         };
         
+        console.log('🧪 Test tracking avec payload:', payload);
+        
         fetch('/api/track-phone-call', {
             method: 'POST',
             headers: {
@@ -444,20 +446,30 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('📡 Réponse reçue:', response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('📊 Données reçues:', data);
             if (data.success) {
                 alert('✅ Test réussi ! L\'appel a été tracké avec succès (ID: ' + (data.id || 'N/A') + ')\n\nRechargez la page pour voir l\'appel dans la liste.');
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
             } else {
-                alert('❌ Erreur: ' + (data.error || 'Erreur inconnue'));
+                const errorMsg = data.error || 'Erreur inconnue';
+                const details = data.details ? '\n\nDétails: ' + JSON.stringify(data.details) : '';
+                alert('❌ Erreur: ' + errorMsg + details);
+                console.error('❌ Erreur tracking:', data);
             }
         })
         .catch(error => {
-            console.error('Erreur:', error);
-            alert('❌ Erreur lors du test: ' + error.message);
+            console.error('❌ Erreur réseau ou parsing:', error);
+            alert('❌ Erreur lors du test: ' + error.message + '\n\nVérifiez la console pour plus de détails.');
         })
         .finally(() => {
             button.innerHTML = originalText;
