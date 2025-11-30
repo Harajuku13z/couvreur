@@ -787,6 +787,106 @@ class GenerateTestData extends Command
         $this->info("     - {$pendingCreated} En Attente");
         $this->info("     - {$draftCreated} Brouillons");
         $this->info("  💰 CA total généré (tous devis) : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
+        
+        // Générer des factures à partir des devis acceptés
+        $this->info('');
+        $this->info('📄 Génération de factures à partir des devis acceptés...');
+        $this->generateFactures();
+    }
+    
+    /**
+     * Générer des factures à partir des devis acceptés
+     */
+    protected function generateFactures()
+    {
+        // Vérifier que la table existe
+        if (!Schema::hasTable('factures')) {
+            $this->warn('  ⚠️  La table factures n\'existe pas. Ignoré.');
+            return;
+        }
+        
+        // Récupérer tous les devis acceptés sans facture
+        $devisAcceptes = Devis::where('statut', 'Accepté')
+            ->whereDoesntHave('facture')
+            ->get();
+        
+        if ($devisAcceptes->count() === 0) {
+            $this->info("  ℹ️  Aucun devis accepté sans facture. Ignoré.");
+            return;
+        }
+        
+        // Répartition : ~60% payées, ~35% impayées, ~5% annulées
+        $totalDevis = $devisAcceptes->count();
+        $facturesPayees = max(1, (int)($totalDevis * 0.60));
+        $facturesImpayees = max(1, (int)($totalDevis * 0.35));
+        $facturesAnnulees = max(0, $totalDevis - $facturesPayees - $facturesImpayees);
+        
+        $facturesCreated = 0;
+        $facturesPayeesCreated = 0;
+        $facturesImpayeesCreated = 0;
+        $facturesAnnuleesCreated = 0;
+        
+        // Mélanger les devis pour une distribution aléatoire
+        $devisShuffled = $devisAcceptes->shuffle();
+        
+        foreach ($devisShuffled as $index => $devis) {
+            // Déterminer le statut de la facture
+            $statutFacture = 'Impayée';
+            if ($facturesPayeesCreated < $facturesPayees) {
+                $statutFacture = 'Payée';
+                $facturesPayeesCreated++;
+            } elseif ($facturesImpayeesCreated < $facturesImpayees) {
+                $statutFacture = 'Impayée';
+                $facturesImpayeesCreated++;
+            } elseif ($facturesAnnuleesCreated < $facturesAnnulees) {
+                $statutFacture = 'Annulée';
+                $facturesAnnuleesCreated++;
+            }
+            
+            // Date d'émission : utiliser la date d'émission du devis
+            $dateEmission = $devis->date_emission ?? now();
+            $dateEcheance = $dateEmission->copy()->addDays(30);
+            
+            // Date de paiement si payée (dans les 30 jours après émission)
+            $datePaiement = null;
+            $montantPaye = 0;
+            if ($statutFacture === 'Payée') {
+                $datePaiement = $dateEmission->copy()->addDays(rand(1, 30));
+                $montantPaye = $devis->total_ttc;
+            } elseif ($statutFacture === 'Partiellement payée') {
+                $datePaiement = $dateEmission->copy()->addDays(rand(1, 20));
+                $montantPaye = $devis->total_ttc * (rand(30, 80) / 100); // Paiement partiel 30-80%
+            }
+            
+            try {
+                $facture = Facture::create([
+                    'devis_id' => $devis->id,
+                    'client_id' => $devis->client_id,
+                    'date_emission' => $dateEmission,
+                    'date_echeance' => $dateEcheance,
+                    'date_paiement' => $datePaiement,
+                    'prix_total_ht' => $devis->total_ht,
+                    'taux_tva' => $devis->taux_tva,
+                    'prix_total_ttc' => $devis->total_ttc,
+                    'montant_paye' => $montantPaye,
+                    'statut' => $statutFacture,
+                ]);
+                
+                $facturesCreated++;
+            } catch (\Exception $e) {
+                \Log::error('Erreur création facture pour devis', [
+                    'devis_id' => $devis->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        $this->info("  ✅ {$facturesCreated} factures créées");
+        $this->info("     - {$facturesPayeesCreated} Payées");
+        $this->info("     - {$facturesImpayeesCreated} Impayées");
+        if ($facturesAnnuleesCreated > 0) {
+            $this->info("     - {$facturesAnnuleesCreated} Annulées");
+        }
     }
 
     /**
