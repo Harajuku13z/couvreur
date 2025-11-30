@@ -200,7 +200,7 @@
                        style="background-color: var(--primary-color);"
                        onmouseover="this.style.backgroundColor='var(--secondary-color)';"
                        onmouseout="this.style.backgroundColor='var(--primary-color)';"
-                       onclick="if(typeof window.trackPhoneCall === 'function') { window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('trackPhoneCall non disponible'); } return true;">
+                       onclick="console.log('📞 Clic sur bouton appel (ads/show)'); if(typeof window.trackPhoneCall === 'function') { console.log('📞 Appel de trackPhoneCall'); window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('❌ trackPhoneCall non disponible', typeof window.trackPhoneCall); } return true;"
                         <i class="fas fa-phone mr-2"></i>
                         {{ setting('company_phone') }}
                     </a>
@@ -237,7 +237,7 @@
                            style="background-color: var(--primary-color);"
                            onmouseover="this.style.backgroundColor='var(--secondary-color)';"
                            onmouseout="this.style.backgroundColor='var(--primary-color)';"
-                           onclick="if(typeof window.trackPhoneCall === 'function') { window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('trackPhoneCall non disponible'); } return true;">
+                           onclick="console.log('📞 Clic sur bouton appel (ads/show)'); if(typeof window.trackPhoneCall === 'function') { console.log('📞 Appel de trackPhoneCall'); window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('❌ trackPhoneCall non disponible', typeof window.trackPhoneCall); } return true;"
                             <i class="fas fa-phone mr-2"></i>
                             Appeler Maintenant
                         </a>
