@@ -584,6 +584,7 @@ class GenerateTestData extends Command
         // Créer 32 devis au total : 11 acceptés, le reste réparti entre refusés, en attente et brouillons
         $devisCreated = 0;
         $totalGeneratedHT = 0;
+        $totalAcceptedHT = 0; // Total HT des devis acceptés créés
 
         // Répartition des statuts : 11 acceptés, 8 refusés, 7 en attente, 6 brouillons
         $acceptedCount = 11;
@@ -640,8 +641,16 @@ class GenerateTestData extends Command
                 if ($acceptedCreated < $acceptedCount) {
                     $statut = 'Accepté';
                     $acceptedCreated++;
-                    // Pour les acceptés, utiliser le montant calculé pour atteindre 87.556€
-                    $devisHT = $averageHTPerAcceptedDevis * (0.9 + (rand(0, 20) / 100)); // Variation 90-110%
+                    
+                    // Calculer le montant HT pour les acceptés
+                    if ($acceptedCreated === $acceptedCount) {
+                        // Dernier devis accepté : ajuster pour atteindre exactement le total de 87.556€ TTC
+                        $remainingHT = $totalHTAccepted - $totalAcceptedHT;
+                        $devisHT = max($averageHTPerAcceptedDevis * 0.5, $remainingHT); // Minimum 50% du montant moyen
+                    } else {
+                        // Pour les autres acceptés, utiliser le montant moyen avec variation
+                        $devisHT = $averageHTPerAcceptedDevis * (0.9 + (rand(0, 20) / 100)); // Variation 90-110%
+                    }
                 } elseif ($refusedCreated < $refusedCount) {
                     $statut = 'Refusé';
                     $refusedCreated++;
@@ -655,16 +664,9 @@ class GenerateTestData extends Command
                     $draftCreated++;
                     $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
                 }
-                
-                // Ajuster pour que le total des acceptés soit proche de 87.556€
-                if ($statut === 'Accepté' && $acceptedCreated === $acceptedCount) {
-                    // Dernier devis accepté : ajuster pour atteindre exactement le total
-                    $devisHT = $totalHTAccepted - ($totalGeneratedHT - ($devisCreated - $acceptedCreated + 1) * ($averageHTPerOtherDevis ?? 0));
-                }
 
-                // Recalculer prix unitaire selon le montant HT
-                $totalNeeded = $devisHT;
-                $prixUnitaire = $totalNeeded / $surface;
+                // Calculer le prix unitaire selon le montant HT
+                $prixUnitaire = $devisHT / $surface;
 
                 // Créer le devis
                 $devis = Devis::create([
@@ -714,6 +716,9 @@ class GenerateTestData extends Command
                 $devis->save();
 
                 $totalGeneratedHT += $devis->total_ht;
+                if ($statut === 'Accepté') {
+                    $totalAcceptedHT += $devis->total_ht;
+                }
                 $devisCreated++;
             }
         }
