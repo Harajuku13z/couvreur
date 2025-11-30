@@ -40,7 +40,10 @@
                 <i class="fas fa-robot text-gray-600 mr-3"></i>
                 <div>
                     <p class="text-sm text-gray-800">
-                        <strong>Bots exclus</strong> - Les appels des bots sont trackés mais exclus des statistiques. 
+                        <strong>Bots exclus</strong> - Les appels des bots sont trackés mais exclus des statistiques.
+                        @if(($botStats['total'] ?? 0) > 0)
+                            <span class="text-orange-600 font-semibold">({{ $botStats['total'] }} appels bots détectés)</span>
+                        @endif 
                         <span class="text-gray-600">
                             Appels bots détectés : <strong>{{ $botStats['total'] ?? 0 }}</strong> appels au total
                             @if(($botStats['today'] ?? 0) > 0 || ($botStats['this_week'] ?? 0) > 0)

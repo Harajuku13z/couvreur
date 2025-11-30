@@ -96,6 +96,23 @@ class BotDetectionService
     ];
 
     /**
+     * Liste des navigateurs légitimes à toujours autoriser
+     * Ces patterns indiquent un navigateur réel, même s'ils contiennent certains mots-clés
+     */
+    protected static $legitimateBrowsers = [
+        'mozilla',
+        'chrome',
+        'safari',
+        'firefox',
+        'edge',
+        'opera',
+        'webkit',
+        'gecko',
+        'msie',
+        'trident',
+    ];
+
+    /**
      * Détecter si un user agent est un bot
      * 
      * @param string|null $userAgent
@@ -110,24 +127,81 @@ class BotDetectionService
 
         $userAgentLower = strtolower(trim($userAgent));
         
-        // Vérifier chaque pattern
-        foreach (self::$botPatterns as $pattern) {
-            if (str_contains($userAgentLower, strtolower($pattern))) {
-                // Exceptions : certains patterns peuvent être dans des user agents légitimes
-                // Par exemple, "bot" peut être dans "robot" mais on veut détecter "bot"
-                if ($pattern === 'bot') {
-                    // Vérifier que ce n'est pas un mot complet (comme "robot")
-                    if (preg_match('/\bbot\b/i', $userAgentLower)) {
-                        return true;
-                    }
-                } else {
+        // D'ABORD : Vérifier si c'est un navigateur légitime
+        // Si le user agent contient des signes clairs d'un navigateur réel, ce n'est probablement pas un bot
+        foreach (self::$legitimateBrowsers as $browser) {
+            if (str_contains($userAgentLower, $browser)) {
+                // C'est un navigateur légitime, mais vérifier quand même certains patterns évidents de bots
+                // Par exemple, "googlebot" même avec "mozilla" reste un bot
+                if (preg_match('/googlebot|bingbot|slurp|baiduspider|yandexbot|duckduckbot|facebookexternalhit|twitterbot|linkedinbot/i', $userAgentLower)) {
+                    return true; // Bot même avec navigateur
+                }
+                // Sinon, c'est probablement un vrai navigateur
+                return false;
+            }
+        }
+        
+        // Patterns de bots évidents (à vérifier avant les patterns moins certains)
+        $obviousBots = [
+            'googlebot',
+            'bingbot',
+            'slurp',
+            'baiduspider',
+            'yandexbot',
+            'duckduckbot',
+            'facebookexternalhit',
+            'twitterbot',
+            'linkedinbot',
+            'applebot',
+            'semrushbot',
+            'ahrefsbot',
+            'mj12bot',
+            'curl',
+            'wget',
+            'python-requests',
+            'scrapy',
+            'puppeteer',
+            'playwright',
+            'selenium',
+            'headlesschrome',
+            'phantom',
+        ];
+        
+        foreach ($obviousBots as $bot) {
+            if (str_contains($userAgentLower, $bot)) {
+                return true;
+            }
+        }
+        
+        // Vérifier les autres patterns (mais être plus prudent)
+        $suspiciousPatterns = [
+            'bot',
+            'crawler',
+            'spider',
+            'scraper',
+        ];
+        
+        foreach ($suspiciousPatterns as $pattern) {
+            if (str_contains($userAgentLower, $pattern)) {
+                // Vérifier que c'est bien le mot entier
+                if (preg_match('/\b' . preg_quote($pattern, '/') . '\b/i', $userAgentLower)) {
                     return true;
                 }
             }
         }
 
+        // Patterns moins certains - seulement si le user agent est vraiment suspect
+        // Ne pas bloquer sur "test", "check", "monitor" s'ils sont dans un contexte de navigateur
+        $weakPatterns = ['test', 'check', 'monitor', 'validator'];
+        foreach ($weakPatterns as $pattern) {
+            // Seulement si le pattern est seul ou dans un contexte vraiment suspect
+            if (preg_match('/^' . preg_quote($pattern, '/') . '\/?[\d\.]*$/i', $userAgentLower)) {
+                return true;
+            }
+        }
+
         // Vérifications supplémentaires
-        // User agents très courts (< 5 caractères) sont suspects (mais pas < 10, trop strict)
+        // User agents très courts (< 5 caractères) sont suspects
         if (strlen($userAgent) < 5) {
             return true;
         }
