@@ -188,7 +188,7 @@ class FormControllerSimple extends Controller
      */
     public function trackPhoneCall(Request $request)
     {
-        // Logger toutes les requêtes pour diagnostic
+        // Logger toutes les requêtes pour diagnostic (TOUJOURS, même en production)
         \Log::info('📞 Requête trackPhoneCall reçue', [
             'method' => $request->method(),
             'all_data' => $request->all(),
@@ -196,6 +196,8 @@ class FormControllerSimple extends Controller
             'ip' => $request->ip(),
             'user_agent' => substr($request->userAgent(), 0, 100),
             'content_type' => $request->header('Content-Type'),
+            'url' => $request->fullUrl(),
+            'referer' => $request->header('referer'),
         ]);
         
         try {
@@ -230,14 +232,14 @@ class FormControllerSimple extends Controller
                 }
             }
             
-            // Logger seulement en mode debug
-            if (config('app.debug')) {
-                \Log::info('📞 Données extraites', [
-                    'phone_number' => $phoneNumber,
-                    'source_page' => $sourcePage,
-                    'referrer_url' => $referrerUrl
-                ]);
-            }
+            // Logger les données extraites (TOUJOURS pour diagnostic)
+            \Log::info('📞 Données extraites', [
+                'phone_number' => $phoneNumber,
+                'source_page' => $sourcePage,
+                'referrer_url' => $referrerUrl,
+                'has_phone' => !empty($phoneNumber),
+                'has_source' => !empty($sourcePage)
+            ]);
             
             if (empty($phoneNumber)) {
                 \Log::warning('⚠️ Pas de numéro de téléphone dans la requête');
