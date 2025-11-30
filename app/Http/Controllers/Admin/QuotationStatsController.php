@@ -19,7 +19,6 @@ class QuotationStatsController extends Controller
             
             // Chiffre d'Affaire Total (CA) sur les 30 derniers jours
             // Inclut : factures payées + devis acceptés (même sans facture payée)
-            // Objectif : 57 000 €
             $totalCA30Jours = 0;
             try {
                 $date30JoursAgo = now()->subDays(30);
@@ -41,22 +40,8 @@ class QuotationStatsController extends Controller
                     })
                     ->cursor();
                 
-                $caFromQuotations = 0;
                 foreach ($acceptedQuotations30Days as $quotation) {
-                    $caFromQuotations += $quotation->total_ttc;
-                }
-                
-                $totalCA30Jours += $caFromQuotations;
-                
-                // Ajuster pour atteindre exactement 57 000 €
-                $targetCA30Jours = 57000;
-                if ($totalCA30Jours > 0) {
-                    // Utiliser le ratio pour ajuster proportionnellement
-                    $ratio = $targetCA30Jours / $totalCA30Jours;
-                    $totalCA30Jours = $targetCA30Jours;
-                } else {
-                    // Si aucun CA, utiliser la valeur cible
-                    $totalCA30Jours = $targetCA30Jours;
+                    $totalCA30Jours += $quotation->total_ttc;
                 }
             } catch (\Exception $e) {
                 \Log::warning('Erreur calcul CA 30 jours', ['error' => $e->getMessage()]);
