@@ -790,6 +790,14 @@ class AdminController extends Controller
             // Si erreur (colonne n'existe pas), continuer sans filtre
         }
         
+        // Ajouter un log pour debug
+        $totalCalls = $query->count();
+        \Log::info('📊 Admin phoneCalls - Total appels trouvés', [
+            'total' => $totalCalls,
+            'include_bots' => $includeBots,
+            'has_is_bot_column' => \Schema::hasColumn('phone_calls', 'is_bot'),
+        ]);
+        
         $phoneCalls = $query->paginate(20);
 
         // Statistiques (sans bots par défaut)

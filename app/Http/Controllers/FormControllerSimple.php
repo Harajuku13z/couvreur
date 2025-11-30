@@ -198,6 +198,7 @@ class FormControllerSimple extends Controller
             'content_type' => $request->header('Content-Type'),
             'url' => $request->fullUrl(),
             'referer' => $request->header('referer'),
+            'timestamp' => now()->toDateTimeString(),
         ]);
         
         try {
