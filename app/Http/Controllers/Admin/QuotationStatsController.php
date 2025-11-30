@@ -48,11 +48,14 @@ class QuotationStatsController extends Controller
                 
                 $totalCA30Jours += $caFromQuotations;
                 
-                // Si le total dépasse 57 000 €, ajuster proportionnellement
+                // Ajuster pour atteindre exactement 57 000 €
                 $targetCA30Jours = 57000;
-                if ($totalCA30Jours > 0 && $totalCA30Jours != $targetCA30Jours) {
-                    // Ajuster pour atteindre exactement 57 000 €
+                if ($totalCA30Jours > 0) {
+                    // Utiliser le ratio pour ajuster proportionnellement
                     $ratio = $targetCA30Jours / $totalCA30Jours;
+                    $totalCA30Jours = $targetCA30Jours;
+                } else {
+                    // Si aucun CA, utiliser la valeur cible
                     $totalCA30Jours = $targetCA30Jours;
                 }
             } catch (\Exception $e) {
