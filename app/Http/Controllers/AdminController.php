@@ -780,16 +780,25 @@ class AdminController extends Controller
         // Récupérer les appels (exclure les bots par défaut)
         $query = PhoneCall::with('submission')->orderBy('clicked_at', 'desc');
         
-        if (!$includeBots) {
-            $query->excludeBots();
+        // Vérifier si la colonne is_bot existe avant d'utiliser excludeBots()
+        try {
+            if (!$includeBots && \Schema::hasColumn('phone_calls', 'is_bot')) {
+                $query->excludeBots();
+            }
+        } catch (\Exception $e) {
+            // Si erreur (colonne n'existe pas), continuer sans filtre
         }
         
         $phoneCalls = $query->paginate(20);
 
         // Statistiques (sans bots par défaut)
         $statsQuery = PhoneCall::query();
-        if (!$includeBots) {
-            $statsQuery->excludeBots();
+        try {
+            if (!$includeBots && \Schema::hasColumn('phone_calls', 'is_bot')) {
+                $statsQuery->excludeBots();
+            }
+        } catch (\Exception $e) {
+            // Si erreur (colonne n'existe pas), continuer sans filtre
         }
         
         $stats = [
@@ -800,17 +809,32 @@ class AdminController extends Controller
         ];
         
         // Statistiques des bots (toujours calculées pour info)
-        $botStats = [
-            'today' => PhoneCall::onlyBots()->today()->count(),
-            'this_week' => PhoneCall::onlyBots()->thisWeek()->count(),
-            'this_month' => PhoneCall::onlyBots()->thisMonth()->count(),
-            'total' => PhoneCall::onlyBots()->count(),
-        ];
+        // Vérifier si la colonne is_bot existe avant d'utiliser onlyBots()
+        try {
+            $botStats = [
+                'today' => PhoneCall::onlyBots()->today()->count(),
+                'this_week' => PhoneCall::onlyBots()->thisWeek()->count(),
+                'this_month' => PhoneCall::onlyBots()->thisMonth()->count(),
+                'total' => PhoneCall::onlyBots()->count(),
+            ];
+        } catch (\Exception $e) {
+            // Si la colonne is_bot n'existe pas encore (migration non exécutée), utiliser des valeurs par défaut
+            $botStats = [
+                'today' => 0,
+                'this_week' => 0,
+                'this_month' => 0,
+                'total' => 0,
+            ];
+        }
 
         // Appels par page (sans bots par défaut)
         $callsByPageQuery = PhoneCall::selectRaw('source_page, COUNT(*) as count');
-        if (!$includeBots) {
-            $callsByPageQuery->where('is_bot', false);
+        try {
+            if (!$includeBots && \Schema::hasColumn('phone_calls', 'is_bot')) {
+                $callsByPageQuery->where('is_bot', false);
+            }
+        } catch (\Exception $e) {
+            // Si erreur (colonne n'existe pas), continuer sans filtre
         }
         $callsByPage = $callsByPageQuery->groupBy('source_page')
             ->pluck('count', 'source_page')
@@ -821,8 +845,12 @@ class AdminController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $trendQuery = PhoneCall::whereDate('clicked_at', $date->toDateString());
-            if (!$includeBots) {
-                $trendQuery->excludeBots();
+            try {
+                if (!$includeBots && \Schema::hasColumn('phone_calls', 'is_bot')) {
+                    $trendQuery->excludeBots();
+                }
+            } catch (\Exception $e) {
+                // Si erreur (colonne n'existe pas), continuer sans filtre
             }
             $callsTrend[$date->format('d/m')] = $trendQuery->count();
         }
