@@ -779,7 +779,9 @@ class AdminController extends Controller
         }
         
         // Récupérer les appels (exclure les bots par défaut)
-        $query = PhoneCall::with('submission')->orderBy('clicked_at', 'desc');
+        $query = PhoneCall::with('submission')
+            ->orderBy('clicked_at', 'desc')
+            ->orderBy('id', 'desc'); // Tri secondaire par ID pour garantir l'ordre
         
         // Vérifier si la colonne is_bot existe avant d'utiliser excludeBots()
         try {
@@ -790,12 +792,15 @@ class AdminController extends Controller
             // Si erreur (colonne n'existe pas), continuer sans filtre
         }
         
-        // Ajouter un log pour debug
+        // Ajouter un log pour debug avec les 5 derniers appels
         $totalCalls = $query->count();
+        $recentCalls = PhoneCall::orderBy('id', 'desc')->take(5)->get(['id', 'phone_number', 'source_page', 'clicked_at', 'is_bot'])->toArray();
         \Log::info('📊 Admin phoneCalls - Total appels trouvés', [
             'total' => $totalCalls,
             'include_bots' => $includeBots,
             'has_is_bot_column' => \Schema::hasColumn('phone_calls', 'is_bot'),
+            'recent_calls' => $recentCalls,
+            'query_sql' => $query->toSql(),
         ]);
         
         $phoneCalls = $query->paginate(20);

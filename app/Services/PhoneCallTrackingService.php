@@ -28,6 +28,13 @@ class PhoneCallTrackingService
             $userAgent = $request->userAgent();
             $isBot = \App\Services\BotDetectionService::isBot($userAgent);
             
+            // Logger pour debug (surtout pour les tests depuis l'admin)
+            Log::info('🤖 Détection bot pour tracking appel', [
+                'user_agent' => substr($userAgent, 0, 100),
+                'is_bot' => $isBot,
+                'source_page' => $sourcePage ?? 'unknown',
+            ]);
+            
             $sessionId = Session::getId();
             $submission = Submission::where('session_id', $sessionId)->first();
 

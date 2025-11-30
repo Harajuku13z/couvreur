@@ -456,10 +456,14 @@
         .then(data => {
             console.log('📊 Données reçues:', data);
             if (data.success) {
-                alert('✅ Test réussi ! L\'appel a été tracké avec succès (ID: ' + (data.id || 'N/A') + ')\n\nRechargez la page pour voir l\'appel dans la liste.');
+                const callId = data.id || 'N/A';
+                alert('✅ Test réussi ! L\'appel a été tracké avec succès (ID: ' + callId + ')\n\nRechargez la page pour voir l\'appel dans la liste.');
+                console.log('✅ Appel tracké avec ID:', callId);
+                // Attendre un peu plus pour que la base de données soit à jour
                 setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                    // Recharger avec force refresh pour éviter le cache
+                    window.location.href = window.location.href.split('?')[0] + '?refresh=' + Date.now();
+                }, 1500);
             } else {
                 const errorMsg = data.error || 'Erreur inconnue';
                 const details = data.details ? '\n\nDétails: ' + JSON.stringify(data.details) : '';
