@@ -8,6 +8,7 @@ use App\Models\Visit;
 use App\Models\Devis;
 use App\Models\LigneDevis;
 use App\Models\Client;
+use App\Models\Submission;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
@@ -158,11 +159,17 @@ class GenerateTestData extends Command
         $this->info('📋 Génération de 11 devis pour novembre 2025...');
         $this->generateDevis();
 
+        // Générer les soumissions
+        $this->info('');
+        $this->info('📝 Génération de 17 soumissions pour novembre 2025...');
+        $this->generateSubmissions();
+
         $this->info('');
         $this->info('✅ Génération terminée avec succès !');
         $this->info("   - " . PhoneCall::count() . " appels téléphoniques");
         $this->info("   - " . Visit::count() . " visites");
         $this->info("   - " . Devis::count() . " devis");
+        $this->info("   - " . Submission::count() . " soumissions");
         
         $totalCA = Devis::sum('total_ttc');
         $this->info("   - CA total : " . number_format($totalCA, 2, ',', ' ') . " €");
@@ -687,5 +694,211 @@ class GenerateTestData extends Command
 
         $this->info("  ✅ {$devisCreated} devis créés");
         $this->info("  💰 CA total généré : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
+    }
+
+    /**
+     * Générer les soumissions de test
+     */
+    protected function generateSubmissions()
+    {
+        // Vérifier que la table existe
+        if (!Schema::hasTable('submissions')) {
+            $this->warn('  ⚠️  La table submissions n\'existe pas. Ignoré.');
+            return;
+        }
+
+        // Supprimer les soumissions existantes si --force
+        if ($this->option('force')) {
+            $submissionCount = Submission::count();
+            Submission::query()->delete();
+            $this->info("  ✅ {$submissionCount} soumissions existantes supprimées");
+        }
+
+        // Répartition : 9 Chevigny, puis Dijon, Beaune, Quetigny, Chenôve
+        $repartition = [
+            'Chevigny-Saint-Sauveur' => 9,
+            'Dijon' => 3,
+            'Beaune' => 2,
+            'Quetigny' => 2,
+            'Chenôve' => 1,
+        ];
+
+        // Noms et prénoms français
+        $prenomsHommes = ['Jean', 'Pierre', 'Michel', 'Philippe', 'Alain', 'Patrick', 'Bernard', 'Christian', 'Daniel', 'Laurent'];
+        $prenomsFemmes = ['Marie', 'Sophie', 'Catherine', 'Isabelle', 'Martine', 'Françoise', 'Monique', 'Sylvie', 'Nathalie', 'Patricia'];
+        $noms = ['Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier'];
+
+        // Types de travaux possibles
+        $workTypesOptions = [
+            ['toiture'],
+            ['toiture', 'isolation'],
+            ['facade'],
+            ['toiture', 'facade'],
+            ['isolation'],
+            ['toiture', 'facade', 'isolation'],
+        ];
+
+        $roofWorkTypesOptions = [
+            ['renovation'],
+            ['renovation', 'reparation'],
+            ['demoussage'],
+            ['renovation', 'demoussage'],
+            ['reparation'],
+        ];
+
+        $facadeWorkTypesOptions = [
+            ['ravalement'],
+            ['peinture'],
+            ['isolation'],
+            ['ravalement', 'peinture'],
+        ];
+
+        $isolationWorkTypesOptions = [
+            ['combles'],
+            ['murs'],
+            ['combles', 'murs'],
+            ['toiture'],
+        ];
+
+        // Dates pour novembre 2025
+        $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
+        $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
+
+        $submissionsCreated = 0;
+
+        foreach ($repartition as $cityName => $count) {
+            $cityData = $this->villesCoteDor[$cityName] ?? ['country' => 'France', 'country_code' => 'FR'];
+
+            for ($i = 0; $i < $count; $i++) {
+                // Générer un nom et prénom
+                $isFemme = rand(0, 100) < 50;
+                $prenom = $isFemme ? $prenomsFemmes[array_rand($prenomsFemmes)] : $prenomsHommes[array_rand($prenomsHommes)];
+                $nom = $noms[array_rand($noms)];
+
+                // Date aléatoire dans novembre 2025
+                $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
+                $createdAt = Carbon::createFromTimestamp($randomTimestamp);
+
+                // Statut : majoritairement complétées (70%), quelques en cours ou abandonnées
+                $statusRand = rand(0, 100);
+                if ($statusRand < 70) {
+                    $status = 'COMPLETED';
+                    $completedAt = $createdAt->copy()->addHours(rand(1, 48));
+                } elseif ($statusRand < 85) {
+                    $status = 'IN_PROGRESS';
+                    $completedAt = null;
+                } else {
+                    $status = 'ABANDONED';
+                    $completedAt = null;
+                }
+
+                // Work types aléatoires
+                $workTypes = $workTypesOptions[array_rand($workTypesOptions)];
+                $roofWorkTypes = in_array('toiture', $workTypes) ? $roofWorkTypesOptions[array_rand($roofWorkTypesOptions)] : null;
+                $facadeWorkTypes = in_array('facade', $workTypes) ? $facadeWorkTypesOptions[array_rand($facadeWorkTypesOptions)] : null;
+                $isolationWorkTypes = in_array('isolation', $workTypes) ? $isolationWorkTypesOptions[array_rand($isolationWorkTypesOptions)] : null;
+
+                // Données du formulaire
+                $propertyType = rand(0, 100) < 70 ? 'HOUSE' : 'APARTMENT';
+                $surface = rand(50, 350);
+                $ownershipStatus = rand(0, 100) < 80 ? 'OWNER' : 'TENANT';
+                $gender = $isFemme ? 'MADAME' : 'MONSIEUR';
+                $postalCode = '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+
+                // Email unique
+                $email = strtolower($prenom) . '.' . strtolower($nom) . rand(1, 999) . '@example.fr';
+                
+                // Phone
+                $phone = '0' . rand(6, 7) . rand(10000000, 99999999);
+
+                // IP aléatoire
+                $ipPrefixes = ['192.168.', '10.0.', '172.16.'];
+                $ipPrefix = $ipPrefixes[array_rand($ipPrefixes)];
+                $ipAddress = $ipPrefix . rand(1, 255) . '.' . rand(1, 255);
+
+                // User agent aléatoire
+                $userAgent = $this->userAgents[array_rand($this->userAgents)];
+
+                // Referrer (parfois vide)
+                $referrerUrl = null;
+                if (rand(0, 100) < 70) {
+                    $referrers = [
+                        'https://www.google.com/search?q=couvreur+' . strtolower(str_replace(' ', '+', $cityName)),
+                        'https://www.google.fr/search?q=rénovation+toiture+' . strtolower(str_replace(' ', '+', $cityName)),
+                        'https://maps.google.com/maps?q=couvreur+' . strtolower(str_replace(' ', '+', $cityName)),
+                    ];
+                    $referrerUrl = $referrers[array_rand($referrers)];
+                }
+
+                // Session ID
+                $sessionId = str()->random(40);
+                $userIdentifier = str()->random(32);
+
+                // Current step (selon le statut)
+                $currentStep = $status === 'COMPLETED' ? 'email' : ($status === 'ABANDONED' ? ['propertyType', 'surface', 'workType', 'personalInfo'][rand(0, 3)] : 'phone');
+
+                // Tracking data
+                $trackingData = [
+                    'source' => $referrerUrl ? 'google_search' : 'direct',
+                    'device' => $this->detectDeviceFromUA($userAgent),
+                    'timestamp' => $createdAt->toDateTimeString(),
+                ];
+
+                // Form data
+                $formData = [
+                    'property_type' => $propertyType,
+                    'surface' => $surface,
+                    'work_types' => $workTypes,
+                    'ownership_status' => $ownershipStatus,
+                    'gender' => $gender,
+                    'first_name' => $prenom,
+                    'last_name' => $nom,
+                    'postal_code' => $postalCode,
+                    'city' => $cityName,
+                ];
+
+                $submission = Submission::create([
+                    'session_id' => $sessionId,
+                    'user_identifier' => $userIdentifier,
+                    'property_type' => $propertyType,
+                    'surface' => $surface,
+                    'work_types' => $workTypes,
+                    'roof_work_types' => $roofWorkTypes,
+                    'facade_work_types' => $facadeWorkTypes,
+                    'isolation_work_types' => $isolationWorkTypes,
+                    'ownership_status' => $ownershipStatus,
+                    'gender' => $gender,
+                    'first_name' => $prenom,
+                    'last_name' => $nom,
+                    'postal_code' => $postalCode,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'status' => $status,
+                    'current_step' => $currentStep,
+                    'form_data' => $formData,
+                    'completed_at' => $completedAt,
+                    'abandoned_at' => $status === 'ABANDONED' ? $createdAt->copy()->addHours(rand(1, 6)) : null,
+                    'ip_address' => $ipAddress,
+                    'city' => $cityName,
+                    'country' => $cityData['country'],
+                    'country_code' => $cityData['country_code'],
+                    'referrer_url' => $referrerUrl,
+                    'user_agent' => $userAgent,
+                    'recaptcha_score' => rand(850, 999) / 100, // Score entre 0.85 et 0.99
+                    'tracking_data' => $trackingData,
+                    'created_at' => $createdAt,
+                    'updated_at' => $status === 'COMPLETED' && $completedAt ? $completedAt : $createdAt,
+                ]);
+
+                $submissionsCreated++;
+            }
+        }
+
+        $this->info("  ✅ {$submissionsCreated} soumissions créées");
+        $this->info("     - 9 Chevigny-Saint-Sauveur");
+        $this->info("     - 3 Dijon");
+        $this->info("     - 2 Beaune");
+        $this->info("     - 2 Quetigny");
+        $this->info("     - 1 Chenôve");
     }
 }
