@@ -43,8 +43,19 @@
                         <strong>Bots exclus</strong> - Les appels des bots sont trackés mais exclus des statistiques. 
                         <span class="text-gray-600">
                             Appels bots détectés : <strong>{{ $botStats['total'] ?? 0 }}</strong> appels au total
-                            (@if(($botStats['today'] ?? 0) > 0)<strong>{{ $botStats['today'] }}</strong> aujourd'hui, @endif
-                            @if(($botStats['this_week'] ?? 0) > 0)<strong>{{ $botStats['this_week'] }}</strong> cette semaine@endif)
+                            @if(($botStats['today'] ?? 0) > 0 || ($botStats['this_week'] ?? 0) > 0)
+                                (
+                                @if(($botStats['today'] ?? 0) > 0)
+                                    <strong>{{ $botStats['today'] }}</strong> aujourd'hui
+                                    @if(($botStats['this_week'] ?? 0) > 0)
+                                        , 
+                                    @endif
+                                @endif
+                                @if(($botStats['this_week'] ?? 0) > 0)
+                                    <strong>{{ $botStats['this_week'] }}</strong> cette semaine
+                                @endif
+                                )
+                            @endif
                         </span>
                     </p>
                 </div>
@@ -175,7 +186,7 @@
                            title="Voir les détails">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                        <button onclick="showEditCityModal({{ $call->id }}, {{ json_encode($call->city ?? '') }})" 
                                 class="text-blue-600 hover:text-blue-900 p-2"
                                 title="Corriger la ville">
                             <i class="fas fa-edit"></i>
@@ -322,7 +333,7 @@
                                    title="Voir les détails">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <button onclick="showEditCityModal({{ $call->id }}, '{{ $call->city ?? '' }}')" 
+                                <button onclick="showEditCityModal({{ $call->id }}, {{ json_encode($call->city ?? '') }})" 
                                         class="text-blue-600 hover:text-blue-900"
                                         title="Corriger la ville">
                                     <i class="fas fa-edit"></i>
@@ -349,7 +360,6 @@
         </div>
         @endif
     </div>
-</div>
 
 <script>
     // Chart: Appels par page
