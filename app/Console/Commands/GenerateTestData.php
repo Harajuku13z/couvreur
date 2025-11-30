@@ -9,6 +9,7 @@ use App\Models\Devis;
 use App\Models\LigneDevis;
 use App\Models\Client;
 use App\Models\Submission;
+use App\Models\Facture;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
