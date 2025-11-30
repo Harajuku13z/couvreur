@@ -238,6 +238,8 @@ Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show')
 
 // Routes publiques pour les avis
 Route::get('/reviews', [FormControllerSimple::class, 'allReviews'])->name('reviews.all');
+Route::get('/reviews/create', [FormControllerSimple::class, 'createReview'])->name('reviews.create');
+Route::post('/reviews/store', [FormControllerSimple::class, 'storeReview'])->name('reviews.store');
 
 // Routes publiques pour les pages légales
 Route::get('/legal/mentions', [LegalController::class, 'mentionsLegales'])->name('legal.mentions');
