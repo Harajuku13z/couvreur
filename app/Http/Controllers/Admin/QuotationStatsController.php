@@ -17,15 +17,30 @@ class QuotationStatsController extends Controller
         try {
             // Utilisation de cursors pour les calculs sur de grandes quantités de données
             
-            // Chiffre d'Affaire Total (CA) sur les 30 derniers jours - Factures payées uniquement
+            // Chiffre d'Affaire Total (CA) sur les 30 derniers jours
+            // Inclut : factures payées + devis acceptés (même sans facture payée)
             $totalCA30Jours = 0;
             try {
                 $date30JoursAgo = now()->subDays(30);
+                
+                // Factures payées dans les 30 derniers jours
                 $paidInvoices30Days = Facture::where('statut', 'Payée')
                     ->where('date_emission', '>=', $date30JoursAgo)
                     ->cursor();
                 foreach ($paidInvoices30Days as $invoice) {
                     $totalCA30Jours += $invoice->prix_total_ttc;
+                }
+                
+                // Devis acceptés dans les 30 derniers jours (sans facture payée)
+                // Pour éviter les doublons, on exclut ceux qui ont déjà une facture payée
+                $acceptedQuotations30Days = Devis::where('statut', 'Accepté')
+                    ->where('date_emission', '>=', $date30JoursAgo)
+                    ->whereDoesntHave('facture', function($q) {
+                        $q->where('statut', 'Payée');
+                    })
+                    ->cursor();
+                foreach ($acceptedQuotations30Days as $quotation) {
+                    $totalCA30Jours += $quotation->total_ttc;
                 }
             } catch (\Exception $e) {
                 \Log::warning('Erreur calcul CA 30 jours', ['error' => $e->getMessage()]);
