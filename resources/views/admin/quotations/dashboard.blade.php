@@ -102,22 +102,7 @@
     </div>
 
     <!-- Statistiques secondaires -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- CA Total Global -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-euro-sign text-white text-xl"></i>
-                    </div>
-                </div>
-                <div class="ml-5">
-                    <p class="text-sm font-medium text-gray-500">CA Total (Tous temps)</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalCA ?? 0, 2, ',', ' ') }} €</p>
-                </div>
-            </div>
-        </div>
-
+    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
         <!-- CA Potentiel -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
