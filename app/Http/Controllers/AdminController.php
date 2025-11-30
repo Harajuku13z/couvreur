@@ -795,12 +795,20 @@ class AdminController extends Controller
         // Ajouter un log pour debug avec les 5 derniers appels
         $totalCalls = $query->count();
         $recentCalls = PhoneCall::orderBy('id', 'desc')->take(5)->get(['id', 'phone_number', 'source_page', 'clicked_at', 'is_bot'])->toArray();
-        \Log::info('📊 Admin phoneCalls - Total appels trouvés', [
+        
+        // Vérifier quelle table est utilisée
+        $tableName = (new PhoneCall())->getTable();
+        $tableExists = \Schema::hasTable('phone_calls');
+        
+        \Log::info('📊 Admin phoneCalls - Diagnostic complet', [
             'total' => $totalCalls,
             'include_bots' => $includeBots,
+            'table_name' => $tableName,
+            'table_exists' => $tableExists,
             'has_is_bot_column' => \Schema::hasColumn('phone_calls', 'is_bot'),
             'recent_calls' => $recentCalls,
             'query_sql' => $query->toSql(),
+            'database_name' => \DB::connection()->getDatabaseName(),
         ]);
         
         $phoneCalls = $query->paginate(20);

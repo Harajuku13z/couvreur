@@ -9,6 +9,12 @@ class PhoneCall extends Model
 {
     use HasFactory;
 
+    /**
+     * Le nom de la table associée au modèle.
+     * Par défaut, Laravel utilise le nom du modèle en snake_case pluriel (phone_calls)
+     */
+    protected $table = 'phone_calls';
+
     protected $fillable = [
         'submission_id',
         'session_id',
