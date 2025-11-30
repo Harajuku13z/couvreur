@@ -101,25 +101,6 @@
         </div>
     </div>
 
-    <!-- Statistiques secondaires -->
-    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-        <!-- CA Potentiel -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-chart-line text-white text-xl"></i>
-                    </div>
-                </div>
-                <div class="ml-5">
-                    <p class="text-sm font-medium text-gray-500">CA Potentiel</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($caPotentiel ?? 0, 2, ',', ' ') }} €</p>
-                    <p class="text-xs text-gray-400 mt-1">Devis acceptés non payés</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Statistiques par statut -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <!-- Stats Devis -->
