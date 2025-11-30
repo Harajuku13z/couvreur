@@ -872,7 +872,9 @@ class GenerateTestData extends Command
                     'city' => $cityName,
                 ];
 
-                $submission = Submission::create([
+                // Créer la soumission en désactivant temporairement les timestamps automatiques
+                // pour pouvoir définir manuellement created_at et updated_at
+                $submission = new Submission([
                     'session_id' => $sessionId,
                     'user_identifier' => $userIdentifier,
                     'property_type' => $propertyType,
@@ -901,9 +903,14 @@ class GenerateTestData extends Command
                     'user_agent' => $userAgent,
                     'recaptcha_score' => rand(850, 999) / 100, // Score entre 0.85 et 0.99
                     'tracking_data' => $trackingData,
-                    'created_at' => $createdAt,
-                    'updated_at' => $status === 'COMPLETED' && $completedAt ? $completedAt : $createdAt,
                 ]);
+                
+                // Définir manuellement les timestamps
+                $submission->created_at = $createdAt;
+                $submission->updated_at = $status === 'COMPLETED' && $completedAt ? $completedAt : $createdAt;
+                
+                // Sauvegarder
+                $submission->save();
 
                 $submissionsCreated++;
             }
