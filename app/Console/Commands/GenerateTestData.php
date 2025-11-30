@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\PhoneCall;
 use App\Models\Visit;
+use App\Models\Devis;
+use App\Models\LigneDevis;
+use App\Models\Client;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
@@ -22,7 +25,7 @@ class GenerateTestData extends Command
      *
      * @var string
      */
-    protected $description = 'Générer des données de test : 57 appels téléphoniques et 1980 visites';
+    protected $description = 'Générer des données de test : 57 appels téléphoniques, 1980 visites et 11 devis pour novembre';
 
     /**
      * Villes de Côte-d'Or
@@ -150,10 +153,20 @@ class GenerateTestData extends Command
         $this->info('👁️ Génération de 1980 visites...');
         $this->generateVisits();
 
+        // Générer les devis
+        $this->info('');
+        $this->info('📋 Génération de 11 devis pour novembre 2025...');
+        $this->generateDevis();
+
         $this->info('');
         $this->info('✅ Génération terminée avec succès !');
         $this->info("   - " . PhoneCall::count() . " appels téléphoniques");
         $this->info("   - " . Visit::count() . " visites");
+        $this->info("   - " . Devis::count() . " devis");
+        
+        $totalCA = Devis::sum('total_ttc');
+        $this->info("   - CA total : " . number_format($totalCA, 2, ',', ' ') . " €");
+        
         return 0;
     }
 
@@ -474,5 +487,195 @@ class GenerateTestData extends Command
             'browser' => $browser,
             'os' => $os,
         ];
+    }
+
+    /**
+     * Générer les devis de test
+     */
+    protected function generateDevis()
+    {
+        // Vérifier que les tables existent
+        if (!Schema::hasTable('devis')) {
+            $this->warn('  ⚠️  La table devis n\'existe pas. Ignoré.');
+            return;
+        }
+        
+        if (!Schema::hasTable('clients')) {
+            $this->warn('  ⚠️  La table clients n\'existe pas. Ignoré.');
+            return;
+        }
+
+        // Supprimer les devis existants si --force
+        if ($this->option('force')) {
+            // Ne pas supprimer les clients, seulement les devis
+            LigneDevis::truncate();
+            $devisCount = Devis::count();
+            Devis::truncate();
+            $this->info("  ✅ {$devisCount} devis existants supprimés");
+        }
+
+        // Types de travaux avec prix unitaires approximatifs
+        $workTypes = [
+            'hydrofuge' => [
+                'description' => 'Traitement hydrofuge de toiture',
+                'unite' => 'm²',
+                'prix_unitaire_min' => 8,
+                'prix_unitaire_max' => 15,
+                'surface_min' => 50,
+                'surface_max' => 300,
+            ],
+            'demoussage' => [
+                'description' => 'Démoussage et nettoyage de toiture',
+                'unite' => 'm²',
+                'prix_unitaire_min' => 5,
+                'prix_unitaire_max' => 12,
+                'surface_min' => 60,
+                'surface_max' => 350,
+            ],
+            'renovation_toiture' => [
+                'description' => 'Rénovation complète de toiture',
+                'unite' => 'm²',
+                'prix_unitaire_min' => 80,
+                'prix_unitaire_max' => 150,
+                'surface_min' => 40,
+                'surface_max' => 200,
+            ],
+            'isolation' => [
+                'description' => 'Isolation thermique de toiture',
+                'unite' => 'm²',
+                'prix_unitaire_min' => 30,
+                'prix_unitaire_max' => 80,
+                'surface_min' => 30,
+                'surface_max' => 180,
+            ],
+        ];
+
+        // Répartition des 11 devis
+        // Total CA souhaité : 87.556 € TTC
+        // Avec TVA à 20% : 87.556 / 1.20 = 72.963,33 € HT
+        $totalTTC = 87556;
+        $totalHT = $totalTTC / 1.20; // TVA 20%
+        $averageHTPerDevis = $totalHT / 11;
+
+        // Dates pour novembre 2025
+        $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
+        $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
+
+        // Créer 11 devis
+        $devisCreated = 0;
+        $totalGeneratedHT = 0;
+
+        // Répartition : 3 hydrofuge, 3 démoussage, 3 rénovation, 2 isolation
+        $repartition = [
+            'hydrofuge' => 3,
+            'demoussage' => 3,
+            'renovation_toiture' => 3,
+            'isolation' => 2,
+        ];
+
+        foreach ($repartition as $workType => $count) {
+            $workConfig = $workTypes[$workType];
+            
+            for ($i = 0; $i < $count; $i++) {
+                // Créer un client
+                $city = $this->villesCoteDor[array_rand($this->villesCoteDor)];
+                $cityName = array_search($city, $this->villesCoteDor);
+                
+                $prenoms = ['Jean', 'Marie', 'Pierre', 'Sophie', 'Michel', 'Catherine', 'Philippe', 'Isabelle', 'Alain', 'Martine'];
+                $noms = ['Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Leroy', 'Moreau'];
+                
+                $client = Client::create([
+                    'nom' => $noms[array_rand($noms)],
+                    'prenom' => $prenoms[array_rand($prenoms)],
+                    'email' => strtolower(str_replace(' ', '.', $prenoms[array_rand($prenoms)])) . '.' . strtolower($noms[array_rand($noms)]) . rand(1, 999) . '@example.fr',
+                    'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
+                    'adresse' => rand(1, 99) . ' Rue ' . $cityName,
+                    'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
+                    'ville' => $cityName,
+                    'pays' => 'France',
+                ]);
+
+                // Date aléatoire dans novembre 2025
+                $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
+                $dateEmission = Carbon::createFromTimestamp($randomTimestamp);
+                $dateValidite = $dateEmission->copy()->addDays(30);
+
+                // Calculer le montant HT pour ce devis (avec variation)
+                $variation = 0.8 + (rand(0, 40) / 100); // Variation entre 80% et 120%
+                $devisHT = $averageHTPerDevis * $variation;
+                
+                // Ajuster pour que le total soit proche de 87.556€
+                if ($devisCreated === 10) {
+                    // Dernier devis : ajuster pour atteindre exactement le total
+                    $devisHT = $totalHT - $totalGeneratedHT;
+                }
+
+                // Surface pour ce type de travail
+                $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
+                
+                // Prix unitaire
+                $prixUnitaire = rand(
+                    (int)($workConfig['prix_unitaire_min'] * 100),
+                    (int)($workConfig['prix_unitaire_max'] * 100)
+                ) / 100;
+
+                // Ajuster pour correspondre au montant HT souhaité
+                $totalNeeded = $devisHT;
+                $prixUnitaire = $totalNeeded / $surface;
+
+                // Créer le devis
+                $devis = Devis::create([
+                    'client_id' => $client->id,
+                    'statut' => rand(0, 100) < 70 ? 'Accepté' : (rand(0, 100) < 50 ? 'En Attente' : 'Brouillon'),
+                    'date_emission' => $dateEmission,
+                    'date_validite' => $dateValidite,
+                    'description_globale' => $workConfig['description'] . ' - ' . $cityName,
+                    'superficie_totale' => $surface . ' m²',
+                    'prix_final_estime' => $devisHT,
+                    'taux_tva' => 20.00,
+                    'acompte_pourcentage' => rand(0, 100) < 60 ? rand(20, 40) : 0,
+                ]);
+
+                // Créer les lignes de devis
+                // Une ligne principale pour le type de travail
+                LigneDevis::create([
+                    'devis_id' => $devis->id,
+                    'ordre' => 1,
+                    'description' => $workConfig['description'],
+                    'quantite' => $surface,
+                    'unite' => $workConfig['unite'],
+                    'prix_unitaire' => round($prixUnitaire, 2),
+                ]);
+
+                // Parfois ajouter des lignes supplémentaires (matériaux, main d'œuvre, etc.)
+                if (rand(0, 100) < 40) {
+                    $additionalLines = [
+                        ['description' => 'Main d\'œuvre', 'unite' => 'heure', 'quantite' => rand(8, 20), 'prix' => rand(35, 55)],
+                        ['description' => 'Matériaux et fournitures', 'unite' => 'lot', 'quantite' => 1, 'prix' => rand(500, 2000)],
+                        ['description' => 'Échafaudage et sécurisation', 'unite' => 'jour', 'quantite' => rand(2, 5), 'prix' => rand(150, 300)],
+                    ];
+                    
+                    $selectedLine = $additionalLines[array_rand($additionalLines)];
+                    LigneDevis::create([
+                        'devis_id' => $devis->id,
+                        'ordre' => 2,
+                        'description' => $selectedLine['description'],
+                        'quantite' => $selectedLine['quantite'],
+                        'unite' => $selectedLine['unite'],
+                        'prix_unitaire' => $selectedLine['prix'],
+                    ]);
+                }
+
+                // Recalculer les totaux
+                $devis->recalculateTotals();
+                $devis->save();
+
+                $totalGeneratedHT += $devis->total_ht;
+                $devisCreated++;
+            }
+        }
+
+        $this->info("  ✅ {$devisCreated} devis créés");
+        $this->info("  💰 CA total généré : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
     }
 }
