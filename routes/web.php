@@ -271,6 +271,11 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
             Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
         
+        // Route pour le dashboard devis & facturation
+        Route::prefix('quotations')->name('quotations.')->group(function () {
+            Route::get('/dashboard', [QuotationStatsController::class, 'dashboard'])->name('dashboard');
+        });
+        
         // Routes pour les devis
             Route::prefix('devis')->name('devis.')->group(function () {
                 Route::get('/', [DevisController::class, 'index'])->name('index');
