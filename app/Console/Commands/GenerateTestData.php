@@ -582,6 +582,16 @@ class GenerateTestData extends Command
         $devisCreated = 0;
         $totalGeneratedHT = 0;
 
+        // Répartition des statuts : 7 acceptés, 2 refusés, 2 en attente
+        $acceptedCount = 7;
+        $refusedCount = 2;
+        $pendingCount = 2;
+        $totalDevis = $acceptedCount + $refusedCount + $pendingCount; // 11 total
+        
+        $acceptedCreated = 0;
+        $refusedCreated = 0;
+        $pendingCreated = 0;
+
         // Répartition : 3 hydrofuge, 3 démoussage, 3 rénovation, 2 isolation
         $repartition = [
             'hydrofuge' => 3,
@@ -640,17 +650,30 @@ class GenerateTestData extends Command
                 $totalNeeded = $devisHT;
                 $prixUnitaire = $totalNeeded / $surface;
 
+                // Déterminer le statut selon la répartition définie
+                $statut = 'En Attente'; // Par défaut
+                if ($acceptedCreated < $acceptedCount) {
+                    $statut = 'Accepté';
+                    $acceptedCreated++;
+                } elseif ($refusedCreated < $refusedCount) {
+                    $statut = 'Refusé';
+                    $refusedCreated++;
+                } elseif ($pendingCreated < $pendingCount) {
+                    $statut = 'En Attente';
+                    $pendingCreated++;
+                }
+
                 // Créer le devis
                 $devis = Devis::create([
                     'client_id' => $client->id,
-                    'statut' => rand(0, 100) < 70 ? 'Accepté' : (rand(0, 100) < 50 ? 'En Attente' : 'Brouillon'),
+                    'statut' => $statut,
                     'date_emission' => $dateEmission,
                     'date_validite' => $dateValidite,
                     'description_globale' => $workConfig['description'] . ' - ' . $cityName,
                     'superficie_totale' => $surface . ' m²',
                     'prix_final_estime' => $devisHT,
                     'taux_tva' => 20.00,
-                    'acompte_pourcentage' => rand(0, 100) < 60 ? rand(20, 40) : 0,
+                    'acompte_pourcentage' => ($statut === 'Accepté' && rand(0, 100) < 60) ? rand(20, 40) : 0,
                 ]);
 
                 // Créer les lignes de devis
@@ -693,6 +716,9 @@ class GenerateTestData extends Command
         }
 
         $this->info("  ✅ {$devisCreated} devis créés");
+        $this->info("     - {$acceptedCreated} Acceptés");
+        $this->info("     - {$refusedCreated} Refusés");
+        $this->info("     - {$pendingCreated} En Attente");
         $this->info("  💰 CA total généré : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
     }
 
