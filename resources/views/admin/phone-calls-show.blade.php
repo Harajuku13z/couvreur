@@ -8,7 +8,20 @@
     <div class="mb-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-xl md:text-3xl font-bold text-gray-800">📞 Détails de l'Appel Téléphonique</h1>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-xl md:text-3xl font-bold text-gray-800">📞 Détails de l'Appel Téléphonique</h1>
+                    @if(\Schema::hasColumn('phone_calls', 'is_bot'))
+                        @if($phoneCall->is_bot ?? false)
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-800 border border-orange-300">
+                                <i class="fas fa-robot mr-2"></i>Bot
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800 border border-green-300">
+                                <i class="fas fa-user mr-2"></i>Humain
+                            </span>
+                        @endif
+                    @endif
+                </div>
                 <p class="text-gray-600 mt-1">Informations complètes sur l'appel #{{ $phoneCall->id }}</p>
             </div>
             <a href="{{ route('admin.phone-calls') }}" 
@@ -122,21 +135,89 @@
                 </h2>
                 
                 <div class="space-y-4">
+                    @if(\Schema::hasColumn('phone_calls', 'is_bot'))
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Type de visiteur</label>
+                        <div class="mt-1">
+                            @if($phoneCall->is_bot ?? false)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+                                    <i class="fas fa-robot mr-2"></i>Bot automatisé
+                                </span>
+                                <p class="text-xs text-gray-500 mt-1">Cet appel provient d'un robot automatisé (crawler, scraper, etc.)</p>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                    <i class="fas fa-user mr-2"></i>Visiteur humain
+                                </span>
+                                <p class="text-xs text-gray-500 mt-1">Cet appel provient d'un navigateur réel</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    
                     <div>
                         <label class="text-sm font-medium text-gray-500">Adresse IP</label>
                         <div class="mt-1">
-                            <code class="text-sm bg-gray-100 px-2 py-1 rounded text-gray-800">
+                            <code class="text-sm bg-gray-100 px-3 py-2 rounded text-gray-800 font-mono">
                                 {{ $phoneCall->ip_address ?? 'N/A' }}
                             </code>
+                            @if($phoneCall->ip_address)
+                                <a href="https://www.whois.com/whois/{{ $phoneCall->ip_address }}" 
+                                   target="_blank"
+                                   class="ml-2 text-blue-600 hover:text-blue-800 text-xs">
+                                    <i class="fas fa-external-link-alt"></i> Whois
+                                </a>
+                            @endif
                         </div>
                     </div>
                     
                     <div>
                         <label class="text-sm font-medium text-gray-500">User Agent</label>
                         <div class="mt-1">
-                            <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-800 break-all">
-                                {{ $phoneCall->user_agent ?? 'N/A' }}
-                            </code>
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                <code class="text-xs text-gray-800 break-all whitespace-pre-wrap font-mono">
+{{ $phoneCall->user_agent ?? 'N/A' }}
+                                </code>
+                            </div>
+                            @if($phoneCall->user_agent)
+                                @php
+                                    $ua = strtolower($phoneCall->user_agent);
+                                    $isBrowser = preg_match('/mozilla|chrome|safari|firefox|edge|opera|webkit/i', $ua);
+                                    $isMobile = preg_match('/mobile|android|iphone|ipad/i', $ua);
+                                @endphp
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    @if($isBrowser)
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-50 text-blue-700">
+                                            <i class="fas fa-globe mr-1"></i>Navigateur
+                                        </span>
+                                    @endif
+                                    @if($isMobile)
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-purple-50 text-purple-700">
+                                            <i class="fas fa-mobile-alt mr-1"></i>Mobile
+                                        </span>
+                                    @elseif($isBrowser)
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-50 text-gray-700">
+                                            <i class="fas fa-desktop mr-1"></i>Desktop
+                                        </span>
+                                    @endif
+                                    @if(str_contains($ua, 'chrome'))
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-50 text-green-700">
+                                            <i class="fab fa-chrome mr-1"></i>Chrome
+                                        </span>
+                                    @elseif(str_contains($ua, 'firefox'))
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-50 text-orange-700">
+                                            <i class="fab fa-firefox mr-1"></i>Firefox
+                                        </span>
+                                    @elseif(str_contains($ua, 'safari') && !str_contains($ua, 'chrome'))
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-50 text-blue-700">
+                                            <i class="fab fa-safari mr-1"></i>Safari
+                                        </span>
+                                    @elseif(str_contains($ua, 'edge'))
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-indigo-50 text-indigo-700">
+                                            <i class="fab fa-edge mr-1"></i>Edge
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                     
@@ -144,14 +225,25 @@
                         <label class="text-sm font-medium text-gray-500">URL de référence</label>
                         <div class="mt-1">
                             @if($phoneCall->referrer_url)
-                                <a href="{{ $phoneCall->referrer_url }}" 
-                                   target="_blank"
-                                   class="text-blue-600 hover:text-blue-800 break-all">
-                                    <i class="fas fa-external-link-alt mr-2"></i>{{ $phoneCall->referrer_url }}
-                                </a>
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                                    <a href="{{ $phoneCall->referrer_url }}" 
+                                       target="_blank"
+                                       class="text-blue-600 hover:text-blue-800 break-all text-sm">
+                                        <i class="fas fa-external-link-alt mr-2"></i>{{ $phoneCall->referrer_url }}
+                                    </a>
+                                </div>
                             @else
-                                <span class="text-gray-400 italic">Aucune URL de référence</span>
+                                <span class="text-gray-400 italic text-sm">Aucune URL de référence (accès direct ou navigation privée)</span>
                             @endif
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Session ID</label>
+                        <div class="mt-1">
+                            <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">
+                                {{ $phoneCall->session_id ?? 'N/A' }}
+                            </code>
                         </div>
                     </div>
                 </div>
@@ -220,6 +312,23 @@
                             {{ $phoneCall->updated_at->format('d/m/Y H:i') }}
                         </span>
                     </div>
+                    
+                    @if(\Schema::hasColumn('phone_calls', 'is_bot'))
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                        <span class="text-gray-500">Type</span>
+                        <span>
+                            @if($phoneCall->is_bot ?? false)
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                                    <i class="fas fa-robot mr-1"></i>Bot
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                    <i class="fas fa-user mr-1"></i>Humain
+                                </span>
+                            @endif
+                        </span>
+                    </div>
+                    @endif
                 </div>
             </div>
 

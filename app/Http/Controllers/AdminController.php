@@ -892,6 +892,15 @@ class AdminController extends Controller
     {
         $phoneCall = PhoneCall::with('submission')->findOrFail($id);
         
+        // Log pour diagnostic
+        \Log::info('📋 Affichage détails appel', [
+            'id' => $phoneCall->id,
+            'is_bot' => $phoneCall->is_bot ?? null,
+            'has_is_bot_column' => \Schema::hasColumn('phone_calls', 'is_bot'),
+            'ip' => $phoneCall->ip_address,
+            'user_agent' => substr($phoneCall->user_agent, 0, 100),
+        ]);
+        
         return view('admin.phone-calls-show', compact('phoneCall'));
     }
 
