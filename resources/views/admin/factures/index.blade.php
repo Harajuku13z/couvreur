@@ -77,7 +77,7 @@
                         <i class="fas fa-eye"></i>
                     </a>
                     @if($facture->statut === 'Impayée')
-                    <form action="{{ route('admin.factures.mark-paid', $facture->id) }}" method="POST" class="inline">
+                    <form action="{{ route('admin.factures.mark-as-paid', $facture->id) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="text-green-600 hover:text-green-900 p-2" onclick="return confirm('Marquer cette facture comme payée ?')" title="Marquer comme payée">
                             <i class="fas fa-check"></i>
@@ -161,7 +161,7 @@
                                 <i class="fas fa-eye"></i>
                             </a>
                             @if($facture->statut === 'Impayée')
-                            <form action="{{ route('admin.factures.mark-paid', $facture->id) }}" method="POST" class="inline">
+                            <form action="{{ route('admin.factures.mark-as-paid', $facture->id) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Marquer cette facture comme payée ?')" title="Marquer comme payée">
                                     <i class="fas fa-check"></i>
