@@ -630,23 +630,45 @@ class GenerateTestData extends Command
             $workConfig = $workTypes[$workType];
             
             for ($i = 0; $i < $count; $i++) {
-                // Créer un client
+                // Liste de clients spécifiques à utiliser
+                $clientsSpecifiques = [
+                    ['prenom' => 'Philippe', 'nom' => 'Moreau'],
+                    ['prenom' => 'Louis Adrien', 'nom' => 'Bachelet'],
+                    ['prenom' => 'Claire', 'nom' => 'Delcourt'],
+                    ['prenom' => 'Paul Édouard', 'nom' => 'Martel'],
+                    ['prenom' => 'Nicolas', 'nom' => 'Prévost'],
+                    ['prenom' => 'Sarah Élodie', 'nom' => 'Carrière'],
+                    ['prenom' => 'Marc', 'nom' => 'Lefort'],
+                    ['prenom' => 'Hélène Sophie', 'nom' => 'Barret'],
+                    ['prenom' => 'Antoine', 'nom' => 'Giraud'],
+                    ['prenom' => 'Camille François', 'nom' => 'Lemoine'],
+                ];
+                
+                // Utiliser un client spécifique (en boucle si on a plus de devis que de clients)
+                $clientInfo = $clientsSpecifiques[$devisCreated % count($clientsSpecifiques)];
+                
                 $city = $this->villesCoteDor[array_rand($this->villesCoteDor)];
                 $cityName = array_search($city, $this->villesCoteDor);
                 
-                $prenoms = ['Jean', 'Marie', 'Pierre', 'Sophie', 'Michel', 'Catherine', 'Philippe', 'Isabelle', 'Alain', 'Martine'];
-                $noms = ['Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Leroy', 'Moreau'];
+                // Vérifier si le client existe déjà
+                $client = Client::where('nom', $clientInfo['nom'])
+                    ->where('prenom', $clientInfo['prenom'])
+                    ->first();
                 
-                $client = Client::create([
-                    'nom' => $noms[array_rand($noms)],
-                    'prenom' => $prenoms[array_rand($prenoms)],
-                    'email' => strtolower(str_replace(' ', '.', $prenoms[array_rand($prenoms)])) . '.' . strtolower($noms[array_rand($noms)]) . rand(1, 999) . '@example.fr',
-                    'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
-                    'adresse' => rand(1, 99) . ' Rue ' . $cityName,
-                    'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
-                    'ville' => $cityName,
-                    'pays' => 'France',
-                ]);
+                if (!$client) {
+                    // Créer le client s'il n'existe pas
+                    $emailPrefix = strtolower(str_replace(' ', '.', $clientInfo['prenom'])) . '.' . strtolower(str_replace(' ', '.', $clientInfo['nom']));
+                    $client = Client::create([
+                        'nom' => $clientInfo['nom'],
+                        'prenom' => $clientInfo['prenom'],
+                        'email' => $emailPrefix . '@example.fr',
+                        'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
+                        'adresse' => rand(1, 99) . ' Rue ' . $cityName,
+                        'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
+                        'ville' => $cityName,
+                        'pays' => 'France',
+                    ]);
+                }
 
                 // Date aléatoire dans la période
                 $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
@@ -917,24 +939,43 @@ class GenerateTestData extends Command
             return;
         }
         
-        // Créer quelques clients supplémentaires pour les factures historiques
+        // Utiliser les mêmes clients spécifiques pour les factures historiques
+        $clientsSpecifiques = [
+            ['prenom' => 'Philippe', 'nom' => 'Moreau'],
+            ['prenom' => 'Louis Adrien', 'nom' => 'Bachelet'],
+            ['prenom' => 'Claire', 'nom' => 'Delcourt'],
+            ['prenom' => 'Paul Édouard', 'nom' => 'Martel'],
+            ['prenom' => 'Nicolas', 'nom' => 'Prévost'],
+            ['prenom' => 'Sarah Élodie', 'nom' => 'Carrière'],
+            ['prenom' => 'Marc', 'nom' => 'Lefort'],
+            ['prenom' => 'Hélène Sophie', 'nom' => 'Barret'],
+            ['prenom' => 'Antoine', 'nom' => 'Giraud'],
+            ['prenom' => 'Camille François', 'nom' => 'Lemoine'],
+        ];
+        
+        // Récupérer ou créer les clients spécifiques
         $clientsHistoriques = [];
-        for ($i = 0; $i < 5; $i++) {
-            $city = $this->villesCoteDor[array_rand($this->villesCoteDor)];
-            $cityName = array_search($city, $this->villesCoteDor);
-            $prenoms = ['Jean', 'Marie', 'Pierre', 'Sophie', 'Michel', 'Catherine'];
-            $noms = ['Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert'];
+        foreach ($clientsSpecifiques as $clientInfo) {
+            $client = Client::where('nom', $clientInfo['nom'])
+                ->where('prenom', $clientInfo['prenom'])
+                ->first();
             
-            $client = Client::create([
-                'nom' => $noms[array_rand($noms)],
-                'prenom' => $prenoms[array_rand($prenoms)],
-                'email' => strtolower(str_replace(' ', '.', $prenoms[array_rand($prenoms)])) . '.' . strtolower($noms[array_rand($noms)]) . rand(1000, 9999) . '@example.fr',
-                'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
-                'adresse' => rand(1, 99) . ' Rue ' . $cityName,
-                'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
-                'ville' => $cityName,
-                'pays' => 'France',
-            ]);
+            if (!$client) {
+                $city = $this->villesCoteDor[array_rand($this->villesCoteDor)];
+                $cityName = array_search($city, $this->villesCoteDor);
+                $emailPrefix = strtolower(str_replace(' ', '.', $clientInfo['prenom'])) . '.' . strtolower(str_replace(' ', '.', $clientInfo['nom']));
+                
+                $client = Client::create([
+                    'nom' => $clientInfo['nom'],
+                    'prenom' => $clientInfo['prenom'],
+                    'email' => $emailPrefix . '@example.fr',
+                    'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
+                    'adresse' => rand(1, 99) . ' Rue ' . $cityName,
+                    'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
+                    'ville' => $cityName,
+                    'pays' => 'France',
+                ]);
+            }
             $clientsHistoriques[] = $client;
         }
         
