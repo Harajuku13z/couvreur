@@ -15,7 +15,7 @@ class GenerateTestData extends Command
      *
      * @var string
      */
-    protected $signature = 'generate:test-data';
+    protected $signature = 'generate:test-data {--force : Supprimer toutes les données existantes avant de générer}';
 
     /**
      * The console command description.
@@ -112,6 +112,36 @@ class GenerateTestData extends Command
             return 1;
         }
 
+        // Supprimer les données existantes si --force
+        if ($this->option('force')) {
+            $this->warn('⚠️  Suppression des données existantes...');
+            
+            $phoneCallsCount = PhoneCall::count();
+            $visitsCount = Visit::count();
+            
+            PhoneCall::truncate();
+            $this->info("  ✅ {$phoneCallsCount} appels supprimés");
+            
+            Visit::truncate();
+            $this->info("  ✅ {$visitsCount} visites supprimées");
+            
+            $this->info('');
+        } else {
+            $existingCalls = PhoneCall::count();
+            $existingVisits = Visit::count();
+            
+            if ($existingCalls > 0 || $existingVisits > 0) {
+                $this->warn("⚠️  Attention : Il existe déjà {$existingCalls} appels et {$existingVisits} visites.");
+                $this->warn("   Utilisez --force pour les supprimer avant de générer les nouvelles données.");
+                $this->warn("   Commande : php artisan generate:test-data --force");
+                
+                if (!$this->confirm('Continuer quand même ? Les nouvelles données seront ajoutées aux existantes.')) {
+                    $this->info('❌ Opération annulée');
+                    return 0;
+                }
+            }
+        }
+
         // Générer les appels téléphoniques
         $this->info('📞 Génération de 57 appels téléphoniques...');
         $this->generatePhoneCalls();
@@ -120,7 +150,10 @@ class GenerateTestData extends Command
         $this->info('👁️ Génération de 1980 visites...');
         $this->generateVisits();
 
+        $this->info('');
         $this->info('✅ Génération terminée avec succès !');
+        $this->info("   - " . PhoneCall::count() . " appels téléphoniques");
+        $this->info("   - " . Visit::count() . " visites");
         return 0;
     }
 
@@ -131,9 +164,9 @@ class GenerateTestData extends Command
     {
         $phoneNumber = \App\Models\Setting::get('company_phone_raw', '0633532123');
         
-        // Dates : du 28 octobre 2025 au 30 novembre 2025
+        // Dates : du 28 octobre 2025 au 29 novembre 2025
         $startDate = Carbon::create(2025, 10, 28, 0, 0, 0);
-        $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
+        $endDate = Carbon::create(2025, 11, 29, 23, 59, 59);
         $daysDiff = $startDate->diffInDays($endDate);
         
         // 32 appels de Chevigny-Saint-Sauveur
@@ -259,9 +292,9 @@ class GenerateTestData extends Command
         $googleBusinessCount = 15;
         $otherSourcesCount = 776;
         
-        // Dates : du 28 octobre 2025 au 30 novembre 2025
+        // Dates : du 28 octobre 2025 au 29 novembre 2025
         $startDate = Carbon::create(2025, 10, 28, 0, 0, 0);
-        $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
+        $endDate = Carbon::create(2025, 11, 29, 23, 59, 59);
         
         $this->info("  → Génération de {$googleSearchCount} visites depuis Google Search");
         $this->generateVisitsFromSource('google_search', $googleSearchCount, $startDate, $endDate);
