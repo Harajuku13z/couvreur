@@ -20,11 +20,17 @@
      * Fonction principale de tracking avec déduplication
      */
     window.trackPhoneCall = function(phoneNumber = null, sourcePage = null) {
+        console.log('📞 trackPhoneCall appelé', { phoneNumber, sourcePage, defaultPhone: getDefaultPhoneNumber() });
+        
         const phone = phoneNumber || getDefaultPhoneNumber();
         const page = sourcePage || window.location.pathname;
         
         if (!phone) {
-            console.error('❌ Pas de numéro de téléphone disponible');
+            console.error('❌ Pas de numéro de téléphone disponible', {
+                phoneNumber: phoneNumber,
+                defaultPhone: getDefaultPhoneNumber(),
+                windowLaravel: window.Laravel
+            });
             return;
         }
         
@@ -33,7 +39,7 @@
         
         // Vérifier si on a déjà envoyé ce tracking dans les 2 dernières secondes
         if (window.phoneCallTrackingSent.has(trackingKey)) {
-            console.log('⚠️ Tracking déjà envoyé, ignoré (déduplication)');
+            console.log('⚠️ Tracking déjà envoyé, ignoré (déduplication)', { trackingKey });
             return;
         }
         
@@ -51,7 +57,7 @@
             referrer_url: document.referrer || window.location.href
         };
         
-        console.log('📞 trackPhoneCall appelé', { phoneNumber, sourcePage, trackingKey });
+        console.log('📞 Envoi du tracking', { payload, endpoint: TRACKING_ENDPOINT });
         
         // Ajouter à la queue si un envoi est en cours
         if (window.phoneCallTrackingInProgress) {
@@ -79,14 +85,14 @@
                 formData.append('phone_number', payload.phone_number);
                 formData.append('source_page', payload.source_page);
                 formData.append('referrer_url', payload.referrer_url);
-                console.log('📤 Tentative sendBeacon vers:', TRACKING_ENDPOINT);
+                console.log('📤 Tentative sendBeacon vers:', TRACKING_ENDPOINT, { payload });
                 const sent = navigator.sendBeacon(TRACKING_ENDPOINT, formData);
                 if (sent) {
-                    console.log('✅ Tracking envoyé via sendBeacon (FormData)');
+                    console.log('✅ Tracking envoyé via sendBeacon (FormData)', { payload });
                     processQueue();
                     return;
                 } else {
-                    console.warn('⚠️ sendBeacon retourné false');
+                    console.warn('⚠️ sendBeacon retourné false', { endpoint: TRACKING_ENDPOINT });
                 }
             } catch (e) {
                 console.error('❌ sendBeacon FormData failed:', e);
@@ -302,16 +308,22 @@
      */
     function initTracking() {
         if (window.phoneCallTrackingInitialized) {
+            console.log('📞 Tracking déjà initialisé');
             return;
         }
         
         window.phoneCallTrackingInitialized = true;
+        console.log('📞 Initialisation du tracking des appels téléphoniques');
         
         // Attacher le tracking au chargement de la page
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', attachTrackingToAllLinks);
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('📞 DOM chargé, attachement du tracking');
+                attachTrackingToAllLinks();
+            });
         } else {
             // Déjà chargé
+            console.log('📞 DOM déjà chargé, attachement immédiat du tracking');
             attachTrackingToAllLinks();
         }
         
