@@ -174,7 +174,7 @@
                         <label class="text-sm font-medium text-gray-500">User Agent</label>
                         <div class="mt-1">
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                                <code class="text-xs text-gray-800 break-all whitespace-pre-wrap font-mono">
+                                <code class="text-xs text-gray-800 break-all whitespace-pre-wrap font-mono block">
 {{ $phoneCall->user_agent ?? 'N/A' }}
                                 </code>
                             </div>
