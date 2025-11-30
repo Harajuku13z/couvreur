@@ -760,11 +760,18 @@ class GenerateTestData extends Command
             ['toiture'],
         ];
 
-        // Dates pour novembre 2025
+        // Dates pour novembre 2025 : du 1er au 29 novembre répartis, et 1 le 30 novembre à 8h21
         $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
-        $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
+        $endDate = Carbon::create(2025, 11, 29, 23, 59, 59);
+        $lastDate = Carbon::create(2025, 11, 30, 8, 21, 0); // 30 novembre à 8h21
 
         $submissionsCreated = 0;
+        $totalCount = array_sum($repartition); // 17 au total
+        $countForLastDate = 1; // 1 soumission le 30 novembre à 8h21
+        $countForNormalDates = $totalCount - $countForLastDate; // 16 soumissions du 1er au 29 novembre
+
+        $normalCountCreated = 0;
+        $lastDateCreated = false;
 
         foreach ($repartition as $cityName => $count) {
             $cityData = $this->villesCoteDor[$cityName] ?? ['country' => 'France', 'country_code' => 'FR'];
@@ -775,9 +782,17 @@ class GenerateTestData extends Command
                 $prenom = $isFemme ? $prenomsFemmes[array_rand($prenomsFemmes)] : $prenomsHommes[array_rand($prenomsHommes)];
                 $nom = $noms[array_rand($noms)];
 
-                // Date aléatoire dans novembre 2025
-                $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
-                $createdAt = Carbon::createFromTimestamp($randomTimestamp);
+                // Déterminer la date : soit du 1er au 29 novembre, soit le 30 novembre à 8h21
+                if (!$lastDateCreated && $normalCountCreated >= $countForNormalDates) {
+                    // C'est la dernière soumission, elle doit être le 30 novembre à 8h21
+                    $createdAt = $lastDate->copy();
+                    $lastDateCreated = true;
+                } else {
+                    // Date aléatoire du 1er au 29 novembre
+                    $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
+                    $createdAt = Carbon::createFromTimestamp($randomTimestamp);
+                    $normalCountCreated++;
+                }
 
                 // Statut : majoritairement complétées (70%), quelques en cours ou abandonnées
                 $statusRand = rand(0, 100);
@@ -893,6 +908,16 @@ class GenerateTestData extends Command
                 $submissionsCreated++;
             }
         }
+
+        $this->info("  ✅ {$submissionsCreated} soumissions créées");
+        $this->info("     - 9 Chevigny-Saint-Sauveur");
+        $this->info("     - 3 Dijon");
+        $this->info("     - 2 Beaune");
+        $this->info("     - 2 Quetigny");
+        $this->info("     - 1 Chenôve");
+    }
+}
+
 
         $this->info("  ✅ {$submissionsCreated} soumissions créées");
         $this->info("     - 9 Chevigny-Saint-Sauveur");
