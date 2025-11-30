@@ -156,7 +156,7 @@ class GenerateTestData extends Command
 
         // Générer les devis
         $this->info('');
-        $this->info('📋 Génération de 11 devis pour novembre 2025...');
+        $this->info('📋 Génération de 32 devis pour novembre 2025 (11 acceptés)...');
         $this->generateDevis();
 
         // Générer les soumissions
@@ -567,37 +567,42 @@ class GenerateTestData extends Command
             ],
         ];
 
-        // Répartition des 11 devis
-        // Total CA souhaité : 87.556 € TTC
+        // Répartition des 32 devis
+        // Total CA souhaité : 87.556 € TTC (pour les devis acceptés uniquement)
         // Avec TVA à 20% : 87.556 / 1.20 = 72.963,33 € HT
-        $totalTTC = 87556;
-        $totalHT = $totalTTC / 1.20; // TVA 20%
-        $averageHTPerDevis = $totalHT / 11;
+        $totalTTCAccepted = 87556;
+        $totalHTAccepted = $totalTTCAccepted / 1.20; // TVA 20%
+        $averageHTPerAcceptedDevis = $totalHTAccepted / $acceptedCount;
+        
+        // Pour les autres devis (refusés, en attente, brouillons), montants plus variables
+        $averageHTPerOtherDevis = $averageHTPerAcceptedDevis * 0.8; // 20% de moins en moyenne
 
         // Dates pour novembre 2025
         $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
         $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
 
-        // Créer 11 devis
+        // Créer 32 devis au total : 11 acceptés, le reste réparti entre refusés, en attente et brouillons
         $devisCreated = 0;
         $totalGeneratedHT = 0;
 
-        // Répartition des statuts : 7 acceptés, 2 refusés, 2 en attente
-        $acceptedCount = 7;
-        $refusedCount = 2;
-        $pendingCount = 2;
-        $totalDevis = $acceptedCount + $refusedCount + $pendingCount; // 11 total
+        // Répartition des statuts : 11 acceptés, 8 refusés, 7 en attente, 6 brouillons
+        $acceptedCount = 11;
+        $refusedCount = 8;
+        $pendingCount = 7;
+        $draftCount = 6;
+        $totalDevis = $acceptedCount + $refusedCount + $pendingCount + $draftCount; // 32 total
         
         $acceptedCreated = 0;
         $refusedCreated = 0;
         $pendingCreated = 0;
+        $draftCreated = 0;
 
-        // Répartition : 3 hydrofuge, 3 démoussage, 3 rénovation, 2 isolation
+        // Répartition des types de travaux : augmenter pour arriver à 32 devis
         $repartition = [
-            'hydrofuge' => 3,
-            'demoussage' => 3,
-            'renovation_toiture' => 3,
-            'isolation' => 2,
+            'hydrofuge' => 8,
+            'demoussage' => 8,
+            'renovation_toiture' => 10,
+            'isolation' => 6,
         ];
 
         foreach ($repartition as $workType => $count) {
@@ -627,41 +632,39 @@ class GenerateTestData extends Command
                 $dateEmission = Carbon::createFromTimestamp($randomTimestamp);
                 $dateValidite = $dateEmission->copy()->addDays(30);
 
-                // Calculer le montant HT pour ce devis (avec variation)
-                $variation = 0.8 + (rand(0, 40) / 100); // Variation entre 80% et 120%
-                $devisHT = $averageHTPerDevis * $variation;
-                
-                // Ajuster pour que le total soit proche de 87.556€
-                if ($devisCreated === 10) {
-                    // Dernier devis : ajuster pour atteindre exactement le total
-                    $devisHT = $totalHT - $totalGeneratedHT;
-                }
-
                 // Surface pour ce type de travail
                 $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
-                
-                // Prix unitaire
-                $prixUnitaire = rand(
-                    (int)($workConfig['prix_unitaire_min'] * 100),
-                    (int)($workConfig['prix_unitaire_max'] * 100)
-                ) / 100;
-
-                // Ajuster pour correspondre au montant HT souhaité
-                $totalNeeded = $devisHT;
-                $prixUnitaire = $totalNeeded / $surface;
 
                 // Déterminer le statut selon la répartition définie
-                $statut = 'En Attente'; // Par défaut
+                $statut = 'Brouillon'; // Par défaut
                 if ($acceptedCreated < $acceptedCount) {
                     $statut = 'Accepté';
                     $acceptedCreated++;
+                    // Pour les acceptés, utiliser le montant calculé pour atteindre 87.556€
+                    $devisHT = $averageHTPerAcceptedDevis * (0.9 + (rand(0, 20) / 100)); // Variation 90-110%
                 } elseif ($refusedCreated < $refusedCount) {
                     $statut = 'Refusé';
                     $refusedCreated++;
+                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
                 } elseif ($pendingCreated < $pendingCount) {
                     $statut = 'En Attente';
                     $pendingCreated++;
+                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
+                } elseif ($draftCreated < $draftCount) {
+                    $statut = 'Brouillon';
+                    $draftCreated++;
+                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
                 }
+                
+                // Ajuster pour que le total des acceptés soit proche de 87.556€
+                if ($statut === 'Accepté' && $acceptedCreated === $acceptedCount) {
+                    // Dernier devis accepté : ajuster pour atteindre exactement le total
+                    $devisHT = $totalHTAccepted - ($totalGeneratedHT - ($devisCreated - $acceptedCreated + 1) * ($averageHTPerOtherDevis ?? 0));
+                }
+
+                // Recalculer prix unitaire selon le montant HT
+                $totalNeeded = $devisHT;
+                $prixUnitaire = $totalNeeded / $surface;
 
                 // Créer le devis
                 $devis = Devis::create([
@@ -684,7 +687,7 @@ class GenerateTestData extends Command
                     'description' => $workConfig['description'],
                     'quantite' => $surface,
                     'unite' => $workConfig['unite'],
-                    'prix_unitaire' => round($prixUnitaire, 2),
+                    'prix_unitaire' => round($prixUnitaire ?? ($devisHT / $surface), 2),
                 ]);
 
                 // Parfois ajouter des lignes supplémentaires (matériaux, main d'œuvre, etc.)
@@ -715,11 +718,15 @@ class GenerateTestData extends Command
             }
         }
 
+        // Calculer le CA des acceptés uniquement
+        $caAccepted = Devis::where('statut', 'Accepté')->sum('total_ttc');
+        
         $this->info("  ✅ {$devisCreated} devis créés");
-        $this->info("     - {$acceptedCreated} Acceptés");
+        $this->info("     - {$acceptedCreated} Acceptés (CA: " . number_format($caAccepted, 2, ',', ' ') . " €)");
         $this->info("     - {$refusedCreated} Refusés");
         $this->info("     - {$pendingCreated} En Attente");
-        $this->info("  💰 CA total généré : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
+        $this->info("     - {$draftCreated} Brouillons");
+        $this->info("  💰 CA total généré (tous devis) : " . number_format($totalGeneratedHT * 1.20, 2, ',', ' ') . " € TTC");
     }
 
     /**
