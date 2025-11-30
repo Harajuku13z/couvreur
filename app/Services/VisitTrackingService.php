@@ -35,20 +35,9 @@ class VisitTrackingService
                 return null;
             }
 
-            // Détecter si c'est un bot et les exclure complètement
+            // Détecter si c'est un bot (mais on les track quand même pour statistiques)
             $userAgent = $request->userAgent();
             $isBot = \App\Services\BotDetectionService::isBot($userAgent);
-            
-            // Exclure complètement les bots - ne pas les tracker
-            if ($isBot) {
-                if (config('app.debug')) {
-                    Log::debug('🤖 Bot détecté et exclu du tracking', [
-                        'user_agent' => substr($userAgent, 0, 100),
-                        'path' => $path
-                    ]);
-                }
-                return null;
-            }
             
             $sessionId = Session::getId();
             $ipAddress = $this->getClientIp($request);
@@ -56,10 +45,10 @@ class VisitTrackingService
             // Géolocalisation
             $location = $this->ipGeolocationService->getLocationFromIp($ipAddress);
             
-            // Détecter le device et le navigateur
+            // Détecter le device et le navigateur (peut être basique pour les bots)
             $deviceInfo = $this->detectDevice($userAgent);
             
-            // Créer l'enregistrement
+            // Créer l'enregistrement (bots inclus mais avec is_bot = true)
             $visit = Visit::create([
                 'session_id' => $sessionId,
                 'ip_address' => $ipAddress,
@@ -74,17 +63,18 @@ class VisitTrackingService
                 'device_type' => $deviceInfo['device_type'],
                 'browser' => $deviceInfo['browser'],
                 'os' => $deviceInfo['os'],
-                'is_bot' => false, // On ne track plus les bots, donc toujours false ici
+                'is_bot' => $isBot, // Marquer comme bot pour pouvoir les filtrer dans les stats
                 'visited_at' => now(),
             ]);
 
             // Log uniquement pour debug (peut être désactivé en production)
             if (config('app.debug')) {
-                Log::debug('✅ Visite trackée', [
+                Log::debug($isBot ? '🤖 Bot tracké' : '✅ Visite trackée', [
                     'id' => $visit->id,
                     'path' => $path,
                     'ip' => $ipAddress,
-                    'city' => $location['city']
+                    'city' => $location['city'],
+                    'is_bot' => $isBot
                 ]);
             }
 

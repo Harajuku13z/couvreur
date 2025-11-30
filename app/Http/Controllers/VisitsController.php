@@ -18,15 +18,25 @@ class VisitsController extends Controller
         try {
             $days = request()->input('days', 30);
             $showAll = request()->input('all', false); // Paramètre pour afficher tous les pays
+            $includeBots = request()->input('include_bots', false); // Paramètre pour inclure les bots
+            
             // Convertir en booléen si c'est une chaîne
             if (is_string($showAll)) {
                 $showAll = in_array(strtolower($showAll), ['1', 'true', 'yes', 'on']);
             }
+            if (is_string($includeBots)) {
+                $includeBots = in_array(strtolower($includeBots), ['1', 'true', 'yes', 'on']);
+            }
+            
             $period = now()->subDays($days);
             
             // Récupérer les visites depuis la base de données
-            $query = \App\Models\Visit::excludeBots()
-                ->where('visited_at', '>=', $period);
+            $query = \App\Models\Visit::where('visited_at', '>=', $period);
+            
+            // Exclure les bots par défaut, sauf si include_bots est activé
+            if (!$includeBots) {
+                $query->excludeBots();
+            }
             
             // Filtrer par pays (France) par défaut, sauf si "all" est activé
             if (!$showAll) {
@@ -41,21 +51,34 @@ class VisitsController extends Controller
             $visits = $query->orderBy('visited_at', 'desc')->get();
             
             // Calculer le total pour la France uniquement (même si on affiche tous les pays)
-            $franceVisits = \App\Models\Visit::excludeBots()
-                ->where('visited_at', '>=', $period)
+            $franceQuery = \App\Models\Visit::where('visited_at', '>=', $period)
                 ->where(function($q) {
                     $q->where('country', 'France')
                       ->orWhere('country', 'FR')
                       ->orWhere('country_code', 'FR');
-                })
-                ->get();
+                });
             
+            if (!$includeBots) {
+                $franceQuery->excludeBots();
+            }
+            
+            $franceVisits = $franceQuery->get();
             $totalFranceVisitors = $franceVisits->pluck('session_id')->unique()->count();
             
             // Statistiques globales
             $totalVisits = $visits->count();
             $uniqueVisitors = $visits->pluck('session_id')->unique()->count();
             $uniquePages = $visits->pluck('path')->unique()->count();
+            
+            // Statistiques des bots (toujours calculées pour info)
+            $totalBotVisits = \App\Models\Visit::where('visited_at', '>=', $period)
+                ->where('is_bot', true)
+                ->count();
+            
+            $totalBotVisitors = \App\Models\Visit::where('visited_at', '>=', $period)
+                ->where('is_bot', true)
+                ->distinct('session_id')
+                ->count('session_id');
             
             // Visites par jour (pour le graphique)
             $visitsByDay = $visits->groupBy(function($visit) {
@@ -146,10 +169,13 @@ class VisitsController extends Controller
                     'totalPageViews' => $totalVisits,
                     'uniquePages' => $uniquePages,
                     'avgPagesPerVisitor' => $uniqueVisitors > 0 ? round($totalVisits / $uniqueVisitors, 2) : 0,
-                    'totalFranceVisitors' => $totalFranceVisitors
+                    'totalFranceVisitors' => $totalFranceVisitors,
+                    'totalBotVisits' => $totalBotVisits,
+                    'totalBotVisitors' => $totalBotVisitors,
                 ],
                 'days' => $days,
-                'showAll' => $showAll
+                'showAll' => $showAll,
+                'includeBots' => $includeBots
             ];
             
             return view('admin.visits.index', $data);

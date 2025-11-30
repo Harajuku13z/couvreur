@@ -263,18 +263,11 @@ class FormControllerSimple extends Controller
                 // Pour sendBeacon, retourner un simple 200 OK
                 return response('OK', 200);
             } else {
-                // Si c'est un bot, ne pas logger comme erreur
-                if (isset($result['bot']) && $result['bot']) {
-                    \Log::debug('🤖 Bot détecté - appel non tracké', [
-                        'user_agent' => substr($request->userAgent(), 0, 100)
-                    ]);
-                } else {
-                    \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'), [
-                        'phone' => $phoneNumber,
-                        'source_page' => $sourcePage,
-                        'result' => $result
-                    ]);
-                }
+                \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'), [
+                    'phone' => $phoneNumber,
+                    'source_page' => $sourcePage,
+                    'result' => $result
+                ]);
                 // Retourner toujours 200 pour ne pas bloquer l'appel
                 return response()->json([
                     'success' => false, 

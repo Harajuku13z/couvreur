@@ -12,16 +12,28 @@
         <h1 class="text-xl md:text-2xl font-bold">📊 Statistiques de Visites</h1>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
             @if($showAll ?? false)
-            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}" 
+            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}{{ ($includeBots ?? false) ? '&include_bots=1' : '' }}" 
                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center">
                 <i class="fas fa-flag mr-2"></i>France uniquement
             </a>
             @else
-            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}&all=1" 
+            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}&all=1{{ ($includeBots ?? false) ? '&include_bots=1' : '' }}" 
                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center">
                 <i class="fas fa-globe mr-2"></i>Tous les visiteurs
             </a>
             @endif
+            
+            <label class="flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition w-full sm:w-auto">
+                <input type="checkbox" 
+                       id="includeBotsCheckbox" 
+                       {{ ($includeBots ?? false) ? 'checked' : '' }}
+                       onchange="toggleBots()"
+                       class="rounded mr-2">
+                <span class="text-sm text-gray-700">
+                    <i class="fas fa-robot mr-1"></i>Inclure les bots
+                </span>
+            </label>
+            
             <select id="periodSelect" class="px-4 py-2 border border-gray-300 rounded-lg w-full sm:w-auto" onchange="changePeriod()">
                 <option value="7" {{ ($days ?? 30) == 7 ? 'selected' : '' }}>7 derniers jours</option>
                 <option value="30" {{ ($days ?? 30) == 30 ? 'selected' : '' }}>30 derniers jours</option>
@@ -68,6 +80,41 @@
             </div>
         </div>
     </div>
+    
+    @if($includeBots ?? false)
+    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-robot text-orange-600 mr-3"></i>
+            <div class="flex-1">
+                <p class="text-sm text-orange-800">
+                    <strong>Bots inclus dans les statistiques</strong> - Les visites des robots et crawlers sont comptabilisées. 
+                    <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}{{ ($showAll ?? false) ? '&all=1' : '' }}" class="underline font-semibold">Exclure les bots</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-robot text-gray-600 mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-800">
+                        <strong>Bots exclus</strong> - Les visites des bots sont trackées mais exclues des statistiques. 
+                        <span class="text-gray-600">
+                            Bots détectés : <strong>{{ number_format($stats['totalBotVisits'] ?? 0) }}</strong> visites 
+                            (<strong>{{ number_format($stats['totalBotVisitors'] ?? 0) }}</strong> bots uniques)
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.visits') }}?days={{ $days ?? 30 }}{{ ($showAll ?? false) ? '&all=1' : '' }}&include_bots=1" 
+               class="ml-4 text-sm text-gray-700 hover:text-gray-900 underline whitespace-nowrap">
+                Inclure les bots
+            </a>
+        </div>
+    </div>
+    @endif
     
     @if(isset($error))
     <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
@@ -314,7 +361,21 @@ function changePeriod() {
     const days = document.getElementById('periodSelect').value;
     const urlParams = new URLSearchParams(window.location.search);
     const allParam = urlParams.get('all');
-    const url = '{{ route("admin.visits") }}?days=' + days + (allParam ? '&all=1' : '');
+    const includeBots = urlParams.get('include_bots');
+    let url = '{{ route("admin.visits") }}?days=' + days;
+    if (allParam) url += '&all=1';
+    if (includeBots === '1') url += '&include_bots=1';
+    window.location.href = url;
+}
+
+function toggleBots() {
+    const includeBots = document.getElementById('includeBotsCheckbox').checked;
+    const urlParams = new URLSearchParams(window.location.search);
+    const days = urlParams.get('days') || '{{ $days ?? 30 }}';
+    const allParam = urlParams.get('all');
+    let url = '{{ route("admin.visits") }}?days=' + days;
+    if (allParam) url += '&all=1';
+    if (includeBots) url += '&include_bots=1';
     window.location.href = url;
 }
 

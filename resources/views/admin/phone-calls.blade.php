@@ -4,10 +4,58 @@
 
 @section('content')
 <div class="p-4 md:p-6">
-    <div class="mb-6">
-        <h1 class="text-xl md:text-3xl font-bold text-gray-800">📞 Appels Téléphoniques</h1>
-        <p class="text-gray-600 mt-1">Suivi des clics sur les liens téléphone</p>
+    <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+            <h1 class="text-xl md:text-3xl font-bold text-gray-800">📞 Appels Téléphoniques</h1>
+            <p class="text-gray-600 mt-1">Suivi des clics sur les liens téléphone</p>
+        </div>
+        <label class="flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <input type="checkbox" 
+                   id="includeBotsCheckbox" 
+                   {{ ($includeBots ?? false) ? 'checked' : '' }}
+                   onchange="toggleBots()"
+                   class="rounded mr-2">
+            <span class="text-sm text-gray-700">
+                <i class="fas fa-robot mr-1"></i>Inclure les bots
+            </span>
+        </label>
     </div>
+    
+    @if($includeBots ?? false)
+    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-robot text-orange-600 mr-3"></i>
+            <div class="flex-1">
+                <p class="text-sm text-orange-800">
+                    <strong>Bots inclus dans les statistiques</strong> - Les appels provenant de bots sont comptabilisés. 
+                    <a href="{{ route('admin.phone-calls') }}" class="underline font-semibold">Exclure les bots</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-robot text-gray-600 mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-800">
+                        <strong>Bots exclus</strong> - Les appels des bots sont trackés mais exclus des statistiques. 
+                        <span class="text-gray-600">
+                            Appels bots détectés : <strong>{{ $botStats['total'] ?? 0 }}</strong> appels au total
+                            (@if(($botStats['today'] ?? 0) > 0)<strong>{{ $botStats['today'] }}</strong> aujourd'hui, @endif
+                            @if(($botStats['this_week'] ?? 0) > 0)<strong>{{ $botStats['this_week'] }}</strong> cette semaine@endif)
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.phone-calls') }}?include_bots=1" 
+               class="ml-4 text-sm text-gray-700 hover:text-gray-900 underline whitespace-nowrap">
+                Inclure les bots
+            </a>
+        </div>
+    </div>
+    @endif
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -612,5 +660,16 @@ document.getElementById('editCityForm').addEventListener('submit', async functio
         alert('❌ Erreur lors de la correction');
     }
 });
+
+function toggleBots() {
+    const includeBots = document.getElementById('includeBotsCheckbox').checked;
+    const url = new URL(window.location.href);
+    if (includeBots) {
+        url.searchParams.set('include_bots', '1');
+    } else {
+        url.searchParams.delete('include_bots');
+    }
+    window.location.href = url.toString();
+}
 </script>
 @endsection

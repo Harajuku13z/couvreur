@@ -770,31 +770,64 @@ class AdminController extends Controller
      */
     public function phoneCalls()
     {
-        $phoneCalls = PhoneCall::with('submission')
-            ->orderBy('clicked_at', 'desc')
-            ->paginate(20);
+        $includeBots = request()->input('include_bots', false);
+        
+        // Convertir en booléen si c'est une chaîne
+        if (is_string($includeBots)) {
+            $includeBots = in_array(strtolower($includeBots), ['1', 'true', 'yes', 'on']);
+        }
+        
+        // Récupérer les appels (exclure les bots par défaut)
+        $query = PhoneCall::with('submission')->orderBy('clicked_at', 'desc');
+        
+        if (!$includeBots) {
+            $query->excludeBots();
+        }
+        
+        $phoneCalls = $query->paginate(20);
 
+        // Statistiques (sans bots par défaut)
+        $statsQuery = PhoneCall::query();
+        if (!$includeBots) {
+            $statsQuery->excludeBots();
+        }
+        
         $stats = [
-            'today' => PhoneCall::today()->count(),
-            'this_week' => PhoneCall::thisWeek()->count(),
-            'this_month' => PhoneCall::thisMonth()->count(),
-            'total' => PhoneCall::count(),
+            'today' => (clone $statsQuery)->today()->count(),
+            'this_week' => (clone $statsQuery)->thisWeek()->count(),
+            'this_month' => (clone $statsQuery)->thisMonth()->count(),
+            'total' => (clone $statsQuery)->count(),
+        ];
+        
+        // Statistiques des bots (toujours calculées pour info)
+        $botStats = [
+            'today' => PhoneCall::onlyBots()->today()->count(),
+            'this_week' => PhoneCall::onlyBots()->thisWeek()->count(),
+            'this_month' => PhoneCall::onlyBots()->thisMonth()->count(),
+            'total' => PhoneCall::onlyBots()->count(),
         ];
 
-        // Appels par page
-        $callsByPage = PhoneCall::selectRaw('source_page, COUNT(*) as count')
-            ->groupBy('source_page')
+        // Appels par page (sans bots par défaut)
+        $callsByPageQuery = PhoneCall::selectRaw('source_page, COUNT(*) as count');
+        if (!$includeBots) {
+            $callsByPageQuery->where('is_bot', false);
+        }
+        $callsByPage = $callsByPageQuery->groupBy('source_page')
             ->pluck('count', 'source_page')
             ->toArray();
 
-        // Tendance 7 derniers jours
+        // Tendance 7 derniers jours (sans bots par défaut)
         $callsTrend = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $callsTrend[$date->format('d/m')] = PhoneCall::whereDate('clicked_at', $date->toDateString())->count();
+            $trendQuery = PhoneCall::whereDate('clicked_at', $date->toDateString());
+            if (!$includeBots) {
+                $trendQuery->excludeBots();
+            }
+            $callsTrend[$date->format('d/m')] = $trendQuery->count();
         }
 
-        return view('admin.phone-calls', compact('phoneCalls', 'stats', 'callsByPage', 'callsTrend'));
+        return view('admin.phone-calls', compact('phoneCalls', 'stats', 'botStats', 'callsByPage', 'callsTrend', 'includeBots'));
     }
 
     /**

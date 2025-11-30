@@ -23,21 +23,9 @@ class PhoneCallTrackingService
     public function track(Request $request, $phoneNumber = null, $sourcePage = null, $referrerUrl = null)
     {
         try {
-            // Détecter et exclure les bots AVANT tout traitement
+            // Détecter si c'est un bot (mais on les track quand même pour statistiques)
             $userAgent = $request->userAgent();
             $isBot = \App\Services\BotDetectionService::isBot($userAgent);
-            
-            if ($isBot) {
-                Log::debug('🤖 Bot détecté - appel téléphonique exclu du tracking', [
-                    'user_agent' => substr($userAgent, 0, 100),
-                    'ip' => $request->ip()
-                ]);
-                return [
-                    'success' => false,
-                    'error' => 'Bot détecté - tracking exclu',
-                    'bot' => true
-                ];
-            }
             
             $sessionId = Session::getId();
             $submission = Submission::where('session_id', $sessionId)->first();
@@ -102,7 +90,7 @@ class PhoneCallTrackingService
             // Géolocalisation
             $location = $this->ipGeolocationService->getLocationFromIp($ipAddress);
             
-            // Créer l'enregistrement
+            // Créer l'enregistrement (bots inclus mais avec is_bot = true)
             $phoneCall = PhoneCall::create([
                 'submission_id' => $submission ? $submission->id : null,
                 'session_id' => $sessionId,
@@ -110,6 +98,7 @@ class PhoneCallTrackingService
                 'source_page' => $sourcePage,
                 'ip_address' => $ipAddress,
                 'user_agent' => $request->userAgent(),
+                'is_bot' => $isBot, // Marquer comme bot pour pouvoir les filtrer dans les stats
                 'city' => $location['city'],
                 'country' => $location['country'],
                 'country_code' => $location['country_code'],
@@ -117,13 +106,14 @@ class PhoneCallTrackingService
                 'clicked_at' => now(),
             ]);
 
-            Log::info('✅ Appel téléphonique tracké', [
+            Log::info($isBot ? '🤖 Bot - Appel téléphonique tracké' : '✅ Appel téléphonique tracké', [
                 'id' => $phoneCall->id,
                 'phone' => $phoneNumber,
                 'source_page' => $sourcePage,
                 'ip' => $ipAddress,
                 'city' => $location['city'],
-                'country' => $location['country']
+                'country' => $location['country'],
+                'is_bot' => $isBot
             ]);
             
             // Envoyer l'événement à Google Analytics via JavaScript (sera exécuté côté client)

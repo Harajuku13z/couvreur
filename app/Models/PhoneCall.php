@@ -16,6 +16,7 @@ class PhoneCall extends Model
         'source_page',
         'user_agent',
         'ip_address',
+        'is_bot',
         'city',
         'country',
         'country_code',
@@ -25,6 +26,7 @@ class PhoneCall extends Model
 
     protected $casts = [
         'clicked_at' => 'datetime',
+        'is_bot' => 'boolean',
     ];
 
     /**
@@ -58,6 +60,22 @@ class PhoneCall extends Model
     {
         return $query->whereMonth('clicked_at', now()->month)
                      ->whereYear('clicked_at', now()->year);
+    }
+
+    /**
+     * Scope pour exclure les bots
+     */
+    public function scopeExcludeBots($query)
+    {
+        return $query->where('is_bot', false);
+    }
+
+    /**
+     * Scope pour inclure uniquement les bots
+     */
+    public function scopeOnlyBots($query)
+    {
+        return $query->where('is_bot', true);
     }
 }
 
