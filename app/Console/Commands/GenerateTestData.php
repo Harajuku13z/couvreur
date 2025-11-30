@@ -531,23 +531,38 @@ class GenerateTestData extends Command
             $this->info("  ✅ {$devisCount} devis existants supprimés");
         }
 
-        // Types de travaux avec prix unitaires approximatifs
+        // Types de travaux avec prix unitaires réalistes
         $workTypes = [
             'hydrofuge' => [
                 'description' => 'Traitement hydrofuge de toiture',
                 'unite' => 'm²',
-                'prix_unitaire_min' => 8,
-                'prix_unitaire_max' => 15,
-                'surface_min' => 50,
-                'surface_max' => 300,
+                'prix_unitaire_min' => 6,
+                'prix_unitaire_max' => 12,
+                'surface_min' => 80,
+                'surface_max' => 250,
+                'prix_fixe_base' => 1980, // Prix fixe autour de 1980€
+                'variation_percent' => 0.15, // ±15% de variation
             ],
             'demoussage' => [
                 'description' => 'Démoussage et nettoyage de toiture',
                 'unite' => 'm²',
                 'prix_unitaire_min' => 5,
-                'prix_unitaire_max' => 12,
-                'surface_min' => 60,
-                'surface_max' => 350,
+                'prix_unitaire_max' => 10,
+                'surface_min' => 100,
+                'surface_max' => 300,
+                'prix_fixe_base' => 2000, // Prix fixe autour de 2000€
+                'variation_percent' => 0.20, // ±20% de variation
+            ],
+            'isolation' => [
+                'description' => 'Isolation thermique de toiture',
+                'unite' => 'm²',
+                'prix_unitaire_min' => 40,
+                'prix_unitaire_max' => 80,
+                'surface_min' => 50,
+                'surface_max' => 150,
+                'prix_fixe_base' => null, // Prix variable entre 5000 et 8000
+                'prix_min' => 5000,
+                'prix_max' => 8000,
             ],
             'renovation_toiture' => [
                 'description' => 'Rénovation complète de toiture',
@@ -556,14 +571,9 @@ class GenerateTestData extends Command
                 'prix_unitaire_max' => 150,
                 'surface_min' => 40,
                 'surface_max' => 200,
-            ],
-            'isolation' => [
-                'description' => 'Isolation thermique de toiture',
-                'unite' => 'm²',
-                'prix_unitaire_min' => 30,
-                'prix_unitaire_max' => 80,
-                'surface_min' => 30,
-                'surface_max' => 180,
+                'prix_fixe_base' => null, // Prix variable
+                'prix_min' => 8000,
+                'prix_max' => 25000,
             ],
         ];
 
