@@ -23,6 +23,22 @@ class PhoneCallTrackingService
     public function track(Request $request, $phoneNumber = null, $sourcePage = null, $referrerUrl = null)
     {
         try {
+            // Détecter et exclure les bots AVANT tout traitement
+            $userAgent = $request->userAgent();
+            $isBot = \App\Services\BotDetectionService::isBot($userAgent);
+            
+            if ($isBot) {
+                Log::debug('🤖 Bot détecté - appel téléphonique exclu du tracking', [
+                    'user_agent' => substr($userAgent, 0, 100),
+                    'ip' => $request->ip()
+                ]);
+                return [
+                    'success' => false,
+                    'error' => 'Bot détecté - tracking exclu',
+                    'bot' => true
+                ];
+            }
+            
             $sessionId = Session::getId();
             $submission = Submission::where('session_id', $sessionId)->first();
 

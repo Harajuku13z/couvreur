@@ -35,12 +35,20 @@ class VisitTrackingService
                 return null;
             }
 
-            // Détecter si c'est un bot
+            // Détecter si c'est un bot et les exclure complètement
             $userAgent = $request->userAgent();
-            $isBot = $this->isBot($userAgent);
+            $isBot = \App\Services\BotDetectionService::isBot($userAgent);
             
-            // Si c'est un bot, on peut quand même tracker mais avec un flag
-            // ou on peut les ignorer complètement selon les besoins
+            // Exclure complètement les bots - ne pas les tracker
+            if ($isBot) {
+                if (config('app.debug')) {
+                    Log::debug('🤖 Bot détecté et exclu du tracking', [
+                        'user_agent' => substr($userAgent, 0, 100),
+                        'path' => $path
+                    ]);
+                }
+                return null;
+            }
             
             $sessionId = Session::getId();
             $ipAddress = $this->getClientIp($request);
@@ -66,7 +74,7 @@ class VisitTrackingService
                 'device_type' => $deviceInfo['device_type'],
                 'browser' => $deviceInfo['browser'],
                 'os' => $deviceInfo['os'],
-                'is_bot' => $isBot,
+                'is_bot' => false, // On ne track plus les bots, donc toujours false ici
                 'visited_at' => now(),
             ]);
 
@@ -123,42 +131,6 @@ class VisitTrackingService
         return false;
     }
 
-    /**
-     * Détecter si c'est un bot
-     */
-    protected function isBot($userAgent)
-    {
-        if (empty($userAgent)) {
-            return true;
-        }
-
-        $bots = [
-            'googlebot',
-            'bingbot',
-            'slurp',
-            'duckduckbot',
-            'baiduspider',
-            'yandexbot',
-            'sogou',
-            'exabot',
-            'facebot',
-            'ia_archiver',
-            'curl',
-            'wget',
-            'python',
-            'php',
-            'scrapy',
-        ];
-
-        $userAgentLower = strtolower($userAgent);
-        foreach ($bots as $bot) {
-            if (strpos($userAgentLower, $bot) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Détecter le device et le navigateur

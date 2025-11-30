@@ -32,6 +32,9 @@ Route::get('/test-phone-tracking', function () {
     return view('test-phone-tracking');
 })->name('test.phone.tracking');
 
+// Route publique pour le tracking des appels téléphoniques (doit être publique)
+Route::post('/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCall'])->name('api.track.phone.call');
+
         /**
          * ROUTES ULTRA-SIMPLES
          * Navigation directe, pas de AJAX compliqué

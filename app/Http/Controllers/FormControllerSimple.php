@@ -188,15 +188,15 @@ class FormControllerSimple extends Controller
      */
     public function trackPhoneCall(Request $request)
     {
-        // Logger TOUTES les requêtes pour debug (seulement en mode debug pour éviter les logs trop nombreux)
-        if (config('app.debug')) {
-            \Log::info('📞 Requête trackPhoneCall reçue', [
-                'method' => $request->method(),
-                'all_data' => $request->all(),
-                'query' => $request->query(),
-                'ip' => $request->ip(),
-            ]);
-        }
+        // Logger toutes les requêtes pour diagnostic
+        \Log::info('📞 Requête trackPhoneCall reçue', [
+            'method' => $request->method(),
+            'all_data' => $request->all(),
+            'query' => $request->query(),
+            'ip' => $request->ip(),
+            'user_agent' => substr($request->userAgent(), 0, 100),
+            'content_type' => $request->header('Content-Type'),
+        ]);
         
         try {
             // Accepter les données depuis sendBeacon (FormData)
@@ -247,23 +247,39 @@ class FormControllerSimple extends Controller
             $trackingService = new \App\Services\PhoneCallTrackingService();
             $result = $trackingService->track($request, $phoneNumber, $sourcePage, $referrerUrl);
             
-            if ($result['success']) {
-                \Log::info('✅ Appel tracké avec succès', ['id' => $result['id'] ?? 'N/A']);
+            if (isset($result['success']) && $result['success']) {
+                \Log::info('✅ Appel tracké avec succès', [
+                    'id' => $result['id'] ?? 'N/A',
+                    'phone' => $phoneNumber,
+                    'source_page' => $sourcePage
+                ]);
                 // Retourner une réponse simple pour sendBeacon
                 if ($request->wantsJson() || $request->expectsJson()) {
                     return response()->json([
                         'success' => true, 
-                        'id' => $result['id']
+                        'id' => $result['id'] ?? null
                     ]);
                 }
                 // Pour sendBeacon, retourner un simple 200 OK
                 return response('OK', 200);
             } else {
-                \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'));
+                // Si c'est un bot, ne pas logger comme erreur
+                if (isset($result['bot']) && $result['bot']) {
+                    \Log::debug('🤖 Bot détecté - appel non tracké', [
+                        'user_agent' => substr($request->userAgent(), 0, 100)
+                    ]);
+                } else {
+                    \Log::warning('⚠️ Tracking échoué: ' . ($result['error'] ?? 'Erreur inconnue'), [
+                        'phone' => $phoneNumber,
+                        'source_page' => $sourcePage,
+                        'result' => $result
+                    ]);
+                }
+                // Retourner toujours 200 pour ne pas bloquer l'appel
                 return response()->json([
                     'success' => false, 
                     'error' => $result['error'] ?? 'Erreur inconnue'
-                ], 500);
+                ], 200);
             }
         } catch (\Exception $e) {
             \Log::error('❌ Erreur tracking appel téléphonique: ' . $e->getMessage(), [
