@@ -43,18 +43,19 @@
                         <strong>Bots exclus</strong> - Les appels des bots sont trackés mais exclus des statistiques. 
                         <span class="text-gray-600">
                             Appels bots détectés : <strong>{{ $botStats['total'] ?? 0 }}</strong> appels au total
-                            @if(($botStats['today'] ?? 0) > 0 || ($botStats['this_week'] ?? 0) > 0)
-                                (
-                                @if(($botStats['today'] ?? 0) > 0)
-                                    <strong>{{ $botStats['today'] }}</strong> aujourd'hui
-                                    @if(($botStats['this_week'] ?? 0) > 0)
-                                        , 
-                                    @endif
-                                @endif
-                                @if(($botStats['this_week'] ?? 0) > 0)
-                                    <strong>{{ $botStats['this_week'] }}</strong> cette semaine
-                                @endif
-                                )
+                            @php
+                                $botToday = $botStats['today'] ?? 0;
+                                $botWeek = $botStats['this_week'] ?? 0;
+                                $botDetails = [];
+                                if ($botToday > 0) {
+                                    $botDetails[] = '<strong>' . $botToday . '</strong> aujourd\'hui';
+                                }
+                                if ($botWeek > 0) {
+                                    $botDetails[] = '<strong>' . $botWeek . '</strong> cette semaine';
+                                }
+                            @endphp
+                            @if(count($botDetails) > 0)
+                                ({{ implode(', ', $botDetails) }})
                             @endif
                         </span>
                     </p>
