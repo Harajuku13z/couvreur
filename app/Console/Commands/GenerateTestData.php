@@ -508,9 +508,19 @@ class GenerateTestData extends Command
         // Supprimer les devis existants si --force
         if ($this->option('force')) {
             // Ne pas supprimer les clients, seulement les devis
-            LigneDevis::truncate();
+            // Supprimer d'abord les factures liées si la table existe
+            if (Schema::hasTable('factures')) {
+                \DB::table('factures')->whereIn('devis_id', function($query) {
+                    $query->select('id')->from('devis');
+                })->delete();
+            }
+            
+            // Supprimer les lignes de devis
+            LigneDevis::query()->delete();
+            
+            // Supprimer les devis (delete au lieu de truncate pour respecter les contraintes)
             $devisCount = Devis::count();
-            Devis::truncate();
+            Devis::query()->delete();
             $this->info("  ✅ {$devisCount} devis existants supprimés");
         }
 
