@@ -888,6 +888,102 @@ class GenerateTestData extends Command
         if ($facturesAnnuleesCreated > 0) {
             $this->info("     - {$facturesAnnuleesCreated} Annulées");
         }
+        
+        // Générer des factures historiques supplémentaires pour atteindre 515 678€ de CA total
+        // Ces factures ne sont pas liées aux devis acceptés récents
+        $this->generateFacturesHistoriques();
+    }
+    
+    /**
+     * Générer des factures historiques pour compléter le CA total
+     */
+    protected function generateFacturesHistoriques()
+    {
+        // Objectif : CA total = 515 678€
+        // Calculer le CA actuel (factures payées + devis acceptés sans facture payée)
+        $caActuel = Facture::where('statut', 'Payée')->sum('prix_total_ttc');
+        $caDevisAcceptes = Devis::where('statut', 'Accepté')
+            ->whereDoesntHave('facture', function($q) {
+                $q->where('statut', 'Payée');
+            })
+            ->sum('total_ttc');
+        $caTotalActuel = $caActuel + $caDevisAcceptes;
+        
+        $targetCATotal = 515678;
+        $caManquant = $targetCATotal - $caTotalActuel;
+        
+        if ($caManquant <= 0) {
+            $this->info("  ℹ️  CA total déjà atteint ou dépassé. Pas de factures historiques nécessaires.");
+            return;
+        }
+        
+        // Créer quelques clients supplémentaires pour les factures historiques
+        $clientsHistoriques = [];
+        for ($i = 0; $i < 5; $i++) {
+            $city = $this->villesCoteDor[array_rand($this->villesCoteDor)];
+            $cityName = array_search($city, $this->villesCoteDor);
+            $prenoms = ['Jean', 'Marie', 'Pierre', 'Sophie', 'Michel', 'Catherine'];
+            $noms = ['Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert'];
+            
+            $client = Client::create([
+                'nom' => $noms[array_rand($noms)],
+                'prenom' => $prenoms[array_rand($prenoms)],
+                'email' => strtolower(str_replace(' ', '.', $prenoms[array_rand($prenoms)])) . '.' . strtolower($noms[array_rand($noms)]) . rand(1000, 9999) . '@example.fr',
+                'telephone' => '0' . rand(6, 7) . rand(10000000, 99999999),
+                'adresse' => rand(1, 99) . ' Rue ' . $cityName,
+                'code_postal' => '21' . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
+                'ville' => $cityName,
+                'pays' => 'France',
+            ]);
+            $clientsHistoriques[] = $client;
+        }
+        
+        // Créer des factures historiques (dates passées)
+        $facturesHistoriquesCreated = 0;
+        $montantRestant = $caManquant;
+        $nombreFactures = max(3, min(10, (int)($caManquant / 15000))); // Entre 3 et 10 factures
+        
+        for ($i = 0; $i < $nombreFactures && $montantRestant > 1000; $i++) {
+            $client = $clientsHistoriques[array_rand($clientsHistoriques)];
+            
+            // Montant entre 5000 et min(30000, montant restant)
+            $montantFacture = $i === $nombreFactures - 1 
+                ? $montantRestant // Dernière facture : prendre tout le reste
+                : rand(5000, min(30000, (int)($montantRestant * 0.8)));
+            
+            $montantHT = $montantFacture / 1.20; // TVA 20%
+            
+            // Date aléatoire entre 6 mois et 2 ans dans le passé
+            $dateEmission = Carbon::now()->subMonths(rand(6, 24))->subDays(rand(0, 30));
+            $dateEcheance = $dateEmission->copy()->addDays(30);
+            $datePaiement = $dateEmission->copy()->addDays(rand(1, 30));
+            
+            try {
+                $facture = Facture::create([
+                    'devis_id' => null, // Facture historique sans devis
+                    'client_id' => $client->id,
+                    'date_emission' => $dateEmission,
+                    'date_echeance' => $dateEcheance,
+                    'date_paiement' => $datePaiement,
+                    'prix_total_ht' => $montantHT,
+                    'taux_tva' => 20.00,
+                    'prix_total_ttc' => $montantFacture,
+                    'montant_paye' => $montantFacture,
+                    'statut' => 'Payée',
+                ]);
+                
+                $montantRestant -= $montantFacture;
+                $facturesHistoriquesCreated++;
+            } catch (\Exception $e) {
+                \Log::error('Erreur création facture historique', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        if ($facturesHistoriquesCreated > 0) {
+            $this->info("  ✅ {$facturesHistoriquesCreated} factures historiques créées (CA supplémentaire: " . number_format($caManquant - $montantRestant, 2, ',', ' ') . " €)");
+        }
     }
 
     /**
