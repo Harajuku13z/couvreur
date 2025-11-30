@@ -218,15 +218,20 @@ class GenerateTestData extends Command
         $cityData = $this->villesCoteDor[$cityName] ?? ['country' => 'France', 'country_code' => 'FR'];
         
         for ($i = 0; $i < $count; $i++) {
-            // Date aléatoire dans la période
-            $randomDays = rand(0, $startDate->diffInDays($endDate));
-            $randomHours = rand(8, 20); // Entre 8h et 20h
-            $randomMinutes = rand(0, 59);
-            $randomSeconds = rand(0, 59);
+            // Date aléatoire dans la période (inclus les deux dates)
+            // Calculer le timestamp min et max pour garantir la couverture complète
+            $startTimestamp = $startDate->timestamp;
+            $endTimestamp = $endDate->timestamp;
+            $randomTimestamp = rand($startTimestamp, $endTimestamp);
             
-            $clickedAt = $startDate->copy()
-                ->addDays($randomDays)
-                ->setTime($randomHours, $randomMinutes, $randomSeconds);
+            $clickedAt = Carbon::createFromTimestamp($randomTimestamp);
+            
+            // S'assurer que l'heure est entre 8h et 20h pour les appels
+            if ($clickedAt->hour < 8) {
+                $clickedAt->setTime(rand(8, 12), rand(0, 59), rand(0, 59));
+            } elseif ($clickedAt->hour > 20) {
+                $clickedAt->setTime(rand(14, 20), rand(0, 59), rand(0, 59));
+            }
             
             // IP aléatoire française (plages privées pour test)
             $ipPrefixes = ['192.168.', '10.0.', '172.16.'];
@@ -316,15 +321,13 @@ class GenerateTestData extends Command
         $villesKeys = array_keys($this->villesCoteDor);
         
         for ($i = 0; $i < $count; $i++) {
-            // Date aléatoire dans la période
-            $randomDays = rand(0, $startDate->diffInDays($endDate));
-            $randomHours = rand(0, 23);
-            $randomMinutes = rand(0, 59);
-            $randomSeconds = rand(0, 59);
+            // Date aléatoire dans la période (inclus les deux dates)
+            // Calculer le timestamp min et max pour garantir la couverture complète
+            $startTimestamp = $startDate->timestamp;
+            $endTimestamp = $endDate->timestamp;
+            $randomTimestamp = rand($startTimestamp, $endTimestamp);
             
-            $visitedAt = $startDate->copy()
-                ->addDays($randomDays)
-                ->setTime($randomHours, $randomMinutes, $randomSeconds);
+            $visitedAt = Carbon::createFromTimestamp($randomTimestamp);
             
             // Ville aléatoire (plus de Chevigny)
             $cityName = $villesKeys[array_rand($villesKeys)];
