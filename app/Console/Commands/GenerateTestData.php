@@ -917,13 +917,3 @@ class GenerateTestData extends Command
         $this->info("     - 1 Chenôve");
     }
 }
-
-
-        $this->info("  ✅ {$submissionsCreated} soumissions créées");
-        $this->info("     - 9 Chevigny-Saint-Sauveur");
-        $this->info("     - 3 Dijon");
-        $this->info("     - 2 Beaune");
-        $this->info("     - 2 Quetigny");
-        $this->info("     - 1 Chenôve");
-    }
-}
