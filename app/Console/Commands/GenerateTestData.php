@@ -577,8 +577,8 @@ class GenerateTestData extends Command
             ],
         ];
 
-        // Dates pour novembre 2025
-        $startDate = Carbon::create(2025, 11, 1, 0, 0, 0);
+        // Dates pour octobre-novembre 2025
+        $startDate = Carbon::create(2025, 10, 28, 0, 0, 0);
         $endDate = Carbon::create(2025, 11, 30, 23, 59, 59);
 
         // Créer 32 devis au total : 11 acceptés, le reste réparti entre refusés, en attente et brouillons
@@ -594,27 +594,36 @@ class GenerateTestData extends Command
         $totalDevis = $acceptedCount + $refusedCount + $pendingCount + $draftCount; // 32 total
         
         // Répartition des 32 devis
-        // Total CA souhaité : 87.556 € TTC (pour les devis acceptés uniquement)
-        // Avec TVA à 20% : 87.556 / 1.20 = 72.963,33 € HT
-        $totalTTCAccepted = 87556;
+        // Total CA souhaité : 58.000 € TTC (pour les devis acceptés uniquement)
+        // Total CA souhaité tous devis : 100.000 € TTC
+        // Avec TVA à 20% : 58.000 / 1.20 = 48.333,33 € HT pour acceptés
+        $totalTTCAccepted = 58000;
         $totalHTAccepted = $totalTTCAccepted / 1.20; // TVA 20%
-        $averageHTPerAcceptedDevis = $acceptedCount > 0 ? $totalHTAccepted / $acceptedCount : 0;
         
-        // Pour les autres devis (refusés, en attente, brouillons), montants plus variables
-        $averageHTPerOtherDevis = $averageHTPerAcceptedDevis > 0 ? $averageHTPerAcceptedDevis * 0.8 : 10000; // 20% de moins en moyenne
+        $totalTTCAll = 100000;
+        $totalHTAll = $totalTTCAll / 1.20; // TVA 20%
+
+        // Répartition des types de travaux
+        $repartition = [
+            'hydrofuge' => 10,
+            'demoussage' => 10,
+            'isolation' => 7,
+            'renovation_toiture' => 5,
+        ];
         
+        // Créer une liste de statuts à alterner
+        $statutsList = [];
+        for ($i = 0; $i < $acceptedCount; $i++) $statutsList[] = 'Accepté';
+        for ($i = 0; $i < $refusedCount; $i++) $statutsList[] = 'Refusé';
+        for ($i = 0; $i < $pendingCount; $i++) $statutsList[] = 'En Attente';
+        for ($i = 0; $i < $draftCount; $i++) $statutsList[] = 'Brouillon';
+        shuffle($statutsList); // Mélanger pour alterner
+        
+        $statutIndex = 0;
         $acceptedCreated = 0;
         $refusedCreated = 0;
         $pendingCreated = 0;
         $draftCreated = 0;
-
-        // Répartition des types de travaux : augmenter pour arriver à 32 devis
-        $repartition = [
-            'hydrofuge' => 8,
-            'demoussage' => 8,
-            'renovation_toiture' => 10,
-            'isolation' => 6,
-        ];
 
         foreach ($repartition as $workType => $count) {
             $workConfig = $workTypes[$workType];
@@ -638,45 +647,81 @@ class GenerateTestData extends Command
                     'pays' => 'France',
                 ]);
 
-                // Date aléatoire dans novembre 2025
+                // Date aléatoire dans la période
                 $randomTimestamp = rand($startDate->timestamp, $endDate->timestamp);
                 $dateEmission = Carbon::createFromTimestamp($randomTimestamp);
                 $dateValidite = $dateEmission->copy()->addDays(30);
 
-                // Surface pour ce type de travail
-                $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
-
-                // Déterminer le statut selon la répartition définie
-                $statut = 'Brouillon'; // Par défaut
-                if ($acceptedCreated < $acceptedCount) {
-                    $statut = 'Accepté';
-                    $acceptedCreated++;
-                    
-                    // Calculer le montant HT pour les acceptés
-                    if ($acceptedCreated === $acceptedCount) {
-                        // Dernier devis accepté : ajuster pour atteindre exactement le total de 87.556€ TTC
-                        $remainingHT = $totalHTAccepted - $totalAcceptedHT;
-                        $devisHT = max($averageHTPerAcceptedDevis * 0.5, $remainingHT); // Minimum 50% du montant moyen
-                    } else {
-                        // Pour les autres acceptés, utiliser le montant moyen avec variation
-                        $devisHT = $averageHTPerAcceptedDevis * (0.9 + (rand(0, 20) / 100)); // Variation 90-110%
-                    }
-                } elseif ($refusedCreated < $refusedCount) {
-                    $statut = 'Refusé';
-                    $refusedCreated++;
-                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
-                } elseif ($pendingCreated < $pendingCount) {
-                    $statut = 'En Attente';
-                    $pendingCreated++;
-                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
-                } elseif ($draftCreated < $draftCount) {
-                    $statut = 'Brouillon';
-                    $draftCreated++;
-                    $devisHT = $averageHTPerOtherDevis * (0.8 + (rand(0, 40) / 100)); // Variation 80-120%
+                // Déterminer le statut en alternant
+                $statut = $statutsList[$statutIndex] ?? 'Brouillon';
+                $statutIndex++;
+                
+                // Incrémenter les compteurs
+                switch ($statut) {
+                    case 'Accepté':
+                        $acceptedCreated++;
+                        break;
+                    case 'Refusé':
+                        $refusedCreated++;
+                        break;
+                    case 'En Attente':
+                        $pendingCreated++;
+                        break;
+                    case 'Brouillon':
+                        $draftCreated++;
+                        break;
                 }
 
-                // Calculer le prix unitaire selon le montant HT
-                $prixUnitaire = $devisHT / $surface;
+                // Calculer le prix selon le type de travail
+                if (isset($workConfig['prix_fixe_base'])) {
+                    // Pour hydrofuge et demoussage : prix fixe autour d'une base
+                    $variation = 1 + ((rand(-100, 100) / 100) * $workConfig['variation_percent']);
+                    $devisHT = $workConfig['prix_fixe_base'] * $variation;
+                    $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
+                    $prixUnitaire = $devisHT / $surface;
+                } elseif (isset($workConfig['prix_min']) && isset($workConfig['prix_max'])) {
+                    // Pour isolation et rénovation : prix entre min et max
+                    $devisHT = rand($workConfig['prix_min'], $workConfig['prix_max']);
+                    $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
+                    $prixUnitaire = $devisHT / $surface;
+                } else {
+                    // Fallback : calcul classique
+                    $surface = rand($workConfig['surface_min'], $workConfig['surface_max']);
+                    $prixUnitaire = rand(
+                        (int)($workConfig['prix_unitaire_min'] * 100),
+                        (int)($workConfig['prix_unitaire_max'] * 100)
+                    ) / 100;
+                    $devisHT = $surface * $prixUnitaire;
+                }
+                
+                // Ajuster les montants pour atteindre les objectifs
+                if ($statut === 'Accepté') {
+                    // Calculer le montant restant à atteindre pour les acceptés
+                    $remainingAccepted = $acceptedCount - $acceptedCreated + 1; // +1 car on vient d'incrémenter
+                    if ($remainingAccepted === 1) {
+                        // Dernier devis accepté : ajuster pour atteindre 58.000€ TTC
+                        $remainingHT = $totalHTAccepted - $totalAcceptedHT;
+                        $devisHT = max($devisHT * 0.7, $remainingHT); // Ajuster mais garder cohérence
+                    } else {
+                        // Ajuster pour approcher la moyenne
+                        $averageHTAccepted = $totalHTAccepted / $acceptedCount;
+                        $devisHT = ($devisHT * 0.3) + ($averageHTAccepted * 0.7); // Mélanger prix réaliste et objectif
+                    }
+                    // Recalculer prix unitaire si nécessaire
+                    if (isset($workConfig['prix_fixe_base'])) {
+                        $prixUnitaire = $devisHT / $surface;
+                    }
+                } else {
+                    // Pour les autres statuts, ajuster pour atteindre 100.000€ total
+                    $remainingAll = $totalDevis - $devisCreated;
+                    if ($remainingAll > 0) {
+                        $remainingHTAll = $totalHTAll - $totalGeneratedHT;
+                        $averageRemainingHT = $remainingHTAll / $remainingAll;
+                        // Mélanger prix réaliste et objectif (70% réaliste, 30% objectif)
+                        $devisHT = ($devisHT * 0.7) + ($averageRemainingHT * 0.3);
+                        $prixUnitaire = $devisHT / $surface;
+                    }
+                }
 
                 // Créer le devis
                 $devis = Devis::create([
