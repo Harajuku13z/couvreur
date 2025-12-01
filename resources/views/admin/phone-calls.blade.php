@@ -438,9 +438,13 @@
             referrer_url: document.referrer || window.location.href
         };
         
-        console.log('🧪 Test tracking avec payload:', payload);
+        // Utiliser l'URL absolue basée sur le domaine actuel
+        const apiUrl = '{{ url("/api/track-phone-call") }}';
         
-        fetch('/api/track-phone-call', {
+        console.log('🧪 Test tracking avec payload:', payload);
+        console.log('🌐 URL API:', apiUrl);
+        
+        fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -698,5 +702,11 @@ function toggleBots() {
     }
     window.location.href = url.toString();
 }
+</script>
+@endsection
+
+</script>
+@endsection
+
 </script>
 @endsection

@@ -6,8 +6,8 @@
 (function() {
     'use strict';
     
-    // Configuration
-    const TRACKING_ENDPOINT = '/api/track-phone-call';
+    // Configuration - Utiliser URL absolue pour fonctionner sur plusieurs domaines
+    const TRACKING_ENDPOINT = (window.location.origin || window.location.protocol + '//' + window.location.host) + '/api/track-phone-call';
     const RETRY_DELAYS = [100, 500, 1000, 2000];
     
     // État global
