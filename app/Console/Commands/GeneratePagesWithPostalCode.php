@@ -20,15 +20,14 @@ class GeneratePagesWithPostalCode extends Command
                             {--template= : ID du template d\'annonce à utiliser}
                             {--city= : Slug de la ville ou ID}
                             {--all : Générer pour toutes les villes actives}
-                            {--force : Supprimer les pages existantes avant création}
-                            {--update : Mettre à jour les pages existantes}';
+                            {--force : Supprimer les pages existantes avec code postal avant création}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Générer des copies de pages d\'annonces avec code postal dans le titre et optimisation SEO';
+    protected $description = 'Créer de nouvelles pages d\'annonces avec code postal dans le titre, slug et optimisation SEO';
 
     /**
      * Execute the console command.
@@ -42,7 +41,6 @@ class GeneratePagesWithPostalCode extends Command
         $cityOption = $this->option('city');
         $generateAll = $this->option('all');
         $force = $this->option('force');
-        $update = $this->option('update');
 
         // Vérifier si on a un template spécifique
         if (!$templateId && !$generateAll) {
@@ -67,13 +65,13 @@ class GeneratePagesWithPostalCode extends Command
             
             foreach ($templates as $template) {
                 foreach ($cities as $city) {
-                    $created = $this->generatePagesForCityAndTemplate($template, $city, $force, $update);
+                    $created = $this->generatePagesForCityAndTemplate($template, $city, $force);
                     $totalCreated += $created;
                 }
             }
             
             $this->info('');
-            $this->info("✅ {$totalCreated} page(s) générée(s)/mise(s) à jour au total");
+            $this->info("✅ {$totalCreated} nouvelle(s) page(s) créée(s) au total");
             return 0;
         }
 
@@ -95,9 +93,9 @@ class GeneratePagesWithPostalCode extends Command
                 return 1;
             }
 
-            $created = $this->generatePagesForCityAndTemplate($template, $city, $force, $update);
+            $created = $this->generatePagesForCityAndTemplate($template, $city, $force);
             $this->info('');
-            $this->info("✅ {$created} page(s) générée(s)/mise(s) à jour");
+            $this->info("✅ {$created} nouvelle(s) page(s) créée(s)");
             return 0;
         }
 
@@ -108,37 +106,44 @@ class GeneratePagesWithPostalCode extends Command
 
         $totalCreated = 0;
         foreach ($cities as $city) {
-            $created = $this->generatePagesForCityAndTemplate($template, $city, $force, $update);
+            $created = $this->generatePagesForCityAndTemplate($template, $city, $force);
             $totalCreated += $created;
         }
 
         $this->info('');
-        $this->info("✅ {$totalCreated} page(s) générée(s)/mise(s) à jour au total");
+        $this->info("✅ {$totalCreated} nouvelle(s) page(s) créée(s) au total");
         return 0;
     }
 
     /**
      * Générer des pages pour une ville et un template donnés
+     * Crée de NOUVELLES pages avec code postal dans le slug
      */
-    protected function generatePagesForCityAndTemplate($template, $city, $force = false, $update = false)
+    protected function generatePagesForCityAndTemplate($template, $city, $force = false)
     {
-        // Vérifier si une annonce existe déjà
+        // Créer un nouveau slug avec le code postal
         $keyword = $template->keyword ?? $template->service_name ?? 'service';
-        $existingSlug = Str::slug($keyword . '-' . $city->name);
+        $postalCode = $city->postal_code ?? '';
         
-        // Si force, supprimer l'annonce existante
-        if ($force) {
-            $existingAd = Ad::where('slug', $existingSlug)->first();
-            if ($existingAd) {
-                $existingAd->delete();
-                $this->info("  🗑️  Annonce existante supprimée: {$existingSlug}");
-            }
+        // Créer le slug avec code postal pour créer une nouvelle page
+        if ($postalCode) {
+            $newSlug = Str::slug($keyword . '-' . $postalCode . '-' . $city->name);
+        } else {
+            $newSlug = Str::slug($keyword . '-' . $city->name);
         }
-
-        // Vérifier si l'annonce existe déjà
-        $existingAd = Ad::where('slug', $existingSlug)->first();
-        if ($existingAd && !$update && !$force) {
-            $this->warn("  ⚠️  Annonce déjà existante: {$existingSlug} (utilisez --update pour la mettre à jour ou --force pour la recréer)");
+        
+        // Vérifier si une page avec ce slug (avec code postal) existe déjà
+        $existingAdWithPostalCode = Ad::where('slug', $newSlug)->first();
+        
+        // Si force, supprimer la page existante avec code postal
+        if ($force && $existingAdWithPostalCode) {
+            $existingAdWithPostalCode->delete();
+            $this->info("  🗑️  Page existante supprimée: {$newSlug}");
+        }
+        
+        // Si la page avec code postal existe déjà, la passer
+        if ($existingAdWithPostalCode && !$force) {
+            $this->warn("  ⚠️  Page avec code postal déjà existante: {$newSlug} (utilisez --force pour la recréer)");
             return 0;
         }
 
@@ -182,28 +187,16 @@ class GeneratePagesWithPostalCode extends Command
         $contentHtml = $this->generateContentWithPostalCode($template, $city, $mainKeyword, $postalCode, $keywords);
 
         try {
-            // Si l'annonce existe déjà et qu'on veut la mettre à jour
-            if ($existingAd && ($update || $force)) {
-                $existingAd->update([
-                    'title' => $titleWithPostalCode,
-                    'meta_title' => $titleWithPostalCode,
-                    'meta_description' => $description,
-                    'meta_keywords' => $keywords,
-                    'content_html' => $contentHtml,
-                ]);
-                
-                    $action = $force ? 'recréée' : 'mise à jour';
-                $this->info("  ✅ Page {$action}: {$titleWithPostalCode} ({$city->name} - {$postalCode})");
-                return 1;
-            }
+            // Vérifier que le slug est unique (au cas où)
+            $uniqueSlug = $this->generateUniqueSlug($newSlug);
             
-            // Créer la nouvelle annonce
+            // Créer la NOUVELLE annonce avec code postal dans le slug
             $ad = Ad::create([
                 'title' => $titleWithPostalCode,
                 'keyword' => $mainKeyword,
                 'city_id' => $city->id,
                 'template_id' => $template->id,
-                'slug' => $existingSlug,
+                'slug' => $uniqueSlug,
                 'status' => 'published',
                 'meta_title' => $titleWithPostalCode,
                 'meta_description' => $description,
@@ -212,7 +205,7 @@ class GeneratePagesWithPostalCode extends Command
                 'published_at' => Carbon::now(),
             ]);
 
-            $this->info("  ✅ Page créée: {$titleWithPostalCode} ({$city->name} - {$postalCode})");
+            $this->info("  ✅ Nouvelle page créée: {$titleWithPostalCode} ({$city->name} - {$postalCode}) [slug: {$uniqueSlug}]");
             return 1;
         } catch (\Exception $e) {
             $this->error("  ❌ Erreur lors de la création: " . $e->getMessage());
@@ -353,6 +346,22 @@ class GeneratePagesWithPostalCode extends Command
         return '<div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">' . 
                htmlspecialchars($keywordsText) . 
                '</div>';
+    }
+    
+    /**
+     * Générer un slug unique
+     */
+    protected function generateUniqueSlug($baseSlug)
+    {
+        $slug = $baseSlug;
+        $counter = 1;
+        
+        while (Ad::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+        
+        return $slug;
     }
 }
 
