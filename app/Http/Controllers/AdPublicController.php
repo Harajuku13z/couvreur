@@ -191,7 +191,6 @@ class AdPublicController extends Controller
         // Retourner des mots-clés uniques
         return array_unique(array_filter($keywords));
     }
-    }
 }
 
 
