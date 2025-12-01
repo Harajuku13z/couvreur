@@ -461,31 +461,30 @@
 @push('head')
 <!-- Schema.org Structured Data pour SEO -->
 <script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "serviceType": "{{ $mainKeyword ?? 'Service' }}",
-    "provider": {
-        "@type": "LocalBusiness",
-        "name": "{{ setting('company_name', 'Votre Entreprise') }}",
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "{{ $cityModel->name ?? '' }}",
-            "postalCode": "{{ $cityModel->postal_code ?? '' }}",
-            "addressCountry": "FR"
-        },
-        "telephone": "{{ setting('company_phone_raw', '') }}",
-        "url": "{{ url('/') }}"
-    },
-    "areaServed": {
-        "@type": "City",
-        "name": "{{ $cityModel->name ?? '' }}",
-        "postalCode": "{{ $cityModel->postal_code ?? '' }}"
-    },
-    "description": "@json(strip_tags($pageDescription ?? ''))"@if(!empty($extendedKeywords)),
-    "keywords": "@json(implode(', ', array_slice($extendedKeywords, 0, 10)))"@endif,
-    "url": "@json(url()->current())"
-}
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'Service',
+    'serviceType' => $mainKeyword ?? 'Service',
+    'provider' => [
+        '@type' => 'LocalBusiness',
+        'name' => setting('company_name', 'Votre Entreprise'),
+        'address' => [
+            '@type' => 'PostalAddress',
+            'addressLocality' => $cityModel->name ?? '',
+            'postalCode' => $cityModel->postal_code ?? '',
+            'addressCountry' => 'FR'
+        ],
+        'telephone' => setting('company_phone_raw', ''),
+        'url' => url('/')
+    ],
+    'areaServed' => [
+        '@type' => 'City',
+        'name' => $cityModel->name ?? '',
+        'postalCode' => $cityModel->postal_code ?? ''
+    ],
+    'description' => strip_tags($pageDescription ?? ''),
+    'url' => url()->current()
+] + (!empty($extendedKeywords) ? ['keywords' => implode(', ', array_slice($extendedKeywords, 0, 10))] : []), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 @endpush
 
