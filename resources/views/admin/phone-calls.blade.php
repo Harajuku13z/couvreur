@@ -704,9 +704,3 @@ function toggleBots() {
 }
 </script>
 @endsection
-
-</script>
-@endsection
-
-</script>
-@endsection
