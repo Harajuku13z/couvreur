@@ -266,14 +266,14 @@
                     <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach(array_slice($portfolioItems, 0, 6) as $portfolioItem)
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    @foreach(array_slice($portfolioItems, 0, 4) as $portfolioItem)
                     @if(is_array($portfolioItem) && !empty($portfolioItem['images']) && is_array($portfolioItem['images']))
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                         <div class="relative">
                             <img src="{{ asset($portfolioItem['images'][0]) }}" 
                                  alt="{{ ($mainKeyword ?? '') . ' ' . ($portfolioItem['title'] ?? 'Réalisation') . ($cityModel->postal_code ? ' ' . $cityModel->postal_code : '') }}" 
-                                 class="w-full h-48 object-cover">
+                                 class="w-full h-64 object-cover">
                             <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                                 <div class="opacity-0 hover:opacity-100 transition-opacity duration-300">
                                     <i class="fas fa-search-plus text-white text-2xl"></i>
@@ -320,7 +320,7 @@
                     @endforeach
                 </div>
                 
-                @if(count($portfolioItems) > 6)
+                @if(count($portfolioItems) > 4)
                 <div class="text-center mt-8">
                     <a href="{{ route('portfolio.index') }}" 
                        class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
