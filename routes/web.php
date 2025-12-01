@@ -232,11 +232,7 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 Route::get('/simulateur', [App\Http\Controllers\CostSimulatorController::class, 'index'])->name('simulator.index');
 Route::post('/simulateur/calculate', [App\Http\Controllers\CostSimulatorController::class, 'calculate'])->name('simulator.calculate');
 
-// Routes publiques pour les annonces
-Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
-Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show');
-
-// Redirection 301 de /annonces/* vers /ads/* pour préserver le SEO
+// Redirection 301 de /annonces/* vers /ads/* pour préserver le SEO (AVANT les routes /ads)
 Route::get('/annonces/{slug}', function ($slug) {
     return redirect()->route('ads.show', ['slug' => $slug], 301);
 })->where('slug', '.*')->name('annonces.show');
@@ -245,6 +241,10 @@ Route::get('/annonces/{slug}', function ($slug) {
 Route::get('/annonces', function () {
     return redirect()->route('ads.index', [], 301);
 })->name('annonces.index');
+
+// Routes publiques pour les annonces
+Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
+Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show');
 
 // Routes publiques pour les avis
 Route::get('/reviews', [FormControllerSimple::class, 'allReviews'])->name('reviews.all');
