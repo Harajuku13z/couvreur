@@ -477,6 +477,28 @@ Route::get('/sitemap_index.xml', function () {
     }
     // Si le fichier n'existe pas, générer via le contrôleur
     $controller = app(\App\Http\Controllers\SitemapController::class);
+});
+
+// Route pour l'index de sitemap dans le dossier sitemap/
+Route::get('/sitemap/sitemap_index.xml', function () {
+    $indexPath = public_path('sitemap/sitemap_index.xml');
+    if (file_exists($indexPath)) {
+        return response(file_get_contents($indexPath), 200)
+            ->header('Content-Type', 'application/xml');
+    }
+    // Si le fichier n'existe pas, générer l'index
+    try {
+        $sitemapService = app(\App\Services\SitemapService::class);
+        $result = $sitemapService->generateSitemapIndex();
+        if ($result['success'] && file_exists($indexPath)) {
+            return response(file_get_contents($indexPath), 200)
+                ->header('Content-Type', 'application/xml');
+        }
+    } catch (\Exception $e) {
+        \Log::error('Erreur génération index sitemap: ' . $e->getMessage());
+    }
+    abort(404, 'Sitemap index not found');
+})->name('sitemap.index');
     return $controller->index();
 })->name('sitemap_index.xml');
 

@@ -140,6 +140,31 @@
         </div>
     </div>
 
+    <!-- Index de Sitemap -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-purple-500">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-list mr-3"></i>Index de Sitemap
+        </h2>
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <p class="text-sm text-gray-700 mb-2">
+                <strong>URL de l'index de sitemap :</strong>
+            </p>
+            <div class="flex items-center justify-between bg-white rounded-lg p-3 border border-purple-300">
+                <code class="text-purple-700 font-mono text-sm flex-1 break-all">
+                    {{ $siteUrl }}/sitemap/sitemap_index.xml
+                </code>
+                <a href="{{ $siteUrl }}/sitemap/sitemap_index.xml" target="_blank" 
+                   class="ml-4 inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition">
+                    <i class="fas fa-external-link-alt mr-2"></i>Ouvrir
+                </a>
+            </div>
+            <p class="text-xs text-gray-600 mt-3">
+                <i class="fas fa-info-circle mr-1"></i>Cet index référence tous les sitemaps du site. 
+                Vous pouvez le soumettre à Google Search Console.
+            </p>
+        </div>
+    </div>
+
     <!-- Liste des Sitemaps -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
@@ -229,6 +254,12 @@
                         <p class="font-semibold mb-1">Info Sitemaps</p>
                         <p>Le sitemap principal est <code class="bg-blue-200 px-2 py-1 rounded">sitemap.xml</code>. 
                         Si vous avez beaucoup d'URLs (> 2000), plusieurs fichiers sont créés automatiquement.</p>
+                        <p class="mt-2">
+                            <strong>Index de sitemap :</strong> 
+                            <a href="{{ url('/sitemap/sitemap_index.xml') }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                {{ url('/sitemap/sitemap_index.xml') }}
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>

@@ -104,10 +104,14 @@ class IndexationController extends Controller
             $result = $sitemapService->generateSitemap();
             
             if ($result['success']) {
+                // Générer aussi l'index de sitemap
+                $indexResult = $sitemapService->generateSitemapIndex();
+                
                 return response()->json([
                     'success' => true,
                     'message' => 'Sitemap régénéré avec succès',
-                    'total_urls' => $result['total_urls'] ?? 0
+                    'total_urls' => $result['total_urls'] ?? 0,
+                    'index_url' => $indexResult['url'] ?? null
                 ]);
             }
             

@@ -220,16 +220,17 @@ class SitemapService
     }
 
     /**
-     * Générer un sitemap index (DÉSACTIVÉ - on n'utilise plus sitemap_index.xml)
+     * Générer un sitemap index (DÉSACTIVÉ - on n'utilise plus sitemap_index.xml dans public/)
+     * Cette méthode est conservée pour compatibilité mais ne fait rien
      */
-    protected function generateSitemapIndex($sitemapFiles)
+    protected function generateSitemapIndexOld($sitemapFiles)
     {
-        // DÉSACTIVÉ : On ne génère plus de sitemap_index.xml
+        // DÉSACTIVÉ : On ne génère plus de sitemap_index.xml dans public/
         // Google préfère sitemap.xml avec 2000 URLs et les autres sitemap2.xml, sitemap3.xml, etc.
         // Les autres sitemaps peuvent être découverts via robots.txt ou soumission manuelle
         Log::info("ℹ️ Sitemap index désactivé - utilisation de sitemap.xml avec 2000 URLs");
         
-        // Supprimer sitemap_index.xml s'il existe
+        // Supprimer sitemap_index.xml s'il existe dans public/
         $indexPath = public_path('sitemap_index.xml');
         if (file_exists($indexPath)) {
             unlink($indexPath);
@@ -406,6 +407,88 @@ class SitemapService
     public function updateSitemap()
     {
         return $this->generateSitemap();
+    }
+
+    /**
+     * Générer un index de sitemap dans le dossier sitemap/
+     * Cet index référence tous les sitemaps disponibles
+     */
+    public function generateSitemapIndex()
+    {
+        try {
+            Log::info('📋 Génération de l\'index de sitemap dans sitemap/...');
+            
+            // S'assurer que le dossier sitemap existe
+            $sitemapDir = public_path('sitemap');
+            if (!is_dir($sitemapDir)) {
+                mkdir($sitemapDir, 0755, true);
+                Log::info("📁 Dossier sitemap créé: {$sitemapDir}");
+            }
+            
+            // Trouver tous les fichiers sitemap*.xml dans public/
+            $sitemapFiles = glob(public_path('sitemap*.xml'));
+            $sitemapUrls = [];
+            
+            foreach ($sitemapFiles as $file) {
+                $filename = basename($file);
+                
+                // Ignorer sitemap_index.xml s'il existe dans public/
+                if ($filename === 'sitemap_index.xml') {
+                    continue;
+                }
+                
+                // Construire l'URL complète du sitemap
+                $sitemapUrl = $this->baseUrl . '/' . $filename;
+                $sitemapUrls[] = [
+                    'url' => $sitemapUrl,
+                    'lastmod' => file_exists($file) ? date('c', filemtime($file)) : Carbon::now()->format('c')
+                ];
+                
+                Log::info("  ✓ Ajouté au index: {$filename}");
+            }
+            
+            if (empty($sitemapUrls)) {
+                Log::warning("⚠️ Aucun sitemap trouvé pour l'index");
+                return [
+                    'success' => false,
+                    'error' => 'Aucun sitemap trouvé'
+                ];
+            }
+            
+            // Générer le XML de l'index
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            
+            foreach ($sitemapUrls as $sitemap) {
+                $xml .= '  <sitemap>' . "\n";
+                $xml .= '    <loc>' . htmlspecialchars($sitemap['url']) . '</loc>' . "\n";
+                $xml .= '    <lastmod>' . htmlspecialchars($sitemap['lastmod']) . '</lastmod>' . "\n";
+                $xml .= '  </sitemap>' . "\n";
+            }
+            
+            $xml .= '</sitemapindex>';
+            
+            // Sauvegarder l'index dans sitemap/sitemap_index.xml
+            $indexPath = $sitemapDir . '/sitemap_index.xml';
+            file_put_contents($indexPath, $xml);
+            
+            Log::info("✅ Index de sitemap créé: sitemap/sitemap_index.xml (" . count($sitemapUrls) . " sitemaps référencés)");
+            
+            return [
+                'success' => true,
+                'path' => $indexPath,
+                'url' => $this->baseUrl . '/sitemap/sitemap_index.xml',
+                'sitemaps_count' => count($sitemapUrls),
+                'sitemaps' => $sitemapUrls
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error("❌ Erreur lors de la génération de l'index de sitemap : " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
 
     /**
