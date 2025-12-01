@@ -258,3 +258,151 @@ class BotDetectionService
     }
 }
 
+
+                    return true;
+                }
+            }
+        }
+
+        // Patterns moins certains - seulement si le user agent est vraiment suspect
+        // Ne pas bloquer sur "test", "check", "monitor" s'ils sont dans un contexte de navigateur
+        $weakPatterns = ['test', 'check', 'monitor', 'validator'];
+        foreach ($weakPatterns as $pattern) {
+            // Seulement si le pattern est seul ou dans un contexte vraiment suspect
+            if (preg_match('/^' . preg_quote($pattern, '/') . '\/?[\d\.]*$/i', $userAgentLower)) {
+                return true;
+            }
+        }
+
+        // Vérifications supplémentaires
+        // User agents très courts (< 5 caractères) sont suspects
+        if (strlen($userAgent) < 5) {
+            return true;
+        }
+
+        // User agents avec seulement des caractères spéciaux ou numériques (sans lettres)
+        if (preg_match('/^[^a-z]*$/i', $userAgent) && strlen($userAgent) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtenir la liste des patterns de bots (pour debug)
+     * 
+     * @return array
+     */
+    public static function getBotPatterns(): array
+    {
+        return self::$botPatterns;
+    }
+
+    /**
+     * Vérifier si une IP est connue comme bot (Googlebot, etc.)
+     * Note: Cette méthode nécessiterait une vérification DNS inversée
+     * pour être vraiment efficace, mais on peut faire des vérifications basiques
+     * 
+     * @param string $ipAddress
+     * @return bool
+     */
+    public static function isBotIp(string $ipAddress): bool
+    {
+        // Plages IP connues de bots (incomplet, mais utile)
+        // Googlebot IPs (exemple, liste incomplète)
+        $knownBotRanges = [
+            // Googlebot (exemples de plages - liste très incomplète)
+            '66.249.',
+            '64.233.',
+            '72.14.',
+            '74.125.',
+        ];
+
+        foreach ($knownBotRanges as $range) {
+            if (str_starts_with($ipAddress, $range)) {
+                // Ici, il faudrait faire une vérification DNS inversée
+                // pour confirmer que c'est bien Googlebot
+                // Pour l'instant, on retourne false pour ne pas bloquer
+                // les vrais utilisateurs qui pourraient être dans ces plages
+                return false;
+            }
+        }
+
+        return false;
+    }
+}
+
+
+                    return true;
+                }
+            }
+        }
+
+        // Patterns moins certains - seulement si le user agent est vraiment suspect
+        // Ne pas bloquer sur "test", "check", "monitor" s'ils sont dans un contexte de navigateur
+        $weakPatterns = ['test', 'check', 'monitor', 'validator'];
+        foreach ($weakPatterns as $pattern) {
+            // Seulement si le pattern est seul ou dans un contexte vraiment suspect
+            if (preg_match('/^' . preg_quote($pattern, '/') . '\/?[\d\.]*$/i', $userAgentLower)) {
+                return true;
+            }
+        }
+
+        // Vérifications supplémentaires
+        // User agents très courts (< 5 caractères) sont suspects
+        if (strlen($userAgent) < 5) {
+            return true;
+        }
+
+        // User agents avec seulement des caractères spéciaux ou numériques (sans lettres)
+        if (preg_match('/^[^a-z]*$/i', $userAgent) && strlen($userAgent) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtenir la liste des patterns de bots (pour debug)
+     * 
+     * @return array
+     */
+    public static function getBotPatterns(): array
+    {
+        return self::$botPatterns;
+    }
+
+    /**
+     * Vérifier si une IP est connue comme bot (Googlebot, etc.)
+     * Note: Cette méthode nécessiterait une vérification DNS inversée
+     * pour être vraiment efficace, mais on peut faire des vérifications basiques
+     * 
+     * @param string $ipAddress
+     * @return bool
+     */
+    public static function isBotIp(string $ipAddress): bool
+    {
+        // Plages IP connues de bots (incomplet, mais utile)
+        // Googlebot IPs (exemple, liste incomplète)
+        $knownBotRanges = [
+            // Googlebot (exemples de plages - liste très incomplète)
+            '66.249.',
+            '64.233.',
+            '72.14.',
+            '74.125.',
+        ];
+
+        foreach ($knownBotRanges as $range) {
+            if (str_starts_with($ipAddress, $range)) {
+                // Ici, il faudrait faire une vérification DNS inversée
+                // pour confirmer que c'est bien Googlebot
+                // Pour l'instant, on retourne false pour ne pas bloquer
+                // les vrais utilisateurs qui pourraient être dans ces plages
+                return false;
+            }
+        }
+
+        return false;
+    }
+}
+

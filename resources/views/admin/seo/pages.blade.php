@@ -8,7 +8,7 @@
 
     <form action="{{ route('admin.seo.pages.update') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
         @csrf
-
+        
         @foreach($seoPages as $slug => $data)
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-semibold mb-4">Page: {{ ucfirst(str_replace('-', ' ', $slug)) }}</h2>

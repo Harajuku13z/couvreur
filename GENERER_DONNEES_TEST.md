@@ -2,9 +2,19 @@
 
 ## Commande
 
+### Avec suppression des données existantes (recommandé)
+
+```bash
+php artisan generate:test-data --force
+```
+
+### Sans suppression (ajoute aux données existantes)
+
 ```bash
 php artisan generate:test-data
 ```
+
+⚠️ **Attention** : Sans l'option `--force`, les nouvelles données seront **ajoutées** aux données existantes. Utilisez `--force` pour tout supprimer avant de générer.
 
 ## Données générées
 
@@ -19,7 +29,7 @@ php artisan generate:test-data
   - Quetigny
   - Et autres villes de la région
   
-- **Période** : du 28 octobre 2025 au 30 novembre 2025
+- **Période** : du 28 octobre 2025 au 29 novembre 2025
 - **Heures** : entre 8h et 20h (heures de bureau réalistes)
 - **Pages sources** : variées (home, ads, services, contact, etc.)
 
@@ -37,7 +47,7 @@ php artisan generate:test-data
   - Réseaux sociaux
   - Autres sites web
 
-- **Période** : du 28 octobre 2025 au 30 novembre 2025
+- **Période** : du 28 octobre 2025 au 29 novembre 2025
 - **Répartition géographique** : principalement Côte-d'Or, avec 30% de Chevigny-Saint-Sauveur
 - **Pages visitées** : variées (accueil, services, annonces, contact, portfolio, etc.)
 
@@ -62,7 +72,9 @@ php artisan generate:test-data
 
 ```bash
 cd /home/u570136219/domains/couvreur-chevigny-saint-sauveur.fr/public_html
-php artisan generate:test-data
+
+# Supprimer toutes les données existantes et générer les nouvelles
+php artisan generate:test-data --force
 ```
 
 ### Vérifier les données générées
@@ -117,6 +129,30 @@ Après exécution :
 - **57 appels** dans `/admin/phone-calls`
   - 32 depuis Chevigny-Saint-Sauveur
   - 25 depuis autres villes
+  
+- **1980 visites** dans `/admin/visits`
+  - 1189 avec referrer Google Search
+  - 15 avec referrer Google Maps/Business
+  - 776 autres sources
+
+Les statistiques devraient maintenant montrer :
+- Des appels répartis sur la période
+- Des visites avec une bonne répartition des sources
+- Des données réalistes pour tester l'interface admin
+
+
+  
+- **1980 visites** dans `/admin/visits`
+  - 1189 avec referrer Google Search
+  - 15 avec referrer Google Maps/Business
+  - 776 autres sources
+
+Les statistiques devraient maintenant montrer :
+- Des appels répartis sur la période
+- Des visites avec une bonne répartition des sources
+- Des données réalistes pour tester l'interface admin
+
+
   
 - **1980 visites** dans `/admin/visits`
   - 1189 avec referrer Google Search

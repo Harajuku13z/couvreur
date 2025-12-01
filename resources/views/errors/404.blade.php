@@ -16,9 +16,13 @@
             Oups ! Cette page n'existe pas
         </h2>
         
-        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        <p class="text-xl text-gray-600 mb-4 max-w-2xl mx-auto">
             La page que vous recherchez semble avoir disparu. Mais ne vous inquiétez pas, 
             nos experts en rénovation sont là pour vous aider !
+        </p>
+        
+        <p class="text-lg text-blue-600 mb-8 max-w-2xl mx-auto font-semibold">
+            <i class="fas fa-clock mr-2"></i>Redirection automatique vers l'accueil dans <span id="countdown">5</span> seconde(s)...
         </p>
 
         <!-- Actions principales -->
@@ -63,6 +67,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof fbq !== 'undefined') {
         fbq('track', 'PageView', {
             'content_name': '404 Error Page'
+        });
+    }
+    
+    // Redirection automatique vers l'accueil après 5 secondes
+    let countdown = 5;
+    const countdownElement = document.getElementById('countdown');
+    
+    const redirectInterval = setInterval(function() {
+        countdown--;
+        if (countdownElement) {
+            countdownElement.textContent = countdown;
+        }
+        
+        if (countdown <= 0) {
+            clearInterval(redirectInterval);
+            window.location.href = '{{ url("/") }}';
+        }
+    }, 1000);
+    
+    // Arrêter le compte à rebours si l'utilisateur clique sur le bouton
+    const homeButton = document.querySelector('a[href="{{ url("/") }}"]');
+    if (homeButton) {
+        homeButton.addEventListener('click', function() {
+            clearInterval(redirectInterval);
         });
     }
 });

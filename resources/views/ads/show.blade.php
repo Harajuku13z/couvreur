@@ -10,6 +10,8 @@
 
 @section('description', $pageDescription ?? 'Service professionnel de qualité. Devis gratuit et intervention rapide.')
 
+@section('keywords', !empty($pageKeywords) ? $pageKeywords . (!empty($extendedKeywords) ? ', ' . implode(', ', $extendedKeywords) : '') : (!empty($extendedKeywords) ? implode(', ', $extendedKeywords) : ''))
+
 @push('head')
 <style>
     /* Variables de couleurs de branding */
@@ -213,10 +215,17 @@
     <section class="py-16">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden relative">
                     <div class="prose prose-sm md:prose-base max-w-none" style="word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; word-break: break-word;">
                         {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
                     </div>
+                    
+                    @if(!empty($extendedKeywords))
+                    <!-- Mots-clés étendus invisibles mais visibles pour Google -->
+                    <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+                        {{ implode(', ', $extendedKeywords) }}
+                    </div>
+                    @endif
                 </div>
 
                 <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
@@ -263,7 +272,7 @@
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                         <div class="relative">
                             <img src="{{ asset($portfolioItem['images'][0]) }}" 
-                                 alt="{{ $portfolioItem['title'] ?? 'Réalisation' }}" 
+                                 alt="{{ ($mainKeyword ?? '') . ' ' . ($portfolioItem['title'] ?? 'Réalisation') . ($cityModel->postal_code ? ' ' . $cityModel->postal_code : '') }}" 
                                  class="w-full h-48 object-cover">
                             <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                                 <div class="opacity-0 hover:opacity-100 transition-opacity duration-300">
@@ -448,6 +457,37 @@
         </div>
     </section>
 </div>
+
+@push('head')
+<!-- Schema.org Structured Data pour SEO -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "{{ $mainKeyword ?? 'Service' }}",
+    "provider": {
+        "@type": "LocalBusiness",
+        "name": "{{ setting('company_name', 'Votre Entreprise') }}",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "{{ $cityModel->name ?? '' }}",
+            "postalCode": "{{ $cityModel->postal_code ?? '' }}",
+            "addressCountry": "FR"
+        },
+        "telephone": "{{ setting('company_phone_raw', '') }}",
+        "url": "{{ url('/') }}"
+    },
+    "areaServed": {
+        "@type": "City",
+        "name": "{{ $cityModel->name ?? '' }}",
+        "postalCode": "{{ $cityModel->postal_code ?? '' }}"
+    },
+    "description": "@json(strip_tags($pageDescription ?? ''))"@if(!empty($extendedKeywords)),
+    "keywords": "@json(implode(', ', array_slice($extendedKeywords, 0, 10)))"@endif,
+    "url": "@json(url()->current())"
+}
+</script>
+@endpush
 
 @push('scripts')
 <script>

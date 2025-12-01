@@ -1,115 +1,147 @@
-# 🔍 Diagnostic : Pourquoi les appels ne sont pas trackés
+# 🔍 Diagnostic : Tracking des appels téléphoniques
 
-## Checklist de diagnostic à suivre
+## Problème : Erreur 404 lors du test de tracking
 
-### 1. Vérifier que les requêtes arrivent au serveur
+### Solutions appliquées
 
-```bash
-# En SSH, vérifier les logs de tracking
-tail -f storage/logs/laravel.log | grep "📞"
+1. **URL absolue dans le script JavaScript**
+   - Fichier : `public/js/phone-tracking.js`
+   - Changement : Utilisation de `window.location.origin` pour construire l'URL absolue
+   - Avant : `const TRACKING_ENDPOINT = '/api/track-phone-call';`
+   - Après : `const TRACKING_ENDPOINT = (window.location.origin || window.location.protocol + '//' + window.location.host) + '/api/track-phone-call';`
 
-# Ou voir les dernières requêtes
-grep "📞 Requête trackPhoneCall reçue" storage/logs/laravel.log | tail -n 10
-```
+2. **URL absolue dans le test admin**
+   - Fichier : `resources/views/admin/phone-calls.blade.php`
+   - Changement : Utilisation de `url()` helper Blade
+   - Avant : `fetch('/api/track-phone-call', ...)`
+   - Après : `fetch('{{ url("/api/track-phone-call") }}', ...)`
 
-**Si aucune requête n'apparaît** : Le JavaScript ne s'exécute pas ou la requête n'arrive pas.
+### Vérifications à faire
 
-### 2. Vérifier que le JavaScript est chargé
-
-Dans la console du navigateur (F12), vérifier :
-- `window.trackPhoneCall` existe-t-il ?
-- Y a-t-il des erreurs JavaScript ?
-- Le script `phone-tracking.js` est-il chargé ?
-
-### 3. Vérifier la route API
+#### 1. Vérifier que la route est bien définie
 
 ```bash
-# En SSH
 php artisan route:list | grep track-phone-call
-
-# Devrait afficher :
-# POST  api/track-phone-call
 ```
 
-### 4. Vérifier que les appels sont créés en base
+Doit retourner :
+```
+POST      api/track-phone-call ................ api.track.phone.call
+```
+
+#### 2. Tester l'endpoint directement
 
 ```bash
-# En SSH, vérifier directement en base
-php artisan tinker
->>> \App\Models\PhoneCall::count()
->>> \App\Models\PhoneCall::latest()->first()
->>> exit
-```
-
-### 5. Vérifier si la colonne is_bot existe
-
-```bash
-# En SSH
-php artisan tinker
->>> \Schema::hasColumn('phone_calls', 'is_bot')
->>> exit
-```
-
-Si `false`, exécuter la migration :
-```bash
-php artisan migrate
-```
-
-### 6. Vérifier les erreurs dans les logs
-
-```bash
-# Erreurs de tracking
-grep "❌ Erreur tracking" storage/logs/laravel.log | tail -n 20
-
-# Erreurs générales
-grep "ERROR" storage/logs/laravel.log | tail -n 20
-```
-
-## Tests manuels
-
-### Test 1 : Vérifier le JavaScript dans la console
-
-1. Ouvrir la page avec un bouton d'appel
-2. Ouvrir la console (F12)
-3. Taper : `window.trackPhoneCall`
-4. Devrait afficher : `function trackPhoneCall() {...}`
-5. Si `undefined`, le script n'est pas chargé
-
-### Test 2 : Tester manuellement le tracking
-
-Dans la console du navigateur :
-```javascript
-window.trackPhoneCall('0612345678', 'test-page');
-```
-
-Vérifier dans les logs que la requête arrive.
-
-### Test 3 : Vérifier le endpoint API
-
-```bash
-# Tester avec curl
-curl -X POST https://couvreur-chevigny-saint-sauveur.fr/api/track-phone-call \
+# Depuis le serveur
+curl -X POST https://www.jd-renovation-service.fr/api/track-phone-call \
   -H "Content-Type: application/json" \
-  -d '{"phone_number":"0612345678","source_page":"test"}'
+  -d '{"phone_number":"0633532123","source_page":"/test"}'
 ```
 
-## Solutions possibles
+#### 3. Vérifier les logs
 
-### Problème 1 : JavaScript pas chargé
-- Vérifier que `phone-tracking.js` est inclus dans le layout
-- Vérifier le chemin : `/js/phone-tracking.js`
-- Vider le cache navigateur
+```bash
+# Voir les dernières erreurs
+tail -n 50 storage/logs/laravel.log | grep "trackPhoneCall\|404"
 
-### Problème 2 : Requêtes bloquées par CORS/CSRF
-- Vérifier que la route est exclue du CSRF (déjà fait)
-- Vérifier les erreurs réseau dans la console
+# Voir toutes les requêtes reçues
+tail -f storage/logs/laravel.log | grep "📞"
+```
 
-### Problème 3 : Erreur serveur silencieuse
-- Vérifier les logs pour les erreurs PHP
-- Vérifier les permissions sur `storage/logs/`
+#### 4. Vérifier la configuration du serveur
 
-### Problème 4 : Appels trackés mais pas affichés
-- Cocher "Inclure les bots" dans l'admin
-- Vérifier la pagination
-- Vérifier les filtres de date
+Pour Apache (.htaccess), vérifier que les routes sont bien redirigées :
+```apache
+RewriteEngine On
+RewriteRule ^(.*)$ public/index.php?$1 [L]
+```
 
+Pour Nginx, vérifier la configuration :
+```nginx
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+```
+
+### Configuration pour plusieurs domaines
+
+La route `/api/track-phone-call` doit fonctionner sur tous les domaines :
+- `https://www.jd-renovation-service.fr/api/track-phone-call`
+- `https://couvreur-chevigny-saint-sauveur.fr/api/track-phone-call`
+- Tout autre domaine configuré
+
+### Test rapide dans la console du navigateur
+
+Ouvrir la console (F12) et exécuter :
+
+```javascript
+// Vérifier que l'URL est correcte
+console.log('URL tracking:', window.location.origin + '/api/track-phone-call');
+
+// Test manuel
+fetch(window.location.origin + '/api/track-phone-call', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+        phone_number: '0633532123',
+        source_page: '/admin/phone-calls',
+        referrer_url: window.location.href
+    })
+})
+.then(r => r.json())
+.then(d => console.log('✅ Réponse:', d))
+.catch(e => console.error('❌ Erreur:', e));
+```
+
+### Si le problème persiste
+
+1. **Vérifier les permissions du fichier**
+   ```bash
+   ls -la public/js/phone-tracking.js
+   chmod 644 public/js/phone-tracking.js
+   ```
+
+2. **Vider le cache Laravel**
+   ```bash
+   php artisan cache:clear
+   php artisan route:clear
+   php artisan config:clear
+   php artisan view:clear
+   ```
+
+3. **Vérifier que le fichier JavaScript est bien chargé**
+   - Ouvrir les outils de développement (F12)
+   - Onglet Network
+   - Recharger la page
+   - Chercher `phone-tracking.js`
+   - Vérifier qu'il charge avec un statut 200
+
+4. **Vérifier le Content-Security-Policy (CSP)**
+   - Si un CSP est configuré, il peut bloquer les requêtes
+   - Vérifier dans les en-têtes HTTP
+
+### Commandes utiles pour le diagnostic
+
+```bash
+# Voir toutes les routes API
+php artisan route:list --path=api
+
+# Tester la route spécifique
+php artisan route:list | grep track-phone
+
+# Voir les logs en temps réel
+tail -f storage/logs/laravel.log | grep -E "📞|404|track"
+
+# Vérifier la configuration Laravel
+php artisan config:show app.url
+```
+
+### Support
+
+Si le problème persiste après ces vérifications, consulter :
+- Les logs Laravel : `storage/logs/laravel.log`
+- Les logs du serveur web (Apache/Nginx)
+- La console du navigateur pour les erreurs JavaScript
