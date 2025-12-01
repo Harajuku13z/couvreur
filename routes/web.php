@@ -236,6 +236,16 @@ Route::post('/simulateur/calculate', [App\Http\Controllers\CostSimulatorControll
 Route::get('/ads', [AdPublicController::class, 'index'])->name('ads.index');
 Route::get('/ads/{slug}', [AdPublicController::class, 'show'])->name('ads.show');
 
+// Redirection 301 de /annonces/* vers /ads/* pour préserver le SEO
+Route::get('/annonces/{slug}', function ($slug) {
+    return redirect()->route('ads.show', ['slug' => $slug], 301);
+})->where('slug', '.*')->name('annonces.show');
+
+// Redirection de l'index /annonces vers /ads
+Route::get('/annonces', function () {
+    return redirect()->route('ads.index', [], 301);
+})->name('annonces.index');
+
 // Routes publiques pour les avis
 Route::get('/reviews', [FormControllerSimple::class, 'allReviews'])->name('reviews.all');
 Route::get('/reviews/create', [FormControllerSimple::class, 'createReview'])->name('reviews.create');
