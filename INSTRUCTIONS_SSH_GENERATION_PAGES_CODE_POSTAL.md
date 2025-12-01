@@ -3,10 +3,13 @@
 ## 🎯 Objectif
 
 Générer automatiquement des copies de pages d'annonces avec :
-- ✅ Code postal dans le titre
-- ✅ Code postal dans le contenu
+- ✅ Code postal dans le titre (ajouté systématiquement)
+- ✅ Code postal dans la description (ajouté systématiquement)
 - ✅ Mots-clés dans les alt des images de réalisations
 - ✅ Mots-clés invisibles mais visibles pour Google (SEO)
+- ✅ **Mots-clés par dizaines** : Variations de codes postaux par dizaines (ex: 97400, 97410, 97420...)
+- ✅ **Mots-clés par centaines** : Variations de codes postaux par centaines (ex: 97400, 97500, 97600...)
+- ✅ Mise à jour des pages existantes avec `--update`
 
 ## 🚀 Commandes SSH
 
@@ -54,7 +57,17 @@ php artisan generate:pages-postal-code --all
 
 **⚠️ Attention :** Cette commande peut générer beaucoup de pages. Utilisez-la avec précaution.
 
-### 6. Forcer la recréation (supprime les pages existantes avant)
+### 6. Mettre à jour les pages existantes (ajoute code postal et mots-clés)
+
+```bash
+# Pour un template spécifique
+php artisan generate:pages-postal-code --template=X --update
+
+# Pour tous les templates et villes
+php artisan generate:pages-postal-code --all --update
+```
+
+### 7. Forcer la recréation (supprime les pages existantes avant)
 
 ```bash
 # Pour un template spécifique
@@ -140,11 +153,21 @@ exit
 | `--template=X` | ID du template à utiliser (obligatoire sauf avec `--all`) | `--template=1` |
 | `--city=slug` | Slug de la ville ou ID (optionnel) | `--city=chevigny-saint-sauveur` |
 | `--all` | Générer pour tous les templates et toutes les villes | `--all` |
+| `--update` | Mettre à jour les pages existantes (ajoute code postal et mots-clés) | `--update` |
 | `--force` | Supprimer les pages existantes avant création | `--force` |
 
 ## ⚡ Commandes rapides complètes
 
-### Génération complète pour tous les templates et villes
+### Mise à jour de toutes les pages existantes (recommandé)
+
+```bash
+ssh votre-utilisateur@votre-serveur.com
+cd /chemin/vers/votre/application
+php artisan generate:pages-postal-code --all --update
+php artisan cache:clear
+```
+
+### Génération complète pour tous les templates et villes (nouvelles pages uniquement)
 
 ```bash
 ssh votre-utilisateur@votre-serveur.com
@@ -200,19 +223,36 @@ Si une page existe déjà, vous avez deux options :
 
 ## 📊 Résultats attendus
 
-Après exécution, vous devriez voir :
+Après exécution avec `--update`, vous devriez voir :
 
 ```
 🚀 Génération de pages avec code postal...
 
-📋 Génération pour le template 'Nom du Service' et 15 ville(s)...
+📋 Génération pour 13 template(s) et 37 ville(s)...
 
-  ✅ Page créée: Nom du Service 21800 (Chevigny-Saint-Sauveur - 21800)
-  ✅ Page créée: Nom du Service 21000 (Dijon - 21000)
+  ✅ Page mise à jour: Toiture Bac Acier 97411 (Les Avirons - 97411)
+  ✅ Page mise à jour: Toiture Zinc 97412 (Bras Panon - 97412)
   ...
 
-✅ 15 page(s) générée(s) au total
+✅ 481 page(s) générée(s)/mise(s) à jour au total
 ```
+
+## 🔍 Fonctionnalités avancées
+
+### Mots-clés par dizaines et centaines
+
+La commande génère automatiquement des mots-clés invisibles avec des variations de codes postaux :
+
+**Par dizaines :** Pour un code postal 97410, génère :
+- `toiture 97400`, `toiture 97410`, `toiture 97420`, `toiture 97430`... jusqu'à `97490`
+
+**Par centaines :** Génère aussi des variations :
+- `toiture 97400`, `toiture 97500`, `toiture 97600` (départements d'outre-mer)
+
+**Variations autour du code postal :** Génère aussi :
+- `toiture 97390` (-20), `toiture 97400` (-10), `toiture 97420` (+10), `toiture 97430` (+20)
+
+Ces mots-clés sont ajoutés de façon **invisible pour les utilisateurs** mais **visibles pour Google** et les moteurs de recherche dans un div caché.
 
 ## 🔗 URLs générées
 
