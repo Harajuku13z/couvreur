@@ -477,7 +477,8 @@ Route::get('/sitemap_index.xml', function () {
     }
     // Si le fichier n'existe pas, générer via le contrôleur
     $controller = app(\App\Http\Controllers\SitemapController::class);
-});
+    return $controller->index();
+})->name('sitemap_index.xml');
 
 // Route pour l'index de sitemap dans le dossier sitemap/
 Route::get('/sitemap/sitemap_index.xml', function () {
@@ -499,8 +500,6 @@ Route::get('/sitemap/sitemap_index.xml', function () {
     }
     abort(404, 'Sitemap index not found');
 })->name('sitemap.index');
-    return $controller->index();
-})->name('sitemap_index.xml');
 
 // Route HTTP pour exécuter l'automatisation SEO (pour Hostinger et services externes)
 // Cette route vérifie les conditions et exécute seo:run-automations
