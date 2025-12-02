@@ -300,7 +300,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
                 Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
                 Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
                 Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
-            Route::get('/public/{id}/{token}', [DevisController::class, 'publicPdf'])->name('public-pdf');
+            Route::get('/public/{id}/{token}', [DevisController::class, 'publicPdf'])->name('public.pdf');
             });
             
         // Routes pour les factures
