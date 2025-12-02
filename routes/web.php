@@ -300,7 +300,6 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
                 Route::get('/{id}/pdf', [DevisController::class, 'pdf'])->name('pdf');
                 Route::get('/{id}/download-pdf', [DevisController::class, 'downloadPdf'])->name('download-pdf');
                 Route::post('/{id}/send-email', [DevisController::class, 'sendEmail'])->name('send-email');
-            Route::get('/public/{id}/{token}', [DevisController::class, 'publicPdf'])->name('public.pdf');
             });
             
         // Routes pour les factures
@@ -500,6 +499,10 @@ Route::get('/sitemap/sitemap_index.xml', function () {
     }
     abort(404, 'Sitemap index not found');
 })->name('sitemap.index');
+
+// Route publique pour accéder au PDF d'un devis avec token (hors du groupe admin)
+Route::get('/devis/public/{id}/{token}', [App\Http\Controllers\Admin\DevisController::class, 'publicPdf'])
+    ->name('devis.public.pdf');
 
 // Route HTTP pour exécuter l'automatisation SEO (pour Hostinger et services externes)
 // Cette route vérifie les conditions et exécute seo:run-automations
