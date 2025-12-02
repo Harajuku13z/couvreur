@@ -501,7 +501,7 @@ Route::get('/sitemap/sitemap_index.xml', function () {
 })->name('sitemap.index');
 
 // Route publique pour accéder au PDF d'un devis avec token (hors du groupe admin)
-Route::get('/devis/public/{id}/{token}', [App\Http\Controllers\Admin\DevisController::class, 'publicPdf'])
+Route::get('/devis/public/{id}/{token}', [DevisController::class, 'publicPdf'])
     ->name('devis.public.pdf');
 
 // Route HTTP pour exécuter l'automatisation SEO (pour Hostinger et services externes)
