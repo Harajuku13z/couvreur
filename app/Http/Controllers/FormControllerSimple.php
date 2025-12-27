@@ -451,6 +451,14 @@ class FormControllerSimple extends Controller
         $pageKeywords = null;
         
         if ($step === 'propertyType') {
+            // Vérifier le type de simulateur sélectionné
+            $simulatorType = Setting::get('simulator_type', 'couvreur');
+            
+            // Si le type est "élagueur", rediriger vers la page de contact
+            if ($simulatorType === 'elagueur') {
+                return redirect()->route('contact');
+            }
+            
             $companyName = setting('company_name', 'Notre Entreprise');
             $pageTitle = 'Simulateur de devis gratuit - ' . $companyName;
             $pageDescription = 'Obtenez votre devis gratuit en quelques clics pour vos travaux de rénovation. ' . $companyName . ' vous accompagne dans tous vos projets de toiture, isolation, façade et plus encore.';
