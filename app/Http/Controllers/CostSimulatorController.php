@@ -9,9 +9,20 @@ use Illuminate\Support\Facades\Log;
 class CostSimulatorController extends Controller
 {
     /**
-     * Afficher le simulateur de coûts
+     * Afficher le simulateur de coûts (version wizard multi-étapes)
      */
     public function index()
+    {
+        // Récupérer la configuration du simulateur selon le type sélectionné
+        $simulatorConfig = $this->getSimulatorConfig();
+        
+        return view('simulator.wizard', compact('simulatorConfig'));
+    }
+    
+    /**
+     * Afficher l'ancienne version du simulateur (pour compatibilité)
+     */
+    public function oldIndex()
     {
         // Récupérer la configuration du simulateur
         $simulatorConfig = $this->getSimulatorConfig();
@@ -31,6 +42,11 @@ class CostSimulatorController extends Controller
             'quality_level' => 'required|string|in:standard,premium,luxury',
             'urgency' => 'required|string|in:normal,urgent,emergency',
             'additional_options' => 'nullable|array',
+            // Informations personnelles optionnelles (pour créer une soumission)
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
         
         try {
@@ -43,6 +59,15 @@ class CostSimulatorController extends Controller
                 'quality' => $validated['quality_level'],
                 'estimated_cost' => $result['total_cost']
             ]);
+            
+            // Si les informations personnelles sont fournies, créer une soumission
+            if (!empty($validated['email']) && !empty($validated['phone'])) {
+                try {
+                    $this->createSubmissionFromSimulator($validated, $result);
+                } catch (\Exception $e) {
+                    Log::warning('Impossible de créer la soumission depuis le simulateur: ' . $e->getMessage());
+                }
+            }
             
             return response()->json([
                 'success' => true,
@@ -57,6 +82,35 @@ class CostSimulatorController extends Controller
                 'message' => 'Erreur lors du calcul. Veuillez réessayer.'
             ], 500);
         }
+    }
+    
+    /**
+     * Créer une soumission depuis le simulateur
+     */
+    protected function createSubmissionFromSimulator($data, $result)
+    {
+        // Vérifier si le modèle Submission existe
+        if (!class_exists(\App\Models\Submission::class)) {
+            return;
+        }
+        
+        $submission = \App\Models\Submission::create([
+            'first_name' => $data['first_name'] ?? '',
+            'last_name' => $data['last_name'] ?? '',
+            'email' => $data['email'],
+            'phone' => $data['phone'],
+            'property_type' => $data['property_type'],
+            'work_type' => $data['service_type'],
+            'surface' => $data['surface'],
+            'postal_code' => '',
+            'status' => 'new',
+            'source' => 'simulator',
+            'estimated_cost' => $result['total_cost'],
+            'estimated_cost_min' => $result['min_cost'],
+            'estimated_cost_max' => $result['max_cost'],
+        ]);
+        
+        Log::info('Soumission créée depuis simulateur', ['submission_id' => $submission->id]);
     }
     
     /**
