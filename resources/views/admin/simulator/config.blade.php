@@ -6,11 +6,21 @@
 <div class="container-fluid px-4 py-6">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-calculator mr-2"></i>
-                Configuration du Simulateur de Coûts
-            </h1>
-            <p class="text-muted mt-2">Personnalisez les services, tarifs et options de votre simulateur</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Configuration du Simulateur de Coûts
+                    </h1>
+                    <p class="text-muted mt-2">
+                        Type actuel : <strong class="text-primary">{{ ucfirst($simulatorType ?? 'couvreur') }}</strong>
+                    </p>
+                </div>
+                <a href="{{ route('admin.simulator.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Retour à la sélection
+                </a>
+            </div>
         </div>
     </div>
 

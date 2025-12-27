@@ -714,8 +714,11 @@ Route::prefix('admin/keywords')->name('admin.keywords.')->middleware(['admin.aut
 
 // Routes admin pour le simulateur de coûts
 Route::prefix('admin/simulator')->name('admin.simulator.')->middleware(['admin.auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\CostSimulatorController::class, 'manage'])->name('index');
+    Route::post('/set-type', [App\Http\Controllers\CostSimulatorController::class, 'setType'])->name('set-type');
     Route::get('/config', [App\Http\Controllers\CostSimulatorController::class, 'config'])->name('config');
     Route::post('/save-config', [App\Http\Controllers\CostSimulatorController::class, 'saveConfig'])->name('save-config');
+    Route::post('/reset-config', [App\Http\Controllers\CostSimulatorController::class, 'resetConfig'])->name('reset-config');
 });
 
 // Routes admin pour la configuration du cron
