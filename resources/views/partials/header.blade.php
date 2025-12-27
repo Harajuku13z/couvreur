@@ -125,7 +125,7 @@
                 @endif
                 
                 <!-- CTA Buttons -->
-                <a href="{{ route('simulator.index') }}" 
+                <a href="{{ route('form.step', 'propertyType') }}" 
                    class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
                    style="background-color: var(--primary-color);"
                    onmouseover="this.style.backgroundColor='var(--secondary-color)'"

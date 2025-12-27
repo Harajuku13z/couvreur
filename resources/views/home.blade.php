@@ -778,7 +778,7 @@
                     <i class="fas fa-envelope mr-2"></i>
                     Contact
                 </a>
-                <a href="{{ route('simulator.index') }}" 
+                <a href="{{ route('form.step', 'propertyType') }}" 
                    class="text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
                    style="background-color: var(--secondary-color);"
                    onmouseover="this.style.backgroundColor='var(--accent-color)';"
