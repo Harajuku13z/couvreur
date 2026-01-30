@@ -74,6 +74,11 @@ class SeoHelper
             $companyDescription = setting('company_description', '');
             $companyCity = setting('company_city', '');
             $companyRegion = setting('company_region', '');
+            
+            // Métadonnées globales définies dans /admin/seo (seo_config)
+            // Utilisées comme fallback quand aucune méta spécifique de page n'est définie
+            $globalMetaTitle = \App\Models\Setting::get('meta_title', '');
+            $globalMetaDescription = \App\Models\Setting::get('meta_description', '');
         } catch (\Exception $e) {
             \Log::warning("Erreur lors de la récupération des settings dans generateMetaTags: " . $e->getMessage());
             $companyName = 'Votre Entreprise';
@@ -81,6 +86,8 @@ class SeoHelper
             $companyDescription = '';
             $companyCity = '';
             $companyRegion = '';
+            $globalMetaTitle = '';
+            $globalMetaDescription = '';
         }
         
         // Construire le titre par défaut selon le type de page
@@ -94,11 +101,13 @@ class SeoHelper
         // Titre final - GARANTIR qu'il n'est jamais vide
         $finalTitle = trim($seo['meta_title'] ?? '') 
                    ?: trim($customData['title'] ?? '') 
+                   ?: trim($globalMetaTitle) 
                    ?: $defaultTitle;
         
         // Description finale - GARANTIR qu'elle n'est jamais vide
         $finalDescription = trim($seo['meta_description'] ?? '') 
                          ?: trim($customData['description'] ?? '') 
+                         ?: trim($globalMetaDescription)
                          ?: $defaultDescription;
         
         // NE PAS tronquer les titres et descriptions - les afficher en entier

@@ -1,8 +1,5 @@
 @extends('layouts.app')
 
-@section('title', setting('company_name', 'Votre Entreprise') . ' - ' . setting('company_specialization', 'Travaux de Rénovation'))
-@section('description', setting('company_description', 'Expert en travaux de rénovation'))
-
 @push('head')
 <style>
     :root {

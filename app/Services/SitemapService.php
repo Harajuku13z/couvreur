@@ -197,7 +197,8 @@ class SitemapService
             Log::info("📢 Ajout de " . count($ads) . " annonces...");
             foreach ($ads as $ad) {
             $urls[] = [
-                'url' => $this->baseUrl . '/annonces/' . $ad['slug'],
+                // Utiliser le nouveau chemin canonique /ads/ (les anciennes URLs /annonces/ sont en 301)
+                'url' => $this->baseUrl . '/ads/' . $ad['slug'],
                 'priority' => 0.6,
                 'changefreq' => 'monthly',
                 'lastmod' => $ad['updated_at'] ?? Carbon::now()
