@@ -31,7 +31,37 @@ $mobileScrollFixStyles = <<<'CSS'
         overflow-x: hidden;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        word-break: break-word;
         max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Forcer les retours à la ligne sur tous les éléments de texte */
+    .service-page-content *,
+    .article-content *,
+    .ad-page-content * {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        max-width: 100%;
+    }
+
+    /* Spécifique pour les textes longs */
+    .service-page-content p,
+    .service-page-content li,
+    .service-page-content span,
+    .service-page-content div,
+    .article-content p,
+    .article-content li,
+    .article-content span,
+    .article-content div,
+    .ad-page-content p,
+    .ad-page-content li,
+    .ad-page-content span,
+    .ad-page-content div {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        hyphens: auto;
     }
 
     .service-page-content img,
@@ -40,30 +70,52 @@ $mobileScrollFixStyles = <<<'CSS'
     .article-content table,
     .ad-page-content img,
     .ad-page-content table {
-        max-width: 100%;
+        max-width: 100% !important;
         height: auto;
+        display: block;
     }
 
     @media (max-width: 768px) {
+        /* Force les retours à la ligne sur les titres */
         .service-hero-title,
         .article-hero-title,
-        .ad-hero-title {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+        .ad-hero-title,
+        h1, h2, h3, h4, h5, h6 {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            hyphens: auto;
         }
         
         /* Force le conteneur principal à ne pas dépasser */
         body {
-            overflow-x: hidden;
-            max-width: 100vw;
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
         }
         
         /* Assure que tous les conteneurs respectent la largeur */
         .container,
-        .container-fluid {
-            max-width: 100%;
-            padding-left: 1rem;
-            padding-right: 1rem;
+        .container-fluid,
+        .max-w-6xl,
+        .max-w-4xl,
+        .max-w-3xl {
+            max-width: 100% !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Force les retours à la ligne sur tous les textes en mobile */
+        p, span, div, li, td, th {
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            hyphens: auto;
+        }
+        
+        /* Empêche les éléments flex de dépasser */
+        .flex {
+            flex-wrap: wrap !important;
         }
     }
 </style>
