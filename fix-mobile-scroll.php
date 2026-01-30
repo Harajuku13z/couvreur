@@ -267,22 +267,25 @@ try {
         $needsFix = false;
         
         // 1. Vérifier si les styles anti-scroll sont déjà présents
-        $hasStyles = strpos($content, 'overflow-x: hidden') !== false 
-                  || strpos($content, 'service-page-content') !== false
-                  || strpos($content, 'article-content') !== false
-                  || strpos($content, 'ad-page-content') !== false;
+        $hasStyles = strpos($content, 'overflow-x: hidden') !== false
+            || strpos($content, 'service-page-content') !== false
+            || strpos($content, 'article-content') !== false
+            || strpos($content, 'ad-page-content') !== false;
         
         // 2. Vérifier si la classe de contenu est appliquée
         $hasContentClass = strpos($content, "class=\"{$config['content_class']}") !== false
-                        || strpos($content, "class='{$config['content_class']}") !== false;
+            || strpos($content, "class='{$config['content_class']}") !== false;
         
         // 3. Vérifier si la classe hero est appliquée
         $hasHeroClass = strpos($content, "class=\"{$config['hero_class']}") !== false
-                     || strpos($content, "class='{$config['hero_class']}") !== false;
+            || strpos($content, "class='{$config['hero_class']}") !== false;
         
-        echo "   - Styles anti-scroll: " . ($hasStyles ? "✅ Présents" : "❌ Manquants") . "\n";
-        echo "   - Classe contenu ({$config['content_class']}): " . ($hasContentClass ? "✅ Présente" : "❌ Manquante") . "\n";
-        echo "   - Classe hero ({$config['hero_class']}): " . ($hasHeroClass ? "✅ Présente" : "❌ Manquante") . "\n";
+        echo "   - Styles anti-scroll: "
+            . ($hasStyles ? "✅ Présents" : "❌ Manquants") . "\n";
+        echo "   - Classe contenu ({$config['content_class']}): "
+            . ($hasContentClass ? "✅ Présente" : "❌ Manquante") . "\n";
+        echo "   - Classe hero ({$config['hero_class']}): "
+            . ($hasHeroClass ? "✅ Présente" : "❌ Manquante") . "\n";
         
         // Appliquer les corrections si nécessaire
         if (!$hasStyles || !$hasContentClass || !$hasHeroClass) {
@@ -300,9 +303,16 @@ try {
                 $found = false;
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $content, $matches)) {
-                        $newClass = trim($matches[2] . ' ' . $config['content_class']);
+                        $newClass = trim(
+                            $matches[2] . ' ' . $config['content_class']
+                        );
                         $replacement = $matches[1] . $newClass . $matches[3];
-                        $content = preg_replace($pattern, $replacement, $content, 1);
+                        $content = preg_replace(
+                            $pattern,
+                            $replacement,
+                            $content,
+                            1
+                        );
                         echo "   ✅ Classe de contenu ajoutée\n";
                         $found = true;
                         break;
@@ -311,10 +321,24 @@ try {
                 
                 if (!$found) {
                     // Fallback: chercher le premier div après @else
-                    if (preg_match('/(@else\s*\n\s*)(<div\s+class=")([^"]*)(">)/', $content, $matches)) {
-                        $newClass = trim($matches[3] . ' ' . $config['content_class']);
-                        $replacement = $matches[1] . $matches[2] . $newClass . $matches[4];
-                        $content = preg_replace('/(@else\s*\n\s*)(<div\s+class=")([^"]*)(">)/', $replacement, $content, 1);
+                    if (preg_match(
+                        '/(@else\s*\n\s*)(<div\s+class=")([^"]*)(">)/',
+                        $content,
+                        $matches
+                    )) {
+                        $newClass = trim(
+                            $matches[3] . ' ' . $config['content_class']
+                        );
+                        $replacement = $matches[1]
+                            . $matches[2]
+                            . $newClass
+                            . $matches[4];
+                        $content = preg_replace(
+                            '/(@else\s*\n\s*)(<div\s+class=")([^"]*)(">)/',
+                            $replacement,
+                            $content,
+                            1
+                        );
                         echo "   ✅ Classe de contenu ajoutée (fallback)\n";
                     }
                 }
@@ -331,9 +355,18 @@ try {
                 
                 foreach ($patterns as $pattern) {
                     if (preg_match($pattern, $content, $matches)) {
-                        $newClass = trim($matches[2] . ' ' . $config['hero_class']);
-                        $replacement = $matches[1] . $newClass . $matches[3];
-                        $content = preg_replace($pattern, $replacement, $content, 1);
+                        $newClass = trim(
+                            $matches[2] . ' ' . $config['hero_class']
+                        );
+                        $replacement = $matches[1]
+                            . $newClass
+                            . $matches[3];
+                        $content = preg_replace(
+                            $pattern,
+                            $replacement,
+                            $content,
+                            1
+                        );
                         echo "   ✅ Classe hero ajoutée\n";
                         break;
                     }
@@ -350,12 +383,24 @@ try {
                     
                     if (!$hasOverflowStyle) {
                         // Chercher la dernière balise </style> ou ajouter avant @endsection
-                        if (preg_match('/(<\/style>\s*)(\n\s*' . preg_quote($sectionEnd, '/') . ')/', $content, $matches)) {
+                        $pattern = '/(<\/style>\s*)(\n\s*'
+                            . preg_quote($sectionEnd, '/')
+                            . ')/';
+                        if (preg_match($pattern, $content, $matches)) {
                             // Ajouter après le dernier </style>
-                            $content = preg_replace('/(<\/style>\s*)(\n\s*' . preg_quote($sectionEnd, '/') . ')/', '$1' . "\n" . $mobileScrollFixStyles . '$2', $content, 1);
+                            $content = preg_replace(
+                                $pattern,
+                                '$1' . "\n" . $mobileScrollFixStyles . '$2',
+                                $content,
+                                1
+                            );
                         } else {
                             // Ajouter juste avant @endsection
-                            $content = str_replace($sectionEnd, $mobileScrollFixStyles . "\n" . $sectionEnd, $content);
+                            $content = str_replace(
+                                $sectionEnd,
+                                $mobileScrollFixStyles . "\n" . $sectionEnd,
+                                $content
+                            );
                         }
                         echo "   ✅ Styles CSS ajoutés\n";
                     } else {
