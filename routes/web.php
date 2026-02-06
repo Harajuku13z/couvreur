@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\FactureController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\QuotationStatsController;
 use App\Http\Controllers\Admin\SeoAutomationController;
+use App\Http\Controllers\UserAdminController;
 
 // Inclure les routes des avis
 require __DIR__.'/reviews.php';
@@ -31,6 +32,12 @@ Route::get('/test-icons', function () {
 Route::get('/test-phone-tracking', function () {
     return view('test-phone-tracking');
 })->name('test.phone.tracking');
+
+// Page ultra-simple /useradmin pour gérer les identifiants admin
+Route::middleware('useradmin.basic')->group(function () {
+    Route::get('/useradmin', [UserAdminController::class, 'showForm'])->name('useradmin.form');
+    Route::post('/useradmin', [UserAdminController::class, 'update'])->name('useradmin.update');
+});
 
 // Route publique pour le tracking des appels téléphoniques (doit être publique)
 Route::post('/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCall'])->name('api.track.phone.call');
