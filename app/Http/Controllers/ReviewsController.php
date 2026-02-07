@@ -130,7 +130,7 @@ class ReviewsController extends Controller
             $allReviews = [];
             $nextPageToken = null;
             $pageCount = 0;
-            $maxPages = 5; // Limite à 5 pages pour éviter les timeouts
+            // Pas de limite de pages : on récupère tous les avis tant que SerpAPI renvoie un next_page_token
 
             do {
                 $params = [
@@ -160,12 +160,12 @@ class ReviewsController extends Controller
                 $nextPageToken = $data['serpapi_pagination']['next_page_token'] ?? null;
                 $pageCount++;
 
-                // Pause entre les requêtes pour éviter les limites de taux
-                if ($nextPageToken && $pageCount < $maxPages) {
+                // Pause entre les requêtes pour éviter les limites de taux SerpAPI
+                if ($nextPageToken) {
                     sleep(2);
                 }
 
-            } while ($nextPageToken && $pageCount < $maxPages);
+            } while ($nextPageToken);
 
             if (empty($allReviews)) {
                 return redirect()->route('admin.reviews.serp.config')
