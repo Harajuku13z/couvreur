@@ -32,6 +32,8 @@ $paragraphsToRemove = [
     "Profitez des aides financières pour vos travaux de rénovation de toiture: MaPrimeRénov, Crédit d'impôt, éco-PTZ et TVA réduite. Contactez-nous pour plus d'informations.",
     // Variante 2 (Réparation & Pose de Nouvelle Toiture)
     "Profitez des aides financières telles que MaPrimeRénov, les Certificats d'Économies d'Énergie, l'éco-Prêt à Taux Zéro, la TVA réduite pour vos travaux de Réparation & Pose de Nouvelle Toiture. Contactez-nous pour plus d'informations.",
+    // Variante 3 (rognage de souches)
+    "Découvrez les aides disponibles pour votre projet de rognage de souches, telles que MaPrimeRénov, les CEE, l'éco-PTZ, la TVA réduite, etc. Nos experts peuvent vous conseiller sur les possibilités de financement adaptées à vos besoins.",
 ];
 
 $headingsToRemove = [
