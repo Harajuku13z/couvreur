@@ -39,6 +39,10 @@ $paragraphsToRemove = [
     "Profitez des aides financières telles que MaPrimeRénov, les Certificats d'Économies d'Énergie, l'éco-Prêt à Taux Zéro, la TVA réduite pour vos travaux de Réparation & Pose de Nouvelle Toiture. Contactez-nous pour plus d'informations.",
     // Variante 3 (rognage de souches)
     "Découvrez les aides disponibles pour votre projet de rognage de souches, telles que MaPrimeRénov, les CEE, l'éco-PTZ, la TVA réduite, etc. Nos experts peuvent vous conseiller sur les possibilités de financement adaptées à vos besoins.",
+    // Variante 4 (élagage d'arbres) - version apostrophe simple
+    "Découvrez les différentes aides disponibles pour vos travaux d'élagage d'arbres: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Nos conseillers sont à votre disposition pour vous guider dans les démarches administratives.",
+    // Variante 4 bis (élagage d’arbres) - version apostrophe typographique
+    "Découvrez les différentes aides disponibles pour vos travaux d'élagage d’arbres: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Nos conseillers sont à votre disposition pour vous guider dans les démarches administratives.",
 ];
 
 // Titres simples à nettoyer si présents sans HTML (sécurité)
