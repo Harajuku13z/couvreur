@@ -131,7 +131,7 @@ class AdTemplate extends Model
             '[DÉPARTEMENT]' => $city->department ?? '',
             '[CODE_POSTAL]' => $city->postal_code ?? '',
             '[FORM_URL]' => url('/form/propertyType'),
-            '[URL]' => url('/annonces/' . \Illuminate\Support\Str::slug($this->service_name . '-' . $city->name)),
+            '[URL]' => url('/ads/' . \Illuminate\Support\Str::slug($this->service_name . '-' . $city->name)),
             '[TITRE]' => $this->service_name . ' à ' . $city->name,
             '[PHONE]' => \App\Models\Setting::get('company_phone', ''),
         ];

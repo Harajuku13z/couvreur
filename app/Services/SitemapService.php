@@ -12,6 +12,8 @@ class SitemapService
 {
     protected $baseUrl;
     protected $maxUrlsPerSitemap = 2000; // Limite recommandée par Google
+    /** Nombre max d'annonces dans le sitemap pour éviter indexation massive puis désindexation par Google */
+    protected $maxAdsInSitemap = 1000;
 
     public function __construct()
     {
@@ -51,6 +53,11 @@ class SitemapService
         
         // S'assurer que l'URL ne se termine pas par /
         $this->baseUrl = rtrim($siteUrl, '/');
+
+        $this->maxAdsInSitemap = (int) Setting::get('sitemap_max_ads', 1000);
+        if ($this->maxAdsInSitemap < 100) {
+            $this->maxAdsInSitemap = 1000;
+        }
         
         // Log pour debug (seulement si pas d'erreur)
         try {
@@ -146,17 +153,16 @@ class SitemapService
             'lastmod' => Carbon::now()
         ];
             
-            // Pages statiques
+            // Pages statiques (URLs doivent correspondre aux routes réelles pour éviter 404)
             $staticPages = [
                 '/services' => ['priority' => 0.9, 'changefreq' => 'weekly'],
-                '/nos-realisations' => ['priority' => 0.8, 'changefreq' => 'monthly'],
-                '/avis' => ['priority' => 0.8, 'changefreq' => 'weekly'],
+                '/portfolio' => ['priority' => 0.8, 'changefreq' => 'monthly'],
+                '/reviews' => ['priority' => 0.8, 'changefreq' => 'weekly'],
                 '/blog' => ['priority' => 0.7, 'changefreq' => 'weekly'],
                 '/contact' => ['priority' => 0.6, 'changefreq' => 'monthly'],
-                '/jobs' => ['priority' => 0.7, 'changefreq' => 'weekly'], // Page emploi (cachée des menus)
-                '/mentions-legales' => ['priority' => 0.3, 'changefreq' => 'yearly'],
-                '/politique-confidentialite' => ['priority' => 0.3, 'changefreq' => 'yearly'],
-                '/cgv' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+                '/legal/mentions' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+                '/legal/privacy' => ['priority' => 0.3, 'changefreq' => 'yearly'],
+                '/legal/cgv' => ['priority' => 0.3, 'changefreq' => 'yearly'],
             ];
             
         foreach ($staticPages as $path => $config) {
@@ -205,12 +211,12 @@ class SitemapService
             ];
             }
             
-            // Portfolio
+            // Portfolio (route réelle: /portfolio/{slug})
             $portfolio = $this->getPortfolio();
             Log::info("🖼️ Ajout de " . count($portfolio) . " éléments de portfolio...");
             foreach ($portfolio as $item) {
             $urls[] = [
-                'url' => $this->baseUrl . '/nos-realisations/' . $item,
+                'url' => $this->baseUrl . '/portfolio/' . $item,
                 'priority' => 0.5,
                 'changefreq' => 'monthly',
                 'lastmod' => Carbon::now()
@@ -309,8 +315,7 @@ class SitemapService
             Log::warning("⚠️ Impossible de récupérer les services : " . $e->getMessage());
         }
         
-        // Services par défaut
-        return ['test-service', 'couvreur', 'couverture', 'hydrofuge'];
+        return [];
     }
 
     /**
@@ -333,51 +338,46 @@ class SitemapService
             Log::warning("⚠️ Impossible de récupérer les articles : " . $e->getMessage());
         }
         
-        // Articles par défaut
-        return [
-            [
-                'slug' => 'hydrofuge-comment-proteger-efficacement-vos-surfaces-de-leau-guide-complet-2024',
-                'updated_at' => Carbon::now()
-            ],
-            [
-                'slug' => 'guide-complet-hydrofuge-de-toiture-protection-et-impermeabilisation-2024',
-                'updated_at' => Carbon::now()
-            ]
-        ];
+        return [];
     }
 
     /**
-     * Récupérer les annonces avec leurs dates de modification
+     * Récupérer les annonces publiées pour le sitemap (limité pour éviter désindexation).
+     * Google indexe puis désindexe quand trop de pages similaires sont soumises.
+     * On priorise : villes favorites puis les plus récentes, max $maxAdsInSitemap.
      */
     protected function getAds()
     {
         try {
-            return Ad::orderBy('updated_at', 'desc')
-                ->limit(50000) // Augmenter la limite pour inclure plus d'annonces
+            $favoriteCityIds = \App\Models\City::where('is_favorite', true)->pluck('id');
+            $half = (int) floor($this->maxAdsInSitemap / 2);
+
+            $ads = collect();
+            if ($favoriteCityIds->isNotEmpty()) {
+                $ads = Ad::where('status', 'published')
+                    ->whereIn('city_id', $favoriteCityIds)
+                    ->orderBy('updated_at', 'desc')
+                    ->limit($half)
+                    ->select('slug', 'updated_at')
+                    ->get()
+                    ->map(fn($ad) => ['slug' => $ad->slug, 'updated_at' => $ad->updated_at]);
+            }
+
+            $excludeSlugs = $ads->pluck('slug')->toArray();
+            $remaining = Ad::where('status', 'published')
+                ->when($excludeSlugs !== [], fn($q) => $q->whereNotIn('slug', $excludeSlugs))
+                ->orderBy('updated_at', 'desc')
+                ->limit($this->maxAdsInSitemap - $ads->count())
                 ->select('slug', 'updated_at')
                 ->get()
-                ->map(function($ad) {
-                    return [
-                        'slug' => $ad->slug,
-                        'updated_at' => $ad->updated_at
-                    ];
-                })
-                ->toArray();
+                ->map(fn($ad) => ['slug' => $ad->slug, 'updated_at' => $ad->updated_at]);
+
+            return $ads->concat($remaining)->toArray();
         } catch (\Exception $e) {
             Log::warning("⚠️ Impossible de récupérer les annonces : " . $e->getMessage());
         }
-        
-        // Annonces par défaut
-        return [
-            [
-                'slug' => 'test-couvreur-2-chantilly',
-                'updated_at' => Carbon::now()
-            ],
-            [
-                'slug' => 'test-couvreur-2-senlis',
-                'updated_at' => Carbon::now()
-            ]
-        ];
+
+        return [];
     }
 
     /**
@@ -398,8 +398,7 @@ class SitemapService
             Log::warning("⚠️ Impossible de récupérer le portfolio : " . $e->getMessage());
         }
         
-        // Portfolio par défaut
-        return ['renovation-de-toiture-a-avrainville'];
+        return [];
     }
 
     /**

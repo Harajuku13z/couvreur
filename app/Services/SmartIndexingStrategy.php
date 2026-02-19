@@ -214,7 +214,7 @@ class SmartIndexingStrategy
                 
                 // Indexer
                 try {
-                    $url = url('/annonces/' . $ad->slug);
+                    $url = url('/ads/' . $ad->slug);
                     $result = $this->googleIndexing->indexUrl($url);
                     
                     if ($result) {
@@ -333,7 +333,7 @@ class SmartIndexingStrategy
             if ($validation['score'] >= 65) {
                 $content[] = [
                     'type' => 'ad',
-                    'url' => url('/annonces/' . $ad->slug),
+                    'url' => url('/ads/' . $ad->slug),
                     'score' => $validation['score'],
                     'created_at' => $ad->created_at
                 ];

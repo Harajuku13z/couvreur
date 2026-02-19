@@ -52,16 +52,16 @@ class GenerateSitemap extends Command
             ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
             ->setPriority(1.0));
         
-        // Pages statiques
+        // Pages statiques (URLs réelles pour éviter 404)
         $staticPages = [
             '/services' => ['priority' => 0.9, 'changefreq' => Url::CHANGE_FREQUENCY_WEEKLY],
-            '/nos-realisations' => ['priority' => 0.8, 'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY],
-            '/avis' => ['priority' => 0.8, 'changefreq' => Url::CHANGE_FREQUENCY_WEEKLY],
+            '/portfolio' => ['priority' => 0.8, 'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY],
+            '/reviews' => ['priority' => 0.8, 'changefreq' => Url::CHANGE_FREQUENCY_WEEKLY],
             '/blog' => ['priority' => 0.7, 'changefreq' => Url::CHANGE_FREQUENCY_WEEKLY],
             '/contact' => ['priority' => 0.6, 'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY],
-            '/mentions-legales' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
-            '/politique-confidentialite' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
-            '/cgv' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
+            '/legal/mentions' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
+            '/legal/privacy' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
+            '/legal/cgv' => ['priority' => 0.3, 'changefreq' => Url::CHANGE_FREQUENCY_YEARLY],
         ];
         
         foreach ($staticPages as $url => $config) {
@@ -105,12 +105,12 @@ class GenerateSitemap extends Command
                 ->setPriority(0.7));
         }
         
-        // Annonces (toutes)
-        $ads = Ad::orderBy('updated_at', 'desc')->limit(5000)->get();
+        // Annonces publiées uniquement (éviter 404 sur brouillons)
+        $ads = Ad::where('status', 'published')->orderBy('updated_at', 'desc')->limit(5000)->get();
         $this->info("📢 Ajout de {$ads->count()} annonces...");
         
         foreach ($ads as $ad) {
-            $sitemap->add(Url::create($baseUrl . '/annonces/' . $ad->slug)
+            $sitemap->add(Url::create($baseUrl . '/ads/' . $ad->slug)
                 ->setLastModificationDate($ad->updated_at)
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.6));
@@ -130,7 +130,7 @@ class GenerateSitemap extends Command
         
         foreach ($visiblePortfolioItems as $item) {
             if (isset($item['slug'])) {
-                $sitemap->add(Url::create($baseUrl . '/nos-realisations/' . $item['slug'])
+                $sitemap->add(Url::create($baseUrl . '/portfolio/' . $item['slug'])
                     ->setLastModificationDate(Carbon::now())
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                     ->setPriority(0.5));

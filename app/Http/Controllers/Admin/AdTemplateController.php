@@ -57,7 +57,7 @@ class AdTemplateController extends Controller
             foreach ($templates as $template) {
                 foreach ($template->ads as $ad) {
                     if ($ad->slug) {
-                        $url = $baseUrl . '/annonces/' . $ad->slug;
+                        $url = $baseUrl . '/ads/' . $ad->slug;
                         $allLinks[] = [
                             'url' => $url,
                             'template_name' => $template->name,
@@ -410,11 +410,14 @@ class AdTemplateController extends Controller
                 'template_id' => 'required|exists:ad_templates,id',
                 'city_ids' => 'required|array|min:1',
                 'city_ids.*' => 'required|integer|exists:cities,id',
+                'use_ai_personalization' => 'sometimes|boolean',
             ]);
 
             $template = AdTemplate::findOrFail($request->input('template_id'));
             $cityIds = $request->input('city_ids');
             $cities = City::whereIn('id', $cityIds)->get();
+            // Texte et meta uniques par ville (IA) : recommandé pour le SEO, évite les pages qui se ressemblent (plus de tokens)
+            $useAiPersonalization = $request->boolean('use_ai_personalization', true);
 
             $createdAds = 0;
             $skippedAds = 0;
@@ -432,9 +435,9 @@ class AdTemplateController extends Controller
                         continue;
                     }
 
-                    // Obtenir le contenu et les métadonnées pour cette ville
-                    $contentForCity = $template->getContentForCity($city);
-                    $metaForCity = $template->getMetaForCity($city);
+                    // Obtenir le contenu et les métadonnées pour cette ville (IA = texte différent par ville, sinon template avec [VILLE])
+                    $contentForCity = $template->getContentForCity($city, $useAiPersonalization);
+                    $metaForCity = $template->getMetaForCity($city, $useAiPersonalization);
 
                     // Créer l'annonce
                     $ad = \App\Models\Ad::create([

@@ -278,7 +278,7 @@ class BulkAdsController extends Controller
                 $siteUrl = 'https://' . $siteUrl;
             }
             $formUrl = $siteUrl . '/form/propertyType';
-            $adUrl = $siteUrl . '/annonces/' . Str::slug($service['name'] . '-' . $city->name);
+            $adUrl = $siteUrl . '/ads/' . Str::slug($service['name'] . '-' . $city->name);
             $adTitle = $service['name'] . ' à ' . $city->name;
             
             // Construire le prompt personnalisé
@@ -610,7 +610,7 @@ IMPORTANT:
             $siteUrl = 'https://' . $siteUrl;
         }
         $formUrl = $siteUrl . '/form/propertyType';
-        $adUrl = $siteUrl . '/annonces/' . Str::slug($serviceName . '-' . $city->name);
+        $adUrl = $siteUrl . '/ads/' . Str::slug($serviceName . '-' . $city->name);
         $adTitle = $serviceName . ' à ' . $city->name;
         
         return '<div class="grid md:grid-cols-2 gap-8">
@@ -718,7 +718,7 @@ IMPORTANT:
                 $siteUrl = 'https://' . $siteUrl;
             }
             $formUrl = $siteUrl . '/form/propertyType';
-            $adUrl = $siteUrl . '/annonces/' . Str::slug($keyword . '-' . $city->name);
+            $adUrl = $siteUrl . '/ads/' . Str::slug($keyword . '-' . $city->name);
             $adTitle = ucfirst($keyword) . ' à ' . $city->name;
             
             // Construire le prompt personnalisé pour le mot-clé
@@ -850,7 +850,7 @@ IMPORTANT:
             $siteUrl = 'https://' . $siteUrl;
         }
         $formUrl = $siteUrl . '/form/propertyType';
-        $adUrl = $siteUrl . '/annonces/' . Str::slug($keyword . '-' . $city->name);
+        $adUrl = $siteUrl . '/ads/' . Str::slug($keyword . '-' . $city->name);
         $adTitle = ucfirst($keyword) . ' à ' . $city->name;
         
         return '<div class="grid md:grid-cols-2 gap-8">

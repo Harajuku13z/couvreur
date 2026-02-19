@@ -68,8 +68,9 @@
                         <input type="text" name="company_name" value="{{ setting('company_name') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone principal *</label>
                         <input type="text" name="company_phone" value="{{ setting('company_phone') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Format libre (ex : 07 78 84 04 95). Ce numéro sera utilisé partout sur le site.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
@@ -83,6 +84,21 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Description de l'entreprise</label>
                         <textarea name="company_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Brève description de votre entreprise qui apparaîtra dans le footer...">{{ setting('company_description') }}</textarea>
                         <p class="text-xs text-gray-500 mt-1">Cette description apparaîtra dans le footer du site</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone secondaire 1</label>
+                        <input type="text" name="company_phone_2" value="{{ setting('company_phone_2') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Optionnel">
+                        <p class="text-xs text-gray-500 mt-1">Numéro supplémentaire (commercial, mobile, etc.). Affiché dans le footer s'il est rempli.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone secondaire 2</label>
+                        <input type="text" name="company_phone_3" value="{{ setting('company_phone_3') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Optionnel">
+                        <p class="text-xs text-gray-500 mt-1">Deuxième numéro supplémentaire (ex : support, urgence).</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Horaires d'ouverture</label>
+                        <textarea name="company_hours" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Ex : Lun–Ven 8h00–19h00, Sam 9h00–13h00, Dim fermé">{{ setting('company_hours') }}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Affiché dans le footer et utilisable pour le référencement local.</p>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>

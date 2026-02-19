@@ -151,8 +151,8 @@
     <meta name="keywords" content="{{ e($keywordsValue) }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{{ request()->url() }}">
+    <!-- Canonical URL (basée sur site_url pour éviter "Duplicate without user-selected canonical") -->
+    <link rel="canonical" href="{{ $canonicalUrl ?? \App\Helpers\SeoHelper::getCanonicalUrl() }}">
     
     <!-- Open Graph Meta Tags (améliorés pour Google) -->
     <meta property="og:title" content="{{ e($finalOgTitle) }}">
@@ -161,16 +161,16 @@
     <meta property="og:image:secure_url" content="{{ e($finalImage) }}">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:alt" content="{{ e($finalOgTitle) }}">
-    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:url" content="{{ $canonicalUrl ?? \App\Helpers\SeoHelper::getCanonicalUrl() }}">
     <meta property="og:type" content="{{ $pageType ?? 'website' }}">
     <meta property="og:site_name" content="{{ e(@setting('company_name', 'Votre Entreprise')) }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="fr_FR">
     
-    <!-- Meta tags supplémentaires pour améliorer l'affichage dans Google -->
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow">
+    <!-- Meta robots (éviter désindexation : garder index, follow sauf si $robotsMeta défini) -->
+    <meta name="robots" content="{{ $robotsMeta ?? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }}">
+    <meta name="googlebot" content="{{ $robotsMeta ?? 'index, follow' }}">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">

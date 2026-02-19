@@ -483,6 +483,15 @@ function displayCitySelection(cities) {
             </div>
         </div>
         
+        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <label class="flex items-start cursor-pointer">
+                <input type="checkbox" id="useAiPersonalization" name="use_ai_personalization" value="1" checked class="mt-1 mr-3 h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500">
+                <span class="text-sm text-gray-700">
+                    <strong>Personnalisation IA</strong> : générer un <strong>texte et des meta uniques pour chaque ville</strong> (recommandé pour le SEO, évite les pages qui se ressemblent). Consomme plus de tokens mais chaque page sera différente.
+                </span>
+            </label>
+        </div>
+        
         <div class="flex justify-end space-x-3">
             <button type="button" onclick="hideGenerateAdsModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200">
                 Annuler
@@ -517,6 +526,8 @@ function generateAdsFromSelectedCities() {
     selectedCities.forEach(cityId => {
         formData.append('city_ids[]', cityId);
     });
+    const useAiCheckbox = document.getElementById('useAiPersonalization');
+    formData.append('use_ai_personalization', useAiCheckbox && useAiCheckbox.checked ? '1' : '0');
     
     // Afficher un indicateur de chargement
     const button = event.target;

@@ -3,9 +3,46 @@
 namespace App\Helpers;
 
 use App\Models\Setting;
+use Illuminate\Http\Request;
 
 class SeoHelper
 {
+    /**
+     * Construire l'URL canonique basée sur site_url (évite "Duplicate without user-selected canonical").
+     * Utilise toujours le domaine configuré (site_url/APP_URL) pour garantir une canonical unique
+     * quelle que soit la façon d'accéder (www/non-www, http/https).
+     */
+    public static function getCanonicalUrl(?Request $request = null): string
+    {
+        $request = $request ?? request();
+        $baseUrl = rtrim(Setting::get('site_url', config('app.url')), '/');
+        if (empty($baseUrl) || !str_starts_with($baseUrl, 'http')) {
+            $baseUrl = config('app.url');
+        }
+
+        $path = '/' . ltrim($request->path(), '/');
+        if ($path === '//') {
+            $path = '/';
+        }
+
+        $queryParams = $request->query();
+        $importantParams = ['page', 'ref', 'utm_source', 'utm_medium', 'utm_campaign'];
+        $filteredParams = [];
+        foreach ($importantParams as $param) {
+            if (isset($queryParams[$param])) {
+                $filteredParams[$param] = $queryParams[$param];
+            }
+        }
+        $query = empty($filteredParams) ? '' : '?' . http_build_query($filteredParams);
+
+        $canonical = $baseUrl . $path . $query;
+
+        if ($path !== '/' && str_ends_with($canonical, '/')) {
+            $canonical = rtrim($canonical, '/');
+        }
+
+        return $canonical;
+    }
     /**
      * Convertir un chemin d'image en URL complète
      */
@@ -133,8 +170,8 @@ class SeoHelper
             $finalImage = $defaultImage;
         }
         
-        // URL canonique
-        $canonicalUrl = request()->url();
+        // URL canonique (basée sur site_url pour éviter les doublons www/non-www)
+        $canonicalUrl = self::getCanonicalUrl();
         
         $meta = [
             'title' => $finalTitle,

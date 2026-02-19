@@ -140,7 +140,7 @@ class GenerateSitemapManual extends Command
             
             foreach ($ads as $ad) {
                 $xml .= '  <url>' . "\n";
-                $xml .= '    <loc>' . $baseUrl . '/annonces/' . $ad->slug . '</loc>' . "\n";
+                $xml .= '    <loc>' . $baseUrl . '/ads/' . $ad->slug . '</loc>' . "\n";
                 $xml .= '    <lastmod>' . $ad->updated_at->format('Y-m-d\TH:i:s+01:00') . '</lastmod>' . "\n";
                 $xml .= '    <changefreq>monthly</changefreq>' . "\n";
                 $xml .= '    <priority>0.6</priority>' . "\n";

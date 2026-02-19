@@ -23,12 +23,35 @@
                 </p>
                 
                 <div class="flex flex-col space-y-4">
+                    @php
+                        $phoneMain = setting('company_phone', '');
+                        $phone2 = setting('company_phone_2', '');
+                        $phone3 = setting('company_phone_3', '');
+                    @endphp
+                    @if($phoneMain)
                     <div class="flex space-x-4">
-                        <a href="tel:{{ setting('company_phone') }}" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}" class="text-gray-400 hover:text-white transition-colors">
                             <i class="fas fa-phone mr-2"></i>
-                            {{ setting('company_phone', '01 23 45 67 89') }}
+                            {{ $phoneMain }}
                         </a>
                     </div>
+                    @endif
+                    @if($phone2)
+                    <div class="flex space-x-4 text-sm">
+                        <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-phone mr-2"></i>
+                            {{ $phone2 }}
+                        </a>
+                    </div>
+                    @endif
+                    @if($phone3)
+                    <div class="flex space-x-4 text-sm">
+                        <a href="tel:{{ setting('company_phone_3_raw', $phone3) }}" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-phone mr-2"></i>
+                            {{ $phone3 }}
+                        </a>
+                    </div>
+                    @endif
                     
                     <!-- Address -->
                     @php
@@ -49,12 +72,21 @@
                         if ($country) $fullAddress[] = $country;
                         
                         $fullAddressString = implode(', ', $fullAddress);
+                        $hours = setting('company_hours', '');
                     @endphp
                     @if($fullAddressString)
                     <div class="flex items-start space-x-4">
                         <i class="fas fa-map-marker-alt mt-1 text-gray-400"></i>
                         <div class="text-gray-400">
                             {{ $fullAddressString }}
+                        </div>
+                    </div>
+                    @endif
+                    @if(!empty($hours))
+                    <div class="flex items-start space-x-4">
+                        <i class="far fa-clock mt-1 text-gray-400"></i>
+                        <div class="text-gray-400 text-sm">
+                            {{ $hours }}
                         </div>
                     </div>
                     @endif

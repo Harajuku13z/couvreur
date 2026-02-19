@@ -184,6 +184,8 @@ class ConfigController extends Controller
             'company_slogan' => 'nullable|string|max:255',
             'company_description' => 'nullable|string',
             'company_phone' => 'required|string|max:20',
+            'company_phone_2' => 'nullable|string|max:20',
+            'company_phone_3' => 'nullable|string|max:20',
             'company_email' => 'required|email|max:255',
             'company_address' => 'nullable|string',
             'company_city' => 'nullable|string|max:100',
@@ -202,6 +204,21 @@ class ConfigController extends Controller
         Setting::set('company_description', $validated['company_description'] ?? '', 'text', 'company');
         Setting::set('company_phone', $validated['company_phone'], 'string', 'company');
         Setting::set('company_phone_raw', preg_replace('/[^0-9]/', '', $validated['company_phone']), 'string', 'company');
+        // Numéros secondaires optionnels
+        Setting::set('company_phone_2', $validated['company_phone_2'] ?? '', 'string', 'company');
+        Setting::set(
+            'company_phone_2_raw',
+            !empty($validated['company_phone_2'] ?? '') ? preg_replace('/[^0-9]/', '', $validated['company_phone_2']) : '',
+            'string',
+            'company'
+        );
+        Setting::set('company_phone_3', $validated['company_phone_3'] ?? '', 'string', 'company');
+        Setting::set(
+            'company_phone_3_raw',
+            !empty($validated['company_phone_3'] ?? '') ? preg_replace('/[^0-9]/', '', $validated['company_phone_3']) : '',
+            'string',
+            'company'
+        );
         Setting::set('company_email', $validated['company_email'], 'string', 'company');
         Setting::set('company_address', $validated['company_address'] ?? '', 'string', 'company');
         Setting::set('company_city', $validated['company_city'] ?? '', 'string', 'company');

@@ -170,7 +170,7 @@ class GenerateCompleteSitemap extends Command
         
         foreach ($ads as $ad) {
             $xml .= '  <url>' . "\n";
-            $xml .= '    <loc>' . $baseUrl . '/annonces/' . $ad . '</loc>' . "\n";
+            $xml .= '    <loc>' . $baseUrl . '/ads/' . $ad . '</loc>' . "\n";
             $xml .= '    <lastmod>' . Carbon::now()->format('Y-m-d\TH:i:s+01:00') . '</lastmod>' . "\n";
             $xml .= '    <changefreq>monthly</changefreq>' . "\n";
             $xml .= '    <priority>0.6</priority>' . "\n";

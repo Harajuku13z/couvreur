@@ -206,6 +206,10 @@
                 {{ $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'Travaux de Rénovation') }}
             </p>
             
+            @php
+                $phoneMain = setting('company_phone', '');
+                $phone2 = setting('company_phone_2', '');
+            @endphp
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4 mb-8">
                 <a href="{{ route('form.step', 'propertyType') }}" 
                    class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
@@ -213,11 +217,19 @@
                     {{ $homeConfig['hero']['cta_text'] ?? 'Demander un Devis Gratuit' }}
                 </a>
                 
-                @if($homeConfig['hero']['show_phone'] ?? true)
-                <a href="tel:{{ setting('company_phone') }}" 
+                @if(($homeConfig['hero']['show_phone'] ?? true) && $phoneMain)
+                <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}" 
                    class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <i class="fas fa-phone mr-2"></i>
-                    {{ setting('company_phone') }}
+                    {{ $phoneMain }}
+                </a>
+                @endif
+                
+                @if(($homeConfig['hero']['show_phone'] ?? true) && $phone2)
+                <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}" 
+                   class="bg-gray-100 text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-lg border border-gray-300">
+                    <i class="fas fa-phone-alt mr-2"></i>
+                    {{ $phone2 }}
                 </a>
                 @endif
             </div>
