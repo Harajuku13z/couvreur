@@ -45,6 +45,71 @@ class SeoController extends Controller
         ];
         
         $seoConfig = array_merge($defaults, $seoConfig);
+
+        // Auto-génération intelligente à partir des infos locales de l'entreprise
+        // (uniquement pour pré-remplir l'interface admin quand les champs sont vides)
+        try {
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            $companySpecialization = Setting::get('company_specialization', 'Travaux de rénovation');
+            $companyCity = Setting::get('company_city', '');
+            $companyRegion = Setting::get('company_region', '');
+            $siteName = Setting::get('site_name', $companyName);
+            $siteUrl = rtrim(Setting::get('site_url', config('app.url')), '/');
+
+            $location = trim(implode(' ', array_filter([$companyCity, $companyRegion])));
+
+            if (empty($seoConfig['meta_title'])) {
+                if (!empty($location)) {
+                    $seoConfig['meta_title'] = "{$companySpecialization} à {$location} - {$companyName}";
+                } else {
+                    $seoConfig['meta_title'] = "{$companySpecialization} - {$companyName}";
+                }
+            }
+
+            if (empty($seoConfig['meta_description'])) {
+                $baseDescription = "Entreprise spécialisée en {$companySpecialization}";
+                if (!empty($companyCity)) {
+                    $baseDescription .= " à {$companyCity}";
+                    if (!empty($companyRegion)) {
+                        $baseDescription .= " ({$companyRegion})";
+                    }
+                }
+                $baseDescription .= " : devis gratuit, intervention rapide et travail soigné.";
+
+                $seoConfig['meta_description'] = $baseDescription;
+            }
+
+            if (empty($seoConfig['meta_keywords'])) {
+                $keywords = [
+                    $companySpecialization,
+                    "{$companySpecialization} {$companyCity}",
+                    "{$companySpecialization} {$companyRegion}",
+                    "artisan couverture {$companyCity}",
+                    "{$companyName}"
+                ];
+
+                // Nettoyer les mots-clés vides/doublons
+                $keywords = array_unique(array_filter($keywords, function ($value) {
+                    return !empty(trim((string) $value));
+                }));
+
+                $seoConfig['meta_keywords'] = implode(', ', $keywords);
+            }
+
+            if (empty($seoConfig['og_title'])) {
+                $seoConfig['og_title'] = $seoConfig['meta_title'];
+            }
+
+            if (empty($seoConfig['og_description'])) {
+                $seoConfig['og_description'] = $seoConfig['meta_description'];
+            }
+
+            if (empty($seoConfig['canonical_url']) && !empty($siteUrl)) {
+                $seoConfig['canonical_url'] = $siteUrl;
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Erreur auto-génération SEO globale', ['error' => $e->getMessage()]);
+        }
         
         // Debug: Log the SEO config
         \Log::info('SEO Config loaded:', ['seoConfig' => $seoConfig]);
@@ -327,14 +392,132 @@ class SeoController extends Controller
     {
         $pages = ['home', 'services', 'portfolio', 'blog', 'ads', 'reviews', 'contact', 'mentions-legales', 'politique-confidentialite', 'cgv'];
         $seoPages = [];
-        
+
+        // Infos locales de l'entreprise pour auto-générer des propositions par page
+        try {
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            $companySpecialization = Setting::get('company_specialization', 'Travaux de rénovation');
+            $companyCity = Setting::get('company_city', '');
+            $companyRegion = Setting::get('company_region', '');
+            $location = trim(implode(' ', array_filter([$companyCity, $companyRegion])));
+        } catch (\Exception $e) {
+            $companyName = 'Votre Entreprise';
+            $companySpecialization = 'Travaux de rénovation';
+            $companyCity = '';
+            $companyRegion = '';
+            $location = '';
+        }
+
         foreach ($pages as $page) {
+            $metaTitle = Setting::get("seo_page_{$page}_meta_title", '');
+            $metaDescription = Setting::get("seo_page_{$page}_meta_description", '');
+            $ogTitle = Setting::get("seo_page_{$page}_og_title", '');
+            $ogDescription = Setting::get("seo_page_{$page}_og_description", '');
+            $ogImage = Setting::get("seo_page_{$page}_og_image", '');
+
+            // Propositions automatiques si non configuré
+            if (empty($metaTitle)) {
+                switch ($page) {
+                    case 'home':
+                        $metaTitle = !empty($location)
+                            ? "{$companySpecialization} à {$location} - {$companyName}"
+                            : "{$companySpecialization} - {$companyName}";
+                        break;
+                    case 'services':
+                        $metaTitle = "Nos services de {$companySpecialization}" . (!empty($companyCity) ? " à {$companyCity}" : '');
+                        break;
+                    case 'portfolio':
+                        $metaTitle = "Nos réalisations de {$companySpecialization}" . (!empty($location) ? " - {$location}" : '');
+                        break;
+                    case 'blog':
+                        $metaTitle = "Conseils et actualités {$companySpecialization}" . (!empty($location) ? " - {$location}" : '');
+                        break;
+                    case 'ads':
+                        $metaTitle = "Annonces de travaux et interventions {$companySpecialization}" . (!empty($location) ? " - {$location}" : '');
+                        break;
+                    case 'reviews':
+                        $metaTitle = "Avis clients sur {$companyName}" . (!empty($location) ? " - {$location}" : '');
+                        break;
+                    case 'contact':
+                        $metaTitle = "Contactez {$companyName}" . (!empty($location) ? " - Devis {$companySpecialization} {$location}" : '');
+                        break;
+                    case 'mentions-legales':
+                        $metaTitle = "Mentions légales - {$companyName}";
+                        break;
+                    case 'politique-confidentialite':
+                        $metaTitle = "Politique de confidentialité - {$companyName}";
+                        break;
+                    case 'cgv':
+                        $metaTitle = "Conditions générales de vente - {$companyName}";
+                        break;
+                    default:
+                        $metaTitle = "{$companyName} - {$companySpecialization}";
+                }
+            }
+
+            if (empty($metaDescription)) {
+                switch ($page) {
+                    case 'home':
+                        $metaDescription = "Découvrez {$companyName}, spécialiste en {$companySpecialization}" .
+                            (!empty($companyCity) ? " à {$companyCity}" : '') .
+                            " : conseils, accompagnement et travaux de qualité. Devis gratuit et intervention rapide.";
+                        break;
+                    case 'services':
+                        $metaDescription = "Tous nos services de {$companySpecialization}" .
+                            (!empty($location) ? " dans la région {$location}" : '') .
+                            " : rénovation de toiture, isolation, entretien et plus encore.";
+                        break;
+                    case 'portfolio':
+                        $metaDescription = "Découvrez les réalisations de {$companyName} en {$companySpecialization}" .
+                            (!empty($location) ? " dans la région {$location}" : '') .
+                            " : avant/après, chantiers récents et projets clients.";
+                        break;
+                    case 'blog':
+                        $metaDescription = "Conseils, guides pratiques et actualités sur les travaux de {$companySpecialization}" .
+                            (!empty($location) ? " pour les habitants de {$location}" : '') . ".";
+                        break;
+                    case 'ads':
+                        $metaDescription = "Annonces de travaux, interventions et offres spéciales de {$companyName}" .
+                            (!empty($location) ? " pour {$location}" : '') . ".";
+                        break;
+                    case 'reviews':
+                        $metaDescription = "Avis et témoignages de clients ayant fait appel à {$companyName}" .
+                            (!empty($location) ? " pour leurs travaux à {$location}" : '') . ".";
+                        break;
+                    case 'contact':
+                        $metaDescription = "Contactez {$companyName} pour vos projets de {$companySpecialization}" .
+                            (!empty($location) ? " à {$location}" : '') .
+                            " : formulaire en ligne, téléphone et email. Devis gratuit.";
+                        break;
+                    case 'mentions-legales':
+                        $metaDescription = "Mentions légales du site de {$companyName}.";
+                        break;
+                    case 'politique-confidentialite':
+                        $metaDescription = "Politique de confidentialité et gestion des données personnelles de {$companyName}.";
+                        break;
+                    case 'cgv':
+                        $metaDescription = "Conditions générales de vente de {$companyName} pour ses prestations de {$companySpecialization}.";
+                        break;
+                    default:
+                        $metaDescription = "{$companyName}, spécialiste en {$companySpecialization}" .
+                            (!empty($location) ? " dans la région {$location}" : '') . ".";
+                }
+            }
+
+            if (empty($ogTitle)) {
+                $ogTitle = $metaTitle;
+            }
+
+            if (empty($ogDescription)) {
+                $ogDescription = $metaDescription;
+            }
+
             $seoPages[$page] = [
-                'meta_title' => Setting::get("seo_page_{$page}_meta_title", ''),
-                'meta_description' => Setting::get("seo_page_{$page}_meta_description", ''),
-                'og_title' => Setting::get("seo_page_{$page}_og_title", ''),
-                'og_description' => Setting::get("seo_page_{$page}_og_description", ''),
-                'og_image' => Setting::get("seo_page_{$page}_og_image", ''),
+                'meta_title' => $metaTitle,
+                'meta_description' => $metaDescription,
+                'og_title' => $ogTitle,
+                'og_description' => $ogDescription,
+                'og_image' => $ogImage,
             ];
         }
         
