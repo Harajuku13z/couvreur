@@ -3,11 +3,14 @@
     $companyName = setting('company_name', 'Votre Entreprise');
     $companyDescription = setting('company_description', '');
     $companyPhone = setting('company_phone_raw', '');
+    $companyPhone2 = setting('company_phone_2_raw', '');
+    $companyPhone3 = setting('company_phone_3_raw', '');
     $companyEmail = setting('company_email', '');
     $companyAddress = setting('company_address', '');
     $companyCity = setting('company_city', '');
     $companyPostalCode = setting('company_postal_code', '');
     $companyCountry = setting('company_country', 'France');
+    $companyHours = setting('company_hours', '');
     $companyUrl = url('/');
     
     // Organisation Schema - Logo optimisé pour Google
@@ -107,6 +110,113 @@
         $organizationSchema["email"] = $companyEmail;
     }
     $organizationSchema["priceRange"] = "€€";
+    
+    // Contact points (plusieurs numéros avec type)
+    $contactPoints = [];
+    if (!empty($companyPhone)) {
+        $contactPoints[] = [
+            "@type" => "ContactPoint",
+            "telephone" => $companyPhone,
+            "contactType" => "customer service",
+            "areaServed" => $companyCountry ?: "FR",
+            "availableLanguage" => ["fr-FR"]
+        ];
+    }
+    if (!empty($companyPhone2)) {
+        $contactPoints[] = [
+            "@type" => "ContactPoint",
+            "telephone" => $companyPhone2,
+            "contactType" => "sales",
+            "areaServed" => $companyCountry ?: "FR",
+            "availableLanguage" => ["fr-FR"]
+        ];
+    }
+    if (!empty($companyPhone3)) {
+        $contactPoints[] = [
+            "@type" => "ContactPoint",
+            "telephone" => $companyPhone3,
+            "contactType" => "emergency",
+            "areaServed" => $companyCountry ?: "FR",
+            "availableLanguage" => ["fr-FR"]
+        ];
+    }
+    if (!empty($contactPoints)) {
+        $organizationSchema["contactPoint"] = $contactPoints;
+    }
+    
+    // openingHoursSpecification (parse un format simple ex: "Lun–Ven 8h00–19h00, Sam 9h00–13h00, Dim fermé")
+    if (!empty($companyHours)) {
+        $dayMap = [
+            'Lun' => 'Monday',
+            'Mar' => 'Tuesday',
+            'Mer' => 'Wednesday',
+            'Jeu' => 'Thursday',
+            'Ven' => 'Friday',
+            'Sam' => 'Saturday',
+            'Dim' => 'Sunday',
+        ];
+        $openingHours = [];
+        $parts = preg_split('/[,;]+/', $companyHours);
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part === '') continue;
+            
+            // Ex: "Lun–Ven 8h00–19h00" ou "Sam 9h–13h"
+            if (!preg_match('/^(Lun|Mar|Mer|Jeu|Ven|Sam|Dim)(?:\s*[–\-]\s*(Lun|Mar|Mer|Jeu|Ven|Sam|Dim))?\s+(.+)$/ui', $part, $m)) {
+                continue;
+            }
+            $startDay = $m[1];
+            $endDay = $m[2] ?? null;
+            $hoursPart = trim($m[3]);
+            
+            if (stripos($hoursPart, 'fermé') !== false) {
+                continue;
+            }
+            
+            // Extraire heures d'ouverture/fermeture (8h, 8h00, 08:00, etc.)
+            if (!preg_match('/(\d{1,2})[hH:]?(\d{0,2})\s*[–\-]\s*(\d{1,2})[hH:]?(\d{0,2})/u', $hoursPart, $hm)) {
+                continue;
+            }
+            $openH = str_pad($hm[1], 2, '0', STR_PAD_LEFT);
+            $openM = $hm[2] !== '' ? str_pad($hm[2], 2, '0', STR_PAD_LEFT) : '00';
+            $closeH = str_pad($hm[3], 2, '0', STR_PAD_LEFT);
+            $closeM = $hm[4] !== '' ? str_pad($hm[4], 2, '0', STR_PAD_LEFT) : '00';
+            
+            $opens = $openH . ':' . $openM;
+            $closes = $closeH . ':' . $closeM;
+            
+            // Générer la liste des jours concernés
+            $days = [];
+            $keys = array_keys($dayMap);
+            $startIndex = array_search($startDay, $keys, true);
+            if ($startIndex === false) {
+                continue;
+            }
+            if ($endDay) {
+                $endIndex = array_search($endDay, $keys, true);
+                if ($endIndex === false) {
+                    $days[] = $dayMap[$startDay];
+                } else {
+                    for ($i = $startIndex; $i <= $endIndex; $i++) {
+                        $days[] = $dayMap[$keys[$i]];
+                    }
+                }
+            } else {
+                $days[] = $dayMap[$startDay];
+            }
+            
+            $openingHours[] = [
+                "@type" => "OpeningHoursSpecification",
+                "dayOfWeek" => $days,
+                "opens" => $opens,
+                "closes" => $closes,
+            ];
+        }
+        
+        if (!empty($openingHours)) {
+            $organizationSchema["openingHoursSpecification"] = $openingHours;
+        }
+    }
     
     // Logo optimisé pour Google Search Results
     // Google recommande un logo d'au moins 112x112px pour apparaître dans les résultats

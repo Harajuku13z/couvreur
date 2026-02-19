@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Models\Review;
+use App\Models\City;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -119,6 +120,13 @@ class HomeController extends Controller
             'certifications' => Setting::get('company_certifications', ''),
         ];
         
+        // Villes principales (pour le maillage interne sur la home)
+        $favoriteCities = City::where('is_favorite', true)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->take(12)
+            ->get();
+        
         // Get branding colors
         $branding = [
             'primary_color' => Setting::get('primary_color', '#3b82f6'),
@@ -160,7 +168,8 @@ class HomeController extends Controller
             'completedSubmissions',
             'breadcrumbs',
             'faqs',
-            'reviews' // Pour Schema.org
+            'reviews', // Pour Schema.org
+            'favoriteCities'
         ));
     }
     
