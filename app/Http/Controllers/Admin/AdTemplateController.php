@@ -420,6 +420,7 @@ class AdTemplateController extends Controller
             $useAiPersonalization = $request->boolean('use_ai_personalization', true);
 
             $createdAds = 0;
+            $updatedAds = 0;
             $skippedAds = 0;
             $errors = [];
 
@@ -431,7 +432,27 @@ class AdTemplateController extends Controller
                         ->first();
 
                     if ($existingAd) {
-                        $skippedAds++;
+                        // Mettre à jour l'annonce existante avec le nouveau contenu du template
+                        $contentForCity = $template->getContentForCity($city, $useAiPersonalization);
+                        $metaForCity = $template->getMetaForCity($city, $useAiPersonalization);
+
+                        $existingAd->update([
+                            'title' => $template->service_name . ' à ' . $city->name,
+                            'keyword' => $template->service_name,
+                            'meta_title' => $metaForCity['meta_title'],
+                            'meta_description' => $metaForCity['meta_description'],
+                            'meta_keywords' => $metaForCity['meta_keywords'] ?? null,
+                            'content_html' => $contentForCity,
+                            'content_json' => json_encode([
+                                'template_id' => $template->id,
+                                'city' => $city->toArray(),
+                                'updated_from_template' => true,
+                                'use_ai_personalization' => $useAiPersonalization,
+                                'generated_at' => now()->toISOString(),
+                            ]),
+                        ]);
+
+                        $updatedAds++;
                         continue;
                     }
 
@@ -455,7 +476,8 @@ class AdTemplateController extends Controller
                         'content_json' => json_encode([
                             'template_id' => $template->id,
                             'city' => $city->toArray(),
-                            'generated_at' => now()->toISOString()
+                            'use_ai_personalization' => $useAiPersonalization,
+                            'generated_at' => now()->toISOString(),
                         ])
                     ]);
 
@@ -481,9 +503,10 @@ class AdTemplateController extends Controller
             return response()->json([
                 'success' => true,
                 'created' => $createdAds,
+                'updated' => $updatedAds,
                 'skipped' => $skippedAds,
                 'errors' => $errors,
-                'message' => "Génération terminée : {$createdAds} annonces créées, {$skippedAds} ignorées"
+                'message' => "Génération terminée : {$createdAds} annonces créées, {$updatedAds} mises à jour, {$skippedAds} ignorées"
             ]);
         } catch (\Throwable $e) {
             Log::error('Erreur globale génération annonces', [
