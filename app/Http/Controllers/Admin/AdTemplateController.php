@@ -1576,8 +1576,9 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $companyCity = $companyInfo['company_city'] ?? setting('company_city', '');
             $companyDept = $companyInfo['company_region'] ?? setting('company_region', '');
             
-            // Récupérer les informations pratiques depuis les settings
+            // Récupérer les informations pratiques depuis les settings (avec code postal)
             $companyAddress = setting('company_address', '');
+            $companyPostalCode = setting('company_postal_code', '');
             $companyPhone = setting('company_phone', '');
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
@@ -1648,7 +1649,22 @@ EXEMPLES CONCRETS POUR {$keyword}:
             // Construire les infos pratiques pour le prompt
             $infosPratiquesPrompt = "Informations pratiques à utiliser EXACTEMENT (ne pas inventer):\n";
             if ($companyAddress) {
-                $infosPratiquesPrompt .= "- Adresse : {$companyAddress}\n";
+                // Inclure le code postal + ville si disponibles pour une adresse complète
+                $fullAddress = $companyAddress;
+                $cityLineParts = [];
+                if ($companyPostalCode) {
+                    $cityLineParts[] = $companyPostalCode;
+                }
+                if ($companyCity) {
+                    $cityLineParts[] = $companyCity;
+                }
+                if (!empty($cityLineParts)) {
+                    $fullAddress .= ' - ' . implode(' ', $cityLineParts);
+                }
+                $infosPratiquesPrompt .= "- Adresse : {$fullAddress}\n";
+            } elseif ($companyPostalCode || $companyCity) {
+                // Si pas d'adresse mais code postal/ville, les mentionner quand même
+                $infosPratiquesPrompt .= "- Localisation : " . trim($companyPostalCode . ' ' . $companyCity) . "\n";
             }
             if ($companyPhone) {
                 $infosPratiquesPrompt .= "- Téléphone : {$companyPhone}\n";
