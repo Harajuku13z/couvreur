@@ -124,9 +124,10 @@ class AdTemplateController extends Controller
 
         $template->update($validated);
 
+        // Rester sur la page d'édition avec un message de confirmation visible
         return redirect()
-            ->route('admin.ads.templates.show', $template->id)
-            ->with('success', 'Template personnalisé avec succès ! Vous pouvez maintenant générer des annonces.');
+            ->route('admin.ads.templates.edit', $template->id)
+            ->with('success', 'Template personnalisé avec succès !');
     }
 
     /**
