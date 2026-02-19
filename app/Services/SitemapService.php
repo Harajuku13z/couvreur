@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\Log;
 class SitemapService
 {
     protected $baseUrl;
-    protected $maxUrlsPerSitemap = 2000; // Limite recommandée par Google
-    /** Nombre max d'annonces dans le sitemap pour éviter indexation massive puis désindexation par Google */
-    protected $maxAdsInSitemap = 1000;
+    // Nombre max d'URLs par fichier sitemap physique (pour rester sous les limites Google)
+    protected $maxUrlsPerSitemap = 2000;
 
     public function __construct()
     {
@@ -54,11 +53,6 @@ class SitemapService
         // S'assurer que l'URL ne se termine pas par /
         $this->baseUrl = rtrim($siteUrl, '/');
 
-        $this->maxAdsInSitemap = (int) Setting::get('sitemap_max_ads', 1000);
-        if ($this->maxAdsInSitemap < 100) {
-            $this->maxAdsInSitemap = 1000;
-        }
-        
         // Log pour debug (seulement si pas d'erreur)
         try {
             \Log::info("🔗 SitemapService baseUrl: {$this->baseUrl}");
@@ -342,37 +336,19 @@ class SitemapService
     }
 
     /**
-     * Récupérer les annonces publiées pour le sitemap (limité pour éviter désindexation).
-     * Google indexe puis désindexe quand trop de pages similaires sont soumises.
-     * On priorise : villes favorites puis les plus récentes, max $maxAdsInSitemap.
+     * Récupérer TOUTES les annonces publiées pour le sitemap.
+     * Plus de limite volontaire sur le nombre d'annonces : toutes les pages
+     * d'annonces actives sont déclarées à Google, qui gère ensuite l'indexation.
      */
     protected function getAds()
     {
         try {
-            $favoriteCityIds = \App\Models\City::where('is_favorite', true)->pluck('id');
-            $half = (int) floor($this->maxAdsInSitemap / 2);
-
-            $ads = collect();
-            if ($favoriteCityIds->isNotEmpty()) {
-                $ads = Ad::where('status', 'published')
-                    ->whereIn('city_id', $favoriteCityIds)
-                    ->orderBy('updated_at', 'desc')
-                    ->limit($half)
-                    ->select('slug', 'updated_at')
-                    ->get()
-                    ->map(fn($ad) => ['slug' => $ad->slug, 'updated_at' => $ad->updated_at]);
-            }
-
-            $excludeSlugs = $ads->pluck('slug')->toArray();
-            $remaining = Ad::where('status', 'published')
-                ->when($excludeSlugs !== [], fn($q) => $q->whereNotIn('slug', $excludeSlugs))
+            return Ad::where('status', 'published')
                 ->orderBy('updated_at', 'desc')
-                ->limit($this->maxAdsInSitemap - $ads->count())
                 ->select('slug', 'updated_at')
                 ->get()
-                ->map(fn($ad) => ['slug' => $ad->slug, 'updated_at' => $ad->updated_at]);
-
-            return $ads->concat($remaining)->toArray();
+                ->map(fn($ad) => ['slug' => $ad->slug, 'updated_at' => $ad->updated_at])
+                ->toArray();
         } catch (\Exception $e) {
             Log::warning("⚠️ Impossible de récupérer les annonces : " . $e->getMessage());
         }
