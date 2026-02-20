@@ -67,23 +67,41 @@
             </div>
             
             <div class="mb-4">
-                <label for="meta_title" class="block text-sm font-medium mb-2">Titre Meta</label>
+                <label for="meta_title" class="block text-sm font-medium mb-2">
+                    Titre Meta 
+                    <span class="text-xs text-gray-500 font-normal">(recommandé: 50-60 caractères pour un affichage optimal)</span>
+                </label>
                 <input type="text" id="meta_title" name="meta_title" 
                        value="{{ $seoConfig['meta_title'] ?? '' }}"
+                       maxlength="255"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">
+                    <span id="meta_title_count">0</span> / 255 caractères (Google peut afficher jusqu'à 60 caractères)
+                </p>
             </div>
             
             <div class="mb-4">
-                <label for="meta_description" class="block text-sm font-medium mb-2">Description Meta</label>
+                <label for="meta_description" class="block text-sm font-medium mb-2">
+                    Description Meta 
+                    <span class="text-xs text-gray-500 font-normal">(recommandé: 150-160 caractères pour un affichage optimal)</span>
+                </label>
                 <textarea id="meta_description" name="meta_description" rows="3"
+                          maxlength="500"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoConfig['meta_description'] ?? '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">
+                    <span id="meta_description_count">0</span> / 500 caractères (Google peut afficher jusqu'à 160 caractères)
+                </p>
             </div>
             
             <div class="mb-4">
                 <label for="meta_keywords" class="block text-sm font-medium mb-2">Mots-clés</label>
                 <input type="text" id="meta_keywords" name="meta_keywords" 
                        value="{{ $seoConfig['meta_keywords'] ?? '' }}"
+                       maxlength="1000"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">
+                    <span id="meta_keywords_count">0</span> / 1000 caractères (séparés par des virgules)
+                </p>
             </div>
         </div>
 
@@ -91,16 +109,30 @@
             <h2 class="text-lg font-semibold mb-4">Réseaux Sociaux</h2>
             
             <div class="mb-4">
-                <label for="og_title" class="block text-sm font-medium mb-2">Titre Open Graph</label>
+                <label for="og_title" class="block text-sm font-medium mb-2">
+                    Titre Open Graph 
+                    <span class="text-xs text-gray-500 font-normal">(recommandé: 50-60 caractères)</span>
+                </label>
                 <input type="text" id="og_title" name="og_title" 
                        value="{{ $seoConfig['og_title'] ?? '' }}"
+                       maxlength="255"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <p class="text-xs text-gray-500 mt-1">
+                    <span id="og_title_count">0</span> / 255 caractères
+                </p>
             </div>
             
             <div class="mb-4">
-                <label for="og_description" class="block text-sm font-medium mb-2">Description Open Graph</label>
+                <label for="og_description" class="block text-sm font-medium mb-2">
+                    Description Open Graph 
+                    <span class="text-xs text-gray-500 font-normal">(recommandé: 150-160 caractères)</span>
+                </label>
                 <textarea id="og_description" name="og_description" rows="3"
+                          maxlength="500"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ $seoConfig['og_description'] ?? '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">
+                    <span id="og_description_count">0</span> / 500 caractères
+                </p>
             </div>
             
             <div class="mb-4">
@@ -280,7 +312,9 @@
                     <input type="text" id="google_analytics" name="google_analytics" 
                            value="{{ $seoConfig['google_analytics'] ?? '' }}"
                            placeholder="G-XXXXXXXXXX"
+                           maxlength="50"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Maximum 50 caractères</p>
                 </div>
                 
                 <div class="mb-4">
@@ -288,7 +322,9 @@
                     <input type="text" id="facebook_pixel" name="facebook_pixel" 
                            value="{{ $seoConfig['facebook_pixel'] ?? '' }}"
                            placeholder="123456789012345"
+                           maxlength="50"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Maximum 50 caractères</p>
                 </div>
                 
                 <div class="mb-4">
@@ -296,7 +332,9 @@
                     <input type="text" id="google_ads" name="google_ads" 
                            value="{{ $seoConfig['google_ads'] ?? '' }}"
                            placeholder="AW-XXXXXXXXX"
+                           maxlength="50"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Maximum 50 caractères</p>
                 </div>
             </div>
         </div>
@@ -310,7 +348,9 @@
                     <input type="text" id="google_search_console" name="google_search_console" 
                            value="{{ $seoConfig['google_search_console'] ?? '' }}"
                            placeholder="Code de vérification Google"
+                           maxlength="500"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Maximum 500 caractères</p>
                 </div>
                 
                 <div class="mb-4">
@@ -318,7 +358,9 @@
                     <input type="text" id="bing_webmaster" name="bing_webmaster" 
                            value="{{ $seoConfig['bing_webmaster'] ?? '' }}"
                            placeholder="Code de vérification Bing"
+                           maxlength="500"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Maximum 500 caractères</p>
                 </div>
                 
             </div>
@@ -575,6 +617,52 @@ function showNotification(message, type) {
         notification.remove();
     }, 3000);
 }
+
+// Compteurs de caractères en temps réel
+function updateCharCount(elementId, counterId) {
+    const element = document.getElementById(elementId);
+    const counter = document.getElementById(counterId);
+    if (element && counter) {
+        const updateCount = () => {
+            const length = element.value.length;
+            const maxLength = element.getAttribute('maxlength') || 255;
+            counter.textContent = length;
+            // Changer la couleur si proche de la limite recommandée
+            if (elementId === 'meta_title' && length > 60) {
+                counter.parentElement.classList.add('text-orange-600');
+            } else if (elementId === 'meta_description' && length > 160) {
+                counter.parentElement.classList.add('text-orange-600');
+            } else {
+                counter.parentElement.classList.remove('text-orange-600');
+            }
+        };
+        element.addEventListener('input', updateCount);
+        element.addEventListener('paste', () => setTimeout(updateCount, 10));
+        updateCount(); // Initialiser au chargement
+    }
+}
+
+// Initialiser les compteurs au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    updateCharCount('meta_title', 'meta_title_count');
+    updateCharCount('meta_description', 'meta_description_count');
+    updateCharCount('meta_keywords', 'meta_keywords_count');
+    updateCharCount('og_title', 'og_title_count');
+    updateCharCount('og_description', 'og_description_count');
+    
+    // Mettre à jour les compteurs après génération IA
+    const originalGenerateSeoWithAI = generateSeoWithAI;
+    generateSeoWithAI = function() {
+        originalGenerateSeoWithAI.call(this);
+        setTimeout(() => {
+            updateCharCount('meta_title', 'meta_title_count');
+            updateCharCount('meta_description', 'meta_description_count');
+            updateCharCount('meta_keywords', 'meta_keywords_count');
+            updateCharCount('og_title', 'og_title_count');
+            updateCharCount('og_description', 'og_description_count');
+        }, 500);
+    };
+});
 </script>
 @endpush
 

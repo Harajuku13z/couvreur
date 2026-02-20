@@ -128,11 +128,11 @@ class SeoController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'meta_title' => 'nullable|string|max:60',
-            'meta_description' => 'nullable|string|max:160',
-            'meta_keywords' => 'nullable|string|max:255',
-            'og_title' => 'nullable|string|max:60',
-            'og_description' => 'nullable|string|max:160',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:1000',
+            'og_title' => 'nullable|string|max:255',
+            'og_description' => 'nullable|string|max:500',
             'og_image' => 'nullable|image|max:5120',
             'twitter_site' => 'nullable|string|max:50',
             'twitter_creator' => 'nullable|string|max:50',
