@@ -403,6 +403,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::post('/validate', [App\Http\Controllers\SeoController::class, 'validateSeoForGoogle'])->name('validate');
             Route::post('/generate-ai', [App\Http\Controllers\SeoController::class, 'generateSeoWithAI'])->name('generate-ai');
             Route::post('/generate-page-ai', [App\Http\Controllers\SeoController::class, 'generatePageSeoWithAI'])->name('generate-page-ai');
+            Route::post('/generate-schema-markup', [App\Http\Controllers\SeoController::class, 'generateSchemaMarkup'])->name('generate-schema-markup');
         });
         
         // Routes pour les villes

@@ -367,12 +367,24 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">Données Structurées</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Données Structurées</h2>
+                <button type="button" onclick="generateSchemaMarkup()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-magic mr-2"></i>Générer automatiquement
+                </button>
+            </div>
             
             <div class="mb-4">
-                <label for="schema_markup" class="block text-sm font-medium mb-2">JSON-LD Schema Markup</label>
-                <textarea id="schema_markup" name="schema_markup" rows="5"
+                <label for="schema_markup" class="block text-sm font-medium mb-2">
+                    JSON-LD Schema Markup 
+                    <span class="text-xs text-gray-500 font-normal">(LocalBusiness avec toutes les infos de l'entreprise)</span>
+                </label>
+                <textarea id="schema_markup" name="schema_markup" rows="15"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm">{{ $seoConfig['schema_markup'] ?? '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">
+                    Généré automatiquement à partir des informations de l'entreprise (nom, adresse, téléphone, horaires, etc.)
+                </p>
             </div>
         </div>
         
@@ -616,6 +628,45 @@ function showNotification(message, type) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+function generateSchemaMarkup() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération en cours...';
+    button.disabled = true;
+    button.classList.add('opacity-75');
+    
+    fetch('{{ route("admin.seo.generate-schema-markup") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remplir le textarea avec le JSON-LD généré
+            if (data.schema_markup) {
+                document.getElementById('schema_markup').value = data.schema_markup;
+            }
+            showNotification('Schema Markup généré avec succès !', 'success');
+        } else {
+            showNotification('Erreur lors de la génération: ' + (data.message || 'Erreur inconnue'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la génération du Schema Markup', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+    });
 }
 
 // Compteurs de caractères en temps réel

@@ -1132,6 +1132,181 @@ IMPORTANT:
             ], 500);
         }
     }
+
+    /**
+     * Générer automatiquement le JSON-LD Schema Markup basé sur les infos de l'entreprise
+     */
+    public function generateSchemaMarkup(Request $request)
+    {
+        try {
+            // Récupérer toutes les informations de l'entreprise
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            $companyDescription = Setting::get('company_description', '');
+            $companyPhone = Setting::get('company_phone_raw', '');
+            $companyPhone2 = Setting::get('company_phone_2_raw', '');
+            $companyPhone3 = Setting::get('company_phone_3_raw', '');
+            $companyEmail = Setting::get('company_email', '');
+            $companyAddress = Setting::get('company_address', '');
+            $companyCity = Setting::get('company_city', '');
+            $companyPostalCode = Setting::get('company_postal_code', '');
+            $companyCountry = Setting::get('company_country', 'France');
+            $companyHours = Setting::get('company_hours', '');
+            $companySpecialization = Setting::get('company_specialization', 'Travaux de rénovation');
+            $siteUrl = rtrim(Setting::get('site_url', config('app.url')), '/');
+            if (empty($siteUrl) || !str_starts_with($siteUrl, 'http')) {
+                $siteUrl = config('app.url');
+            }
+            
+            // Logo URL
+            $companyLogo = Setting::get('company_logo');
+            $logoUrl = null;
+            if ($companyLogo) {
+                $logoUrl = strpos($companyLogo, 'http') === 0 ? $companyLogo : $siteUrl . '/' . ltrim($companyLogo, '/');
+            }
+            
+            // Construire l'adresse Schema.org
+            $addressSchema = [
+                "@type" => "PostalAddress",
+                "addressCountry" => $companyCountry ?: "FR"
+            ];
+            
+            if (!empty($companyAddress)) {
+                $addressSchema["streetAddress"] = $companyAddress;
+            }
+            if (!empty($companyCity)) {
+                $addressSchema["addressLocality"] = $companyCity;
+            }
+            if (!empty($companyPostalCode)) {
+                $addressSchema["postalCode"] = $companyPostalCode;
+            }
+            
+            // Construire le schéma LocalBusiness
+            $schema = [
+                "@context" => "https://schema.org",
+                "@type" => "LocalBusiness",
+                "name" => $companyName,
+                "url" => $siteUrl,
+                "address" => $addressSchema
+            ];
+            
+            // Ajouter les champs optionnels
+            if (!empty($companyDescription)) {
+                $schema["description"] = $companyDescription;
+            }
+            if (!empty($companyPhone)) {
+                $schema["telephone"] = $companyPhone;
+            }
+            if (!empty($companyEmail)) {
+                $schema["email"] = $companyEmail;
+            }
+            if (!empty($logoUrl)) {
+                $schema["logo"] = $logoUrl;
+            }
+            if (!empty($companySpecialization)) {
+                $schema["description"] = ($schema["description"] ?? '') . ($schema["description"] ? ' ' : '') . "Spécialisé en {$companySpecialization}.";
+            }
+            
+            // Contact points (plusieurs numéros)
+            $contactPoints = [];
+            if (!empty($companyPhone)) {
+                $contactPoints[] = [
+                    "@type" => "ContactPoint",
+                    "telephone" => $companyPhone,
+                    "contactType" => "customer service",
+                    "areaServed" => $companyCountry ?: "FR",
+                    "availableLanguage" => ["fr-FR"]
+                ];
+            }
+            if (!empty($companyPhone2)) {
+                $contactPoints[] = [
+                    "@type" => "ContactPoint",
+                    "telephone" => $companyPhone2,
+                    "contactType" => "sales",
+                    "areaServed" => $companyCountry ?: "FR",
+                    "availableLanguage" => ["fr-FR"]
+                ];
+            }
+            if (!empty($companyPhone3)) {
+                $contactPoints[] = [
+                    "@type" => "ContactPoint",
+                    "telephone" => $companyPhone3,
+                    "contactType" => "emergency",
+                    "areaServed" => $companyCountry ?: "FR",
+                    "availableLanguage" => ["fr-FR"]
+                ];
+            }
+            if (!empty($contactPoints)) {
+                $schema["contactPoint"] = $contactPoints;
+            }
+            
+            // Opening hours (parser le format simple)
+            if (!empty($companyHours)) {
+                $dayMap = [
+                    'Lun' => 'Monday', 'Mar' => 'Tuesday', 'Mer' => 'Wednesday',
+                    'Jeu' => 'Thursday', 'Ven' => 'Friday', 'Sam' => 'Saturday', 'Dim' => 'Sunday',
+                    'Lundi' => 'Monday', 'Mardi' => 'Tuesday', 'Mercredi' => 'Wednesday',
+                    'Jeudi' => 'Thursday', 'Vendredi' => 'Friday', 'Samedi' => 'Saturday', 'Dimanche' => 'Sunday'
+                ];
+                
+                $openingHours = [];
+                $lines = explode(',', $companyHours);
+                
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (empty($line) || stripos($line, 'fermé') !== false) {
+                        continue;
+                    }
+                    
+                    // Format simple: "Lun-Ven 8h00-19h00" ou "Lundi au Vendredi 08:00-19:00"
+                    if (preg_match('/([A-Za-z]+)(?:[-–]([A-Za-z]+))?\s+(\d{1,2})[h:](\d{2})[-–](\d{1,2})[h:](\d{2})/i', $line, $matches)) {
+                        $startDay = $dayMap[$matches[1]] ?? null;
+                        $endDay = isset($matches[2]) && !empty($matches[2]) ? ($dayMap[$matches[2]] ?? null) : $startDay;
+                        $opens = sprintf('%02d:%02d', $matches[3], $matches[4]);
+                        $closes = sprintf('%02d:%02d', $matches[5], $matches[6]);
+                        
+                        if ($startDay && $endDay) {
+                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                            $startIdx = array_search($startDay, $days);
+                            $endIdx = array_search($endDay, $days);
+                            
+                            if ($startIdx !== false && $endIdx !== false) {
+                                for ($i = $startIdx; $i <= $endIdx; $i++) {
+                                    $openingHours[] = [
+                                        "@type" => "OpeningHoursSpecification",
+                                        "dayOfWeek" => $days[$i],
+                                        "opens" => $opens,
+                                        "closes" => $closes
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (!empty($openingHours)) {
+                    $schema["openingHoursSpecification"] = $openingHours;
+                }
+            }
+            
+            // Formater en JSON indenté pour faciliter la lecture
+            $jsonLd = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            
+            return response()->json([
+                'success' => true,
+                'schema_markup' => $jsonLd
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur génération Schema Markup: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
 
