@@ -182,6 +182,8 @@ class ContactController extends Controller
                         'mail.from.address' => $mailFromAddress,
                         'mail.from.name' => $mailFromName,
                     ]);
+                    // Forcer l'utilisation du mailer SMTP par défaut
+                    config(['mail.default' => 'smtp']);
                 }
             } catch (\Exception $e) {
                 \Log::warning('ContactController: impossible de configurer le SMTP depuis les settings', [
@@ -304,13 +306,24 @@ class ContactController extends Controller
                 \Log::error('Erreur envoi email confirmation: ' . $e->getMessage());
             }
             
-            // Envoyer l'email de notification à l'admin
-            if ($companyEmail) {
+            // Déterminer l'adresse de destination pour l'admin :
+            // 1) company_email si défini
+            // 2) sinon mail_from_address des paramètres SMTP
+            $adminRecipient = $companyEmail ?: (Setting::get('mail_from_address') ?: null);
+            
+            if ($adminRecipient) {
                 try {
-                    Mail::to($companyEmail)->send(new ContactNotification($emailData));
+                    Mail::to($adminRecipient)->send(new ContactNotification($emailData));
                 } catch (\Exception $e) {
-                    \Log::error('Erreur envoi email notification admin: ' . $e->getMessage());
+                    \Log::error('Erreur envoi email notification admin: ' . $e->getMessage(), [
+                        'admin_recipient' => $adminRecipient,
+                    ]);
                 }
+            } else {
+                \Log::warning('Aucun destinataire admin trouvé pour l\'email de notification de contact.', [
+                    'company_email' => $companyEmail,
+                    'mail_from_address' => Setting::get('mail_from_address'),
+                ]);
             }
             
             return redirect()->route('contact.success')->with('contact_data', $emailData);
