@@ -299,13 +299,6 @@ class ContactController extends Controller
                 ]);
             }
             
-            // Envoyer l'email de confirmation à l'utilisateur
-            try {
-                Mail::to($validated['email'])->send(new ContactConfirmation($emailData));
-            } catch (\Exception $e) {
-                \Log::error('Erreur envoi email confirmation: ' . $e->getMessage());
-            }
-            
             // Déterminer l'adresse de destination pour l'admin :
             // 1) company_email si défini
             // 2) sinon mail_from_address des paramètres SMTP
@@ -324,6 +317,13 @@ class ContactController extends Controller
                     'company_email' => $companyEmail,
                     'mail_from_address' => Setting::get('mail_from_address'),
                 ]);
+            }
+            
+            // Envoyer l'email de confirmation à l'utilisateur (en second)
+            try {
+                Mail::to($validated['email'])->send(new ContactConfirmation($emailData));
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi email confirmation: ' . $e->getMessage());
             }
             
             return redirect()->route('contact.success')->with('contact_data', $emailData);
