@@ -106,11 +106,11 @@ class ContactController extends Controller
     public function send(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:6|max:255',
+            'name' => 'required|string|min:3|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:6|max:20',
-            'postal_code' => 'required|string|min:5|max:10',
-            'city' => 'required|string|min:6|max:100',
+            'postal_code' => 'required|string|min:4|max:10',
+            'city' => 'required|string|min:2|max:100',
             'callback_time' => 'required|string|max:50',
             'service_interest' => 'required|string|max:255',
             'subject' => 'required|string|min:6|max:255',
@@ -118,15 +118,15 @@ class ContactController extends Controller
             'recaptcha_token' => 'nullable|string',
         ], [
             'name.required' => 'Le nom est obligatoire.',
-            'name.min' => 'Le nom doit contenir au moins 6 caractères.',
+            'name.min' => 'Le nom doit contenir au moins 3 caractères.',
             'email.required' => 'L\'email est obligatoire.',
             'email.email' => 'L\'email doit être valide.',
             'phone.required' => 'Le téléphone est obligatoire.',
             'phone.min' => 'Le téléphone doit contenir au moins 6 caractères.',
             'postal_code.required' => 'Le code postal est obligatoire.',
-            'postal_code.min' => 'Le code postal doit contenir au moins 5 caractères.',
+            'postal_code.min' => 'Le code postal doit contenir au moins 4 caractères.',
             'city.required' => 'La ville est obligatoire.',
-            'city.min' => 'La ville doit contenir au moins 6 caractères.',
+            'city.min' => 'La ville doit contenir au moins 2 caractères.',
             'callback_time.required' => 'Veuillez sélectionner un créneau pour vous rappeler.',
             'service_interest.required' => 'Veuillez sélectionner un service.',
             'subject.required' => 'Le sujet est obligatoire.',

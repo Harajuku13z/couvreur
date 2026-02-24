@@ -200,6 +200,24 @@
     </div>
     @endif
 
+    @if($errors->any())
+    <div class="container mx-auto px-4 pt-8">
+        <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3 mt-1"></i>
+                <div>
+                    <p class="text-red-800 font-semibold mb-2">Certaines informations sont manquantes ou invalides :</p>
+                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if(session('error'))
     <div class="container mx-auto px-4 pt-8">
         <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md">
