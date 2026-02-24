@@ -159,7 +159,7 @@ class ContactController extends Controller
         }
 
         try {
-            $companyEmail = Setting::get('company_email');
+            $companyEmail = Setting::get('admin_notification_email') ?: Setting::get('company_email');
             $companyName = Setting::get('company_name', 'Votre Entreprise');
 
             // Configurer le SMTP dynamiquement à partir des settings (comme dans ConfigController@testEmail)

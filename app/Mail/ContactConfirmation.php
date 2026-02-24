@@ -25,7 +25,7 @@ class ContactConfirmation extends Mailable
     {
         $this->data = $data;
         $this->companyName = setting('company_name', 'Votre Entreprise');
-        $this->companyEmail = setting('company_email', '');
+        $this->companyEmail = setting('admin_notification_email', setting('company_email', ''));
         $this->companyPhone = setting('company_phone', '');
     }
 
