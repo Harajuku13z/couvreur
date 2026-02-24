@@ -161,6 +161,33 @@ class ContactController extends Controller
         try {
             $companyEmail = Setting::get('company_email');
             $companyName = Setting::get('company_name', 'Votre Entreprise');
+
+            // Configurer le SMTP dynamiquement à partir des settings (comme dans ConfigController@testEmail)
+            try {
+                $mailHost = Setting::get('mail_host');
+                $mailPort = Setting::get('mail_port');
+                $mailEncryption = Setting::get('mail_encryption');
+                $mailUsername = Setting::get('mail_username');
+                $mailPassword = Setting::get('mail_password');
+                $mailFromAddress = Setting::get('mail_from_address');
+                $mailFromName = Setting::get('mail_from_name', $companyName);
+
+                if ($mailHost && $mailUsername && $mailPassword) {
+                    config([
+                        'mail.mailers.smtp.host' => $mailHost,
+                        'mail.mailers.smtp.port' => $mailPort,
+                        'mail.mailers.smtp.encryption' => $mailEncryption,
+                        'mail.mailers.smtp.username' => $mailUsername,
+                        'mail.mailers.smtp.password' => $mailPassword,
+                        'mail.from.address' => $mailFromAddress,
+                        'mail.from.name' => $mailFromName,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('ContactController: impossible de configurer le SMTP depuis les settings', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
             
             // Préparer les données pour les emails
             $callbackTimeLabels = [
