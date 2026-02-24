@@ -352,7 +352,7 @@
                                        id="name" 
                                        name="name" 
                                        required
-                                       minlength="6"
+                                       minlength="3"
                                        placeholder="Jean Dupont"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                             </div>
@@ -392,7 +392,7 @@
                                        id="postal_code" 
                                        name="postal_code"
                                        required
-                                       minlength="5"
+                                       minlength="4"
                                        placeholder="22540"
                                        maxlength="10"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
@@ -408,8 +408,8 @@
                                        id="city" 
                                        name="city"
                                        required
-                                       minlength="6"
-                                       placeholder="Pédernec"
+                                       minlength="2"
+                                       placeholder="Dijon"
                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
                             </div>
                             
