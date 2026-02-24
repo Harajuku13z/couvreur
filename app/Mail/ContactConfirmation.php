@@ -37,17 +37,9 @@ class ContactConfirmation extends Mailable
         $fromAddress = setting('mail_from_address') ?: config('mail.from.address');
         $fromName = setting('mail_from_name') ?: config('mail.from.name');
 
-        // Déterminer l'email admin pour copie cachée (priorité à company_email, sinon mail_from_address)
-        $adminEmail = $this->companyEmail ?: (setting('mail_from_address') ?: null);
-        $bcc = [];
-        if ($adminEmail) {
-            $bcc[] = new Address($adminEmail, $this->companyName);
-        }
-
         $envelope = new Envelope(
             from: new Address($fromAddress, $fromName),
             subject: '✅ Nous avons bien reçu votre message - ' . $this->companyName,
-            bcc: $bcc,
         );
 
         // Ajouter le header BIMI pour afficher le logo dans Gmail
