@@ -62,7 +62,9 @@
                         </div>
                         <div class="md:col-span-2">
                             <label class="text-sm font-medium text-gray-500">Code postal / Ville</label>
-                            <p class="mt-1 text-lg text-gray-900">{{ $submission->postal_code ?? '-' }}</p>
+                            <p class="mt-1 text-lg text-gray-900">
+                                {{ trim(($submission->postal_code ?? '') . ' ' . ($submission->city ?? '')) ?: '-' }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -148,6 +150,51 @@
                     @endif
                 </div>
             </div>
+
+            @if(is_array($submission->form_data ?? null))
+            <!-- Détails du formulaire de contact -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-envelope-open-text mr-2 text-indigo-500"></i>Formulaire de contact
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    @if(!empty($submission->form_data['service_interest'] ?? null))
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Service demandé</label>
+                        <p class="mt-1 text-lg font-medium text-gray-900">
+                            {{ $submission->form_data['service_interest'] ?? '-' }}
+                        </p>
+                    </div>
+                    @endif
+                    @if(!empty($submission->form_data['subject'] ?? null))
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Sujet</label>
+                        <p class="mt-1 text-lg font-medium text-gray-900">
+                            {{ $submission->form_data['subject'] ?? '-' }}
+                        </p>
+                    </div>
+                    @endif
+                    @if(!empty($submission->form_data['callback_time'] ?? null))
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Quand rappeler</label>
+                        <p class="mt-1 text-lg text-gray-900">
+                            {{ $submission->form_data['callback_time'] ?? '-' }}
+                        </p>
+                    </div>
+                    @endif
+                    @if(!empty($submission->form_data['message'] ?? null))
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Message</label>
+                        <div class="mt-1 text-gray-900 text-base leading-relaxed bg-gray-50 rounded-lg p-4 border border-gray-200 whitespace-pre-line">
+                            {{ $submission->form_data['message'] ?? '' }}
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Sidebar -->
