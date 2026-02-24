@@ -152,7 +152,14 @@
 
         <!-- Sidebar -->
         <div class="space-y-6">
-            @php $photos = $submission->tracking_data['photos'] ?? []; @endphp
+            @php
+                $photosTracking = $submission->tracking_data['photos'] ?? [];
+                $photosForm = [];
+                if (is_array($submission->form_data ?? null) && isset($submission->form_data['attachments']) && is_array($submission->form_data['attachments'])) {
+                    $photosForm = $submission->form_data['attachments'];
+                }
+                $photos = array_values(array_unique(array_filter(array_merge($photosTracking, $photosForm))));
+            @endphp
             @if(!empty($photos))
             <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-images mr-2 text-indigo-500"></i>Photos du projet</h3>

@@ -234,6 +234,7 @@ Route::get('/blog/{article}', [ArticleController::class, 'show'])->name('blog.sh
 // Route publique pour le contact
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
+Route::get('/contact/success', [ContactController::class, 'success'])->name('contact.success');
 
 // Routes publiques pour le simulateur de coûts
 Route::get('/simulateur', [App\Http\Controllers\CostSimulatorController::class, 'index'])->name('simulator.index');
