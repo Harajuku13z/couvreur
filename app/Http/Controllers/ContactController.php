@@ -115,6 +115,8 @@ class ContactController extends Controller
             'service_interest' => 'required|string|max:255',
             'subject' => 'required|string|min:6|max:255',
             'message' => 'required|string|min:6|max:2000',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp|max:5120',
             'recaptcha_token' => 'nullable|string',
         ], [
             'name.required' => 'Le nom est obligatoire.',
@@ -133,6 +135,9 @@ class ContactController extends Controller
             'subject.min' => 'Le sujet doit contenir au moins 6 caractères.',
             'message.required' => 'Le message est obligatoire.',
             'message.min' => 'Le message doit contenir au moins 6 caractères.',
+            'attachments.*.file' => 'Chaque fichier doit être un fichier valide.',
+            'attachments.*.mimes' => 'Les photos doivent être au format JPEG, PNG, GIF ou WEBP.',
+            'attachments.*.max' => 'Chaque photo ne doit pas dépasser 5 Mo.',
         ]);
 
         // Vérifier reCAPTCHA si activé (mais ne pas bloquer si le token est vide - peut être désactivé)
@@ -178,8 +183,28 @@ class ContactController extends Controller
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
                 'callback_time' => $callbackTimeText,
-                'service_interest' => $validated['service_interest'] ?? ''
+                'service_interest' => $validated['service_interest'] ?? '',
+                'attachments' => [],
             ];
+            
+            // Gérer l'upload des photos (attachments)
+            if ($request->hasFile('attachments')) {
+                $uploadDir = public_path('uploads/contact');
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0755, true);
+                }
+                
+                foreach ($request->file('attachments') as $file) {
+                    if (!$file || !$file->isValid()) {
+                        continue;
+                    }
+                    
+                    $filename = 'contact_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $file->move($uploadDir, $filename);
+                    $relativePath = 'uploads/contact/' . $filename;
+                    $emailData['attachments'][] = $relativePath;
+                }
+            }
             
             // Créer un lead/submission avec status "COMPLETED"
             try {
@@ -218,6 +243,7 @@ class ContactController extends Controller
                             'service_interest' => $validated['service_interest'] ?? null,
                             'postal_code' => $validated['postal_code'] ?? null,
                             'city' => $validated['city'] ?? null,
+                            'attachments' => $emailData['attachments'] ?? [],
                         ];
                     }
                 } catch (\Exception $e) {

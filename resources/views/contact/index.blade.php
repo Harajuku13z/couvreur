@@ -340,7 +340,7 @@
                         Remplissez le formulaire ci-dessous et nous vous recontacterons rapidement
                     </p>
                     
-                    <form action="{{ route('contact.send') }}" method="POST" id="contactForm" class="space-y-6">
+                    <form action="{{ route('contact.send') }}" method="POST" id="contactForm" class="space-y-6" enctype="multipart/form-data">
                         @csrf
                         
                         <div class="grid md:grid-cols-2 gap-6">
@@ -486,6 +486,22 @@
                                       minlength="6"
                                       placeholder="Décrivez votre projet ou votre demande en détail..."
                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                <i class="fas fa-image mr-2 text-primary"></i>Photos (optionnel)
+                            </label>
+                            <input type="file"
+                                   id="attachments"
+                                   name="attachments[]"
+                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                   multiple
+                                   class="form-input w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all bg-gray-50">
+                            <p class="text-xs text-gray-500 mt-2 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Vous pouvez ajouter une ou plusieurs photos de votre projet (JPEG, PNG, WEBP, max 5 Mo par image).
+                            </p>
                         </div>
                         
                         {{-- reCAPTCHA --}}

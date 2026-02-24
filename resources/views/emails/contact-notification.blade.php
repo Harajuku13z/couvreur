@@ -81,6 +81,22 @@
                                         <td style="color: #333333; font-size: 14px; padding: 8px 0;">{{ $data['service_interest'] }}</td>
                                     </tr>
                                     @endif
+                                    @if(isset($data['attachments']) && is_array($data['attachments']) && count($data['attachments']) > 0)
+                                    <tr>
+                                        <td style="color: #666666; font-size: 14px; padding: 8px 0; vertical-align: top;"><strong>Photos :</strong></td>
+                                        <td style="color: #333333; font-size: 14px; padding: 8px 0;">
+                                            <ul style="margin: 0; padding-left: 18px;">
+                                                @foreach($data['attachments'] as $attachment)
+                                                    <li style="margin-bottom: 4px;">
+                                                        <a href="{{ asset($attachment) }}" target="_blank" style="color: {{ setting('primary_color', '#3b82f6') }}; text-decoration: none;">
+                                                            Voir la photo
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    @endif
                                     <tr>
                                         <td style="color: #666666; font-size: 14px; padding: 8px 0;"><strong>Sujet :</strong></td>
                                         <td style="color: #333333; font-size: 14px; padding: 8px 0; font-weight: bold;">{{ $data['subject'] ?? '' }}</td>
