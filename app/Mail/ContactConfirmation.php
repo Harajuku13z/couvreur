@@ -34,8 +34,8 @@ class ContactConfirmation extends Mailable
      */
     public function envelope(): Envelope
     {
-        $fromAddress = setting('mail_from_address') ?: config('mail.from.address');
-        $fromName = setting('mail_from_name') ?: config('mail.from.name');
+        $fromAddress = setting('mail_from_address') ?: config('mail.from.address') ?: 'no-reply@' . (request()->getHost() ?: 'localhost');
+        $fromName    = setting('mail_from_name') ?: config('mail.from.name') ?: setting('company_name', 'Contact');
 
         $envelope = new Envelope(
             from: new Address($fromAddress, $fromName),
