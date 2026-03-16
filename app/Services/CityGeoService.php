@@ -105,7 +105,7 @@ class CityGeoService
 
         return ['cities' => $this->mapCommunes($filtered)];
         } catch (ConnectionException $e) {
-            return ['error' => 'Impossible de joindre l'API géographique depuis ce serveur (connexion refusée ou timeout).'];
+            return ['error' => "Impossible de joindre l'API géographique depuis ce serveur (connexion refusée ou timeout)."];
         } catch (\Exception $e) {
             return ['error' => 'Erreur : ' . $e->getMessage()];
         }
