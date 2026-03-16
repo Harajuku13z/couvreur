@@ -3,44 +3,57 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
 
 class CityGeoService
 {
     public function byDepartment(string $departmentInput): array
     {
         $code = $this->extractDepartmentCode($departmentInput);
-        if (!$code) return ['error' => 'Code département invalide'];
+        if (!$code) return ['error' => 'Code département invalide : "' . $departmentInput . '". Saisissez le numéro (ex: 71) ou le nom exact du département.'];
 
-        $resp = Http::timeout(30)->get('https://geo.api.gouv.fr/communes', [
-            'codeDepartement' => $code,
-            'fields' => 'nom,codesPostaux,codeDepartement,codeRegion,centre',
-            'format' => 'json',
-            'geometry' => 'centre',
-        ]);
-
-        if (!$resp->ok()) return ['error' => 'geo.api.gouv.fr indisponible'];
-        return ['cities' => $this->mapCommunes($resp->json())];
+        try {
+            $resp = Http::timeout(15)->get('https://geo.api.gouv.fr/communes', [
+                'codeDepartement' => $code,
+                'fields' => 'nom,codesPostaux,codeDepartement,codeRegion,centre',
+                'format' => 'json',
+                'geometry' => 'centre',
+            ]);
+            if (!$resp->ok()) return ['error' => 'geo.api.gouv.fr a retourné une erreur (HTTP ' . $resp->status() . '). Réessayez dans quelques instants.'];
+            return ['cities' => $this->mapCommunes($resp->json())];
+        } catch (ConnectionException $e) {
+            return ['error' => 'Impossible de joindre geo.api.gouv.fr depuis ce serveur. Vérifiez que les requêtes HTTP sortantes sont autorisées (Hostinger → PHP → allow_url_fopen / curl).'];
+        } catch (\Exception $e) {
+            return ['error' => 'Erreur inattendue : ' . $e->getMessage()];
+        }
     }
 
     public function byRegion(string $regionInput): array
     {
         $code = $this->regionCodeFromName($regionInput);
-        if (!$code) return ['error' => 'Région inconnue'];
+        if (!$code) return ['error' => 'Région inconnue : "' . $regionInput . '". Utilisez le nom exact (ex: Bourgogne-Franche-Comté).'];
 
-        $resp = Http::timeout(30)->get('https://geo.api.gouv.fr/communes', [
-            'codeRegion' => $code,
-            'fields' => 'nom,codesPostaux,codeDepartement,codeRegion,centre',
-            'format' => 'json',
-            'geometry' => 'centre',
-        ]);
-        if (!$resp->ok()) return ['error' => 'geo.api.gouv.fr indisponible'];
-        return ['cities' => $this->mapCommunes($resp->json())];
+        try {
+            $resp = Http::timeout(15)->get('https://geo.api.gouv.fr/communes', [
+                'codeRegion' => $code,
+                'fields' => 'nom,codesPostaux,codeDepartement,codeRegion,centre',
+                'format' => 'json',
+                'geometry' => 'centre',
+            ]);
+            if (!$resp->ok()) return ['error' => 'geo.api.gouv.fr indisponible (HTTP ' . $resp->status() . ')'];
+            return ['cities' => $this->mapCommunes($resp->json())];
+        } catch (ConnectionException $e) {
+            return ['error' => 'Impossible de joindre geo.api.gouv.fr depuis ce serveur. Vérifiez que les requêtes HTTP sortantes sont autorisées.'];
+        } catch (\Exception $e) {
+            return ['error' => 'Erreur : ' . $e->getMessage()];
+        }
     }
 
     public function byRadius(string $address, int $radiusKm): array
     {
+        try {
         // Geocode
-        $geo = Http::timeout(20)->get('https://api-adresse.data.gouv.fr/search/', [
+        $geo = Http::timeout(15)->get('https://api-adresse.data.gouv.fr/search/', [
             'q' => $address,
             'limit' => 1,
         ]);
@@ -91,6 +104,11 @@ class CityGeoService
         }
 
         return ['cities' => $this->mapCommunes($filtered)];
+        } catch (ConnectionException $e) {
+            return ['error' => 'Impossible de joindre l'API géographique depuis ce serveur (connexion refusée ou timeout).'];
+        } catch (\Exception $e) {
+            return ['error' => 'Erreur : ' . $e->getMessage()];
+        }
     }
 
     private function extractDepartmentCode(string $input): ?string

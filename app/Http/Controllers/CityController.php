@@ -152,8 +152,10 @@ class CityController extends Controller
                 'active' => true,
             ]);
         }
-        $msg = isset($result['error']) ? ('Avertissement: ' . $result['error']) : 'Import par département effectué (' . count($cities) . ' entrées).';
-        return back()->with('success', $msg);
+        if (isset($result['error'])) {
+            return back()->with('error', $result['error']);
+        }
+        return back()->with('success', 'Import par département effectué (' . count($cities) . ' villes ajoutées/existantes).');
     }
 
     public function importByRegion(Request $request)
@@ -175,8 +177,10 @@ class CityController extends Controller
                 'active' => true,
             ]);
         }
-        $msg = isset($result['error']) ? ('Avertissement: ' . $result['error']) : 'Import par région effectué (' . count($cities) . ' entrées).';
-        return back()->with('success', $msg);
+        if (isset($result['error'])) {
+            return back()->with('error', $result['error']);
+        }
+        return back()->with('success', 'Import par région effectué (' . count($cities) . ' villes ajoutées/existantes).');
     }
 
     public function importByRadius(Request $request)
