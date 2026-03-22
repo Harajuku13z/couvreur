@@ -655,6 +655,18 @@
             background-color: #ffffff !important;
             -webkit-text-fill-color: #111827;
         }
+        /* Cartes de choix (toiture, façade, etc.) : libellés toujours lisibles en noir même sélectionnés */
+        .simulator-step .work-option,
+        .simulator-step .work-option p,
+        .simulator-step .work-option h3 {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827;
+        }
+        .simulator-step .gender-option,
+        .simulator-step .property-option {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827;
+        }
     </style>
     
     @stack('head')

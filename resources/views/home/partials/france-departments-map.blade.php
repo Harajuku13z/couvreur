@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 @endpush
 <section class="py-16 md:py-20 bg-white dark:bg-slate-900 border-y border-gray-100 dark:border-slate-800" aria-labelledby="fr-map-title">
-    <div class="site-shell w-full max-w-full">
-        <div class="text-center mb-8 md:mb-10 px-1">
+    <div class="site-shell">
+        <div class="text-center mb-8 md:mb-10">
             <h2 id="fr-map-title" class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
                 {{ $departmentsMap['title'] }}
             </h2>
@@ -17,29 +17,40 @@
             @endif
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8 items-start">
-            <div class="lg:col-span-2 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-lg bg-slate-50 dark:bg-slate-800/50">
-                <div id="france-departments-leaflet-map" class="w-full min-h-[320px] md:min-h-[480px] z-0" role="img" aria-label="Carte des départements français"></div>
-            </div>
-            <div class="space-y-3">
+        {{-- Liste des départements en premier sur mobile : visible sans scroller la carte --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 items-start">
+            <div class="lg:col-span-1 space-y-6 order-1 w-full min-w-0">
                 <p class="text-sm font-semibold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Départements mis en avant</p>
-                <ul class="space-y-2">
+                <ul class="space-y-4">
                     @foreach($departmentsMap['items'] as $row)
-                        <li>
+                        <li class="rounded-2xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/80 p-4 shadow-sm">
                             <a href="{{ $row['url'] }}"
-                               class="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/80 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:border-[color:var(--primary-color)] hover:shadow-md transition">
-                                <span>
-                                    <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white text-xs font-bold mr-2" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">{{ $row['code'] }}</span>
-                                    {{ $row['name'] }}
+                               class="flex items-center justify-between gap-2 font-medium text-gray-900 dark:text-white hover:text-[color:var(--primary-color)] transition">
+                                <span class="flex items-center min-w-0">
+                                    <span class="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-white text-xs font-bold mr-3" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">{{ $row['code'] }}</span>
+                                    <span class="truncate">{{ $row['name'] }}</span>
                                 </span>
-                                <i class="fas fa-chevron-right text-gray-400 text-xs" aria-hidden="true"></i>
+                                <i class="fas fa-chevron-right text-gray-400 text-xs shrink-0" aria-hidden="true"></i>
                             </a>
+                            @if(!empty($row['cities']) && is_array($row['cities']))
+                                <p class="mt-3 text-xs font-medium text-gray-500 dark:text-slate-400">Villes</p>
+                                <ul class="mt-2 flex flex-wrap gap-2">
+                                    @foreach($row['cities'] as $city)
+                                        <li>
+                                            <a href="{{ $city['url'] }}"
+                                               class="inline-block rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 px-2.5 py-1 text-xs text-gray-900 dark:text-slate-100 hover:border-[color:var(--primary-color)] hover:shadow-sm transition">
+                                                {{ $city['name'] }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
                         </li>
                     @endforeach
                 </ul>
-                <p class="text-xs text-gray-500 dark:text-slate-500 leading-relaxed pt-2">
-                    Carte vectorielle (GeoJSON) + bibliothèque <a href="https://leafletjs.com/" class="underline hover:text-gray-700 dark:hover:text-slate-300" target="_blank" rel="noopener noreferrer">Leaflet</a>.
-                </p>
+            </div>
+            <div class="lg:col-span-2 order-2 w-full min-w-0 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-lg bg-slate-50 dark:bg-slate-800/50">
+                <div id="france-departments-leaflet-map" class="w-full min-h-[280px] sm:min-h-[360px] md:min-h-[480px] z-0" role="img" aria-label="Carte des départements français"></div>
             </div>
         </div>
     </div>

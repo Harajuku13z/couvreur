@@ -10,53 +10,25 @@
 
 @push('head')
 <style>
-    .contact-hero {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    /* Hero : image nette + léger voile sombre (comme la home), pas de blend-mode qui “mange” la photo */
+    .contact-hero-inner {
         min-height: 280px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
     }
     @media (min-width: 768px) {
-        .contact-hero {
-            min-height: 360px;
+        .contact-hero-inner {
+            min-height: 380px;
         }
     }
-    
-    .contact-hero::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 0.3;
-    }
-    
     .contact-hero h1,
     .contact-hero p,
     .contact-hero a:not(.bg-white) {
         color: white !important;
     }
-    
     .contact-hero .fas,
     .contact-hero .fab,
     .contact-hero i {
         color: white !important;
     }
-    
-    @if($contactHeroImage)
-    .contact-hero {
-        background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%), url('{{ asset($contactHeroImage) }}');
-        background-size: cover;
-        background-position: center;
-        background-blend-mode: overlay;
-    }
-    @endif
-    
     .contact-card {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border: 1px solid rgba(0,0,0,0.05);
@@ -161,9 +133,18 @@
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-    <!-- Hero -->
-    <section class="contact-hero text-white py-16 md:py-24 rounded-b-3xl shadow-lg mb-2">
-        <div class="site-shell text-center relative z-10">
+    <!-- Hero (même logique que la home : image en fond + overlay sombre lisible) -->
+    <section class="contact-hero relative text-white overflow-hidden rounded-b-3xl shadow-lg mb-2">
+        @if(!empty($contactHeroImage))
+            <div class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                 style="background-image: url('{{ asset($contactHeroImage) }}');"></div>
+            <div class="absolute inset-0 z-[1] bg-black/45"></div>
+        @else
+            <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
+        @endif
+        <div class="absolute inset-0 z-[2] opacity-[0.07] pointer-events-none"
+             style="background-image: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E\");"></div>
+        <div class="site-shell contact-hero-inner relative z-10 flex flex-col items-center justify-center text-center py-16 md:py-24">
             <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-5 floating shadow-inner">
                 <i class="fas fa-envelope-open-text text-3xl md:text-4xl" style="color: white;"></i>
             </div>

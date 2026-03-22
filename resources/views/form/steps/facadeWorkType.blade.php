@@ -75,9 +75,9 @@ function toggleOption(checkbox) {
     const option = checkbox.closest('label').querySelector('.work-option');
     if (checkbox.checked) {
         option.classList.remove('border-gray-300');
-        option.classList.add('border-blue-500', 'bg-blue-50');
+        option.classList.add('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
     } else {
-        option.classList.remove('border-blue-500', 'bg-blue-50');
+        option.classList.remove('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
         option.classList.add('border-gray-300');
     }
     validateForm();

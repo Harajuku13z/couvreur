@@ -311,10 +311,26 @@ class HomeController extends Controller
                     : route('contact');
             }
 
+            $citiesInDept = City::query()
+                ->where('is_active', true)
+                ->where('department', $name)
+                ->orderByDesc('is_favorite')
+                ->orderBy('name')
+                ->limit(18)
+                ->get();
+
+            $citiesForView = $citiesInDept->map(function ($c) {
+                return [
+                    'name' => $c->name,
+                    'url' => route('ads.index') . '?city=' . urlencode($c->slug),
+                ];
+            })->values()->all();
+
             $items[] = [
                 'code' => $code,
                 'name' => $name,
                 'url' => $url,
+                'cities' => $citiesForView,
             ];
         }
 
