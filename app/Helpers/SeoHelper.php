@@ -8,6 +8,42 @@ use Illuminate\Http\Request;
 class SeoHelper
 {
     /**
+     * Force une URL absolue en https:// (exigence Lighthouse / SEO : canonical valide).
+     * Gère site_url mal configuré : "domaine.fr", "//domaine.fr", "http://...".
+     */
+    public static function normalizeAbsoluteCanonicalUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            $url = (string) config('app.url', 'https://localhost');
+        }
+
+        // Protocole manquant : "eco.example.fr" ou "eco.example.fr/foo"
+        if (! preg_match('#^https?://#i', $url)) {
+            if (str_starts_with($url, '//')) {
+                $url = 'https:' . $url;
+            } else {
+                $url = 'https://' . ltrim($url, '/');
+            }
+        }
+
+        // HTTPS pour la canonical en production (évite doublons http/https) — pas sur localhost
+        if (str_starts_with($url, 'http://')) {
+            $host = parse_url($url, PHP_URL_HOST);
+            $isLocal = $host && (
+                in_array($host, ['localhost', '127.0.0.1', '::1'], true)
+                || str_ends_with($host, '.local')
+                || str_ends_with($host, '.test')
+            );
+            if (! $isLocal) {
+                $url = 'https://' . substr($url, 7);
+            }
+        }
+
+        return $url;
+    }
+
+    /**
      * Construire l'URL canonique basée sur site_url (évite "Duplicate without user-selected canonical").
      * Utilise toujours le domaine configuré (site_url/APP_URL) pour garantir une canonical unique
      * quelle que soit la façon d'accéder (www/non-www, http/https).
@@ -15,9 +51,20 @@ class SeoHelper
     public static function getCanonicalUrl(?Request $request = null): string
     {
         $request = $request ?? request();
-        $baseUrl = rtrim(Setting::get('site_url', config('app.url')), '/');
-        if (empty($baseUrl) || !str_starts_with($baseUrl, 'http')) {
+        $baseUrl = rtrim((string) Setting::get('site_url', config('app.url')), '/');
+        if ($baseUrl === '') {
             $baseUrl = config('app.url');
+        }
+        // Base invalide (hôte seul, sans http) → normaliser
+        $baseUrl = self::normalizeAbsoluteCanonicalUrl($baseUrl);
+        // Ne garder que origine (scheme + host [+ port]) si jamais un chemin traîne dans site_url
+        $parts = @parse_url($baseUrl);
+        if (is_array($parts) && isset($parts['scheme'], $parts['host'])) {
+            $origin = $parts['scheme'] . '://' . $parts['host'];
+            if (! empty($parts['port'])) {
+                $origin .= ':' . $parts['port'];
+            }
+            $baseUrl = $origin;
         }
 
         $path = '/' . ltrim($request->path(), '/');
@@ -41,7 +88,7 @@ class SeoHelper
             $canonical = rtrim($canonical, '/');
         }
 
-        return $canonical;
+        return self::normalizeAbsoluteCanonicalUrl($canonical);
     }
     /**
      * Convertir un chemin d'image en URL complète

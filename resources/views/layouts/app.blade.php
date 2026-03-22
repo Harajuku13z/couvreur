@@ -384,8 +384,9 @@
     <!-- Articles CSS (critique, chargé en premier) -->
     <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Font Awesome (chargement non bloquant — meilleure perf LCP / FCP) -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
     
     <!-- Tailwind CSS (darkMode: class — synchronisé avec data-theme via script + classe .dark sur <html>) -->
     <script src="https://cdn.tailwindcss.com"></script>

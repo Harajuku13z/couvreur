@@ -63,6 +63,8 @@
                         <img src="{{ asset($homeConfig['hero']['magazine_side_image']) }}"
                              alt="{{ strip_tags($homeConfig['hero']['title'] ?? setting('company_name', 'Notre équipe')) }}"
                              class="absolute inset-0 h-full w-full object-cover object-center"
+                             width="800"
+                             height="1000"
                              loading="eager"
                              decoding="async"
                              fetchpriority="high">

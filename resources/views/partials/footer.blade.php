@@ -5,7 +5,8 @@
             <!-- Company Info -->
             <div class="lg:col-span-2">
                 <div class="mb-6">
-                    <h3 class="text-2xl font-bold" style="color: var(--footer-text);">{{ setting('company_name', 'Votre Entreprise') }}</h3>
+                    {{-- h2 : premier titre de section du pied de page (hiérarchie après le h1 de la page) --}}
+                    <h2 class="text-2xl font-bold" style="color: var(--footer-text);">{{ setting('company_name', 'Votre Entreprise') }}</h2>
                 </div>
                 
                 <p class="site-footer-link mb-6 text-sm leading-relaxed max-w-md">
@@ -127,7 +128,7 @@
             
             <!-- Quick Links -->
             <div>
-                <h4 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Liens Rapides</h4>
+                <h3 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Liens Rapides</h3>
                 <ul class="space-y-2">
                     <li><a href="{{ url('/') }}" class="site-footer-link">Accueil</a></li>
                     <li><a href="{{ route('services.index') }}" class="site-footer-link">Nos Services</a></li>
@@ -141,7 +142,7 @@
             
             <!-- Services -->
             <div>
-                <h4 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Nos Services</h4>
+                <h3 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Nos Services</h3>
                 <ul class="space-y-2">
                     @php
                         $servicesData = \App\Models\Setting::get('services', '[]');
