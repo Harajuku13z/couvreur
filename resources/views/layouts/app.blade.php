@@ -693,10 +693,16 @@
             -webkit-text-fill-color: #111827;
         }
         html[data-theme="light"] main .simulator-step h1,
-        html[data-theme="light"] main .simulator-step h2,
+        html[data-theme="light"] main .simulator-step h2:not(.simulator-step-section-title),
         html[data-theme="light"] main .simulator-step h3 {
             color: #0f172a !important;
             -webkit-text-fill-color: #0f172a;
+        }
+        /* Titres d’étape sur bandeau dégradé (étapes 1, 2, …) : toujours blancs */
+        main .simulator-step h2.simulator-step-section-title,
+        .simulator-step-section-head .simulator-step-section-title {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff;
         }
         html[data-theme="light"] main .simulator-step p.text-slate-600,
         html[data-theme="light"] main .simulator-step .text-slate-600 {

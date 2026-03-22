@@ -72,13 +72,15 @@
                     <input type="hidden" name="recaptcha_token" id="recaptcha_token">
 
                     <!-- Bloc identité -->
-                    <section aria-labelledby="identity-heading" class="rounded-xl border-2 border-blue-100 dark:border-slate-600 bg-blue-50/50 dark:bg-slate-900/50 p-5 sm:p-6">
-                        <h2 id="identity-heading" class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">1</span>
-                            Vos coordonnées
-                        </h2>
-
-                        <div class="space-y-5">
+                    <section aria-labelledby="identity-heading" class="rounded-xl border-2 border-blue-100 dark:border-slate-600 overflow-hidden shadow-sm">
+                        <div class="simulator-step-section-head px-4 py-3.5 sm:px-5 sm:py-4"
+                             style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                            <h2 id="identity-heading" class="simulator-step-section-title text-lg font-bold text-white mb-0 flex items-center gap-2">
+                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-white text-sm font-bold ring-1 ring-white/30">1</span>
+                                Vos coordonnées
+                            </h2>
+                        </div>
+                        <div class="bg-blue-50/50 dark:bg-slate-900/50 p-5 sm:p-6 space-y-5">
                             <div>
                                 <p class="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Civilité <span class="text-red-600">*</span></p>
                                 <div class="grid grid-cols-2 gap-3 sm:gap-4">
@@ -124,11 +126,15 @@
                     </section>
 
                     <!-- Type de bien -->
-                    <section aria-labelledby="property-heading">
-                        <h2 id="property-heading" class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 dark:bg-slate-600 text-white text-sm font-bold">2</span>
-                            Type de bien à rénover
-                        </h2>
+                    <section aria-labelledby="property-heading" class="rounded-xl border-2 border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm">
+                        <div class="simulator-step-section-head px-4 py-3.5 sm:px-5 sm:py-4"
+                             style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                            <h2 id="property-heading" class="simulator-step-section-title text-lg font-bold text-white mb-0 flex items-center gap-2">
+                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-white text-sm font-bold ring-1 ring-white/30">2</span>
+                                Type de bien à rénover
+                            </h2>
+                        </div>
+                        <div class="p-5 sm:p-6 pt-5">
                         <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Choisissez le bien concerné par les travaux <span class="text-red-600 font-semibold">*</span></p>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -149,6 +155,7 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">En immeuble</p>
                                 </div>
                             </label>
+                        </div>
                         </div>
                     </section>
 
