@@ -20,9 +20,9 @@
                 </div>
 
                 @if($showIntro)
-                <!-- Bloc spécial : texte à gauche, visuel à droite -->
-                <div class="grid md:grid-cols-2 gap-10 lg:gap-14 items-center mb-0">
-                    <div class="order-2 md:order-1 text-center md:text-left">
+                <!-- Bloc spécial : texte à gauche, visuel à droite (image bord à bord dans son cadre, sans padding) -->
+                <div class="grid md:grid-cols-2 gap-8 lg:gap-12 md:items-stretch mb-0">
+                    <div class="order-2 md:order-1 text-center md:text-left flex flex-col justify-center">
                         @if(!empty($intro['title']))
                         <h3 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">{{ $intro['title'] }}</h3>
                         @endif
@@ -38,16 +38,20 @@
                         </a>
                         @endif
                     </div>
-                    <div class="order-1 md:order-2 rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 min-h-[200px] md:min-h-[260px] flex items-center justify-center p-6 md:p-8 ring-1 ring-gray-200/80 dark:ring-gray-600">
+                    {{-- Cadre image : aucun padding ni marge interne — l’image remplit tout le rectangle (coins arrondis conservés) --}}
+                    <div class="order-1 md:order-2 relative w-full min-h-[220px] sm:min-h-[260px] md:min-h-[300px] md:h-full rounded-2xl overflow-hidden shadow-xl ring-1 ring-gray-200/80 dark:ring-gray-600 bg-gray-100 dark:bg-gray-800">
                         @if(!empty($intro['image']))
                         <img src="{{ asset($intro['image']) }}"
                              alt="{{ strip_tags($intro['title'] ?? 'Partenaires') }}"
-                             class="w-full h-full max-h-[320px] md:max-h-[400px] object-contain object-center"
-                             loading="lazy">
+                             class="absolute inset-0 block w-full h-full object-cover object-center m-0 p-0 border-0"
+                             loading="lazy"
+                             decoding="async">
                         @else
-                        <div class="text-gray-400 dark:text-gray-500 text-center text-sm">
-                            <i class="fas fa-image text-5xl mb-3 block opacity-50"></i>
-                            Ajoutez une image ou un logo dans l’admin (section Nos Partenaires)
+                        <div class="absolute inset-0 flex items-center justify-center p-6 text-gray-400 dark:text-gray-500 text-sm text-center">
+                            <div>
+                                <i class="fas fa-image text-5xl mb-3 block opacity-50"></i>
+                                Ajoutez une image dans l’admin (Nos Partenaires — bloc texte + visuel)
+                            </div>
                         </div>
                         @endif
                     </div>
