@@ -527,6 +527,37 @@
             color: #93c5fd !important;
         }
 
+        /*
+         * Services / contenus IA : blocs bg-*-50 (bleu, vert, jaune, gris).
+         * Sans ça, en mode sombre le texte reste clair mais les fonds restent pastel → illisible.
+         */
+        html[data-theme="dark"] main .prose .bg-blue-50,
+        html[data-theme="dark"] main .prose .bg-green-50,
+        html[data-theme="dark"] main .prose .bg-yellow-50,
+        html[data-theme="dark"] main .prose .bg-red-50,
+        html[data-theme="dark"] main .prose .bg-gray-50,
+        html[data-theme="dark"] main .service-page-content .bg-blue-50,
+        html[data-theme="dark"] main .service-page-content .bg-green-50,
+        html[data-theme="dark"] main .service-page-content .bg-yellow-50,
+        html[data-theme="dark"] main .service-page-content .bg-red-50,
+        html[data-theme="dark"] main .service-page-content .bg-gray-50 {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        html[data-theme="dark"] main .prose .bg-gradient-to-r.from-blue-50.to-green-50,
+        html[data-theme="dark"] main .service-page-content .bg-gradient-to-r.from-blue-50.to-green-50 {
+            background-image: linear-gradient(to right, #1e293b, #1e293b) !important;
+            color: #e2e8f0 !important;
+        }
+        html[data-theme="dark"] main .service-page-content .text-green-600,
+        html[data-theme="dark"] main .prose .text-green-600 {
+            color: #4ade80 !important;
+        }
+        html[data-theme="dark"] main .service-page-content p.leading-relaxed,
+        html[data-theme="dark"] main .service-page-content .leading-relaxed {
+            color: #cbd5e1 !important;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }

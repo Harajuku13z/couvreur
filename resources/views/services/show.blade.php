@@ -222,7 +222,7 @@
                             </div>
                         </div>
                     @else
-                        <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert service-page-content">
+                        <div class="prose prose-sm md:prose-base max-w-none service-page-content text-gray-900 dark:text-slate-100">
                             {!! $service['description'] !!}
                         </div>
                     @endif
