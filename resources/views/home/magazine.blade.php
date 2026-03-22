@@ -1,9 +1,7 @@
-{{-- Style éditorial : portfolio & avis en tête, hiérarchie visuelle forte --}}
+{{-- Magazine : services & à propos en haut ; réalisations & avis toujours en bas (avant CTA) --}}
 @include('home.partials.hero')
-@include('home.partials.portfolio')
 @include('home.partials.stats')
 @include('home.partials.services')
-@include('home.partials.reviews')
 @include('home.partials.about')
 @include('home.partials.cities')
 @include('home.partials.france-departments-map')
@@ -12,5 +10,7 @@
 @include('home.partials.why-choose-us')
 @include('home.partials.featured-partner')
 @include('home.partials.partners-logos')
+@include('home.partials.portfolio')
+@include('home.partials.reviews')
 @include('home.partials.cta')
 @include('home.partials.scripts')

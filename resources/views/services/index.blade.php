@@ -28,7 +28,7 @@
             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent"></div>
         </div>
         
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <div class="site-shell text-center relative z-10">
             <h1 class="text-4xl md:text-6xl font-black text-white mb-6 drop-shadow-2xl" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
                 Nos Services
             </h1>
@@ -40,7 +40,7 @@
 
     <!-- Services Grid -->
     <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="site-shell">
             @if($visibleServices->count() > 0)
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($visibleServices as $service)
@@ -106,7 +106,7 @@
             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent"></div>
         </div>
         
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="site-shell relative z-10">
             <div class="text-center mb-12">
                 <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 drop-shadow-2xl" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
                     Besoin d'un Devis Personnalisé ?

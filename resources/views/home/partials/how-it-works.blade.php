@@ -1,6 +1,6 @@
     <!-- Comment ça marche — plein conteneur, design modernisé -->
     <section class="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-y border-gray-100/80 dark:border-slate-800">
-        <div class="site-shell w-full max-w-full">
+        <div class="site-shell">
             <header class="text-center mb-12 md:mb-16 px-1">
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
                     Comment ça marche ?
