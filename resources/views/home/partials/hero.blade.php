@@ -57,13 +57,20 @@
                         @endif
                     </div>
                 </div>
-                <div class="lg:col-span-5 hidden lg:block">
-                    <div class="rounded-3xl overflow-hidden shadow-2xl border border-white/20 aspect-[4/5] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center p-8">
-                        <div class="text-center text-white/90">
-                            <i class="fas fa-home text-7xl mb-4 opacity-90"></i>
-                            <p class="text-lg font-medium">{{ setting('company_name') }}</p>
-                            <p class="text-sm mt-2 opacity-80">Qualité &amp; accompagnement</p>
+                <div class="lg:col-span-5 w-full mt-10 lg:mt-0">
+                    <div class="relative w-full max-w-lg mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl border border-white/20 aspect-[4/5] max-h-[min(72vh,560px)] bg-gradient-to-br from-white/10 to-white/5">
+                        @if(!empty($homeConfig['hero']['magazine_side_image']))
+                        <img src="{{ asset($homeConfig['hero']['magazine_side_image']) }}"
+                             alt="{{ strip_tags($homeConfig['hero']['title'] ?? setting('company_name', 'Notre équipe')) }}"
+                             class="absolute inset-0 h-full w-full object-cover object-center"
+                             loading="eager"
+                             decoding="async"
+                             fetchpriority="high">
+                        @else
+                        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white/10 to-transparent" aria-hidden="true">
+                            <i class="fas fa-camera text-7xl text-white/20"></i>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>

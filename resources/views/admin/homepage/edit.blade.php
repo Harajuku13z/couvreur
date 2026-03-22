@@ -177,6 +177,24 @@
                     <p class="text-sm text-gray-500 mt-1">Image de fond pour la section héro (recommandé: 1920x800px)</p>
                 </div>
 
+                <div class="md:col-span-2 border-t border-gray-200 pt-6 mt-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-newspaper mr-2 text-indigo-500"></i>Photo colonne droite — design <strong>Magazine</strong> uniquement
+                    </label>
+                    <p class="text-xs text-gray-600 mb-3">Remplace l’icône et le texte par défaut à droite du hero lorsque le design « Magazine » est sélectionné. Format conseillé : portrait ou carré (ex. 800×1000 px).</p>
+                    <input type="file" name="hero_magazine_side_image" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    @if($config['hero']['magazine_side_image'] ?? null)
+                    <div class="mt-3 flex flex-wrap items-center gap-4">
+                        <img src="{{ asset($config['hero']['magazine_side_image']) }}" alt="Aperçu Magazine" class="max-h-40 rounded-lg border border-gray-200 object-cover shadow-sm">
+                        <label class="inline-flex items-center text-sm text-red-600 cursor-pointer">
+                            <input type="checkbox" name="remove_hero_magazine_side_image" value="1" class="rounded border-gray-300 mr-2">
+                            Supprimer cette photo
+                        </label>
+                    </div>
+                    @endif
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Titre Principal</label>
                     <input type="text" name="hero[title]" value="{{ $config['hero']['title'] }}" 

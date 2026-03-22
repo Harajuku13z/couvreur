@@ -1612,6 +1612,7 @@ class ConfigController extends Controller
                     'cta_text' => 'Demander un Devis Gratuit',
                     'show_phone' => true,
                     'background_image' => null,
+                    'magazine_side_image' => null,
                 ],
                 'trust_badges' => [
                     'garantie_decennale' => true,
@@ -1720,6 +1721,13 @@ class ConfigController extends Controller
                 'link_label' => 'En savoir plus',
             ];
         }
+
+        if (!isset($config['hero']) || !is_array($config['hero'])) {
+            $config['hero'] = [];
+        }
+        if (!array_key_exists('magazine_side_image', $config['hero'])) {
+            $config['hero']['magazine_side_image'] = null;
+        }
         
         return view('admin.homepage.edit', compact('config'));
     }
@@ -1735,6 +1743,7 @@ class ConfigController extends Controller
             'hero.subtitle' => 'required|string|max:500',
             'hero.cta_text' => 'required|string|max:100',
             'hero_background' => 'nullable|image|max:5120', // 5MB max
+            'hero_magazine_side_image' => 'nullable|image|max:5120',
             'about_image' => 'nullable|image|max:5120', // 5MB max
             'partners_featured_image' => 'nullable|image|max:5120',
             'partners_intro_image' => 'nullable|image|max:5120',
@@ -1786,6 +1795,33 @@ class ConfigController extends Controller
                 }
             }
             $backgroundImage = null;
+        }
+
+        // Photo colonne droite — design « Magazine » uniquement
+        $magazineSideImage = $currentConfig['hero']['magazine_side_image'] ?? null;
+        if ($request->hasFile('hero_magazine_side_image')) {
+            $file = $request->file('hero_magazine_side_image');
+            $filename = 'hero-magazine-side-' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadsHomepage = public_path('uploads/homepage');
+            if (!is_dir($uploadsHomepage)) {
+                mkdir($uploadsHomepage, 0755, true);
+            }
+            $file->move($uploadsHomepage, $filename);
+            if (!empty($magazineSideImage)) {
+                $oldPath = public_path(ltrim($magazineSideImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $magazineSideImage = '/uploads/homepage/' . $filename;
+        } elseif ($request->boolean('remove_hero_magazine_side_image')) {
+            if (!empty($magazineSideImage)) {
+                $oldPath = public_path(ltrim($magazineSideImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $magazineSideImage = null;
         }
 
         // Handle about section image upload
@@ -1885,6 +1921,7 @@ class ConfigController extends Controller
                 'cta_text' => $request->input('hero.cta_text'),
                 'show_phone' => $request->boolean('hero.show_phone'),
                 'background_image' => $backgroundImage,
+                'magazine_side_image' => $magazineSideImage,
             ],
             'trust_badges' => [
                 'garantie_decennale' => $request->boolean('trust_badges.garantie_decennale'),

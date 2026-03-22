@@ -194,6 +194,7 @@ class HomeController extends Controller
                     'cta_text' => 'Demander un Devis Gratuit',
                     'show_phone' => true,
                     'background_image' => null,
+                    'magazine_side_image' => null,
                 ],
                 'sections' => [
                     'services' => ['enabled' => true, 'title' => 'Nos Services', 'limit' => 6],
@@ -214,6 +215,13 @@ class HomeController extends Controller
         $validHomeLayouts = ['classic', 'showcase', 'magazine', 'conversion'];
         if (!isset($config['layout']) || !in_array($config['layout'], $validHomeLayouts, true)) {
             $config['layout'] = 'classic';
+        }
+
+        if (!isset($config['hero']) || !is_array($config['hero'])) {
+            $config['hero'] = [];
+        }
+        if (!array_key_exists('magazine_side_image', $config['hero'])) {
+            $config['hero']['magazine_side_image'] = null;
         }
         
         return $config;
