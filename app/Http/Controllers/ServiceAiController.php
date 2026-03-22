@@ -169,39 +169,39 @@ class ServiceAiController extends Controller
             $template = '<div class="grid md:grid-cols-2 gap-8">
   <div class="space-y-6">
     <div class="space-y-4">
-      <p class="text-lg leading-relaxed">[description_courte]</p>
-      <p class="text-lg leading-relaxed">[description_longue]</p>
+      <p class="text-lg leading-relaxed text-gray-800 dark:text-slate-200">[description_courte]</p>
+      <p class="text-lg leading-relaxed text-gray-800 dark:text-slate-200">[description_longue]</p>
     </div>
-    <div class="bg-blue-50 p-6 rounded-lg">
-      <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
-      <p class="leading-relaxed mb-3">[texte_garantie]</p>
+    <div class="bg-blue-50 dark:bg-slate-800/90 p-6 rounded-lg border border-blue-100/80 dark:border-slate-600">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">[titre_garantie]</h3>
+      <p class="leading-relaxed mb-3 text-gray-700 dark:text-slate-300">[texte_garantie]</p>
     </div>
-    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
-    <ul class="space-y-3">[prestations_liste]</ul>
-    <div class="bg-gray-50 p-6 rounded-lg mt-6">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ du [service]</h4>
-      <div class="space-y-2">[faq_liste]</div>
+    <h3 class="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">Nos Prestations [service]</h3>
+    <ul class="space-y-3 text-gray-800 dark:text-slate-200">[prestations_liste]</ul>
+    <div class="bg-gray-50 dark:bg-slate-800/90 p-6 rounded-lg mt-6 border border-gray-100 dark:border-slate-600">
+      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">FAQ du [service]</h4>
+      <div class="space-y-2 text-gray-700 dark:text-slate-300">[faq_liste]</div>
     </div>
   </div>
   <div class="space-y-6">
-    <div class="bg-green-50 p-6 rounded-lg">
-      <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
-      <p class="leading-relaxed">[pourquoi_choisir]</p>
+    <div class="bg-green-50 dark:bg-slate-800/90 p-6 rounded-lg border border-green-100/80 dark:border-slate-600">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
+      <p class="leading-relaxed text-gray-800 dark:text-slate-200">[pourquoi_choisir]</p>
     </div>
-    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
-      <p>[financement_aides]</p>
+    <div class="bg-yellow-50 dark:bg-slate-800/90 p-6 rounded-lg border-l-4 border-yellow-600 dark:border-amber-500">
+      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Financement et aides</h4>
+      <p class="text-gray-800 dark:text-slate-200">[financement_aides]</p>
     </div>
-    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
-      <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
+    <div class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-slate-800 dark:to-slate-800 p-6 rounded-lg border-l-4 border-blue-600 dark:border-slate-500">
+      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Besoin d\'un devis ?</h4>
+      <p class="mb-4 text-gray-800 dark:text-slate-200">Contactez-nous pour un devis gratuit pour [service].</p>
       <a href="/devis-gratuit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
     </div>
-    <div class="bg-gray-50 p-6 rounded-lg">
-      <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
-      <ul class="space-y-2 text-sm">[infos_pratiques_liste]</ul>
+    <div class="bg-gray-50 dark:bg-slate-800/90 p-6 rounded-lg border border-gray-100 dark:border-slate-600">
+      <h4 class="text-lg font-bold text-gray-900 dark:text-slate-100 mb-3">Informations Pratiques</h4>
+      <ul class="space-y-2 text-sm text-gray-700 dark:text-slate-300">[infos_pratiques_liste]</ul>
     </div>
-    <div class="mt-8 pt-6 border-t border-gray-200">
+    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-600">
       <div class="text-center">
         <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
         <div class="flex justify-center items-center space-x-4">
