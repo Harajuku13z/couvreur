@@ -19,8 +19,10 @@
 
         {{-- Liste des départements en premier sur mobile : visible sans scroller la carte --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 items-start">
-            <div class="lg:col-span-1 space-y-6 order-1 w-full min-w-0">
-                <p class="text-sm font-semibold text-gray-800 dark:text-slate-200 uppercase tracking-wide">Départements mis en avant</p>
+            <div class="lg:col-span-1 space-y-5 order-1 w-full min-w-0">
+                <p class="text-base md:text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
+                    Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d’intervention et les principales villes desservies.
+                </p>
                 <ul class="space-y-4">
                     @foreach($departmentsMap['items'] as $row)
                         <li class="rounded-2xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/80 p-4 shadow-sm">
@@ -50,7 +52,7 @@
                 </ul>
             </div>
             <div class="lg:col-span-2 order-2 w-full min-w-0 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-lg bg-slate-50 dark:bg-slate-800/50">
-                <div id="france-departments-leaflet-map" class="w-full min-h-[280px] sm:min-h-[360px] md:min-h-[480px] z-0" role="img" aria-label="Carte des départements français"></div>
+                <div id="france-departments-leaflet-map" class="w-full min-h-[400px] sm:min-h-[480px] md:min-h-[560px] lg:min-h-[640px] xl:min-h-[720px] z-0" role="img" aria-label="Carte des départements français"></div>
             </div>
         </div>
     </div>
