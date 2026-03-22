@@ -3,7 +3,7 @@
 @section('title', 'Travaux de toiture - Simulateur')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+<div class="simulator-step min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             <div class="mb-8">

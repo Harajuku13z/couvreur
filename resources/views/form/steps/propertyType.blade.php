@@ -28,7 +28,7 @@
         $ptVal = in_array($p, ['HOUSE', 'maison', 'MAISON'], true) ? 'maison' : (in_array($p, ['APARTMENT', 'appartement', 'APPARTEMENT'], true) ? 'appartement' : '');
     }
 @endphp
-<div class="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+<div class="simulator-step min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-3xl mx-auto">
             <!-- Progress -->

@@ -640,6 +640,20 @@
                 padding-right: 2rem;
             }
         }
+
+        /* Simulateur multi-étapes : texte saisi lisible (noir sur blanc), même si le thème sombre colore les inputs */
+        .simulator-step input[type="text"],
+        .simulator-step input[type="email"],
+        .simulator-step input[type="tel"],
+        .simulator-step input[type="number"],
+        .simulator-step input[type="search"],
+        .simulator-step input[type="url"],
+        .simulator-step textarea,
+        .simulator-step select {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+            -webkit-text-fill-color: #111827;
+        }
     </style>
     
     @stack('head')

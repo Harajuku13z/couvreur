@@ -3,7 +3,7 @@
 @section('title', 'Ajout de photos')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-12">
+<div class="simulator-step min-h-screen bg-gray-50 py-12">
     <div class="max-w-3xl mx-auto px-4">
         <div class="mb-8">
             <div class="flex justify-between items-center mb-2">
