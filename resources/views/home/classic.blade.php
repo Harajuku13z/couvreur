@@ -2,6 +2,7 @@
 @include('home.partials.stats')
 @include('home.partials.about')
 @include('home.partials.cities')
+@include('home.partials.france-departments-map')
 @include('home.partials.services')
 @include('home.partials.how-it-works')
 @include('home.partials.ecology-financing')

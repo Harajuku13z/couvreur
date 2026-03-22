@@ -1643,6 +1643,13 @@ class ConfigController extends Controller
                         'certificats_cee' => true,
                     ],
                 ],
+                'departments_map' => [
+                    'enabled' => false,
+                    'title' => 'Nos départements d\'intervention',
+                    'subtitle' => 'Cliquez sur un département mis en avant sur la carte.',
+                    'codes' => [],
+                    'link_overrides' => [],
+                ],
                 'footer' => [
                     'intervention_zone' => 'Nous intervenons dans toute la région ' . Setting::get('company_region', 'Île-de-France') . ' et ses environs.',
                     'about' => Setting::get('company_description', ''),
@@ -1752,6 +1759,21 @@ class ConfigController extends Controller
             ['maprimerenov' => true, 'certificats_cee' => true],
             $config['financing']['badges'] ?? []
         );
+        if (!isset($config['departments_map']) || !is_array($config['departments_map'])) {
+            $config['departments_map'] = [
+                'enabled' => false,
+                'title' => 'Nos départements d\'intervention',
+                'subtitle' => 'Cliquez sur un département mis en avant sur la carte.',
+                'codes' => [],
+                'link_overrides' => [],
+            ];
+        }
+        if (!isset($config['departments_map']['codes']) || !is_array($config['departments_map']['codes'])) {
+            $config['departments_map']['codes'] = [];
+        }
+        if (!isset($config['departments_map']['link_overrides']) || !is_array($config['departments_map']['link_overrides'])) {
+            $config['departments_map']['link_overrides'] = [];
+        }
         
         return view('admin.homepage.edit', compact('config'));
     }
@@ -1937,6 +1959,23 @@ class ConfigController extends Controller
             $layout = 'classic';
         }
 
+        $deptCodesRaw = $request->input('departments_map.codes_text', '');
+        $deptCodes = [];
+        foreach (preg_split('/[\r\n,;]+/', (string) $deptCodesRaw, -1, PREG_SPLIT_NO_EMPTY) as $line) {
+            $t = trim((string) $line);
+            if ($t !== '') {
+                $deptCodes[] = $t;
+            }
+        }
+        $linkOverridesJson = $request->input('departments_map.link_overrides_json', '');
+        $linkOverrides = [];
+        if (is_string($linkOverridesJson) && $linkOverridesJson !== '') {
+            $decodedOverrides = json_decode($linkOverridesJson, true);
+            if (is_array($decodedOverrides)) {
+                $linkOverrides = $decodedOverrides;
+            }
+        }
+
         $config = [
             'layout' => $layout,
             'hero' => [
@@ -1975,6 +2014,13 @@ class ConfigController extends Controller
                     'maprimerenov' => $request->boolean('financing.badges.maprimerenov'),
                     'certificats_cee' => $request->boolean('financing.badges.certificats_cee'),
                 ],
+            ],
+            'departments_map' => [
+                'enabled' => $request->boolean('departments_map.enabled'),
+                'title' => $request->input('departments_map.title', 'Nos départements d\'intervention'),
+                'subtitle' => $request->input('departments_map.subtitle', ''),
+                'codes' => $deptCodes,
+                'link_overrides' => $linkOverrides,
             ],
             'footer' => [
                 'intervention_zone' => $request->input('footer.intervention_zone', ''),

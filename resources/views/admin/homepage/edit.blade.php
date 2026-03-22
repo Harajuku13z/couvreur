@@ -381,6 +381,54 @@
             </div>
         </div>
 
+        <!-- Carte France — départements mis en avant -->
+        <div class="bg-white rounded-lg shadow-lg p-6 border border-indigo-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-map text-indigo-600 mr-2"></i>Carte de France (départements)
+            </h2>
+            <p class="text-sm text-gray-600 mb-6">
+                Section interactive sur la page d’accueil : carte <strong>Leaflet</strong> + fichier GeoJSON des départements (métropole + DOM selon le fichier).
+                Indiquez les <strong>codes département</strong> (ex. <code>49</code>, <code>44</code>, <code>75</code>, <code>2A</code>) pour les mettre en couleur. Sans URL personnalisée, le clic renvoie vers une ville du département (annonces) ou la page contact.
+            </p>
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" name="departments_map[enabled]" id="departments_map_enabled" value="1"
+                           {{ ($config['departments_map']['enabled'] ?? false) ? 'checked' : '' }}
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <label for="departments_map_enabled" class="ml-2 text-sm font-medium text-gray-700">
+                        Afficher la section « Carte de France » sur l’accueil
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Titre de la section</label>
+                    <input type="text" name="departments_map[title]"
+                           value="{{ $config['departments_map']['title'] ?? 'Nos départements d’intervention' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sous-titre</label>
+                    <input type="text" name="departments_map[subtitle]"
+                           value="{{ $config['departments_map']['subtitle'] ?? '' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                           placeholder="Ex. Cliquez sur un département coloré…">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Codes département (un par ligne ou séparés par des virgules)</label>
+                    <textarea name="departments_map[codes_text]" rows="5"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+                              placeholder="49&#10;44&#10;85">{{ implode("\n", $config['departments_map']['codes'] ?? []) }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Exemple : Maine-et-Loire = 49, Loire-Atlantique = 44, Vendée = 85.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Liens personnalisés (optionnel, JSON)</label>
+                    <textarea name="departments_map[link_overrides_json]" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
+                              placeholder='{"49": "https://...", "44": "/contact"}'>{{ json_encode($config['departments_map']['link_overrides'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Clé = code département. Laissez <code>{}</code> pour liens automatiques (ville / contact).</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer Configuration -->
         <div class="bg-white rounded-lg shadow-lg p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">

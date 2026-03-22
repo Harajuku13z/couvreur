@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use App\Models\Review;
 use App\Models\City;
+use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -150,6 +151,8 @@ class HomeController extends Controller
         if (!is_array($faqs)) {
             $faqs = [];
         }
+
+        $departmentsMap = $this->buildDepartmentsMapViewData($homeConfig);
         
         return view('home', compact(
             'homeConfig',
@@ -169,7 +172,8 @@ class HomeController extends Controller
             'breadcrumbs',
             'faqs',
             'reviews', // Pour Schema.org
-            'favoriteCities'
+            'favoriteCities',
+            'departmentsMap'
         ));
     }
     
@@ -238,8 +242,93 @@ class HomeController extends Controller
             ['maprimerenov' => true, 'certificats_cee' => true],
             $config['financing']['badges'] ?? []
         );
+
+        if (!isset($config['departments_map']) || !is_array($config['departments_map'])) {
+            $config['departments_map'] = [
+                'enabled' => false,
+                'title' => 'Nos départements d\'intervention',
+                'subtitle' => 'Cliquez sur un département mis en avant pour en savoir plus.',
+                'codes' => [],
+                'link_overrides' => [],
+            ];
+        }
         
         return $config;
+    }
+
+    /**
+     * Données pour la carte France (Leaflet + GeoJSON) — départements configurés par code.
+     *
+     * @return array{show: bool, title: string, subtitle: string, items: array<int, array{code: string, name: string, url: string}>, geoJsonUrl: string}
+     */
+    private function buildDepartmentsMapViewData(array $homeConfig): array
+    {
+        $dm = $homeConfig['departments_map'] ?? [];
+        $default = [
+            'show' => false,
+            'title' => 'Nos départements d\'intervention',
+            'subtitle' => '',
+            'items' => [],
+            'geoJsonUrl' => asset('geo/departements.geojson'),
+        ];
+
+        if (!($dm['enabled'] ?? false)) {
+            return $default;
+        }
+
+        $codes = $dm['codes'] ?? [];
+        if (!is_array($codes)) {
+            $codes = [];
+        }
+
+        $overrides = $dm['link_overrides'] ?? [];
+        if (is_string($overrides)) {
+            $decoded = json_decode($overrides, true);
+            $overrides = is_array($decoded) ? $decoded : [];
+        }
+        if (!is_array($overrides)) {
+            $overrides = [];
+        }
+
+        $items = [];
+        foreach ($codes as $raw) {
+            $code = FrenchDepartments::normalizeCode((string) $raw);
+            $name = FrenchDepartments::nameFromCode($code);
+            if ($name === null) {
+                continue;
+            }
+
+            $url = $overrides[$code] ?? $overrides[$raw] ?? $overrides[(string) (int) $code] ?? null;
+            if (empty($url)) {
+                $city = City::query()
+                    ->where('is_active', true)
+                    ->where('department', $name)
+                    ->orderByDesc('is_favorite')
+                    ->orderBy('name')
+                    ->first();
+                $url = $city
+                    ? route('ads.index') . '?city=' . urlencode($city->slug)
+                    : route('contact');
+            }
+
+            $items[] = [
+                'code' => $code,
+                'name' => $name,
+                'url' => $url,
+            ];
+        }
+
+        if ($items === []) {
+            return $default;
+        }
+
+        return [
+            'show' => true,
+            'title' => (string) ($dm['title'] ?? $default['title']),
+            'subtitle' => (string) ($dm['subtitle'] ?? ''),
+            'items' => $items,
+            'geoJsonUrl' => $default['geoJsonUrl'],
+        ];
     }
 }
 
