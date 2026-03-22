@@ -655,12 +655,29 @@
             background-color: #ffffff !important;
             -webkit-text-fill-color: #111827;
         }
-        /* Cartes de choix (toiture, façade, etc.) : libellés toujours lisibles en noir même sélectionnés */
-        .simulator-step .work-option,
+        /* Cartes de choix simulateur : fond sombre + texte blanc ; sélectionné = fond blanc + texte couleur primaire */
+        .simulator-step .work-option {
+            background-color: #1e293b !important;
+            border: 2px solid #475569 !important;
+            color: #fff !important;
+        }
         .simulator-step .work-option p,
         .simulator-step .work-option h3 {
-            color: #111827 !important;
-            -webkit-text-fill-color: #111827;
+            color: #fff !important;
+            -webkit-text-fill-color: #fff;
+        }
+        .simulator-step .work-option:hover:not(.is-selected) {
+            border-color: #64748b !important;
+        }
+        .simulator-step .work-option.is-selected {
+            background-color: #ffffff !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+        }
+        .simulator-step .work-option.is-selected p,
+        .simulator-step .work-option.is-selected h3 {
+            color: var(--primary-color) !important;
+            -webkit-text-fill-color: var(--primary-color);
         }
         .simulator-step .gender-option,
         .simulator-step .property-option {

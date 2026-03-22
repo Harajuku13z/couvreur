@@ -40,9 +40,9 @@
                         @foreach($facadeWorks as $value => $work)
                         <label for="facade_{{ $value }}" class="cursor-pointer">
                             <input type="checkbox" name="facade_work_type[]" value="{{ $value }}" id="facade_{{ $value }}" class="hidden work-checkbox">
-                            <div class="work-option border-2 border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition">
+                            <div class="work-option rounded-lg p-4 text-center transition">
                                 <img src="{{ asset('icons2/Facade/' . $work['icon']) }}" alt="{{ $work['label'] }}" class="w-16 h-16 mx-auto mb-2 object-contain">
-                                <p class="text-sm font-semibold text-gray-800">{{ $work['label'] }}</p>
+                                <p class="text-sm font-semibold">{{ $work['label'] }}</p>
                             </div>
                         </label>
                         @endforeach
@@ -74,11 +74,9 @@ function validateForm() {
 function toggleOption(checkbox) {
     const option = checkbox.closest('label').querySelector('.work-option');
     if (checkbox.checked) {
-        option.classList.remove('border-gray-300');
-        option.classList.add('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
+        option.classList.add('is-selected');
     } else {
-        option.classList.remove('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
-        option.classList.add('border-gray-300');
+        option.classList.remove('is-selected');
     }
     validateForm();
 }

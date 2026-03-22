@@ -30,27 +30,27 @@
                         <!-- Toiture -->
                         <label for="work_roof" class="cursor-pointer">
                             <input type="checkbox" name="work_type[]" value="roof" id="work_roof" class="hidden work-checkbox">
-                            <div class="work-option border-3 border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 hover:shadow-xl transition">
+                            <div class="work-option rounded-xl p-6 text-center transition">
                                 <img src="{{ asset('icons2/Toiture/Toiture.webp') }}" alt="Toiture" class="w-24 h-24 mx-auto mb-4 object-contain">
-                                <h3 class="text-xl font-bold text-gray-800">Toiture</h3>
+                                <h3 class="text-xl font-bold">Toiture</h3>
                             </div>
                         </label>
 
                         <!-- Façade -->
                         <label for="work_facade" class="cursor-pointer">
                             <input type="checkbox" name="work_type[]" value="facade" id="work_facade" class="hidden work-checkbox">
-                            <div class="work-option border-3 border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 hover:shadow-xl transition">
+                            <div class="work-option rounded-xl p-6 text-center transition">
                                 <img src="{{ asset('icons2/Facade.webp') }}" alt="Façade" class="w-24 h-24 mx-auto mb-4 object-contain">
-                                <h3 class="text-xl font-bold text-gray-800">Façade</h3>
+                                <h3 class="text-xl font-bold">Façade</h3>
                             </div>
                         </label>
 
                         <!-- Isolation -->
                         <label for="work_isolation" class="cursor-pointer">
                             <input type="checkbox" name="work_type[]" value="isolation" id="work_isolation" class="hidden work-checkbox">
-                            <div class="work-option border-3 border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 hover:shadow-xl transition">
+                            <div class="work-option rounded-xl p-6 text-center transition">
                                 <img src="{{ asset('icons2/Isolation.webp') }}" alt="Isolation" class="w-24 h-24 mx-auto mb-4 object-contain">
-                                <h3 class="text-xl font-bold text-gray-800">Isolation</h3>
+                                <h3 class="text-xl font-bold">Isolation</h3>
                             </div>
                         </label>
                     </div>
@@ -92,11 +92,9 @@ function toggleOption(checkbox) {
     const option = checkbox.closest('label').querySelector('.work-option');
     
     if (checkbox.checked) {
-        option.classList.remove('border-gray-300');
-        option.classList.add('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
+        option.classList.add('is-selected');
     } else {
-        option.classList.remove('border-blue-600', 'bg-white', 'shadow-md', 'ring-2', 'ring-blue-500/35');
-        option.classList.add('border-gray-300');
+        option.classList.remove('is-selected');
     }
     
     validateForm();
