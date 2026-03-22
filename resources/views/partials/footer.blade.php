@@ -1,14 +1,14 @@
 <!-- Footer -->
-<footer class="bg-gray-900 text-white py-16">
+<footer class="site-footer py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <!-- Company Info -->
             <div class="lg:col-span-2">
                 <div class="mb-6">
-                    <h3 class="text-2xl font-bold">{{ setting('company_name', 'Votre Entreprise') }}</h3>
+                    <h3 class="text-2xl font-bold" style="color: var(--footer-text);">{{ setting('company_name', 'Votre Entreprise') }}</h3>
                 </div>
                 
-                <p class="text-gray-400 mb-6 text-sm leading-relaxed max-w-md">
+                <p class="site-footer-link mb-6 text-sm leading-relaxed max-w-md">
                     @php
                         try {
                             $description = setting('company_description', '');
@@ -30,7 +30,7 @@
                     @endphp
                     @if($phoneMain)
                     <div class="flex space-x-4">
-                        <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}" class="site-footer-link">
                             <i class="fas fa-phone mr-2"></i>
                             {{ $phoneMain }}
                         </a>
@@ -38,7 +38,7 @@
                     @endif
                     @if($phone2)
                     <div class="flex space-x-4 text-sm">
-                        <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}" class="site-footer-link">
                             <i class="fas fa-phone mr-2"></i>
                             {{ $phone2 }}
                         </a>
@@ -46,7 +46,7 @@
                     @endif
                     @if($phone3)
                     <div class="flex space-x-4 text-sm">
-                        <a href="tel:{{ setting('company_phone_3_raw', $phone3) }}" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="tel:{{ setting('company_phone_3_raw', $phone3) }}" class="site-footer-link">
                             <i class="fas fa-phone mr-2"></i>
                             {{ $phone3 }}
                         </a>
@@ -76,16 +76,16 @@
                     @endphp
                     @if($fullAddressString)
                     <div class="flex items-start space-x-4">
-                        <i class="fas fa-map-marker-alt mt-1 text-gray-400"></i>
-                        <div class="text-gray-400">
+                        <i class="fas fa-map-marker-alt mt-1 site-footer-link"></i>
+                        <div class="site-footer-link">
                             {{ $fullAddressString }}
                         </div>
                     </div>
                     @endif
                     @if(!empty($hours))
                     <div class="flex items-start space-x-4">
-                        <i class="far fa-clock mt-1 text-gray-400"></i>
-                        <div class="text-gray-400 text-sm">
+                        <i class="far fa-clock mt-1 site-footer-link"></i>
+                        <div class="site-footer-link text-sm">
                             {{ $hours }}
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                     <div class="flex space-x-4">
                         @foreach($activeSocialNetworks as $key => $network)
                             <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                               class="text-gray-400 {{ $network['color'] }} transition-colors text-xl"
+                               class="site-footer-link {{ $network['color'] }} transition-colors text-xl"
                                aria-label="{{ $network['label'] }}">
                                 <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
                             </a>
@@ -127,21 +127,21 @@
             
             <!-- Quick Links -->
             <div>
-                <h4 class="text-lg font-semibold mb-4">Liens Rapides</h4>
+                <h4 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Liens Rapides</h4>
                 <ul class="space-y-2">
-                    <li><a href="{{ url('/') }}" class="text-gray-400 hover:text-white transition-colors">Accueil</a></li>
-                    <li><a href="{{ route('services.index') }}" class="text-gray-400 hover:text-white transition-colors">Nos Services</a></li>
-                    <li><a href="{{ route('portfolio.index') }}" class="text-gray-400 hover:text-white transition-colors">Nos Réalisations</a></li>
-                    <li><a href="{{ route('blog.index') }}" class="text-gray-400 hover:text-white transition-colors">Blog et Astuces</a></li>
-                    <li><a href="{{ route('ads.index') }}" class="text-gray-400 hover:text-white transition-colors">Nos Annonces</a></li>
-                    <li><a href="{{ route('reviews.all') }}" class="text-gray-400 hover:text-white transition-colors">Nos Avis Clients</a></li>
-                    <li><a href="{{ route('form.step', 'propertyType') }}" class="text-gray-400 hover:text-white transition-colors">Devis Gratuit</a></li>
+                    <li><a href="{{ url('/') }}" class="site-footer-link">Accueil</a></li>
+                    <li><a href="{{ route('services.index') }}" class="site-footer-link">Nos Services</a></li>
+                    <li><a href="{{ route('portfolio.index') }}" class="site-footer-link">Nos Réalisations</a></li>
+                    <li><a href="{{ route('blog.index') }}" class="site-footer-link">Blog et Astuces</a></li>
+                    <li><a href="{{ route('ads.index') }}" class="site-footer-link">Nos Annonces</a></li>
+                    <li><a href="{{ route('reviews.all') }}" class="site-footer-link">Nos Avis Clients</a></li>
+                    <li><a href="{{ route('form.step', 'propertyType') }}" class="site-footer-link">Devis Gratuit</a></li>
                 </ul>
             </div>
             
             <!-- Services -->
             <div>
-                <h4 class="text-lg font-semibold mb-4">Nos Services</h4>
+                <h4 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Nos Services</h4>
                 <ul class="space-y-2">
                     @php
                         $servicesData = \App\Models\Setting::get('services', '[]');
@@ -161,36 +161,36 @@
                         @foreach(array_slice($visibleServices, 0, 4) as $service)
                             @if(is_array($service) && isset($service['name']) && isset($service['slug']))
                             <li>
-                                <a href="{{ route('services.show', $service['slug']) }}" class="text-gray-400 hover:text-white transition-colors">
+                                <a href="{{ route('services.show', $service['slug']) }}" class="site-footer-link">
                                     {{ $service['name'] }}
                                 </a>
                             </li>
                             @endif
                         @endforeach
                     @else
-                        <li><a href="{{ route('services.index') }}" class="text-gray-400 hover:text-white transition-colors">Voir tous nos services</a></li>
+                        <li><a href="{{ route('services.index') }}" class="site-footer-link">Voir tous nos services</a></li>
                     @endif
-                    <li><a href="{{ route('contact') }}" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                    <li><a href="{{ route('contact') }}" class="site-footer-link">Contact</a></li>
                 </ul>
             </div>
         </div>
         
         <!-- Bottom Bar -->
-        <div class="border-t border-gray-800 mt-12 pt-8">
+        <div class="border-t site-footer-border mt-12 pt-8">
             <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-gray-400 text-sm">
+                <div class="site-footer-link text-sm">
                     © {{ date('Y') }} {{ setting('company_name', 'Votre Entreprise') }}. Tous droits réservés.
                 </div>
                 <div class="flex space-x-6 mt-4 md:mt-0">
-                    <a href="{{ route('legal.mentions') }}" class="text-gray-400 hover:text-white transition-colors text-sm">Mentions Légales</a>
-                    <a href="{{ route('legal.privacy') }}" class="text-gray-400 hover:text-white transition-colors text-sm">Politique de Confidentialité</a>
-                    <a href="{{ route('legal.cgv') }}" class="text-gray-400 hover:text-white transition-colors text-sm">CGV</a>
+                    <a href="{{ route('legal.mentions') }}" class="site-footer-link text-sm">Mentions Légales</a>
+                    <a href="{{ route('legal.privacy') }}" class="site-footer-link text-sm">Politique de Confidentialité</a>
+                    <a href="{{ route('legal.cgv') }}" class="site-footer-link text-sm">CGV</a>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-800">
+            <div class="mt-4 pt-4 border-t site-footer-border">
                 <div class="text-center">
-                    <p class="text-gray-500 text-xs">
-                        Ce site a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="text-gray-400 hover:text-white transition-colors font-medium">Osmose*</a> avec amour ❤️
+                    <p class="site-footer-link text-xs">
+                        Ce site a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="site-footer-link font-medium">Osmose*</a> avec amour ❤️
                     </p>
                 </div>
             </div>

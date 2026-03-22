@@ -12,7 +12,14 @@
             <h1 class="text-3xl font-bold text-gray-800">Soumission #{{ $submission->id }}</h1>
             <p class="text-gray-600 mt-1">Créée le {{ $submission->created_at->format('d/m/Y à H:i') }}</p>
         </div>
-        <div>
+        <div class="flex items-center space-x-3">
+            <form method="POST" action="{{ route('admin.submission.resend-notification', $submission->id) }}" onsubmit="return confirm('Voulez-vous vraiment renvoyer l\\'email à l\\'admin ?');">
+                @csrf
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Renvoyer l'email admin
+                </button>
+            </form>
             <span class="px-4 py-2 rounded-lg font-semibold text-sm
                 {{ $submission->status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 
                    ($submission->status === 'ABANDONED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">

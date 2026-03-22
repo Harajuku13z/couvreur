@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Setting;
+use App\Mail\ContactNotification;
 
 class AdminController extends Controller
 {
@@ -319,6 +322,83 @@ class AdminController extends Controller
     {
         $submission = Submission::findOrFail($id);
         return view('admin.submission-detail', compact('submission'));
+    }
+
+    public function resendSubmissionNotification($id)
+    {
+        $submission = Submission::findOrFail($id);
+
+        try {
+            $companyName = Setting::get('company_name', 'Votre Entreprise');
+            $companyEmail = Setting::get('admin_notification_email') ?: Setting::get('company_email');
+
+            // Reconfigurer éventuellement le SMTP comme dans ContactController
+            try {
+                $mailHost = Setting::get('mail_host');
+                $mailPort = Setting::get('mail_port');
+                $mailEncryption = Setting::get('mail_encryption');
+                $mailUsername = Setting::get('mail_username');
+                $mailPassword = Setting::get('mail_password');
+                $mailFromAddress = Setting::get('mail_from_address');
+                $mailFromName = Setting::get('mail_from_name', $companyName);
+
+                if ($mailHost && $mailUsername && $mailPassword) {
+                    config([
+                        'mail.mailers.smtp.host' => $mailHost,
+                        'mail.mailers.smtp.port' => $mailPort,
+                        'mail.mailers.smtp.encryption' => $mailEncryption,
+                        'mail.mailers.smtp.username' => $mailUsername,
+                        'mail.mailers.smtp.password' => $mailPassword,
+                        'mail.from.address' => $mailFromAddress,
+                        'mail.from.name' => $mailFromName,
+                    ]);
+                    config(['mail.default' => 'smtp']);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('AdminController: impossible de reconfigurer le SMTP pour le renvoi de notification', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            // Reconstituer les données de l'email à partir de la soumission
+            $formData = is_array($submission->form_data ?? null) ? $submission->form_data : [];
+
+            $emailData = [
+                'name' => trim(($submission->first_name ?? '') . ' ' . ($submission->last_name ?? '')) ?: ($formData['name'] ?? 'Prospect'),
+                'email' => $submission->email ?? ($formData['email'] ?? ''),
+                'phone' => $submission->phone ?? ($formData['phone'] ?? ''),
+                'postal_code' => $submission->postal_code ?? ($formData['postal_code'] ?? ''),
+                'city' => $submission->city ?? ($formData['city'] ?? ''),
+                'subject' => $formData['subject'] ?? 'Demande de contact',
+                'message' => $formData['message'] ?? '',
+                'callback_time' => $formData['callback_time'] ?? '',
+                'service_interest' => $formData['service_interest'] ?? '',
+                'attachments' => $formData['attachments'] ?? [],
+            ];
+
+            $adminRecipient = $companyEmail ?: (Setting::get('mail_from_address') ?: null);
+
+            if ($adminRecipient) {
+                Mail::to($adminRecipient)->send(new ContactNotification($emailData));
+                return redirect()
+                    ->route('admin.submission.show', $submission->id)
+                    ->with('success', 'L\'email de notification a été renvoyé à l\'administrateur.');
+            }
+
+            return redirect()
+                ->route('admin.submission.show', $submission->id)
+                ->with('error', 'Aucun email administrateur n\'est configuré pour l\'envoi de la notification.');
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du renvoi de la notification de soumission', [
+                'submission_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('admin.submission.show', $id)
+                ->with('error', 'Une erreur est survenue lors du renvoi de l\'email de notification.');
+        }
     }
 
     /**

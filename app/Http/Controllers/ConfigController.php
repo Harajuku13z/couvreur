@@ -252,6 +252,11 @@ class ConfigController extends Controller
             'primary_color' => 'nullable|string|max:7',
             'secondary_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
+            'dark_primary_color' => 'nullable|string|max:7',
+            'dark_secondary_color' => 'nullable|string|max:7',
+            'dark_accent_color' => 'nullable|string|max:7',
+            'theme_default' => 'nullable|string|in:light,dark,system',
+            'theme_show_toggle' => 'nullable|boolean',
             'primary_font' => 'nullable|string|max:50',
             'font_size' => 'nullable|string|max:10',
         ]);
@@ -359,6 +364,20 @@ class ConfigController extends Controller
         if (isset($validated['accent_color'])) {
             Setting::set('accent_color', $validated['accent_color'], 'string', 'branding');
         }
+        if (isset($validated['dark_primary_color'])) {
+            Setting::set('dark_primary_color', $validated['dark_primary_color'], 'string', 'branding');
+        }
+        if (isset($validated['dark_secondary_color'])) {
+            Setting::set('dark_secondary_color', $validated['dark_secondary_color'], 'string', 'branding');
+        }
+        if (isset($validated['dark_accent_color'])) {
+            Setting::set('dark_accent_color', $validated['dark_accent_color'], 'string', 'branding');
+        }
+        if (isset($validated['theme_default'])) {
+            Setting::set('theme_default', $validated['theme_default'], 'string', 'branding');
+        }
+        Setting::set('theme_show_toggle', $request->boolean('theme_show_toggle'), 'boolean', 'branding');
+
         if (isset($validated['primary_font'])) {
             Setting::set('primary_font', $validated['primary_font'], 'string', 'branding');
         }

@@ -278,6 +278,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::get('/submissions/{id}', [AdminController::class, 'showSubmission'])->name('submission.show');
         Route::get('/submissions/{id}/create-client', [AdminController::class, 'createClientFromSubmission'])->name('submission.create-client');
             Route::post('/submissions/{id}/mark-abandoned', [AdminController::class, 'markSubmissionAsAbandoned'])->name('submission.mark-abandoned');
+            Route::post('/submissions/{id}/resend-notification', [AdminController::class, 'resendSubmissionNotification'])->name('submission.resend-notification');
         Route::post('/submissions/delete-all', [AdminController::class, 'deleteAllSubmissions'])->name('submissions.delete-all');
             Route::get('/abandoned-submissions/{id}', [AdminController::class, 'showAbandonedSubmission'])->name('abandoned-submission.show');
             Route::get('/export/submissions', [AdminController::class, 'exportSubmissions'])->name('export.submissions');

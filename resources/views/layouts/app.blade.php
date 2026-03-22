@@ -4,6 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
+        $themeDefaultSetting = setting('theme_default', 'light');
+        if (!in_array($themeDefaultSetting, ['light', 'dark', 'system'], true)) {
+            $themeDefaultSetting = 'light';
+        }
+    @endphp
+    <script>
+        (function () {
+            var def = @json($themeDefaultSetting);
+            var stored = null;
+            try { stored = localStorage.getItem('site-theme'); } catch (e) {}
+            function resolve() {
+                if (stored === 'light' || stored === 'dark') return stored;
+                if (def === 'dark') return 'dark';
+                if (def === 'system' && window.matchMedia) {
+                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                return 'light';
+            }
+            document.documentElement.setAttribute('data-theme', resolve());
+            if ((!stored || stored === '') && def === 'system' && window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+                    try {
+                        if (localStorage.getItem('site-theme')) return;
+                    } catch (err) {}
+                    document.documentElement.setAttribute(
+                        'data-theme',
+                        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+                    );
+                });
+            }
+        })();
+    </script>
+    @php
         try {
             $currentPage = $currentPage ?? 'home';
             
@@ -357,35 +390,143 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        :root {
+        :root,
+        html[data-theme="light"] {
             --primary-color: {{ @setting('primary_color', '#3b82f6') }};
             --secondary-color: {{ @setting('secondary_color', '#1e40af') }};
             --accent-color: {{ @setting('accent_color', '#f59e0b') }};
+            --page-bg: #f9fafb;
+            --page-text: #111827;
+            --header-bg: #ffffff;
+            --header-text: #374151;
+            --header-muted: #6b7280;
+            --header-border: #e5e7eb;
+            --dropdown-bg: #ffffff;
+            --footer-bg: #111827;
+            --footer-text: #ffffff;
+            --footer-muted: #9ca3af;
         }
-        
+
+        html[data-theme="dark"] {
+            --primary-color: {{ @setting('dark_primary_color', '#60a5fa') }};
+            --secondary-color: {{ @setting('dark_secondary_color', '#34d399') }};
+            --accent-color: {{ @setting('dark_accent_color', '#fbbf24') }};
+            --page-bg: #0f172a;
+            --page-text: #f1f5f9;
+            --header-bg: #1e293b;
+            --header-text: #e2e8f0;
+            --header-muted: #94a3b8;
+            --header-border: #334155;
+            --dropdown-bg: #1e293b;
+            --footer-bg: #020617;
+            --footer-text: #f8fafc;
+            --footer-muted: #94a3b8;
+        }
+
+        html {
+            color-scheme: light dark;
+        }
+
+        .site-body {
+            background-color: var(--page-bg);
+            color: var(--page-text);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .site-nav-link {
+            color: var(--header-text);
+            transition: color 0.15s ease;
+        }
+        .site-nav-link:hover {
+            color: var(--primary-color);
+        }
+        .site-nav-muted {
+            color: var(--header-muted);
+        }
+        .site-nav-muted:hover {
+            color: var(--primary-color);
+        }
+        .site-dropdown-link {
+            color: var(--header-text);
+        }
+        .site-dropdown-link:hover {
+            background-color: rgba(148, 163, 184, 0.15);
+        }
+        html[data-theme="light"] .site-dropdown-link:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Harmonise les blocs courants en mode sombre (contenu principal) */
+        html[data-theme="dark"] main .bg-gray-50 {
+            background-color: var(--page-bg) !important;
+        }
+        html[data-theme="dark"] main .bg-white:not(.no-theme) {
+            background-color: #1e293b !important;
+        }
+        html[data-theme="dark"] main .text-gray-900 {
+            color: var(--page-text) !important;
+        }
+        html[data-theme="dark"] main .text-gray-800 {
+            color: #e2e8f0 !important;
+        }
+        html[data-theme="dark"] main .text-gray-700 {
+            color: #cbd5e1 !important;
+        }
+        html[data-theme="dark"] main .text-gray-600 {
+            color: #94a3b8 !important;
+        }
+        html[data-theme="dark"] main .border-gray-200 {
+            border-color: #334155 !important;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        
+
         .btn-primary:hover {
             filter: brightness(1.1);
         }
-        
+
         .floating-phone {
             animation: pulse-phone 2s infinite;
             background-color: var(--secondary-color) !important;
             will-change: transform;
         }
-        
+
         @keyframes pulse-phone {
-            0%, 100% { 
+            0%, 100% {
                 transform: scale(1);
                 opacity: 1;
             }
-            50% { 
+            50% {
                 transform: scale(1.05);
                 opacity: 0.9;
             }
+        }
+
+        .site-theme-toggle {
+            background: var(--header-bg);
+            color: var(--header-text);
+            border: 1px solid var(--header-border);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+        .site-theme-toggle:hover {
+            filter: brightness(1.05);
+        }
+
+        .site-footer {
+            background-color: var(--footer-bg);
+            color: var(--footer-text);
+        }
+        .site-footer-link {
+            color: var(--footer-muted);
+            transition: color 0.15s ease;
+        }
+        .site-footer-link:hover {
+            color: var(--footer-text);
+        }
+        .site-footer-border {
+            border-color: rgba(255, 255, 255, 0.12);
         }
     </style>
     
@@ -448,7 +589,7 @@
     </script>
     @endif
 </head>
-<body class="bg-gray-50">
+<body class="site-body min-h-screen antialiased">
     @include('partials.header')
     
     <main>
@@ -456,6 +597,46 @@
     </main>
     
     @include('partials.footer')
+
+    @php
+        $showThemeToggle = filter_var(setting('theme_show_toggle', true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($showThemeToggle === null) {
+            $showThemeToggle = (bool) setting('theme_show_toggle', true);
+        }
+    @endphp
+    @if($showThemeToggle)
+    <button type="button"
+            id="siteThemeToggle"
+            class="site-theme-toggle fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition"
+            aria-label="Basculer le thème clair ou sombre"
+            title="Thème clair / sombre">
+        <span class="theme-icon-light" aria-hidden="true"><i class="fas fa-sun text-lg"></i></span>
+        <span class="theme-icon-dark hidden" aria-hidden="true"><i class="fas fa-moon text-lg"></i></span>
+    </button>
+    <script>
+        (function () {
+            function syncThemeIcons() {
+                var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+                var sunEl = document.querySelector('.theme-icon-light');
+                var moonEl = document.querySelector('.theme-icon-dark');
+                if (sunEl && moonEl) {
+                    sunEl.classList.toggle('hidden', !dark);
+                    moonEl.classList.toggle('hidden', dark);
+                }
+            }
+            var btn = document.getElementById('siteThemeToggle');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('site-theme', next); } catch (e) {}
+                    syncThemeIcons();
+                });
+                syncThemeIcons();
+            }
+        })();
+    </script>
+    @endif
     
     <!-- Floating Call Button -->
     @if(@setting('company_phone_raw'))

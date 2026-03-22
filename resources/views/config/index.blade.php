@@ -1157,24 +1157,72 @@
                         </div>
                     </div>
 
-                    <!-- Couleurs du site -->
+                    <!-- Couleurs du site (clair + sombre) -->
                     <div class="border-t pt-4">
-                        <h3 class="text-lg font-semibold mb-3">🎨 Couleurs du Site</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <h3 class="text-lg font-semibold mb-2">🎨 Couleurs du site — thème clair &amp; sombre</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Définissez deux palettes : une pour le mode clair, une pour le mode sombre. Les visiteurs peuvent basculer (bouton en bas à gauche) si l’option est activée ci-dessous.
+                        </p>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <h4 class="font-semibold text-gray-800 mb-3">☀️ Mode clair</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Principale</label>
+                                        <input type="color" name="primary_color" value="{{ setting('primary_color', '#3b82f6') }}" class="w-full h-10 border border-gray-300 rounded-lg">
+                                        <p class="text-xs text-gray-500 mt-1">Boutons, liens</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Secondaire</label>
+                                        <input type="color" name="secondary_color" value="{{ setting('secondary_color', '#1e40af') }}" class="w-full h-10 border border-gray-300 rounded-lg">
+                                        <p class="text-xs text-gray-500 mt-1">Dégradés, survols</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Accent</label>
+                                        <input type="color" name="accent_color" value="{{ setting('accent_color', '#f59e0b') }}" class="w-full h-10 border border-gray-300 rounded-lg">
+                                        <p class="text-xs text-gray-500 mt-1">Mise en valeur</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 rounded-lg p-4 border border-slate-700 text-white">
+                                <h4 class="font-semibold mb-3">🌙 Mode sombre</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-200 mb-2">Principale</label>
+                                        <input type="color" name="dark_primary_color" value="{{ setting('dark_primary_color', '#60a5fa') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-200 mb-2">Secondaire</label>
+                                        <input type="color" name="dark_secondary_color" value="{{ setting('dark_secondary_color', '#34d399') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-200 mb-2">Accent</label>
+                                        <input type="color" name="dark_accent_color" value="{{ setting('dark_accent_color', '#fbbf24') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-3">Ces couleurs s’appliquent lorsque le site est en thème sombre.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Couleur principale</label>
-                                <input type="color" name="primary_color" value="{{ setting('primary_color', '#3b82f6') }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                                <p class="text-xs text-gray-500 mt-1">Couleur des boutons et liens</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Thème par défaut</label>
+                                <select name="theme_default" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                    @php $td = old('theme_default', setting('theme_default') ?? 'light'); @endphp
+                                    <option value="light" {{ $td === 'light' ? 'selected' : '' }}>Clair</option>
+                                    <option value="dark" {{ $td === 'dark' ? 'selected' : '' }}>Sombre</option>
+                                    <option value="system" {{ $td === 'system' ? 'selected' : '' }}>Comme l’appareil (clair / sombre automatique)</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Utilisé si le visiteur n’a pas encore choisi (stockage local).</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Couleur secondaire</label>
-                                <input type="color" name="secondary_color" value="{{ setting('secondary_color', '#10b981') }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                                <p class="text-xs text-gray-500 mt-1">Couleur d'accent</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Couleur d'accent</label>
-                                <input type="color" name="accent_color" value="{{ setting('accent_color', '#f59e0b') }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                                <p class="text-xs text-gray-500 mt-1">Couleur de mise en valeur</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bascule jour / nuit</label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer mt-2">
+                                    <input type="checkbox" name="theme_show_toggle" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                           {{ filter_var(setting('theme_show_toggle', true), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                                    <span class="text-sm text-gray-700">Afficher le bouton pour changer de thème sur le site</span>
+                                </label>
                             </div>
                         </div>
                     </div>
