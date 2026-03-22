@@ -406,12 +406,12 @@
             --page-text: #111827;
             --header-bg: #ffffff;
             --header-text: #374151;
-            --header-muted: #6b7280;
+            --header-muted: #4b5563;
             --header-border: #e5e7eb;
             --dropdown-bg: #ffffff;
             --footer-bg: #111827;
             --footer-text: #ffffff;
-            --footer-muted: #9ca3af;
+            --footer-muted: #d1d5db;
         }
 
         html[data-theme="dark"] {
@@ -427,7 +427,7 @@
             --dropdown-bg: #1e293b;
             --footer-bg: #020617;
             --footer-text: #f8fafc;
-            --footer-muted: #94a3b8;
+            --footer-muted: #cbd5e1;
         }
 
         html {

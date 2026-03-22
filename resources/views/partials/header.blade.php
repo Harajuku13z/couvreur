@@ -27,7 +27,7 @@
             <div class="flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center">
                     @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-12 w-auto logo-mobile">
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-12 w-auto logo-mobile" width="200" height="48" decoding="async">
                     @else
                         <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
                             {{ setting('company_name', 'Votre Entreprise') }}

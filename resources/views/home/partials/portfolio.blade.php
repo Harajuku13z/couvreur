@@ -16,7 +16,15 @@
                 <a href="{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}" class="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     @if(!empty($item['images']))
                         @php $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images']; @endphp
-                        <div class="h-64 bg-cover bg-center portfolio-image-mobile" style="background-image: url('{{ asset($firstImage) }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
+                        <div class="h-64 relative overflow-hidden bg-gray-100">
+                            <img src="{{ asset($firstImage) }}"
+                                 alt="{{ $item['title'] ?? 'Réalisation' }}"
+                                 class="absolute inset-0 w-full h-full object-cover portfolio-image-mobile"
+                                 width="800"
+                                 height="512"
+                                 loading="lazy"
+                                 decoding="async">
+                        </div>
                     @else
                         <div class="h-64 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                             <i class="fas fa-image text-6xl text-white"></i>

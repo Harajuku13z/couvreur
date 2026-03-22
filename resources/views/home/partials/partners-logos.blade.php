@@ -44,6 +44,8 @@
                         <img src="{{ asset($intro['image']) }}"
                              alt="{{ strip_tags($intro['title'] ?? 'Partenaires') }}"
                              class="absolute inset-0 block w-full h-full object-cover object-center m-0 p-0 border-0"
+                             width="1200"
+                             height="800"
                              loading="lazy"
                              decoding="async">
                         @else
@@ -87,7 +89,10 @@
                                                 src="{{ asset($partner['logo']) }}"
                                                 alt="{{ $partner['name'] ?? 'Partenaire' }}"
                                                 class="max-w-[85%] max-h-[4.5rem] sm:max-h-[5.5rem] md:max-h-24 w-auto object-contain object-center transition-all duration-300 opacity-95 group-hover:opacity-100 group-hover:scale-[1.02]"
+                                                width="200"
+                                                height="96"
                                                 loading="lazy"
+                                                decoding="async"
                                                 onerror="this.style.display='none';">
                                         </span>
                                         @if(!empty($partner['name']))
@@ -101,7 +106,10 @@
                                                 src="{{ asset($partner['logo']) }}"
                                                 alt="{{ $partner['name'] ?? 'Partenaire' }}"
                                                 class="max-w-[85%] max-h-[4.5rem] sm:max-h-[5.5rem] md:max-h-24 w-auto object-contain object-center"
+                                                width="200"
+                                                height="96"
                                                 loading="lazy"
+                                                decoding="async"
                                                 onerror="this.style.display='none';">
                                         </span>
                                         @if(!empty($partner['name']))

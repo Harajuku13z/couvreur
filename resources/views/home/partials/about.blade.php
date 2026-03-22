@@ -49,7 +49,10 @@
                                  alt="{{ $homeConfig['about']['title'] ?? 'Qui Sommes-Nous' }}" 
                                  class="w-full h-full object-cover object-center mobile-responsive-img about-image-mobile"
                                  style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; max-width: 100%; height: auto; display: block; width: 100%;"
+                                 width="800"
+                                 height="800"
                                  loading="lazy"
+                                 decoding="async"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                             <div class="w-full h-full bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center" style="display: none;">
                                 <div class="text-center text-white p-8">

@@ -12,7 +12,10 @@
                     <img src="{{ asset($pf['image']) }}"
                          alt="{{ strip_tags($pf['title'] ?? 'Partenaire') }}"
                          class="w-full h-full object-cover max-h-[420px] md:max-h-none"
-                         loading="lazy">
+                         width="800"
+                         height="560"
+                         loading="lazy"
+                         decoding="async">
                     @else
                     <div class="p-8 text-gray-400 text-center text-sm">
                         <i class="fas fa-image text-4xl mb-2 block opacity-50"></i>
