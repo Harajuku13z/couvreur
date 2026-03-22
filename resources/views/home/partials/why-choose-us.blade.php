@@ -1,7 +1,7 @@
     <!-- Why Choose Us Section -->
     @if($homeConfig['sections']['why_choose_us']['enabled'] ?? true)
     <section class="py-20 bg-white">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-800 mb-4">
                     {{ $homeConfig['sections']['why_choose_us']['title'] ?? 'Pourquoi Nous Choisir ?' }}

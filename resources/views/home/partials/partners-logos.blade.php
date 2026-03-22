@@ -11,7 +11,7 @@
     @endphp
     @if($showPartnersSection)
     <section class="py-14 md:py-20 bg-gray-50 dark:bg-gray-900/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div class="site-shell">
             <div class="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-lg border border-gray-100/90 dark:border-gray-700 px-5 py-10 md:px-10 md:py-12 lg:px-12">
                 <!-- Titre commun -->
                 <div class="text-center mb-10 md:mb-12">

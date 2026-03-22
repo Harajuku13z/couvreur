@@ -1,7 +1,7 @@
     <!-- Stats Section -->
     @if(!empty($homeConfig['stats']))
     <section class="py-16 bg-white">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                 @foreach($homeConfig['stats'] as $stat)
                 <div class="text-center">

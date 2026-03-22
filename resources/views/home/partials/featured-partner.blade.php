@@ -5,7 +5,7 @@
     @endphp
     @if($showFeaturedPartner)
     <section class="py-14 md:py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="site-shell">
             <div class="grid md:grid-cols-2 gap-10 lg:gap-14 items-center">
                 <div class="rounded-2xl overflow-hidden shadow-xl bg-gray-100 min-h-[220px] md:min-h-[280px] flex items-center justify-center order-2 md:order-1">
                     @if(!empty($pf['image']))

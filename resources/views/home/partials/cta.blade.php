@@ -9,7 +9,7 @@
             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent"></div>
         </div>
         
-        <div class="container mx-auto px-4 relative z-10">
+        <div class="site-shell relative z-10">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-white mb-6 drop-shadow-2xl" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
                     {{ $homeConfig['sections']['cta']['title'] ?? 'Prêt à Démarrer Votre Projet ?' }}

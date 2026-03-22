@@ -16,7 +16,7 @@
         @if($homeConfig['hero']['background_image'] ?? null)
         <div class="absolute inset-0 bg-black/50 z-0"></div>
         @endif
-        <div class="container mx-auto px-4 relative z-10 w-full">
+        <div class="site-shell relative z-10">
             <div class="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
                 <div class="lg:col-span-7 text-white text-left">
                     @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
@@ -88,7 +88,7 @@
         @if($homeConfig['hero']['background_image'] ?? null)
         <div class="absolute inset-0 bg-black/45 z-0"></div>
         @endif
-        <div class="container mx-auto px-4 text-center text-white relative z-10 max-w-4xl">
+        <div class="site-shell text-center text-white relative z-10">
             @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
             <div class="flex justify-center flex-wrap gap-3 mb-6">
                 @if($homeConfig['trust_badges']['garantie_decennale'] ?? false)
@@ -147,7 +147,7 @@
         @if($hl === 'showcase')
         <div class="absolute inset-0 opacity-30 pointer-events-none z-0" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%);"></div>
         @endif
-        <div class="container mx-auto px-4 text-center text-white relative z-10 pt-8 {{ $hl === 'showcase' ? 'max-w-5xl' : '' }}">
+        <div class="site-shell text-center text-white relative z-10 pt-8">
             @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
             <div class="flex justify-center items-center gap-6 mb-8 flex-wrap px-4">
                 @if($homeConfig['trust_badges']['garantie_decennale'] ?? false)

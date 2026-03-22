@@ -3,7 +3,7 @@
     $phoneRaw = setting('company_phone_raw', $phoneMain);
 @endphp
 <div class="bg-slate-900 text-white py-3 px-4 shadow-md border-b border-white/10">
-    <div class="container mx-auto flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm md:text-base">
+    <div class="site-shell flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm md:text-base">
         <span class="font-semibold text-center sm:text-left">
             <i class="fas fa-bolt text-amber-400 mr-2" aria-hidden="true"></i>
             Réponse sous 24h · Devis gratuit · Sans engagement

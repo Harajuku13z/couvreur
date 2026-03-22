@@ -22,7 +22,7 @@
         }
     }
 </style>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="site-shell">
         <div class="flex justify-between items-center py-3 header-mobile">
             <div class="flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center">
@@ -150,7 +150,7 @@
         
         <!-- Mobile Navigation -->
         <div id="mobileMenu" class="md:hidden hidden border-t py-4 max-h-screen overflow-y-auto" style="border-color: var(--header-border);">
-            <nav class="flex flex-col space-y-4 px-4">
+            <nav class="site-shell flex flex-col space-y-4">
                 <a href="{{ url('/') }}" class="site-nav-link font-medium">Accueil</a>
                 
                 @if(count($featuredServices) > 0)

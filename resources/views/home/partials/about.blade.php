@@ -1,7 +1,7 @@
     <!-- About Section -->
     @if(($homeConfig['about']['enabled'] ?? false) && !empty($homeConfig['about']['content']))
     <section class="py-20 bg-gray-100">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <!-- Colonne 1: Texte justifié -->
                 <div class="space-y-6">

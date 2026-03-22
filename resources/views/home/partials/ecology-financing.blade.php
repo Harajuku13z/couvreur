@@ -1,7 +1,7 @@
     <!-- Sections Écologie et Aide Financière -->
     @if(($homeConfig['ecology']['enabled'] ?? false) || ($homeConfig['financing']['enabled'] ?? false))
     <section class="py-20 bg-gray-50">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="grid lg:grid-cols-2 gap-8">
                 <!-- Section Écologie (Gauche) -->
                 @if(($homeConfig['ecology']['enabled'] ?? false) && !empty($homeConfig['ecology']['content']))

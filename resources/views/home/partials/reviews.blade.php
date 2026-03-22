@@ -1,7 +1,7 @@
     <!-- Reviews Section -->
     @if(($homeConfig['sections']['reviews']['enabled'] ?? true) && !empty($reviews))
     <section class="py-20 bg-gray-100">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-800 mb-4">
                     {{ $homeConfig['sections']['reviews']['title'] ?? 'Avis de Nos Clients' }}

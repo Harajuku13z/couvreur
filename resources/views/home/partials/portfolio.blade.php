@@ -1,7 +1,7 @@
     <!-- Portfolio Section -->
     @if(($homeConfig['sections']['portfolio']['enabled'] ?? true) && !empty($portfolioItems))
     <section class="py-20 bg-white">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-800 mb-4">
                     {{ $homeConfig['sections']['portfolio']['title'] ?? 'Nos Réalisations' }}

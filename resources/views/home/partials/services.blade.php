@@ -1,7 +1,7 @@
     <!-- Services Section -->
     @if(($homeConfig['sections']['services']['enabled'] ?? true) && !empty($services))
     <section class="py-20">
-        <div class="container mx-auto px-4">
+        <div class="site-shell">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-800 mb-4">
                     {{ $homeConfig['sections']['services']['title'] ?? 'Nos Services' }}

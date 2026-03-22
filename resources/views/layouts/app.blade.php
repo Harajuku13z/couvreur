@@ -617,6 +617,29 @@
         .site-footer-border {
             border-color: rgba(255, 255, 255, 0.12);
         }
+
+        /* Conteneur unique (aligné header / footer / page d’accueil) : max-w-7xl + px-4 sm:px-6 lg:px-8 */
+        .site-shell {
+            width: 100%;
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            box-sizing: border-box;
+        }
+        @media (min-width: 640px) {
+            .site-shell {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .site-shell {
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
     </style>
     
     @stack('head')
