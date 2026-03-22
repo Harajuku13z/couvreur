@@ -1,47 +1,97 @@
 @extends('layouts.app')
 
 @php
-    // Les variables SEO sont déjà passées par le contrôleur
-    // Le layout app.blade.php les gère automatiquement
     $currentPage = $currentPage ?? 'portfolio';
 @endphp
 
 @push('head')
 <style>
-    /* Variables de couleurs de branding */
-    :root {
-        --primary-color: {{ setting('primary_color', '#3b82f6') }};
-        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-        --accent-color: {{ setting('accent_color', '#f59e0b') }};
+    .portfolio-page-hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 260px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 55%, color-mix(in srgb, var(--secondary-color) 85%, #0f172a) 100%);
     }
-    
-    /* Styles spécifiques pour mobile */
-    @media (max-width: 768px) {
-        /* Images responsive */
-        .mobile-responsive-img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-        }
-        
-        /* Portfolio grid mobile */
-        .portfolio-grid-mobile {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
+    @media (min-width: 768px) {
+        .portfolio-page-hero { min-height: 320px; }
+    }
+    .portfolio-page-hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.12) 0%, transparent 55%);
+        pointer-events: none;
+    }
+    .portfolio-filter-pill {
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgb(243 244 246);
+        color: rgb(55 65 81);
+        transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .dark .portfolio-filter-pill:not(.is-active) {
+        border-color: rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        color: #e5e7eb;
+    }
+    .portfolio-filter-pill:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .portfolio-filter-pill.is-active {
+        background: var(--primary-color) !important;
+        color: #fff !important;
+        border-color: transparent;
+        box-shadow: 0 8px 28px color-mix(in srgb, var(--primary-color) 45%, transparent);
+    }
+    .portfolio-card {
+        border: 1px solid rgba(0,0,0,0.06);
+        transition: transform .35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .35s ease, border-color .25s ease;
+    }
+    .dark .portfolio-card {
+        border-color: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+    }
+    .portfolio-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 24px 48px rgba(0,0,0,0.12);
+        border-color: color-mix(in srgb, var(--primary-color) 35%, transparent);
+    }
+    .portfolio-card:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 3px;
+    }
+    .portfolio-card-img-wrap {
+        aspect-ratio: 16 / 10;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .portfolio-card,
+        .portfolio-filter-pill { transition: none; }
+        .portfolio-card:hover { transform: none; }
+    }
+    .portfolio-cta-band {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .portfolio-cta-band::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 80% at 100% 0%, rgba(255,255,255,0.12) 0%, transparent 50%);
+        pointer-events: none;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <section class="py-20 text-white" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-        <div class="container mx-auto px-4">
-            <div class="text-center">
-                <h1 class="text-5xl font-bold mb-6">Nos Réalisations</h1>
-                <p class="text-xl max-w-3xl mx-auto leading-relaxed text-blue-100">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <!-- Hero -->
+    <section class="portfolio-page-hero flex items-center text-white">
+        <div class="site-shell relative z-10 w-full py-14 md:py-20">
+            <div class="max-w-3xl mx-auto text-center">
+                <p class="text-sm font-semibold uppercase tracking-widest text-white/80 mb-3">Galerie</p>
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">Nos Réalisations</h1>
+                <p class="text-lg md:text-xl text-white/90 leading-relaxed">
                     Découvrez quelques-unes de nos réalisations récentes et laissez-vous inspirer pour votre prochain projet
                 </p>
             </div>
@@ -50,19 +100,16 @@
 
     <!-- Filtres -->
     @if(!empty($serviceTypes) && count($serviceTypes) > 1)
-    <section class="py-8 bg-white border-b">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-wrap justify-center gap-4">
-                <button class="filter-btn active px-6 py-3 rounded-full text-white font-medium transition-all duration-300 shadow-lg" 
-                        style="background-color: var(--primary-color);" data-filter="all">
+    <section class="py-6 md:py-8 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div class="site-shell">
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3" role="tablist" aria-label="Filtrer par type de travaux">
+                <button type="button" class="filter-btn portfolio-filter-pill is-active px-5 py-2.5 rounded-full text-sm font-semibold"
+                        data-filter="all" role="tab" aria-selected="true">
                     Tous les projets
                 </button>
                 @foreach($serviceTypes as $serviceType)
-                <button class="filter-btn px-6 py-3 rounded-full bg-gray-100 text-gray-700 font-medium transition-all duration-300 shadow-sm" 
-                        style="--hover-bg: var(--primary-color);" 
-                        onmouseover="this.style.backgroundColor='var(--primary-color)'; this.style.color='white';"
-                        onmouseout="this.style.backgroundColor='rgb(243 244 246)'; this.style.color='rgb(55 65 81)';"
-                        data-filter="{{ Str::slug($serviceType) }}">
+                <button type="button" class="filter-btn portfolio-filter-pill px-5 py-2.5 rounded-full text-sm font-semibold"
+                        data-filter="{{ Str::slug($serviceType) }}" role="tab" aria-selected="false">
                     {{ $serviceType }}
                 </button>
                 @endforeach
@@ -71,95 +118,82 @@
     </section>
     @endif
 
-    <!-- Grille des réalisations -->
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
+    <!-- Grille -->
+    <section class="py-12 md:py-16 bg-gray-50 dark:bg-gray-950">
+        <div class="site-shell">
             @if($visiblePortfolio->count() > 0)
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 portfolio-grid-mobile" id="portfolio-grid">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8" id="portfolio-grid">
                 @foreach($visiblePortfolio as $item)
-                <div class="portfolio-item bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" 
-                     data-category="{{ Str::slug($item['work_type'] ?? 'autre') }}"
-                     onclick="window.location.href='{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}'">
-                    <!-- Image principale -->
-                    <div class="relative h-64 overflow-hidden">
+                @php
+                    $slug = $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation');
+                    $url = route('portfolio.show', $slug);
+                    $badge = $item['service_type'] ?? $item['work_type'] ?? null;
+                @endphp
+                <a href="{{ $url }}"
+                   class="portfolio-item portfolio-card group block rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-md"
+                   data-category="{{ Str::slug($item['work_type'] ?? 'autre') }}">
+                    <div class="portfolio-card-img-wrap relative overflow-hidden bg-gray-100 dark:bg-gray-800">
                         @if(!empty($item['images']))
-                            @php 
+                            @php
                                 $firstImage = is_array($item['images']) ? $item['images'][0] : $item['images'];
+                                $imgSrc = Str::startsWith($firstImage, ['http://', 'https://']) ? $firstImage : asset(ltrim($firstImage, '/'));
                             @endphp
-                            <img src="{{ url($firstImage) }}" 
-                                 alt="{{ $item['title'] }}" 
-                                 class="w-full h-full object-cover transition-transform duration-300 hover:scale-105 mobile-responsive-img"
-                                 style="max-width: 100%; height: auto; display: block;"
-                                 loading="lazy">
+                            <img src="{{ $imgSrc }}"
+                                 alt="{{ $item['title'] ?? 'Réalisation' }}"
+                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                 width="800"
+                                 height="500"
+                                 loading="lazy"
+                                 decoding="async">
                         @else
-                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <i class="fas fa-image text-gray-400 text-4xl"></i>
+                            <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+                                <i class="fas fa-image text-white/90 text-5xl" aria-hidden="true"></i>
                             </div>
                         @endif
-                        
-                        <!-- Overlay avec bouton -->
-                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
-                            <div class="opacity-0 hover:opacity-100 transition-opacity duration-300">
-                                <button class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-50 transition-colors">
-                                    <i class="fas fa-eye mr-2"></i>
-                                    Voir le projet
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Contenu -->
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $item['title'] }}</h3>
-                        @if(isset($item['description']) && $item['description'])
-                        <p class="text-gray-600 text-sm mb-4">{{ Str::limit($item['description'], 100) }}</p>
-                        @endif
-                        
-                        <!-- Informations du projet -->
-                        <div class="flex items-center justify-between mb-4">
-                            <!-- Type de service -->
-                            @if(isset($item['service_type']))
-                            <span class="inline-block text-xs px-3 py-1 rounded-full font-medium"
-                                  style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
-                                {{ $item['service_type'] }}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                        <span class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white text-sm font-medium">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fas fa-arrow-right opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" aria-hidden="true"></i>
+                                <span>Voir le projet</span>
+                            </span>
+                            @if(isset($item['images']) && is_array($item['images']))
+                            <span class="text-white/90 text-xs font-normal">
+                                <i class="fas fa-images mr-1" aria-hidden="true"></i>{{ count($item['images']) }} photo{{ count($item['images']) > 1 ? 's' : '' }}
                             </span>
                             @endif
-                            
-                            <!-- Nombre de photos -->
-                            @if(isset($item['images']) && is_array($item['images']))
-                            <div class="flex items-center text-gray-500 text-sm">
-                                <i class="fas fa-images mr-1"></i>
-                                <span>{{ count($item['images']) }} photo{{ count($item['images']) > 1 ? 's' : '' }}</span>
-                            </div>
+                        </span>
+                    </div>
+
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors">{{ $item['title'] }}</h2>
+                        @if(!empty($item['description']))
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-2 mb-4">{{ Str::limit(strip_tags($item['description']), 120) }}</p>
+                        @endif
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                            @if($badge)
+                            <span class="inline-flex text-xs px-3 py-1 rounded-full font-medium bg-primary/10 text-primary dark:bg-primary/20 dark:text-amber-200">
+                                {{ $badge }}
+                            </span>
+                            @else
+                            <span class="text-xs text-gray-500 dark:text-gray-500">Travaux</span>
                             @endif
-                        </div>
-                        
-                        <!-- Bouton voir la réalisation complète -->
-                        <div class="mt-4">
-                            <a href="{{ route('portfolio.show', $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation')) }}" 
-                               class="w-full text-white px-4 py-2 rounded-lg font-semibold transition-colors text-center block"
-                               style="background-color: var(--primary-color);"
-                               onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                               onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                                <i class="fas fa-eye mr-2"></i>
-                                Voir la réalisation complète
-                            </a>
+                            <span class="text-primary font-semibold text-sm inline-flex items-center">
+                                Détails <i class="fas fa-chevron-right ml-1 text-xs opacity-70" aria-hidden="true"></i>
+                            </span>
                         </div>
                     </div>
-                </div>
+                </a>
                 @endforeach
             </div>
             @else
-            <div class="text-center py-16">
-                <div class="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto">
-                    <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
-                    <h3 class="text-2xl font-bold text-gray-700 mb-4">Aucune réalisation disponible</h3>
-                    <p class="text-gray-500 mb-6">Nos réalisations seront bientôt disponibles.</p>
-                    <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
+            <div class="text-center py-16 md:py-20">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-10 md:p-14 max-w-lg mx-auto">
+                    <i class="fas fa-images text-gray-200 dark:text-gray-700 text-6xl mb-6" aria-hidden="true"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-3">Aucune réalisation pour le moment</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-8">Nos réalisations seront bientôt en ligne.</p>
+                    <a href="{{ route('form.step', 'propertyType') }}"
+                       class="inline-flex items-center justify-center rounded-xl px-8 py-3.5 font-semibold text-white shadow-lg transition hover:opacity-95"
+                       style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
                         Demander un devis
                     </a>
                 </div>
@@ -168,87 +202,84 @@
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="py-20 text-white" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-bold mb-6">Vous avez un projet similaire ?</h2>
-            <p class="text-xl mb-8 max-w-3xl mx-auto text-blue-100">
+    <!-- CTA -->
+    <section class="portfolio-cta-band py-16 md:py-20 text-white relative">
+        <div class="site-shell relative z-10 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Vous avez un projet similaire ?</h2>
+            <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto">
                 Contactez-nous pour discuter de vos besoins et obtenir un devis personnalisé pour votre projet
             </p>
-            <div class="flex flex-col sm:flex-row gap-6 justify-center">
-                <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                   style="background-color: var(--accent-color);"
-                   onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                   onmouseout="this.style.backgroundColor='var(--accent-color)';">
-                    <i class="fas fa-calculator mr-2"></i>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
+                <a href="{{ route('form.step', 'propertyType') }}"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 font-bold text-lg shadow-xl transition hover:brightness-110"
+                   style="background-color: var(--accent-color, #f59e0b); color: #0f172a;">
+                    <i class="fas fa-calculator" aria-hidden="true"></i>
                     Demander un devis gratuit
                 </a>
-                <a href="tel:{{ setting('company_phone_raw') }}" 
-                   class="text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                   style="background-color: var(--primary-color);"
-                   onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                   onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                    <i class="fas fa-phone mr-2"></i>
+                <a href="tel:{{ setting('company_phone_raw') }}"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 font-bold text-lg bg-white/15 hover:bg-white/25 border border-white/30 transition backdrop-blur-sm">
+                    <i class="fas fa-phone" aria-hidden="true"></i>
                     {{ setting('company_phone') }}
                 </a>
             </div>
-            
-            <!-- Informations supplémentaires -->
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-clock text-2xl"></i>
+
+            <div class="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto text-left md:text-center">
+                <div class="flex md:flex-col items-center gap-4 md:gap-0 rounded-xl bg-white/10 p-5 border border-white/10">
+                    <div class="w-12 h-12 md:w-16 md:h-16 shrink-0 rounded-full bg-white/20 flex items-center justify-center md:mx-auto md:mb-4">
+                        <i class="fas fa-clock text-xl" aria-hidden="true"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Réponse rapide</h3>
-                    <p class="text-blue-100">Devis sous 24h</p>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-1">Réponse rapide</h3>
+                        <p class="text-white/85 text-sm">Devis sous 24h</p>
+                    </div>
                 </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-shield-alt text-2xl"></i>
+                <div class="flex md:flex-col items-center gap-4 md:gap-0 rounded-xl bg-white/10 p-5 border border-white/10">
+                    <div class="w-12 h-12 md:w-16 md:h-16 shrink-0 rounded-full bg-white/20 flex items-center justify-center md:mx-auto md:mb-4">
+                        <i class="fas fa-shield-alt text-xl" aria-hidden="true"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Garantie décennale</h3>
-                    <p class="text-blue-100">Assurance professionnelle</p>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-1">Garantie décennale</h3>
+                        <p class="text-white/85 text-sm">Assurance professionnelle</p>
+                    </div>
                 </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-star text-2xl"></i>
+                <div class="flex md:flex-col items-center gap-4 md:gap-0 rounded-xl bg-white/10 p-5 border border-white/10">
+                    <div class="w-12 h-12 md:w-16 md:h-16 shrink-0 rounded-full bg-white/20 flex items-center justify-center md:mx-auto md:mb-4">
+                        <i class="fas fa-star text-xl" aria-hidden="true"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Qualité garantie</h3>
-                    <p class="text-blue-100">Artisans qualifiés</p>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-1">Qualité garantie</h3>
+                        <p class="text-white/85 text-sm">Artisans qualifiés</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 </div>
 
-<!-- JavaScript pour les filtres -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const portfolioItems = document.querySelectorAll('.portfolio-item');
-    
-    filterButtons.forEach(button => {
+    if (!filterButtons.length || !portfolioItems.length) return;
+
+    function setActive(btn) {
+        filterButtons.forEach(function(b) {
+            b.classList.remove('is-active');
+            b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-selected', 'true');
+    }
+
+    filterButtons.forEach(function(button) {
         button.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
-            
-            // Mettre à jour les boutons actifs
-            filterButtons.forEach(btn => {
-                btn.classList.remove('active');
-                btn.style.backgroundColor = 'rgb(243 244 246)';
-                btn.style.color = 'rgb(55 65 81)';
-            });
-            this.classList.add('active');
-            this.style.backgroundColor = 'var(--primary-color)';
-            this.style.color = 'white';
-            
-            // Filtrer les éléments
-            portfolioItems.forEach(item => {
+            setActive(this);
+
+            portfolioItems.forEach(function(item) {
                 if (filter === 'all' || item.getAttribute('data-category') === filter) {
-                    item.style.display = 'block';
-                    item.style.animation = 'fadeInUp 0.5s ease-out';
+                    item.style.display = '';
+                    item.style.animation = 'fadeInUp 0.45s ease-out';
                 } else {
                     item.style.display = 'none';
                 }
@@ -256,24 +287,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
 </script>
 
 <style>
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    @keyframes fadeInUp { from, to { opacity: 1; transform: none; } }
 }
 </style>
 @endsection
-
-
-
-
-
