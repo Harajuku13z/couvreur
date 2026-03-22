@@ -42,7 +42,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 p-6 sm:p-10 mb-8">
+            <div class="no-theme bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 p-6 sm:p-10 mb-8">
                 <h1 class="text-2xl sm:text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
                     Votre projet en quelques clics
                 </h1>

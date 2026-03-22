@@ -509,11 +509,11 @@
             border-color: #475569 !important;
         }
         /* Cartes contenu pleine largeur (HTML injecté sans .prose) */
-        html[data-theme="dark"] main .bg-white.rounded-2xl {
+        html[data-theme="dark"] main .bg-white.rounded-2xl:not(.no-theme) {
             background-color: #1e293b !important;
             color: #e2e8f0 !important;
         }
-        html[data-theme="dark"] main .bg-white.rounded-2xl :where(p, li, span, td, th, div):not([class*="text-white"]):not([class*="bg-"]) {
+        html[data-theme="dark"] main .bg-white.rounded-2xl:not(.no-theme) :where(p, li, span, td, th, div):not([class*="text-white"]):not([class*="bg-"]) {
             color: inherit;
         }
         html[data-theme="dark"] main .min-h-screen.bg-gray-50 {
@@ -683,6 +683,46 @@
         .simulator-step .property-option {
             color: #111827 !important;
             -webkit-text-fill-color: #111827;
+        }
+        /*
+         * Thème clair : forcer texte foncé sur le simulateur (évite dark:text-white sur fond blanc
+         * si désynchronisation data-theme / classe .dark ou préférences navigateur).
+         */
+        html[data-theme="light"] main .simulator-step {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827;
+        }
+        html[data-theme="light"] main .simulator-step h1,
+        html[data-theme="light"] main .simulator-step h2,
+        html[data-theme="light"] main .simulator-step h3 {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a;
+        }
+        html[data-theme="light"] main .simulator-step p.text-slate-600,
+        html[data-theme="light"] main .simulator-step .text-slate-600 {
+            color: #475569 !important;
+            -webkit-text-fill-color: #475569;
+        }
+        html[data-theme="light"] main .simulator-step label,
+        html[data-theme="light"] main .simulator-step .text-slate-900,
+        html[data-theme="light"] main .simulator-step .text-slate-800,
+        html[data-theme="light"] main .simulator-step .text-slate-700,
+        html[data-theme="light"] main .simulator-step .text-slate-100 {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a;
+        }
+        html[data-theme="light"] main .simulator-step .text-slate-400 {
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b;
+        }
+        html[data-theme="light"] main .simulator-step .bg-white.rounded-2xl.no-theme,
+        html[data-theme="light"] main .simulator-step .bg-white.dark\:bg-slate-800 {
+            color: #111827 !important;
+        }
+        /* Annule les utilitaires dark: si le thème effectif est clair */
+        html[data-theme="light"] main .simulator-step .dark\:text-white {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a;
         }
     </style>
     
