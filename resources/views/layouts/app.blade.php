@@ -22,16 +22,17 @@
                 }
                 return 'light';
             }
-            document.documentElement.setAttribute('data-theme', resolve());
+            function applyHtmlTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+            }
+            applyHtmlTheme(resolve());
             if ((!stored || stored === '') && def === 'system' && window.matchMedia) {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
                     try {
                         if (localStorage.getItem('site-theme')) return;
                     } catch (err) {}
-                    document.documentElement.setAttribute(
-                        'data-theme',
-                        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-                    );
+                    applyHtmlTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                 });
             }
         })();
@@ -386,8 +387,13 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (darkMode: class — synchronisé avec data-theme via script + classe .dark sur <html>) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        try {
+            tailwind.config = { darkMode: 'class' };
+        } catch (e) { /* CDN */ }
+    </script>
     
     <style>
         :root,
@@ -478,6 +484,48 @@
         html[data-theme="dark"] main .border-gray-200 {
             border-color: #334155 !important;
         }
+        html[data-theme="dark"] main .bg-gray-100 {
+            background-color: #1e293b !important;
+        }
+        html[data-theme="dark"] main .text-gray-500 {
+            color: #94a3b8 !important;
+        }
+        /* Typographie (annonces / contenus HTML) */
+        html[data-theme="dark"] main .prose {
+            color: #cbd5e1 !important;
+        }
+        html[data-theme="dark"] main .prose :where(h1, h2, h3, h4, h5, h6) {
+            color: #f8fafc !important;
+        }
+        html[data-theme="dark"] main .prose :where(p, li, td, th, strong) {
+            color: #cbd5e1 !important;
+        }
+        html[data-theme="dark"] main .prose a {
+            color: var(--primary-color) !important;
+        }
+        html[data-theme="dark"] main .prose blockquote {
+            color: #94a3b8 !important;
+            border-color: #475569 !important;
+        }
+        /* Cartes contenu pleine largeur (HTML injecté sans .prose) */
+        html[data-theme="dark"] main .bg-white.rounded-2xl {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        html[data-theme="dark"] main .bg-white.rounded-2xl :where(p, li, span, td, th, div):not([class*="text-white"]):not([class*="bg-"]) {
+            color: inherit;
+        }
+        html[data-theme="dark"] main .min-h-screen.bg-gray-50 {
+            background-color: var(--page-bg) !important;
+        }
+        html[data-theme="dark"] main .text-blue-600,
+        html[data-theme="dark"] main a.text-blue-600 {
+            color: var(--primary-color) !important;
+        }
+        html[data-theme="dark"] main .hover\:text-blue-600:hover,
+        html[data-theme="dark"] main a:hover.text-blue-800 {
+            color: #93c5fd !important;
+        }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
@@ -488,9 +536,14 @@
         }
 
         .floating-phone {
-            animation: pulse-phone 2s infinite;
             background-color: var(--secondary-color) !important;
             will-change: transform;
+        }
+
+        @media (min-width: 768px) {
+            .floating-phone {
+                animation: pulse-phone 2s infinite;
+            }
         }
 
         @keyframes pulse-phone {
@@ -502,6 +555,11 @@
                 transform: scale(1.05);
                 opacity: 0.9;
             }
+        }
+
+        /* Bandeau appel mobile : léger relief */
+        .mobile-call-bar {
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
         }
 
         .site-theme-toggle {
@@ -589,7 +647,7 @@
     </script>
     @endif
 </head>
-<body class="site-body min-h-screen antialiased">
+<body class="site-body min-h-screen antialiased @if(@setting('company_phone_raw')) pb-24 md:pb-0 @endif">
     @include('partials.header')
     
     <main>
@@ -607,7 +665,7 @@
     @if($showThemeToggle)
     <button type="button"
             id="siteThemeToggle"
-            class="site-theme-toggle fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition"
+            class="site-theme-toggle fixed z-50 w-12 h-12 rounded-full flex items-center justify-center transition bottom-[5.25rem] left-4 md:bottom-6 md:left-6"
             aria-label="Basculer le thème clair ou sombre"
             title="Thème clair / sombre">
         <span class="theme-icon-light" aria-hidden="true"><i class="fas fa-sun text-lg"></i></span>
@@ -629,6 +687,7 @@
                 btn.addEventListener('click', function () {
                     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
+                    document.documentElement.classList.toggle('dark', next === 'dark');
                     try { localStorage.setItem('site-theme', next); } catch (e) {}
                     syncThemeIcons();
                 });
@@ -660,11 +719,16 @@
     @if(!empty($phoneRaw))
     <a href="tel:{{ $phoneRaw }}" 
        id="floatingCallBtn"
-       class="floating-phone fixed bottom-6 right-6 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition z-50"
-       style="background-color: var(--primary-color);"
-       aria-label="Appeler {{ $companyPhone ?: $phoneForTracking }}"
+       class="floating-phone fixed z-50 text-white shadow-2xl transition
+              left-0 right-0 bottom-0 rounded-t-2xl mobile-call-bar flex items-center justify-center gap-2 sm:gap-3 px-4 py-3.5 min-h-[3.5rem] font-semibold text-base
+              pb-[max(0.875rem,env(safe-area-inset-bottom))]
+              md:left-auto md:right-6 md:bottom-6 md:w-16 md:h-16 md:min-h-0 md:rounded-full md:gap-0 md:px-0 md:py-0 md:pb-0 md:font-normal"
+       style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"
+       aria-label="Appelez maintenant — {{ $companyPhone ?: $phoneForTracking }}"
        title="Appeler {{ $companyPhone ?: $phoneForTracking }}">
-        <i class="fas fa-phone text-2xl" aria-hidden="true"></i>
+        <i class="fas fa-phone text-xl md:text-2xl shrink-0" aria-hidden="true"></i>
+        <span class="md:hidden leading-tight whitespace-nowrap">Appelez maintenant</span>
+        <span class="md:hidden text-sm font-medium opacity-95 truncate min-w-0 flex-1 text-right">{{ $companyPhone ?: $phoneForTracking }}</span>
     </a>
     @endif
     @endif

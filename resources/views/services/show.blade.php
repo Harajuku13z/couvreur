@@ -8,12 +8,7 @@
 
 @push('head')
 <style>
-    /* Variables de couleurs de branding */
-    :root {
-        --primary-color: {{ setting('primary_color', '#3b82f6') }};
-        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-        --accent-color: {{ setting('accent_color', '#f59e0b') }};    }
-    
+    /* Couleurs : variables du layout (clair + sombre). Ne pas redéfinir :root ici. */
     /* Empêcher le scroll horizontal sur mobile */
     html, body {
         overflow-x: hidden;
@@ -203,16 +198,16 @@
     <section class="py-16">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8 md:p-12 text-gray-900 dark:text-slate-100">
                     @if(isset($service['error']) && $service['error'])
-                        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg mb-6">
+                        <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 p-6 rounded-lg mb-6">
                             <div class="flex">
                                 <div class="flex-shrink-0">
                                     <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur de génération du contenu</h3>
-                                    <p class="text-red-700 mb-4">{{ $service['error_message'] ?? 'Une erreur est survenue lors de la génération du contenu par l\'IA.' }}</p>
+                                    <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Erreur de génération du contenu</h3>
+                                    <p class="text-red-700 dark:text-red-300 mb-4">{{ $service['error_message'] ?? 'Une erreur est survenue lors de la génération du contenu par l\'IA.' }}</p>
                                     @if(isset($service['debug_info']))
                                         <details class="mt-4">
                                             <summary class="text-sm text-red-600 cursor-pointer hover:text-red-800">Détails techniques (cliquez pour afficher)</summary>
@@ -227,7 +222,9 @@
                             </div>
                         </div>
                     @else
-                        {!! $service['description'] !!}
+                        <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert service-page-content">
+                            {!! $service['description'] !!}
+                        </div>
                     @endif
                 </div>
 

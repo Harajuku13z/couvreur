@@ -14,13 +14,7 @@
 
 @push('head')
 <style>
-    /* Variables de couleurs de branding */
-    :root {
-        --primary-color: {{ setting('primary_color', '#3b82f6') }};
-        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-        --accent-color: {{ setting('accent_color', '#f59e0b') }};
-    }
-    
+    /* Couleurs : variables du layout (clair + sombre). Ne pas redéfinir :root ici. */
     /* Empêcher le scroll horizontal sur mobile */
     html, body {
         overflow-x: hidden;
@@ -216,7 +210,7 @@
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden relative">
-                    <div class="prose prose-sm md:prose-base max-w-none" style="word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; word-break: break-word;">
+                    <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert" style="word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; word-break: break-word;">
                         {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
                     </div>
                     
