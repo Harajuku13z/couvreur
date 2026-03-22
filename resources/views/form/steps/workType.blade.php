@@ -9,11 +9,11 @@
             <!-- Progress Bar -->
             <div class="mb-8">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-600">Étape 3 sur 11</span>
+                    <span class="text-sm font-medium text-gray-600">Étape 3 sur 10</span>
                     <span class="text-sm font-medium text-gray-600">27%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: 27%"></div>
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: 30%"></div>
                 </div>
             </div>
 
@@ -57,7 +57,7 @@
 
                     <!-- Navigation -->
                     <div class="flex justify-between mt-8">
-                        <a href="{{ route('form.step', 'propertyType') }}" 
+                        <a href="{{ route('form.previous', 'workType') }}" 
                            class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Précédent

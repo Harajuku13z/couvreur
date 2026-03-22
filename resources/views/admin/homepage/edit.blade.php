@@ -305,6 +305,27 @@
                         Afficher la section Écologie
                     </label>
                 </div>
+
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <p class="text-sm font-semibold text-gray-800 mb-3">
+                        <i class="fas fa-th-large text-green-600 mr-1"></i>Encadrés sous le texte (comme les badges RGE au hero)
+                    </p>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="ecology[badges][materiaux_recycles]" id="eco_badge_materiaux" value="1"
+                                   {{ ($config['ecology']['badges']['materiaux_recycles'] ?? true) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <label for="eco_badge_materiaux" class="ml-2 text-sm text-gray-700">Matériaux recyclés ♻️</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="ecology[badges][energies_vertes]" id="eco_badge_energies" value="1"
+                                   {{ ($config['ecology']['badges']['energies_vertes'] ?? true) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <label for="eco_badge_energies" class="ml-2 text-sm text-gray-700">Énergies vertes 🌱</label>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Décochez pour masquer l’encadré sur la page d’accueil.</p>
+                </div>
             </div>
         </div>
 
@@ -335,6 +356,27 @@
                     <label for="financing_enabled" class="ml-2 text-sm text-gray-700">
                         Afficher la section Aides et Financements
                     </label>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <p class="text-sm font-semibold text-gray-800 mb-3">
+                        <i class="fas fa-th-large text-orange-500 mr-1"></i>Encadrés sous le texte
+                    </p>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="financing[badges][maprimerenov]" id="fin_badge_mpr" value="1"
+                                   {{ ($config['financing']['badges']['maprimerenov'] ?? true) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                            <label for="fin_badge_mpr" class="ml-2 text-sm text-gray-700">MaPrimeRénov' 🏠</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="financing[badges][certificats_cee]" id="fin_badge_cee" value="1"
+                                   {{ ($config['financing']['badges']['certificats_cee'] ?? true) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                            <label for="fin_badge_cee" class="ml-2 text-sm text-gray-700">Certificats CEE 💰</label>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Décochez pour masquer l’encadré sur la page d’accueil.</p>
                 </div>
             </div>
         </div>

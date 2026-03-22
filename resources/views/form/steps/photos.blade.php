@@ -5,6 +5,15 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 py-12">
     <div class="max-w-3xl mx-auto px-4">
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-600">Étape 9 sur 10</span>
+                <span class="text-sm font-medium text-gray-600">90%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div>
+            </div>
+        </div>
         <div class="bg-white shadow rounded-xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Ajoutez des photos (optionnel)</h1>
             <p class="text-gray-600 mb-6">Vous pouvez ajouter 2 à 5 photos pour illustrer votre projet. Cette étape est facultative.</p>

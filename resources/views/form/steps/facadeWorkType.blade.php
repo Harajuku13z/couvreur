@@ -8,11 +8,11 @@
         <div class="max-w-6xl mx-auto">
             <div class="mb-8">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-600">Étape 5 sur 11</span>
+                    <span class="text-sm font-medium text-gray-600">Étape 5 sur 10</span>
                     <span class="text-sm font-medium text-gray-600">45%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: 45%"></div>
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: 50%"></div>
                 </div>
             </div>
 
@@ -49,7 +49,7 @@
                     </div>
 
                     <div class="flex justify-between mt-8">
-                        <a href="{{ route('form.step', 'propertyType') }}" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
+                        <a href="{{ route('form.previous', 'facadeWorkType') }}" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                             <i class="fas fa-arrow-left mr-2"></i> Précédent
                         </a>
                         <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition" disabled>

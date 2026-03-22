@@ -223,6 +223,21 @@ class HomeController extends Controller
         if (!array_key_exists('magazine_side_image', $config['hero'])) {
             $config['hero']['magazine_side_image'] = null;
         }
+
+        if (!isset($config['ecology']) || !is_array($config['ecology'])) {
+            $config['ecology'] = [];
+        }
+        $config['ecology']['badges'] = array_merge(
+            ['materiaux_recycles' => true, 'energies_vertes' => true],
+            $config['ecology']['badges'] ?? []
+        );
+        if (!isset($config['financing']) || !is_array($config['financing'])) {
+            $config['financing'] = [];
+        }
+        $config['financing']['badges'] = array_merge(
+            ['maprimerenov' => true, 'certificats_cee' => true],
+            $config['financing']['badges'] ?? []
+        );
         
         return $config;
     }

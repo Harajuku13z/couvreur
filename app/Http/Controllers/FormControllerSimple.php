@@ -29,8 +29,6 @@ class FormControllerSimple extends Controller
         'roofWorkType',
         'facadeWorkType',
         'isolationWorkType',
-        'ownershipStatus',
-        'personalInfo',
         'postalCode',
         'phone',
         'photos',
@@ -361,6 +359,10 @@ class FormControllerSimple extends Controller
     public function showStep(string $step)
     {
         if (!in_array($step, $this->steps, true)) {
+            // Anciennes étapes supprimées (fusion à l’étape 1) : renvoyer au début du simulateur
+            if (in_array($step, ['ownershipStatus', 'personalInfo'], true)) {
+                return redirect()->route('form.step', 'propertyType');
+            }
             return redirect()->route('home');
         }
 
@@ -539,6 +541,21 @@ class FormControllerSimple extends Controller
             $submission->update(['recaptcha_score' => $newScore]);
         }
 
+        // Validation 1ère étape : identité + type de bien (obligatoire)
+        if ($step === 'propertyType') {
+            $request->validate([
+                'property_type' => 'required|in:maison,appartement',
+                'gender' => 'required|in:M,Mme',
+                'first_name' => 'required|string|max:100',
+                'last_name' => 'required|string|max:100',
+            ], [
+                'property_type.required' => 'Veuillez choisir un type de bien (maison ou appartement).',
+                'gender.required' => 'Veuillez indiquer votre civilité.',
+                'first_name.required' => 'Le prénom est obligatoire pour vous envoyer le devis.',
+                'last_name.required' => 'Le nom est obligatoire pour vous envoyer le devis.',
+            ]);
+        }
+
         // Enregistrer les données de l'étape
         $this->saveStepData($submission, $request, $step);
         
@@ -566,7 +583,8 @@ class FormControllerSimple extends Controller
 
     public function previousStep(string $currentStep)
     {
-        $previousStep = $this->getPreviousStep($currentStep);
+        $submission = Submission::where('session_id', Session::getId())->first();
+        $previousStep = $this->getPreviousStep($currentStep, $submission);
         if ($previousStep) {
             return redirect()->route('form.step', $previousStep);
         }
@@ -618,9 +636,15 @@ class FormControllerSimple extends Controller
     {
         switch ($step) {
             case 'propertyType':
-                // Normaliser vers les valeurs attendues par la DB
+                // Type de bien + identité (civilité, prénom, nom) — même étape
                 $propertyType = $this->normalizePropertyType($request->property_type);
-                $submission->update(['property_type' => $propertyType]);
+                $gender = $this->normalizeGender($request->gender);
+                $submission->update([
+                    'property_type' => $propertyType,
+                    'gender' => $gender,
+                    'first_name' => trim((string) $request->first_name),
+                    'last_name' => trim((string) $request->last_name),
+                ]);
                 break;
             case 'surface':
                 $submission->update(['surface' => $request->surface]);
@@ -638,18 +662,8 @@ class FormControllerSimple extends Controller
                 $submission->update(['isolation_work_types' => $request->isolation_work_type]);
                 break;
             case 'ownershipStatus':
-                // Normaliser vers les valeurs attendues par la DB
-                $ownershipStatus = $this->normalizeOwnershipStatus($request->ownership_status);
-                $submission->update(['ownership_status' => $ownershipStatus]);
-                break;
             case 'personalInfo':
-                // Normaliser le genre
-                $gender = $this->normalizeGender($request->gender);
-                $submission->update([
-                    'gender' => $gender,
-                    'first_name' => $request->first_name,
-                    'last_name' => $request->last_name,
-                ]);
+                // Étapes retirées du parcours (données prises à l’étape propertyType)
                 break;
             case 'postalCode':
                 $postalCode = $request->input('postal_code');
@@ -729,8 +743,8 @@ class FormControllerSimple extends Controller
                 return 'isolationWorkType';
             }
             
-            // Si aucun travail sélectionné, passer à l'étape suivante
-            return 'ownershipStatus';
+            // Si aucun travail sélectionné, passer au code postal
+            return 'postalCode';
         }
 
         // Gestion spéciale pour les étapes de travaux
@@ -754,21 +768,62 @@ class FormControllerSimple extends Controller
                 }
             }
             
-            // Si on a fini tous les travaux sélectionnés, passer à ownershipStatus
-            return 'ownershipStatus';
+            // Fin des sous-étapes travaux → code postal
+            return 'postalCode';
         }
 
         // Navigation normale pour les autres étapes
         return $this->steps[$currentIndex + 1] ?? null;
     }
 
-    private function getPreviousStep(string $currentStep): ?string
+    private function getPreviousStep(string $currentStep, ?Submission $submission = null): ?string
     {
+        if ($submission) {
+            $wt = $submission->work_types ?? [];
+            if (!is_array($wt)) {
+                $wt = [];
+            }
+
+            if ($currentStep === 'postalCode') {
+                if (in_array('isolation', $wt, true)) {
+                    return 'isolationWorkType';
+                }
+                if (in_array('facade', $wt, true)) {
+                    return 'facadeWorkType';
+                }
+                if (in_array('roof', $wt, true)) {
+                    return 'roofWorkType';
+                }
+                return 'workType';
+            }
+
+            if ($currentStep === 'isolationWorkType') {
+                if (in_array('facade', $wt, true)) {
+                    return 'facadeWorkType';
+                }
+                if (in_array('roof', $wt, true)) {
+                    return 'roofWorkType';
+                }
+                return 'workType';
+            }
+
+            if ($currentStep === 'facadeWorkType') {
+                if (in_array('roof', $wt, true)) {
+                    return 'roofWorkType';
+                }
+                return 'workType';
+            }
+
+            if ($currentStep === 'roofWorkType') {
+                return 'workType';
+            }
+        }
+
         $currentIndex = array_search($currentStep, $this->steps, true);
         if ($currentIndex === false || $currentIndex === 0) {
             return null;
         }
-        return $this->steps[$currentIndex - 1];
+        return $this->steps[$currentIndex - 1] ?? null;
     }
 
     private function generateUserIdentifier(): string

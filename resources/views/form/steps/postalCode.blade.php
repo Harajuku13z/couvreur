@@ -9,11 +9,11 @@
             <!-- Progress Bar -->
             <div class="mb-8">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-600">Étape 9 sur 11</span>
-                    <span class="text-sm font-medium text-gray-600">82%</span>
+                    <span class="text-sm font-medium text-gray-600">Étape 7 sur 10</span>
+                    <span class="text-sm font-medium text-gray-600">70%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: 82%"></div>
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: 70%"></div>
                 </div>
             </div>
 
@@ -81,7 +81,7 @@
 
                     <!-- Navigation -->
                     <div class="flex justify-between mt-8">
-                        <a href="{{ route('form.step', 'propertyType') }}" 
+                        <a href="{{ route('form.previous', 'postalCode') }}" 
                            class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Précédent
@@ -140,7 +140,7 @@ document.getElementById('city').addEventListener('input', function(e) {
     }
 });
 
-console.log('✅ Page chargée : Étape 9 - Code Postal (VERSION SIMPLE)');
+console.log('✅ Page chargée : Étape 7 - Code Postal (VERSION SIMPLE)');
 </script>
 
 <style>

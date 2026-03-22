@@ -25,17 +25,29 @@
                         <div class="text-white/95 mb-8 text-lg leading-relaxed font-medium" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
                             {!! nl2br(e($homeConfig['ecology']['content'])) !!}
                         </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
+                        @php
+                            $ecoBadges = $homeConfig['ecology']['badges'] ?? [];
+                            $showEcoMat = (bool)($ecoBadges['materiaux_recycles'] ?? true);
+                            $showEcoEn = (bool)($ecoBadges['energies_vertes'] ?? true);
+                            $ecoN = (int)$showEcoMat + (int)$showEcoEn;
+                            $ecoGrid = $ecoN <= 1 ? 'grid-cols-1 max-w-sm mx-auto' : 'grid-cols-2';
+                        @endphp
+                        @if($ecoN > 0)
+                        <div class="grid {{ $ecoGrid }} gap-4">
+                            @if($showEcoMat)
                             <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3">♻️</div>
+                                <div class="text-4xl font-bold mb-3" aria-hidden="true">♻️</div>
                                 <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Matériaux recyclés</div>
                             </div>
+                            @endif
+                            @if($showEcoEn)
                             <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3">🌱</div>
+                                <div class="text-4xl font-bold mb-3" aria-hidden="true">🌱</div>
                                 <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Énergies vertes</div>
                             </div>
+                            @endif
                         </div>
+                        @endif
                     </div>
                     
                     <!-- Motif décoratif -->
@@ -66,17 +78,29 @@
                         <div class="text-white/95 mb-8 text-lg leading-relaxed font-medium" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
                             {!! nl2br(e($homeConfig['financing']['content'])) !!}
                         </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
+                        @php
+                            $finBadges = $homeConfig['financing']['badges'] ?? [];
+                            $showMpr = (bool)($finBadges['maprimerenov'] ?? true);
+                            $showCee = (bool)($finBadges['certificats_cee'] ?? true);
+                            $finN = (int)$showMpr + (int)$showCee;
+                            $finGrid = $finN <= 1 ? 'grid-cols-1 max-w-sm mx-auto' : 'grid-cols-2';
+                        @endphp
+                        @if($finN > 0)
+                        <div class="grid {{ $finGrid }} gap-4">
+                            @if($showMpr)
                             <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3">🏠</div>
+                                <div class="text-4xl font-bold mb-3" aria-hidden="true">🏠</div>
                                 <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">MaPrimeRénov'</div>
                             </div>
+                            @endif
+                            @if($showCee)
                             <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3">💰</div>
+                                <div class="text-4xl font-bold mb-3" aria-hidden="true">💰</div>
                                 <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Certificats CEE</div>
                             </div>
+                            @endif
                         </div>
+                        @endif
                     </div>
                     
                     <!-- Motif décoratif -->

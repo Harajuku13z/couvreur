@@ -96,11 +96,10 @@ class Submission extends Model
             'roofWorkType' => 4,
             'facadeWorkType' => 5,
             'isolationWorkType' => 6,
-            'ownershipStatus' => 7,
-            'personalInfo' => 8,
-            'postalCode' => 9,
-            'phone' => 10,
-            'email' => 11,
+            'postalCode' => 7,
+            'phone' => 8,
+            'photos' => 9,
+            'email' => 10,
         ];
 
         $currentStep = $this->current_step;

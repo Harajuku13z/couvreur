@@ -9,7 +9,7 @@
             <!-- Progress Bar -->
             <div class="mb-8">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-600">Étape 11 sur 11</span>
+                    <span class="text-sm font-medium text-gray-600">Étape 10 sur 10</span>
                     <span class="text-sm font-medium text-gray-600">100%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
@@ -127,7 +127,7 @@ emailInput.addEventListener('input', function() {
     }
 });
 
-console.log('✅ Page chargée : Étape 11 - Email (VERSION SIMPLE) - Dernière étape !');
+console.log('✅ Page chargée : Étape 10 - Email (VERSION SIMPLE) - Dernière étape !');
 </script>
 
 <style>

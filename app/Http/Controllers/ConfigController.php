@@ -1629,11 +1629,19 @@ class ConfigController extends Controller
                     'enabled' => false,
                     'title' => 'Notre Engagement Écologique',
                     'content' => '',
+                    'badges' => [
+                        'materiaux_recycles' => true,
+                        'energies_vertes' => true,
+                    ],
                 ],
                 'financing' => [
                     'enabled' => false,
                     'title' => 'Aides et Financements Disponibles',
                     'content' => '',
+                    'badges' => [
+                        'maprimerenov' => true,
+                        'certificats_cee' => true,
+                    ],
                 ],
                 'footer' => [
                     'intervention_zone' => 'Nous intervenons dans toute la région ' . Setting::get('company_region', 'Île-de-France') . ' et ses environs.',
@@ -1728,6 +1736,22 @@ class ConfigController extends Controller
         if (!array_key_exists('magazine_side_image', $config['hero'])) {
             $config['hero']['magazine_side_image'] = null;
         }
+
+        // Encadrés Écologie / Financements (mini-cartes sous le texte)
+        if (!isset($config['ecology']) || !is_array($config['ecology'])) {
+            $config['ecology'] = [];
+        }
+        $config['ecology']['badges'] = array_merge(
+            ['materiaux_recycles' => true, 'energies_vertes' => true],
+            $config['ecology']['badges'] ?? []
+        );
+        if (!isset($config['financing']) || !is_array($config['financing'])) {
+            $config['financing'] = [];
+        }
+        $config['financing']['badges'] = array_merge(
+            ['maprimerenov' => true, 'certificats_cee' => true],
+            $config['financing']['badges'] ?? []
+        );
         
         return view('admin.homepage.edit', compact('config'));
     }
@@ -1938,11 +1962,19 @@ class ConfigController extends Controller
                 'enabled' => $request->boolean('ecology.enabled'),
                 'title' => $request->input('ecology.title', 'Notre Engagement Écologique'),
                 'content' => $request->input('ecology.content', ''),
+                'badges' => [
+                    'materiaux_recycles' => $request->boolean('ecology.badges.materiaux_recycles'),
+                    'energies_vertes' => $request->boolean('ecology.badges.energies_vertes'),
+                ],
             ],
             'financing' => [
                 'enabled' => $request->boolean('financing.enabled'),
                 'title' => $request->input('financing.title', 'Aides et Financements Disponibles'),
                 'content' => $request->input('financing.content', ''),
+                'badges' => [
+                    'maprimerenov' => $request->boolean('financing.badges.maprimerenov'),
+                    'certificats_cee' => $request->boolean('financing.badges.certificats_cee'),
+                ],
             ],
             'footer' => [
                 'intervention_zone' => $request->input('footer.intervention_zone', ''),

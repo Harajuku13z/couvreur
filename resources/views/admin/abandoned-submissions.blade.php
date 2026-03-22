@@ -27,9 +27,12 @@
                     <option value="propertyType" {{ request('step') == 'propertyType' ? 'selected' : '' }}>Type de bien</option>
                     <option value="surface" {{ request('step') == 'surface' ? 'selected' : '' }}>Surface</option>
                     <option value="workType" {{ request('step') == 'workType' ? 'selected' : '' }}>Type de travaux</option>
-                    <option value="ownershipStatus" {{ request('step') == 'ownershipStatus' ? 'selected' : '' }}>Statut propriétaire</option>
-                    <option value="personalInfo" {{ request('step') == 'personalInfo' ? 'selected' : '' }}>Informations personnelles</option>
+                    <option value="roofWorkType" {{ request('step') == 'roofWorkType' ? 'selected' : '' }}>Travaux toiture</option>
+                    <option value="facadeWorkType" {{ request('step') == 'facadeWorkType' ? 'selected' : '' }}>Travaux façade</option>
+                    <option value="isolationWorkType" {{ request('step') == 'isolationWorkType' ? 'selected' : '' }}>Travaux isolation</option>
+                    <option value="postalCode" {{ request('step') == 'postalCode' ? 'selected' : '' }}>Code postal</option>
                     <option value="phone" {{ request('step') == 'phone' ? 'selected' : '' }}>Téléphone</option>
+                    <option value="photos" {{ request('step') == 'photos' ? 'selected' : '' }}>Photos</option>
                     <option value="email" {{ request('step') == 'email' ? 'selected' : '' }}>Email</option>
                 </select>
             </div>

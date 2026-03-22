@@ -60,10 +60,11 @@ class AbandonedSubmission extends Model
             'roofWorkType' => 'Travaux de toiture',
             'facadeWorkType' => 'Travaux de façade',
             'isolationWorkType' => 'Travaux d\'isolation',
-            'ownershipStatus' => 'Statut de propriété',
-            'personalInfo' => 'Informations personnelles',
+            'ownershipStatus' => 'Statut de propriété (ancienne étape)',
+            'personalInfo' => 'Informations personnelles (ancienne étape)',
             'postalCode' => 'Code postal',
             'phone' => 'Téléphone',
+            'photos' => 'Photos',
             'email' => 'Email',
         ];
 
