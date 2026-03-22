@@ -247,7 +247,7 @@ class HomeController extends Controller
             $config['departments_map'] = [
                 'enabled' => false,
                 'title' => 'Nos départements d\'intervention',
-                'subtitle' => 'Cliquez sur un département mis en avant pour en savoir plus.',
+                'subtitle' => '',
                 'codes' => [],
                 'link_overrides' => [],
             ];
@@ -313,10 +313,17 @@ class HomeController extends Controller
 
             $citiesInDept = City::query()
                 ->where('is_active', true)
-                ->where('department', $name)
+                ->where(function ($q) use ($name, $code) {
+                    $q->where('department', $name)
+                        ->orWhere('department', $code);
+                    // Certaines bases enregistrent le département en chiffres seuls (ex. 49 ou 9 pour 09)
+                    if (preg_match('/^\d{2,3}$/', (string) $code)) {
+                        $q->orWhere('department', (string) (int) $code);
+                    }
+                })
                 ->orderByDesc('is_favorite')
                 ->orderBy('name')
-                ->limit(18)
+                ->limit(40)
                 ->get();
 
             $citiesForView = $citiesInDept->map(function ($c) {
@@ -338,10 +345,17 @@ class HomeController extends Controller
             return $default;
         }
 
+        $rawSubtitle = trim((string) ($dm['subtitle'] ?? ''));
+        $discardedSubtitles = [
+            'Cliquez sur un département mis en avant sur la carte.',
+            'Cliquez sur un département mis en avant pour en savoir plus.',
+        ];
+        $subtitle = in_array($rawSubtitle, $discardedSubtitles, true) ? '' : $rawSubtitle;
+
         return [
             'show' => true,
             'title' => (string) ($dm['title'] ?? $default['title']),
-            'subtitle' => (string) ($dm['subtitle'] ?? ''),
+            'subtitle' => $subtitle,
             'items' => $items,
             'geoJsonUrl' => $default['geoJsonUrl'],
         ];

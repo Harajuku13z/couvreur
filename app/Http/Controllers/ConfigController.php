@@ -1646,7 +1646,7 @@ class ConfigController extends Controller
                 'departments_map' => [
                     'enabled' => false,
                     'title' => 'Nos départements d\'intervention',
-                    'subtitle' => 'Cliquez sur un département mis en avant sur la carte.',
+                    'subtitle' => '',
                     'codes' => [],
                     'link_overrides' => [],
                 ],
@@ -1763,7 +1763,7 @@ class ConfigController extends Controller
             $config['departments_map'] = [
                 'enabled' => false,
                 'title' => 'Nos départements d\'intervention',
-                'subtitle' => 'Cliquez sur un département mis en avant sur la carte.',
+                'subtitle' => '',
                 'codes' => [],
                 'link_overrides' => [],
             ];
