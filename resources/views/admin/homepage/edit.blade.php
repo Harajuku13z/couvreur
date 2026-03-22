@@ -48,29 +48,61 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-2">
                 <i class="fas fa-palette text-indigo-600 mr-2"></i>Design de la page d'accueil
             </h2>
-            <p class="text-gray-600 text-sm mb-6">Choisissez la disposition et le style du hero : ordre des blocs et mise en avant différente pour chaque variante.</p>
+            <p class="text-gray-600 text-sm mb-4">Un seul champ est envoyé au serveur : choisissez le design dans la liste déroulante (méthode la plus fiable), ou cliquez sur une carte pour la pré-sélectionner.</p>
+
             @php $hl = old('layout', $config['layout'] ?? 'classic'); @endphp
-            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'classic' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
-                    <input type="radio" name="layout" value="classic" class="sr-only" {{ $hl === 'classic' ? 'checked' : '' }}>
-                    <span class="font-bold text-gray-900">Classique</span>
-                    <span class="text-xs text-gray-600 mt-1">Hero → stats → à propos → villes → services → … ordre standard.</span>
+            @if(!in_array($hl, ['classic', 'showcase', 'magazine', 'conversion'], true))
+                @php $hl = 'classic'; @endphp
+            @endif
+
+            {{-- Liste déroulante = source de vérité pour le formulaire (name="layout") --}}
+            <div class="mb-6">
+                <label for="homepage_layout_select" class="block text-sm font-bold text-gray-800 mb-2">
+                    <i class="fas fa-mouse-pointer text-indigo-600 mr-1"></i> Design actif
                 </label>
-                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'showcase' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
-                    <input type="radio" name="layout" value="showcase" class="sr-only" {{ $hl === 'showcase' ? 'checked' : '' }}>
-                    <span class="font-bold text-gray-900">Showcase</span>
-                    <span class="text-xs text-gray-600 mt-1">Hero plus impactant, services &amp; réalisations remontés juste après les chiffres.</span>
-                </label>
-                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'magazine' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
-                    <input type="radio" name="layout" value="magazine" class="sr-only" {{ $hl === 'magazine' ? 'checked' : '' }}>
-                    <span class="font-bold text-gray-900">Magazine</span>
-                    <span class="text-xs text-gray-600 mt-1">Style éditorial : hero en deux colonnes, portfolio &amp; avis en tête de page.</span>
-                </label>
-                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'conversion' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
-                    <input type="radio" name="layout" value="conversion" class="sr-only" {{ $hl === 'conversion' ? 'checked' : '' }}>
-                    <span class="font-bold text-gray-900">Conversion</span>
-                    <span class="text-xs text-gray-600 mt-1">Bandeau contact + hero orienté devis/téléphone, avis avant le portfolio.</span>
-                </label>
+                <select name="layout" id="homepage_layout_select"
+                        class="w-full max-w-3xl border-2 border-indigo-300 rounded-xl px-4 py-3.5 text-base font-medium text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="classic" {{ $hl === 'classic' ? 'selected' : '' }}>Classique — ordre standard (hero, statistiques, à propos, villes, services…)</option>
+                    <option value="showcase" {{ $hl === 'showcase' ? 'selected' : '' }}>Showcase — hero plus grand, services &amp; réalisations remontés après les chiffres</option>
+                    <option value="magazine" {{ $hl === 'magazine' ? 'selected' : '' }}>Magazine — hero en 2 colonnes, portfolio &amp; avis plus haut sur la page</option>
+                    <option value="conversion" {{ $hl === 'conversion' ? 'selected' : '' }}>Conversion — bandeau contact en haut, mise en avant devis / téléphone</option>
+                </select>
+                <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3 inline-block">
+                    <i class="fas fa-info-circle mr-1"></i> Pensez à cliquer sur <strong>Sauvegarder les modifications</strong> en bas de cette page après avoir choisi.
+                </p>
+            </div>
+
+            {{-- Cartes cliquables (synchronisées avec le select) --}}
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Ou cliquez sur une carte :</p>
+            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3" id="homepage-layout-cards">
+                <button type="button" data-layout-pick="classic" class="homepage-layout-card text-left flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'classic' ? 'border-indigo-600 bg-white ring-2 ring-indigo-300 shadow' : 'border-gray-200 bg-white hover:border-indigo-300' }}">
+                    <span class="flex items-center gap-2 font-bold text-gray-900">
+                        <span data-layout-dot class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs {{ $hl === 'classic' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 bg-white text-gray-400' }}"><i class="fas fa-check {{ $hl === 'classic' ? '' : 'opacity-0' }}"></i></span>
+                        Classique
+                    </span>
+                    <span class="text-xs text-gray-600 mt-2 leading-snug">Ordre classique : hero → stats → contenus…</span>
+                </button>
+                <button type="button" data-layout-pick="showcase" class="homepage-layout-card text-left flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'showcase' ? 'border-indigo-600 bg-white ring-2 ring-indigo-300 shadow' : 'border-gray-200 bg-white hover:border-indigo-300' }}">
+                    <span class="flex items-center gap-2 font-bold text-gray-900">
+                        <span data-layout-dot class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs {{ $hl === 'showcase' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 bg-white text-gray-400' }}"><i class="fas fa-check {{ $hl === 'showcase' ? '' : 'opacity-0' }}"></i></span>
+                        Showcase
+                    </span>
+                    <span class="text-xs text-gray-600 mt-2 leading-snug">Hero impactant, services &amp; portfolio remontés.</span>
+                </button>
+                <button type="button" data-layout-pick="magazine" class="homepage-layout-card text-left flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'magazine' ? 'border-indigo-600 bg-white ring-2 ring-indigo-300 shadow' : 'border-gray-200 bg-white hover:border-indigo-300' }}">
+                    <span class="flex items-center gap-2 font-bold text-gray-900">
+                        <span data-layout-dot class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs {{ $hl === 'magazine' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 bg-white text-gray-400' }}"><i class="fas fa-check {{ $hl === 'magazine' ? '' : 'opacity-0' }}"></i></span>
+                        Magazine
+                    </span>
+                    <span class="text-xs text-gray-600 mt-2 leading-snug">Style éditorial, 2 colonnes au hero.</span>
+                </button>
+                <button type="button" data-layout-pick="conversion" class="homepage-layout-card text-left flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'conversion' ? 'border-indigo-600 bg-white ring-2 ring-indigo-300 shadow' : 'border-gray-200 bg-white hover:border-indigo-300' }}">
+                    <span class="flex items-center gap-2 font-bold text-gray-900">
+                        <span data-layout-dot class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs {{ $hl === 'conversion' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 bg-white text-gray-400' }}"><i class="fas fa-check {{ $hl === 'conversion' ? '' : 'opacity-0' }}"></i></span>
+                        Conversion
+                    </span>
+                    <span class="text-xs text-gray-600 mt-2 leading-snug">Bandeau contact + focus devis / téléphone.</span>
+                </button>
             </div>
         </div>
 
@@ -694,6 +726,41 @@
 </div>
 
 <script>
+    /** Sélection du design page d'accueil : liste déroulante + cartes synchronisées */
+    (function initHomepageLayoutPicker() {
+        var sel = document.getElementById('homepage_layout_select');
+        if (!sel) return;
+
+        function refreshHomepageLayoutCards() {
+            var v = sel.value;
+            var base = 'homepage-layout-card text-left flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md ';
+            document.querySelectorAll('[data-layout-pick]').forEach(function(btn) {
+                var on = btn.getAttribute('data-layout-pick') === v;
+                btn.className = base + (on ? 'border-indigo-600 bg-white ring-2 ring-indigo-300 shadow' : 'border-gray-200 bg-white hover:border-indigo-300');
+                var dot = btn.querySelector('[data-layout-dot]');
+                var icon = dot ? dot.querySelector('i') : null;
+                if (dot) {
+                    dot.className = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs ' +
+                        (on ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 bg-white text-gray-400');
+                }
+                if (icon) {
+                    icon.classList.toggle('opacity-0', !on);
+                }
+            });
+        }
+
+        sel.addEventListener('change', refreshHomepageLayoutCards);
+
+        document.querySelectorAll('[data-layout-pick]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                sel.value = btn.getAttribute('data-layout-pick');
+                refreshHomepageLayoutCards();
+            });
+        });
+
+        refreshHomepageLayoutCards();
+    })();
+
     // Serialize data before form submission
     document.querySelector('form').addEventListener('submit', function() {
         // Serialize stats
