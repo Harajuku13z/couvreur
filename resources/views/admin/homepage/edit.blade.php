@@ -32,11 +32,19 @@
     </div>
     @endif
 
+    <div class="mb-6 rounded-xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-4 text-sm text-gray-800 shadow-sm">
+        <p class="font-bold text-base text-indigo-900 mb-2 flex flex-wrap items-center gap-2">
+            <i class="fas fa-magic text-indigo-600"></i>
+            Changer le <strong>design</strong> de la page d’accueil
+        </p>
+        <p class="mb-0">C’est le <strong>premier encadré du formulaire</strong> juste ci-dessous (fond violet / indigo) : choisissez <strong>Classique</strong>, <strong>Showcase</strong>, <strong>Magazine</strong> ou <strong>Conversion</strong>, puis enregistrez tout en bas de la page. Si vous ne voyez pas cet encadré, mettez à jour le site (dernière version du dépôt Git) sur le serveur.</p>
+    </div>
+
     <form action="{{ route('admin.homepage.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <!-- Design / disposition de la page d'accueil -->
-        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-lg p-6 border border-indigo-100">
+        <div id="design-page-accueil" class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-lg p-6 border-2 border-indigo-200 ring-1 ring-indigo-100">
             <h2 class="text-2xl font-bold text-gray-800 mb-2">
                 <i class="fas fa-palette text-indigo-600 mr-2"></i>Design de la page d'accueil
             </h2>

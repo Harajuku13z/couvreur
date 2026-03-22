@@ -6,7 +6,19 @@
 <div class="p-6">
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Configuration</h1>
-        <p class="text-gray-600 mt-2">Gérez les paramètres de votre simulateur</p>
+        <p class="text-gray-600 mt-2">Paramètres généraux du site, identité visuelle, emails et intégrations.</p>
+    </div>
+
+    {{-- Aide : les couleurs ne sont pas sur le 1er onglet --}}
+    <div class="mb-6 rounded-xl border-2 border-indigo-200 bg-indigo-50 px-4 py-4 text-sm text-indigo-950 shadow-sm">
+        <p class="font-bold text-base mb-2 flex items-center gap-2">
+            <i class="fas fa-paint-brush text-indigo-600"></i>
+            Couleurs du site (codes <code class="bg-white px-1 rounded border">#hex</code>, sans pipette)
+        </p>
+        <p class="mb-3">Les champs ne sont <strong>pas</strong> sur l’onglet « Entreprise ». Cliquez sur <strong>Branding</strong> dans les onglets ci-dessous, puis faites défiler jusqu’à <strong>« Couleurs du site »</strong> : vous y tapez directement les codes (ex. <code class="bg-white px-1 rounded">#3b82f6</code>) — pas de sélecteur de couleur type Safari.</p>
+        <button type="button" onclick="openConfigTab('branding', 'couleurs-site-hex')" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-700">
+            <i class="fas fa-arrow-right"></i>Ouvrir Branding et descendre jusqu’aux champs #hex
+        </button>
     </div>
 
     @if(session('success'))
@@ -28,8 +40,8 @@
                 <a href="#company" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active">
                     <i class="fas fa-building mr-2"></i>Entreprise
                 </a>
-                <a href="#branding" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-palette mr-2"></i>Branding
+                <a href="#branding" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" title="Logo, favicon et couleurs #hex">
+                    <i class="fas fa-palette mr-2"></i>Branding <span class="text-xs font-normal text-gray-400">(couleurs #hex)</span>
                 </a>
                 <a href="#email" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-envelope mr-2"></i>Email
@@ -1158,10 +1170,13 @@
                     </div>
 
                     <!-- Couleurs du site (clair + sombre) -->
-                    <div class="border-t pt-4">
+                    <div id="couleurs-site-hex" class="border-t pt-4 scroll-mt-4">
                         <h3 class="text-lg font-semibold mb-2">🎨 Couleurs du site — thème clair &amp; sombre</h3>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <strong class="text-gray-800">Saisie directe des codes hexadécimaux</strong> dans les champs texte (format <code class="bg-gray-100 px-1 rounded">#RRGGBB</code> ou <code class="bg-gray-100 px-1 rounded">#RGB</code>). Aperçu dans le carré à droite — <em>aucun sélecteur « pipette »</em> (meilleure compatibilité Safari).
+                        </p>
                         <p class="text-sm text-gray-600 mb-4">
-                            Définissez deux palettes : une pour le mode clair, une pour le mode sombre. Les visiteurs peuvent basculer (bouton en bas à gauche) si l’option est activée ci-dessous.
+                            Deux palettes : mode clair et mode sombre. Les visiteurs peuvent basculer (bouton en bas à gauche) si l’option est activée ci-dessous.
                         </p>
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -1315,6 +1330,33 @@
 </div>
 
 <script>
+/** Ouvre un onglet (ex. 'branding') et fait défiler vers un id optionnel (ex. 'couleurs-site-hex'). */
+function openConfigTab(sectionId, scrollToId) {
+    var tab = document.querySelector('a.config-tab[href="#' + sectionId + '"]');
+    if (tab) {
+        tab.click();
+    }
+    var delay = scrollToId ? 400 : 120;
+    setTimeout(function() {
+        var target = scrollToId ? document.getElementById(scrollToId) : document.getElementById(sectionId);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, delay);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var h = window.location.hash.replace(/^#/, '');
+    if (h === 'couleurs-site-hex') {
+        openConfigTab('branding', 'couleurs-site-hex');
+        return;
+    }
+    if (h && document.getElementById(h)) {
+        var tab = document.querySelector('a.config-tab[href="#' + h + '"]');
+        if (tab) {
+            tab.click();
+        }
+    }
+});
 // Tab navigation
 document.querySelectorAll('.config-tab').forEach(tab => {
     tab.addEventListener('click', function(e) {
