@@ -12,12 +12,17 @@
 <style>
     .contact-hero {
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        min-height: 500px;
+        min-height: 280px;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+    }
+    @media (min-width: 768px) {
+        .contact-hero {
+            min-height: 360px;
+        }
     }
     
     .contact-hero::before {
@@ -155,18 +160,18 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-    <!-- Hero Section -->
-    <section class="contact-hero text-white py-24 md:py-32">
-        <div class="container mx-auto px-4 text-center relative z-10">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6 floating">
-                <i class="fas fa-envelope-open-text text-4xl" style="color: white;"></i>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <!-- Hero -->
+    <section class="contact-hero text-white py-16 md:py-24 rounded-b-3xl shadow-lg mb-2">
+        <div class="site-shell text-center relative z-10">
+            <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-5 floating shadow-inner">
+                <i class="fas fa-envelope-open-text text-3xl md:text-4xl" style="color: white;"></i>
             </div>
-            <h1 class="text-5xl md:text-7xl font-bold mb-6" style="color: white;">
-                Parlons de votre projet
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 md:mb-6 tracking-tight" style="color: white;">
+                Contact
             </h1>
-            <p class="text-xl md:text-2xl max-w-3xl mx-auto mb-12 opacity-95" style="color: white;">
-                Notre équipe d'experts est disponible pour répondre à toutes vos questions et vous accompagner dans la réalisation de vos objectifs
+            <p class="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-white/95 leading-relaxed">
+                Une question, un projet ? Notre équipe vous répond rapidement — devis gratuit ou message ci-dessous.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <a href="{{ route('form.step', 'propertyType') }}" 
@@ -190,7 +195,7 @@
     </section>
 
     @if(session('success'))
-    <div class="container mx-auto px-4 pt-8">
+    <div class="site-shell pt-8">
         <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 px-6 py-4 rounded-lg shadow-md">
             <div class="flex items-center">
                 <i class="fas fa-check-circle text-green-500 text-2xl mr-3"></i>
@@ -201,7 +206,7 @@
     @endif
 
     @if($errors->any())
-    <div class="container mx-auto px-4 pt-8">
+    <div class="site-shell pt-8">
         <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md mb-6">
             <div class="flex items-start">
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3 mt-1"></i>
@@ -219,7 +224,7 @@
     @endif
 
     @if(session('error'))
-    <div class="container mx-auto px-4 pt-8">
+    <div class="site-shell pt-8">
         <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md">
             <div class="flex items-center">
                 <i class="fas fa-exclamation-circle text-red-500 text-2xl mr-3"></i>
@@ -229,12 +234,12 @@
     </div>
     @endif
 
-    <div class="container mx-auto px-4 py-20">
-        <div class="grid lg:grid-cols-5 gap-12 mb-20">
+    <div class="site-shell py-12 md:py-20">
+        <div class="grid lg:grid-cols-5 gap-10 lg:gap-14 mb-16 md:mb-20">
             <!-- Informations de contact - 2 colonnes -->
             <div class="lg:col-span-2">
                 <div class="sticky top-8">
-                    <h2 class="text-4xl font-bold text-gray-800 mb-3">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
                         <i class="fas fa-address-card mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
                         Coordonnées
                     </h2>
@@ -245,12 +250,12 @@
                     
                     <div class="space-y-6">
                         <!-- Adresse -->
-                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-map-marker-alt text-2xl" style="color: white;"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-bold text-gray-800 mb-2 text-lg">Notre adresse</h3>
+                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Notre adresse</h3>
                                 <p class="text-gray-600 leading-relaxed">
                                     @if($companySettings['address'])
                                         {{ $companySettings['address'] }}<br>
@@ -265,12 +270,12 @@
                         
                         <!-- Téléphone -->
                         @if($companySettings['phone'])
-                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-phone-alt text-2xl" style="color: white;"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-bold text-gray-800 mb-2 text-lg">Appelez-nous</h3>
+                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Appelez-nous</h3>
                                 <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
                                    class="text-primary hover:text-secondary transition-colors text-xl font-bold inline-flex items-center group"
                                    onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
@@ -286,12 +291,12 @@
                         
                         <!-- Email -->
                         @if($companySettings['email'])
-                        <div class="contact-card contact-info-card flex items-start bg-white p-6 rounded-2xl shadow-md">
+                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
                             <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
                                 <i class="fas fa-envelope text-2xl" style="color: white;"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-bold text-gray-800 mb-2 text-lg">Écrivez-nous</h3>
+                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Écrivez-nous</h3>
                                 <a href="mailto:{{ $companySettings['email'] }}" 
                                    class="text-primary hover:text-secondary transition-colors text-lg font-semibold inline-flex items-center group break-all">
                                     {{ $companySettings['email'] }}
@@ -330,8 +335,8 @@
             
             <!-- Formulaire de contact - 3 colonnes -->
             <div class="lg:col-span-3 form-section">
-                <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
-                    <h2 class="text-4xl font-bold text-gray-800 mb-3">
+                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl ring-1 ring-gray-100 dark:ring-slate-800 p-8 md:p-12 border border-gray-100/80 dark:border-slate-800">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
                         <i class="fas fa-paper-plane mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
                         Envoyez un message
                     </h2>
@@ -539,9 +544,9 @@
         @endphp
         
         @if($fullAddress)
-        <div class="mt-24">
+        <div class="mt-20 md:mt-24">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-800 mb-3">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
                     <i class="fas fa-map-marked-alt mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
                     Nous trouver
                 </h2>
@@ -569,9 +574,9 @@
         
         <!-- Section FAQ -->
         @if(count($faqs) > 0)
-        <div class="mt-24">
+        <div class="mt-20 md:mt-24">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-800 mb-3">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
                     <i class="fas fa-question-circle mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
                     Questions Fréquentes
                 </h2>
@@ -584,11 +589,11 @@
             {{-- Liste des FAQ --}}
             <div class="max-w-4xl mx-auto space-y-4" id="faqList">
                 @foreach($faqs as $index => $faq)
-                <div class="faq-item bg-white border-2 border-gray-100 rounded-2xl shadow-md hover:shadow-xl transition-all" 
+                <div class="faq-item bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 rounded-2xl shadow-md hover:shadow-xl transition-all" 
                      data-question="{{ strtolower($faq['question'] ?? '') }}" 
                      data-answer="{{ strtolower($faq['answer'] ?? '') }}">
                     <div class="px-8 py-6">
-                        <div class="font-bold text-gray-800 mb-4 text-lg">
+                        <div class="font-bold text-gray-900 dark:text-white mb-4 text-lg">
                             <i class="fas fa-comment-dots mr-3 text-primary"></i>
                             {{ $faq['question'] ?? '' }}
                         </div>

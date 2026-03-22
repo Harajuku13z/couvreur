@@ -65,25 +65,24 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
 @endsection
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="text-white py-16" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">Blog et Astuces</h1>
-                <p class="text-xl text-blue-100 max-w-2xl mx-auto">
-                    Découvrez nos conseils d'experts pour tous vos projets de rénovation
-                </p>
-            </div>
+<div class="min-h-screen bg-gray-50 dark:bg-slate-950">
+    <!-- En-tête : titres en noir / lisibles (aligné site-shell) -->
+    <header class="border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-12 md:py-16">
+        <div class="site-shell text-center">
+            <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color: var(--primary-color);">Blog</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Blog et Astuces</h1>
+            <p class="text-lg md:text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
+                Découvrez nos conseils d'experts pour tous vos projets de rénovation
+            </p>
         </div>
-    </div>
+    </header>
 
-    <!-- Articles Grid -->
-    <div class="max-w-6xl mx-auto px-4 py-12">
+    <!-- Grille d'articles -->
+    <div class="site-shell py-12 md:py-16">
         @if($articles->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($articles as $article)
-                    <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    <article class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-md overflow-hidden hover:shadow-xl transition-shadow">
                         @if($article->featured_image)
                             <div class="aspect-w-16 aspect-h-9">
                                 <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
@@ -132,12 +131,12 @@ src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageVi
                 </div>
             @endif
         @else
-            <div class="text-center py-12">
-                <div class="text-gray-400 text-6xl mb-4">
-                    <i class="fas fa-newspaper"></i>
+            <div class="text-center py-16 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50">
+                <div class="text-gray-400 dark:text-slate-600 text-6xl mb-4">
+                    <i class="fas fa-newspaper" aria-hidden="true"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">Aucun article disponible</h3>
-                <p class="text-gray-500">Les articles seront bientôt disponibles.</p>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Aucun article disponible</h3>
+                <p class="text-gray-600 dark:text-slate-400">Les articles seront bientôt disponibles.</p>
             </div>
         @endif
     </div>

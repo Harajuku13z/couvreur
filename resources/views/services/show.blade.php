@@ -114,8 +114,8 @@
 
     <!-- Contenu principal -->
     <section class="py-12 md:py-16 relative z-[1]">
-        <div class="site-shell">
-            <div class="max-w-4xl mx-auto -mt-8 md:-mt-10">
+        <div class="site-shell w-full">
+            <div class="w-full max-w-4xl mx-auto -mt-8 md:-mt-10">
                 <div class="rounded-2xl border border-gray-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl dark:shadow-slate-900/50 p-6 sm:p-10 md:p-12 text-gray-900 dark:text-slate-100">
                     @if(isset($service['error']) && $service['error'])
                         <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-2">
@@ -167,8 +167,8 @@
 
     <!-- Réalisations -->
     <section class="py-14 md:py-20 bg-gray-100 dark:bg-slate-900/60 border-t border-gray-200/80 dark:border-slate-800">
-        <div class="site-shell">
-            <div class="max-w-6xl mx-auto w-full">
+        <div class="site-shell w-full">
+            <div class="w-full">
                 <div class="text-center mb-10 md:mb-12">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3">Nos réalisations</h2>
                     <div class="w-20 h-1 mx-auto rounded-full mb-4" style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
@@ -229,8 +229,8 @@
 
     <!-- Avis -->
     <section class="py-14 md:py-20 bg-white dark:bg-slate-950 border-t border-gray-100 dark:border-slate-800">
-        <div class="site-shell">
-            <div class="max-w-6xl mx-auto w-full">
+        <div class="site-shell w-full">
+            <div class="w-full">
                 <div class="text-center mb-10 md:mb-12">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3">Avis clients</h2>
                     <div class="w-20 h-1 mx-auto rounded-full mb-4" style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
