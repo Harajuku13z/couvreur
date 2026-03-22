@@ -42,13 +42,18 @@
                 </div>
             </div>
 
-            <div class="no-theme bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 p-6 sm:p-10 mb-8">
-                <h1 class="text-2xl sm:text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
-                    Votre projet en quelques clics
-                </h1>
-                <p class="text-center text-slate-600 dark:text-slate-300 mb-8 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-                    Indiquez d’abord <strong class="text-slate-800 dark:text-slate-100">comment nous vous contacter</strong> : ces informations servent uniquement à vous envoyer votre <strong class="text-slate-800 dark:text-slate-100">devis personnalisé</strong> et à vous recontacter sur votre projet.
-                </p>
+            <div class="no-theme bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 overflow-hidden mb-8">
+                <div class="simulator-step-intro px-5 sm:px-8 pt-8 sm:pt-10 pb-6 text-center"
+                     style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-3 text-white drop-shadow-sm">
+                        Votre projet en quelques clics
+                    </h1>
+                    <p class="text-white/95 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+                        Indiquez d’abord <strong class="text-white font-semibold">comment nous vous contacter</strong> : ces informations servent uniquement à vous envoyer votre <strong class="text-white font-semibold">devis personnalisé</strong> et à vous recontacter sur votre projet.
+                    </p>
+                </div>
+
+                <div class="px-5 sm:px-8 pt-2 pb-8 sm:pb-10">
 
                 @if ($errors->any())
                 <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-200 text-sm">
@@ -171,6 +176,7 @@
                         </button>
                     </div>
                 </form>
+                </div>
             </div>
         </div>
     </div>

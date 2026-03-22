@@ -698,12 +698,6 @@
             color: #0f172a !important;
             -webkit-text-fill-color: #0f172a;
         }
-        /* Titres d’étape sur bandeau dégradé (étapes 1, 2, …) : toujours blancs */
-        main .simulator-step h2.simulator-step-section-title,
-        .simulator-step-section-head .simulator-step-section-title {
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff;
-        }
         html[data-theme="light"] main .simulator-step p.text-slate-600,
         html[data-theme="light"] main .simulator-step .text-slate-600 {
             color: #475569 !important;
@@ -725,10 +719,25 @@
         html[data-theme="light"] main .simulator-step .bg-white.dark\:bg-slate-800 {
             color: #111827 !important;
         }
-        /* Annule les utilitaires dark: si le thème effectif est clair */
+        /* Annule dark:text-white sur fond clair */
         html[data-theme="light"] main .simulator-step .dark\:text-white {
             color: #0f172a !important;
             -webkit-text-fill-color: #0f172a;
+        }
+        /*
+         * Ré-appliquer en dernier : bandeaux simulateur (intro + étapes) = blanc pur,
+         * priorité sur la carte .no-theme et sur .dark:text-white ci-dessus.
+         */
+        html[data-theme="light"] main .simulator-step .simulator-step-section-head,
+        html[data-theme="light"] main .simulator-step .simulator-step-section-head *,
+        html[data-theme="dark"] main .simulator-step .simulator-step-section-head,
+        html[data-theme="dark"] main .simulator-step .simulator-step-section-head *,
+        html[data-theme="light"] main .simulator-step .simulator-step-intro,
+        html[data-theme="light"] main .simulator-step .simulator-step-intro *,
+        html[data-theme="dark"] main .simulator-step .simulator-step-intro,
+        html[data-theme="dark"] main .simulator-step .simulator-step-intro * {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
         }
     </style>
     
