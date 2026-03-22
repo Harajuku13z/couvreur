@@ -187,6 +187,7 @@ class HomeController extends Controller
         // Default configuration
         if (!$config) {
             $config = [
+                'layout' => 'classic',
                 'hero' => [
                     'title' => Setting::get('company_name', 'Votre Entreprise'),
                     'subtitle' => 'Expert en ' . (Setting::get('company_specialization', 'Travaux de Rénovation')),
@@ -208,6 +209,11 @@ class HomeController extends Controller
                     ['label' => 'Garantie', 'value' => '10 ans', 'icon' => 'fa-shield-alt'],
                 ],
             ];
+        }
+
+        $validHomeLayouts = ['classic', 'showcase', 'magazine', 'conversion'];
+        if (!isset($config['layout']) || !in_array($config['layout'], $validHomeLayouts, true)) {
+            $config['layout'] = 'classic';
         }
         
         return $config;

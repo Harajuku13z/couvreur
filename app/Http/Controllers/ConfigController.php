@@ -354,24 +354,22 @@ class ConfigController extends Controller
             Setting::set('simulator_image', 'uploads/images/' . $simulatorImageName, 'file', 'branding');
         }
 
-        // Colors and typography
-        if (isset($validated['primary_color'])) {
-            Setting::set('primary_color', $validated['primary_color'], 'string', 'branding');
-        }
-        if (isset($validated['secondary_color'])) {
-            Setting::set('secondary_color', $validated['secondary_color'], 'string', 'branding');
-        }
-        if (isset($validated['accent_color'])) {
-            Setting::set('accent_color', $validated['accent_color'], 'string', 'branding');
-        }
-        if (isset($validated['dark_primary_color'])) {
-            Setting::set('dark_primary_color', $validated['dark_primary_color'], 'string', 'branding');
-        }
-        if (isset($validated['dark_secondary_color'])) {
-            Setting::set('dark_secondary_color', $validated['dark_secondary_color'], 'string', 'branding');
-        }
-        if (isset($validated['dark_accent_color'])) {
-            Setting::set('dark_accent_color', $validated['dark_accent_color'], 'string', 'branding');
+        // Colors and typography (saisie #hex — normalisation #RGB → #RRGGBB)
+        foreach ([
+            'primary_color',
+            'secondary_color',
+            'accent_color',
+            'dark_primary_color',
+            'dark_secondary_color',
+            'dark_accent_color',
+        ] as $colorKey) {
+            if ($request->has($colorKey) && (string) $request->input($colorKey) !== '') {
+                $normalized = $this->normalizeHexColor((string) $request->input($colorKey));
+                if ($normalized === null) {
+                    return back()->withErrors([$colorKey => 'Format couleur invalide. Utilisez # puis 3 ou 6 caractères hexadécimaux (ex. #3b82f6 ou #fff).'])->withInput();
+                }
+                Setting::set($colorKey, $normalized, 'string', 'branding');
+            }
         }
         if (isset($validated['theme_default'])) {
             Setting::set('theme_default', $validated['theme_default'], 'string', 'branding');
@@ -393,6 +391,25 @@ class ConfigController extends Controller
         \Artisan::call('view:clear');
 
         return back()->with('success', 'Paramètres de branding mis à jour avec succès !');
+    }
+
+    /**
+     * Normalise une couleur hex (#RGB ou #RRGGBB). Retourne null si invalide.
+     */
+    private function normalizeHexColor(string $value): ?string
+    {
+        $v = trim($value);
+        if ($v === '') {
+            return null;
+        }
+        if (!preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $v)) {
+            return null;
+        }
+        if (strlen($v) === 4) {
+            return '#'.$v[1].$v[1].$v[2].$v[2].$v[3].$v[3];
+        }
+
+        return $v;
     }
 
     /**
@@ -1588,6 +1605,7 @@ class ConfigController extends Controller
         // Default configuration
         if (!$config) {
             $config = [
+                'layout' => 'classic',
                 'hero' => [
                     'title' => Setting::get('company_name', 'Votre Entreprise'),
                     'subtitle' => 'Expert en ' . (Setting::get('company_specialization', 'Travaux de Rénovation')),
@@ -1638,7 +1656,68 @@ class ConfigController extends Controller
                     'enabled' => false,
                     'title' => 'Nos Partenaires',
                     'logos' => [],
+                    'intro' => [
+                        'enabled' => false,
+                        'title' => '',
+                        'body' => '',
+                        'image' => null,
+                        'link_url' => '',
+                        'link_label' => 'En savoir plus',
+                    ],
+                    'featured' => [
+                        'enabled' => false,
+                        'title' => '',
+                        'subtitle' => '',
+                        'body' => '',
+                        'image' => null,
+                        'link_url' => '',
+                        'link_label' => 'En savoir plus',
+                    ],
                 ],
+            ];
+        }
+
+        if (!isset($config['partners']) || !is_array($config['partners'])) {
+            $config['partners'] = [
+                'enabled' => false,
+                'title' => 'Nos Partenaires',
+                'logos' => [],
+                'intro' => [
+                    'enabled' => false,
+                    'title' => '',
+                    'body' => '',
+                    'image' => null,
+                    'link_url' => '',
+                    'link_label' => 'En savoir plus',
+                ],
+                'featured' => [
+                    'enabled' => false,
+                    'title' => '',
+                    'subtitle' => '',
+                    'body' => '',
+                    'image' => null,
+                    'link_url' => '',
+                    'link_label' => 'En savoir plus',
+                ],
+            ];
+        } elseif (!isset($config['partners']['intro']) || !is_array($config['partners']['intro'])) {
+            $config['partners']['intro'] = [
+                'enabled' => false,
+                'title' => '',
+                'body' => '',
+                'image' => null,
+                'link_url' => '',
+                'link_label' => 'En savoir plus',
+            ];
+        } elseif (!isset($config['partners']['featured']) || !is_array($config['partners']['featured'])) {
+            $config['partners']['featured'] = [
+                'enabled' => false,
+                'title' => '',
+                'subtitle' => '',
+                'body' => '',
+                'image' => null,
+                'link_url' => '',
+                'link_label' => 'En savoir plus',
             ];
         }
         
@@ -1651,11 +1730,23 @@ class ConfigController extends Controller
     public function updateHomepage(Request $request)
     {
         $request->validate([
+            'layout' => 'nullable|string|in:classic,showcase,magazine,conversion',
             'hero.title' => 'required|string|max:255',
             'hero.subtitle' => 'required|string|max:500',
             'hero.cta_text' => 'required|string|max:100',
             'hero_background' => 'nullable|image|max:5120', // 5MB max
             'about_image' => 'nullable|image|max:5120', // 5MB max
+            'partners_featured_image' => 'nullable|image|max:5120',
+            'partners_intro_image' => 'nullable|image|max:5120',
+            'partners.featured.title' => 'nullable|string|max:255',
+            'partners.featured.subtitle' => 'nullable|string|max:500',
+            'partners.featured.body' => 'nullable|string|max:5000',
+            'partners.featured.link_url' => 'nullable|string|max:500',
+            'partners.featured.link_label' => 'nullable|string|max:100',
+            'partners.intro.title' => 'nullable|string|max:255',
+            'partners.intro.body' => 'nullable|string|max:8000',
+            'partners.intro.link_url' => 'nullable|string|max:500',
+            'partners.intro.link_label' => 'nullable|string|max:100',
             'partner_logos.*' => 'nullable|image|max:2048', // 2MB max per logo
             'partner_names.*' => 'nullable|string|max:255',
             'partner_urls.*' => 'nullable|url|max:500',
@@ -1665,6 +1756,9 @@ class ConfigController extends Controller
         $currentConfig = Setting::get('homepage_config', null);
         if ($currentConfig && is_string($currentConfig)) {
             $currentConfig = json_decode($currentConfig, true);
+        }
+        if (!is_array($currentConfig)) {
+            $currentConfig = [];
         }
 
         // Handle hero background image upload
@@ -1721,7 +1815,70 @@ class ConfigController extends Controller
             $aboutImage = null;
         }
 
+        // Partenaire mis en avant (image + texte)
+        $featuredPrev = ($currentConfig['partners'] ?? [])['featured'] ?? [];
+        $partnerFeaturedImage = $featuredPrev['image'] ?? null;
+        if ($request->hasFile('partners_featured_image')) {
+            $file = $request->file('partners_featured_image');
+            $filename = 'partner-featured-' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadsHomepage = public_path('uploads/homepage');
+            if (!is_dir($uploadsHomepage)) {
+                mkdir($uploadsHomepage, 0755, true);
+            }
+            $file->move($uploadsHomepage, $filename);
+            if (!empty($partnerFeaturedImage)) {
+                $oldPath = public_path(ltrim($partnerFeaturedImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $partnerFeaturedImage = '/uploads/homepage/' . $filename;
+        } elseif ($request->boolean('remove_partners_featured_image')) {
+            if (!empty($partnerFeaturedImage)) {
+                $oldPath = public_path(ltrim($partnerFeaturedImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $partnerFeaturedImage = null;
+        }
+
+        // Bloc intro « Nos Partenaires » (texte gauche / image droite, avant les logos)
+        $introPrev = ($currentConfig['partners'] ?? [])['intro'] ?? [];
+        $partnerIntroImage = $introPrev['image'] ?? null;
+        if ($request->hasFile('partners_intro_image')) {
+            $file = $request->file('partners_intro_image');
+            $filename = 'partners-intro-' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadsHomepage = public_path('uploads/homepage');
+            if (!is_dir($uploadsHomepage)) {
+                mkdir($uploadsHomepage, 0755, true);
+            }
+            $file->move($uploadsHomepage, $filename);
+            if (!empty($partnerIntroImage)) {
+                $oldPath = public_path(ltrim($partnerIntroImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $partnerIntroImage = '/uploads/homepage/' . $filename;
+        } elseif ($request->boolean('remove_partners_intro_image')) {
+            if (!empty($partnerIntroImage)) {
+                $oldPath = public_path(ltrim($partnerIntroImage, '/'));
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $partnerIntroImage = null;
+        }
+
+        $validLayouts = ['classic', 'showcase', 'magazine', 'conversion'];
+        $layout = $request->input('layout', $currentConfig['layout'] ?? 'classic');
+        if (!in_array($layout, $validLayouts, true)) {
+            $layout = 'classic';
+        }
+
         $config = [
+            'layout' => $layout,
             'hero' => [
                 'title' => $request->input('hero.title'),
                 'subtitle' => $request->input('hero.subtitle'),
@@ -1790,6 +1947,23 @@ class ConfigController extends Controller
                 'enabled' => $request->boolean('partners.enabled'),
                 'title' => $request->input('partners.title', 'Nos Partenaires'),
                 'logos' => $this->handlePartnerLogos($request, $currentConfig),
+                'intro' => [
+                    'enabled' => $request->boolean('partners.intro.enabled'),
+                    'title' => $request->input('partners.intro.title', ''),
+                    'body' => $request->input('partners.intro.body', ''),
+                    'image' => $partnerIntroImage,
+                    'link_url' => $request->input('partners.intro.link_url', ''),
+                    'link_label' => $request->input('partners.intro.link_label', 'En savoir plus'),
+                ],
+                'featured' => [
+                    'enabled' => $request->boolean('partners.featured.enabled'),
+                    'title' => $request->input('partners.featured.title', ''),
+                    'subtitle' => $request->input('partners.featured.subtitle', ''),
+                    'body' => $request->input('partners.featured.body', ''),
+                    'image' => $partnerFeaturedImage,
+                    'link_url' => $request->input('partners.featured.link_url', ''),
+                    'link_label' => $request->input('partners.featured.link_label', 'En savoir plus'),
+                ],
             ],
         ];
 

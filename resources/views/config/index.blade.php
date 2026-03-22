@@ -1168,37 +1168,83 @@
                             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                 <h4 class="font-semibold text-gray-800 mb-3">☀️ Mode clair</h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    @php
+                                        $pc = old('primary_color', setting('primary_color', '#3b82f6'));
+                                        $sc = old('secondary_color', setting('secondary_color', '#1e40af'));
+                                        $ac = old('accent_color', setting('accent_color', '#f59e0b'));
+                                    @endphp
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Principale</label>
-                                        <input type="color" name="primary_color" value="{{ setting('primary_color', '#3b82f6') }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                                        <p class="text-xs text-gray-500 mt-1">Boutons, liens</p>
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="primary_color" id="hex_primary_color" value="{{ $pc }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#3b82f6"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_primary_color');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#e5e7eb';}})(this)">
+                                            <span id="swatch_primary_color" class="w-11 h-11 shrink-0 rounded-lg border border-gray-300 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $pc) ? $pc : '#e5e7eb' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Saisissez le code hex (ex. <code class="bg-gray-100 px-1 rounded">#3b82f6</code>) — compatible Safari</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Secondaire</label>
-                                        <input type="color" name="secondary_color" value="{{ setting('secondary_color', '#1e40af') }}" class="w-full h-10 border border-gray-300 rounded-lg">
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="secondary_color" id="hex_secondary_color" value="{{ $sc }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#1e40af"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_secondary_color');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#e5e7eb';}})(this)">
+                                            <span id="swatch_secondary_color" class="w-11 h-11 shrink-0 rounded-lg border border-gray-300 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $sc) ? $sc : '#e5e7eb' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
                                         <p class="text-xs text-gray-500 mt-1">Dégradés, survols</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Accent</label>
-                                        <input type="color" name="accent_color" value="{{ setting('accent_color', '#f59e0b') }}" class="w-full h-10 border border-gray-300 rounded-lg">
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="accent_color" id="hex_accent_color" value="{{ $ac }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#f59e0b"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_accent_color');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#e5e7eb';}})(this)">
+                                            <span id="swatch_accent_color" class="w-11 h-11 shrink-0 rounded-lg border border-gray-300 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $ac) ? $ac : '#e5e7eb' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
                                         <p class="text-xs text-gray-500 mt-1">Mise en valeur</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="bg-slate-900 rounded-lg p-4 border border-slate-700 text-white">
                                 <h4 class="font-semibold mb-3">🌙 Mode sombre</h4>
+                                @php
+                                    $dpc = old('dark_primary_color', setting('dark_primary_color', '#60a5fa'));
+                                    $dsc = old('dark_secondary_color', setting('dark_secondary_color', '#34d399'));
+                                    $dac = old('dark_accent_color', setting('dark_accent_color', '#fbbf24'));
+                                @endphp
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-slate-200 mb-2">Principale</label>
-                                        <input type="color" name="dark_primary_color" value="{{ setting('dark_primary_color', '#60a5fa') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="dark_primary_color" id="hex_dark_primary" value="{{ $dpc }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#60a5fa"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white focus:ring-2 focus:ring-blue-400"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_dark_primary');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#475569';}})(this)">
+                                            <span id="swatch_dark_primary" class="w-11 h-11 shrink-0 rounded-lg border border-slate-600 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $dpc) ? $dpc : '#475569' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-slate-200 mb-2">Secondaire</label>
-                                        <input type="color" name="dark_secondary_color" value="{{ setting('dark_secondary_color', '#34d399') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="dark_secondary_color" id="hex_dark_secondary" value="{{ $dsc }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#34d399"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white focus:ring-2 focus:ring-blue-400"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_dark_secondary');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#475569';}})(this)">
+                                            <span id="swatch_dark_secondary" class="w-11 h-11 shrink-0 rounded-lg border border-slate-600 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $dsc) ? $dsc : '#475569' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-slate-200 mb-2">Accent</label>
-                                        <input type="color" name="dark_accent_color" value="{{ setting('dark_accent_color', '#fbbf24') }}" class="w-full h-10 border border-slate-600 rounded-lg cursor-pointer">
+                                        <div class="flex gap-2 items-stretch">
+                                            <input type="text" name="dark_accent_color" id="hex_dark_accent" value="{{ $dac }}" maxlength="7" inputmode="text" autocomplete="off" placeholder="#fbbf24"
+                                                   pattern="#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})"
+                                                   class="flex-1 min-w-0 font-mono text-sm px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white focus:ring-2 focus:ring-blue-400"
+                                                   oninput="(function(el){var s=document.getElementById('swatch_dark_accent');if(!s)return;var v=el.value.trim();if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){s.style.backgroundColor=v;}else{s.style.backgroundColor='#475569';}})(this)">
+                                            <span id="swatch_dark_accent" class="w-11 h-11 shrink-0 rounded-lg border border-slate-600 shadow-inner" style="background-color: {{ preg_match('/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/', $dac) ? $dac : '#475569' }}" title="Aperçu" aria-hidden="true"></span>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="text-xs text-slate-400 mt-3">Ces couleurs s’appliquent lorsque le site est en thème sombre.</p>

@@ -35,6 +35,37 @@
     <form action="{{ route('admin.homepage.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
+        <!-- Design / disposition de la page d'accueil -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-lg p-6 border border-indigo-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-palette text-indigo-600 mr-2"></i>Design de la page d'accueil
+            </h2>
+            <p class="text-gray-600 text-sm mb-6">Choisissez la disposition et le style du hero : ordre des blocs et mise en avant différente pour chaque variante.</p>
+            @php $hl = old('layout', $config['layout'] ?? 'classic'); @endphp
+            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'classic' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
+                    <input type="radio" name="layout" value="classic" class="sr-only" {{ $hl === 'classic' ? 'checked' : '' }}>
+                    <span class="font-bold text-gray-900">Classique</span>
+                    <span class="text-xs text-gray-600 mt-1">Hero → stats → à propos → villes → services → … ordre standard.</span>
+                </label>
+                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'showcase' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
+                    <input type="radio" name="layout" value="showcase" class="sr-only" {{ $hl === 'showcase' ? 'checked' : '' }}>
+                    <span class="font-bold text-gray-900">Showcase</span>
+                    <span class="text-xs text-gray-600 mt-1">Hero plus impactant, services &amp; réalisations remontés juste après les chiffres.</span>
+                </label>
+                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'magazine' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
+                    <input type="radio" name="layout" value="magazine" class="sr-only" {{ $hl === 'magazine' ? 'checked' : '' }}>
+                    <span class="font-bold text-gray-900">Magazine</span>
+                    <span class="text-xs text-gray-600 mt-1">Style éditorial : hero en deux colonnes, portfolio &amp; avis en tête de page.</span>
+                </label>
+                <label class="relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition hover:shadow-md {{ $hl === 'conversion' ? 'border-indigo-600 bg-white ring-2 ring-indigo-200' : 'border-gray-200 bg-white' }}">
+                    <input type="radio" name="layout" value="conversion" class="sr-only" {{ $hl === 'conversion' ? 'checked' : '' }}>
+                    <span class="font-bold text-gray-900">Conversion</span>
+                    <span class="text-xs text-gray-600 mt-1">Bandeau contact + hero orienté devis/téléphone, avis avant le portfolio.</span>
+                </label>
+            </div>
+        </div>
+
         <!-- Trust Badges (Garantie, RGE, etc.) -->
         <div class="bg-white rounded-lg shadow-lg p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">
@@ -439,21 +470,143 @@
             <input type="hidden" name="stats_json" id="stats_json" value="">
         </div>
 
+        <!-- Partenaire mis en avant (image gauche / texte droite) -->
+        @php $pf = $config['partners']['featured'] ?? []; @endphp
+        <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-indigo-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-star text-indigo-500 mr-2"></i>Partenaire mis en avant
+            </h2>
+            <p class="text-gray-600 mb-6">Section dédiée sur la page d’accueil : <strong>image à gauche</strong>, <strong>texte à droite</strong> sur grand écran. Indépendante du bloc « Nos Partenaires » ci-dessous.</p>
+            <div class="mb-4">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" name="partners[featured][enabled]" value="1"
+                           {{ !empty($pf['enabled']) ? 'checked' : '' }}
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-5 h-5">
+                    <span class="ml-2 text-sm font-medium text-gray-700">Afficher la section « partenaire phare » (pleine largeur)</span>
+                </label>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Image (gauche)</label>
+                    @if(!empty($pf['image']))
+                    <div class="mb-2">
+                        <img src="{{ asset($pf['image']) }}" alt="Aperçu" class="max-h-40 rounded-lg border border-gray-200 object-contain">
+                    </div>
+                    @endif
+                    <input type="file" name="partners_featured_image" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    @if(!empty($pf['image']))
+                    <label class="inline-flex items-center mt-2 text-sm text-red-600 cursor-pointer">
+                        <input type="checkbox" name="remove_partners_featured_image" value="1" class="mr-2 rounded"> Supprimer l'image actuelle
+                    </label>
+                    @endif
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                        <input type="text" name="partners[featured][title]" value="{{ $pf['title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Ex. Notre partenaire fournisseur">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sous-titre (optionnel)</label>
+                        <input type="text" name="partners[featured][subtitle]" value="{{ $pf['subtitle'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Ex. Matériaux certifiés, livraison rapide">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Texte descriptif</label>
+                        <textarea name="partners[featured][body]" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                  placeholder="Présentez ce partenaire, vos valeurs communes, etc.">{{ $pf['body'] ?? '' }}</textarea>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Lien (optionnel)</label>
+                            <input type="url" name="partners[featured][link_url]" value="{{ $pf['link_url'] ?? '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Libellé du bouton</label>
+                            <input type="text" name="partners[featured][link_label]" value="{{ $pf['link_label'] ?? 'En savoir plus' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloc Nos Partenaires : texte + visuel (avant la grille de logos) -->
+        @php $pintro = $config['partners']['intro'] ?? []; @endphp
+        <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-teal-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-columns text-teal-600 mr-2"></i>Nos Partenaires — bloc texte + visuel
+            </h2>
+            <p class="text-gray-600 mb-6">
+                Affiché <strong>dans la même section</strong> que les logos, <strong>au-dessus de la grille</strong> : texte à <strong>gauche</strong>, logo ou image à <strong>droite</strong> (sur ordinateur ; sur mobile le visuel s’affiche en premier).
+            </p>
+            <div class="mb-4">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" name="partners[intro][enabled]" value="1"
+                           {{ !empty($pintro['enabled']) ? 'checked' : '' }}
+                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 w-5 h-5">
+                    <span class="ml-2 text-sm font-medium text-gray-700">Afficher ce bloc (texte + image à droite)</span>
+                </label>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Titre (optionnel)</label>
+                        <input type="text" name="partners[intro][title]" value="{{ $pintro['title'] ?? '' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Ex. Ils nous font confiance">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Texte</label>
+                        <textarea name="partners[intro][body]" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                  placeholder="Présentez vos partenariats, certifications, réseaux…">{{ $pintro['body'] ?? '' }}</textarea>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Lien (optionnel)</label>
+                            <input type="url" name="partners[intro][link_url]" value="{{ $pintro['link_url'] ?? '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="https://">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Libellé du bouton</label>
+                            <input type="text" name="partners[intro][link_label]" value="{{ $pintro['link_label'] ?? 'En savoir plus' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo ou image (à droite sur la page)</label>
+                    @if(!empty($pintro['image']))
+                    <div class="mb-2">
+                        <img src="{{ asset($pintro['image']) }}" alt="Aperçu bloc partenaires" class="max-h-48 rounded-lg border border-gray-200 object-contain">
+                    </div>
+                    @endif
+                    <input type="file" name="partners_intro_image" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    @if(!empty($pintro['image']))
+                    <label class="inline-flex items-center mt-2 text-sm text-red-600 cursor-pointer">
+                        <input type="checkbox" name="remove_partners_intro_image" value="1" class="mr-2 rounded"> Supprimer l’image actuelle
+                    </label>
+                    @endif
+                    <p class="text-xs text-gray-500 mt-2">PNG, JPG ou SVG recommandé — grande taille acceptée pour un rendu net.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Partners Logos -->
         <div class="bg-white rounded-lg shadow-lg p-6">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">
-                        <i class="fas fa-handshake text-purple-500 mr-2"></i>Logos des Partenaires
+                        <i class="fas fa-handshake text-purple-500 mr-2"></i>Grille des logos partenaires
                     </h2>
-                    <p class="text-gray-600 mt-2">Ajoutez les logos de vos partenaires. Ils apparaîtront sur la page d'accueil avec un bouton pour les afficher/masquer.</p>
+                    <p class="text-gray-600 mt-2">Logos affichés sous le bloc texte + visuel (taille augmentée sur la page d’accueil). Utilisez le bouton pour afficher ou masquer toute la grille.</p>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center shrink-0">
                     <label class="flex items-center cursor-pointer">
                         <input type="checkbox" name="partners[enabled]" value="1" 
                                {{ ($config['partners']['enabled'] ?? false) ? 'checked' : '' }}
                                class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-5 h-5">
-                        <span class="ml-2 text-sm font-medium text-gray-700">Afficher sur le site</span>
+                        <span class="ml-2 text-sm font-medium text-gray-700">Afficher la section des logos</span>
                     </label>
                 </div>
             </div>
