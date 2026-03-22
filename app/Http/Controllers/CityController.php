@@ -45,7 +45,35 @@ class CityController extends Controller
         // Compter les favoris
         $favoritesCount = City::where('is_favorite', true)->count();
 
-        return view('admin.cities.index', compact('cities','departments','regions','favoritesCount'));
+        // Ajouter le code département sur chaque ville (pour l'affichage "71 - Saône-et-Loire")
+        foreach ($cities as $city) {
+            $city->department_code = $this->departmentCodeFromName($city->department ?? '');
+        }
+
+        // Liste des départements déjà présents en base (distinct)
+        $existingDepartments = City::select('department')
+            ->selectRaw('COUNT(*) as cities_count')
+            ->whereNotNull('department')
+            ->groupBy('department')
+            ->orderBy('department')
+            ->get()
+            ->map(function($row) {
+                return [
+                    'name' => $row->department,
+                    'code' => $this->departmentCodeFromName($row->department),
+                    'cities_count' => $row->cities_count,
+                ];
+            });
+
+        // Préparer les départements avec codes pour les listes déroulantes
+        $departmentsWithCodes = collect($departments)->map(function($name) {
+            return [
+                'name' => $name,
+                'code' => $this->departmentCodeFromName($name),
+            ];
+        });
+
+        return view('admin.cities.index', compact('cities','departments','regions','favoritesCount', 'departmentsWithCodes', 'existingDepartments'));
     }
 
     public function store(Request $request)
@@ -81,6 +109,19 @@ class CityController extends Controller
         $city = City::findOrFail($id);
         $city->delete();
         return back()->with('success', 'Ville supprimée');
+    }
+
+    public function destroyByDepartment(Request $request)
+    {
+        $data = $request->validate([
+            'department' => 'required|string',
+        ]);
+
+        $deptName = $data['department'];
+        $count = City::where('department', $deptName)->count();
+        City::where('department', $deptName)->delete();
+
+        return back()->with('success', "Toutes les villes du département {$deptName} ({$count}) ont été supprimées.");
     }
 
     public function destroyAll()
@@ -152,8 +193,10 @@ class CityController extends Controller
                 'active' => true,
             ]);
         }
-        $msg = isset($result['error']) ? ('Avertissement: ' . $result['error']) : 'Import par département effectué (' . count($cities) . ' entrées).';
-        return back()->with('success', $msg);
+        if (isset($result['error'])) {
+            return back()->with('error', $result['error']);
+        }
+        return back()->with('success', 'Import par département effectué (' . count($cities) . ' villes ajoutées/existantes).');
     }
 
     public function importByRegion(Request $request)
@@ -175,8 +218,10 @@ class CityController extends Controller
                 'active' => true,
             ]);
         }
-        $msg = isset($result['error']) ? ('Avertissement: ' . $result['error']) : 'Import par région effectué (' . count($cities) . ' entrées).';
-        return back()->with('success', $msg);
+        if (isset($result['error'])) {
+            return back()->with('error', $result['error']);
+        }
+        return back()->with('success', 'Import par région effectué (' . count($cities) . ' villes ajoutées/existantes).');
     }
 
     public function importByRadius(Request $request)
@@ -201,6 +246,35 @@ class CityController extends Controller
         }
         $msg = isset($result['error']) ? ('Avertissement: ' . $result['error']) : 'Import par rayon effectué (' . count($cities) . ' entrées).';
         return back()->with('success', $msg);
+    }
+
+    private function departmentCodeFromName(?string $name): ?string
+    {
+        if (!$name) return null;
+        $map = [
+            'Ain' => '01', 'Aisne' => '02', 'Allier' => '03', 'Alpes-de-Haute-Provence' => '04', 'Hautes-Alpes' => '05',
+            'Alpes-Maritimes' => '06', 'Ardèche' => '07', 'Ardennes' => '08', 'Ariège' => '09', 'Aube' => '10',
+            'Aude' => '11', 'Aveyron' => '12', 'Bouches-du-Rhône' => '13', 'Calvados' => '14', 'Cantal' => '15',
+            'Charente' => '16', 'Charente-Maritime' => '17', 'Cher' => '18', 'Corrèze' => '19', 'Corse-du-Sud' => '2A',
+            'Haute-Corse' => '2B', 'Côte-d\'Or' => '21', 'Côtes-d\'Armor' => '22', 'Creuse' => '23', 'Dordogne' => '24',
+            'Doubs' => '25', 'Drôme' => '26', 'Eure' => '27', 'Eure-et-Loir' => '28', 'Finistère' => '29',
+            'Gard' => '30', 'Haute-Garonne' => '31', 'Gers' => '32', 'Gironde' => '33', 'Hérault' => '34',
+            'Ille-et-Vilaine' => '35', 'Indre' => '36', 'Indre-et-Loire' => '37', 'Isère' => '38', 'Jura' => '39',
+            'Landes' => '40', 'Loir-et-Cher' => '41', 'Loire' => '42', 'Haute-Loire' => '43', 'Loire-Atlantique' => '44',
+            'Loiret' => '45', 'Lot' => '46', 'Lot-et-Garonne' => '47', 'Lozère' => '48', 'Maine-et-Loire' => '49',
+            'Manche' => '50', 'Marne' => '51', 'Haute-Marne' => '52', 'Mayenne' => '53', 'Meurthe-et-Moselle' => '54',
+            'Meuse' => '55', 'Morbihan' => '56', 'Moselle' => '57', 'Nièvre' => '58', 'Nord' => '59',
+            'Oise' => '60', 'Orne' => '61', 'Pas-de-Calais' => '62', 'Puy-de-Dôme' => '63', 'Pyrénées-Atlantiques' => '64',
+            'Hautes-Pyrénées' => '65', 'Pyrénées-Orientales' => '66', 'Bas-Rhin' => '67', 'Haut-Rhin' => '68',
+            'Rhône' => '69', 'Haute-Saône' => '70', 'Saône-et-Loire' => '71', 'Sarthe' => '72', 'Savoie' => '73',
+            'Haute-Savoie' => '74', 'Paris' => '75', 'Seine-Maritime' => '76', 'Seine-et-Marne' => '77', 'Yvelines' => '78',
+            'Deux-Sèvres' => '79', 'Somme' => '80', 'Tarn' => '81', 'Tarn-et-Garonne' => '82', 'Var' => '83',
+            'Vaucluse' => '84', 'Vendée' => '85', 'Vienne' => '86', 'Haute-Vienne' => '87', 'Vosges' => '88',
+            'Yonne' => '89', 'Territoire de Belfort' => '90', 'Essonne' => '91', 'Hauts-de-Seine' => '92',
+            'Seine-Saint-Denis' => '93', 'Val-de-Marne' => '94', 'Val-d\'Oise' => '95', 'Guadeloupe' => '971',
+            'Martinique' => '972', 'Guyane' => '973', 'La Réunion' => '974', 'Mayotte' => '976',
+        ];
+        return $map[$name] ?? null;
     }
 
     // --- Fake generators (placeholder for IA/API Geo) ---

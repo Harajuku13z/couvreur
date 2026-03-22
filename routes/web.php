@@ -416,6 +416,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::delete('/{id}', [App\Http\Controllers\CityController::class, 'destroy'])->name('destroy');
             Route::post('/{id}/toggle-favorite', [App\Http\Controllers\CityController::class, 'toggleFavorite'])->name('toggle-favorite');
             Route::delete('/destroy/all', [App\Http\Controllers\CityController::class, 'destroyAll'])->name('destroy.all');
+            Route::delete('/destroy/by-department', [App\Http\Controllers\CityController::class, 'destroyByDepartment'])->name('destroy.by-department');
             Route::post('/import/json', [App\Http\Controllers\CityController::class, 'importFromJson'])->name('import.json');
             Route::post('/import/department', [App\Http\Controllers\CityController::class, 'importByDepartment'])->name('import.department');
             Route::post('/import/region', [App\Http\Controllers\CityController::class, 'importByRegion'])->name('import.region');

@@ -79,8 +79,10 @@
                 <label class="text-sm font-medium">Département</label>
                 <select name="department" class="border rounded px-3 py-2 w-full" required>
                     <option value="">Sélectionner</option>
-                    @foreach($departments as $dep)
-                        <option value="{{ $dep }}">{{ $dep }}</option>
+                    @foreach($departmentsWithCodes as $dep)
+                        <option value="{{ $dep['name'] }}">
+                            {{ $dep['code'] ? $dep['code'] . ' - ' : '' }}{{ $dep['name'] }}
+                        </option>
                     @endforeach
                 </select>
                 <button class="bg-blue-600 text-white rounded px-4 py-2 w-full">Importer</button>
@@ -111,6 +113,28 @@
         <p class="text-xs text-gray-500 mt-2">Inclut villes, communes et villages.</p>
 
     </div>
+
+    @if(isset($existingDepartments) && $existingDepartments->count() > 0)
+    <div class="bg-white rounded shadow p-4 mb-6">
+        <h2 class="text-lg font-semibold mb-3">Départements déjà importés</h2>
+        <div class="grid md:grid-cols-3 gap-3 text-sm">
+            @foreach($existingDepartments as $dept)
+                <div class="border rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold">{{ $dept['code'] ? $dept['code'] . ' - ' : '' }}{{ $dept['name'] }}</div>
+                        <div class="text-gray-500 text-xs">{{ $dept['cities_count'] }} villes</div>
+                    </div>
+                    <form method="POST" action="{{ route('admin.cities.destroy.by-department') }}" onsubmit="return confirm('Supprimer toutes les villes du département {{ $dept['code'] ? $dept['code'] . ' - ' : '' }}{{ $dept['name'] }} ?');">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="department" value="{{ $dept['name'] }}">
+                        <button class="px-3 py-1 bg-red-600 text-white rounded text-xs">Tout supprimer</button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <form method="POST" action="{{ route('admin.cities.store') }}" class="mb-8 grid grid-cols-1 md:grid-cols-5 gap-3">
         @csrf
@@ -143,7 +167,7 @@
                         <span>{{ $city->postal_code }}</span>
                         @if($city->department)
                             <span>•</span>
-                            <span>{{ $city->department }}</span>
+                            <span>{{ $city->department_code ? $city->department_code . ' - ' : '' }}{{ $city->department }}</span>
                         @endif
                         @if($city->region)
                             <span>•</span>
@@ -202,7 +226,7 @@
                 <tr class="border-t">
                     <td class="p-3">{{ $city->name }}</td>
                     <td class="p-3">{{ $city->postal_code }}</td>
-                    <td class="p-3">{{ $city->department }}</td>
+                    <td class="p-3">{{ $city->department_code ? $city->department_code . " - ": "" }}{{ $city->department }}</td>
                     <td class="p-3">{{ $city->region }}</td>
                     <td class="p-3">
                         <form method="POST" action="{{ route('admin.cities.update', $city->id) }}">
