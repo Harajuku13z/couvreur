@@ -1,4 +1,4 @@
-    <!-- Section Nos Partenaires : bloc intro (texte gauche / visuel droite) + grille logos -->
+    <!-- Section Nos Partenaires : bloc intro + grille logos -->
     @php
         $p = $homeConfig['partners'] ?? [];
         $intro = $p['intro'] ?? [];
@@ -12,7 +12,7 @@
     @if($showPartnersSection)
     <section class="py-14 md:py-20 bg-gray-50 dark:bg-gray-900/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-lg border border-gray-100/90 dark:border-gray-700 px-5 py-10 md:px-12 md:py-14">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-lg border border-gray-100/90 dark:border-gray-700 px-5 py-10 md:px-10 md:py-12 lg:px-12">
                 <!-- Titre commun -->
                 <div class="text-center mb-10 md:mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">{{ $partnersTitle }}</h2>
@@ -20,8 +20,8 @@
                 </div>
 
                 @if($showIntro)
-                <!-- Bloc spécial : texte à gauche, logo ou image à droite -->
-                <div class="grid md:grid-cols-2 gap-10 lg:gap-14 items-center mb-12 md:mb-14">
+                <!-- Bloc spécial : texte à gauche, visuel à droite -->
+                <div class="grid md:grid-cols-2 gap-10 lg:gap-14 items-center mb-0">
                     <div class="order-2 md:order-1 text-center md:text-left">
                         @if(!empty($intro['title']))
                         <h3 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">{{ $intro['title'] }}</h3>
@@ -38,7 +38,7 @@
                         </a>
                         @endif
                     </div>
-                    <div class="order-1 md:order-2 rounded-2xl overflow-hidden shadow-xl bg-gray-100 dark:bg-gray-700 min-h-[200px] md:min-h-[260px] flex items-center justify-center p-6 md:p-8">
+                    <div class="order-1 md:order-2 rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 min-h-[200px] md:min-h-[260px] flex items-center justify-center p-6 md:p-8 ring-1 ring-gray-200/80 dark:ring-gray-600">
                         @if(!empty($intro['image']))
                         <img src="{{ asset($intro['image']) }}"
                              alt="{{ strip_tags($intro['title'] ?? 'Partenaires') }}"
@@ -55,31 +55,61 @@
                 @endif
 
                 @if($showLogos)
-                <!-- Grille de logos (tailles augmentées) -->
-                <div class="flex flex-wrap justify-center items-center gap-6 md:gap-12 lg:gap-16">
-                    @foreach($partners as $partner)
-                        @if(!empty($partner['logo']))
-                        <div class="partner-logo-container w-[190px] sm:w-[240px] md:w-[300px] lg:w-[340px] h-28 md:h-40 lg:h-44 flex items-center justify-center p-4 md:p-6 bg-gray-50 dark:bg-gray-700/50 md:bg-white dark:md:bg-gray-700 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-shadow flex-shrink-0 border border-gray-100 dark:border-gray-600">
-                            @if(!empty($partner['url']))
-                            <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
-                                <img
-                                    src="{{ asset($partner['logo']) }}"
-                                    alt="{{ $partner['name'] ?? 'Partenaire' }}"
-                                    class="max-w-full max-h-[6rem] md:max-h-[8.5rem] lg:max-h-[10rem] w-auto object-contain transition-all duration-300 opacity-100 hover:opacity-90"
-                                    loading="lazy"
-                                    onerror="this.style.display='none';">
-                            </a>
-                            @else
-                            <img
-                                src="{{ asset($partner['logo']) }}"
-                                alt="{{ $partner['name'] ?? 'Partenaire' }}"
-                                class="max-w-full max-h-[6rem] md:max-h-[8.5rem] lg:max-h-[10rem] w-auto object-contain opacity-100"
-                                loading="lazy"
-                                onerror="this.style.display='none';">
+                <!-- Zone logos : grille alignée à gauche (plus de flex centré) -->
+                <div class="@if($showIntro) mt-12 pt-10 border-t border-gray-200 dark:border-gray-600 @endif">
+                    @if($showIntro)
+                    <div class="mb-8 text-center md:text-left">
+                        <p class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                            Ils nous font confiance
+                        </p>
+                        <p class="text-base text-gray-600 dark:text-gray-300 max-w-2xl">
+                            Découvrez les organisations et marques avec lesquelles nous travaillons.
+                        </p>
+                    </div>
+                    @endif
+
+                    {{-- Grille responsive : colonnes égales, logos alignés en haut à gauche comme une galerie --}}
+                    <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 list-none p-0 m-0 w-full"
+                        role="list"
+                        style="justify-items: stretch;">
+                        @foreach($partners as $partner)
+                            @if(!empty($partner['logo']))
+                            <li class="min-w-0">
+                                <div class="partner-logo-container group h-full min-h-[7.5rem] sm:min-h-[8.5rem] md:min-h-[9.5rem] flex flex-col items-center justify-center rounded-2xl border border-gray-100 dark:border-gray-600 bg-gradient-to-b from-white to-gray-50/90 dark:from-gray-800 dark:to-gray-800/90 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[color:var(--primary-color)]/25 hover:-translate-y-0.5">
+                                    @if(!empty($partner['url']))
+                                    <a href="{{ $partner['url'] }}" target="_blank" rel="noopener noreferrer" class="flex flex-1 w-full flex-col items-center justify-center gap-2 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[color:var(--primary-color)]">
+                                        <span class="flex flex-1 w-full items-center justify-center min-h-[4rem] sm:min-h-[5rem]">
+                                            <img
+                                                src="{{ asset($partner['logo']) }}"
+                                                alt="{{ $partner['name'] ?? 'Partenaire' }}"
+                                                class="max-w-[85%] max-h-[4.5rem] sm:max-h-[5.5rem] md:max-h-24 w-auto object-contain object-center transition-all duration-300 opacity-95 group-hover:opacity-100 group-hover:scale-[1.02]"
+                                                loading="lazy"
+                                                onerror="this.style.display='none';">
+                                        </span>
+                                        @if(!empty($partner['name']))
+                                        <span class="text-[11px] sm:text-xs font-medium text-center text-gray-500 dark:text-gray-400 leading-tight px-1 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{{ $partner['name'] }}</span>
+                                        @endif
+                                    </a>
+                                    @else
+                                    <div class="flex flex-1 w-full flex-col items-center justify-center gap-2">
+                                        <span class="flex flex-1 w-full items-center justify-center min-h-[4rem] sm:min-h-[5rem]">
+                                            <img
+                                                src="{{ asset($partner['logo']) }}"
+                                                alt="{{ $partner['name'] ?? 'Partenaire' }}"
+                                                class="max-w-[85%] max-h-[4.5rem] sm:max-h-[5.5rem] md:max-h-24 w-auto object-contain object-center"
+                                                loading="lazy"
+                                                onerror="this.style.display='none';">
+                                        </span>
+                                        @if(!empty($partner['name']))
+                                        <span class="text-[11px] sm:text-xs font-medium text-center text-gray-500 dark:text-gray-400 line-clamp-2 leading-tight px-1">{{ $partner['name'] }}</span>
+                                        @endif
+                                    </div>
+                                    @endif
+                                </div>
+                            </li>
                             @endif
-                        </div>
-                        @endif
-                    @endforeach
+                        @endforeach
+                    </ul>
                 </div>
                 @endif
             </div>
