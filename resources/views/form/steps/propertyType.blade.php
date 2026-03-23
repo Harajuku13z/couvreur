@@ -28,7 +28,51 @@
         $ptVal = in_array($p, ['HOUSE', 'maison', 'MAISON'], true) ? 'maison' : (in_array($p, ['APARTMENT', 'appartement', 'APPARTEMENT'], true) ? 'appartement' : '');
     }
 @endphp
-<div class="simulator-step min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+@push('head')
+<style>
+    /*
+     * propertyType : forcer le texte en blanc + champs avec texte saisi blanc.
+     * Cible uniquement cette étape via #propertyTypeSimulator pour éviter d’impacter les autres pages.
+     */
+    #propertyTypeSimulator * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    #propertyTypeSimulator input[type="text"],
+    #propertyTypeSimulator input[type="email"],
+    #propertyTypeSimulator input[type="tel"],
+    #propertyTypeSimulator input[type="number"],
+    #propertyTypeSimulator input[type="search"],
+    #propertyTypeSimulator input[type="url"],
+    #propertyTypeSimulator textarea,
+    #propertyTypeSimulator select {
+        color: #ffffff !important;
+        background-color: #0f172a !important;
+        -webkit-text-fill-color: #ffffff !important;
+        border-color: rgba(255,255,255,0.18) !important;
+    }
+    #propertyTypeSimulator input::placeholder,
+    #propertyTypeSimulator textarea::placeholder {
+        color: rgba(226,232,240,0.75) !important;
+        -webkit-text-fill-color: rgba(226,232,240,0.75) !important;
+    }
+    #propertyTypeSimulator .bg-white,
+    #propertyTypeSimulator .bg-slate-200 {
+        background-color: #0f172a !important;
+    }
+    #propertyTypeSimulator .bg-white/80 {
+        background-color: rgba(15,23,42,0.85) !important;
+    }
+    #propertyTypeSimulator .gender-option,
+    #propertyTypeSimulator .property-option {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+</style>
+@endpush
+
+<div id="propertyTypeSimulator" class="simulator-step min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-3xl mx-auto">
             <!-- Progress -->
