@@ -304,6 +304,7 @@ class HomeController extends Controller
                     ->where('is_active', true)
                     ->where('department', $name)
                     ->orderByDesc('is_favorite')
+                    ->orderByRaw('COALESCE(population, 0) DESC')
                     ->orderBy('name')
                     ->first();
                 $url = $city
@@ -322,6 +323,7 @@ class HomeController extends Controller
                     }
                 })
                 ->orderByDesc('is_favorite')
+                ->orderByRaw('COALESCE(population, 0) DESC')
                 ->orderBy('name')
                 ->limit(40)
                 ->get();
