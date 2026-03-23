@@ -7,6 +7,7 @@ use App\Models\Review;
 use App\Models\City;
 use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
@@ -290,6 +291,8 @@ class HomeController extends Controller
             $overrides = [];
         }
 
+        $hasPopulationColumn = Schema::hasColumn('cities', 'population');
+
         $items = [];
         foreach ($codes as $raw) {
             $code = FrenchDepartments::normalizeCode((string) $raw);
@@ -304,7 +307,9 @@ class HomeController extends Controller
                     ->where('is_active', true)
                     ->where('department', $name)
                     ->orderByDesc('is_favorite')
-                    ->orderByRaw('COALESCE(population, 0) DESC')
+                    ->when($hasPopulationColumn, function ($q) {
+                        $q->orderByRaw('COALESCE(population, 0) DESC');
+                    })
                     ->orderBy('name')
                     ->first();
                 $url = $city
@@ -323,7 +328,9 @@ class HomeController extends Controller
                     }
                 })
                 ->orderByDesc('is_favorite')
-                ->orderByRaw('COALESCE(population, 0) DESC')
+                ->when($hasPopulationColumn, function ($q) {
+                    $q->orderByRaw('COALESCE(population, 0) DESC');
+                })
                 ->orderBy('name')
                 ->limit(40)
                 ->get();
