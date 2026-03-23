@@ -309,6 +309,10 @@ class HomeController extends Controller
                     ->orderByDesc('is_favorite')
                     ->when($hasPopulationColumn, function ($q) {
                         $q->orderByRaw('COALESCE(population, 0) DESC');
+                    }, function ($q) {
+                        // Fallback sans colonne population : on remonte les villes "capitales"
+                        // via le code postal (ex. 64000 pour Pau dans le 64).
+                        $q->orderBy('postal_code', 'asc');
                     })
                     ->orderBy('name')
                     ->first();
@@ -330,6 +334,8 @@ class HomeController extends Controller
                 ->orderByDesc('is_favorite')
                 ->when($hasPopulationColumn, function ($q) {
                     $q->orderByRaw('COALESCE(population, 0) DESC');
+                }, function ($q) {
+                    $q->orderBy('postal_code', 'asc');
                 })
                 ->orderBy('name')
                 ->limit(40)
