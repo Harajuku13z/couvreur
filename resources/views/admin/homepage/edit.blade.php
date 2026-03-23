@@ -487,7 +487,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre à Afficher</label>
                             <input type="number" name="sections[services][limit]" value="{{ $config['sections']['services']['limit'] }}" 
-                                   min="1" max="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                   min="1" max="25" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                     </div>
                 </div>
@@ -511,7 +511,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre à Afficher</label>
                             <input type="number" name="sections[portfolio][limit]" value="{{ $config['sections']['portfolio']['limit'] }}" 
-                                   min="1" max="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                   min="1" max="25" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                     </div>
                 </div>
@@ -535,7 +535,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre à Afficher</label>
                             <input type="number" name="sections[reviews][limit]" value="{{ $config['sections']['reviews']['limit'] }}" 
-                                   min="1" max="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                   min="1" max="25" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                     </div>
                 </div>
