@@ -55,6 +55,12 @@
                             <i class="fas fa-phone mr-2"></i> {{ $phoneMain }}
                         </a>
                         @endif
+                        @if(($homeConfig['hero']['show_phone'] ?? true) && $phone2)
+                        <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}"
+                           class="inline-flex justify-center items-center border-2 border-white/60 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition">
+                            <i class="fas fa-phone-alt mr-2"></i> {{ $phone2 }}
+                        </a>
+                        @endif
                     </div>
                 </div>
                 <div class="lg:col-span-5 w-full mt-10 lg:mt-0">
