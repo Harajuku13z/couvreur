@@ -6,6 +6,7 @@ use App\Models\Setting;
 use App\Models\Review;
 use App\Models\City;
 use App\Support\FrenchDepartments;
+use App\Services\DepartmentTopCitiesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -292,6 +293,7 @@ class HomeController extends Controller
         }
 
         $hasPopulationColumn = Schema::hasColumn('cities', 'population');
+        $topCitiesService = $hasPopulationColumn ? null : app(DepartmentTopCitiesService::class);
 
         $items = [];
         foreach ($codes as $raw) {
@@ -303,50 +305,102 @@ class HomeController extends Controller
 
             $url = $overrides[$code] ?? $overrides[$raw] ?? $overrides[(string) (int) $code] ?? null;
             if (empty($url)) {
-                $city = City::query()
-                    ->where('is_active', true)
-                    ->where('department', $name)
-                    ->orderByDesc('is_favorite')
-                    ->when($hasPopulationColumn, function ($q) {
-                        $q->orderByRaw('COALESCE(population, 0) DESC');
-                    }, function ($q) {
-                        // Fallback sans colonne population : on remonte les villes "capitales"
-                        // via le code postal (ex. 64000 pour Pau dans le 64).
-                        $q->orderBy('postal_code', 'asc');
-                    })
-                    ->orderBy('name')
-                    ->first();
-                $url = $city
-                    ? route('ads.index') . '?city=' . urlencode($city->slug)
-                    : route('contact');
+                if ($hasPopulationColumn) {
+                    $city = City::query()
+                        ->where('is_active', true)
+                        ->where('department', $name)
+                        ->orderByDesc('is_favorite')
+                        ->orderByRaw('COALESCE(population, 0) DESC')
+                        ->orderBy('name')
+                        ->first();
+
+                    $url = $city
+                        ? route('ads.index') . '?city=' . urlencode($city->slug)
+                        : route('contact');
+                } else {
+                    $top = $topCitiesService?->getTopCitiesByPopulation($name, 20) ?? [];
+                    $first = $top[0] ?? null;
+
+                    $city = null;
+                    if ($first && !empty($first['postal_code'])) {
+                        $city = City::query()
+                            ->where('is_active', true)
+                            ->where('department', $name)
+                            ->where('postal_code', (string) $first['postal_code'])
+                            ->first();
+                    }
+                    if (!$city && $first && !empty($first['name'])) {
+                        $slug = \Illuminate\Support\Str::slug((string) $first['name']);
+                        $city = City::query()
+                            ->where('is_active', true)
+                            ->where('department', $name)
+                            ->where('slug', $slug)
+                            ->first();
+                    }
+
+                    if ($city) {
+                        $url = route('ads.index') . '?city=' . urlencode($city->slug);
+                    } else {
+                        $url = $first && !empty($first['name'])
+                            ? route('ads.index') . '?city=' . urlencode(\Illuminate\Support\Str::slug((string) $first['name']))
+                            : route('contact');
+                    }
+                }
             }
 
-            $citiesInDept = City::query()
-                ->where('is_active', true)
-                ->where(function ($q) use ($name, $code) {
-                    $q->where('department', $name)
-                        ->orWhere('department', $code);
-                    // Certaines bases enregistrent le département en chiffres seuls (ex. 49 ou 9 pour 09)
-                    if (preg_match('/^\d{2,3}$/', (string) $code)) {
-                        $q->orWhere('department', (string) (int) $code);
-                    }
-                })
-                ->orderByDesc('is_favorite')
-                ->when($hasPopulationColumn, function ($q) {
-                    $q->orderByRaw('COALESCE(population, 0) DESC');
-                }, function ($q) {
-                    $q->orderBy('postal_code', 'asc');
-                })
-                ->orderBy('name')
-                ->limit(40)
-                ->get();
+            if ($hasPopulationColumn) {
+                $citiesInDept = City::query()
+                    ->where('is_active', true)
+                    ->where(function ($q) use ($name, $code) {
+                        $q->where('department', $name)
+                            ->orWhere('department', $code);
+                        // Certaines bases enregistrent le département en chiffres seuls (ex. 49 ou 9 pour 09)
+                        if (preg_match('/^\d{2,3}$/', (string) $code)) {
+                            $q->orWhere('department', (string) (int) $code);
+                        }
+                    })
+                    ->orderByDesc('is_favorite')
+                    ->orderByRaw('COALESCE(population, 0) DESC')
+                    ->orderBy('name')
+                    ->limit(20)
+                    ->get();
 
-            $citiesForView = $citiesInDept->map(function ($c) {
-                return [
-                    'name' => $c->name,
-                    'url' => route('ads.index') . '?city=' . urlencode($c->slug),
-                ];
-            })->values()->all();
+                $citiesForView = $citiesInDept->map(function ($c) {
+                    return [
+                        'name' => $c->name,
+                        'url' => route('ads.index') . '?city=' . urlencode($c->slug),
+                    ];
+                })->values()->all();
+            } else {
+                // Sans colonne population sur `cities` : on récupère un top 20 par population (cache) et on affiche uniquement ces 20 villes.
+                $top = $topCitiesService?->getTopCitiesByPopulation($name, 20) ?? [];
+                $citiesForView = [];
+                foreach ($top as $t) {
+                    $city = null;
+                    if (!empty($t['postal_code'])) {
+                        $city = City::query()
+                            ->where('is_active', true)
+                            ->where('department', $name)
+                            ->where('postal_code', (string) $t['postal_code'])
+                            ->first();
+                    }
+                    if (!$city && !empty($t['name'])) {
+                        $slug = \Illuminate\Support\Str::slug((string) $t['name']);
+                        $city = City::query()
+                            ->where('is_active', true)
+                            ->where('department', $name)
+                            ->where('slug', $slug)
+                            ->first();
+                    }
+
+                    $citiesForView[] = [
+                        'name' => $t['name'] ?? '',
+                        'url' => $city
+                            ? route('ads.index') . '?city=' . urlencode($city->slug)
+                            : route('ads.index') . '?city=' . urlencode(\Illuminate\Support\Str::slug((string) ($t['name'] ?? ''))),
+                    ];
+                }
+            }
 
             $items[] = [
                 'code' => $code,
