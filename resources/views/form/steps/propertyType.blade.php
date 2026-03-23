@@ -34,7 +34,7 @@
      * propertyType : forcer le texte en blanc + champs avec texte saisi blanc.
      * Cible uniquement cette étape via #propertyTypeSimulator pour éviter d’impacter les autres pages.
      */
-    #propertyTypeSimulator * {
+    #propertyTypeSimulator :not(.simulator-step-intro):not(.simulator-step-intro *) {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
     }
@@ -89,11 +89,11 @@
             <div class="no-theme bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 overflow-hidden mb-8">
                 <div class="simulator-step-intro px-5 sm:px-8 pt-8 sm:pt-10 pb-6 text-center"
                      style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                    <h1 class="text-2xl sm:text-3xl font-bold mb-3 text-white drop-shadow-sm">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-3 drop-shadow-sm" style="color:#0f172a !important;">
                         Votre projet en quelques clics
                     </h1>
-                    <p class="text-white/95 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-                        Indiquez d’abord <strong class="text-white font-semibold">comment nous vous contacter</strong> : ces informations servent uniquement à vous envoyer votre <strong class="text-white font-semibold">devis personnalisé</strong> et à vous recontacter sur votre projet.
+                    <p class="text-sm sm:text-base max-w-xl mx-auto leading-relaxed" style="color:#0f172a !important;">
+                        Indiquez d’abord <strong class="font-semibold" style="color:#0f172a !important;">comment nous vous contacter</strong> : ces informations servent uniquement à vous envoyer votre <strong class="font-semibold" style="color:#0f172a !important;">devis personnalisé</strong> et à vous recontacter sur votre projet.
                     </p>
                 </div>
 
