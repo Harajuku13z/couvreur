@@ -17,9 +17,9 @@
             @endif
         </div>
 
-        {{-- Liste des départements en premier sur mobile : visible sans scroller la carte --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 items-start">
-            <div class="lg:col-span-1 space-y-5 order-1 w-full min-w-0">
+        {{-- Liste + carte : même hauteur sur grand écran (alignement sur la colonne la plus haute) --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 lg:items-stretch">
+            <div class="lg:col-span-1 space-y-5 order-1 w-full min-w-0 lg:h-full lg:min-h-0 flex flex-col">
                 @php
                     $deptMapItems = $departmentsMap['items'] ?? [];
                     $deptMapUseCityCollapse = count($deptMapItems) > 1;
@@ -32,7 +32,7 @@
                         et les principales villes desservies.
                     @endif
                 </p>
-                <ul class="space-y-4">
+                <ul class="space-y-4 flex-1 min-h-0 lg:overflow-y-auto pr-1">
                     @foreach($deptMapItems as $row)
                         <li class="rounded-2xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/80 p-4 shadow-sm">
                             <a href="{{ $row['url'] }}"
@@ -81,8 +81,8 @@
                     @endforeach
                 </ul>
             </div>
-            <div class="lg:col-span-2 order-2 w-full min-w-0 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-lg bg-slate-50 dark:bg-slate-800/50">
-                <div id="france-departments-leaflet-map" class="w-full min-h-[400px] sm:min-h-[480px] md:min-h-[560px] lg:min-h-[640px] xl:min-h-[720px] z-0" role="img" aria-label="Carte des départements français"></div>
+            <div class="lg:col-span-2 order-2 w-full min-w-0 min-h-[400px] sm:min-h-[480px] lg:min-h-0 lg:h-full flex flex-col rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-lg bg-slate-50 dark:bg-slate-800/50">
+                <div id="france-departments-leaflet-map" class="w-full flex-1 min-h-[400px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-0 h-[420px] lg:h-auto z-0" role="img" aria-label="Carte des départements français"></div>
             </div>
         </div>
     </div>
@@ -96,14 +96,14 @@
     const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#2563eb';
     const secondary = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim() || '#10b981';
 
-    const highlight = new Set(items.map(function (it) { return String(it.code).toUpperCase(); }));
-
     function normalizeCode(c) {
         c = String(c || '').trim().toUpperCase();
         if (c === '2A' || c === '2B') return c;
         if (/^\d+$/.test(c)) return c.padStart(2, '0');
         return c;
     }
+
+    const highlight = new Set(items.map(function (it) { return normalizeCode(it.code); }));
 
     const urlByCode = {};
     items.forEach(function (it) {
@@ -142,9 +142,36 @@
                 }
             });
             layer.addTo(map);
+
+            var targetBounds = null;
+            if (geojson.features && geojson.features.length) {
+                geojson.features.forEach(function (feat) {
+                    var code = normalizeCode(feat.properties && feat.properties.code);
+                    if (!highlight.has(code)) return;
+                    try {
+                        var b = L.geoJSON(feat).getBounds();
+                        if (b && b.isValid()) {
+                            targetBounds = targetBounds ? targetBounds.extend(b) : b;
+                        }
+                    } catch (e) {}
+                });
+            }
             try {
-                map.fitBounds(layer.getBounds(), { padding: [24, 24] });
+                if (targetBounds && targetBounds.isValid()) {
+                    map.fitBounds(targetBounds, {
+                        padding: [32, 32],
+                        maxZoom: highlight.size === 1 ? 10 : 9
+                    });
+                } else {
+                    map.fitBounds(layer.getBounds(), { padding: [24, 24] });
+                }
             } catch (e) {}
+            setTimeout(function () {
+                try { map.invalidateSize(); } catch (e2) {}
+            }, 0);
+            window.addEventListener('resize', function () {
+                try { map.invalidateSize(); } catch (e3) {}
+            });
         })
         .catch(function () {
             document.getElementById('france-departments-leaflet-map').innerHTML =
