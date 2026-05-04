@@ -1,80 +1,94 @@
-    <!-- Comment ça marche — plein conteneur, design modernisé -->
-    <section class="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-y border-gray-100/80 dark:border-slate-800">
+    <!-- Comment ça marche — adapté élagage Oise -->
+    <section class="py-20 bg-gray-50 border-y border-gray-100">
         <div class="site-shell">
-            <header class="text-center mb-12 md:mb-16 px-1">
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
-                    Comment ça marche ?
+
+            <div class="text-center mb-14">
+                <p class="text-sm font-bold uppercase tracking-widest mb-3" style="color:var(--primary-color);">Simple & rapide</p>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
+                    Comment se déroule votre intervention ?
                 </h2>
-                <div class="w-24 h-1.5 mx-auto mt-5 rounded-full" style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
-                <p class="mt-5 text-lg md:text-xl text-gray-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
-                    Un processus simple et transparent en <span class="font-semibold text-gray-800 dark:text-slate-200">4 étapes</span>
+                <p class="text-gray-500 max-w-xl mx-auto text-lg">
+                    Du premier contact à la fin du chantier, tout est transparent et organisé
                 </p>
-            </header>
+            </div>
 
-            {{-- Ligne de progression (desktop xl uniquement) --}}
-            <div class="relative w-full">
-                <div class="hidden xl:block absolute top-14 left-[8%] right-[8%] h-[3px] rounded-full opacity-40 pointer-events-none z-0"
-                     style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));"></div>
+            {{-- Ligne de progression desktop --}}
+            <div class="relative">
+                <div class="hidden lg:block absolute top-[3.25rem] left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r pointer-events-none z-0"
+                     style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 xl:gap-5 relative z-[1] w-full">
-                    @php
-                        $steps = [
-                            [
-                                'n' => 1,
-                                'title' => 'Demande de devis',
-                                'text' => 'Remplissez notre formulaire en ligne pour recevoir un devis personnalisé et gratuit.',
-                                'icon' => 'fas fa-file-signature',
-                            ],
-                            [
-                                'n' => 2,
-                                'title' => 'Étude du projet',
-                                'text' => 'Nos experts analysent vos besoins et vous proposent la meilleure solution.',
-                                'icon' => 'fas fa-search-location',
-                            ],
-                            [
-                                'n' => 3,
-                                'title' => 'Planification',
-                                'text' => 'Nous planifions les travaux selon vos disponibilités et nos délais d’intervention.',
-                                'icon' => 'fas fa-calendar-check',
-                            ],
-                            [
-                                'n' => 4,
-                                'title' => 'Réalisation',
-                                'text' => 'Nos équipes qualifiées réalisent vos travaux avec professionnalisme et qualité.',
-                                'icon' => 'fas fa-hard-hat',
-                            ],
-                        ];
-                    @endphp
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+                    @php $steps = [
+                        [
+                            'n'     => 1,
+                            'icon'  => 'fas fa-phone-alt',
+                            'title' => 'Prise de contact',
+                            'text'  => 'Appelez-nous ou remplissez le formulaire en ligne. Nous vous répondons sous 24h pour toute intervention dans l\'Oise (60).',
+                            'color' => 'emerald',
+                        ],
+                        [
+                            'n'     => 2,
+                            'icon'  => 'fas fa-search-location',
+                            'title' => 'Visite & devis gratuit',
+                            'text'  => 'Nous nous déplaçons sur votre site (Compiègne, Beauvais, Senlis…) pour évaluer les arbres et établir un devis détaillé, gratuit et sans engagement.',
+                            'color' => 'blue',
+                        ],
+                        [
+                            'n'     => 3,
+                            'icon'  => 'fas fa-calendar-check',
+                            'title' => 'Planification',
+                            'text'  => 'Nous convenons ensemble d\'une date d\'intervention adaptée à vos disponibilités et à la saison, en respectant les réglementations locales de l\'Oise.',
+                            'color' => 'violet',
+                        ],
+                        [
+                            'n'     => 4,
+                            'icon'  => 'fas fa-hard-hat',
+                            'title' => 'Intervention & nettoyage',
+                            'text'  => 'Notre équipe réalise les travaux d\'élagage ou d\'abattage en toute sécurité, puis nettoie intégralement le chantier. Broyage des rémanents possible.',
+                            'color' => 'amber',
+                        ],
+                    ];
+                    $stepColors = [
+                        'emerald' => ['bg'=>'bg-emerald-500','light'=>'bg-emerald-50','text'=>'text-emerald-600'],
+                        'blue'    => ['bg'=>'bg-blue-500',   'light'=>'bg-blue-50',   'text'=>'text-blue-600'],
+                        'violet'  => ['bg'=>'bg-violet-500', 'light'=>'bg-violet-50', 'text'=>'text-violet-600'],
+                        'amber'   => ['bg'=>'bg-amber-500',  'light'=>'bg-amber-50',  'text'=>'text-amber-600'],
+                    ]; @endphp
 
                     @foreach($steps as $step)
-                    <article class="group relative flex flex-col h-full min-w-0">
-                        <div class="flex-1 flex flex-col rounded-2xl md:rounded-3xl border border-gray-200/90 dark:border-slate-700 bg-white dark:bg-slate-800/90 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--primary-color)]/30 overflow-hidden">
-                            {{-- Bandeau couleur en haut --}}
-                            <div class="h-1.5 w-full shrink-0" style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
-                            <div class="p-6 sm:p-7 md:p-8 flex flex-col flex-1 text-center sm:text-left">
-                                <div class="flex items-center justify-center sm:justify-between gap-4 mb-5">
-                                    <span class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-white text-xl sm:text-2xl font-bold shadow-lg shrink-0"
-                                          style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                                        {{ $step['n'] }}
-                                    </span>
-                                    <span class="hidden sm:flex w-12 h-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 group-hover:text-[color:var(--primary-color)] transition-colors">
-                                        <i class="{{ $step['icon'] }} text-xl" aria-hidden="true"></i>
-                                    </span>
-                                </div>
-                                <div class="flex justify-center sm:hidden mb-4 -mt-2 text-3xl opacity-90" style="color: var(--primary-color);">
-                                    <i class="{{ $step['icon'] }}" aria-hidden="true"></i>
-                                </div>
-                                <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 leading-snug">
-                                    {{ $step['title'] }}
-                                </h3>
-                                <p class="text-sm sm:text-base text-gray-600 dark:text-slate-300 leading-relaxed flex-1">
-                                    {{ $step['text'] }}
-                                </p>
+                    @php $sc = $stepColors[$step['color']]; @endphp
+                    <div class="flex flex-col items-center text-center group">
+                        {{-- Numéro rond --}}
+                        <div class="relative mb-6">
+                            <div class="w-14 h-14 rounded-full {{ $sc['bg'] }} flex items-center justify-center text-white font-extrabold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300 z-10 relative">
+                                {{ $step['n'] }}
                             </div>
+                            {{-- Halo --}}
+                            <div class="absolute inset-0 rounded-full {{ $sc['bg'] }} opacity-20 scale-150 group-hover:scale-[1.7] transition-transform duration-300"></div>
                         </div>
-                    </article>
+
+                        {{-- Carte --}}
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md p-6 w-full group-hover:-translate-y-1 transition-all duration-300 flex-1">
+                            <div class="w-10 h-10 rounded-xl {{ $sc['light'] }} flex items-center justify-center mx-auto mb-4">
+                                <i class="{{ $step['icon'] }} {{ $sc['text'] }}"></i>
+                            </div>
+                            <h3 class="font-extrabold text-gray-900 mb-2 text-base">{{ $step['title'] }}</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed">{{ $step['text'] }}</p>
+                        </div>
+                    </div>
                     @endforeach
                 </div>
             </div>
+
+            {{-- CTA bas --}}
+            <div class="text-center mt-12">
+                <a href="{{ route('form.step', 'propertyType') }}"
+                   class="inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg transition-all hover:scale-[1.02]"
+                   style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                    <i class="fas fa-calculator"></i>
+                    Démarrer mon devis gratuit
+                </a>
+            </div>
+
         </div>
     </section>

@@ -10,7 +10,7 @@
                     {{ $homeConfig['sections']['services']['title'] ?? 'Nos Services' }}
                 </h2>
                 <p class="text-gray-500 max-w-xl mx-auto text-lg">
-                    Des solutions complètes et certifiées pour tous vos projets de rénovation
+                    Élagage, abattage, taille de haies et broyage de souches dans tout le département Oise (60)
                 </p>
             </div>
 

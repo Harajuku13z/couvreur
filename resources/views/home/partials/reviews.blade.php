@@ -1,53 +1,86 @@
-    <!-- Reviews Section -->
+    <!-- Avis Clients -->
     @if(($homeConfig['sections']['reviews']['enabled'] ?? true) && !empty($reviews))
-    <section class="py-20 bg-gray-100">
+    <section class="py-20 bg-white">
         <div class="site-shell">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-800 mb-4">
-                    {{ $homeConfig['sections']['reviews']['title'] ?? 'Avis de Nos Clients' }}
+
+            <div class="text-center mb-14">
+                <p class="text-sm font-bold uppercase tracking-widest mb-3" style="color:var(--primary-color);">Témoignages</p>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
+                    {{ $homeConfig['sections']['reviews']['title'] ?? 'Ce que disent nos clients de l\'Oise' }}
                 </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Ce que nos clients disent de nous
-                </p>
-            </div>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @foreach($reviews->take($homeConfig['sections']['reviews']['limit'] ?? 6) as $review)
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold">
-                            {{ $review->author_initials ?? substr($review->author_name, 0, 1) }}
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="font-semibold text-gray-800">{{ $review->author_name }}</h4>
-                            <div class="flex text-yellow-400">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $review->rating ? '' : 'text-gray-300' }}"></i>
-                                @endfor
-                            </div>
-                        </div>
+                @if($averageRating > 0)
+                <div class="flex items-center justify-center gap-3 mt-4">
+                    <div class="flex gap-0.5">
+                        @for($i=1;$i<=5;$i++)
+                        <i class="fas fa-star {{ $i <= round($averageRating) ? 'text-amber-400' : 'text-gray-200' }} text-lg"></i>
+                        @endfor
                     </div>
-                    <p class="text-gray-600 mb-4">{{ Str::limit($review->review_text, 150) }}</p>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-500">
-                            {{ $review->review_date ? $review->review_date->diffForHumans() : $review->created_at->diffForHumans() }}
-                        </span>
-                        @if($review->source)
-                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ $review->source }}</span>
-                        @endif
+                    <span class="font-extrabold text-gray-900 text-xl">{{ number_format($averageRating,1) }}/5</span>
+                    <span class="text-gray-400 text-sm">({{ $totalReviews }} avis vérifiés)</span>
+                </div>
+                @endif
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($reviews->take($homeConfig['sections']['reviews']['limit'] ?? 6) as $review)
+                <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-7 flex flex-col">
+
+                    {{-- Étoiles --}}
+                    <div class="flex gap-0.5 mb-4">
+                        @for($i=1;$i<=5;$i++)
+                        <i class="fas fa-star {{ $i <= $review->rating ? 'text-amber-400' : 'text-gray-200' }} text-sm"></i>
+                        @endfor
+                    </div>
+
+                    {{-- Texte --}}
+                    <p class="text-gray-700 leading-relaxed text-sm flex-1 mb-5 italic">
+                        "{{ Str::limit($review->review_text ?? 'Excellent travail, très professionnel.', 160) }}"
+                    </p>
+
+                    {{-- Auteur --}}
+                    <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
+                        <div class="w-11 h-11 rounded-full overflow-hidden flex-shrink-0">
+                            @if($review->author_photo_url)
+                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
+                            @else
+                            <div class="w-full h-full flex items-center justify-center text-white font-extrabold text-base"
+                                 style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                                {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
+                            </div>
+                            @endif
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-gray-900 text-sm truncate">{{ $review->author_name }}</p>
+                            <p class="text-gray-400 text-xs">
+                                {{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}
+                                @if($review->source && $review->source !== 'manual')
+                                &bull;
+                                @if(str_contains($review->source,'Google'))
+                                <i class="fab fa-google text-blue-500"></i> Google
+                                @else
+                                {{ ucfirst($review->source) }}
+                                @endif
+                                @endif
+                            </p>
+                        </div>
+                        {{-- Icône guillemets --}}
+                        <i class="fas fa-quote-right text-2xl text-gray-100 group-hover:text-gray-200 transition-colors flex-shrink-0"></i>
                     </div>
                 </div>
                 @endforeach
             </div>
-            
-            <!-- Bouton "Lire tous les avis" -->
-            <div class="text-center mt-12">
-                <a href="{{ route('reviews.all') }}" 
-                   class="bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-secondary transition-colors text-lg">
-                    <i class="fas fa-star mr-2"></i>
-                    Lire Tous les Avis
+
+            <div class="text-center mt-10">
+                <a href="{{ route('reviews.all') }}"
+                   class="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-2xl border-2 transition-all"
+                   style="border-color:var(--primary-color); color:var(--primary-color);"
+                   onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
+                   onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';">
+                    <i class="fas fa-star text-sm"></i>
+                    Lire tous les avis
                 </a>
             </div>
+
         </div>
     </section>
     @endif
