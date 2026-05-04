@@ -257,17 +257,30 @@ async function regenerateService(id, name) {
     }
 
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const response = await fetch(`/admin/services/${id}/regenerate`, {
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) throw new Error('Token CSRF introuvable — rechargez la page');
+        const csrfToken = csrfMeta.getAttribute('content');
+
+        const response = await fetch(`/admin/services/${encodeURIComponent(id)}/regenerate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
         });
 
-        const data = await response.json();
+        // Lire le corps brut d'abord pour diagnostiquer si ce n'est pas du JSON
+        const rawText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(rawText);
+        } catch (parseErr) {
+            // Réponse non-JSON (redirect HTML, page d'erreur...)
+            console.error('Réponse serveur non-JSON :', rawText.substring(0, 500));
+            throw new Error(`Le serveur a retourné une réponse inattendue (HTTP ${response.status}). Vérifiez les logs Laravel.`);
+        }
 
         if (data.success) {
             if (btn) {

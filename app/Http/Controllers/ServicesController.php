@@ -432,26 +432,28 @@ class ServicesController extends Controller
                 Setting::clearCache();
             }
 
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Contenu régénéré avec succès',
                     'content' => $aiContent
                 ]);
             }
-            
+
             return back()->with('success', 'Contenu régénéré avec succès');
 
         } catch (\Exception $e) {
-            Log::error('Erreur régénération service: ' . $e->getMessage());
-            
-            if ($request->ajax()) {
+            Log::error('Erreur régénération service: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Erreur: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return back()->with('error', 'Erreur: ' . $e->getMessage());
         }
     }
