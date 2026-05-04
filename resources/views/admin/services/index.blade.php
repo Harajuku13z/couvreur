@@ -214,8 +214,14 @@
                                             <i class="fas fa-edit"></i>Modifier
                                         </a>
                                     </div>
-                                    <div class="flex justify-center gap-2">
-                                        <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ $service['name'] }}')" class="btn-service btn-delete w-full sm:w-auto">
+                                    <div class="flex flex-wrap justify-center gap-2">
+                                        <button onclick="regenerateService('{{ $service['id'] ?? $loop->index }}', '{{ addslashes($service['name']) }}')"
+                                                class="btn-service flex-1 sm:flex-none"
+                                                style="background:rgba(139,92,246,.12); color:#7c3aed;"
+                                                id="regen-btn-{{ $service['id'] ?? $loop->index }}">
+                                            <i class="fas fa-magic"></i>Régénérer IA
+                                        </button>
+                                        <button onclick="deleteService('{{ $service['id'] ?? $loop->index }}', '{{ addslashes($service['name']) }}')" class="btn-service btn-delete flex-1 sm:flex-none">
                                             <i class="fas fa-trash"></i>Supprimer
                                         </button>
                                     </div>
@@ -239,6 +245,56 @@
 </div>
 
 <script>
+
+async function regenerateService(id, name) {
+    if (!confirm(`Régénérer le contenu IA pour "${name}" ?\n\nCela remplacera la description actuelle avec une nouvelle version générée par l'IA. Cette action peut prendre 30-60 secondes.`)) return;
+
+    const btn = document.getElementById('regen-btn-' + id);
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours…';
+        btn.style.opacity = '0.7';
+    }
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const response = await fetch(`/admin/services/${id}/regenerate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check"></i> Régénéré !';
+                btn.style.background = 'rgba(16,185,129,.15)';
+                btn.style.color = '#059669';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-magic"></i>Régénérer IA';
+                    btn.style.background = 'rgba(139,92,246,.12)';
+                    btn.style.color = '#7c3aed';
+                    btn.style.opacity = '1';
+                }, 3000);
+            }
+            alert(`✅ Le contenu de "${name}" a été régénéré avec succès par l'IA !`);
+        } else {
+            throw new Error(data.message || 'Erreur inconnue');
+        }
+    } catch (err) {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i>Régénérer IA';
+            btn.style.opacity = '1';
+        }
+        alert('❌ Erreur lors de la régénération : ' + err.message);
+    }
+}
 
 function deleteService(id, name) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le service "${name}" ?`)) {
