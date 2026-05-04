@@ -1,251 +1,324 @@
-<!-- Header -->
-<header class="site-header shadow-sm" style="background-color: var(--header-bg); border-bottom: 1px solid var(--header-border);">
+{{-- ===== HEADER MODERNE — sticky glassmorphism ===== --}}
 <style>
-    /* Styles spécifiques pour mobile */
-    @media (max-width: 768px) {
-        .header-mobile {
-            padding: 1rem 0 !important;
-        }
-        
-        .logo-mobile {
-            height: 3rem !important;
-            width: auto !important;
-        }
-        
-        .text-mobile {
-            font-size: 1.5rem !important;
-        }
-        
-        .button-mobile {
-            padding: 0.75rem 1.25rem !important;
-            font-size: 0.9rem !important;
-        }
-    }
+#site-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    transition: background .35s ease, box-shadow .35s ease, padding .25s ease;
+    background: transparent;
+}
+#site-header.scrolled {
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 2px 24px rgba(0,0,0,.08);
+}
+#site-header.scrolled .nav-link  { color: #1f2937; }
+#site-header.scrolled .nav-link:hover { color: var(--primary-color); }
+#site-header.scrolled .logo-light { display: none; }
+#site-header.scrolled .logo-dark  { display: block; }
+#site-header .logo-dark { display: none; }
+#site-header .logo-light { display: block; }
+
+/* Sur les pages intérieures (non-hero) */
+#site-header.solid {
+    background: #fff;
+    box-shadow: 0 2px 24px rgba(0,0,0,.08);
+}
+#site-header.solid .nav-link  { color: #1f2937; }
+#site-header.solid .nav-link:hover { color: var(--primary-color); }
+#site-header.solid .logo-light { display: none; }
+#site-header.solid .logo-dark  { display: block; }
+
+.nav-link {
+    color: rgba(255,255,255,.92);
+    font-weight: 600;
+    font-size: .92rem;
+    transition: color .2s;
+    position: relative;
+}
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform .25s ease;
+    border-radius: 2px;
+}
+.nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+
+/* Dropdown */
+.nav-dropdown { position: relative; }
+.nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    min-width: 220px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.14);
+    padding: 8px 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s, transform .2s;
+    border: 1px solid rgba(0,0,0,.06);
+}
+.nav-dropdown:hover .nav-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+.nav-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    font-size: .88rem;
+    font-weight: 600;
+    color: #374151;
+    transition: background .15s, color .15s;
+}
+.nav-dropdown-menu a:hover {
+    background: rgba(var(--primary-color-rgb,34,197,94),.07);
+    color: var(--primary-color);
+}
+.nav-dropdown-menu a:first-child {
+    border-bottom: 1px solid #f3f4f6;
+    color: var(--primary-color);
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding-bottom: 12px;
+}
+
+/* Mobile */
+#mobile-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #fff;
+    overflow-y: auto;
+}
+#mobile-menu.open { display: flex; flex-direction: column; }
 </style>
+
+<header id="site-header" class="{{ !request()->is('/') ? 'solid' : '' }}">
     <div class="site-shell">
-        <div class="flex justify-between items-center py-3 header-mobile">
-            <div class="flex items-center">
-                <a href="{{ url('/') }}" class="flex items-center">
-                    @if(setting('company_logo'))
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-12 w-auto logo-mobile" width="200" height="48" decoding="async">
-                    @else
-                        <span class="text-2xl font-bold text-mobile" style="color: var(--primary-color);">
-                            {{ setting('company_name', 'Votre Entreprise') }}
-                        </span>
-                    @endif
-                </a>
-            </div>
-            
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center space-x-8">
-                <a href="{{ url('/') }}" class="site-nav-link font-medium">Accueil</a>
-                
-                @php
-                    $servicesData = \App\Models\Setting::get('services', '[]');
-                    $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
-                    
-                    // S'assurer que $services est toujours un tableau
-                    if (!is_array($services)) {
-                        $services = [];
-                    }
-                    
-                    $featuredServices = array_filter($services, function($service) {
-                        return is_array($service) && ($service['is_menu'] ?? false) && ($service['is_visible'] ?? true);
-                    });
-                @endphp
-                
-                @if(count($featuredServices) > 0)
-                <div class="relative group">
-                    <a href="{{ route('services.index') }}" class="site-nav-link font-medium flex items-center">
-                        Nos Services
-                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                    </a>
-                    <div class="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50" style="background: var(--dropdown-bg);">
-                        <div class="py-2">
-                            <a href="{{ route('services.index') }}" 
-                               class="block px-4 py-2 site-dropdown-link transition-colors font-semibold border-b" style="border-color: var(--header-border);">
-                                <i class="fas fa-list mr-2"></i>Tous nos services
-                            </a>
-                            @foreach($featuredServices as $service)
-                                @if(is_array($service) && isset($service['name']) && isset($service['slug']))
-                                <a href="{{ route('services.show', $service['slug']) }}" 
-                                   class="block px-4 py-2 site-dropdown-link transition-colors">
-                                    {{ $service['name'] }}
-                                </a>
-                                @endif
-                            @endforeach
+        <div class="flex items-center justify-between py-3 md:py-4">
+
+            {{-- Logo --}}
+            <a href="{{ url('/') }}" class="flex items-center flex-shrink-0">
+                @if(setting('company_logo'))
+                    <img src="{{ asset(setting('company_logo')) }}"
+                         alt="{{ setting('company_name', 'Louis Hoffmann Élagage') }}"
+                         class="logo-light h-11 w-auto"
+                         width="200" height="44">
+                    <img src="{{ asset(setting('company_logo')) }}"
+                         alt="{{ setting('company_name', 'Louis Hoffmann Élagage') }}"
+                         class="logo-dark h-11 w-auto"
+                         width="200" height="44">
+                @else
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white"
+                             style="background: var(--primary-color);">
+                            <i class="fas fa-tree text-sm"></i>
                         </div>
+                        <span class="logo-dark font-extrabold text-gray-900 text-lg hidden">
+                            {{ setting('company_name', 'Louis Hoffmann') }}
+                        </span>
+                        <span class="logo-light font-extrabold text-white text-lg">
+                            {{ setting('company_name', 'Louis Hoffmann') }}
+                        </span>
+                    </div>
+                @endif
+            </a>
+
+            {{-- Desktop Nav --}}
+            @php
+                $navServices = \App\Models\Setting::get('services', '[]');
+                $navServices = is_string($navServices) ? json_decode($navServices, true) : ($navServices ?? []);
+                if(!is_array($navServices)) $navServices = [];
+                $navFeatured = array_filter($navServices, fn($s) => is_array($s) && ($s['is_menu'] ?? false) && ($s['is_visible'] ?? true));
+            @endphp
+
+            <nav class="hidden md:flex items-center gap-7">
+                <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Accueil</a>
+
+                <div class="nav-dropdown">
+                    <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1">
+                        Services <i class="fas fa-chevron-down text-[10px] mt-0.5"></i>
+                    </a>
+                    <div class="nav-dropdown-menu">
+                        <a href="{{ route('services.index') }}">
+                            <i class="fas fa-list-ul text-xs"></i> Tous nos services
+                        </a>
+                        @foreach($navFeatured as $svc)
+                            @if(isset($svc['name'], $svc['slug']))
+                            <a href="{{ route('services.show', $svc['slug']) }}">
+                                <i class="{{ $svc['icon'] ?? 'fas fa-leaf' }} text-xs opacity-60"></i>
+                                {{ $svc['name'] }}
+                            </a>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
-                @else
-                <!-- Lien direct vers la page Nos Services si pas de services mis en vedette -->
-                <a href="{{ route('services.index') }}" class="site-nav-link font-medium">Nos Services</a>
-                @endif
-                
-                <a href="{{ route('portfolio.index') }}" class="site-nav-link font-medium">Nos Réalisations</a>
-                
-                <a href="{{ route('blog.index') }}" class="site-nav-link font-medium">Blog et Astuces</a>
-                
-                <a href="{{ route('contact') }}" class="site-nav-link font-medium">Contact</a>
-                
+
+                <a href="{{ route('portfolio.index') }}" class="nav-link {{ request()->routeIs('portfolio.*') ? 'active' : '' }}">Réalisations</a>
+                <a href="{{ route('blog.index') }}" class="nav-link {{ request()->routeIs('blog.*') ? 'active' : '' }}">Blog</a>
+                <a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
             </nav>
-            
-            <!-- Social Media Icons & CTA Buttons -->
-            <div class="hidden md:flex items-center space-x-4">
-                <!-- Social Media Icons -->
-                @php
-                    $socialNetworks = [
-                        'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-600', 'label' => 'Suivez-nous sur Facebook'],
-                        'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-600', 'label' => 'Suivez-nous sur Instagram'],
-                        'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-400', 'label' => 'Suivez-nous sur Twitter'],
-                        'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-700', 'label' => 'Suivez-nous sur LinkedIn'],
-                        'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-600', 'label' => 'Suivez-nous sur YouTube'],
-                        'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-800', 'label' => 'Suivez-nous sur TikTok'],
-                        'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-700', 'label' => 'Suivez-nous sur Pinterest'],
-                        'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-500', 'label' => 'Suivez-nous sur Snapchat'],
-                        'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-600', 'label' => 'Contactez-nous sur WhatsApp'],
-                        'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-500', 'label' => 'Contactez-nous sur Telegram'],
-                    ];
-                    
-                    $activeSocialNetworks = array_filter($socialNetworks, function($key) {
-                        return !empty(setting($key));
-                    }, ARRAY_FILTER_USE_KEY);
-                @endphp
-                
-                @if(count($activeSocialNetworks) > 0)
-                <div class="flex space-x-3 mr-4">
-                    @foreach(array_slice($activeSocialNetworks, 0, 4) as $key => $network)
-                        <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                           class="site-nav-muted {{ $network['color'] }} transition-colors text-lg"
-                           aria-label="{{ $network['label'] }}">
-                            <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
-                        </a>
-                    @endforeach
-                </div>
-                @endif
-                
-                <!-- CTA Buttons -->
-                <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
-                   style="background-color: var(--primary-color);"
-                   onmouseover="this.style.backgroundColor='var(--secondary-color)'"
-                   onmouseout="this.style.backgroundColor='var(--primary-color)'"
-                   onclick="trackFormClick('{{ request()->url() }}')">
-                    <i class="fas fa-calculator mr-2"></i>Simulateur de Prix
+
+            {{-- Desktop CTAs --}}
+            <div class="hidden md:flex items-center gap-3">
+                {{-- Phone --}}
+                <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
+                   class="flex items-center gap-2 font-bold text-sm px-4 py-2.5 rounded-xl border-2 border-white/30 text-white hover:bg-white/15 transition-all scrolled-phone"
+                   onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ setting('company_phone_raw', setting('company_phone')) }}','header')">
+                    <i class="fas fa-phone text-xs animate-pulse"></i>
+                    {{ setting('company_phone', '06 42 21 41 51') }}
                 </a>
-                <a href="tel:{{ setting('company_phone') }}" 
-                   class="text-white px-4 py-2 rounded-lg transition-colors font-medium button-mobile"
-                   style="background-color: var(--primary-color);"
-                   onmouseover="this.style.backgroundColor='var(--secondary-color)'"
-                   onmouseout="this.style.backgroundColor='var(--primary-color)'">
-                    <i class="fas fa-phone mr-2"></i>Appelez-nous
+                {{-- Devis --}}
+                <a href="{{ route('form.step', 'propertyType') }}"
+                   class="flex items-center gap-2 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:scale-[1.03] transition-all"
+                   style="background: var(--primary-color);"
+                   onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')">
+                    <i class="fas fa-calculator text-xs"></i>
+                    Devis gratuit
                 </a>
             </div>
-            
-            <!-- Mobile Menu Button -->
-            <button class="md:hidden site-nav-link" onclick="toggleMobileMenu()" aria-label="Ouvrir le menu de navigation" aria-expanded="false" id="mobileMenuButton">
-                <i class="fas fa-bars text-xl" aria-hidden="true"></i>
+
+            {{-- Hamburger --}}
+            <button id="hamburger" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg" onclick="openMobileMenu()" aria-label="Menu">
+                <span class="block w-6 h-0.5 bg-white rounded transition-all" id="hb1"></span>
+                <span class="block w-6 h-0.5 bg-white rounded transition-all" id="hb2"></span>
+                <span class="block w-4 h-0.5 bg-white rounded transition-all" id="hb3"></span>
             </button>
-        </div>
-        
-        <!-- Mobile Navigation -->
-        <div id="mobileMenu" class="md:hidden hidden border-t py-4 max-h-screen overflow-y-auto" style="border-color: var(--header-border);">
-            <nav class="site-shell flex flex-col space-y-4">
-                <a href="{{ url('/') }}" class="site-nav-link font-medium">Accueil</a>
-                
-                @if(count($featuredServices) > 0)
-                <div class="space-y-2">
-                    <a href="{{ route('services.index') }}" class="site-nav-link font-medium">Nos Services</a>
-                    <div class="pl-4 space-y-1">
-                        <a href="{{ route('services.index') }}" 
-                           class="block site-nav-muted font-semibold">
-                            <i class="fas fa-list mr-2"></i>Tous nos services
-                        </a>
-                        @foreach($featuredServices as $service)
-                        <a href="{{ route('services.show', $service['slug']) }}" 
-                           class="block site-nav-muted">
-                            {{ $service['name'] }}
-                        </a>
-                        @endforeach
-                    </div>
-                </div>
-                @else
-                <!-- Lien direct vers la page Nos Services si pas de services mis en vedette -->
-                <a href="{{ route('services.index') }}" class="site-nav-link font-medium">Nos Services</a>
-                @endif
-                
-                <a href="{{ route('portfolio.index') }}" class="site-nav-link font-medium">Nos Réalisations</a>
-                
-                <a href="{{ route('blog.index') }}" class="site-nav-link font-medium">Blog et Astuces</a>
-                
-                <a href="{{ route('contact') }}" class="site-nav-link font-medium">Contact</a>
-                
-                <!-- Social Media Icons Mobile -->
-                @if(count($activeSocialNetworks) > 0)
-                <div class="pt-4 border-t" style="border-color: var(--header-border);">
-                    <div class="site-nav-link font-medium mb-3">Suivez-nous</div>
-                    <div class="flex space-x-4">
-                        @foreach($activeSocialNetworks as $key => $network)
-                            <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                               class="site-nav-muted {{ $network['color'] }} transition-colors text-xl">
-                                <i class="{{ $network['icon'] }}"></i>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-                
-                <div class="pt-4 border-t space-y-2" style="border-color: var(--header-border);">
-                    <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium button-mobile"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)'"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)'"
-                       onclick="trackFormClick('{{ request()->url() }}')">
-                        <i class="fas fa-calculator mr-2"></i>Simulateur de Prix
-                    </a>
-                    <a href="tel:{{ setting('company_phone') }}" 
-                       class="block text-white px-4 py-2 rounded-lg text-center transition-colors font-medium button-mobile"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)'"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)'">
-                        <i class="fas fa-phone mr-2"></i>Appelez-nous
-                    </a>
-                </div>
-            </nav>
+
         </div>
     </div>
 </header>
 
-<script>
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobileMenu');
-    const button = document.getElementById('mobileMenuButton');
-    const isHidden = menu.classList.contains('hidden');
-    
-    menu.classList.toggle('hidden');
-    if (button) {
-        button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-        button.setAttribute('aria-label', isHidden ? 'Fermer le menu de navigation' : 'Ouvrir le menu de navigation');
-    }
-}
+{{-- Mobile Menu --}}
+<div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu navigation">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <a href="{{ url('/') }}" class="flex items-center gap-2">
+            @if(setting('company_logo'))
+                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto">
+            @else
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background:var(--primary-color);">
+                    <i class="fas fa-tree text-xs"></i>
+                </div>
+                <span class="font-extrabold text-gray-900">{{ setting('company_name', 'Louis Hoffmann') }}</span>
+            @endif
+        </a>
+        <button onclick="closeMobileMenu()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Fermer">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 
-// trackPhoneCall est géré automatiquement par phone-tracking.js dans layouts/app.blade.php
-// Plus besoin de fonction locale, le script global s'occupe de tout
+    <nav class="flex-1 px-5 py-6 space-y-1">
+        <a href="{{ url('/') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-home text-sm w-4 text-center" style="color:var(--primary-color);"></i> Accueil
+        </a>
+        <a href="{{ route('services.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-tree text-sm w-4 text-center" style="color:var(--primary-color);"></i> Nos Services
+        </a>
+        @foreach($navFeatured as $svc)
+            @if(isset($svc['name'], $svc['slug']))
+            <a href="{{ route('services.show', $svc['slug']) }}" class="flex items-center gap-3 pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                <i class="{{ $svc['icon'] ?? 'fas fa-leaf' }} text-xs" style="color:var(--primary-color);"></i>
+                {{ $svc['name'] }}
+            </a>
+            @endif
+        @endforeach
+        <a href="{{ route('portfolio.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-images text-sm w-4 text-center" style="color:var(--primary-color);"></i> Réalisations
+        </a>
+        <a href="{{ route('blog.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-book-open text-sm w-4 text-center" style="color:var(--primary-color);"></i> Blog
+        </a>
+        <a href="{{ route('contact') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-envelope text-sm w-4 text-center" style="color:var(--primary-color);"></i> Contact
+        </a>
+    </nav>
+
+    <div class="px-5 pb-8 space-y-3">
+        <a href="{{ route('form.step', 'propertyType') }}"
+           class="flex items-center justify-center gap-2 text-white font-bold py-4 rounded-2xl text-base shadow-lg"
+           style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+            <i class="fas fa-calculator"></i> Devis gratuit en ligne
+        </a>
+        <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
+           class="flex items-center justify-center gap-2 font-bold py-4 rounded-2xl border-2 text-base transition-colors"
+           style="border-color:var(--primary-color); color:var(--primary-color);">
+            <i class="fas fa-phone"></i> {{ setting('company_phone', '06 42 21 41 51') }}
+        </a>
+    </div>
+</div>
+
+{{-- Spacer pour les pages intérieures --}}
+@if(!request()->is('/'))
+<div class="h-[72px] md:h-[80px]"></div>
+@endif
+
+<script>
+(function(){
+    const header = document.getElementById('site-header');
+    const hb1 = document.getElementById('hb1');
+    const hb2 = document.getElementById('hb2');
+    const hamburger = document.getElementById('hamburger');
+
+    // Phone link style synced with scroll
+    function syncPhone() {
+        const links = document.querySelectorAll('.scrolled-phone');
+        const scrolled = header.classList.contains('scrolled') || header.classList.contains('solid');
+        links.forEach(l => {
+            if(scrolled) {
+                l.style.color = 'var(--primary-color)';
+                l.style.borderColor = 'var(--primary-color)';
+            } else {
+                l.style.color = '';
+                l.style.borderColor = '';
+            }
+        });
+        // hamburger bars
+        if(hamburger) {
+            const bars = hamburger.querySelectorAll('span');
+            bars.forEach(b => {
+                b.style.background = scrolled ? '#1f2937' : '';
+            });
+        }
+    }
+
+    if(header && !header.classList.contains('solid')) {
+        window.addEventListener('scroll', function(){
+            if(window.scrollY > 60) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            syncPhone();
+        }, { passive: true });
+    }
+    syncPhone();
+})();
+
+function openMobileMenu() {
+    const m = document.getElementById('mobile-menu');
+    m.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeMobileMenu() {
+    const m = document.getElementById('mobile-menu');
+    m.classList.remove('open');
+    document.body.style.overflow = '';
+}
 
 function trackFormClick(page) {
-    fetch('/api/track-form-click', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    }).catch(error => console.log('Tracking error:', error));
+    fetch('/api/track-form-click', { method: 'GET' }).catch(()=>{});
 }
 </script>
-
-
-
-
-
-
-
