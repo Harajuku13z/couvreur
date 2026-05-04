@@ -1,466 +1,534 @@
 @extends('layouts.app')
 
 @php
-    // S'assurer que les métadonnées sont disponibles pour le layout
-    // Le layout utilise $pageTitle, $pageDescription, etc. en priorité
-    // Ces variables sont passées depuis AdPublicController::show()
+    // Métadonnées passées depuis AdPublicController::show()
 @endphp
 
 @section('title', $pageTitle ?? 'Service professionnel')
-
 @section('description', $pageDescription ?? 'Service professionnel de qualité. Devis gratuit et intervention rapide.')
-
 @section('keywords', !empty($pageKeywords) ? $pageKeywords . (!empty($extendedKeywords) ? ', ' . implode(', ', $extendedKeywords) : '') : (!empty($extendedKeywords) ? implode(', ', $extendedKeywords) : ''))
 
 @push('head')
 <style>
-    /* Couleurs : variables du layout (clair + sombre). Ne pas redéfinir :root ici. */
-    /* Empêcher le scroll horizontal sur mobile */
-    html, body {
-        overflow-x: hidden;
-        max-width: 100%;
+    html, body { overflow-x: hidden; }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .ad-hero {
+        position: relative;
+        overflow: hidden;
+    }
+    .ad-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.25) 100%);
+        z-index: 1;
+    }
+    .ad-hero-content { position: relative; z-index: 2; }
+
+    /* ── Badges confiance ─────────────────────────────────────── */
+    .trust-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        background: rgba(255,255,255,.15);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,.25);
+        border-radius: 999px;
+        padding: .35rem .9rem;
+        font-size: .82rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    /* ── Sidebar CTA sticky ───────────────────────────────────── */
+    .cta-sidebar {
+        position: sticky;
+        top: 90px;
+    }
+    .cta-card {
+        background: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 40px rgba(0,0,0,.12);
+        overflow: hidden;
+    }
+    .cta-card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        padding: 1.5rem;
+        text-align: center;
+        color: #fff;
+    }
+
+    /* ── Contenu annonce ──────────────────────────────────────── */
+    .ad-content-wrap {
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: none;
+        overflow-x: hidden;
     }
-    
-    /* Assurer que tous les conteneurs respectent la largeur */
-    .container, [class*="max-w"] {
+    .ad-content-wrap * {
         max-width: 100%;
-        overflow-x: hidden;
-    }
-    
-    /* Contenus HTML dans les annonces - forcer les retours à la ligne */
-    .bg-white.rounded-2xl {
-        overflow-x: hidden;
+        box-sizing: border-box;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: none;
     }
-    
-    /* Forcer les retours à la ligne pour tous les éléments de texte */
-    .bg-white.rounded-2xl p,
-    .bg-white.rounded-2xl div,
-    .bg-white.rounded-2xl span,
-    .bg-white.rounded-2xl li,
-    .bg-white.rounded-2xl td,
-    .bg-white.rounded-2xl th,
-    .bg-white.rounded-2xl a,
-    .bg-white.rounded-2xl h1,
-    .bg-white.rounded-2xl h2,
-    .bg-white.rounded-2xl h3,
-    .bg-white.rounded-2xl h4,
-    .bg-white.rounded-2xl h5,
-    .bg-white.rounded-2xl h6 {
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-        hyphens: none !important;
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-    
-    /* URLs et mots longs */
-    .bg-white.rounded-2xl a {
-        word-break: break-all;
-        overflow-wrap: anywhere;
-    }
-    
-    /* Images et médias */
-    .bg-white.rounded-2xl img,
-    .bg-white.rounded-2xl iframe,
-    .bg-white.rounded-2xl video,
-    .bg-white.rounded-2xl embed,
-    .bg-white.rounded-2xl object {
+    .ad-content-wrap img, .ad-content-wrap iframe, .ad-content-wrap video {
         max-width: 100% !important;
         height: auto;
         display: block;
     }
-    
-    /* Tableaux - forcer les retours à la ligne au lieu du scroll */
-    .bg-white.rounded-2xl table {
-        width: 100% !important;
-        max-width: 100% !important;
-        table-layout: fixed;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        border-collapse: collapse;
+    .ad-content-wrap table { width: 100% !important; table-layout: fixed; }
+    .ad-content-wrap pre, .ad-content-wrap code { white-space: pre-wrap !important; }
+    .ad-content-wrap a { color: var(--primary-color); }
+
+    /* ── Cards services similaires ────────────────────────────── */
+    .related-card {
+        transition: transform .25s ease, box-shadow .25s ease;
+        border-radius: 1rem;
+        overflow: hidden;
     }
-    
-    .bg-white.rounded-2xl td,
-    .bg-white.rounded-2xl th {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        word-break: break-word;
-        overflow-x: hidden;
-        max-width: 0;
+    .related-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.12); }
+
+    /* ── Avis ─────────────────────────────────────────────────── */
+    .review-card {
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        transition: box-shadow .25s ease;
     }
-    
-    /* Code et pre - retour à la ligne */
-    .bg-white.rounded-2xl pre,
-    .bg-white.rounded-2xl code {
-        max-width: 100%;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        white-space: pre-wrap !important;
-        overflow-x: hidden;
+    .review-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+    /* ── CTA bottom banner ────────────────────────────────────── */
+    .bottom-cta {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 1.5rem;
     }
-    
-    /* Listes */
-    .bg-white.rounded-2xl ul,
-    .bg-white.rounded-2xl ol {
-        overflow-x: hidden;
-        word-wrap: break-word;
+
+    /* ── Boutons ──────────────────────────────────────────────── */
+    .btn-primary {
+        background: var(--primary-color);
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .85rem 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        transition: background .2s, transform .2s;
+        text-decoration: none;
     }
-    
-    /* Assurer que tous les éléments enfants respectent la largeur */
-    .bg-white.rounded-2xl * {
-        max-width: 100%;
-        box-sizing: border-box;
+    .btn-primary:hover { background: var(--secondary-color); transform: translateY(-1px); color: #fff; }
+    .btn-accent {
+        background: var(--accent-color, #f59e0b);
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .85rem 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        transition: background .2s, transform .2s;
+        text-decoration: none;
     }
-    
-    /* Sections avec overflow */
-    section {
-        overflow-x: hidden;
-        width: 100%;
-        word-wrap: break-word;
-        hyphens: none;
+    .btn-accent:hover { filter: brightness(1.1); transform: translateY(-1px); color: #fff; }
+    .btn-outline-white {
+        border: 2px solid rgba(255,255,255,.7);
+        color: #fff;
+        font-weight: 700;
+        border-radius: .75rem;
+        padding: .8rem 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        transition: background .2s;
+        text-decoration: none;
+        background: transparent;
     }
-    
-    /* Conteneur de contenu avec overflow hidden */
-    .prose {
-        overflow-x: hidden;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: none;
+    .btn-outline-white:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+    /* ── Breadcrumb ───────────────────────────────────────────── */
+    .breadcrumb-bar { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .breadcrumb-bar a { color: var(--primary-color); text-decoration: none; font-size: .875rem; }
+    .breadcrumb-bar span { color: #64748b; font-size: .875rem; }
+
+    /* ── Pulse animation pour le bouton appel ─────────────────── */
+    @keyframes pulse-ring {
+        0% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb,59,130,246),.5); }
+        70% { box-shadow: 0 0 0 10px rgba(var(--primary-color-rgb,59,130,246),0); }
+        100% { box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb,59,130,246),0); }
     }
-    
-    .prose * {
-        max-width: 100%;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: none;
-    }
-    
-    /* Padding responsive pour mobile */
-    @media (max-width: 640px) {
-        .container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        .bg-white.rounded-2xl {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-        }
+    .btn-call-pulse { animation: pulse-ring 2s ease infinite; }
+
+    @media (max-width: 768px) {
+        .cta-sidebar { position: static; }
+        .ad-hero { min-height: 70vh !important; }
     }
 </style>
 @endpush
 
 @section('content')
 <div class="min-h-screen bg-gray-50 overflow-x-hidden">
-    <!-- Hero Section -->
-    <section class="relative py-20 text-white overflow-hidden">
-        @if(!empty($featuredImage))
-        @php
-            // Nettoyer le chemin de l'image (enlever le préfixe uploads/ si déjà présent dans asset())
-            $imagePath = str_starts_with($featuredImage, 'http') ? $featuredImage : asset($featuredImage);
-        @endphp
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: url('{{ $imagePath }}'); filter: blur(2px); transform: scale(1.05);"></div>
-        <div class="absolute inset-0 bg-black bg-opacity-60"></div>
-        @else
-        <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
-        @endif
-        
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="max-w-4xl mx-auto text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-6">
-                    <i class="fas fa-tools mr-4"></i>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════════════════════════ --}}
+    <section class="ad-hero min-h-[60vh] flex items-center pt-16 pb-10"
+             @if(!empty($featuredImage))
+             style="background: url('{{ str_starts_with($featuredImage,'http') ? $featuredImage : asset($featuredImage) }}') center/cover no-repeat; background-color: var(--secondary-color);"
+             @else
+             style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"
+             @endif>
+        <div class="ad-hero-overlay"></div>
+        <div class="ad-hero-content container mx-auto px-4">
+
+            {{-- Breadcrumb --}}
+            <nav class="mb-6 flex flex-wrap items-center gap-2 text-white/75 text-sm" aria-label="Fil d'Ariane">
+                <a href="{{ route('home') }}" class="hover:text-white transition"><i class="fas fa-home mr-1"></i>Accueil</a>
+                <i class="fas fa-chevron-right text-xs text-white/40"></i>
+                <a href="{{ route('ads.index') }}" class="hover:text-white transition">Services</a>
+                <i class="fas fa-chevron-right text-xs text-white/40"></i>
+                <span class="text-white/90">{{ Str::limit($ad->title ?? 'Service', 40) }}</span>
+            </nav>
+
+            {{-- Trust badges --}}
+            @php
+                $garantie = setting('trust_garantie_decennale', true);
+                $rge      = setting('trust_certifie_rge', true);
+                $avgRating = \App\Models\Review::where('is_active', true)->avg('rating');
+                $nbReviews = \App\Models\Review::where('is_active', true)->count();
+            @endphp
+            <div class="flex flex-wrap gap-2 mb-6">
+                @if($garantie)
+                <span class="trust-badge"><i class="fas fa-shield-alt text-amber-300"></i> Garantie décennale</span>
+                @endif
+                @if($rge)
+                <span class="trust-badge"><i class="fas fa-leaf text-emerald-300"></i> Certifié RGE</span>
+                @endif
+                @if($avgRating > 0)
+                <span class="trust-badge"><i class="fas fa-star text-yellow-300"></i> {{ number_format($avgRating,1) }}/5 ({{ $nbReviews }} avis)</span>
+                @endif
+                <span class="trust-badge"><i class="fas fa-check-circle text-green-300"></i> Devis gratuit</span>
+            </div>
+
+            <div class="max-w-3xl">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
                     {{ $ad->title ?? 'Service professionnel' }}
                 </h1>
-                <p class="text-xl md:text-2xl mb-8 leading-relaxed">
-                    Service professionnel à {{ $cityModel->name ?? 'votre ville' }} - Devis gratuit et intervention rapide
+                <p class="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
+                    Intervention professionnelle à <strong>{{ $cityModel->name ?? 'votre ville' }}</strong>
+                    @if($cityModel->postal_code ?? null) ({{ $cityModel->postal_code }})@endif
+                    &mdash; Réponse rapide, devis gratuit et sans engagement.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{{ route('form.step', 'propertyType') }}" 
-                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
-                       style="background-color: var(--accent-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--accent-color)';">
-                        <i class="fas fa-calculator mr-2"></i>
-                        Simulateur de devis
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ route('form.step', 'propertyType') }}" class="btn-accent text-lg shadow-xl">
+                        <i class="fas fa-calculator"></i> Devis gratuit en ligne
                     </a>
-                    <a href="tel:{{ setting('company_phone_raw') }}" 
-                       class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)';"
-                       onclick="console.log('📞 Clic sur bouton appel (ads/show)'); if(typeof window.trackPhoneCall === 'function') { console.log('📞 Appel de trackPhoneCall'); window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('❌ trackPhoneCall non disponible', typeof window.trackPhoneCall); } return true;"
-                        <i class="fas fa-phone mr-2"></i>
-                        {{ setting('company_phone') }}
+                    <a href="tel:{{ setting('company_phone_raw') }}"
+                       class="btn-outline-white text-lg btn-call-pulse"
+                       onclick="if(typeof window.trackPhoneCall==='function'){window.trackPhoneCall('{{ setting('company_phone_raw') }}','ads/{{ $ad->slug ?? '' }}');}return true;">
+                        <i class="fas fa-phone"></i> {{ setting('company_phone') }}
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Contenu de l'annonce -->
-    <section class="py-16">
+    {{-- ═══════════════════════════════════════════════════════════
+         CONTENU PRINCIPAL + SIDEBAR
+    ═══════════════════════════════════════════════════════════ --}}
+    <section class="py-12 md:py-16">
         <div class="container mx-auto px-4">
-            <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-lg p-4 md:p-8 lg:p-12 overflow-hidden relative">
-                    <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert" style="word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; word-break: break-word;">
-                        {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
-                    </div>
-                    
-                    @if(!empty($extendedKeywords))
-                    <!-- Mots-clés étendus invisibles mais visibles pour Google -->
-                    <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
-                        {{ implode(', ', $extendedKeywords) }}
-                    </div>
-                    @endif
-                </div>
+            <div class="max-w-7xl mx-auto">
+                <div class="lg:grid lg:grid-cols-3 lg:gap-10 items-start">
 
-                <div class="mt-12 rounded-2xl p-8 text-white text-center" style="background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-                    <h3 class="text-2xl font-bold mb-4">Prêt à Démarrer Votre Projet à {{ $cityModel->name ?? 'votre ville' }} ?</h3>
-                    <p class="text-lg mb-6">Contactez-nous dès aujourd'hui pour un devis gratuit et personnalisé</p>
-                    
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="{{ route('form.step', 'propertyType') }}" 
-                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
-                           style="background-color: var(--accent-color);"
-                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                           onmouseout="this.style.backgroundColor='var(--accent-color)';">
-                            <i class="fas fa-calculator mr-2"></i>
-                            Simulateur de devis
-                        </a>
-                        <a href="tel:{{ setting('company_phone_raw') }}" 
-                           class="text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
-                           style="background-color: var(--primary-color);"
-                           onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                           onmouseout="this.style.backgroundColor='var(--primary-color)';"
-                           onclick="console.log('📞 Clic sur bouton appel (ads/show)'); if(typeof window.trackPhoneCall === 'function') { console.log('📞 Appel de trackPhoneCall'); window.trackPhoneCall('{{ setting('company_phone_raw') }}', 'ads/{{ $ad->slug ?? 'unknown' }}'); } else { console.error('❌ trackPhoneCall non disponible', typeof window.trackPhoneCall); } return true;"
-                            <i class="fas fa-phone mr-2"></i>
-                            Appeler Maintenant
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                    {{-- Colonne contenu (2/3) --}}
+                    <div class="lg:col-span-2">
 
-    <!-- Section Nos Réalisations -->
-    @if(!empty($portfolioItems) && count($portfolioItems) > 0)
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Réalisations</h2>
-                    <p class="text-lg text-gray-600">Découvrez quelques-unes de nos réalisations récentes</p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    @foreach(array_slice($portfolioItems, 0, 4) as $portfolioItem)
-                    @if(is_array($portfolioItem) && !empty($portfolioItem['images']) && is_array($portfolioItem['images']))
-                    @php
-                        // Générer le slug pour la page de détails
-                        $itemTitle = $portfolioItem['title'] ?? 'Réalisation';
-                        $itemSlug = !empty($portfolioItem['slug']) ? $portfolioItem['slug'] : Str::slug($itemTitle);
-                    @endphp
-                    <a href="{{ route('portfolio.show', $itemSlug) }}" class="block">
-                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer">
-                            <div class="relative">
-                                <img src="{{ asset($portfolioItem['images'][0]) }}" 
-                                     alt="{{ ($mainKeyword ?? '') . ' ' . ($portfolioItem['title'] ?? 'Réalisation') . ($cityModel->postal_code ? ' ' . $cityModel->postal_code : '') }}" 
-                                     class="w-full h-64 object-cover">
-                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                    <div class="opacity-0 hover:opacity-100 transition-opacity duration-300">
-                                        <i class="fas fa-search-plus text-white text-2xl"></i>
+                        {{-- Info rapide --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                            @php
+                                $infoItems = [
+                                    ['icon'=>'fas fa-map-marker-alt','label'=>$cityModel->name ?? 'Votre ville','color'=>'blue'],
+                                    ['icon'=>'fas fa-clock','label'=>'Réponse sous 24h','color'=>'green'],
+                                    ['icon'=>'fas fa-file-invoice','label'=>'Devis gratuit','color'=>'amber'],
+                                    ['icon'=>'fas fa-tools','label'=>'Artisan qualifié','color'=>'purple'],
+                                ];
+                            @endphp
+                            @foreach($infoItems as $item)
+                            <div class="bg-white rounded-xl shadow-sm p-4 flex flex-col items-center text-center border border-gray-100 hover:shadow-md transition">
+                                <div class="w-10 h-10 rounded-full bg-{{ $item['color'] }}-100 flex items-center justify-center mb-2">
+                                    <i class="{{ $item['icon'] }} text-{{ $item['color'] }}-600"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-700 leading-tight">{{ $item['label'] }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Contenu HTML de l'annonce --}}
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8 ad-content-wrap">
+                            <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert">
+                                {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
+                            </div>
+
+                            @if(!empty($extendedKeywords))
+                            <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                                {{ implode(', ', $extendedKeywords) }}
+                            </div>
+                            @endif
+                        </div>
+
+                        {{-- CTA banner inline (mobile + desktop) --}}
+                        <div class="bottom-cta p-8 md:p-10 text-white text-center mb-10">
+                            <p class="text-sm uppercase tracking-widest text-white/70 mb-2 font-semibold">Prêt à démarrer ?</p>
+                            <h2 class="text-2xl md:text-3xl font-extrabold mb-3">
+                                Votre projet à {{ $cityModel->name ?? 'votre ville' }}
+                            </h2>
+                            <p class="text-white/85 mb-6 max-w-xl mx-auto">
+                                Obtenez un devis personnalisé et gratuit. Notre équipe vous répond rapidement.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                                <a href="{{ route('form.step', 'propertyType') }}" class="btn-accent text-lg shadow-lg">
+                                    <i class="fas fa-calculator"></i> Simulateur de devis
+                                </a>
+                                <a href="tel:{{ setting('company_phone_raw') }}"
+                                   class="btn-outline-white text-lg"
+                                   onclick="if(typeof window.trackPhoneCall==='function'){window.trackPhoneCall('{{ setting('company_phone_raw') }}','ads/{{ $ad->slug ?? '' }}');}return true;">
+                                    <i class="fas fa-phone"></i> Appeler maintenant
+                                </a>
+                            </div>
+                        </div>
+
+                        {{-- Réalisations --}}
+                        @if(!empty($portfolioItems) && count($portfolioItems) > 0)
+                        <div class="mb-10">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <span class="w-1 h-7 rounded-full inline-block" style="background:var(--primary-color);"></span>
+                                Nos Réalisations
+                            </h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                @foreach(array_slice($portfolioItems, 0, 4) as $portfolioItem)
+                                @if(is_array($portfolioItem) && !empty($portfolioItem['images']) && is_array($portfolioItem['images']))
+                                @php
+                                    $itemTitle = $portfolioItem['title'] ?? 'Réalisation';
+                                    $itemSlug  = !empty($portfolioItem['slug']) ? $portfolioItem['slug'] : Str::slug($itemTitle);
+                                @endphp
+                                <a href="{{ route('portfolio.show', $itemSlug) }}" class="related-card block bg-white shadow-sm border border-gray-100 group">
+                                    <div class="relative overflow-hidden h-52">
+                                        <img src="{{ asset($portfolioItem['images'][0]) }}"
+                                             alt="{{ ($mainKeyword ?? '') . ' ' . $itemTitle }}"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
+                                            <span class="text-white text-sm font-semibold"><i class="fas fa-search-plus mr-1"></i> Voir la réalisation</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-gray-900 mb-1">{{ $itemTitle }}</h3>
+                                        @if(!empty($portfolioItem['description']))
+                                        <p class="text-gray-500 text-sm">{{ Str::limit($portfolioItem['description'], 80) }}</p>
+                                        @endif
+                                    </div>
+                                </a>
+                                @endif
+                                @endforeach
+                            </div>
+                            @if(count($portfolioItems) > 4)
+                            <div class="text-center mt-6">
+                                <a href="{{ route('portfolio.index') }}" class="btn-primary">
+                                    <i class="fas fa-images"></i> Voir toutes nos réalisations
+                                </a>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+
+                    </div>{{-- /col contenu --}}
+
+                    {{-- Sidebar CTA (1/3) --}}
+                    <div class="mt-10 lg:mt-0">
+                        <div class="cta-sidebar">
+
+                            {{-- Card devis --}}
+                            <div class="cta-card mb-6">
+                                <div class="cta-card-header">
+                                    <div class="text-3xl mb-2">🏠</div>
+                                    <h3 class="text-lg font-extrabold">Devis Gratuit</h3>
+                                    <p class="text-white/80 text-sm mt-1">Réponse sous 24h • Sans engagement</p>
+                                </div>
+                                <div class="p-6 space-y-3">
+                                    <a href="{{ route('form.step', 'propertyType') }}" class="btn-accent w-full justify-center text-base">
+                                        <i class="fas fa-calculator"></i> Simulateur en ligne
+                                    </a>
+                                    <a href="tel:{{ setting('company_phone_raw') }}"
+                                       class="btn-primary w-full justify-center text-base btn-call-pulse"
+                                       onclick="if(typeof window.trackPhoneCall==='function'){window.trackPhoneCall('{{ setting('company_phone_raw') }}','ads/{{ $ad->slug ?? '' }}-sidebar');}return true;">
+                                        <i class="fas fa-phone"></i> {{ setting('company_phone') }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- Certifications --}}
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                                <h4 class="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider">Certifications &amp; Garanties</h4>
+                                <ul class="space-y-3">
+                                    @foreach([
+                                        ['fas fa-shield-alt','text-blue-600','Garantie décennale'],
+                                        ['fas fa-leaf','text-green-600','Certification RGE'],
+                                        ['fas fa-award','text-amber-600','Qualibat'],
+                                        ['fas fa-hard-hat','text-slate-600','Artisan qualifié'],
+                                    ] as $cert)
+                                    <li class="flex items-center gap-3 text-sm text-gray-700">
+                                        <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                                            <i class="{{ $cert[0] }} {{ $cert[1] }}"></i>
+                                        </div>
+                                        {{ $cert[2] }}
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            {{-- Zone d'intervention --}}
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                                <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wider">Zone d'intervention</h4>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-map-marker-alt text-red-500"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">{{ $cityModel->name ?? 'Votre ville' }}
+                                            @if($cityModel->postal_code ?? null) <span class="text-gray-500">({{ $cityModel->postal_code }})</span>@endif
+                                        </p>
+                                        <p class="text-xs text-gray-500 mt-0.5">et communes environnantes</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-6">
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                    {{ $portfolioItem['title'] ?? 'Réalisation' }}
-                                </h3>
-                                @if(!empty($portfolioItem['description']))
-                                <p class="text-gray-600 text-sm mb-4">
-                                    {{ Str::limit($portfolioItem['description'], 100) }}
-                                </p>
-                                @endif
-                                <div class="flex items-center justify-between">
-                                    @if(!empty($portfolioItem['work_type']))
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium"
-                                          style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
-                                        @switch($portfolioItem['work_type'])
-                                            @case('roof')
-                                                <i class="fas fa-home mr-1"></i>Toiture
-                                                @break
-                                            @case('facade')
-                                                <i class="fas fa-building mr-1"></i>Façade
-                                                @break
-                                            @case('isolation')
-                                                <i class="fas fa-thermometer-half mr-1"></i>Isolation
-                                                @break
-                                            @default
-                                                <i class="fas fa-tools mr-1"></i>Mixte
-                                        @endswitch
-                                    </span>
-                                    @endif
-                                    @if(count($portfolioItem['images']) > 1)
-                                    <span class="text-gray-500 text-sm">
-                                        <i class="fas fa-images mr-1"></i>{{ count($portfolioItem['images']) }} photos
-                                    </span>
-                                    @endif
+
+                            {{-- Avis rapide --}}
+                            @if($avgRating > 0)
+                            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-center">
+                                <div class="text-3xl font-extrabold text-amber-600">{{ number_format($avgRating, 1) }}<span class="text-lg">/5</span></div>
+                                <div class="flex justify-center gap-0.5 my-1">
+                                    @for($i=1;$i<=5;$i++)
+                                    <i class="fas fa-star {{ $i <= round($avgRating) ? 'text-amber-400' : 'text-amber-200' }} text-sm"></i>
+                                    @endfor
                                 </div>
+                                <p class="text-xs text-amber-700 font-medium">{{ $nbReviews }} avis clients</p>
+                            </div>
+                            @endif
+
+                        </div>
+                    </div>{{-- /sidebar --}}
+
+                </div>{{-- /grid --}}
+            </div>
+        </div>
+    </section>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         SERVICES SIMILAIRES
+    ═══════════════════════════════════════════════════════════ --}}
+    @if(isset($relatedAds) && $relatedAds->count() > 0)
+    <section class="py-14 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-10">
+                    <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:var(--primary-color);">Découvrez aussi</p>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">
+                        Autres services à {{ $cityModel->name ?? 'votre ville' }}
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($relatedAds as $relatedAd)
+                    <a href="{{ route('ads.show', $relatedAd->slug) }}" class="related-card block bg-gray-50 border border-gray-100 p-6 group">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center"
+                                 style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                                <i class="fas fa-tools text-white"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-gray-900 group-hover:text-primary transition mb-1 truncate"
+                                    style="--text-primary: var(--primary-color);">
+                                    {{ $relatedAd->title }}
+                                </h3>
+                                <p class="text-gray-500 text-sm line-clamp-2">{{ Str::limit($relatedAd->meta_description, 90) }}</p>
+                                <span class="mt-2 inline-flex items-center gap-1 text-sm font-semibold" style="color:var(--primary-color);">
+                                    Voir le service <i class="fas fa-arrow-right text-xs"></i>
+                                </span>
                             </div>
                         </div>
                     </a>
-                    @endif
                     @endforeach
                 </div>
-                
-                @if(count($portfolioItems) > 4)
-                <div class="text-center mt-8">
-                    <a href="{{ route('portfolio.index') }}" 
-                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                        <i class="fas fa-images mr-2"></i>
-                        Voir Toutes nos Réalisations
+            </div>
+        </div>
+    </section>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+         AVIS CLIENTS
+    ═══════════════════════════════════════════════════════════ --}}
+    <section class="py-14 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-10">
+                    <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:var(--primary-color);">Témoignages</p>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Ce que disent nos clients</h2>
+                </div>
+
+                @php $reviews = \App\Models\Review::where('is_active', true)->take(3)->get(); @endphp
+
+                @if($reviews->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    @foreach($reviews as $review)
+                    <div class="review-card p-6">
+                        {{-- Stars --}}
+                        <div class="flex gap-0.5 mb-3">
+                            @for($i=1;$i<=5;$i++)
+                            <i class="fas fa-star {{ $i <= $review->rating ? 'text-amber-400' : 'text-gray-200' }} text-sm"></i>
+                            @endfor
+                        </div>
+                        {{-- Texte --}}
+                        <p class="text-gray-700 text-sm leading-relaxed mb-4 italic">
+                            "{{ $review->review_text ? Str::limit($review->review_text, 140) : 'Très satisfait du service.' }}"
+                        </p>
+                        {{-- Auteur --}}
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                                @if($review->author_photo_url)
+                                <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
+                                @else
+                                <div class="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+                                     style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                                    {{ $review->author_initials ?? substr($review->author_name,0,1) }}
+                                </div>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900 text-sm">{{ $review->author_name }}</p>
+                                <p class="text-xs text-gray-400">
+                                    {{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->format('M Y') : '' }}
+                                    @if($review->source && $review->source !== 'manual')
+                                    &bull;
+                                    @if(str_contains($review->source,'Google'))<i class="fab fa-google"></i> Google@else{{ ucfirst($review->source) }}@endif
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="text-center">
+                    <a href="{{ route('reviews.all') }}" class="btn-primary">
+                        <i class="fas fa-comments"></i> Voir tous les avis
                     </a>
                 </div>
                 @endif
             </div>
         </div>
     </section>
-    @endif
 
-    <!-- Section Annonces Similaires -->
-    @if(isset($relatedAds) && $relatedAds->count() > 0)
-    <section class="py-16 bg-gray-100">
-        <div class="container mx-auto px-4">
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Autres Services à {{ $cityModel->name ?? 'votre ville' }}</h2>
-                    <p class="text-lg text-gray-600">Découvrez nos autres services disponibles dans votre ville</p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($relatedAds as $relatedAd)
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $relatedAd->title }}</h3>
-                            <p class="text-gray-600 text-sm mb-4">{{ Str::limit($relatedAd->meta_description, 100) }}</p>
-                            <a href="{{ route('ads.show', $relatedAd->slug) }}" 
-                               class="inline-block text-white font-semibold px-4 py-2 rounded-lg transition-colors"
-                               style="background-color: var(--primary-color);"
-                               onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                               onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                                Voir le service
-                            </a>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </section>
-    @endif
-
-    <!-- Section Avis Clients -->
-    <section class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Avis de Nos Clients</h2>
-                    <p class="text-lg text-gray-600">Ce que disent nos clients sur nos services</p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @php
-                        $reviews = \App\Models\Review::where('is_active', true)->take(3)->get();
-                    @endphp
-                    
-                    @if($reviews->count() > 0)
-                    @foreach($reviews as $review)
-                    <div class="bg-gray-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
-                                @if($review->author_photo_url)
-                                <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
-                                @else
-                                <div class="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                                    {{ $review->author_initials }}
-                                </div>
-                                @endif
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900">{{ $review->author_name }}</h4>
-                                <div class="flex items-center">
-                                    @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star text-yellow-400 {{ $i <= $review->rating ? '' : 'opacity-30' }}"></i>
-                                    @endfor
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-gray-700 mb-4">
-                            @if($review->review_text)
-                                <p>{{ Str::limit($review->review_text, 150) }}</p>
-                            @else
-                                <p class="text-gray-500 italic">Avis sans contenu détaillé</p>
-                            @endif
-                        </div>
-                        
-                        <div class="flex items-center justify-between text-sm text-gray-500">
-                            <span>{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->format('d/m/Y') : '' }}</span>
-                            @if($review->source && $review->source !== 'manual')
-                            <span class="px-2 py-1 rounded-full text-xs"
-                                  style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
-                                @if(str_contains($review->source, 'Google'))
-                                    <i class="fab fa-google mr-1"></i>Google Maps
-                                @elseif(str_contains($review->source, 'Travaux'))
-                                    <i class="fas fa-tools mr-1"></i>Travaux.com
-                                @elseif(str_contains($review->source, 'LeBonCoin'))
-                                    <i class="fas fa-shopping-cart mr-1"></i>LeBonCoin
-                                @elseif(str_contains($review->source, 'Trustpilot'))
-                                    <i class="fas fa-shield-alt mr-1"></i>Trustpilot
-                                @elseif(str_contains($review->source, 'Facebook'))
-                                    <i class="fab fa-facebook mr-1"></i>Facebook
-                                @else
-                                    <i class="fas fa-star mr-1"></i>{{ ucfirst($review->source) }}
-                                @endif
-                            </span>
-                            @endif
-                        </div>
-                    </div>
-                    @endforeach
-                    @else
-                    <div class="col-span-full text-center py-8">
-                        <p class="text-gray-500">Aucun avis disponible pour le moment.</p>
-                    </div>
-                    @endif
-                </div>
-                
-                <div class="text-center mt-8">
-                    <a href="{{ route('reviews.all') }}" 
-                       class="text-white font-bold py-3 px-8 rounded-lg transition-colors"
-                       style="background-color: var(--primary-color);"
-                       onmouseover="this.style.backgroundColor='var(--secondary-color)';"
-                       onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                        Voir Tous les Avis
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
 </div>
+@endsection
 
 @push('head')
-<!-- Schema.org Structured Data pour SEO -->
 <script type="application/ld+json">
 {!! json_encode([
     '@context' => 'https://schema.org',
@@ -473,66 +541,43 @@
             '@type' => 'PostalAddress',
             'addressLocality' => $cityModel->name ?? '',
             'postalCode' => $cityModel->postal_code ?? '',
-            'addressCountry' => 'FR'
+            'addressCountry' => 'FR',
         ],
         'telephone' => setting('company_phone_raw', ''),
-        'url' => url('/')
+        'url' => url('/'),
     ],
     'areaServed' => [
         '@type' => 'City',
         'name' => $cityModel->name ?? '',
-        'postalCode' => $cityModel->postal_code ?? ''
+        'postalCode' => $cityModel->postal_code ?? '',
     ],
     'description' => strip_tags($pageDescription ?? ''),
-    'url' => url()->current()
+    'url' => url()->current(),
 ] + (!empty($extendedKeywords) ? ['keywords' => implode(', ', array_slice($extendedKeywords, 0, 10))] : []), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 @endpush
 
 @push('scripts')
 <script>
-// Script de secours pour le tracking des appels si phone-tracking.js n'est pas encore chargé
 (function() {
-    // S'assurer que la fonction trackPhoneCall est disponible même si le script externe n'est pas chargé
     if (typeof window.trackPhoneCall === 'undefined') {
         window.trackPhoneCall = function(phoneNumber, sourcePage) {
-            console.log('📞 trackPhoneCall (fallback) appelé', { phoneNumber, sourcePage });
-            
-            // Essayer d'envoyer la requête directement
             const payload = {
                 phone_number: phoneNumber || '{{ setting('company_phone_raw') }}',
                 source_page: sourcePage || window.location.pathname,
-                referrer_url: document.referrer || window.location.href
+                referrer_url: document.referrer || window.location.href,
             };
-            
-            // Utiliser fetch avec keepalive pour maximiser les chances de succès
             fetch('/api/track-phone-call', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
                 body: JSON.stringify(payload),
-                keepalive: true
-            }).catch(function(err) {
-                console.error('Erreur tracking (fallback):', err);
-            });
+                keepalive: true,
+            }).catch(() => {});
         };
     }
 })();
-
-// Logger pour debug
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Page ads/show chargée');
-    console.log('trackPhoneCall disponible:', typeof window.trackPhoneCall);
-    
-    // Vérifier que tous les liens tel: sont bien détectés
-    const telLinks = document.querySelectorAll('a[href^="tel:"]');
-    console.log('🔗 Liens tel: trouvés:', telLinks.length);
-    telLinks.forEach(function(link, index) {
-        console.log('  - Lien', index + 1, ':', link.href, link.onclick ? '(avec onclick)' : '(sans onclick)');
-    });
-});
 </script>
 @endpush
-@endsection

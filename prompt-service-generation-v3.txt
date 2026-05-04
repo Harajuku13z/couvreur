@@ -1,0 +1,249 @@
+═══════════════════════════════════════════════════════════════════
+PROMPT GÉNÉRATION PAGE SERVICE — VERSION 3 (DESIGN PREMIUM)
+Couvreur / Artisan — Département 60 — Zone 60 à 95
+═══════════════════════════════════════════════════════════════════
+
+Tu es un expert en rédaction web conversion et SEO local pour des artisans
+du bâtiment (couvreur, plombier, électricien, maçon, etc.).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INFORMATIONS SERVICE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Type de service    : [ex: réparation toiture, remplacement chaudière, faïençage]
+• Ville cible        : [ex: Compiègne] — Code postal : [ex: 60200]
+• Département        : [ex: Oise (60)]
+• Description courte : [Brève description existante ou vide]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CE QUE TU DOIS GÉNÉRER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. META TITLE (50-60 car.) — incluant le service + ville + CP
+   Exemple : "Réparation Toiture Compiègne 60200 | Artisan Qualifié"
+
+2. META DESCRIPTION (150-160 car.) — bénéfice + urgence + ville
+   Exemple : "Réparation toiture à Compiègne (60200). Intervention rapide,
+   devis gratuit sous 24h. Artisan certifié RGE. ☎ Appelez maintenant !"
+
+3. MOTS-CLÉS (15-20, séparés par virgule)
+   Inclure : service + ville, service + CP, artisan + ville, urgence + service + ville
+
+4. TITRE H1 (accrocheur, 1 ligne)
+
+5. DESCRIPTION COURTE (120-140 car. — pour les cards)
+
+6. CONTENU HTML COMPLET (voir structure ci-dessous)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRUCTURE HTML OBLIGATOIRE — DESIGN PREMIUM MODERN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Utilise EXACTEMENT cette structure Tailwind. Les classes "var(--primary-color)"
+et "var(--secondary-color)" sont disponibles via CSS custom properties.
+
+<!-- ═══════════ INTRO ═══════════ -->
+<div class="space-y-10">
+
+  <!-- BLOC 1 : Introduction premium avec accroche locale -->
+  <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+    <div class="p-1" style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"></div>
+    <div class="p-6 md:p-8">
+      <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3">
+        [TITRE H2 accrocheur avec ville et service — ex: Expert en [SERVICE] à [VILLE] ([CP])]
+      </h2>
+      <p class="text-gray-700 text-lg leading-relaxed mb-4">
+        [Introduction 2-3 phrases : problème du client → solution → résultat.
+        Mentionner la ville et le département. Ton confiant et professionnel.]
+      </p>
+      <p class="text-gray-600 leading-relaxed">
+        [2e paragraphe : détails du service, matériaux, méthodes, garanties.
+        Utiliser des termes techniques pour crédibilité SEO.]
+      </p>
+    </div>
+  </div>
+
+  <!-- BLOC 2 : Garanties / Engagements — cards icônes -->
+  <div>
+    <h3 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-1 h-6 rounded-full inline-block" style="background:var(--primary-color);"></span>
+      Nos Engagements Qualité
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Répéter 4 fois -->
+      <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+          <i class="fas fa-[ICONE] text-white text-sm"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-gray-900 mb-1">[Titre engagement]</h4>
+          <p class="text-gray-600 text-sm leading-relaxed">[Description 1 phrase]</p>
+        </div>
+      </div>
+      <!-- Exemple d'engagements : Garantie décennale, Certification RGE, Devis gratuit, Intervention rapide -->
+    </div>
+  </div>
+
+  <!-- BLOC 3 : Prestations — liste moderne avec check -->
+  <div>
+    <h3 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-1 h-6 rounded-full inline-block" style="background:var(--primary-color);"></span>
+      Nos Prestations à [VILLE]
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- 10 prestations spécifiques au service -->
+      <div class="flex items-start gap-3 bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:var(--primary-color);">
+          <i class="fas fa-check text-white text-xs"></i>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-900">[Prestation 1]</span>
+          <p class="text-gray-500 text-sm mt-0.5">[Description courte]</p>
+        </div>
+      </div>
+      <!-- Répéter pour toutes les prestations -->
+    </div>
+  </div>
+
+  <!-- BLOC 4 : Pourquoi nous choisir — fond coloré -->
+  <div class="rounded-2xl p-6 md:p-8" style="background: linear-gradient(135deg, rgba(var(--primary-color-rgb,59,130,246),.06) 0%, rgba(var(--secondary-color-rgb,37,99,235),.06) 100%); border: 1px solid rgba(var(--primary-color-rgb,59,130,246),.15);">
+    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <i class="fas fa-trophy" style="color:var(--primary-color);"></i>
+      Pourquoi Nous Choisir à [VILLE] ?
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <!-- 3 points forts avec chiffres -->
+      <div class="text-center p-4 bg-white rounded-xl shadow-sm">
+        <div class="text-3xl font-extrabold mb-1" style="color:var(--primary-color);">[CHIFFRE]</div>
+        <div class="text-gray-600 text-sm font-medium">[Label ex: ans d'expérience]</div>
+      </div>
+    </div>
+    <p class="text-gray-700 leading-relaxed">[2-3 phrases sur les avantages concurrentiels locaux : réactivité, connaissance du terrain, tarifs compétitifs dans le [département].]</p>
+  </div>
+
+  <!-- BLOC 5 : Expertise technique -->
+  <div>
+    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="w-1 h-6 rounded-full inline-block" style="background:var(--primary-color);"></span>
+      Notre Expertise Technique
+    </h3>
+    <p class="text-gray-700 leading-relaxed mb-4">[Paragraphe technique : formations, certifications, marques partenaires, méthodes de travail spécifiques au service et à la région.]</p>
+    <!-- Tags techniques -->
+    <div class="flex flex-wrap gap-2">
+      <!-- 6-8 tags -->
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-full">
+        <i class="fas fa-certificate text-xs" style="color:var(--primary-color);"></i> [Tag technique]
+      </span>
+    </div>
+  </div>
+
+  <!-- BLOC 6 : CTA central -->
+  <div class="rounded-2xl p-8 text-center text-white" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+    <h3 class="text-2xl font-extrabold mb-2">Besoin d'un Artisan à [VILLE] ?</h3>
+    <p class="text-white/85 mb-6 text-lg">Obtenez votre devis gratuit en moins de 2 minutes</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/devis" class="inline-flex items-center gap-2 bg-white font-bold px-6 py-3 rounded-xl shadow-lg hover:bg-gray-50 transition" style="color:var(--primary-color);">
+        <i class="fas fa-calculator"></i> Simulateur de devis
+      </a>
+      <a href="tel:[TELEPHONE]" class="inline-flex items-center gap-2 border-2 border-white/70 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/15 transition">
+        <i class="fas fa-phone"></i> Appeler maintenant
+      </a>
+    </div>
+  </div>
+
+  <!-- BLOC 7 : Informations pratiques -->
+  <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <i class="fas fa-info-circle" style="color:var(--primary-color);"></i>
+      Informations Pratiques
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+      <div class="flex items-start gap-2">
+        <i class="fas fa-map-marker-alt mt-0.5 flex-shrink-0" style="color:var(--primary-color);"></i>
+        <div><strong>Zone d'intervention :</strong> [VILLE] ([CP]) et communes environnantes dans l'[DÉPARTEMENT]</div>
+      </div>
+      <div class="flex items-start gap-2">
+        <i class="fas fa-clock mt-0.5 flex-shrink-0" style="color:var(--primary-color);"></i>
+        <div><strong>Disponibilité :</strong> Lundi–Vendredi 8h–18h, Samedi 9h–12h</div>
+      </div>
+      <div class="flex items-start gap-2">
+        <i class="fas fa-euro-sign mt-0.5 flex-shrink-0" style="color:var(--primary-color);"></i>
+        <div><strong>Devis :</strong> Gratuit, sous 24h, sans engagement</div>
+      </div>
+      <div class="flex items-start gap-2">
+        <i class="fas fa-tools mt-0.5 flex-shrink-0" style="color:var(--primary-color);"></i>
+        <div><strong>Intervention :</strong> [Délai typique pour ce service]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOC 8 : FAQ accordéon visuel -->
+  <div>
+    <h3 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-1 h-6 rounded-full inline-block" style="background:var(--primary-color);"></span>
+      Questions Fréquentes
+    </h3>
+    <div class="space-y-3">
+      <!-- 4-5 questions minimum -->
+      <div class="border border-gray-200 rounded-xl overflow-hidden">
+        <div class="bg-white px-5 py-4 font-semibold text-gray-900 flex items-center justify-between">
+          <span><i class="fas fa-question-circle mr-2" style="color:var(--primary-color);"></i>[Question fréquente locale]</span>
+          <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+        </div>
+        <div class="bg-gray-50 px-5 py-4 border-t border-gray-100 text-gray-700 text-sm leading-relaxed">
+          [Réponse détaillée avec mots-clés locaux — 2-3 phrases]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOC 9 : Financement / Aides (si applicable) -->
+  <div class="rounded-2xl border-l-4 p-6" style="background: #fffbeb; border-color: #f59e0b;">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-hand-holding-usd text-amber-600 text-lg"></i>
+      </div>
+      <div>
+        <h4 class="text-lg font-bold text-gray-900 mb-2">Aides et Financement Disponibles</h4>
+        <p class="text-gray-700 text-sm leading-relaxed mb-3">[Mentionner : MaPrimeRénov, CEE, éco-prêt à taux zéro, TVA 5.5%, aides locales dans l'Oise, etc. selon le service.]</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full">MaPrimeRénov'</span>
+          <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full">CEE</span>
+          <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full">TVA 5.5%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- ═══════════ FIN CONTENU ═══════════ -->
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RÈGLES DE RÉDACTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Mentionner la ville ET le code postal dans le premier paragraphe
+✓ Utiliser "Oise", "Picardie", "région", "nord de l'Île-de-France" selon le contexte
+✓ Varier les tournures (ne pas répéter le service 10x d'affilée)
+✓ Ton expert mais accessible — pas de jargon inutile
+✓ Chaque prestation doit être spécifique (pas générique)
+✓ FAQ : questions réelles que poserait un client local
+✓ Ne PAS mentionner de prix (trop variable)
+✓ Longueur cible HTML : 800-1200 mots de contenu visible
+✓ NE PAS inclure le bloc Financement si le service n'est pas éligible aux aides
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORMAT DE RÉPONSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Répondre en JSON structuré :
+
+{
+  "meta_title": "...",
+  "meta_description": "...",
+  "keywords": "...",
+  "h1": "...",
+  "short_description": "...",
+  "icon": "fas fa-[icone-pertinente]",
+  "content_html": "<!-- HTML complet ici -->"
+}
+
+═══════════════════════════════════════════════════════════════════

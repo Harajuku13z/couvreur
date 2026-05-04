@@ -142,84 +142,126 @@
     </section>
 
 @else
-    <!-- Hero Classic / Showcase -->
-    <section class="relative {{ $hl === 'showcase' ? 'min-h-[92vh]' : 'min-h-screen' }} flex items-center justify-center overflow-hidden hero-mobile pt-16 pb-16"
+    <!-- Hero Classic / Showcase — design moderne -->
+    <section class="relative {{ $hl === 'showcase' ? 'min-h-[95vh]' : 'min-h-screen' }} flex items-center overflow-hidden hero-mobile pt-16 pb-0"
              @if($homeConfig['hero']['background_image'] ?? null)
              style="background-color: var(--secondary-color); background-image: url('{{ asset($homeConfig['hero']['background_image']) }}'); background-attachment: scroll; background-size: cover; background-position: center; background-repeat: no-repeat; --hero-bg: url('{{ asset($homeConfig['hero']['background_image']) }}');"
              @else
-             style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"
+             style="background: linear-gradient(145deg, var(--primary-color) 0%, var(--secondary-color) 60%, #0f172a 100%);"
              @endif>
+
+        {{-- Overlay photo ou motif déco --}}
         @if($homeConfig['hero']['background_image'] ?? null)
-        <div class="absolute inset-0 bg-black/40 z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/20 z-0"></div>
+        @else
+        {{-- Cercles décoratifs --}}
+        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full opacity-10"
+                 style="background: radial-gradient(circle, rgba(255,255,255,.4) 0%, transparent 70%);"></div>
+            <div class="absolute bottom-0 -left-24 w-96 h-96 rounded-full opacity-10"
+                 style="background: radial-gradient(circle, rgba(255,255,255,.3) 0%, transparent 70%);"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full opacity-5"
+                 style="background: radial-gradient(circle, rgba(255,255,255,.2) 0%, transparent 60%);"></div>
+        </div>
         @endif
-        @if($hl === 'showcase')
-        <div class="absolute inset-0 opacity-30 pointer-events-none z-0" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%);"></div>
-        @endif
-        <div class="site-shell text-center text-white relative z-10 pt-8">
-            @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
-            <div class="flex justify-center items-center gap-6 mb-8 flex-wrap px-4">
-                @if($homeConfig['trust_badges']['garantie_decennale'] ?? false)
-                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <i class="fas fa-shield-alt text-yellow-400"></i>
-                    <span class="text-sm font-medium">Garantie Décennale</span>
+
+        <div class="site-shell relative z-10 py-16 md:py-24 w-full">
+            <div class="{{ $hl === 'showcase' ? 'max-w-5xl mx-auto text-center' : 'max-w-4xl' }}">
+
+                {{-- Pré-titre badge --}}
+                <div class="mb-6 {{ $hl === 'showcase' ? 'flex justify-center' : '' }}">
+                    <span class="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/25 text-white text-sm font-semibold px-4 py-2 rounded-full">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ setting('company_specialization', 'Artisan professionnel') }} · Devis gratuit
+                    </span>
+                </div>
+
+                {{-- Trust badges --}}
+                @if(($homeConfig['trust_badges']['garantie_decennale'] ?? false) || ($homeConfig['trust_badges']['certifie_rge'] ?? false) || ($homeConfig['trust_badges']['show_rating'] ?? false))
+                <div class="flex {{ $hl === 'showcase' ? 'justify-center' : '' }} flex-wrap gap-2 mb-7">
+                    @if($homeConfig['trust_badges']['garantie_decennale'] ?? false)
+                    <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <i class="fas fa-shield-alt text-amber-300"></i> Garantie décennale
+                    </span>
+                    @endif
+                    @if($homeConfig['trust_badges']['certifie_rge'] ?? false)
+                    <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <i class="fas fa-leaf text-emerald-300"></i> Certifié RGE
+                    </span>
+                    @endif
+                    @if(($homeConfig['trust_badges']['show_rating'] ?? false) && $averageRating > 0)
+                    <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <i class="fas fa-star text-yellow-300"></i> {{ number_format($averageRating, 1) }}/5 · {{ $totalReviews }} avis
+                    </span>
+                    @endif
                 </div>
                 @endif
-                @if($homeConfig['trust_badges']['certifie_rge'] ?? false)
-                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <i class="fas fa-certificate text-green-400"></i>
-                    <span class="text-sm font-medium">Certifié RGE</span>
+
+                {{-- Titre principal --}}
+                <h1 class="{{ $hl === 'showcase' ? 'text-5xl md:text-7xl lg:text-8xl tracking-tight' : 'text-4xl md:text-6xl lg:text-7xl' }} font-extrabold text-white leading-[1.05] mb-5 drop-shadow-xl">
+                    {{ $homeConfig['hero']['title'] ?? setting('company_name', 'Votre Entreprise') }}
+                </h1>
+
+                {{-- Sous-titre --}}
+                <p class="{{ $hl === 'showcase' ? 'text-xl md:text-2xl max-w-2xl mx-auto' : 'text-lg md:text-xl max-w-2xl' }} text-white/85 mb-10 leading-relaxed">
+                    {{ $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'Travaux de Rénovation') }}
+                </p>
+
+                {{-- CTA buttons --}}
+                @php
+                    $phoneMain = setting('company_phone', '');
+                    $phone2    = setting('company_phone_2', '');
+                @endphp
+                <div class="flex flex-col sm:flex-row gap-4 {{ $hl === 'showcase' ? 'justify-center' : '' }} items-stretch sm:items-center mb-10">
+                    <a href="{{ route('form.step', 'propertyType') }}"
+                       class="group inline-flex justify-center items-center gap-2 bg-white text-gray-900 font-bold text-lg px-8 py-4 rounded-2xl shadow-2xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-[1.02] hover:shadow-white/25">
+                        <i class="fas fa-calculator text-primary group-hover:rotate-6 transition-transform" style="color:var(--primary-color);"></i>
+                        {{ $homeConfig['hero']['cta_text'] ?? 'Devis gratuit en ligne' }}
+                    </a>
+                    @if(($homeConfig['hero']['show_phone'] ?? true) && $phoneMain)
+                    <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}"
+                       class="inline-flex justify-center items-center gap-2 border-2 border-white/70 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:bg-white/15 backdrop-blur transition-all duration-200">
+                        <i class="fas fa-phone"></i>
+                        {{ $phoneMain }}
+                    </a>
+                    @endif
+                    @if(($homeConfig['hero']['show_phone'] ?? true) && $phone2)
+                    <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}"
+                       class="inline-flex justify-center items-center gap-2 border border-white/40 text-white/90 font-semibold text-base px-6 py-4 rounded-2xl hover:bg-white/10 transition">
+                        <i class="fas fa-phone-alt text-sm"></i>
+                        {{ $phone2 }}
+                    </a>
+                    @endif
                 </div>
-                @endif
-                @if(($homeConfig['trust_badges']['show_rating'] ?? false) && $averageRating > 0)
-                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <div class="flex text-yellow-400">
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= $averageRating ? '' : 'text-gray-300' }}"></i>
-                        @endfor
+
+                {{-- Bande chiffres rapides --}}
+                @php
+                    $heroStats = [
+                        ['icon'=>'fas fa-check-circle','val'=> setting('home_stat_projects','500+'),'label'=>'Projets réalisés'],
+                        ['icon'=>'fas fa-star','val'=> ($averageRating > 0 ? number_format($averageRating,1).'/5' : '4.9/5'),'label'=>'Note clients'],
+                        ['icon'=>'fas fa-calendar-check','val'=> setting('home_stat_years','20+'),'label'=>'Ans d\'expérience'],
+                        ['icon'=>'fas fa-map-marker-alt','val'=> setting('home_stat_cities','60+'),'label'=>'Communes'],
+                    ];
+                @endphp
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 {{ $hl === 'showcase' ? 'max-w-2xl mx-auto' : '' }}">
+                    @foreach($heroStats as $hs)
+                    <div class="bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 text-center">
+                        <i class="{{ $hs['icon'] }} text-white/60 text-xs mb-1 block"></i>
+                        <div class="text-white font-extrabold text-xl leading-none">{{ $hs['val'] }}</div>
+                        <div class="text-white/60 text-xs mt-0.5">{{ $hs['label'] }}</div>
                     </div>
-                    <span class="text-sm font-medium">{{ number_format($averageRating, 1) }}/5 ({{ $totalReviews }} avis)</span>
+                    @endforeach
                 </div>
-                @endif
-            </div>
-            @endif
 
-            <h1 class="{{ $hl === 'showcase' ? 'text-5xl md:text-8xl' : 'text-5xl md:text-7xl' }} font-bold mb-6 leading-tight {{ $hl === 'showcase' ? 'tracking-tight' : '' }}">
-                {{ $homeConfig['hero']['title'] ?? setting('company_name', 'Votre Entreprise') }}
-            </h1>
-
-            <p class="{{ $hl === 'showcase' ? 'text-xl md:text-3xl' : 'text-xl md:text-2xl' }} mb-8 max-w-3xl mx-auto leading-relaxed font-medium">
-                {{ $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'Travaux de Rénovation') }}
-            </p>
-
-            @php
-                $phoneMain = setting('company_phone', '');
-                $phone2 = setting('company_phone_2', '');
-            @endphp
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center px-4 mb-8">
-                <a href="{{ route('form.step', 'propertyType') }}"
-                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg {{ $hl === 'showcase' ? 'px-10 py-5 text-xl' : '' }}">
-                    <i class="fas fa-calculator mr-2"></i>
-                    {{ $homeConfig['hero']['cta_text'] ?? 'Demander un Devis Gratuit' }}
-                </a>
-                @if(($homeConfig['hero']['show_phone'] ?? true) && $phoneMain)
-                <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}"
-                   class="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    <i class="fas fa-phone mr-2"></i>
-                    {{ $phoneMain }}
-                </a>
-                @endif
-                @if(($homeConfig['hero']['show_phone'] ?? true) && $phone2)
-                <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}"
-                   class="bg-gray-100 text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-lg border border-gray-300">
-                    <i class="fas fa-phone-alt mr-2"></i>
-                    {{ $phone2 }}
-                </a>
-                @endif
             </div>
         </div>
 
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
-            <i class="fas fa-chevron-down text-2xl"></i>
+        {{-- Vague décorative bas --}}
+        <div class="absolute bottom-0 left-0 right-0 z-10 pointer-events-none overflow-hidden leading-none">
+            <svg viewBox="0 0 1440 60" preserveAspectRatio="none" class="w-full h-10 md:h-14" aria-hidden="true">
+                <path d="M0,60 C360,0 1080,60 1440,20 L1440,60 Z" fill="white" opacity=".06"/>
+                <path d="M0,60 C480,20 960,60 1440,30 L1440,60 Z" fill="white" opacity=".04"/>
+            </svg>
         </div>
     </section>
 @endif

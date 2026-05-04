@@ -11,6 +11,7 @@ use Spatie\Sitemap\Tags\Sitemap as SitemapTag;
 use App\Models\Service;
 use App\Models\City;
 use App\Models\Article;
+use App\Models\Ad;
 
 class SitemapController extends Controller
 {
@@ -133,6 +134,25 @@ class SitemapController extends Controller
                         'priority' => 0.8,
                         'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY,
                         'lastmod' => $city->updated_at
+                    ];
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignorer
+        }
+
+        // Annonces publiées (pages SEO locales — priorité haute)
+        try {
+            $ads = Ad::where('status', 'published')->orderByRaw('COALESCE(published_at, created_at) DESC')->get();
+            foreach ($ads as $ad) {
+                try {
+                    $urls[] = [
+                        'url' => route('ads.show', $ad->slug),
+                        'priority' => 0.85,
+                        'changefreq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                        'lastmod' => $ad->updated_at ?? $ad->published_at ?? now(),
                     ];
                 } catch (\Exception $e) {
                     continue;
