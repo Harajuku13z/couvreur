@@ -1,6 +1,8 @@
 {{-- ============================================================
-     LANDING PAGE v3 — Louis Hoffmann Élagage · Département 60
-     Design : magazine éditorial, blanc dominant, typographie bold
+     LANDING PAGE "Classique" — Dark Bold Editorial
+     Design inspiré référence HTML/CSS professionnelle
+     Ordre : Hero → Marquee → Services → À propos → Processus
+             → Zones → Témoignages → FAQ → CTA final
      ============================================================ --}}
 
 @php
@@ -18,24 +20,34 @@
 @endphp
 
 <style>
-/* ─── Reset & Base ─────────────────────────────────────── */
-.lp-v3 *, .lp-v3 *::before, .lp-v3 *::after { box-sizing: border-box; }
-.lp-v3 { font-family: inherit; color: #0f172a; }
+/* ═══════════════════════════════════════════════════════════════
+   BASE & RESET
+═══════════════════════════════════════════════════════════════ */
+.lp *, .lp *::before, .lp *::after {
+    box-sizing: border-box;
+}
+.lp {
+    font-family: inherit;
+    background: #0d1110;
+    color: #fff;
+}
 
-/* ─── Shell ────────────────────────────────────────────── */
-.lp-shell {
+/* ═══════════════════════════════════════════════════════════════
+   SHELL
+═══════════════════════════════════════════════════════════════ */
+.cl-shell {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 1.25rem;
+    padding: 0 7%;
 }
-@media (min-width: 768px) { .lp-shell { padding: 0 2rem; } }
-@media (min-width: 1280px) { .lp-shell { padding: 0 3rem; } }
 
-/* ─── Section label ────────────────────────────────────── */
-.lp-label {
+/* ═══════════════════════════════════════════════════════════════
+   SECTION LABEL
+═══════════════════════════════════════════════════════════════ */
+.cl-label {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
+    gap: .625rem;
     font-size: .72rem;
     font-weight: 800;
     letter-spacing: .18em;
@@ -43,140 +55,347 @@
     color: var(--primary-color);
     margin-bottom: 1rem;
 }
+.cl-label::before {
+    content: '';
+    display: inline-block;
+    width: 2rem;
+    height: 2px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
 
-/* ─── Hero ─────────────────────────────────────────────── */
-.hero-v3 {
+/* ═══════════════════════════════════════════════════════════════
+   §1 HERO
+═══════════════════════════════════════════════════════════════ */
+.cl-hero {
     position: relative;
-    min-height: 100svh;
-    background: #0f1f13;
-    overflow: hidden;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow: hidden;
 }
-.hero-v3-bg {
+.cl-hero-bg {
     position: absolute;
     inset: 0;
     z-index: 0;
 }
-.hero-v3-bg img {
+.cl-hero-bg img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 30%;
+    object-position: center;
     display: block;
 }
-.hero-v3-bg-overlay {
+.cl-hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        155deg,
-        rgba(10, 20, 12, .92) 0%,
-        rgba(10, 20, 12, .72) 45%,
-        rgba(10, 20, 12, .55) 100%
-    );
+    background: linear-gradient(90deg, rgba(6,8,8,.96) 0%, rgba(8,10,8,.85) 40%, rgba(8,10,8,.2) 100%);
 }
-.hero-v3-inner {
+.cl-hero-no-img {
+    position: absolute;
+    inset: 0;
+    background: #0d1110;
+}
+.cl-hero-glow {
+    position: absolute;
+    top: -200px;
+    left: -200px;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,163,34,.18) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+}
+.cl-hero-inner {
     position: relative;
     z-index: 10;
-    padding-top: 7rem;
-    padding-bottom: 5rem;
+    padding: 160px 7% 80px;
 }
-.hero-v3-grid {
+.cl-hero-grid {
     display: grid;
     gap: 3rem;
-    align-items: center;
-}
-@media (min-width: 1024px) {
-    .hero-v3-grid {
-        grid-template-columns: 1fr 400px;
-        gap: 4rem;
-    }
+    align-items: flex-end;
+    position: relative;
 }
 
-/* ─── Hero animated dot tag ────────────────────────────── */
-.hero-tag {
+/* Hero tag */
+.cl-hero-tag {
     display: inline-flex;
     align-items: center;
     gap: .75rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 }
-.hero-tag-dots {
+.cl-hero-tag-line {
+    width: 2.5rem;
+    height: 2px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+.cl-hero-tag-text {
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--primary-color);
+}
+
+/* Hero H1 */
+.cl-h1 {
+    font-size: clamp(3.2rem, 7vw, 6rem);
+    font-weight: 950;
+    line-height: 0.95;
+    letter-spacing: -2px;
+    color: #fff;
+    margin: 0 0 1.5rem;
+}
+.cl-h1 .hl {
+    color: var(--primary-color);
+}
+
+/* Hero subtitle */
+.cl-hero-sub {
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    color: rgba(255,255,255,.65);
+    line-height: 1.75;
+    max-width: 560px;
+    margin: 0 0 2.5rem;
+}
+
+/* Hero CTAs */
+.cl-hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+.cl-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: .7rem;
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 900;
+    padding: 1rem 2rem;
+    border-radius: 14px;
+    text-decoration: none;
+    transition: opacity .2s, transform .2s;
+    box-shadow: 0 8px 28px rgba(108,163,34,.35);
+}
+.cl-btn-primary:hover {
+    opacity: .9;
+    transform: translateY(-2px);
+}
+.cl-btn-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: .7rem;
+    border: 1.5px solid rgba(255,255,255,.22);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 1rem 2rem;
+    border-radius: 14px;
+    text-decoration: none;
+    transition: background .2s, border-color .2s;
+}
+.cl-btn-phone:hover {
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.4);
+}
+.cl-phone-dot {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.cl-phone-dot-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    opacity: .25;
+    animation: cl-pulse 2s ease-in-out infinite;
+}
+@keyframes cl-pulse {
+    0%, 100% { opacity: .25; transform: scale(1); }
+    50% { opacity: .1; transform: scale(1.4); }
+}
+
+/* Features grid at bottom of hero */
+.cl-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+    margin-top: 65px;
+}
+.cl-feature-item {
+    border-left: 1px solid rgba(255,255,255,.15);
+    padding-left: 22px;
+}
+.cl-feature-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: .35rem;
+}
+.cl-feature-desc {
+    font-size: .82rem;
+    color: #d1d1d1;
+    line-height: 1.65;
+}
+
+/* Floating review card */
+.cl-review-card {
+    position: absolute;
+    right: 7%;
+    bottom: 80px;
+    width: 330px;
+    padding: 28px;
+    background: rgba(10,12,11,.92);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.08);
+    backdrop-filter: blur(12px);
+    z-index: 20;
+}
+.cl-review-stars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: .75rem;
+}
+.cl-review-star {
+    color: #fbbf24;
+    font-size: .8rem;
+}
+.cl-review-text {
+    color: rgba(255,255,255,.78);
+    font-size: .875rem;
+    font-style: italic;
+    line-height: 1.7;
+    margin: 0 0 1rem;
+}
+.cl-review-author {
     display: flex;
     align-items: center;
-    gap: .3rem;
+    gap: .75rem;
 }
-.hero-tag-dot-1 {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #4ade80;
-    animation: pulse-dot 2s ease-in-out infinite;
+.cl-review-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.15);
 }
-.hero-tag-dot-2 {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #16a34a;
+.cl-review-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
-.hero-tag-dot-3 {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: #14532d;
-}
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: .6; transform: scale(.8); }
-}
-
-/* ─── Hero H1 ───────────────────────────────────────────── */
-.hero-h1 {
-    font-size: clamp(2.8rem, 6.5vw, 5.5rem);
-    font-weight: 900;
-    line-height: .95;
-    letter-spacing: -.02em;
+.cl-review-avatar-initials {
+    width: 100%;
+    height: 100%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
-    margin: 0 0 1.75rem;
+    font-weight: 900;
+    font-size: .9rem;
+}
+.cl-review-name {
+    font-weight: 700;
+    font-size: .85rem;
+    color: #fff;
+}
+.cl-review-date {
+    font-size: .72rem;
+    color: rgba(255,255,255,.35);
 }
 
-/* ─── Marquee ───────────────────────────────────────────── */
-@keyframes lp-marquee {
+/* ═══════════════════════════════════════════════════════════════
+   §2 MARQUEE
+═══════════════════════════════════════════════════════════════ */
+.cl-marquee-strip {
+    background: #0d1110;
+    border-top: 1px solid rgba(255,255,255,.06);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: .85rem 0;
+    overflow: hidden;
+}
+.cl-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: cl-marquee 28s linear infinite;
+}
+.cl-marquee-track:hover {
+    animation-play-state: paused;
+}
+@keyframes cl-marquee {
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
 }
-.marquee-v3-track {
+.cl-marquee-item {
     display: flex;
-    width: max-content;
-    animation: lp-marquee 26s linear infinite;
+    align-items: center;
+    gap: .625rem;
+    padding: 0 2rem;
+    flex-shrink: 0;
 }
-.marquee-v3-track:hover { animation-play-state: paused; }
+.cl-marquee-dot {
+    color: rgba(255,255,255,.12);
+    flex-shrink: 0;
+}
 
-/* ─── Services grid ─────────────────────────────────────── */
-.svc-grid {
+/* ═══════════════════════════════════════════════════════════════
+   §3 SERVICES
+═══════════════════════════════════════════════════════════════ */
+.cl-services {
+    background: #111716;
+    padding: 6rem 0;
+}
+.cl-svc-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 3.5rem;
+}
+.cl-h2 {
+    font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin: 0;
+    color: #fff;
+}
+.cl-h2 .dim {
+    color: rgba(255,255,255,.32);
+}
+.cl-svc-grid {
     display: grid;
-    gap: 1.25rem;
     grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
 }
-@media (max-width: 1023px) {
-    .svc-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 639px) {
-    .svc-grid { grid-template-columns: 1fr; }
-}
-
-/* ─── Service card ──────────────────────────────────────── */
-.svc-card-v3 {
+.cl-svc-card {
     position: relative;
-    border-radius: 20px;
+    height: 280px;
+    border-radius: 16px;
     overflow: hidden;
     display: block;
-    height: 280px;
     text-decoration: none;
     transition: transform .3s ease, box-shadow .3s ease;
+    border-bottom: 3px solid var(--primary-color);
 }
-.svc-card-v3:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+.cl-svc-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
 }
-@media (max-width: 639px) {
-    .svc-card-v3 { height: 240px; }
-}
-.svc-card-v3-img {
+.cl-svc-card-img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -185,154 +404,519 @@
     display: block;
     transition: transform .6s ease;
 }
-.svc-card-v3:hover .svc-card-v3-img {
+.cl-svc-card:hover .cl-svc-card-img {
     transform: scale(1.06);
 }
-.svc-card-v3-overlay {
+.cl-svc-card-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        to top,
-        rgba(6, 21, 13, .96) 0%,
-        rgba(6, 21, 13, .55) 50%,
-        rgba(6, 21, 13, .15) 100%
-    );
+    background: linear-gradient(to top, rgba(6,10,8,.95) 0%, rgba(6,10,8,.5) 50%, rgba(6,10,8,.1) 100%);
 }
-.svc-card-v3-content {
+.cl-svc-card-fallback {
     position: absolute;
     inset: 0;
-    padding: 1.75rem;
+    background: linear-gradient(135deg, #0a2e15 0%, #1a5c35 100%);
+}
+.cl-svc-card-body {
+    position: absolute;
+    inset: 0;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
 }
+.cl-svc-card-title {
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    margin: 0 0 .35rem;
+}
+.cl-svc-card-desc {
+    color: rgba(255,255,255,.55);
+    font-size: .78rem;
+    line-height: 1.6;
+    margin: 0;
+}
+.cl-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
+    font-size: .85rem;
+    padding: .7rem 1.4rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.7);
+    text-decoration: none;
+    transition: border-color .2s, color .2s;
+}
+.cl-btn-ghost:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
 
-/* ─── About section ─────────────────────────────────────── */
-.about-grid {
-    display: grid;
-    gap: 3.5rem;
-    align-items: stretch;
-}
-@media (min-width: 1024px) {
-    .about-grid { grid-template-columns: 1fr 1fr; }
-}
-.about-photo-wrap {
+/* ═══════════════════════════════════════════════════════════════
+   §4 À PROPOS
+═══════════════════════════════════════════════════════════════ */
+.cl-about {
+    background: #0f1f13;
+    padding: 6rem 0;
     position: relative;
-    border-radius: 20px;
     overflow: hidden;
-    min-height: 360px;
-    flex: 1;
 }
-.about-photo-wrap img {
+.cl-about-halo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,163,34,.1) 0%, transparent 65%);
+    transform: translate(-40%, -40%);
+    pointer-events: none;
+    z-index: 0;
+}
+.cl-about-grid {
+    display: grid;
+    gap: 4rem;
+    align-items: stretch;
+    position: relative;
+    z-index: 1;
+}
+.cl-about-photo-col {
+    display: flex;
+    flex-direction: column;
+}
+.cl-about-photo {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 360px;
+}
+.cl-about-photo img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
 }
-.about-col-left {
+.cl-about-photo-fallback {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, #0d3b22, #1a5c35);
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
-.about-stats-row {
+.cl-about-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: .75rem;
     margin-top: 1.25rem;
-    flex-shrink: 0;
 }
-
-/* ─── Checklist ─────────────────────────────────────────── */
-.lp-checklist { list-style: none; margin: 0; padding: 0; }
-.lp-checklist li {
+.cl-about-stat {
+    border-radius: 12px;
+    padding: .875rem .5rem;
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.03);
+    text-align: center;
+}
+.cl-about-stat-num {
+    font-weight: 900;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    margin-bottom: .2rem;
+}
+.cl-about-stat-lbl {
+    color: rgba(255,255,255,.38);
+    font-size: .68rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.cl-about-text-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.cl-about-body {
+    color: rgba(255,255,255,.52);
+    font-size: .95rem;
+    line-height: 1.8;
+    margin: 0 0 1.75rem;
+}
+.cl-checklist {
+    list-style: none;
+    margin: 0 0 2rem;
+    padding: 0;
+}
+.cl-checklist li {
     display: flex;
     align-items: flex-start;
     gap: .75rem;
     padding: .45rem 0;
-    font-size: .9rem;
-    color: rgba(255,255,255,.65);
+    font-size: .88rem;
+    color: rgba(255,255,255,.62);
+    line-height: 1.6;
 }
-.lp-checklist li::before {
+.cl-checklist li::before {
     content: '';
     display: inline-flex;
     flex-shrink: 0;
     width: 1.2rem;
     height: 1.2rem;
     margin-top: .1rem;
-    border-radius: .35rem;
+    border-radius: .3rem;
     background-color: var(--primary-color);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3.5 3.5L11 1' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-size: 62% 62%;
     background-repeat: no-repeat;
     background-position: center;
 }
+.cl-about-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .875rem;
+}
+.cl-btn-green {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 800;
+    font-size: .9rem;
+    padding: .875rem 1.75rem;
+    border-radius: 12px;
+    background: var(--primary-color);
+    color: #fff;
+    text-decoration: none;
+    transition: opacity .2s, transform .2s;
+}
+.cl-btn-green:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+}
+.cl-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 700;
+    font-size: .9rem;
+    padding: .875rem 1.75rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,.15);
+    color: #fff;
+    text-decoration: none;
+    transition: background .2s, border-color .2s;
+}
+.cl-btn-outline:hover {
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.32);
+}
 
-/* ─── Process steps ─────────────────────────────────────── */
-.process-grid {
+/* ═══════════════════════════════════════════════════════════════
+   §5 PROCESSUS
+═══════════════════════════════════════════════════════════════ */
+.cl-process {
+    background: #111716;
+    padding: 6rem 0;
+}
+.cl-process-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+.cl-process-grid {
     display: grid;
     gap: 2rem;
     position: relative;
 }
-@media (min-width: 768px)  { .process-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .process-grid { grid-template-columns: repeat(4, 1fr); gap: 0; } }
-
-.process-line {
+.cl-process-line {
     display: none;
 }
-@media (min-width: 1024px) {
-    .process-line {
-        display: block;
-        position: absolute;
-        top: 3.2rem;
-        left: 12%;
-        right: 12%;
-        height: 2px;
-        background: linear-gradient(90deg, var(--primary-color), #4ade80, var(--primary-color));
-        opacity: .35;
-        z-index: 0;
-    }
-}
-
-/* ─── Zones layout ──────────────────────────────────────── */
-.zones-layout {
+.cl-process-step {
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    position: relative;
+    z-index: 1;
 }
-@media (min-width: 768px) {
-    .zones-layout {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 4rem;
-    }
-    .zones-left  { flex: 0 0 320px; }
-    .zones-right { flex: 1; }
+.cl-process-num {
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-weight: 900;
+    color: var(--primary-color);
+    line-height: 1;
+    margin-bottom: .5rem;
+    opacity: .25;
+}
+.cl-process-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+.cl-process-step-title {
+    font-weight: 900;
+    font-size: 1rem;
+    color: #fff;
+    margin: 0 0 .5rem;
+}
+.cl-process-step-desc {
+    font-size: .83rem;
+    color: rgba(255,255,255,.42);
+    line-height: 1.7;
+    margin: 0;
+}
+.cl-process-cta {
+    text-align: center;
+    margin-top: 3.5rem;
 }
 
-/* ─── Reviews grid ──────────────────────────────────────── */
-.reviews-grid {
+/* ═══════════════════════════════════════════════════════════════
+   §6 ZONES
+═══════════════════════════════════════════════════════════════ */
+.cl-zones {
+    background: #0d1110;
+    padding: 6rem 0;
+    border-top: 1px solid rgba(255,255,255,.05);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.cl-zones-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+.cl-zones-left {
+    flex-shrink: 0;
+}
+.cl-zones-title {
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin: 0 0 .875rem;
+}
+.cl-zones-desc {
+    font-size: .88rem;
+    color: rgba(255,255,255,.42);
+    line-height: 1.75;
+    margin: 0 0 1.5rem;
+    max-width: 340px;
+}
+.cl-zones-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.cl-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem 1rem;
+    border-radius: 50px;
+    background: rgba(108,163,34,.1);
+    border: 1px solid rgba(108,163,34,.25);
+    color: rgba(255,255,255,.72);
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .18s, border-color .18s, color .18s;
+}
+.cl-pill:hover {
+    background: rgba(108,163,34,.22);
+    border-color: rgba(108,163,34,.5);
+    color: #fff;
+}
+.cl-pill-postal {
+    color: rgba(255,255,255,.35);
+    font-size: .72rem;
+    font-family: monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   §7 TÉMOIGNAGES
+═══════════════════════════════════════════════════════════════ */
+.cl-reviews {
+    background: #0d1110;
+    padding: 6rem 0;
+}
+.cl-reviews-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 3.5rem;
+}
+.cl-reviews-rating {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-top: .75rem;
+}
+.cl-reviews-grid {
     display: grid;
-    gap: 1.25rem;
     grid-template-columns: 1fr;
+    gap: 1.25rem;
 }
-@media (min-width: 1024px) {
-    .reviews-grid { grid-template-columns: repeat(3, 1fr); }
+.cl-review-featured-card {
+    background: linear-gradient(135deg, #0a1e10 0%, #142e1c 60%, #0a1e10 100%);
+    border-radius: 20px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.06);
+}
+.cl-review-featured-quote {
+    position: absolute;
+    top: -.5rem;
+    left: .5rem;
+    font-size: 9rem;
+    font-weight: 900;
+    color: rgba(255,255,255,.04);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+.cl-review-featured-text {
+    color: rgba(255,255,255,.8);
+    font-size: 1.1rem;
+    font-style: italic;
+    line-height: 1.7;
+    margin: 0 0 2rem;
+    position: relative;
+    z-index: 1;
+}
+.cl-review-featured-foot {
+    display: flex;
+    align-items: center;
+    gap: .875rem;
+    position: relative;
+    z-index: 1;
+}
+.cl-review-small-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 18px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    transition: background .2s, border-color .2s;
+}
+.cl-review-small-card:hover {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.12);
+}
+.cl-review-small-text {
+    color: rgba(255,255,255,.58);
+    font-size: .855rem;
+    font-style: italic;
+    line-height: 1.7;
+    flex: 1;
+    margin: 0 0 1.25rem;
+}
+.cl-review-foot {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+.cl-review-avatar-large {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.12);
+}
+.cl-review-avatar-small {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,.1);
+}
+.cl-review-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.cl-review-avatar-init {
+    width: 100%;
+    height: 100%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: .95rem;
+}
+.cl-review-author-name {
+    font-weight: 700;
+    font-size: .88rem;
+    color: #fff;
+}
+.cl-review-author-date {
+    font-size: .72rem;
+    color: rgba(255,255,255,.32);
+}
+.cl-review-source-badge {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(255,255,255,.06);
+    padding: .3rem .7rem;
+    border-radius: 50px;
+    color: rgba(255,255,255,.38);
+    font-size: .7rem;
+    font-weight: 600;
 }
 
-/* ─── FAQ layout ────────────────────────────────────────── */
-.faq-layout {
+/* ═══════════════════════════════════════════════════════════════
+   §8 FAQ
+═══════════════════════════════════════════════════════════════ */
+.cl-faq {
+    background: #111716;
+    padding: 6rem 0;
+}
+.cl-faq-layout {
     display: grid;
     gap: 3rem;
 }
-@media (min-width: 1024px) {
-    .faq-layout { grid-template-columns: 340px 1fr; gap: 5rem; }
+.cl-faq-left {
+    position: sticky;
+    top: 6rem;
+    align-self: flex-start;
 }
-
-/* ─── FAQ details ───────────────────────────────────────── */
-.faq-item details { border-bottom: 1px solid #e5e7eb; }
-.faq-item details summary {
+.cl-faq-left-title {
+    font-size: clamp(1.7rem, 3.5vw, 2.6rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin: 0 0 1rem;
+}
+.cl-faq-left-sub {
+    color: rgba(255,255,255,.42);
+    font-size: .9rem;
+    line-height: 1.75;
+    margin: 0 0 1.75rem;
+}
+.cl-faq-item details {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.cl-faq-item details summary {
     list-style: none;
     cursor: pointer;
     display: flex;
@@ -342,232 +926,414 @@
     padding: 1.25rem 0;
     font-weight: 700;
     font-size: .95rem;
-    color: #0f172a;
+    color: rgba(255,255,255,.75);
     transition: color .2s;
 }
-.faq-item details summary::-webkit-details-marker { display: none; }
-.faq-item details[open] summary { color: var(--primary-color); }
-.faq-icon {
+.cl-faq-item details summary::-webkit-details-marker { display: none; }
+.cl-faq-item details[open] summary { color: var(--primary-color); }
+.cl-faq-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
+    border: 1.5px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.5);
     flex-shrink: 0;
-    transition: transform .25s ease;
+    transition: transform .25s ease, border-color .2s, color .2s;
     font-size: .7rem;
 }
-.faq-item details[open] .faq-icon { transform: rotate(45deg); }
-.faq-body {
-    padding: 0 0 1.25rem;
-    font-size: .9rem;
-    color: #64748b;
-    line-height: 1.75;
-}
-
-/* ─── Hover btn utils ───────────────────────────────────── */
-.btn-outline-green {
-    display: inline-flex;
-    align-items: center;
-    gap: .6rem;
-    font-weight: 700;
-    font-size: .875rem;
-    padding: .75rem 1.5rem;
-    border-radius: 12px;
-    border: 2px solid var(--primary-color);
+.cl-faq-item details[open] .cl-faq-icon {
+    transform: rotate(45deg);
+    border-color: var(--primary-color);
     color: var(--primary-color);
-    text-decoration: none;
-    transition: background .2s, color .2s;
-    background: transparent;
 }
-.btn-outline-green:hover {
-    background: var(--primary-color);
-    color: #fff;
+.cl-faq-body {
+    padding: 0 0 1.25rem;
+    font-size: .88rem;
+    color: rgba(255,255,255,.42);
+    line-height: 1.8;
 }
-.btn-solid-green {
+
+/* ═══════════════════════════════════════════════════════════════
+   §9 CTA FINAL
+═══════════════════════════════════════════════════════════════ */
+.cl-cta-final {
+    background: linear-gradient(155deg, #0a2214 0%, #1a5c35 50%, #0a2214 100%);
+    position: relative;
+    overflow: hidden;
+}
+.cl-cta-dots {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.45) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: .03;
+    pointer-events: none;
+}
+.cl-cta-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 900px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(108,163,34,.22) 0%, transparent 65%);
+    transform: translateX(-50%) translateY(-45%);
+    pointer-events: none;
+}
+.cl-cta-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+}
+.cl-cta-badge {
     display: inline-flex;
     align-items: center;
-    gap: .6rem;
+    gap: .625rem;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50px;
+    padding: .5rem 1.25rem;
+    margin-bottom: 2rem;
+    color: rgba(255,255,255,.55);
+    font-size: .72rem;
     font-weight: 800;
-    font-size: .9rem;
-    padding: .85rem 1.75rem;
-    border-radius: 12px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+.cl-cta-badge-dot {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
     background: var(--primary-color);
+    animation: cl-pulse 2s infinite;
+    display: inline-block;
+}
+.cl-cta-h2 {
+    font-size: clamp(2.4rem, 7vw, 5.5rem);
+    font-weight: 950;
     color: #fff;
+    line-height: 0.95;
+    letter-spacing: -2px;
+    margin: 0 0 1.5rem;
+}
+.cl-cta-sub {
+    color: rgba(255,255,255,.45);
+    font-size: 1.05rem;
+    line-height: 1.75;
+    max-width: 600px;
+    margin: 0 auto 3rem;
+}
+.cl-cta-btns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3.5rem;
+}
+.cl-btn-cta-white {
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    background: #fff;
+    color: var(--primary-color);
+    font-size: 1.05rem;
+    font-weight: 900;
+    padding: 1.1rem 2.5rem;
+    border-radius: 16px;
     text-decoration: none;
-    transition: opacity .2s, transform .2s;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    transition: transform .2s, background .2s;
 }
-.btn-solid-green:hover { opacity: .9; transform: translateY(-1px); }
+.cl-btn-cta-white:hover {
+    background: #f0fdf4;
+    transform: scale(1.03);
+}
+.cl-btn-cta-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    border: 1.5px solid rgba(255,255,255,.22);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 1.1rem 2.5rem;
+    border-radius: 16px;
+    text-decoration: none;
+    transition: background .2s, border-color .2s;
+}
+.cl-btn-cta-outline:hover {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.4);
+}
+.cl-trust-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .75rem;
+}
+.cl-trust-pill {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    padding: .45rem 1.1rem;
+    border-radius: 50px;
+    color: rgba(255,255,255,.45);
+    font-size: .78rem;
+    font-weight: 600;
+}
 
-/* ─── Reveal animation ──────────────────────────────────── */
-@keyframes lp-fadeup {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+    .cl-zones-inner {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 4rem;
+    }
+    .cl-zones-left { flex: 0 0 320px; }
+    .cl-zones-right { flex: 1; }
+    .cl-process-grid { grid-template-columns: repeat(2, 1fr); }
+    .cl-faq-layout { grid-template-columns: 1fr; }
 }
-.lp-reveal   { animation: lp-fadeup .6s ease both; }
-.lp-reveal-2 { animation-delay: .1s; }
-.lp-reveal-3 { animation-delay: .2s; }
-.lp-reveal-4 { animation-delay: .32s; }
+
+@media (min-width: 1024px) {
+    .cl-hero-grid {
+        grid-template-columns: 1fr;
+    }
+    .cl-about-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .cl-process-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+    }
+    .cl-process-line {
+        display: block;
+        position: absolute;
+        top: 3.5rem;
+        left: 12%;
+        right: 12%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary-color), rgba(108,163,34,.4), var(--primary-color));
+        opacity: .3;
+        z-index: 0;
+    }
+    .cl-reviews-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .cl-review-featured-card {
+        grid-column: span 2;
+    }
+    .cl-faq-layout {
+        grid-template-columns: 340px 1fr;
+        gap: 5rem;
+    }
+    .cl-svc-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1023px) {
+    .cl-review-card {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: auto;
+        margin-top: 2rem;
+    }
+    .cl-features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .cl-features {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .cl-h1 { letter-spacing: -1px; }
+    .cl-svc-grid { grid-template-columns: 1fr; }
+    .cl-about-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 479px) {
+    .cl-features { grid-template-columns: 1fr; }
+    .cl-about-stats { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 
-<div class="lp-v3">
+<div class="lp">
 
 {{-- ══════════════════════════════════════════════════════════
-     §1  HERO — Full-screen éditorial
+     §1  HERO — Dark bold reference design
      ══════════════════════════════════════════════════════════ --}}
-<section class="hero-v3">
+<section class="cl-hero">
 
-    {{-- Fond photo --}}
-    <div class="hero-v3-bg">
+    {{-- Background --}}
+    <div class="cl-hero-bg">
         @if($heroImgUrl)
-            <img src="{{ $heroImgUrl }}" alt="Élagage dans l'Oise — Louis Hoffmann">
+            <img src="{{ $heroImgUrl }}"
+                 alt="Élagage professionnel dans l'Oise"
+                 fetchpriority="high"
+                 decoding="async">
+            <div class="cl-hero-overlay"></div>
         @else
-            <div style="position:absolute;inset:0;background:linear-gradient(160deg,#071c0e 0%,#0d3b22 60%,#1a5c35 100%);"></div>
+            <div class="cl-hero-no-img"></div>
+            <div class="cl-hero-glow"></div>
         @endif
-        <div class="hero-v3-bg-overlay"></div>
     </div>
 
-    {{-- Halo lumière gauche --}}
-    <div style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;">
-        <div style="position:absolute;top:-200px;left:-200px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle, rgba(74,222,128,.12) 0%, transparent 65%);"></div>
-    </div>
+    <div class="cl-hero-inner">
+        <div class="cl-shell">
+            <div class="cl-hero-grid">
 
-    <div class="hero-v3-inner lp-shell">
-        <div class="hero-v3-grid">
-
-            {{-- ── Texte principal ────────────────────── --}}
-            <div>
-
-                {{-- Tag ligne --}}
-                <div class="hero-tag lp-reveal">
-                    <div class="hero-tag-dots">
-                        <span class="hero-tag-dot-1"></span>
-                        <span class="hero-tag-dot-2"></span>
-                        <span class="hero-tag-dot-3"></span>
+                {{-- ── Colonne texte ── --}}
+                <div>
+                    {{-- Tag --}}
+                    <div class="cl-hero-tag">
+                        <span class="cl-hero-tag-line"></span>
+                        <span class="cl-hero-tag-text">Élagueur certifié &middot; Département 60 &middot; Oise</span>
                     </div>
-                    <span style="font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#4ade80;">
-                        Élagueur certifié &middot; Dép. 60 &middot; Oise
-                    </span>
-                </div>
 
-                {{-- H1 --}}
-                <h1 class="hero-h1 lp-reveal lp-reveal-2">
-                    {{ $heroTitle }}
-                </h1>
+                    {{-- H1 --}}
+                    <h1 class="cl-h1">
+                        {!! preg_replace('/\(([^)]+)\)/', '<span class="hl">($1)</span>', e($heroTitle)) !!}
+                    </h1>
 
-                {{-- Sous-titre --}}
-                <p class="lp-reveal lp-reveal-3" style="font-size:clamp(1rem,2vw,1.2rem);color:rgba(255,255,255,.55);line-height:1.7;max-width:540px;margin:0 0 2.5rem;">
-                    Élagage, abattage, taille de haies et broyage de souches —
-                    <span style="color:rgba(255,255,255,.8);">Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon</span>
-                    et toutes les communes de l'Oise.
-                </p>
+                    {{-- Sous-titre --}}
+                    <p class="cl-hero-sub">
+                        Élagage, abattage, taille de haies et broyage de souches —
+                        <span style="color:rgba(255,255,255,.82);">Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon</span>
+                        et toutes les communes de l'Oise.
+                    </p>
 
-                {{-- CTA buttons --}}
-                <div class="lp-reveal lp-reveal-4" style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;">
-                    <a href="{{ route('form.step', 'propertyType') }}"
-                       onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
-                       style="display:inline-flex;align-items:center;gap:.75rem;background:var(--primary-color);color:#fff;font-size:1.05rem;font-weight:900;padding:1.1rem 2.25rem;border-radius:16px;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 8px 30px rgba(var(--primary-color-rgb,34,197,94),.4);"
-                       onmouseover="this.style.transform='scale(1.03)'"
-                       onmouseout="this.style.transform='scale(1)'">
-                        <i class="fas fa-calculator"></i>
-                        Devis gratuit
-                        <i class="fas fa-arrow-right" style="font-size:.8rem;"></i>
-                    </a>
-                    <a href="tel:{{ $phoneRaw }}"
-                       onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','hero')"
-                       style="display:inline-flex;align-items:center;gap:.75rem;border:1.5px solid rgba(255,255,255,.2);color:#fff;font-size:1.05rem;font-weight:700;padding:1.1rem 2.25rem;border-radius:16px;text-decoration:none;transition:background .2s,border-color .2s;"
-                       onmouseover="this.style.background='rgba(255,255,255,.07)';this.style.borderColor='rgba(255,255,255,.35)';"
-                       onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,.2)';">
-                        <span style="position:relative;display:inline-flex;">
-                            <span style="position:absolute;inset:0;border-radius:50%;background:#4ade80;opacity:.2;animation:pulse-dot 2s infinite;"></span>
-                            <i class="fas fa-phone" style="color:#4ade80;position:relative;"></i>
-                        </span>
-                        {{ $phone }}
-                    </a>
-                </div>
-
-                {{-- Social proof bar --}}
-                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;font-size:.85rem;color:rgba(255,255,255,.38);font-weight:600;">
-                    <div style="display:flex;align-items:center;gap:.5rem;">
-                        <div style="display:flex;gap:2px;">
-                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
-                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
-                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
-                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
-                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
-                        </div>
-                        <span style="color:rgba(255,255,255,.75);font-weight:800;">4.9</span>
-                        <span>&middot; 120+ avis Google</span>
-                    </div>
-                    <div style="width:1px;height:16px;background:rgba(255,255,255,.12);"></div>
-                    <span><span style="color:rgba(255,255,255,.75);font-weight:800;">15+</span> ans d'expérience</span>
-                    <div style="width:1px;height:16px;background:rgba(255,255,255,.12);"></div>
-                    <span><span style="color:rgba(255,255,255,.75);font-weight:800;">60+</span> communes Oise</span>
-                </div>
-            </div>
-
-            {{-- ── Panel flottant droit (desktop) ─────── --}}
-            <div style="display:none;" class="hero-right-panel">
-                <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);backdrop-filter:blur(16px);">
-                    <div style="height:4px;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color,#16a34a),#4ade80);"></div>
-                    <div style="padding:1.75rem;">
-                        <div style="font-size:.68rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1.25rem;">
-                            Zone d'intervention · Oise (60)
-                        </div>
-                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
-                            @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Pont-Ste-Maxence'] as $hcity)
-                            <span style="display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .85rem;border-radius:50px;font-size:.75rem;font-weight:600;background:rgba(var(--primary-color-rgb,34,197,94),.12);color:rgba(255,255,255,.75);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.22);">
-                                <i class="fas fa-map-marker-alt" style="font-size:.6rem;color:var(--primary-color);"></i>
-                                {{ $hcity }}
-                            </span>
-                            @endforeach
-                        </div>
-                        <div style="font-size:.75rem;color:rgba(255,255,255,.28);text-align:center;margin-bottom:1.25rem;">
-                            + 60 autres communes du département
-                        </div>
+                    {{-- CTA buttons --}}
+                    <div class="cl-hero-ctas">
                         <a href="{{ route('form.step', 'propertyType') }}"
-                           style="display:block;width:100%;text-align:center;background:var(--primary-color);color:#fff;font-weight:900;font-size:.875rem;padding:.9rem 1rem;border-radius:12px;text-decoration:none;transition:opacity .2s;"
-                           onmouseover="this.style.opacity='.88'"
-                           onmouseout="this.style.opacity='1'">
-                            <i class="fas fa-calculator" style="margin-right:.5rem;"></i>Obtenir un devis gratuit
+                           onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
+                           class="cl-btn-primary">
+                            <i class="fas fa-calculator"></i>
+                            Devis gratuit
+                            <i class="fas fa-arrow-right" style="font-size:.8rem;"></i>
+                        </a>
+                        <a href="tel:{{ $phoneRaw }}"
+                           onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','hero')"
+                           class="cl-btn-phone">
+                            <span class="cl-phone-dot">
+                                <span class="cl-phone-dot-ring"></span>
+                                <i class="fas fa-phone" style="color:var(--primary-color);position:relative;font-size:.9rem;"></i>
+                            </span>
+                            {{ $phone }}
                         </a>
                     </div>
+
+                    {{-- Social proof inline --}}
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;font-size:.82rem;color:rgba(255,255,255,.35);font-weight:600;">
+                        <div style="display:flex;align-items:center;gap:.5rem;">
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <span style="color:rgba(255,255,255,.72);font-weight:800;">4.9</span>
+                            <span>&middot; 120+ avis Google</span>
+                        </div>
+                        <span style="width:1px;height:14px;background:rgba(255,255,255,.1);display:inline-block;"></span>
+                        <span><span style="color:rgba(255,255,255,.72);font-weight:800;">15+</span> ans d'expérience</span>
+                        <span style="width:1px;height:14px;background:rgba(255,255,255,.1);display:inline-block;"></span>
+                        <span><span style="color:rgba(255,255,255,.72);font-weight:800;">60+</span> communes Oise</span>
+                    </div>
+
+                    {{-- 4 feature boxes --}}
+                    <div class="cl-features">
+                        <div class="cl-feature-item">
+                            <div class="cl-feature-title">Écologique</div>
+                            <div class="cl-feature-desc">Broyage sur place, valorisation des déchets verts, zéro gaspillage.</div>
+                        </div>
+                        <div class="cl-feature-item">
+                            <div class="cl-feature-title">Rapide</div>
+                            <div class="cl-feature-desc">Réponse sous 24h, intervention planifiée selon vos disponibilités.</div>
+                        </div>
+                        <div class="cl-feature-item">
+                            <div class="cl-feature-title">Sécurisé</div>
+                            <div class="cl-feature-desc">Artisan assuré RC Pro, équipements certifiés, normes respectées.</div>
+                        </div>
+                        <div class="cl-feature-item">
+                            <div class="cl-feature-title">Sur-mesure</div>
+                            <div class="cl-feature-desc">Devis gratuit, adapté à chaque arbre et chaque situation.</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-top:.75rem;border-radius:16px;padding:1rem 1.25rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);display:flex;align-items:center;gap:.875rem;">
-                    <div style="width:2.5rem;height:2.5rem;border-radius:10px;background:rgba(74,222,128,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="fas fa-check" style="color:#4ade80;font-size:.8rem;"></i>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- Floating review card --}}
+    @php
+        $heroReview = null;
+        if(!empty($reviews) && count($reviews) > 0) {
+            $heroReview = $reviews->first();
+        }
+    @endphp
+    <div class="cl-review-card">
+        <div class="cl-review-stars">
+            @for($i=1;$i<=5;$i++)
+                <i class="fas fa-star cl-review-star"></i>
+            @endfor
+        </div>
+        <p class="cl-review-text">
+            &ldquo;{{ $heroReview ? \Illuminate\Support\Str::limit($heroReview->review_text ?? 'Travail impeccable, professionnel et soigneux. Je recommande vivement !', 110) : 'Travail impeccable, professionnel et soigneux. Je recommande vivement !' }}&rdquo;
+        </p>
+        <div class="cl-review-author">
+            <div class="cl-review-avatar">
+                @if($heroReview && $heroReview->author_photo_url)
+                    <img src="{{ $heroReview->author_photo_url }}"
+                         alt="{{ $heroReview->author_name ?? 'Client' }}"
+                         class="cl-review-avatar-img">
+                @else
+                    <div class="cl-review-avatar-initials">
+                        {{ strtoupper(substr($heroReview->author_name ?? 'C', 0, 1)) }}
                     </div>
-                    <div>
-                        <div style="color:rgba(255,255,255,.88);font-weight:700;font-size:.85rem;">Réponse garantie sous 24h</div>
-                        <div style="color:rgba(255,255,255,.35);font-size:.75rem;">Devis gratuit · Sans engagement</div>
-                    </div>
+                @endif
+            </div>
+            <div>
+                <div class="cl-review-name">{{ $heroReview->author_name ?? 'Client satisfait' }}</div>
+                <div class="cl-review-date">
+                    @if($heroReview && $heroReview->review_date)
+                        {{ \Carbon\Carbon::parse($heroReview->review_date)->translatedFormat('F Y') }}
+                    @else
+                        Avis vérifié Google
+                    @endif
                 </div>
             </div>
-
+            <div style="margin-left:auto;">
+                <i class="fab fa-google" style="color:#60a5fa;font-size:.9rem;opacity:.7;"></i>
+            </div>
         </div>
     </div>
 
     {{-- Scroll indicator --}}
-    <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:.3;z-index:10;">
-        <span style="color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;">Scroll</span>
-        <div style="width:1px;height:2.5rem;background:rgba(255,255,255,.4);"></div>
+    <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:.25;z-index:10;pointer-events:none;">
+        <span style="color:#fff;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;">Scroll</span>
+        <div style="width:1px;height:2rem;background:rgba(255,255,255,.35);"></div>
     </div>
+
 </section>
 
-<style>
-@media (min-width: 1024px) {
-    .hero-right-panel { display: block !important; }
-}
-</style>
-
 {{-- ══════════════════════════════════════════════════════════
-     §2  MARQUEE — Ticker de confiance
+     §2  MARQUEE — Ticker confiance
      ══════════════════════════════════════════════════════════ --}}
-<div style="background:#0f1f13;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);padding:.9rem 0;overflow:hidden;">
-    <div class="marquee-v3-track">
+<div class="cl-marquee-strip">
+    <div class="cl-marquee-track">
         @php
         $mItems = [
             ['fas fa-shield-alt','Artisan assuré RC Pro'],
@@ -589,77 +1355,66 @@
         ];
         @endphp
         @foreach($mItems as $mi)
-        <div style="display:flex;align-items:center;gap:.625rem;padding:0 2rem;flex-shrink:0;">
+        <div class="cl-marquee-item">
             <i class="{{ $mi[0] }}" style="color:var(--primary-color);font-size:.75rem;"></i>
-            <span style="color:rgba(255,255,255,.48);font-size:.82rem;font-weight:600;white-space:nowrap;">{{ $mi[1] }}</span>
+            <span style="color:rgba(255,255,255,.42);font-size:.82rem;font-weight:600;white-space:nowrap;">{{ $mi[1] }}</span>
         </div>
-        <span style="color:rgba(255,255,255,.12);flex-shrink:0;">&middot;</span>
+        <span class="cl-marquee-dot">&middot;</span>
         @endforeach
     </div>
 </div>
 
 {{-- ══════════════════════════════════════════════════════════
-     §3  SERVICES — Grille éditoriale magazine
+     §3  SERVICES — Dark grid
      ══════════════════════════════════════════════════════════ --}}
 @if(($homeConfig['sections']['services']['enabled'] ?? true) && count($svcList) > 0)
-<section style="background:#fff;padding:6rem 0;">
-    <div class="lp-shell">
+<section class="cl-services">
+    <div class="cl-shell">
 
-        {{-- Header --}}
-        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3.5rem;">
+        <div class="cl-svc-header">
             <div>
-                <span class="lp-label"><i class="fas fa-leaf"></i> Nos prestations</span>
-                <h2 style="font-size:clamp(1.9rem,4.5vw,3.2rem);font-weight:900;color:#0f172a;line-height:1.05;margin:0;">
+                <span class="cl-label"><i class="fas fa-leaf"></i> Nos prestations</span>
+                <h2 class="cl-h2">
                     {{ $homeConfig['sections']['services']['title'] ?? 'Services d\'élagage' }}<br>
-                    <span style="color:#94a3b8;">dans l'Oise (60)</span>
+                    <span class="dim">dans l'Oise (60)</span>
                 </h2>
             </div>
-            <a href="{{ route('services.index') }}" class="btn-outline-green">
-                Tous les services <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+            <a href="{{ route('services.index') }}" class="cl-btn-ghost">
+                Tous les services <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
             </a>
         </div>
 
-        {{-- Grid --}}
         @php $svcLimit = min(count($svcList), $homeConfig['sections']['services']['limit'] ?? 6); @endphp
-        <div class="svc-grid">
+        <div class="cl-svc-grid">
             @foreach($svcList as $si => $svc)
             @if($si >= $svcLimit) @break @endif
             <a href="{{ route('services.show', $svc['slug']) }}"
-               class="svc-card-v3"
+               class="cl-svc-card"
                onclick="if(typeof trackServiceClick==='function')trackServiceClick('{{ addslashes($svc['name']) }}','{{ request()->url() }}')">
 
-                {{-- Image ou fallback dégradé --}}
                 @if(!empty($svc['featured_image']))
-                    <img class="svc-card-v3-img"
+                    <img class="cl-svc-card-img"
                          src="{{ url($svc['featured_image']) }}"
                          alt="{{ $svc['name'] }}"
                          loading="lazy">
                 @else
-                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0d3b22 0%,#1a5c35 60%,#0d6e2e 100%);"></div>
+                    <div class="cl-svc-card-fallback"></div>
                     <i class="{{ $svc['icon'] ?? 'fas fa-tree' }}"
-                       style="position:absolute;font-size:6rem;opacity:.06;color:#fff;top:50%;right:1rem;transform:translateY(-50%);pointer-events:none;"></i>
+                       style="position:absolute;font-size:6rem;opacity:.06;color:#fff;top:50%;right:1rem;transform:translateY(-50%);pointer-events:none;z-index:1;"></i>
                 @endif
 
-                <div class="svc-card-v3-overlay"></div>
+                <div class="cl-svc-card-overlay"></div>
 
-                {{-- Hover tint --}}
-                <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(var(--primary-color-rgb,34,197,94),.22) 0%,transparent 70%);opacity:0;transition:opacity .35s;" class="svc-hover-tint"></div>
-
-                <div class="svc-card-v3-content">
-                    <div style="width:2.25rem;height:2.25rem;border-radius:10px;background:rgba(var(--primary-color-rgb,34,197,94),.22);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:.875rem;flex-shrink:0;backdrop-filter:blur(6px);">
+                <div class="cl-svc-card-body">
+                    <div style="width:2.25rem;height:2.25rem;border-radius:10px;background:rgba(108,163,34,.22);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin-bottom:.75rem;flex-shrink:0;">
                         <i class="{{ $svc['icon'] ?? 'fas fa-tree' }}" style="color:#fff;font-size:.8rem;"></i>
                     </div>
-                    <h3 style="color:#fff;font-weight:900;font-size:1.1rem;line-height:1.2;margin:0 0 .4rem;">
-                        {{ $svc['name'] }}
-                    </h3>
+                    <h3 class="cl-svc-card-title">{{ $svc['name'] }}</h3>
                     @if(!empty($svc['short_description']))
-                    <p style="color:rgba(255,255,255,.6);font-size:.8rem;line-height:1.6;margin:0 0 .75rem;">
+                    <p class="cl-svc-card-desc">
                         {{ \Illuminate\Support\Str::limit($svc['short_description'], 90) }}
                     </p>
                     @endif
-                    <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:700;color:var(--primary-color);opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s;" class="svc-cta-arrow">
-                        Découvrir <i class="fas fa-arrow-right" style="font-size:.65rem;"></i>
-                    </div>
                 </div>
             </a>
             @endforeach
@@ -667,74 +1422,67 @@
 
     </div>
 </section>
-<style>
-.svc-card-v3:hover .svc-hover-tint { opacity: 1 !important; }
-.svc-card-v3:hover .svc-cta-arrow  { opacity: 1 !important; transform: translateY(0) !important; }
-</style>
 @endif
 
 {{-- ══════════════════════════════════════════════════════════
-     §4  À PROPOS — Dark éditorial, photo + texte
+     §4  À PROPOS — Dark green section
      ══════════════════════════════════════════════════════════ --}}
 @if($homeConfig['sections']['about']['enabled'] ?? true)
-<section style="background:#0f1f13;padding:6rem 0;position:relative;overflow:hidden;">
-    {{-- Halo décoratif --}}
-    <div style="position:absolute;top:0;left:0;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.1) 0%,transparent 65%);transform:translate(-40%,-40%);pointer-events:none;z-index:0;"></div>
+<section class="cl-about">
+    <div class="cl-about-halo"></div>
+    <div class="cl-shell">
+        <div class="cl-about-grid">
 
-    <div class="lp-shell" style="position:relative;z-index:1;">
-        <div class="about-grid">
-
-            {{-- Colonne gauche : photo + stats --}}
-            <div class="about-col-left">
+            {{-- Photo + stats --}}
+            <div class="cl-about-photo-col">
                 @php $aboutPhoto = $homeConfig['about']['image'] ?? null; @endphp
-                <div class="about-photo-wrap" style="flex:1;">
+                <div class="cl-about-photo">
                     @if($aboutPhoto)
                         <img src="{{ asset(ltrim($aboutPhoto, '/')) }}"
                              alt="{{ $homeConfig['sections']['about']['title'] ?? 'À propos' }}"
                              loading="lazy">
                     @else
-                        <div style="position:absolute;inset:0;background:linear-gradient(145deg,#0d3b22,#1a5c35);"></div>
-                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-tree" style="font-size:8rem;color:rgba(255,255,255,.06);"></i>
+                        <div class="cl-about-photo-fallback">
+                            <i class="fas fa-tree" style="font-size:7rem;color:rgba(255,255,255,.06);"></i>
                         </div>
                     @endif
-                    {{-- Badge logo --}}
                     @if(setting('company_logo'))
-                    <div style="position:absolute;bottom:1rem;right:1rem;width:3.5rem;height:3.5rem;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.2);background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.3);">
+                    <div style="position:absolute;bottom:1rem;right:1rem;width:3.5rem;height:3.5rem;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.15);background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.4);">
                         <img src="{{ asset(setting('company_logo')) }}"
                              alt="{{ setting('company_name') }}"
-                             style="width:2.25rem;height:auto;object-fit:contain;">
+                             loading="lazy"
+                             style="width:2.25rem;height:auto;max-height:2.25rem;object-fit:contain;">
                     </div>
                     @endif
                 </div>
 
-                {{-- Statistiques --}}
-                <div class="about-stats-row">
+                {{-- Stats --}}
+                <div class="cl-about-stats">
                     @foreach([
-                        ['500+','Chantiers','#4ade80'],
+                        ['500+','Chantiers','#6ca322'],
                         ['15+','Ans exp.','#60a5fa'],
                         ['60+','Communes','#a78bfa'],
                         ['4.9★','Google','#fbbf24'],
                     ] as [$sv, $sl, $sc])
-                    <div style="border-radius:14px;padding:.875rem .5rem;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);text-align:center;">
-                        <div style="color:{{ $sc }};font-weight:900;font-size:1rem;line-height:1.2;margin-bottom:.2rem;">{{ $sv }}</div>
-                        <div style="color:rgba(255,255,255,.38);font-size:.68rem;font-weight:600;line-height:1.3;">{{ $sl }}</div>
+                    <div class="cl-about-stat">
+                        <div class="cl-about-stat-num" style="color:{{ $sc }};">{{ $sv }}</div>
+                        <div class="cl-about-stat-lbl">{{ $sl }}</div>
                     </div>
                     @endforeach
                 </div>
             </div>
 
-            {{-- Colonne droite : texte --}}
-            <div style="display:flex;flex-direction:column;justify-content:center;">
-                <span class="lp-label" style="color:#4ade80;"><i class="fas fa-leaf"></i> À propos</span>
-                <h2 style="font-size:clamp(1.75rem,3.5vw,2.8rem);font-weight:900;color:#fff;line-height:1.08;margin:0 0 1.25rem;">
+            {{-- Texte --}}
+            <div class="cl-about-text-col">
+                <span class="cl-label"><i class="fas fa-leaf"></i> À propos</span>
+                <h2 class="cl-h2" style="margin-bottom:1.25rem;">
                     {{ $homeConfig['sections']['about']['title'] ?? 'Votre élagueur de confiance dans l\'Oise' }}
                 </h2>
-                <p style="color:rgba(255,255,255,.52);font-size:.95rem;line-height:1.8;margin-bottom:1.75rem;">
+                <p class="cl-about-body">
                     {{ $homeConfig['sections']['about']['text'] ?? 'Louis Hoffmann est élagueur professionnel certifié, intervenant dans tout le département 60 (Oise) : Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon et toutes les communes environnantes. Avec plus de 15 ans d\'expérience, nous garantissons des interventions sécurisées, soignées et respectueuses de l\'environnement.' }}
                 </p>
 
-                <ul class="lp-checklist" style="margin-bottom:2rem;">
+                <ul class="cl-checklist">
                     <li>Artisan certifié, assuré en responsabilité civile professionnelle</li>
                     <li>Équipements professionnels, respect des normes de sécurité</li>
                     <li>Valorisation des déchets verts — broyage sur place possible</li>
@@ -742,14 +1490,11 @@
                     <li>Réponse sous 24h pour toute intervention dans le 60</li>
                 </ul>
 
-                <div style="display:flex;flex-wrap:wrap;gap:.875rem;">
-                    <a href="{{ route('contact') }}" class="btn-solid-green">
+                <div class="cl-about-ctas">
+                    <a href="{{ route('contact') }}" class="cl-btn-green">
                         <i class="fas fa-envelope" style="font-size:.85rem;"></i> Nous contacter
                     </a>
-                    <a href="{{ route('form.step', 'propertyType') }}"
-                       style="display:inline-flex;align-items:center;gap:.6rem;font-weight:700;font-size:.9rem;padding:.85rem 1.75rem;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);color:#fff;text-decoration:none;transition:background .2s,border-color .2s;"
-                       onmouseover="this.style.background='rgba(255,255,255,.07)'"
-                       onmouseout="this.style.background='transparent'">
+                    <a href="{{ route('form.step', 'propertyType') }}" class="cl-btn-outline">
                         <i class="fas fa-calculator" style="font-size:.85rem;"></i> Devis gratuit
                     </a>
                 </div>
@@ -761,50 +1506,38 @@
 @endif
 
 {{-- ══════════════════════════════════════════════════════════
-     §5  PROCESSUS — 4 étapes, horizontal desktop
+     §5  PROCESSUS — 4 étapes numérotées
      ══════════════════════════════════════════════════════════ --}}
-<section style="background:#fff;padding:6rem 0;">
-    <div class="lp-shell">
+<section class="cl-process">
+    <div class="cl-shell">
 
-        <div style="text-align:center;margin-bottom:4rem;">
-            <span class="lp-label"><i class="fas fa-route"></i> Comment ça marche</span>
-            <h2 style="font-size:clamp(1.75rem,4vw,2.8rem);font-weight:900;color:#0f172a;margin:0;">
-                Simple, rapide, professionnel
-            </h2>
+        <div class="cl-process-header">
+            <span class="cl-label"><i class="fas fa-route"></i> Comment ça marche</span>
+            <h2 class="cl-h2">Simple, rapide, professionnel</h2>
         </div>
 
-        <div class="process-grid">
-            <div class="process-line"></div>
+        <div class="cl-process-grid">
+            <div class="cl-process-line"></div>
 
             @foreach([
-                [1,'fas fa-phone-alt','Prise de contact','Appelez ou remplissez le formulaire en ligne. Réponse garantie sous 24h dans tout le département 60.','#10b981','#d1fae5','#065f46'],
-                [2,'fas fa-search-location','Visite & devis','Déplacement gratuit sur site pour évaluer et chiffrer précisément — Compiègne, Beauvais, Senlis…','#3b82f6','#dbeafe','#1e3a8a'],
-                [3,'fas fa-calendar-check','Planification','Date calée selon vos disponibilités et la saison, en respectant les réglementations locales.','#8b5cf6','#ede9fe','#4c1d95'],
-                [4,'fas fa-hard-hat','Travaux & nettoyage','Intervention sécurisée, chantier intégralement nettoyé, valorisation des déchets verts.','#f59e0b','#fef3c7','#78350f'],
-            ] as [$pn, $picon, $ptitle, $ptext, $pc, $plight, $pdark])
-            <div style="position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.5rem 1.25rem;z-index:1;" class="process-step">
-                {{-- Numéro --}}
-                <div style="position:relative;margin-bottom:1.5rem;">
-                    <div style="width:3.5rem;height:3.5rem;border-radius:14px;background:{{ $pc }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;box-shadow:0 8px 24px {{ $pc }}40;transition:transform .3s;" class="process-num">
-                        {{ $pn }}
-                    </div>
-                    <div style="position:absolute;inset:-8px;border-radius:20px;background:{{ $pc }};opacity:.14;z-index:-1;"></div>
+                [1,'fas fa-phone-alt','Prise de contact','Appelez ou remplissez le formulaire. Réponse garantie sous 24h dans tout le département 60.','rgba(108,163,34,.15)','var(--primary-color)'],
+                [2,'fas fa-search-location','Visite & devis','Déplacement gratuit sur site pour évaluer et chiffrer précisément votre projet.','rgba(96,165,250,.12)','#60a5fa'],
+                [3,'fas fa-calendar-check','Planification','Date calée selon vos disponibilités en respectant les réglementations locales.','rgba(167,139,250,.12)','#a78bfa'],
+                [4,'fas fa-hard-hat','Travaux & nettoyage','Intervention sécurisée, chantier intégralement nettoyé, déchets valorisés.','rgba(251,191,36,.12)','#fbbf24'],
+            ] as [$pn, $picon, $ptitle, $ptext, $pbg, $pc])
+            <div class="cl-process-step">
+                <div class="cl-process-num">{{ str_pad($pn, 2, '0', STR_PAD_LEFT) }}</div>
+                <div class="cl-process-icon" style="background:{{ $pbg }};">
+                    <i class="{{ $picon }}" style="color:{{ $pc }};"></i>
                 </div>
-                {{-- Icône --}}
-                <div style="width:2.5rem;height:2.5rem;border-radius:12px;background:{{ $plight }};display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">
-                    <i class="{{ $picon }}" style="color:{{ $pdark }};font-size:.9rem;"></i>
-                </div>
-                <h3 style="font-weight:900;color:#0f172a;font-size:.95rem;margin:0 0 .5rem;">{{ $ptitle }}</h3>
-                <p style="color:#64748b;font-size:.83rem;line-height:1.7;margin:0;">{{ $ptext }}</p>
+                <h3 class="cl-process-step-title">{{ $ptitle }}</h3>
+                <p class="cl-process-step-desc">{{ $ptext }}</p>
             </div>
             @endforeach
         </div>
 
-        <div style="text-align:center;margin-top:3.5rem;">
-            <a href="{{ route('form.step', 'propertyType') }}"
-               style="display:inline-flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color,#16a34a));color:#fff;font-size:1rem;font-weight:900;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;box-shadow:0 8px 30px rgba(var(--primary-color-rgb,34,197,94),.3);transition:transform .2s,box-shadow .2s;"
-               onmouseover="this.style.transform='scale(1.02)'"
-               onmouseout="this.style.transform='scale(1)'">
+        <div class="cl-process-cta">
+            <a href="{{ route('form.step', 'propertyType') }}" class="cl-btn-green">
                 <i class="fas fa-calculator"></i>
                 Démarrer mon devis gratuit
             </a>
@@ -813,28 +1546,29 @@
 </section>
 
 {{-- ══════════════════════════════════════════════════════════
-     §6  ZONES D'INTERVENTION — Pills villes Oise
+     §6  ZONES D'INTERVENTION
      ══════════════════════════════════════════════════════════ --}}
-<section style="background:#f0faf4;padding:5rem 0;border-top:1px solid #c6e9d0;border-bottom:1px solid #c6e9d0;">
-    <div class="lp-shell">
-        <div class="zones-layout">
+<section class="cl-zones">
+    <div class="cl-shell">
+        <div class="cl-zones-inner">
 
             {{-- Gauche --}}
-            <div class="zones-left">
-                <span class="lp-label"><i class="fas fa-map-marker-alt"></i> Zone d'intervention</span>
-                <h2 style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;color:#0f172a;line-height:1.1;margin:0 0 .875rem;">
-                    Tout le département<br><span style="color:var(--primary-color);">60 — Oise</span>
+            <div class="cl-zones-left">
+                <span class="cl-label"><i class="fas fa-map-marker-alt"></i> Zone d'intervention</span>
+                <h2 class="cl-zones-title">
+                    Tout le département<br>
+                    <span style="color:var(--primary-color);">60 — Oise</span>
                 </h2>
-                <p style="font-size:.875rem;color:#4b5563;line-height:1.75;margin-bottom:1.5rem;">
+                <p class="cl-zones-desc">
                     Nous intervenons dans l'ensemble des communes de l'Oise et des départements limitrophes — Aisne, Somme, Val-d'Oise.
                 </p>
-                <a href="{{ route('contact') }}" class="btn-outline-green" style="font-size:.82rem;padding:.65rem 1.25rem;">
+                <a href="{{ route('contact') }}" class="cl-btn-ghost">
                     Vérifier ma commune <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
                 </a>
             </div>
 
             {{-- Droite : pills --}}
-            <div class="zones-right">
+            <div class="cl-zones-right">
                 @php
                     $displayCities = isset($favoriteCities) && $favoriteCities->count() > 0 ? $favoriteCities : collect([]);
                     $oiseFallback = [
@@ -847,31 +1581,28 @@
                         ['Bresles','60590'],['Longueil-Annel','60150'],
                     ];
                 @endphp
-                <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                <div class="cl-zones-pills">
                     @if($displayCities->count() > 0)
                         @foreach($displayCities as $dcity)
-                        <a href="{{ route('ads.index') }}?city={{ $dcity->slug }}"
-                           style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:50px;border:1px solid #b8dfca;background:#fff;color:#1f4730;font-size:.8rem;font-weight:600;text-decoration:none;transition:all .18s;box-shadow:0 1px 3px rgba(0,0,0,.05);"
-                           onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)';this.style.background='rgba(var(--primary-color-rgb,34,197,94),.07)';"
-                           onmouseout="this.style.borderColor='#b8dfca';this.style.color='#1f4730';this.style.background='#fff';">
-                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.65rem;"></i>
+                        <a href="{{ route('ads.index') }}?city={{ $dcity->slug }}" class="cl-pill">
+                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.62rem;"></i>
                             {{ $dcity->name }}
                             @if($dcity->postal_code)
-                            <span style="color:#9ca3af;font-size:.72rem;font-family:monospace;">{{ $dcity->postal_code }}</span>
+                            <span class="cl-pill-postal">{{ $dcity->postal_code }}</span>
                             @endif
                         </a>
                         @endforeach
                     @else
                         @foreach($oiseFallback as [$zname, $zpostal])
-                        <div style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:50px;border:1px solid #b8dfca;background:#fff;color:#1f4730;font-size:.8rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.65rem;"></i>
+                        <span class="cl-pill">
+                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.62rem;"></i>
                             {{ $zname }}
-                            <span style="color:#9ca3af;font-size:.72rem;font-family:monospace;">{{ $zpostal }}</span>
-                        </div>
+                            <span class="cl-pill-postal">{{ $zpostal }}</span>
+                        </span>
                         @endforeach
-                        <div style="display:inline-flex;align-items:center;padding:.45rem 1rem;border-radius:50px;border:1px dashed #b8dfca;background:transparent;color:#9ca3af;font-size:.78rem;font-style:italic;">
+                        <span class="cl-pill" style="border-style:dashed;opacity:.55;">
                             + 40 autres communes…
-                        </div>
+                        </span>
                     @endif
                 </div>
             </div>
@@ -881,103 +1612,93 @@
 </section>
 
 {{-- ══════════════════════════════════════════════════════════
-     §7  TÉMOIGNAGES — Grande citation + cartes
+     §7  TÉMOIGNAGES — 1 large + petites cartes
      ══════════════════════════════════════════════════════════ --}}
 @if(($homeConfig['sections']['reviews']['enabled'] ?? true) && !empty($reviews) && count($reviews) > 0)
-<section style="background:#f8f9fa;padding:6rem 0;">
-    <div class="lp-shell">
+<section class="cl-reviews">
+    <div class="cl-shell">
 
-        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3.5rem;">
+        <div class="cl-reviews-header">
             <div>
-                <span class="lp-label"><i class="fas fa-quote-left"></i> Témoignages</span>
-                <h2 style="font-size:clamp(1.75rem,4vw,2.8rem);font-weight:900;color:#0f172a;margin:0;">
+                <span class="cl-label"><i class="fas fa-quote-left"></i> Témoignages</span>
+                <h2 class="cl-h2">
                     {{ $homeConfig['sections']['reviews']['title'] ?? 'Ce que disent nos clients' }}
                 </h2>
                 @if(isset($averageRating) && $averageRating > 0)
-                <div style="display:flex;align-items:center;gap:.75rem;margin-top:.75rem;">
+                <div class="cl-reviews-rating">
                     <div style="display:flex;gap:3px;">
                         @for($ri = 1; $ri <= 5; $ri++)
-                        <i class="fas fa-star" style="font-size:.9rem;color:{{ $ri <= round($averageRating) ? '#fbbf24' : '#e5e7eb' }};"></i>
+                        <i class="fas fa-star" style="font-size:.875rem;color:{{ $ri <= round($averageRating) ? '#fbbf24' : 'rgba(255,255,255,.15)' }};"></i>
                         @endfor
                     </div>
-                    <span style="font-weight:900;color:#0f172a;font-size:1.2rem;">{{ number_format($averageRating, 1) }}/5</span>
+                    <span style="font-weight:900;color:#fff;font-size:1.2rem;">{{ number_format($averageRating, 1) }}/5</span>
                     @if(isset($totalReviews))
-                    <span style="color:#94a3b8;font-size:.875rem;">({{ $totalReviews }} avis)</span>
+                    <span style="color:rgba(255,255,255,.32);font-size:.875rem;">({{ $totalReviews }} avis)</span>
                     @endif
                 </div>
                 @endif
             </div>
-            <a href="{{ route('reviews.all') }}" class="btn-outline-green" style="font-size:.82rem;padding:.65rem 1.25rem;">
+            <a href="{{ route('reviews.all') }}" class="cl-btn-ghost">
                 Tous les avis <i class="fas fa-star" style="font-size:.7rem;"></i>
             </a>
         </div>
 
-        <div class="reviews-grid">
+        <div class="cl-reviews-grid">
             @foreach($reviews->take(min(5, $homeConfig['sections']['reviews']['limit'] ?? 5)) as $rvi => $review)
             @if($rvi === 0)
-            {{-- Grande carte sombre --}}
-            <div style="background:linear-gradient(135deg,#0f1f13 0%,#1a4a28 60%,#0d3b22 100%);border-radius:24px;padding:2.5rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;grid-column:span 1;"
-                 class="review-featured">
-                <div style="position:absolute;top:-1rem;left:-.5rem;font-size:8rem;font-weight:900;color:rgba(255,255,255,.04);line-height:1;pointer-events:none;user-select:none;">&ldquo;</div>
+            <div class="cl-review-featured-card">
+                <div class="cl-review-featured-quote">&ldquo;</div>
                 <div>
                     <div style="display:flex;gap:3px;margin-bottom:1.25rem;">
                         @for($ri2=1;$ri2<=5;$ri2++)
-                        <i class="fas fa-star" style="font-size:.875rem;color:{{ $ri2<=$review->rating ? '#fbbf24' : 'rgba(255,255,255,.18)' }};"></i>
+                        <i class="fas fa-star" style="font-size:.875rem;color:{{ $ri2<=$review->rating ? '#fbbf24' : 'rgba(255,255,255,.15)' }};"></i>
                         @endfor
                     </div>
-                    <p style="color:rgba(255,255,255,.82);font-size:1.15rem;line-height:1.7;font-weight:500;font-style:italic;margin:0 0 2rem;">
+                    <p class="cl-review-featured-text">
                         &ldquo;{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail, très professionnel.', 220) }}&rdquo;
                     </p>
                 </div>
-                <div style="display:flex;align-items:center;gap:.875rem;">
-                    <div style="width:3rem;height:3rem;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.18);">
+                <div class="cl-review-featured-foot">
+                    <div class="cl-review-avatar-large">
                         @if($review->author_photo_url)
-                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" loading="lazy" class="cl-review-avatar-img">
                         @else
-                            <div style="width:100%;height:100%;background:var(--primary-color);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.1rem;">
-                                {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
-                            </div>
+                            <div class="cl-review-avatar-init">{{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}</div>
                         @endif
                     </div>
                     <div>
-                        <div style="color:#fff;font-weight:700;font-size:.9rem;">{{ $review->author_name }}</div>
-                        <div style="color:rgba(255,255,255,.38);font-size:.75rem;">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
+                        <div class="cl-review-author-name">{{ $review->author_name }}</div>
+                        <div class="cl-review-author-date">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
                     </div>
                     @if($review->source && str_contains($review->source, 'Google'))
-                    <div style="margin-left:auto;display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.07);padding:.35rem .75rem;border-radius:50px;">
+                    <div class="cl-review-source-badge">
                         <i class="fab fa-google" style="color:#60a5fa;font-size:.75rem;"></i>
-                        <span style="color:rgba(255,255,255,.45);font-size:.7rem;font-weight:600;">Google</span>
+                        Google
                     </div>
                     @endif
                 </div>
             </div>
             @else
-            {{-- Petite carte blanche --}}
-            <div style="background:#fff;border:1px solid #f1f5f9;border-radius:20px;padding:1.75rem;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.05);transition:box-shadow .25s,transform .25s;position:relative;overflow:hidden;"
-                 onmouseover="this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.transform='translateY(-3px)';"
-                 onmouseout="this.style.boxShadow='0 2px 12px rgba(0,0,0,.05)';this.style.transform='translateY(0)';">
-                <div style="position:absolute;top:.75rem;right:1rem;font-size:3.5rem;font-weight:900;color:#f8fafc;line-height:1;pointer-events:none;user-select:none;">&rdquo;</div>
-                <div style="display:flex;gap:2px;margin-bottom:1rem;">
+            <div class="cl-review-small-card">
+                <div style="display:flex;gap:3px;margin-bottom:1rem;">
                     @for($ri3=1;$ri3<=5;$ri3++)
-                    <i class="fas fa-star" style="font-size:.75rem;color:{{ $ri3<=$review->rating ? '#fbbf24' : '#e5e7eb' }};"></i>
+                    <i class="fas fa-star" style="font-size:.75rem;color:{{ $ri3<=$review->rating ? '#fbbf24' : 'rgba(255,255,255,.12)' }};"></i>
                     @endfor
                 </div>
-                <p style="color:#475569;font-size:.855rem;line-height:1.7;font-style:italic;flex:1;margin:0 0 1.25rem;">
+                <p class="cl-review-small-text">
                     &ldquo;{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail.', 160) }}&rdquo;
                 </p>
-                <div style="display:flex;align-items:center;gap:.625rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
-                    <div style="width:2.25rem;height:2.25rem;border-radius:50%;overflow:hidden;flex-shrink:0;">
+                <div class="cl-review-foot">
+                    <div class="cl-review-avatar-small">
                         @if($review->author_photo_url)
-                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" loading="lazy" class="cl-review-avatar-img">
                         @else
-                            <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color,#16a34a));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.85rem;">
-                                {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
-                            </div>
+                            <div class="cl-review-avatar-init" style="font-size:.8rem;">{{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}</div>
                         @endif
                     </div>
                     <div>
-                        <div style="font-weight:700;color:#0f172a;font-size:.8rem;">{{ $review->author_name }}</div>
-                        <div style="color:#94a3b8;font-size:.7rem;">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
+                        <div class="cl-review-author-name">{{ $review->author_name }}</div>
+                        <div class="cl-review-author-date">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
                     </div>
                 </div>
             </div>
@@ -987,35 +1708,28 @@
 
     </div>
 </section>
-<style>
-@media (min-width: 1024px) {
-    .review-featured { grid-column: span 2 !important; }
-}
-</style>
 @endif
 
 {{-- ══════════════════════════════════════════════════════════
-     §8  FAQ — Accordéon propre, sticky gauche
+     §8  FAQ — Sticky gauche + accordéon
      ══════════════════════════════════════════════════════════ --}}
-<section style="background:#fff;padding:6rem 0;">
-    <div class="lp-shell">
-        <div class="faq-layout">
+<section class="cl-faq">
+    <div class="cl-shell">
+        <div class="cl-faq-layout">
 
             {{-- Gauche sticky --}}
-            <div style="position:sticky;top:6rem;align-self:flex-start;">
-                <span class="lp-label"><i class="fas fa-question-circle"></i> FAQ</span>
-                <h2 style="font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:900;color:#0f172a;line-height:1.1;margin:0 0 1rem;">
-                    Vos questions,<br>nos réponses
-                </h2>
-                <p style="color:#64748b;font-size:.9rem;line-height:1.75;margin-bottom:1.75rem;">
+            <div class="cl-faq-left">
+                <span class="cl-label"><i class="fas fa-question-circle"></i> FAQ</span>
+                <h2 class="cl-faq-left-title">Vos questions,<br>nos réponses</h2>
+                <p class="cl-faq-left-sub">
                     Tout ce que vous devez savoir avant de nous confier votre projet d'élagage dans l'Oise.
                 </p>
-                <a href="{{ route('contact') }}" class="btn-solid-green" style="font-size:.85rem;">
+                <a href="{{ route('contact') }}" class="cl-btn-green" style="font-size:.85rem;">
                     <i class="fas fa-envelope" style="font-size:.8rem;"></i> Poser une question
                 </a>
             </div>
 
-            {{-- Droite accordéon --}}
+            {{-- Accordéon --}}
             <div>
                 @foreach([
                     ['Intervenez-vous dans toute l\'Oise ?','Oui, nous couvrons l\'ensemble du département 60 : Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon, Verberie, Clermont, Méru, Liancourt, Pont-Sainte-Maxence et toutes les communes alentour. Nous intervenons également dans les départements limitrophes (Aisne, Somme, Val-d\'Oise).'],
@@ -1025,13 +1739,13 @@
                     ['En quelle saison effectuer l\'élagage ?','L\'élagage se pratique idéalement en fin d\'hiver (février-mars) ou en été (juillet-août). Certains arbres ont leurs propres rythmes. L\'abattage peut se faire toute l\'année. Nous vous conseillons lors du devis.'],
                     ['Puis-je obtenir un devis rapidement ?','Oui. Remplissez notre formulaire en ligne ou appelez-nous directement. Nous vous répondons sous 24h et nous déplaçons gratuitement pour établir un devis détaillé.'],
                 ] as $faq)
-                <div class="faq-item">
+                <div class="cl-faq-item">
                     <details>
                         <summary>
                             <span>{{ $faq[0] }}</span>
-                            <div class="faq-icon"><i class="fas fa-plus"></i></div>
+                            <div class="cl-faq-icon"><i class="fas fa-plus"></i></div>
                         </summary>
-                        <div class="faq-body">{{ $faq[1] }}</div>
+                        <div class="cl-faq-body">{{ $faq[1] }}</div>
                     </details>
                 </div>
                 @endforeach
@@ -1042,68 +1756,60 @@
 </section>
 
 {{-- ══════════════════════════════════════════════════════════
-     §9  CTA FINAL — Gradient sombre, impact maximal
+     §9  CTA FINAL — Green gradient
      ══════════════════════════════════════════════════════════ --}}
 @if($homeConfig['sections']['cta']['enabled'] ?? true)
-<div style="height:3px;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color,#16a34a),var(--primary-color));"></div>
+<div style="height:3px;background:linear-gradient(90deg,var(--primary-color),rgba(108,163,34,.5),var(--primary-color));"></div>
 
-<section style="background:linear-gradient(155deg,#0a2214 0%,#1a5c35 50%,#0a2214 100%);position:relative;overflow:hidden;">
-    {{-- Motif pointillé --}}
-    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:28px 28px;opacity:.03;pointer-events:none;"></div>
-    {{-- Halo central --}}
-    <div style="position:absolute;top:0;left:50%;width:900px;height:600px;border-radius:50%;background:radial-gradient(ellipse,rgba(74,222,128,.2) 0%,transparent 65%);transform:translateX(-50%) translateY(-45%);pointer-events:none;"></div>
+<section class="cl-cta-final">
+    <div class="cl-cta-dots"></div>
+    <div class="cl-cta-glow"></div>
 
-    <div class="lp-shell" style="position:relative;z-index:1;text-align:center;padding-top:7rem;padding-bottom:7rem;">
+    <div class="cl-shell">
+        <div class="cl-cta-inner">
 
-        {{-- Badge pill --}}
-        <div style="display:inline-flex;align-items:center;gap:.625rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:50px;padding:.5rem 1.25rem;margin-bottom:2rem;">
-            <span style="width:.5rem;height:.5rem;border-radius:50%;background:#4ade80;animation:pulse-dot 2s infinite;display:inline-block;"></span>
-            <span style="color:rgba(255,255,255,.65);font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;">Département 60 — Oise · Picardie</span>
-        </div>
-
-        {{-- H2 --}}
-        <h2 style="font-size:clamp(2.4rem,7vw,5.5rem);font-weight:900;color:#fff;line-height:.95;letter-spacing:-.02em;margin:0 0 1.5rem;">
-            {!! nl2br(e($homeConfig['sections']['cta']['title'] ?? "Besoin d'un élagueur\ndans l'Oise ?")) !!}
-        </h2>
-
-        <p style="color:rgba(255,255,255,.48);font-size:1.1rem;line-height:1.75;max-width:600px;margin:0 auto 3rem;">
-            Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon —
-            devis gratuit, réponse sous 24h, artisan certifié et assuré.
-        </p>
-
-        {{-- CTAs --}}
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin-bottom:3.5rem;">
-            <a href="{{ route('form.step', 'propertyType') }}"
-               onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
-               style="display:inline-flex;align-items:center;gap:.75rem;background:#fff;color:var(--primary-color);font-size:1.05rem;font-weight:900;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;box-shadow:0 10px 40px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s;"
-               onmouseover="this.style.transform='scale(1.03)';this.style.background='#f0fdf4';"
-               onmouseout="this.style.transform='scale(1)';this.style.background='#fff';">
-                <i class="fas fa-calculator"></i>
-                Devis gratuit en ligne
-            </a>
-            <a href="tel:{{ $phoneRaw }}"
-               onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','cta-final')"
-               style="display:inline-flex;align-items:center;gap:.75rem;border:1.5px solid rgba(255,255,255,.22);color:#fff;font-size:1.05rem;font-weight:700;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;transition:background .2s,border-color .2s;"
-               onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.4)';"
-               onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,.22)';">
-                <span style="position:relative;display:inline-flex;">
-                    <span style="position:absolute;inset:0;border-radius:50%;background:#4ade80;opacity:.22;animation:pulse-dot 2s infinite;"></span>
-                    <i class="fas fa-phone" style="color:#4ade80;position:relative;"></i>
-                </span>
-                {{ $phone }}
-            </a>
-        </div>
-
-        {{-- Trust pills --}}
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;">
-            @foreach(['Devis 100% gratuit','Sans engagement','Réponse sous 24h','Artisan certifié','Tout le dép. 60'] as $tpill)
-            <div style="display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:.45rem 1.1rem;border-radius:50px;color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;">
-                <i class="fas fa-check" style="color:#4ade80;font-size:.65rem;"></i>
-                {{ $tpill }}
+            <div class="cl-cta-badge">
+                <span class="cl-cta-badge-dot"></span>
+                Département 60 — Oise &middot; Picardie
             </div>
-            @endforeach
-        </div>
 
+            <h2 class="cl-cta-h2">
+                {!! nl2br(e($homeConfig['sections']['cta']['title'] ?? "Besoin d'un élagueur\ndans l'Oise ?")) !!}
+            </h2>
+
+            <p class="cl-cta-sub">
+                Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon —
+                devis gratuit, réponse sous 24h, artisan certifié et assuré.
+            </p>
+
+            <div class="cl-cta-btns">
+                <a href="{{ route('form.step', 'propertyType') }}"
+                   onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
+                   class="cl-btn-cta-white">
+                    <i class="fas fa-calculator"></i>
+                    Devis gratuit en ligne
+                </a>
+                <a href="tel:{{ $phoneRaw }}"
+                   onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','cta-final')"
+                   class="cl-btn-cta-outline">
+                    <span class="cl-phone-dot">
+                        <span class="cl-phone-dot-ring"></span>
+                        <i class="fas fa-phone" style="color:var(--primary-color);position:relative;"></i>
+                    </span>
+                    {{ $phone }}
+                </a>
+            </div>
+
+            <div class="cl-trust-pills">
+                @foreach(['Devis 100% gratuit','Sans engagement','Réponse sous 24h','Artisan certifié','Tout le dép. 60'] as $tpill)
+                <div class="cl-trust-pill">
+                    <i class="fas fa-check" style="color:var(--primary-color);font-size:.65rem;"></i>
+                    {{ $tpill }}
+                </div>
+                @endforeach
+            </div>
+
+        </div>
     </div>
 </section>
 @endif
