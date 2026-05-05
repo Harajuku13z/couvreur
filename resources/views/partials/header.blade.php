@@ -1,42 +1,31 @@
-{{-- ===== HEADER MODERNE — sticky glassmorphism ===== --}}
+{{-- ===== HEADER — toujours fond blanc, logo contraint ===== --}}
 <style>
 #site-header {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 1000;
-    transition: background .35s ease, box-shadow .35s ease, padding .25s ease;
-    background: transparent;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(0,0,0,.08);
+    transition: box-shadow .25s ease;
 }
 #site-header.scrolled {
-    background: rgba(255,255,255,.96);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 2px 24px rgba(0,0,0,.08);
+    box-shadow: 0 2px 20px rgba(0,0,0,.1);
 }
-#site-header.scrolled .nav-link  { color: #1f2937; }
-#site-header.scrolled .nav-link:hover { color: var(--primary-color); }
-#site-header.scrolled .logo-light { display: none; }
-#site-header.scrolled .logo-dark  { display: block; }
-#site-header .logo-dark { display: none; }
-#site-header .logo-light { display: block; }
 
-/* Sur les pages intérieures (non-hero) */
-#site-header.solid {
-    background: #fff;
-    box-shadow: 0 2px 24px rgba(0,0,0,.08);
-}
-#site-header.solid .nav-link  { color: #1f2937; }
-#site-header.solid .nav-link:hover { color: var(--primary-color); }
-#site-header.solid .logo-light { display: none; }
-#site-header.solid .logo-dark  { display: block; }
+/* Logo : toujours version dark */
+#site-header .logo-light { display: none !important; }
+#site-header .logo-dark  { display: block !important; }
 
+/* Nav links */
 .nav-link {
-    color: rgba(255,255,255,.92);
+    color: #374151;
     font-weight: 600;
     font-size: .92rem;
     transition: color .2s;
     position: relative;
+    text-decoration: none;
 }
+.nav-link:hover { color: var(--primary-color); }
 .nav-link::after {
     content: '';
     position: absolute;
@@ -48,6 +37,9 @@
     border-radius: 2px;
 }
 .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+
+/* Hamburger — toujours sombre */
+#hamburger span { background: #374151 !important; }
 
 /* Dropdown */
 .nav-dropdown { position: relative; }
@@ -80,6 +72,7 @@
     font-weight: 600;
     color: #374151;
     transition: background .15s, color .15s;
+    text-decoration: none;
 }
 .nav-dropdown-menu a:hover {
     background: rgba(var(--primary-color-rgb,34,197,94),.07);
@@ -94,7 +87,17 @@
     padding-bottom: 12px;
 }
 
-/* Mobile */
+/* Logo max-width mobile */
+.site-logo-img {
+    height: 2.75rem;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
+}
+@media(min-width:640px){ .site-logo-img { max-width: 180px; height: 3rem; } }
+
+/* Mobile menu */
 #mobile-menu {
     display: none;
     position: fixed;
@@ -102,35 +105,29 @@
     z-index: 999;
     background: #fff;
     overflow-y: auto;
+    flex-direction: column;
 }
-#mobile-menu.open { display: flex; flex-direction: column; }
+#mobile-menu.open { display: flex; }
 </style>
 
-<header id="site-header" class="{{ !request()->is('/') ? 'solid' : '' }}">
+<header id="site-header">
     <div class="site-shell">
-        <div class="flex items-center justify-between py-3 md:py-4">
+        <div class="flex items-center justify-between py-3 md:py-3.5">
 
             {{-- Logo --}}
-            <a href="{{ url('/') }}" class="flex items-center flex-shrink-0">
+            <a href="{{ url('/') }}" class="flex items-center flex-shrink-0" style="min-width:0;">
                 @if(setting('company_logo'))
                     <img src="{{ asset(setting('company_logo')) }}"
                          alt="{{ setting('company_name', 'Louis Hoffmann Élagage') }}"
-                         class="logo-light h-11 w-auto"
-                         width="200" height="44">
-                    <img src="{{ asset(setting('company_logo')) }}"
-                         alt="{{ setting('company_name', 'Louis Hoffmann Élagage') }}"
-                         class="logo-dark h-11 w-auto"
-                         width="200" height="44">
+                         class="logo-dark site-logo-img">
                 @else
                     <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white"
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0"
                              style="background: var(--primary-color);">
                             <i class="fas fa-tree text-sm"></i>
                         </div>
-                        <span class="logo-dark font-extrabold text-gray-900 text-lg hidden">
-                            {{ setting('company_name', 'Louis Hoffmann') }}
-                        </span>
-                        <span class="logo-light font-extrabold text-white text-lg">
+                        <span class="font-extrabold text-gray-900 text-base leading-tight truncate"
+                              style="max-width:160px;">
                             {{ setting('company_name', 'Louis Hoffmann') }}
                         </span>
                     </div>
@@ -145,12 +142,12 @@
                 $navFeatured = array_filter($navServices, fn($s) => is_array($s) && ($s['is_menu'] ?? false) && ($s['is_visible'] ?? true));
             @endphp
 
-            <nav class="hidden md:flex items-center gap-7">
+            <nav class="hidden md:flex items-center gap-6 lg:gap-8">
                 <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Accueil</a>
 
                 <div class="nav-dropdown">
-                    <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1">
-                        Services <i class="fas fa-chevron-down text-[10px] mt-0.5"></i>
+                    <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1 {{ request()->routeIs('services.*') ? 'active' : '' }}">
+                        Services <i class="fas fa-chevron-down text-[10px] mt-0.5 ml-0.5"></i>
                     </a>
                     <div class="nav-dropdown-menu">
                         <a href="{{ route('services.index') }}">
@@ -174,28 +171,29 @@
 
             {{-- Desktop CTAs --}}
             <div class="hidden md:flex items-center gap-3">
-                {{-- Phone --}}
                 <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
-                   class="flex items-center gap-2 font-bold text-sm px-4 py-2.5 rounded-xl border-2 border-white/30 text-white hover:bg-white/15 transition-all scrolled-phone"
+                   class="flex items-center gap-2 font-bold text-sm px-4 py-2.5 rounded-xl border-2 transition-all"
+                   style="border-color:var(--primary-color); color:var(--primary-color);"
+                   onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
+                   onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';"
                    onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ setting('company_phone_raw', setting('company_phone')) }}','header')">
-                    <i class="fas fa-phone text-xs animate-pulse"></i>
+                    <i class="fas fa-phone text-xs"></i>
                     {{ setting('company_phone', '06 42 21 41 51') }}
                 </a>
-                {{-- Devis --}}
                 <a href="{{ route('form.step', 'propertyType') }}"
-                   class="flex items-center gap-2 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:scale-[1.03] transition-all"
+                   class="flex items-center gap-2 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-sm hover:opacity-90 transition-all"
                    style="background: var(--primary-color);"
                    onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')">
-                    <i class="fas fa-calculator text-xs"></i>
+                    <i class="fas fa-file-alt text-xs"></i>
                     Devis gratuit
                 </a>
             </div>
 
             {{-- Hamburger --}}
             <button id="hamburger" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg" onclick="openMobileMenu()" aria-label="Menu">
-                <span class="block w-6 h-0.5 bg-white rounded transition-all" id="hb1"></span>
-                <span class="block w-6 h-0.5 bg-white rounded transition-all" id="hb2"></span>
-                <span class="block w-4 h-0.5 bg-white rounded transition-all" id="hb3"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:#374151;"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:#374151;"></span>
+                <span class="block w-4 h-0.5 rounded transition-all" style="background:#374151;"></span>
             </button>
 
         </div>
@@ -204,23 +202,29 @@
 
 {{-- Mobile Menu --}}
 <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu navigation">
-    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <a href="{{ url('/') }}" class="flex items-center gap-2">
+    {{-- Header menu --}}
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+        <a href="{{ url('/') }}" class="flex items-center gap-2" style="min-width:0;">
             @if(setting('company_logo'))
-                <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="h-10 w-auto">
+                <img src="{{ asset(setting('company_logo')) }}"
+                     alt="{{ setting('company_name') }}"
+                     style="height:auto;width:auto;max-height:2.5rem;max-width:140px;object-fit:contain;display:block;">
             @else
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background:var(--primary-color);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:var(--primary-color);">
                     <i class="fas fa-tree text-xs"></i>
                 </div>
-                <span class="font-extrabold text-gray-900">{{ setting('company_name', 'Louis Hoffmann') }}</span>
+                <span class="font-extrabold text-gray-900 truncate" style="max-width:160px;">{{ setting('company_name', 'Louis Hoffmann') }}</span>
             @endif
         </a>
-        <button onclick="closeMobileMenu()" class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Fermer">
+        <button onclick="closeMobileMenu()"
+                class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors flex-shrink-0"
+                aria-label="Fermer">
             <i class="fas fa-times"></i>
         </button>
     </div>
 
-    <nav class="flex-1 px-5 py-6 space-y-1">
+    {{-- Nav links --}}
+    <nav class="flex-1 px-5 py-6 space-y-1 overflow-y-auto">
         <a href="{{ url('/') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             <i class="fas fa-home text-sm w-4 text-center" style="color:var(--primary-color);"></i> Accueil
         </a>
@@ -229,7 +233,8 @@
         </a>
         @foreach($navFeatured as $svc)
             @if(isset($svc['name'], $svc['slug']))
-            <a href="{{ route('services.show', $svc['slug']) }}" class="flex items-center gap-3 pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            <a href="{{ route('services.show', $svc['slug']) }}"
+               class="flex items-center gap-3 pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                 <i class="{{ $svc['icon'] ?? 'fas fa-leaf' }} text-xs" style="color:var(--primary-color);"></i>
                 {{ $svc['name'] }}
             </a>
@@ -246,11 +251,12 @@
         </a>
     </nav>
 
-    <div class="px-5 pb-8 space-y-3">
+    {{-- CTAs --}}
+    <div class="px-5 pb-8 pt-3 space-y-3 border-t border-gray-100 flex-shrink-0">
         <a href="{{ route('form.step', 'propertyType') }}"
            class="flex items-center justify-center gap-2 text-white font-bold py-4 rounded-2xl text-base shadow-lg"
-           style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-            <i class="fas fa-calculator"></i> Devis gratuit en ligne
+           style="background: var(--primary-color);">
+            <i class="fas fa-file-alt"></i> Devis gratuit en ligne
         </a>
         <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
            class="flex items-center justify-center gap-2 font-bold py-4 rounded-2xl border-2 text-base transition-colors"
@@ -260,65 +266,32 @@
     </div>
 </div>
 
-{{-- Spacer pour les pages intérieures --}}
-@if(!request()->is('/'))
-<div class="h-[72px] md:h-[80px]"></div>
-@endif
+{{-- Spacer sous le header fixe --}}
+<div style="height:60px;" class="md:hidden"></div>
+<div style="height:68px;" class="hidden md:block"></div>
 
 <script>
 (function(){
     const header = document.getElementById('site-header');
-    const hb1 = document.getElementById('hb1');
-    const hb2 = document.getElementById('hb2');
-    const hamburger = document.getElementById('hamburger');
-
-    // Phone link style synced with scroll
-    function syncPhone() {
-        const links = document.querySelectorAll('.scrolled-phone');
-        const scrolled = header.classList.contains('scrolled') || header.classList.contains('solid');
-        links.forEach(l => {
-            if(scrolled) {
-                l.style.color = 'var(--primary-color)';
-                l.style.borderColor = 'var(--primary-color)';
-            } else {
-                l.style.color = '';
-                l.style.borderColor = '';
-            }
-        });
-        // hamburger bars
-        if(hamburger) {
-            const bars = hamburger.querySelectorAll('span');
-            bars.forEach(b => {
-                b.style.background = scrolled ? '#1f2937' : '';
-            });
-        }
-    }
-
-    if(header && !header.classList.contains('solid')) {
-        window.addEventListener('scroll', function(){
-            if(window.scrollY > 60) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            syncPhone();
-        }, { passive: true });
-    }
-    syncPhone();
+    if(!header) return;
+    window.addEventListener('scroll', function(){
+        header.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
 })();
 
 function openMobileMenu() {
     const m = document.getElementById('mobile-menu');
-    m.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    if(m){ m.classList.add('open'); document.body.style.overflow = 'hidden'; }
 }
 function closeMobileMenu() {
     const m = document.getElementById('mobile-menu');
-    m.classList.remove('open');
-    document.body.style.overflow = '';
+    if(m){ m.classList.remove('open'); document.body.style.overflow = ''; }
 }
 
 function trackFormClick(page) {
     fetch('/api/track-form-click', { method: 'GET' }).catch(()=>{});
+}
+function trackPhoneCall(num, loc) {
+    fetch('/api/track-phone-call?num='+encodeURIComponent(num)+'&loc='+encodeURIComponent(loc||''), {method:'GET'}).catch(()=>{});
 }
 </script>

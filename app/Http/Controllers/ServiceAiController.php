@@ -165,61 +165,22 @@ class ServiceAiController extends Controller
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
             
-            // Template HTML exact (même que AdTemplateController)
-            $template = '<div class="grid md:grid-cols-2 gap-8">
-  <div class="space-y-6">
-    <div class="space-y-4">
-      <p class="text-lg leading-relaxed text-gray-800 dark:text-slate-200">[description_courte]</p>
-      <p class="text-lg leading-relaxed text-gray-800 dark:text-slate-200">[description_longue]</p>
-    </div>
-    <div class="bg-blue-50 dark:bg-slate-800/90 p-6 rounded-lg border border-blue-100/80 dark:border-slate-600">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">[titre_garantie]</h3>
-      <p class="leading-relaxed mb-3 text-gray-700 dark:text-slate-300">[texte_garantie]</p>
-    </div>
-    <h3 class="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">Nos Prestations [service]</h3>
-    <ul class="space-y-3 text-gray-800 dark:text-slate-200">[prestations_liste]</ul>
-    <div class="bg-gray-50 dark:bg-slate-800/90 p-6 rounded-lg mt-6 border border-gray-100 dark:border-slate-600">
-      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">FAQ du [service]</h4>
-      <div class="space-y-2 text-gray-700 dark:text-slate-300">[faq_liste]</div>
-    </div>
+            // Template HTML — colonne unique (sidebar gère déjà devis / infos / partage)
+            $template = '<div class="ai-content-single">
+  <p class="ai-intro">[description_courte]</p>
+  <p>[description_longue]</p>
+
+  <div class="ai-garantie">
+    <h3>[titre_garantie]</h3>
+    <p>[texte_garantie]</p>
   </div>
-  <div class="space-y-6">
-    <div class="bg-green-50 dark:bg-slate-800/90 p-6 rounded-lg border border-green-100/80 dark:border-slate-600">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
-      <p class="leading-relaxed text-gray-800 dark:text-slate-200">[pourquoi_choisir]</p>
-    </div>
-    <div class="bg-yellow-50 dark:bg-slate-800/90 p-6 rounded-lg border-l-4 border-yellow-600 dark:border-amber-500">
-      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Financement et aides</h4>
-      <p class="text-gray-800 dark:text-slate-200">[financement_aides]</p>
-    </div>
-    <div class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-slate-800 dark:to-slate-800 p-6 rounded-lg border-l-4 border-blue-600 dark:border-slate-500">
-      <h4 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Besoin d\'un devis ?</h4>
-      <p class="mb-4 text-gray-800 dark:text-slate-200">Contactez-nous pour un devis gratuit pour [service].</p>
-      <a href="/devis-gratuit" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
-    </div>
-    <div class="bg-gray-50 dark:bg-slate-800/90 p-6 rounded-lg border border-gray-100 dark:border-slate-600">
-      <h4 class="text-lg font-bold text-gray-900 dark:text-slate-100 mb-3">Informations Pratiques</h4>
-      <ul class="space-y-2 text-sm text-gray-700 dark:text-slate-300">[infos_pratiques_liste]</ul>
-    </div>
-    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-600">
-      <div class="text-center">
-        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
-        <div class="flex justify-center items-center space-x-4">
-          <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fab fa-facebook-f text-lg"></i>
-            <span class="font-medium">Facebook</span>
-          </a>
-          <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fab fa-whatsapp text-lg"></i>
-            <span class="font-medium">WhatsApp</span>
-          </a>
-          <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fas fa-envelope text-lg"></i>
-            <span class="font-medium">Email</span>
-          </a>
-        </div>
-      </div>
-    </div>
+
+  <h3 class="ai-h3-prestations">Nos prestations — [service]</h3>
+  <ul class="ai-prestations-list">[prestations_liste]</ul>
+
+  <div class="ai-faq-block">
+    <h4>Questions fréquentes</h4>
+    <div>[faq_liste]</div>
   </div>
 </div>';
             
@@ -743,27 +704,31 @@ RÈGLES STRICTES:
         }
         $serviceUrl = $siteUrl . '/services/' . Str::slug($serviceName);
         
-        // Générer la liste des prestations
+        // Générer la liste des prestations (single column, classes .ai-*)
         $prestationsHtml = '';
         if (isset($data['prestations']) && is_array($data['prestations'])) {
             foreach ($data['prestations'] as $prestation) {
-                $titre = htmlspecialchars($prestation['titre'] ?? '', ENT_QUOTES, 'UTF-8');
+                $titre       = htmlspecialchars($prestation['titre']       ?? '', ENT_QUOTES, 'UTF-8');
                 $description = htmlspecialchars($prestation['description'] ?? '', ENT_QUOTES, 'UTF-8');
-                $prestationsHtml .= '<li class="flex items-start">' .
-                    '<i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>' .
-                    '<span><strong>' . $titre . '</strong> - ' . $description . '</span>' .
-                    '</li>';
+                $prestationsHtml .= '<li>'
+                    . '<i class="fas fa-check"></i>'
+                    . '<span><strong>' . $titre . '</strong>'
+                    . ($description ? ' — ' . $description : '')
+                    . '</span></li>';
             }
         }
-        
-        // Générer la liste FAQ
+
+        // Générer la FAQ avec <details> accordéon
         $faqHtml = '';
         if (isset($data['faq']) && is_array($data['faq'])) {
             foreach ($data['faq'] as $faq) {
                 $question = htmlspecialchars($faq['question'] ?? '', ENT_QUOTES, 'UTF-8');
-                $reponse = htmlspecialchars($faq['reponse'] ?? '', ENT_QUOTES, 'UTF-8');
-                $faqHtml .= '<p><strong>' . $question . '</strong></p>' .
-                    '<p>' . $reponse . '</p>';
+                $reponse  = htmlspecialchars($faq['reponse']  ?? '', ENT_QUOTES, 'UTF-8');
+                if (!$question) continue;
+                $faqHtml .= '<details>'
+                    . '<summary>' . $question . '</summary>'
+                    . '<div class="faq-answer">' . $reponse . '</div>'
+                    . '</details>';
             }
         }
         

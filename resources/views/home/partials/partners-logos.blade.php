@@ -39,11 +39,12 @@
                         @endif
                     </div>
                     {{-- Cadre image : aucun padding ni marge interne — l’image remplit tout le rectangle (coins arrondis conservés) --}}
-                    <div class="order-1 md:order-2 relative w-full min-h-[220px] sm:min-h-[260px] md:min-h-[300px] md:h-full rounded-2xl overflow-hidden shadow-xl ring-1 ring-gray-200/80 dark:ring-gray-600 bg-gray-100 dark:bg-gray-800">
+                    <div class="order-1 md:order-2 relative w-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 dark:bg-gray-800"
+                         style="min-height:220px; max-height:400px;">
                         @if(!empty($intro['image']))
                         <img src="{{ asset($intro['image']) }}"
                              alt="{{ strip_tags($intro['title'] ?? 'Partenaires') }}"
-                             class="absolute inset-0 block w-full h-full object-cover object-center m-0 p-0 border-0"
+                             style="position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center;margin:0;padding:0;border:0;"
                              width="1200"
                              height="800"
                              loading="lazy"

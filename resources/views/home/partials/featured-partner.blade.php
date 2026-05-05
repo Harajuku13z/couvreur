@@ -7,11 +7,12 @@
     <section class="py-14 md:py-20 bg-white">
         <div class="site-shell">
             <div class="grid md:grid-cols-2 gap-10 lg:gap-14 items-center">
-                <div class="rounded-2xl overflow-hidden shadow-xl bg-gray-100 min-h-[220px] md:min-h-[280px] flex items-center justify-center order-2 md:order-1">
+                <div class="rounded-2xl overflow-hidden shadow-xl bg-gray-100 order-2 md:order-1"
+                     style="min-height:220px; max-height:420px;">
                     @if(!empty($pf['image']))
                     <img src="{{ asset($pf['image']) }}"
                          alt="{{ strip_tags($pf['title'] ?? 'Partenaire') }}"
-                         class="w-full h-full object-cover max-h-[420px] md:max-h-none"
+                         style="width:100%; height:100%; object-fit:cover; max-height:420px; display:block;"
                          width="800"
                          height="560"
                          loading="lazy"

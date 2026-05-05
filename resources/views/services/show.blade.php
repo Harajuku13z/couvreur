@@ -6,397 +6,687 @@
 
 @push('head')
 <style>
-.service-page-root { overflow-x: hidden; }
-.service-hero-bg {
-    position: absolute; inset: 0; overflow: hidden;
+/* ═══ BASE ═══ */
+.sp { font-family: inherit; }
+
+/* ── Hero ── */
+.sp-hero {
+    position: relative; min-height: 65vh; display: flex;
+    align-items: flex-end; overflow: hidden;
 }
-.service-hero-bg img {
+.sp-hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(140deg, #071c10, #0d3b22 50%, #1a5c35);
+}
+.sp-hero-bg img {
     width: 100%; height: 100%; object-fit: cover;
-    transform: scale(1.08);
-    filter: blur(3px) brightness(.5);
-    transition: transform 8s ease;
+    object-position: center 30%;
 }
-.service-hero-bg.no-img { background: linear-gradient(140deg, #071c10, #0d3b22 50%, #1a5c35); }
+.sp-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(5,20,10,.92) 0%, rgba(5,20,10,.55) 45%, rgba(5,20,10,.15) 100%);
+}
+.sp-hero-wave {
+    position: absolute; bottom: 0; left: 0; right: 0;
+}
 
-/* Prose */
-.service-content { min-width: 0; overflow-x: hidden; }
-.service-content img, .service-content video, .service-content iframe { max-width:100%!important; height:auto; }
-.service-content table { width:100%; table-layout:fixed; border-collapse:collapse; }
-.service-content td, .service-content th { word-break:break-word; overflow-wrap:break-word; }
-.service-content pre, .service-content code { white-space:pre-wrap; word-break:break-word; max-width:100%; }
+/* ── Layout ── */
+.sp-layout {
+    display: flex; flex-direction: column; gap: 2rem;
+    max-width: 1160px; margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+}
+@media(min-width:1024px){
+    .sp-layout { flex-direction: row; align-items: flex-start; gap: 2.5rem; padding: 3rem 2.5rem 5rem; }
+    .sp-main { flex: 1; min-width: 0; }
+    .sp-sidebar { width: 320px; flex-shrink: 0; position: sticky; top: 90px; }
+}
 
-/* Sticky sidebar */
-@media (min-width: 1024px) {
-    .sidebar-sticky { position: sticky; top: 100px; }
+/* ── Content blocks ── */
+.sp-card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+    padding: 2rem 2rem; margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.sp-card:last-child { margin-bottom: 0; }
+
+/* ── Prose content ── */
+.sp-prose { color: #374151; line-height: 1.8; }
+.sp-prose h2 { font-size: 1.35rem; font-weight: 800; color: #111827; margin: 1.75rem 0 .75rem; }
+.sp-prose h3 { font-size: 1.1rem; font-weight: 700; color: #111827; margin: 1.4rem 0 .6rem; }
+.sp-prose p { margin-bottom: 1rem; font-size: .975rem; }
+.sp-prose ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+.sp-prose ul li { margin-bottom: .4rem; font-size: .975rem; }
+.sp-prose strong { color: #111827; }
+.sp-prose img, .sp-prose video, .sp-prose iframe { max-width:100%!important; height:auto; border-radius: 10px; }
+.sp-prose table { width:100%; border-collapse:collapse; font-size:.9rem; }
+.sp-prose td, .sp-prose th { padding:.5rem .75rem; border:1px solid #e5e7eb; word-break:break-word; }
+
+/* ── Forcer 1 colonne dans le contenu IA (neutralise les grids générés) ── */
+.sp-prose div[class*="grid"],
+.sp-prose div[class*="flex"],
+.sp-prose div[class*="columns"] {
+    display: block !important;
+}
+.sp-prose div[class*="grid"] > *,
+.sp-prose div[class*="flex"] > *,
+.sp-prose div[class*="columns"] > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 1.25rem;
+}
+/* Masquer les blocs "Pourquoi choisir" et "Financement" générés par l'IA
+   (déjà présents dans nos blocs dédiés plus bas dans la page) */
+.sp-prose div[class*="bg-green"],
+.sp-prose div[class*="bg-yellow"],
+.sp-prose div[class*="bg-amber"],
+.sp-prose div[class*="bg-emerald"],
+.sp-prose div[class*="border-l-4"],
+.sp-prose div[class*="rounded-xl"] {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    border-left: none !important;
+}
+
+/* ── Styles contenu IA nouveau template colonne unique ── */
+.ai-content-single { color: #374151; line-height: 1.8; }
+.ai-content-single p { margin-bottom: 1.1rem; font-size: .975rem; }
+.ai-intro { font-size: 1.05rem !important; color: #1f2937; font-weight: 500; }
+.ai-garantie {
+    border-left: 3px solid var(--primary-color);
+    padding: 1rem 1.25rem; margin: 1.75rem 0;
+    background: #f0fdf4; border-radius: 0 10px 10px 0;
+}
+.ai-garantie h3 { font-size: 1rem; font-weight: 700; color: #111827; margin: 0 0 .4rem; }
+.ai-garantie p { font-size: .9rem; color: #374151; margin: 0; }
+.ai-h3-prestations { font-size: 1.15rem; font-weight: 800; color: #111827; margin: 1.75rem 0 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: .5rem; }
+.ai-prestations-list { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: .6rem; }
+.ai-prestations-list li { display: flex; align-items: flex-start; gap: .65rem; font-size: .925rem; color: #374151; line-height: 1.5; }
+.ai-prestations-list li i { color: var(--primary-color); font-size: .8rem; flex-shrink: 0; margin-top: .2rem; }
+.ai-faq-block { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+.ai-faq-block h4 { font-size: 1rem; font-weight: 800; color: #111827; margin: 0 0 1rem; }
+.ai-faq-block details { border-bottom: 1px solid #e5e7eb; }
+.ai-faq-block details:last-child { border-bottom: none; }
+.ai-faq-block summary { padding: .7rem 0; cursor: pointer; font-weight: 600; font-size: .875rem; color: #1f2937; list-style: none; }
+.ai-faq-block summary::-webkit-details-marker { display: none; }
+.ai-faq-block details[open] summary { color: var(--primary-color); }
+.ai-faq-block .faq-answer { font-size: .875rem; color: #6b7280; padding: 0 0 .75rem; line-height: 1.65; }
+
+/* ── Avantages ── single col */
+.sp-adv-list { display: flex; flex-direction: column; gap: .85rem; }
+.sp-adv-item {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem 1.1rem; border-radius: 12px;
+    border: 1px solid #e5e7eb; background: #f9fafb;
+    transition: border-color .2s ease, background .2s ease;
+}
+.sp-adv-item:hover { border-color: var(--primary-color); background: #fff; }
+.sp-adv-icon {
+    width: 2.4rem; height: 2.4rem; border-radius: 10px; flex-shrink: 0;
+    background: rgba(var(--primary-color-rgb, 34,197,94),.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; color: var(--primary-color);
+}
+.sp-adv-title { font-weight: 700; font-size: .9rem; color: #111827; margin-bottom: .2rem; }
+.sp-adv-desc { font-size: .825rem; color: #6b7280; line-height: 1.5; }
+
+/* ── CTA band ── */
+.sp-cta-band {
+    border-radius: 16px; padding: 2rem 2rem; color: #fff;
+    background: linear-gradient(135deg, #071c10 0%, #0d3b22 60%, #1a5c35 100%);
+    text-align: center; margin-bottom: 1.5rem;
+}
+.sp-cta-band h3 { font-size: 1.35rem; font-weight: 800; margin-bottom: .6rem; }
+.sp-cta-band p { font-size: .9rem; color: rgba(255,255,255,.72); margin-bottom: 1.5rem; }
+.sp-cta-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    background: #fff; font-weight: 800; font-size: .95rem;
+    padding: .85rem 2rem; border-radius: 50px;
+    text-decoration: none !important; transition: all .2s ease;
+    color: var(--primary-color) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+.sp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.sp-cta-phone {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    border: 1.5px solid rgba(255,255,255,.3); color: #fff !important;
+    font-weight: 600; font-size: .9rem; padding: .8rem 1.75rem;
+    border-radius: 50px; text-decoration: none !important; margin-top: .75rem;
+    transition: all .2s ease;
+}
+.sp-cta-phone:hover { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.07); }
+
+/* ── Avis ── */
+.sp-review {
+    border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.1rem 1.25rem;
+    margin-bottom: .85rem; background: #f9fafb;
+}
+.sp-review:last-child { margin-bottom: 0; }
+.sp-review-stars { display:flex; gap:.2rem; margin-bottom:.5rem; }
+.sp-review-stars i { color: #f59e0b; font-size: .75rem; }
+.sp-review-text { font-size: .875rem; color: #374151; font-style: italic; line-height: 1.65; margin-bottom: .65rem; }
+.sp-review-author { font-size: .775rem; font-weight: 700; color: #111827; }
+.sp-review-city { font-size: .75rem; color: #9ca3af; }
+
+/* ══════════ SIDEBAR ══════════ */
+.sb-block {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+    overflow: hidden; margin-bottom: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.sb-block:last-child { margin-bottom: 0; }
+
+/* CTA box */
+.sb-cta {
+    background: linear-gradient(155deg, var(--primary-color), var(--secondary-color, #1a5c35));
+    padding: 1.5rem 1.5rem; border-radius: 16px; color: #fff;
+    margin-bottom: 1.25rem;
+}
+.sb-cta-title { font-size: 1.05rem; font-weight: 800; margin-bottom: .35rem; }
+.sb-cta-sub { font-size: .8rem; color: rgba(255,255,255,.75); margin-bottom: 1.25rem; line-height: 1.55; }
+.sb-cta-btn {
+    display: block; width: 100%; text-align: center;
+    background: #fff; color: var(--primary-color) !important;
+    font-weight: 800; font-size: .9rem; padding: .8rem 1rem;
+    border-radius: 50px; text-decoration: none !important;
+    box-shadow: 0 3px 12px rgba(0,0,0,.18); transition: all .2s ease;
+}
+.sb-cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.22); }
+.sb-cta-microcopy { font-size: .73rem; color: rgba(255,255,255,.55); text-align: center; margin-top: .6rem; }
+
+/* Phone */
+.sb-phone {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 1.25rem;
+}
+.sb-phone-label { font-size: .72rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .2rem; }
+.sb-phone-num { font-size: 1.1rem; font-weight: 900; color: var(--primary-color); text-decoration: none !important; }
+.sb-phone-num:hover { text-decoration: underline !important; }
+.sb-phone-icon {
+    width: 2.5rem; height: 2.5rem; border-radius: 50%; flex-shrink: 0;
+    background: rgba(var(--primary-color-rgb, 34,197,94),.1);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary-color); font-size: .95rem;
+}
+.sb-hours { padding: .6rem 1.25rem 1rem; font-size: .775rem; color: #9ca3af; border-top: 1px solid #f3f4f6; }
+
+/* Bloc générique sidebar */
+.sb-head {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .8rem; font-weight: 800; color: #111827;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: .9rem 1.25rem; border-bottom: 1px solid #f3f4f6;
+}
+.sb-head i { color: var(--primary-color); font-size: .85rem; }
+.sb-body { padding: 1rem 1.25rem; }
+
+/* Raisons */
+.sb-raison {
+    display: flex; align-items: flex-start; gap: .7rem;
+    padding: .6rem 0; border-bottom: 1px solid #f9fafb;
+}
+.sb-raison:last-child { border-bottom: none; padding-bottom: 0; }
+.sb-raison-dot {
+    width: 1.25rem; height: 1.25rem; border-radius: 50%; flex-shrink: 0; margin-top: .1rem;
+    background: var(--primary-color); display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .55rem;
+}
+.sb-raison-text { font-size: .845rem; color: #374151; font-weight: 500; line-height: 1.45; }
+
+/* Financement */
+.sb-financement-item {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .5rem 0; font-size: .845rem; color: #374151;
+    border-bottom: 1px dashed #f3f4f6;
+}
+.sb-financement-item:last-child { border-bottom: none; }
+.sb-financement-item i { color: var(--primary-color); font-size: .85rem; flex-shrink: 0; }
+
+/* Infos pratiques */
+.sb-info-item {
+    display: flex; align-items: flex-start; gap: .65rem;
+    padding: .55rem 0; font-size: .825rem; color: #374151;
+    border-bottom: 1px solid #f9fafb;
+}
+.sb-info-item:last-child { border-bottom: none; }
+.sb-info-item i { color: var(--primary-color); font-size: .8rem; flex-shrink: 0; margin-top: .15rem; }
+.sb-info-label { font-weight: 700; color: #111827; font-size: .75rem; display: block; }
+.sb-info-val { color: #374151; font-size: .825rem; }
+.sb-info-val a { color: var(--primary-color); text-decoration: none; }
+.sb-info-val a:hover { text-decoration: underline; }
+
+/* Partage */
+.sb-share { display: flex; gap: .6rem; }
+.sb-share-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .775rem; font-weight: 600; padding: .45rem .85rem;
+    border-radius: 50px; text-decoration: none !important;
+    border: 1px solid var(--border, #e5e7eb); color: #374151;
+    transition: all .15s ease;
+}
+.sb-share-btn:hover { background: #f3f4f6; }
+.sb-share-btn.fb { border-color: #1877f2; color: #1877f2; }
+.sb-share-btn.fb:hover { background: #eff4ff; }
+.sb-share-btn.wa { border-color: #25d366; color: #25d366; }
+.sb-share-btn.wa:hover { background: #f0fff4; }
+
+/* Autres services */
+.sb-service-link {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .65rem 0; border-bottom: 1px solid #f9fafb;
+    text-decoration: none !important; color: #374151; font-size: .875rem; font-weight: 600;
+    transition: color .15s ease;
+}
+.sb-service-link:last-child { border-bottom: none; }
+.sb-service-link:hover { color: var(--primary-color); }
+.sb-service-link-icon {
+    width: 1.75rem; height: 1.75rem; border-radius: 8px; flex-shrink: 0;
+    background: rgba(var(--primary-color-rgb, 34,197,94),.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .65rem; color: var(--primary-color);
+}
+
+/* Zone pills */
+.sp-zone-pill {
+    display: inline-block; background: rgba(var(--primary-color-rgb,34,197,94),.07);
+    border: 1px solid rgba(var(--primary-color-rgb,34,197,94),.2);
+    border-radius: 50px; padding: .25rem .7rem;
+    font-size: .75rem; font-weight: 600; color: var(--primary-color);
+    margin: .2rem;
 }
 
 /* Breadcrumb */
-.breadcrumb-sep::before { content: '/'; margin: 0 8px; opacity: .4; }
+.sp-bc { font-size: .78rem; font-weight: 500; display: flex; flex-wrap: wrap; gap: .2rem; align-items: center; color: rgba(255,255,255,.5); margin-bottom: 1.5rem; }
+.sp-bc a { color: rgba(255,255,255,.6); text-decoration: none; }
+.sp-bc a:hover { color: rgba(255,255,255,.9); }
+.sp-bc-sep { margin: 0 .35rem; opacity: .35; }
+
+@media(max-width:639px){ .sp-card { padding: 1.5rem; } }
 </style>
 @endpush
 
 @section('content')
-<div class="service-page-root bg-gray-50 min-h-screen">
+<div class="sp">
 
-    {{-- ══════════════════════════════════════════
-         HERO
-    ══════════════════════════════════════════ --}}
-    <section class="relative min-h-[60vh] md:min-h-[72vh] flex items-end pb-0 overflow-hidden">
+{{-- ══════════════════════════════
+     HERO
+══════════════════════════════ --}}
+<section class="sp-hero">
+    <div class="sp-hero-bg {{ empty($service['featured_image']) ? '' : '' }}">
+        @if(!empty($service['featured_image']))
+            <img src="{{ asset($service['featured_image']) }}" alt="{{ $service['name'] }}" loading="eager">
+        @endif
+    </div>
+    <div class="sp-hero-overlay"></div>
 
-        {{-- Fond --}}
-        <div class="service-hero-bg {{ empty($service['featured_image']) ? 'no-img' : '' }}">
-            @if(!empty($service['featured_image']))
-                <img src="{{ asset($service['featured_image']) }}" alt="{{ $service['name'] }}" loading="eager">
-            @endif
+    <div style="position:relative;z-index:2;width:100%;padding:0 1.5rem 5rem; max-width:1160px; margin:0 auto; padding-top:8rem;">
+        <nav class="sp-bc">
+            <a href="{{ url('/') }}">Accueil</a>
+            <span class="sp-bc-sep">/</span>
+            <a href="{{ route('services.index') }}">Services</a>
+            <span class="sp-bc-sep">/</span>
+            <span style="color:rgba(255,255,255,.85);">{{ $service['name'] }}</span>
+        </nav>
+
+        <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:.35rem .9rem;margin-bottom:1.25rem;">
+            <i class="{{ $service['icon'] ?? 'fas fa-tree' }}" style="color:var(--primary-color);font-size:.75rem;"></i>
+            <span style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.75);">Département 60 · Oise</span>
         </div>
-        {{-- Overlay gradient --}}
-        <div class="absolute inset-0 z-[1]"
-             style="background: linear-gradient(to top, rgba(7,28,16,.96) 0%, rgba(7,28,16,.7) 40%, rgba(7,28,16,.25) 100%);"></div>
 
-        {{-- Contenu --}}
-        <div class="site-shell relative z-10 pb-20 pt-32 w-full">
+        <h1 style="font-size:clamp(2rem,5vw,3.5rem);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-.025em;margin-bottom:1rem;">
+            {{ $service['name'] }}
+        </h1>
+        <p style="font-size:clamp(.95rem,1.8vw,1.15rem);color:rgba(255,255,255,.75);max-width:580px;line-height:1.65;margin-bottom:2rem;">
+            {{ $service['short_description'] }}
+        </p>
 
-            {{-- Breadcrumb --}}
-            <nav class="flex items-center text-xs text-white/50 font-medium mb-6 flex-wrap">
-                <a href="{{ url('/') }}" class="hover:text-white/80 transition-colors">Accueil</a>
-                <span class="breadcrumb-sep"></span>
-                <a href="{{ route('services.index') }}" class="hover:text-white/80 transition-colors">Services</a>
-                <span class="breadcrumb-sep"></span>
-                <span class="text-white/80">{{ $service['name'] }}</span>
-            </nav>
+        <div style="display:flex;flex-wrap:wrap;gap:.85rem;">
+            <a href="{{ route('form.step', 'propertyType') }}"
+               style="display:inline-flex;align-items:center;gap:.55rem;background:var(--primary-color);color:#fff !important;font-weight:800;font-size:.95rem;padding:.85rem 1.75rem;border-radius:50px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.25);transition:all .2s ease;"
+               onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <i class="fas fa-file-alt"></i> Devis gratuit
+            </a>
+            <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
+               style="display:inline-flex;align-items:center;gap:.55rem;color:#fff !important;font-weight:600;font-size:.95rem;padding:.85rem 1.5rem;border-radius:50px;border:1.5px solid rgba(255,255,255,.3);text-decoration:none;transition:all .2s ease;"
+               onmouseover="this.style.borderColor='rgba(255,255,255,.7)'" onmouseout="this.style.borderColor='rgba(255,255,255,.3)'">
+                <i class="fas fa-phone" style="color:var(--primary-color);"></i>
+                {{ setting('company_phone', '06 42 21 41 51') }}
+            </a>
+        </div>
+    </div>
 
-            <div class="max-w-4xl">
-                {{-- Badge service --}}
-                <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 mb-5">
-                    <i class="{{ $service['icon'] ?? 'fas fa-tree' }} text-xs" style="color:var(--primary-color);"></i>
-                    <span class="text-white/80 text-xs font-bold uppercase tracking-widest">Service — Département 60</span>
+    <div class="sp-hero-wave">
+        <svg viewBox="0 0 1440 56" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block;width:100%;height:56px;">
+            <path d="M0,56 C360,10 1080,46 1440,0 L1440,56 Z" fill="#f3f4f6"/>
+        </svg>
+    </div>
+</section>
+
+{{-- ══════════════════════════════
+     MAIN LAYOUT (content + sidebar)
+══════════════════════════════ --}}
+<div style="background:#f3f4f6; padding-bottom:1px;">
+<div class="sp-layout">
+
+    {{-- ─── CONTENU PRINCIPAL ─── --}}
+    <main class="sp-main">
+
+        @if(isset($service['error']) && $service['error'])
+        <div class="sp-card" style="border-color:#fecaca;background:#fff5f5;">
+            <div style="display:flex;gap:1rem;">
+                <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:1.5rem;flex-shrink:0;margin-top:.1rem;"></i>
+                <div>
+                    <div style="font-weight:700;color:#b91c1c;margin-bottom:.35rem;">Erreur de génération du contenu</div>
+                    <p style="font-size:.875rem;color:#dc2626;">{{ $service['error_message'] ?? 'Une erreur est survenue.' }}</p>
                 </div>
+            </div>
+        </div>
+        @endif
 
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-5 leading-[1.05]">
-                    {{ $service['name'] }}
-                </h1>
+        {{-- Article IA / contenu principal --}}
+        <div class="sp-card">
+            <div class="sp-prose prose max-w-none">
+                {!! $service['description'] !!}
+            </div>
+        </div>
 
-                <p class="text-white/75 text-lg md:text-xl leading-relaxed max-w-2xl mb-8">
-                    {{ $service['short_description'] }}
-                </p>
+        {{-- Avantages — SINGLE COLONNE --}}
+        <div class="sp-card">
+            <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:1.5rem;">
+                <div style="width:2rem;height:2rem;border-radius:8px;background:rgba(var(--primary-color-rgb,34,197,94),.12);display:flex;align-items:center;justify-content:center;color:var(--primary-color);">
+                    <i class="fas fa-check-circle" style="font-size:.9rem;"></i>
+                </div>
+                <h2 style="font-size:1.15rem;font-weight:800;color:#111827;margin:0;">
+                    Pourquoi choisir {{ setting('company_name', 'Louis Hoffmann Élagage') }} pour votre {{ $service['name'] }} ?
+                </h2>
+            </div>
 
-                <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('form.step', 'propertyType') }}"
-                       class="inline-flex items-center gap-2.5 text-white font-bold px-8 py-4 rounded-xl shadow-2xl hover:scale-[1.03] transition-all"
-                       style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                        <i class="fas fa-calculator"></i> Devis gratuit
-                    </a>
-                    <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
-                       class="inline-flex items-center gap-2.5 text-white font-bold px-8 py-4 rounded-xl border-2 border-white/30 hover:bg-white/10 transition-all">
-                        <i class="fas fa-phone text-emerald-300 animate-pulse"></i>
+            <div class="sp-adv-list">
+                @foreach([
+                    ['fas fa-shield-alt', 'Assuré & certifié', 'Assurance RC Pro à jour, équipes formées. Vos biens et votre propriété sont couverts en toutes circonstances.'],
+                    ['fas fa-map-marker-alt', 'Tout le département 60', 'Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon et toutes les communes de l\'Oise — on se déplace chez vous.'],
+                    ['fas fa-clock', 'Réactivité garantie', 'Devis sous 24h, intervention programmée à votre convenance. Urgences traitées en priorité.'],
+                    ['fas fa-file-invoice', 'Devis gratuit & transparent', 'Devis détaillé écrit avant chaque intervention. Ce qui est signé est ce qui est facturé. Zéro surprise.'],
+                    ['fas fa-broom', 'Chantier propre, déchets évacués', 'Branches, troncs, souches, broyat — tout repart avec nous. Votre propriété est laissée impeccable.'],
+                    ['fas fa-leaf', 'Respect du végétal & de l\'environnement', 'Taille raisonnée, techniques adaptées à chaque essence, valorisation des déchets verts par broyage.'],
+                ] as $adv)
+                <div class="sp-adv-item">
+                    <div class="sp-adv-icon"><i class="{{ $adv[0] }}"></i></div>
+                    <div>
+                        <div class="sp-adv-title">{{ $adv[1] }}</div>
+                        <div class="sp-adv-desc">{{ $adv[2] }}</div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- CTA intermédiaire --}}
+        <div class="sp-cta-band">
+            <h3>Prêt pour votre {{ $service['name'] }} dans l'Oise ?</h3>
+            <p>Devis gratuit, réponse sous 24h — artisan local certifié, tout le département 60.</p>
+            <a href="{{ route('form.step', 'propertyType') }}" class="sp-cta-btn">
+                <i class="fas fa-file-alt"></i> Obtenir mon devis gratuit
+            </a>
+            <br>
+            <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}" class="sp-cta-phone">
+                <i class="fas fa-phone"></i> {{ setting('company_phone', '06 42 21 41 51') }}
+            </a>
+        </div>
+
+        {{-- Réalisations --}}
+        @php
+            $portfolioItems = \App\Models\Setting::get('portfolio_items', []);
+            if (!is_array($portfolioItems)) $portfolioItems = [];
+            $relatedPortfolio = collect($portfolioItems)
+                ->filter(fn($item) => is_array($item) && isset($item['title']))
+                ->take(3);
+        @endphp
+        @if($relatedPortfolio->count() > 0)
+        <div class="sp-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+                <h2 style="font-size:1.1rem;font-weight:800;color:#111827;margin:0;">
+                    <i class="fas fa-images mr-2" style="color:var(--primary-color);"></i>Nos réalisations
+                </h2>
+                <a href="{{ route('portfolio.index') }}" style="font-size:.8rem;font-weight:700;color:var(--primary-color);text-decoration:none;">
+                    Tout voir <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
+                </a>
+            </div>
+            <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));">
+                @foreach($relatedPortfolio as $item)
+                <article style="border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;">
+                    @if(isset($item['images']) && is_array($item['images']) && count($item['images']) > 0)
+                    <div style="height:140px;overflow:hidden;background:#f3f4f6;">
+                        <img src="{{ url($item['images'][0]) }}" alt="{{ $item['title'] }}"
+                             style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
+                    </div>
+                    @endif
+                    <div style="padding:.75rem;">
+                        <div style="font-weight:700;font-size:.825rem;color:#111827;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ $item['title'] }}</div>
+                    </div>
+                </article>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Avis --}}
+        @php $serviceReviews = \App\Models\Review::where('is_active', true)->take(4)->get(); @endphp
+        @if($serviceReviews->count() > 0)
+        <div class="sp-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+                <h2 style="font-size:1.1rem;font-weight:800;color:#111827;margin:0;">
+                    <i class="fas fa-star mr-2" style="color:#f59e0b;"></i>Avis de nos clients
+                </h2>
+                <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:#6b7280;">
+                    @for($i=0;$i<5;$i++)<i class="fas fa-star" style="color:#f59e0b;font-size:.7rem;"></i>@endfor
+                    <span style="font-weight:700;color:#111827;margin-left:.3rem;">4.9/5</span>
+                </div>
+            </div>
+            @foreach($serviceReviews as $review)
+            <div class="sp-review">
+                <div class="sp-review-stars">
+                    @for($i=1;$i<=5;$i++)<i class="fas fa-star {{ $i <= $review->rating ? '' : '' }}" style="{{ $i <= $review->rating ? 'color:#f59e0b' : 'color:#e5e7eb' }};font-size:.75rem;"></i>@endfor
+                </div>
+                <p class="sp-review-text">"{{ \Illuminate\Support\Str::limit($review->review_text ?? '', 160) }}"</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div class="sp-review-author">{{ $review->author_name }}</div>
+                    <div class="sp-review-city"><i class="fas fa-map-marker-alt" style="font-size:.65rem;margin-right:.25rem;color:var(--primary-color);"></i>{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('M Y') : '' }}</div>
+                </div>
+            </div>
+            @endforeach
+            <div style="text-align:center;margin-top:1rem;">
+                <a href="{{ route('reviews.all') }}" style="font-size:.8rem;font-weight:700;color:var(--primary-color);text-decoration:none;">
+                    Tous les avis <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
+                </a>
+            </div>
+        </div>
+        @endif
+
+    </main>
+
+    {{-- ─── SIDEBAR CONVERSION ─── --}}
+    <aside class="sp-sidebar">
+
+        {{-- 1. CTA DEVIS ── primary action --}}
+        <div class="sb-cta">
+            <div class="sb-cta-title">
+                <i class="fas fa-file-alt" style="margin-right:.4rem;"></i>Devis gratuit
+            </div>
+            <div class="sb-cta-sub">Sans engagement · Réponse sous 24h<br>pour tout le département 60</div>
+            <a href="{{ route('form.step', 'propertyType') }}" class="sb-cta-btn">
+                Obtenir mon devis <i class="fas fa-arrow-right" style="font-size:.75rem;margin-left:.25rem;"></i>
+            </a>
+            <div class="sb-cta-microcopy">
+                <i class="fas fa-lock" style="font-size:.65rem;"></i> Vos données restent confidentielles
+            </div>
+        </div>
+
+        {{-- 2. TÉLÉPHONE --}}
+        <div class="sb-block">
+            <div class="sb-phone">
+                <div>
+                    <div class="sb-phone-label">Nous appeler</div>
+                    <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}" class="sb-phone-num">
                         {{ setting('company_phone', '06 42 21 41 51') }}
                     </a>
                 </div>
-            </div>
-
-        </div>
-
-        {{-- Vague --}}
-        <div class="absolute bottom-0 left-0 right-0 z-10">
-            <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block;width:100%;height:60px;">
-                <path d="M0,60 C480,10 960,50 1440,0 L1440,60 Z" fill="#f9fafb"/>
-            </svg>
-        </div>
-    </section>
-
-    {{-- ══════════════════════════════════════════
-         CONTENU + SIDEBAR
-    ══════════════════════════════════════════ --}}
-    <section class="py-16">
-        <div class="site-shell">
-            <div class="flex flex-col lg:flex-row gap-10 items-start">
-
-                {{-- ─── Contenu principal ─── --}}
-                <div class="flex-1 min-w-0">
-
-                    @if(isset($service['error']) && $service['error'])
-                    <div class="bg-red-50 border border-red-200 rounded-2xl p-8 mb-8">
-                        <div class="flex gap-4">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-3xl flex-shrink-0 mt-1"></i>
-                            <div>
-                                <h3 class="text-lg font-bold text-red-800 mb-2">Erreur de génération du contenu</h3>
-                                <p class="text-red-700 mb-4">{{ $service['error_message'] ?? 'Une erreur est survenue lors de la génération du contenu par l\'IA.' }}</p>
-                                @if(isset($service['debug_info']))
-                                <details>
-                                    <summary class="text-sm text-red-600 cursor-pointer">Détails techniques</summary>
-                                    <pre class="mt-2 p-4 bg-red-100 rounded text-xs overflow-x-auto">{{ json_encode($service['debug_info'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                </details>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- Article principal --}}
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 md:p-12 mb-8">
-                        <div class="service-content prose prose-lg prose-headings:font-black prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:font-semibold max-w-none"
-                             style="--tw-prose-links: var(--primary-color);">
-                            {!! $service['description'] !!}
-                        </div>
-                    </div>
-
-                    {{-- Avantages clés --}}
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 mb-8">
-                        <h2 class="text-2xl font-black text-gray-900 mb-6">
-                            <i class="fas fa-check-circle mr-2" style="color:var(--primary-color);"></i>
-                            Pourquoi nous choisir pour votre {{ $service['name'] }} ?
-                        </h2>
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            @foreach([
-                                ['fas fa-shield-alt','Artisan assuré','Responsabilité civile professionnelle, garantie décennale'],
-                                ['fas fa-map-marker-alt','Tout le département 60','Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon…'],
-                                ['fas fa-clock','Réponse 24h','Contact rapide, délai d\'intervention adapté à vos besoins'],
-                                ['fas fa-file-invoice','Devis gratuit','Transparent, détaillé, sans engagement de votre part'],
-                                ['fas fa-recycle','Éco-responsable','Valorisation des déchets verts, broyage sur place si souhaité'],
-                                ['fas fa-hard-hat','Sécurité maximale','Équipements certifiés, formation continue de nos équipes'],
-                            ] as $adv)
-                            <div class="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
-                                <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                                     style="background:rgba(var(--primary-color-rgb,34,197,94),.12);">
-                                    <i class="{{ $adv[0] }} text-sm" style="color:var(--primary-color);"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-gray-900 text-sm">{{ $adv[1] }}</div>
-                                    <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ $adv[2] }}</div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- CTA bande --}}
-                    <div class="rounded-3xl p-8 md:p-10 text-white text-center mb-8 relative overflow-hidden"
-                         style="background: linear-gradient(135deg, #071c10 0%, #0d3b22 50%, #1a5c35 100%);">
-                        <div class="absolute inset-0 opacity-[.04]"
-                             style="background-image: radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px); background-size: 30px 30px;"></div>
-                        <div class="relative z-10">
-                            <div class="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center text-white"
-                                 style="background:rgba(255,255,255,.15);">
-                                <i class="{{ $service['icon'] ?? 'fas fa-tree' }} text-2xl"></i>
-                            </div>
-                            <h3 class="text-2xl md:text-3xl font-black mb-3">Prêt pour votre {{ $service['name'] }} dans l'Oise ?</h3>
-                            <p class="text-white/70 mb-8 max-w-xl mx-auto text-base">Devis gratuit, réponse sous 24h, artisan certifié — tout le département 60.</p>
-                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                                <a href="{{ route('form.step', 'propertyType') }}"
-                                   class="inline-flex items-center justify-center gap-2.5 bg-white font-black px-8 py-4 rounded-xl shadow-xl hover:scale-[1.02] transition-all"
-                                   style="color:var(--primary-color);">
-                                    <i class="fas fa-calculator"></i> Devis gratuit
-                                </a>
-                                <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
-                                   class="inline-flex items-center justify-center gap-2.5 border-2 border-white/40 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all">
-                                    <i class="fas fa-phone text-emerald-300"></i>
-                                    {{ setting('company_phone', '06 42 21 41 51') }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Réalisations --}}
-                    @php
-                        $portfolioItems = \App\Models\Setting::get('portfolio_items', []);
-                        if (!is_array($portfolioItems)) $portfolioItems = [];
-                        $relatedPortfolio = collect($portfolioItems)
-                            ->filter(fn($item) => is_array($item) && isset($item['title']))
-                            ->take(3);
-                    @endphp
-
-                    @if($relatedPortfolio->count() > 0)
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 mb-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-2xl font-black text-gray-900">Nos réalisations</h2>
-                            <a href="{{ route('portfolio.index') }}" class="text-sm font-bold hover:underline" style="color:var(--primary-color);">
-                                Tout voir <i class="fas fa-arrow-right text-xs"></i>
-                            </a>
-                        </div>
-                        <div class="grid md:grid-cols-3 gap-5">
-                            @foreach($relatedPortfolio as $item)
-                            <article class="group rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                                @if(isset($item['images']) && is_array($item['images']) && count($item['images']) > 0)
-                                <div class="relative h-44 overflow-hidden bg-gray-100">
-                                    <img src="{{ url($item['images'][0]) }}" alt="{{ $item['title'] }}"
-                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                                        <a href="{{ route('portfolio.show', $item['id'] ?? $loop->index) }}"
-                                           class="text-white text-xs font-bold px-4 py-2 rounded-lg"
-                                           style="background:var(--primary-color);">
-                                            <i class="fas fa-eye mr-1"></i>Voir
-                                        </a>
-                                    </div>
-                                </div>
-                                @endif
-                                <div class="p-4">
-                                    <h3 class="font-bold text-gray-900 text-sm line-clamp-2">{{ $item['title'] }}</h3>
-                                    @if(isset($item['description']) && $item['description'])
-                                    <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ \Illuminate\Support\Str::limit($item['description'], 90) }}</p>
-                                    @endif
-                                </div>
-                            </article>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- Avis --}}
-                    @php $serviceReviews = \App\Models\Review::where('is_active', true)->take(3)->get(); @endphp
-                    @if($serviceReviews->count() > 0)
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-                        <h2 class="text-2xl font-black text-gray-900 mb-6">
-                            <i class="fas fa-star mr-2 text-amber-400"></i>Avis de nos clients
-                        </h2>
-                        <div class="grid md:grid-cols-3 gap-5">
-                            @foreach($serviceReviews as $review)
-                            <div class="bg-gray-50 rounded-2xl border border-gray-100 p-5 flex flex-col relative overflow-hidden">
-                                <div class="absolute top-3 right-4 text-5xl font-black text-gray-100 leading-none select-none">"</div>
-                                <div class="flex gap-0.5 mb-3">
-                                    @for($i=1;$i<=5;$i++)
-                                    <i class="fas fa-star text-xs {{ $i <= $review->rating ? 'text-amber-400' : 'text-gray-200' }}"></i>
-                                    @endfor
-                                </div>
-                                <p class="text-gray-600 text-sm leading-relaxed flex-1 mb-4 italic">
-                                    "{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail.', 130) }}"
-                                </p>
-                                <div class="flex items-center gap-2.5 pt-3 border-t border-gray-100">
-                                    <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                                        @if($review->author_photo_url)
-                                        <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
-                                        @else
-                                        <div class="w-full h-full flex items-center justify-center text-white text-xs font-black"
-                                             style="background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));">
-                                            {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-gray-900 text-xs">{{ $review->author_name }}</div>
-                                        <div class="text-gray-400 text-[10px]">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                        <div class="text-center mt-6">
-                            <a href="{{ route('reviews.all') }}" class="inline-flex items-center gap-2 font-bold text-sm hover:underline" style="color:var(--primary-color);">
-                                Voir tous les avis <i class="fas fa-arrow-right text-xs"></i>
-                            </a>
-                        </div>
-                    </div>
-                    @endif
-
+                <div class="sb-phone-icon">
+                    <i class="fas fa-phone"></i>
                 </div>
-
-                {{-- ─── Sidebar ─── --}}
-                <aside class="lg:w-80 flex-shrink-0 sidebar-sticky">
-
-                    {{-- CTA principal --}}
-                    <div class="rounded-3xl p-7 text-white mb-5 relative overflow-hidden"
-                         style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                        <div class="absolute inset-0 opacity-10"
-                             style="background-image:radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px); background-size:20px 20px;"></div>
-                        <div class="relative z-10">
-                            <div class="flex items-center gap-2 mb-4">
-                                <i class="fas fa-calculator text-lg"></i>
-                                <span class="font-black text-base">Devis gratuit</span>
-                            </div>
-                            <p class="text-white/80 text-sm mb-5 leading-relaxed">Sans engagement, réponse sous 24h pour tout le département 60.</p>
-                            <a href="{{ route('form.step', 'propertyType') }}"
-                               class="block w-full text-center bg-white font-black py-3.5 rounded-xl shadow-lg hover:scale-[1.02] transition-all text-sm"
-                               style="color:var(--primary-color);">
-                                <i class="fas fa-arrow-right mr-2"></i>Obtenir mon devis
-                            </a>
-                        </div>
-                    </div>
-
-                    {{-- Téléphone --}}
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-5 text-center">
-                        <div class="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-                             style="background:rgba(var(--primary-color-rgb,34,197,94),.12);">
-                            <i class="fas fa-phone text-lg animate-pulse" style="color:var(--primary-color);"></i>
-                        </div>
-                        <div class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Appelez-nous</div>
-                        <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
-                           class="text-xl font-black hover:underline" style="color:var(--primary-color);">
-                            {{ setting('company_phone', '06 42 21 41 51') }}
-                        </a>
-                        <div class="text-xs text-gray-400 mt-2">Du lundi au samedi · 8h–19h</div>
-                    </div>
-
-                    {{-- Certifications --}}
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-5">
-                        <div class="text-sm font-black text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-certificate" style="color:var(--primary-color);"></i> Garanties
-                        </div>
-                        <div class="space-y-3">
-                            @foreach([
-                                ['fas fa-shield-alt','Assurance RC Pro'],
-                                ['fas fa-award','Artisan certifié'],
-                                ['fas fa-leaf','Éco-responsable'],
-                                ['fas fa-hard-hat','Sécurité NF'],
-                                ['fas fa-hand-holding-usd','Devis gratuit'],
-                            ] as $cert)
-                            <div class="flex items-center gap-2.5 text-sm text-gray-700">
-                                <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                                     style="background:rgba(var(--primary-color-rgb,34,197,94),.1);">
-                                    <i class="{{ $cert[0] }} text-[10px]" style="color:var(--primary-color);"></i>
-                                </div>
-                                {{ $cert[1] }}
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Zone --}}
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-5">
-                        <div class="text-sm font-black text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt" style="color:var(--primary-color);"></i> Zone Oise (60)
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Méru'] as $c)
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                  style="background:rgba(var(--primary-color-rgb,34,197,94),.08); color:var(--primary-color);">
-                                {{ $c }}
-                            </span>
-                            @endforeach
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500">+50 communes…</span>
-                        </div>
-                    </div>
-
-                    {{-- Autres services --}}
-                    @php
-                        $allSvcs = \App\Models\Setting::get('services', '[]');
-                        $allSvcs = is_string($allSvcs) ? json_decode($allSvcs, true) : ($allSvcs ?? []);
-                        if(!is_array($allSvcs)) $allSvcs = [];
-                        $otherServices = collect($allSvcs)
-                            ->filter(fn($s) => is_array($s) && ($s['is_visible'] ?? true) && ($s['slug'] ?? '') !== $service['slug'])
-                            ->take(4);
-                    @endphp
-                    @if($otherServices->count() > 0)
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <div class="text-sm font-black text-gray-900 mb-4">Autres services</div>
-                        <div class="space-y-2">
-                            @foreach($otherServices as $other)
-                            <a href="{{ route('services.show', $other['slug']) }}"
-                               class="flex items-center gap-2.5 text-sm font-semibold text-gray-700 hover:text-primary transition-colors group py-2 border-b border-gray-50 last:border-0">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
-                                     style="background:rgba(var(--primary-color-rgb,34,197,94),.1);">
-                                    <i class="{{ $other['icon'] ?? 'fas fa-tree' }} text-[10px]" style="color:var(--primary-color);"></i>
-                                </div>
-                                {{ $other['name'] }}
-                                <i class="fas fa-chevron-right text-xs ml-auto text-gray-300 group-hover:text-primary transition-colors"></i>
-                            </a>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-
-                </aside>
+            </div>
+            <div class="sb-hours">
+                <i class="fas fa-clock" style="margin-right:.35rem;"></i> Lun–Sam · 8h–19h
             </div>
         </div>
-    </section>
 
-</div>
+        {{-- 3. POURQUOI NOUS --}}
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-award"></i> Pourquoi nous choisir
+            </div>
+            <div class="sb-body">
+                @php $raisons = [
+                    'Artisan local depuis 20+ ans dans l\'Oise',
+                    'Assurance RC Pro complète à jour',
+                    'Équipe certifiée, matériel professionnel',
+                    'Devis écrit, tarif transparent',
+                    'Chantier nettoyé, déchets évacués',
+                    '4.9/5 · 120+ avis Google vérifiés',
+                ]; @endphp
+                <div style="display:flex;flex-direction:column;">
+                    @foreach($raisons as $r)
+                    <div class="sb-raison">
+                        <span class="sb-raison-dot"><i class="fas fa-check" style="font-size:.5rem;"></i></span>
+                        <span class="sb-raison-text">{{ $r }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. FINANCEMENT --}}
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-hand-holding-usd"></i> Financement & aides
+            </div>
+            <div class="sb-body">
+                <p style="font-size:.8rem;color:#6b7280;margin-bottom:.85rem;line-height:1.55;">
+                    Certaines interventions peuvent bénéficier d'aides locales ou d'obligations de sécurité (arbres dangereux). Renseignez-vous auprès de votre mairie ou de votre assureur.
+                </p>
+                <div>
+                    @foreach([
+                        ['fas fa-leaf','Conseil personnalisé offert'],
+                        ['fas fa-file-alt','Attestation fournie sur demande'],
+                        ['fas fa-info-circle','Devis utilisable pour dossier assurance'],
+                    ] as $f)
+                    <div class="sb-financement-item">
+                        <i class="{{ $f[0] }}"></i>
+                        <span>{{ $f[1] }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- 5. INFOS PRATIQUES --}}
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-info-circle"></i> Infos pratiques
+            </div>
+            <div class="sb-body">
+                @php
+                    $infoItems = [
+                        ['fas fa-building', 'Société', setting('company_name', 'Louis Hoffmann Élagage')],
+                        ['fas fa-map-marker-alt', 'Adresse', setting('company_address', '2 Rue Saint-Corneille, 60200 Compiègne')],
+                        ['fas fa-phone', 'Téléphone', '<a href="tel:' . setting('company_phone_raw', setting('company_phone')) . '">' . setting('company_phone', '06 42 21 41 51') . '</a>'],
+                        ['fas fa-envelope', 'Email', '<a href="mailto:' . setting('company_email', 'contact@artisan-louis-hoffmann.fr') . '">' . setting('company_email', 'contact@artisan-louis-hoffmann.fr') . '</a>'],
+                    ];
+                @endphp
+                <div>
+                    @foreach($infoItems as $info)
+                    <div class="sb-info-item">
+                        <i class="{{ $info[0] }}"></i>
+                        <div>
+                            <span class="sb-info-label">{{ $info[1] }}</span>
+                            <span class="sb-info-val">{!! $info[2] !!}</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- 6. ZONE --}}
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-map"></i> Zone d'intervention
+            </div>
+            <div class="sb-body">
+                <div style="line-height:1;">
+                    @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Méru','Clermont','Pontoise'] as $ville)
+                    <span class="sp-zone-pill">{{ $ville }}</span>
+                    @endforeach
+                    <span class="sp-zone-pill" style="background:rgba(0,0,0,.04);border-color:#e5e7eb;color:#6b7280;">+50 communes</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- 7. PARTAGER --}}
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-share-alt"></i> Partager ce service
+            </div>
+            <div class="sb-body">
+                <div class="sb-share">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}"
+                       target="_blank" rel="noopener" class="sb-share-btn fb">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </a>
+                    <a href="https://wa.me/?text={{ urlencode($service['name'] . ' — ' . url()->current()) }}"
+                       target="_blank" rel="noopener" class="sb-share-btn wa">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="mailto:?subject={{ urlencode($service['name']) }}&body={{ urlencode(url()->current()) }}"
+                       class="sb-share-btn">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 8. AUTRES SERVICES --}}
+        @php
+            $allSvcs = \App\Models\Setting::get('services', '[]');
+            $allSvcs = is_string($allSvcs) ? json_decode($allSvcs, true) : ($allSvcs ?? []);
+            if (!is_array($allSvcs)) $allSvcs = [];
+            $otherSvcs = collect($allSvcs)
+                ->filter(fn($s) => is_array($s) && ($s['is_visible'] ?? true) && ($s['slug'] ?? '') !== ($service['slug'] ?? ''))
+                ->take(5);
+        @endphp
+        @if($otherSvcs->count() > 0)
+        <div class="sb-block">
+            <div class="sb-head">
+                <i class="fas fa-th-large"></i> Nos autres services
+            </div>
+            <div class="sb-body">
+                @foreach($otherSvcs as $other)
+                <a href="{{ route('services.show', $other['slug']) }}" class="sb-service-link">
+                    <span class="sb-service-link-icon">
+                        <i class="{{ $other['icon'] ?? 'fas fa-tree' }}"></i>
+                    </span>
+                    {{ $other['name'] }}
+                    <i class="fas fa-chevron-right" style="font-size:.65rem;margin-left:auto;color:#d1d5db;"></i>
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+    </aside>
+
+</div>{{-- /sp-layout --}}
+</div>{{-- /bg --}}
+
+</div>{{-- /sp --}}
 @endsection

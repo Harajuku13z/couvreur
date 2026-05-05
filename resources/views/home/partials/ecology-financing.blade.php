@@ -1,170 +1,127 @@
-    <!-- Sections Écologie et Aide Financière -->
-    @php
-        $ecoVisible = ($homeConfig['ecology']['enabled'] ?? false) && !empty(trim((string) ($homeConfig['ecology']['content'] ?? '')));
-        $finVisible = ($homeConfig['financing']['enabled'] ?? false) && !empty(trim((string) ($homeConfig['financing']['content'] ?? '')));
-        $ecoFinBoth = $ecoVisible && $finVisible;
-        $soloFullWidth = ($ecoVisible || $finVisible) && !$ecoFinBoth;
-    @endphp
-    @if($ecoVisible || $finVisible)
-    <section class="py-20 bg-gray-50 dark:bg-slate-950">
-        <div class="site-shell">
-            <div @class([
-                'grid gap-8',
-                'lg:grid-cols-2' => $ecoFinBoth,
-                'grid-cols-1' => !$ecoFinBoth,
-            ])>
-                <!-- Section Écologie -->
-                @if($ecoVisible)
-                <div @class([
-                    'group relative overflow-hidden bg-gradient-to-br from-green-600 to-emerald-700 rounded-3xl p-8 text-white shadow-2xl',
-                    'lg:p-12 xl:p-14' => $soloFullWidth,
-                ])>
-                    <!-- Effet de brillance -->
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-300"></div>
+{{-- Sections Écologie & Financement — redesign propre, sans gradient criard --}}
+@php
+    $ecoVisible = ($homeConfig['ecology']['enabled'] ?? false)
+                  && !empty(trim((string) ($homeConfig['ecology']['content'] ?? '')));
+    $finVisible = ($homeConfig['financing']['enabled'] ?? false)
+                  && !empty(trim((string) ($homeConfig['financing']['content'] ?? '')));
+    $ecoBadges  = $homeConfig['ecology']['badges']  ?? [];
+    $finBadges  = $homeConfig['financing']['badges'] ?? [];
+    $showEcoMat = (bool)($ecoBadges['materiaux_recycles'] ?? true);
+    $showEcoEn  = (bool)($ecoBadges['energies_vertes']    ?? true);
+    $showMpr    = (bool)($finBadges['maprimerenov']        ?? false);
+    $showCee    = (bool)($finBadges['certificats_cee']     ?? false);
+@endphp
 
-                    <div class="relative z-10">
-                        <div @class([
-                            'flex items-center mb-6',
-                            'flex-col sm:flex-row sm:items-start gap-6 sm:gap-8' => $soloFullWidth,
-                        ])>
-                            <div @class([
-                                'w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg shrink-0',
-                                'sm:w-24 sm:h-24 sm:mr-0' => $soloFullWidth,
-                                'mr-6' => !$soloFullWidth,
-                            ])>
-                                <i class="fas fa-leaf text-white text-3xl {{ $soloFullWidth ? 'sm:text-4xl' : '' }}"></i>
-                            </div>
-                            <div class="min-w-0 {{ $soloFullWidth ? 'text-center sm:text-left flex-1' : '' }}">
-                                <h3 @class([
-                                    'font-bold mb-2',
-                                    'text-3xl lg:text-4xl' => $soloFullWidth,
-                                    'text-3xl' => !$soloFullWidth,
-                                ]) style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-                                    {{ $homeConfig['ecology']['title'] ?? 'Notre Engagement Écologique' }}
-                                </h3>
-                                <div class="w-16 h-1 bg-green-300 rounded-full {{ $soloFullWidth ? 'mx-auto sm:mx-0' : '' }}"></div>
-                            </div>
-                        </div>
+@if($ecoVisible || $finVisible)
+<style>
+.eco-grid { display:grid; gap:1.5rem; grid-template-columns:1fr; }
+@media(min-width:768px){ .eco-grid { grid-template-columns:{{ ($ecoVisible && $finVisible) ? '1fr 1fr' : '1fr' }}; } }
+</style>
+<section style="background:#f8faf8; padding:5rem 0; border-top:1px solid #e8f0e8;">
+    <div class="site-shell">
 
-                        <div @class([
-                            'text-white/95 mb-8 text-lg leading-relaxed font-medium',
-                            'lg:text-xl lg:leading-relaxed max-w-4xl' => $soloFullWidth,
-                        ]) style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
-                            {!! nl2br(e($homeConfig['ecology']['content'])) !!}
-                        </div>
-                        @php
-                            $ecoBadges = $homeConfig['ecology']['badges'] ?? [];
-                            $showEcoMat = (bool) ($ecoBadges['materiaux_recycles'] ?? true);
-                            $showEcoEn = (bool) ($ecoBadges['energies_vertes'] ?? true);
-                            $ecoN = (int) $showEcoMat + (int) $showEcoEn;
-                            if ($ecoN <= 1) {
-                                $ecoGrid = 'grid-cols-1 ' . ($soloFullWidth ? 'max-w-md' : 'max-w-sm') . ' mx-auto sm:mx-0';
-                            } else {
-                                $ecoGrid = $soloFullWidth
-                                    ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 max-w-3xl xl:max-w-4xl'
-                                    : 'grid-cols-2';
-                            }
-                        @endphp
-                        @if($ecoN > 0)
-                        <div class="grid {{ $ecoGrid }} gap-4">
-                            @if($showEcoMat)
-                            <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3" aria-hidden="true">♻️</div>
-                                <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Matériaux recyclés</div>
-                            </div>
-                            @endif
-                            @if($showEcoEn)
-                            <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3" aria-hidden="true">🌱</div>
-                                <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Énergies vertes</div>
-                            </div>
-                            @endif
-                        </div>
-                        @endif
+        {{-- Titre de section --}}
+        <div style="text-align:center; margin-bottom:3rem;">
+            <span style="display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--primary-color);">
+                <span style="width:1.5rem;height:2px;background:var(--primary-color);display:block;"></span>
+                Nos engagements
+                <span style="width:1.5rem;height:2px;background:var(--primary-color);display:block;"></span>
+            </span>
+        </div>
+
+        <div class="eco-grid">
+
+            @if($ecoVisible)
+            {{-- ── ÉCOLOGIE ── --}}
+            <div style="background:#fff;border:1px solid #e2ede2;border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.04);">
+
+                {{-- Accent ligne haut --}}
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,var(--primary-color),rgba(var(--primary-color-rgb,34,197,94),.2));border-radius:0;"></div>
+
+                {{-- Icône + titre --}}
+                <div style="display:flex;align-items:flex-start;gap:1.25rem;margin-bottom:1.5rem;">
+                    <div style="width:3rem;height:3rem;border-radius:12px;background:rgba(var(--primary-color-rgb,34,197,94),.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-leaf" style="color:var(--primary-color);font-size:1.15rem;"></i>
                     </div>
-
-                    <!-- Motif décoratif -->
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-                    <div class="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full"></div>
+                    <div>
+                        <h3 style="font-size:1.2rem;font-weight:800;color:#111827;margin:0 0 .25rem;">
+                            {{ $homeConfig['ecology']['title'] ?? 'Notre Engagement Écologique' }}
+                        </h3>
+                        <div style="width:2.5rem;height:2px;background:var(--primary-color);border-radius:2px;"></div>
+                    </div>
                 </div>
-                @endif
 
-                <!-- Section Aide Financière -->
-                @if($finVisible)
-                <div @class([
-                    'group relative overflow-hidden bg-gradient-to-br from-yellow-600 to-orange-600 rounded-3xl p-8 text-white shadow-2xl',
-                    'lg:p-12 xl:p-14' => $soloFullWidth,
-                ])>
-                    <!-- Effet de brillance -->
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-300"></div>
+                {{-- Contenu --}}
+                <p style="font-size:.925rem;color:#4b5563;line-height:1.8;margin-bottom:{{ ($showEcoMat || $showEcoEn) ? '2rem' : '0' }};">
+                    {!! nl2br(e($homeConfig['ecology']['content'])) !!}
+                </p>
 
-                    <div class="relative z-10">
-                        <div @class([
-                            'flex items-center mb-6',
-                            'flex-col sm:flex-row sm:items-start gap-6 sm:gap-8' => $soloFullWidth,
-                        ])>
-                            <div @class([
-                                'w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg shrink-0',
-                                'sm:w-24 sm:h-24 sm:mr-0' => $soloFullWidth,
-                                'mr-6' => !$soloFullWidth,
-                            ])>
-                                <i class="fas fa-euro-sign text-white text-3xl {{ $soloFullWidth ? 'sm:text-4xl' : '' }}"></i>
-                            </div>
-                            <div class="min-w-0 {{ $soloFullWidth ? 'text-center sm:text-left flex-1' : '' }}">
-                                <h3 @class([
-                                    'font-bold mb-2',
-                                    'text-3xl lg:text-4xl' => $soloFullWidth,
-                                    'text-3xl' => !$soloFullWidth,
-                                ]) style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-                                    {{ $homeConfig['financing']['title'] ?? 'Aides et Financements Disponibles' }}
-                                </h3>
-                                <div class="w-16 h-1 bg-yellow-300 rounded-full {{ $soloFullWidth ? 'mx-auto sm:mx-0' : '' }}"></div>
-                            </div>
-                        </div>
-
-                        <div @class([
-                            'text-white/95 mb-8 text-lg leading-relaxed font-medium',
-                            'lg:text-xl lg:leading-relaxed max-w-4xl' => $soloFullWidth,
-                        ]) style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
-                            {!! nl2br(e($homeConfig['financing']['content'])) !!}
-                        </div>
-                        @php
-                            $finBadges = $homeConfig['financing']['badges'] ?? [];
-                            $showMpr = (bool) ($finBadges['maprimerenov'] ?? true);
-                            $showCee = (bool) ($finBadges['certificats_cee'] ?? true);
-                            $finN = (int) $showMpr + (int) $showCee;
-                            if ($finN <= 1) {
-                                $finGrid = 'grid-cols-1 ' . ($soloFullWidth ? 'max-w-md' : 'max-w-sm') . ' mx-auto sm:mx-0';
-                            } else {
-                                $finGrid = $soloFullWidth
-                                    ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 max-w-3xl xl:max-w-4xl'
-                                    : 'grid-cols-2';
-                            }
-                        @endphp
-                        @if($finN > 0)
-                        <div class="grid {{ $finGrid }} gap-4">
-                            @if($showMpr)
-                            <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3" aria-hidden="true">🏠</div>
-                                <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">MaPrimeRénov'</div>
-                            </div>
-                            @endif
-                            @if($showCee)
-                            <div class="bg-white/25 backdrop-blur-sm rounded-xl p-6 text-center shadow-lg hover:bg-white/35 transition-all duration-300">
-                                <div class="text-4xl font-bold mb-3" aria-hidden="true">💰</div>
-                                <div class="text-sm font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Certificats CEE</div>
-                            </div>
-                            @endif
-                        </div>
-                        @endif
+                {{-- Badges --}}
+                @if($showEcoMat || $showEcoEn)
+                <div style="display:flex;flex-wrap:wrap;gap:.75rem;">
+                    @if($showEcoMat)
+                    <div style="display:flex;align-items:center;gap:.6rem;background:rgba(var(--primary-color-rgb,34,197,94),.08);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.2);border-radius:50px;padding:.5rem 1.1rem;">
+                        <i class="fas fa-recycle" style="color:var(--primary-color);font-size:.85rem;"></i>
+                        <span style="font-size:.8rem;font-weight:700;color:#374151;">Matériaux recyclés</span>
                     </div>
-
-                    <!-- Motif décoratif -->
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-                    <div class="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full"></div>
+                    @endif
+                    @if($showEcoEn)
+                    <div style="display:flex;align-items:center;gap:.6rem;background:rgba(var(--primary-color-rgb,34,197,94),.08);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.2);border-radius:50px;padding:.5rem 1.1rem;">
+                        <i class="fas fa-seedling" style="color:var(--primary-color);font-size:.85rem;"></i>
+                        <span style="font-size:.8rem;font-weight:700;color:#374151;">Énergies vertes</span>
+                    </div>
+                    @endif
                 </div>
                 @endif
             </div>
+            @endif
+
+            @if($finVisible)
+            {{-- ── FINANCEMENT ── --}}
+            <div style="background:#fff;border:1px solid #fde9b7;border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.04);">
+
+                {{-- Accent ligne haut --}}
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#f59e0b,rgba(245,158,11,.2));border-radius:0;"></div>
+
+                {{-- Icône + titre --}}
+                <div style="display:flex;align-items:flex-start;gap:1.25rem;margin-bottom:1.5rem;">
+                    <div style="width:3rem;height:3rem;border-radius:12px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-hand-holding-usd" style="color:#d97706;font-size:1.15rem;"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:1.2rem;font-weight:800;color:#111827;margin:0 0 .25rem;">
+                            {{ $homeConfig['financing']['title'] ?? 'Aides et Financements Disponibles' }}
+                        </h3>
+                        <div style="width:2.5rem;height:2px;background:#f59e0b;border-radius:2px;"></div>
+                    </div>
+                </div>
+
+                {{-- Contenu --}}
+                <p style="font-size:.925rem;color:#4b5563;line-height:1.8;margin-bottom:{{ ($showMpr || $showCee) ? '2rem' : '0' }};">
+                    {!! nl2br(e($homeConfig['financing']['content'])) !!}
+                </p>
+
+                {{-- Badges --}}
+                @if($showMpr || $showCee)
+                <div style="display:flex;flex-wrap:wrap;gap:.75rem;">
+                    @if($showMpr)
+                    <div style="display:flex;align-items:center;gap:.6rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:50px;padding:.5rem 1.1rem;">
+                        <i class="fas fa-home" style="color:#d97706;font-size:.85rem;"></i>
+                        <span style="font-size:.8rem;font-weight:700;color:#374151;">MaPrimeRénov'</span>
+                    </div>
+                    @endif
+                    @if($showCee)
+                    <div style="display:flex;align-items:center;gap:.6rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:50px;padding:.5rem 1.1rem;">
+                        <i class="fas fa-certificate" style="color:#d97706;font-size:.85rem;"></i>
+                        <span style="font-size:.8rem;font-weight:700;color:#374151;">Certificats CEE</span>
+                    </div>
+                    @endif
+                </div>
+                @endif
+            </div>
+            @endif
+
         </div>
-    </section>
-    @endif
+    </div>
+</section>
+@endif

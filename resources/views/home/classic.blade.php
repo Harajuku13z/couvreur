@@ -12,6 +12,10 @@
     $phone    = setting('company_phone', '06 42 21 41 51');
     $phoneRaw = setting('company_phone_raw', $phone);
     $heroTitle = $homeConfig['sections']['hero']['title'] ?? 'Élagueur & Abatteur professionnel dans l\'Oise (60)';
+
+    // Image hero depuis la config DB
+    $heroImg    = $homeConfig['hero']['background_image'] ?? null;
+    $heroImgUrl = $heroImg ? asset(ltrim($heroImg, '/')) : null;
 @endphp
 
 <style>
@@ -78,20 +82,25 @@
 {{-- ╔══════════════════════════════════════════════════════
      § 1. HERO — split sombre / lumineux, typographie massive
      ══════════════════════════════════════════════════════ --}}
-<section class="relative min-h-screen overflow-hidden"
-         style="background: #06150d;">
+<section class="relative overflow-hidden"
+         style="background:#071c0e; min-height:100svh;">
 
-    {{-- Texture grain --}}
+    {{-- Photo de fond --}}
+    @if($heroImgUrl)
+    <div style="position:absolute;inset:0;z-index:0;">
+        <img src="{{ $heroImgUrl }}" alt="Élagage dans l'Oise"
+             style="width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block;">
+        <div style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(5,18,8,.85) 0%, rgba(5,18,8,.65) 50%, rgba(5,18,8,.5) 100%);"></div>
+    </div>
+    @else
+    {{-- Fallback sans photo --}}
     <div class="absolute inset-0 opacity-[.015] pointer-events-none"
          style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22/><feColorMatrix type=%22saturate%22 values=%220%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/></svg>');"></div>
-
-    {{-- Halo vert --}}
     <div class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full pointer-events-none"
          style="background:radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 65%); transform:translate(30%, -30%);"></div>
-    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-         style="background:radial-gradient(circle, rgba(16,185,129,.1) 0%, transparent 65%); transform:translate(-30%, 30%);"></div>
+    @endif
 
-    <div class="lp-shell relative z-10 flex flex-col justify-center min-h-screen pt-28 pb-20">
+    <div class="lp-shell relative z-10 flex flex-col justify-center" style="min-height:100svh; padding-top:7rem; padding-bottom:5rem; z-index:10;">
         <div class="grid lg:grid-cols-[1fr_420px] gap-12 xl:gap-20 items-center">
 
             {{-- Texte principal --}}
@@ -164,22 +173,13 @@
                     <div class="p-7">
                         <div class="text-white/50 text-xs font-bold uppercase tracking-widest mb-5">Zone d'intervention · Oise (60)</div>
 
-                        <div class="space-y-2 mb-6">
-                            @foreach([
-                                ['Compiègne','60200','fas fa-map-pin'],
-                                ['Beauvais','60000','fas fa-map-pin'],
-                                ['Senlis','60300','fas fa-map-pin'],
-                                ['Chantilly','60500','fas fa-map-pin'],
-                                ['Creil','60100','fas fa-map-pin'],
-                                ['Noyon','60400','fas fa-map-pin'],
-                            ] as $city)
-                            <div class="flex items-center justify-between py-2.5 border-b border-white/06 last:border-0">
-                                <div class="flex items-center gap-2.5">
-                                    <i class="{{ $city[2] }} text-xs" style="color:var(--primary-color);"></i>
-                                    <span class="text-white/90 font-semibold text-sm">{{ $city[0] }}</span>
-                                </div>
-                                <span class="text-white/30 text-xs font-mono">{{ $city[1] }}</span>
-                            </div>
+                        <div class="flex flex-wrap gap-2 mb-5">
+                            @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Pont-Sainte-Maxence'] as $city)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                                  style="background:rgba(var(--primary-color-rgb,34,197,94),.12);color:rgba(255,255,255,.8);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.2);">
+                                <i class="fas fa-map-marker-alt text-[9px]" style="color:var(--primary-color);"></i>
+                                {{ $city }}
+                            </span>
                             @endforeach
                         </div>
 
@@ -304,11 +304,11 @@
 
                 {{-- Background --}}
                 @if(!empty($svc['featured_image']))
-                <div class="absolute inset-0 overflow-hidden">
+                <div style="position:absolute;inset:0;overflow:hidden;">
                     <img src="{{ url($svc['featured_image']) }}" alt="{{ $svc['name'] }}"
-                         class="svc-card-img w-full h-full object-cover" loading="lazy">
-                    <div class="absolute inset-0"
-                         style="background:linear-gradient(to top, rgba(6,21,13,.95) 0%, rgba(6,21,13,.5) 50%, rgba(6,21,13,.15) 100%);"></div>
+                         style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease;"
+                         class="svc-card-img" loading="lazy">
+                    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(6,21,13,.95) 0%, rgba(6,21,13,.5) 50%, rgba(6,21,13,.15) 100%);"></div>
                 </div>
                 @else
                 <div class="absolute inset-0" style="background:linear-gradient(135deg, #06150d 0%, #0d3b22 60%, #1a5c35 100%);"></div>
@@ -358,32 +358,42 @@
          style="background:radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 65%); transform:translate(-40%,-40%);"></div>
 
     <div class="lp-shell relative z-10">
-        <div class="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
+        <div class="grid lg:grid-cols-2 gap-16 xl:gap-24" style="align-items:stretch;">
 
-            {{-- Chiffres --}}
-            <div class="relative">
-                <div class="grid grid-cols-2 gap-5">
+            {{-- Photo + chiffres en dessous --}}
+            <div class="relative flex flex-col">
+                @php $aboutPhoto = $homeConfig['about']['image'] ?? null; @endphp
+                @if($aboutPhoto)
+                {{-- Photo principale — s'étire pour remplir la hauteur du texte --}}
+                <div class="relative rounded-2xl overflow-hidden flex-1 mb-4" style="min-height:280px;">
+                    <img src="{{ asset(ltrim($aboutPhoto, '/')) }}"
+                         alt="{{ $homeConfig['sections']['about']['title'] ?? 'À propos' }}"
+                         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+                    {{-- Badge overlay --}}
+                    @if(setting('company_logo'))
+                    <div class="absolute bottom-4 right-4 w-14 h-14 rounded-xl overflow-hidden border-2 shadow-xl flex items-center justify-center"
+                         style="border-color:rgba(255,255,255,.2); background:#fff;">
+                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="w-10 h-auto object-contain">
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                {{-- Chiffres compacts sous la photo --}}
+                <div class="grid grid-cols-4 gap-3 flex-shrink-0">
                     @foreach([
-                        ['500+','Chantiers réalisés dans l\'Oise (60)','text-emerald-400'],
-                        ['15+','Ans d\'expérience en élagage professionnel','text-blue-400'],
-                        ['60+','Communes couvertes dans le département','text-violet-400'],
-                        ['4.9★','Note moyenne Google — clients satisfaits','text-amber-400'],
+                        ['500+','Chantiers','text-emerald-400'],
+                        ['15+','Ans exp.','text-blue-400'],
+                        ['60+','Communes','text-violet-400'],
+                        ['4.9★','Avis Google','text-amber-400'],
                     ] as $stat)
-                    <div class="rounded-2xl p-6 border border-white/08 relative overflow-hidden group hover:border-white/15 transition-colors"
+                    <div class="rounded-xl p-3 border border-white/08 text-center"
                          style="background:rgba(255,255,255,.03);">
-                        <div class="lp-counter {{ $stat[2] }} mb-2">{{ $stat[0] }}</div>
-                        <div class="text-white/45 text-xs leading-relaxed font-medium">{{ $stat[1] }}</div>
+                        <div class="{{ $stat[2] }} font-black text-lg leading-tight mb-0.5">{{ $stat[0] }}</div>
+                        <div class="text-white/40 text-[10px] leading-tight font-medium">{{ $stat[1] }}</div>
                     </div>
                     @endforeach
                 </div>
-
-                {{-- Badge photo --}}
-                @if(setting('company_logo'))
-                <div class="absolute -bottom-6 -right-6 w-20 h-20 rounded-2xl overflow-hidden border-4 shadow-2xl hidden lg:flex items-center justify-center"
-                     style="border-color:#06150d; background:#fff;">
-                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="w-14 h-auto object-contain">
-                </div>
-                @endif
             </div>
 
             {{-- Texte --}}
@@ -478,71 +488,69 @@
 {{-- ╔══════════════════════════════════════════════════════
      § 6. ZONES OISE — Fond sombre, pills modernes
      ══════════════════════════════════════════════════════ --}}
-<section class="py-24 relative overflow-hidden" style="background:#06150d;">
-    <div class="absolute inset-0 opacity-[.03]"
-         style="background-image:linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px); background-size:60px 60px;"></div>
-
-    <div class="lp-shell relative z-10">
-        <div class="flex flex-col lg:flex-row gap-16 items-start">
-
-            {{-- Texte gauche --}}
-            <div class="lg:w-80 flex-shrink-0">
-                <p class="text-xs font-black uppercase tracking-[.2em] mb-5 text-emerald-400">Zone d'intervention</p>
-                <h2 class="font-black text-white leading-tight mb-6"
-                    style="font-size:clamp(1.8rem,3.5vw,2.8rem);">
-                    Tout le<br>département<br><span style="color:var(--primary-color);">60 — Oise</span>
+<section style="background:#f0faf2; padding:5rem 0; border-top:1px solid #d1ead8; border-bottom:1px solid #d1ead8;">
+    <div class="lp-shell">
+        {{-- Header section --}}
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3rem;">
+            <div>
+                <span style="display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--primary-color);margin-bottom:.75rem;">
+                    <i class="fas fa-map-marker-alt"></i> Zone d'intervention
+                </span>
+                <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;color:#111827;line-height:1.1;margin:0;">
+                    Tout le département <span style="color:var(--primary-color);">60 — Oise</span>
                 </h2>
-                <p class="text-white/45 text-sm leading-relaxed mb-8">
+                <p style="font-size:.9rem;color:#6b7280;margin-top:.75rem;max-width:480px;line-height:1.7;">
                     Nous intervenons dans l'ensemble des communes de l'Oise et des départements limitrophes (Aisne, Somme, Val-d'Oise…)
                 </p>
-                <a href="{{ route('contact') }}"
-                   class="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-xl border border-white/15 text-white hover:bg-white/08 transition-all">
-                    Vérifier ma commune <i class="fas fa-arrow-right text-xs"></i>
-                </a>
             </div>
+            <a href="{{ route('contact') }}"
+               style="display:inline-flex;align-items:center;gap:.6rem;font-size:.875rem;font-weight:700;padding:.75rem 1.5rem;border-radius:12px;border:2px solid var(--primary-color);color:var(--primary-color);text-decoration:none;transition:all .2s;white-space:nowrap;"
+               onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
+               onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';">
+                Vérifier ma commune <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+            </a>
+        </div>
 
-            {{-- Pills des villes --}}
-            <div class="flex-1">
-                @php
-                    $displayCities = isset($favoriteCities) && $favoriteCities->count() > 0 ? $favoriteCities : collect([]);
-                    $oiseFallback = [
-                        ['Compiègne','60200'],['Beauvais','60000'],['Senlis','60300'],
-                        ['Chantilly','60500'],['Creil','60100'],['Noyon','60400'],
-                        ['Verberie','60410'],['Clermont','60600'],['Pont-Sainte-Maxence','60700'],
-                        ['Méru','60110'],['Liancourt','60140'],['Gouvieux','60270'],
-                        ['Lacroix-Saint-Ouen','60610'],['Margny-lès-Compiègne','60280'],
-                        ['Ribécourt-Dreslincourt','60170'],['Éstrées-Saint-Denis','60190'],
-                        ['Bresles','60590'],['Longueil-Annel','60150'],
-                    ];
-                @endphp
-                <div class="flex flex-wrap gap-2.5">
-                    @if($displayCities->count() > 0)
-                        @foreach($displayCities as $city)
-                        <a href="{{ route('ads.index') }}?city={{ $city->slug }}"
-                           class="group flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 hover:border-white/25 text-white/70 hover:text-white text-sm font-semibold transition-all hover:scale-[1.03]"
-                           style="background:rgba(255,255,255,.04);">
-                            <i class="fas fa-map-pin text-[10px]" style="color:var(--primary-color);"></i>
-                            {{ $city->name }}
-                            @if($city->postal_code)
-                            <span class="text-white/30 text-xs font-mono">{{ $city->postal_code }}</span>
-                            @endif
-                        </a>
-                        @endforeach
-                    @else
-                        @foreach($oiseFallback as [$name, $postal])
-                        <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/08 text-white/60 text-sm font-semibold cursor-default"
-                             style="background:rgba(255,255,255,.03);">
-                            <i class="fas fa-map-pin text-[10px]" style="color:var(--primary-color);"></i>
-                            {{ $name }}
-                            <span class="text-white/25 text-xs font-mono">{{ $postal }}</span>
-                        </div>
-                        @endforeach
-                        <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/06 text-white/30 text-sm italic cursor-default">
-                            + 40 autres communes…
-                        </div>
+        {{-- Pills des villes --}}
+        @php
+            $displayCities = isset($favoriteCities) && $favoriteCities->count() > 0 ? $favoriteCities : collect([]);
+            $oiseFallback = [
+                ['Compiègne','60200'],['Beauvais','60000'],['Senlis','60300'],
+                ['Chantilly','60500'],['Creil','60100'],['Noyon','60400'],
+                ['Verberie','60410'],['Clermont','60600'],['Pont-Sainte-Maxence','60700'],
+                ['Méru','60110'],['Liancourt','60140'],['Gouvieux','60270'],
+                ['Lacroix-Saint-Ouen','60610'],['Margny-lès-Compiègne','60280'],
+                ['Ribécourt-Dreslincourt','60170'],['Éstrées-Saint-Denis','60190'],
+                ['Bresles','60590'],['Longueil-Annel','60150'],
+            ];
+        @endphp
+
+        <div style="display:flex;flex-wrap:wrap;gap:.625rem;">
+            @if($displayCities->count() > 0)
+                @foreach($displayCities as $city)
+                <a href="{{ route('ads.index') }}?city={{ $city->slug }}"
+                   style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px solid #c6e4cf;background:#fff;color:#374151;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .18s;box-shadow:0 1px 3px rgba(0,0,0,.06);"
+                   onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)';this.style.background='rgba(var(--primary-color-rgb,34,197,94),.06)';"
+                   onmouseout="this.style.borderColor='#c6e4cf';this.style.color='#374151';this.style.background='#fff';">
+                    <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.7rem;"></i>
+                    {{ $city->name }}
+                    @if($city->postal_code)
+                    <span style="color:#9ca3af;font-size:.75rem;font-family:monospace;">{{ $city->postal_code }}</span>
                     @endif
+                </a>
+                @endforeach
+            @else
+                @foreach($oiseFallback as [$name, $postal])
+                <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px solid #c6e4cf;background:#fff;color:#374151;font-size:.82rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+                    <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.7rem;"></i>
+                    {{ $name }}
+                    <span style="color:#9ca3af;font-size:.75rem;font-family:monospace;">{{ $postal }}</span>
                 </div>
-            </div>
+                @endforeach
+                <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px dashed #c6e4cf;background:transparent;color:#9ca3af;font-size:.8rem;font-style:italic;">
+                    + 40 autres communes…
+                </div>
+            @endif
         </div>
     </div>
 </section>
@@ -577,9 +585,9 @@
             </a>
         </div>
 
-        {{-- Avis en 2 styles : 1 grand + N petits --}}
+        {{-- Avis en 2 styles : 1 grand + N petits (max 5) --}}
         <div class="grid lg:grid-cols-3 gap-5">
-            @foreach($reviews->take($homeConfig['sections']['reviews']['limit'] ?? 6) as $ri => $review)
+            @foreach($reviews->take(min(5, $homeConfig['sections']['reviews']['limit'] ?? 5)) as $ri => $review)
             @if($ri === 0)
             {{-- Grand avis éditorial --}}
             <div class="lg:col-span-2 rounded-3xl p-8 md:p-10 flex flex-col justify-between relative overflow-hidden"
@@ -704,14 +712,19 @@
      § 9. CTA FINAL — Plein-écran, impact max
      ══════════════════════════════════════════════════════ --}}
 @if($homeConfig['sections']['cta']['enabled'] ?? true)
-<section class="relative overflow-hidden" style="background:#06150d;">
-    {{-- Haloes --}}
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] rounded-full pointer-events-none"
-         style="background:radial-gradient(ellipse, rgba(34,197,94,.15) 0%, transparent 70%); transform:translateX(-50%) translateY(-50%);"></div>
-    <div class="absolute inset-0 opacity-[.025]"
-         style="background-image:linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px); background-size:50px 50px;"></div>
+{{-- Séparateur visuel avant le CTA --}}
+<div style="height:4px; background:linear-gradient(90deg, var(--primary-color), var(--secondary-color, #1a5c35), var(--primary-color));"></div>
 
-    <div class="lp-shell relative z-10 py-28 text-center">
+<section class="relative overflow-hidden"
+         style="background:linear-gradient(160deg, #0d3320 0%, #1a5c35 50%, #0d3320 100%);">
+    {{-- Motif discret --}}
+    <div class="absolute inset-0 opacity-[.04]"
+         style="background-image:radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px); background-size:28px 28px;"></div>
+    {{-- Halo --}}
+    <div class="absolute top-0 left-1/2 w-[800px] h-[500px] rounded-full pointer-events-none opacity-30"
+         style="background:radial-gradient(ellipse, rgba(74,222,128,.25) 0%, transparent 65%); transform:translateX(-50%) translateY(-40%);"></div>
+
+    <div class="lp-shell relative z-10 text-center" style="padding-top:7rem; padding-bottom:7rem;">
 
         <div class="inline-flex items-center gap-2.5 bg-white/06 border border-white/12 rounded-full px-5 py-2 mb-8">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
