@@ -1,6 +1,6 @@
 {{-- ============================================================
-     LANDING PAGE v2 — Louis Hoffmann Élagage · Département 60
-     Design : éditorial bold, dark sections, bento grid, zero cliché
+     LANDING PAGE v3 — Louis Hoffmann Élagage · Département 60
+     Design : magazine éditorial, blanc dominant, typographie bold
      ============================================================ --}}
 
 @php
@@ -13,216 +13,563 @@
     $phoneRaw = setting('company_phone_raw', $phone);
     $heroTitle = $homeConfig['sections']['hero']['title'] ?? 'Élagueur & Abatteur professionnel dans l\'Oise (60)';
 
-    // Image hero depuis la config DB
     $heroImg    = $homeConfig['hero']['background_image'] ?? null;
     $heroImgUrl = $heroImg ? asset(ltrim($heroImg, '/')) : null;
 @endphp
 
 <style>
-/* ── Global page ── */
-.lp { font-family: inherit; }
-.lp-shell { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
-@media(min-width:768px){ .lp-shell{ padding: 0 2.5rem; } }
-@media(min-width:1280px){ .lp-shell{ padding: 0 3rem; } }
+/* ─── Reset & Base ─────────────────────────────────────── */
+.lp-v3 *, .lp-v3 *::before, .lp-v3 *::after { box-sizing: border-box; }
+.lp-v3 { font-family: inherit; color: #0f172a; }
 
-/* ── Marquee ── */
-@keyframes marquee { from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
-.marquee-track { display:flex; width: max-content; animation: marquee 22s linear infinite; }
-.marquee-track:hover { animation-play-state: paused; }
+/* ─── Shell ────────────────────────────────────────────── */
+.lp-shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+}
+@media (min-width: 768px) { .lp-shell { padding: 0 2rem; } }
+@media (min-width: 1280px) { .lp-shell { padding: 0 3rem; } }
 
-/* ── Counters ── */
-.lp-counter { font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 900; line-height: 1; }
-
-/* ── Service bento card hover ── */
-.svc-card { transition: transform .3s ease, box-shadow .3s ease; }
-.svc-card:hover { transform: translateY(-6px); }
-.svc-card-img { transition: transform .6s ease; }
-.svc-card:hover .svc-card-img { transform: scale(1.06); }
-
-/* ── Reveal animation ── */
-@keyframes fadeUp { from{ opacity:0; transform:translateY(28px); } to{ opacity:1; transform:translateY(0); } }
-.reveal { animation: fadeUp .65s ease both; }
-.reveal-2 { animation-delay: .1s; }
-.reveal-3 { animation-delay: .2s; }
-.reveal-4 { animation-delay: .3s; }
-
-/* ── Diagonal separator ── */
-.clip-diag { clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }
-.clip-diag-rev { clip-path: polygon(0 6%, 100% 0, 100% 100%, 0 100%); }
-
-/* ── Big number accent ── */
-.bg-number {
-    position:absolute; font-size: clamp(8rem, 20vw, 18rem);
-    font-weight: 900; line-height: 1; opacity: .04;
-    pointer-events: none; user-select: none;
-    top: 50%; transform: translateY(-50%); right: -2rem;
-    color: currentColor;
+/* ─── Section label ────────────────────────────────────── */
+.lp-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
 }
 
-/* ── Checklist ── */
-.lp-check li { display:flex; gap:.75rem; align-items:flex-start; padding:.5rem 0; }
-.lp-check li::before {
-    content:''; display:inline-flex; flex-shrink:0;
-    width:1.25rem; height:1.25rem; border-radius:.375rem; margin-top:.1rem;
-    background: var(--primary-color);
+/* ─── Hero ─────────────────────────────────────────────── */
+.hero-v3 {
+    position: relative;
+    min-height: 100svh;
+    background: #0f1f13;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.hero-v3-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+.hero-v3-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+}
+.hero-v3-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        155deg,
+        rgba(10, 20, 12, .92) 0%,
+        rgba(10, 20, 12, .72) 45%,
+        rgba(10, 20, 12, .55) 100%
+    );
+}
+.hero-v3-inner {
+    position: relative;
+    z-index: 10;
+    padding-top: 7rem;
+    padding-bottom: 5rem;
+}
+.hero-v3-grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+}
+@media (min-width: 1024px) {
+    .hero-v3-grid {
+        grid-template-columns: 1fr 400px;
+        gap: 4rem;
+    }
+}
+
+/* ─── Hero animated dot tag ────────────────────────────── */
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 2rem;
+}
+.hero-tag-dots {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+.hero-tag-dot-1 {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4ade80;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+.hero-tag-dot-2 {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #16a34a;
+}
+.hero-tag-dot-3 {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #14532d;
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .6; transform: scale(.8); }
+}
+
+/* ─── Hero H1 ───────────────────────────────────────────── */
+.hero-h1 {
+    font-size: clamp(2.8rem, 6.5vw, 5.5rem);
+    font-weight: 900;
+    line-height: .95;
+    letter-spacing: -.02em;
+    color: #fff;
+    margin: 0 0 1.75rem;
+}
+
+/* ─── Marquee ───────────────────────────────────────────── */
+@keyframes lp-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+.marquee-v3-track {
+    display: flex;
+    width: max-content;
+    animation: lp-marquee 26s linear infinite;
+}
+.marquee-v3-track:hover { animation-play-state: paused; }
+
+/* ─── Services grid ─────────────────────────────────────── */
+.svc-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 1023px) {
+    .svc-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 639px) {
+    .svc-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Service card ──────────────────────────────────────── */
+.svc-card-v3 {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    display: block;
+    height: 280px;
+    text-decoration: none;
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+.svc-card-v3:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+}
+@media (max-width: 639px) {
+    .svc-card-v3 { height: 240px; }
+}
+.svc-card-v3-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .6s ease;
+}
+.svc-card-v3:hover .svc-card-v3-img {
+    transform: scale(1.06);
+}
+.svc-card-v3-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(6, 21, 13, .96) 0%,
+        rgba(6, 21, 13, .55) 50%,
+        rgba(6, 21, 13, .15) 100%
+    );
+}
+.svc-card-v3-content {
+    position: absolute;
+    inset: 0;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* ─── About section ─────────────────────────────────────── */
+.about-grid {
+    display: grid;
+    gap: 3.5rem;
+    align-items: stretch;
+}
+@media (min-width: 1024px) {
+    .about-grid { grid-template-columns: 1fr 1fr; }
+}
+.about-photo-wrap {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    min-height: 360px;
+    flex: 1;
+}
+.about-photo-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+.about-col-left {
+    display: flex;
+    flex-direction: column;
+}
+.about-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .75rem;
+    margin-top: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* ─── Checklist ─────────────────────────────────────────── */
+.lp-checklist { list-style: none; margin: 0; padding: 0; }
+.lp-checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .45rem 0;
+    font-size: .9rem;
+    color: rgba(255,255,255,.65);
+}
+.lp-checklist li::before {
+    content: '';
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: .1rem;
+    border-radius: .35rem;
+    background-color: var(--primary-color);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3.5 3.5L11 1' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-size: 60% 60%; background-repeat: no-repeat; background-position: center;
+    background-size: 62% 62%;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
-/* ── FAQ ── */
+/* ─── Process steps ─────────────────────────────────────── */
+.process-grid {
+    display: grid;
+    gap: 2rem;
+    position: relative;
+}
+@media (min-width: 768px)  { .process-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .process-grid { grid-template-columns: repeat(4, 1fr); gap: 0; } }
+
+.process-line {
+    display: none;
+}
+@media (min-width: 1024px) {
+    .process-line {
+        display: block;
+        position: absolute;
+        top: 3.2rem;
+        left: 12%;
+        right: 12%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary-color), #4ade80, var(--primary-color));
+        opacity: .35;
+        z-index: 0;
+    }
+}
+
+/* ─── Zones layout ──────────────────────────────────────── */
+.zones-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: flex-start;
+}
+@media (min-width: 768px) {
+    .zones-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 4rem;
+    }
+    .zones-left  { flex: 0 0 320px; }
+    .zones-right { flex: 1; }
+}
+
+/* ─── Reviews grid ──────────────────────────────────────── */
+.reviews-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+    .reviews-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ─── FAQ layout ────────────────────────────────────────── */
+.faq-layout {
+    display: grid;
+    gap: 3rem;
+}
+@media (min-width: 1024px) {
+    .faq-layout { grid-template-columns: 340px 1fr; gap: 5rem; }
+}
+
+/* ─── FAQ details ───────────────────────────────────────── */
+.faq-item details { border-bottom: 1px solid #e5e7eb; }
+.faq-item details summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    font-weight: 700;
+    font-size: .95rem;
+    color: #0f172a;
+    transition: color .2s;
+}
+.faq-item details summary::-webkit-details-marker { display: none; }
 .faq-item details[open] summary { color: var(--primary-color); }
-.faq-item details summary { cursor: pointer; list-style: none; }
-.faq-item details summary::-webkit-details-marker { display:none; }
-.faq-icon { transition: transform .25s ease; }
+.faq-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    flex-shrink: 0;
+    transition: transform .25s ease;
+    font-size: .7rem;
+}
 .faq-item details[open] .faq-icon { transform: rotate(45deg); }
+.faq-body {
+    padding: 0 0 1.25rem;
+    font-size: .9rem;
+    color: #64748b;
+    line-height: 1.75;
+}
+
+/* ─── Hover btn utils ───────────────────────────────────── */
+.btn-outline-green {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 700;
+    font-size: .875rem;
+    padding: .75rem 1.5rem;
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: background .2s, color .2s;
+    background: transparent;
+}
+.btn-outline-green:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+.btn-solid-green {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 800;
+    font-size: .9rem;
+    padding: .85rem 1.75rem;
+    border-radius: 12px;
+    background: var(--primary-color);
+    color: #fff;
+    text-decoration: none;
+    transition: opacity .2s, transform .2s;
+}
+.btn-solid-green:hover { opacity: .9; transform: translateY(-1px); }
+
+/* ─── Reveal animation ──────────────────────────────────── */
+@keyframes lp-fadeup {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.lp-reveal   { animation: lp-fadeup .6s ease both; }
+.lp-reveal-2 { animation-delay: .1s; }
+.lp-reveal-3 { animation-delay: .2s; }
+.lp-reveal-4 { animation-delay: .32s; }
 </style>
 
-<div class="lp">
+<div class="lp-v3">
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 1. HERO — split sombre / lumineux, typographie massive
-     ══════════════════════════════════════════════════════ --}}
-<section class="relative overflow-hidden"
-         style="background:#071c0e; min-height:100svh;">
+{{-- ══════════════════════════════════════════════════════════
+     §1  HERO — Full-screen éditorial
+     ══════════════════════════════════════════════════════════ --}}
+<section class="hero-v3">
 
-    {{-- Photo de fond --}}
-    @if($heroImgUrl)
-    <div style="position:absolute;inset:0;z-index:0;">
-        <img src="{{ $heroImgUrl }}" alt="Élagage dans l'Oise"
-             style="width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block;">
-        <div style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(5,18,8,.85) 0%, rgba(5,18,8,.65) 50%, rgba(5,18,8,.5) 100%);"></div>
+    {{-- Fond photo --}}
+    <div class="hero-v3-bg">
+        @if($heroImgUrl)
+            <img src="{{ $heroImgUrl }}" alt="Élagage dans l'Oise — Louis Hoffmann">
+        @else
+            <div style="position:absolute;inset:0;background:linear-gradient(160deg,#071c0e 0%,#0d3b22 60%,#1a5c35 100%);"></div>
+        @endif
+        <div class="hero-v3-bg-overlay"></div>
     </div>
-    @else
-    {{-- Fallback sans photo --}}
-    <div class="absolute inset-0 opacity-[.015] pointer-events-none"
-         style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22/><feColorMatrix type=%22saturate%22 values=%220%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/></svg>');"></div>
-    <div class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full pointer-events-none"
-         style="background:radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 65%); transform:translate(30%, -30%);"></div>
-    @endif
 
-    <div class="lp-shell relative z-10 flex flex-col justify-center" style="min-height:100svh; padding-top:7rem; padding-bottom:5rem; z-index:10;">
-        <div class="grid lg:grid-cols-[1fr_420px] gap-12 xl:gap-20 items-center">
+    {{-- Halo lumière gauche --}}
+    <div style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;">
+        <div style="position:absolute;top:-200px;left:-200px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle, rgba(74,222,128,.12) 0%, transparent 65%);"></div>
+    </div>
 
-            {{-- Texte principal --}}
+    <div class="hero-v3-inner lp-shell">
+        <div class="hero-v3-grid">
+
+            {{-- ── Texte principal ────────────────────── --}}
             <div>
-                {{-- Tag --}}
-                <div class="flex items-center gap-3 mb-8">
-                    <div class="flex items-center gap-1.5">
-                        <span class="block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="block w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                        <span class="block w-1 h-1 rounded-full bg-emerald-800"></span>
+
+                {{-- Tag ligne --}}
+                <div class="hero-tag lp-reveal">
+                    <div class="hero-tag-dots">
+                        <span class="hero-tag-dot-1"></span>
+                        <span class="hero-tag-dot-2"></span>
+                        <span class="hero-tag-dot-3"></span>
                     </div>
-                    <span class="text-emerald-400 text-xs font-bold uppercase tracking-[.18em]">Élagueur certifié · Département 60 · Oise</span>
+                    <span style="font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#4ade80;">
+                        Élagueur certifié &middot; Dép. 60 &middot; Oise
+                    </span>
                 </div>
 
-                {{-- H1 massif --}}
-                <h1 class="reveal text-white font-black leading-[.95] tracking-tight mb-8"
-                    style="font-size: clamp(2.8rem, 6.5vw, 5.5rem);">
-                    {!! str_replace(['(', ')'], ['<span style="color:var(--primary-color);">(', ')</span>'], e($heroTitle)) !!}
+                {{-- H1 --}}
+                <h1 class="hero-h1 lp-reveal lp-reveal-2">
+                    {{ $heroTitle }}
                 </h1>
 
-                <p class="reveal reveal-2 text-white/55 text-lg md:text-xl leading-relaxed mb-10 max-w-xl">
+                {{-- Sous-titre --}}
+                <p class="lp-reveal lp-reveal-3" style="font-size:clamp(1rem,2vw,1.2rem);color:rgba(255,255,255,.55);line-height:1.7;max-width:540px;margin:0 0 2.5rem;">
                     Élagage, abattage, taille de haies et broyage de souches —
-                    <span class="text-white/80">Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon</span>
+                    <span style="color:rgba(255,255,255,.8);">Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon</span>
                     et toutes les communes de l'Oise.
                 </p>
 
-                {{-- CTAs --}}
-                <div class="reveal reveal-3 flex flex-wrap gap-4 mb-14">
+                {{-- CTA buttons --}}
+                <div class="lp-reveal lp-reveal-4" style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;">
                     <a href="{{ route('form.step', 'propertyType') }}"
-                       class="group relative inline-flex items-center gap-3 font-black text-lg px-9 py-5 rounded-2xl overflow-hidden transition-all hover:scale-[1.03] shadow-2xl"
-                       style="background: var(--primary-color); color:#fff;">
-                        <span class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              style="background:linear-gradient(135deg, var(--secondary-color), var(--primary-color));"></span>
-                        <i class="fas fa-calculator relative z-10"></i>
-                        <span class="relative z-10">Devis gratuit</span>
-                        <i class="fas fa-arrow-right relative z-10 text-sm group-hover:translate-x-1 transition-transform"></i>
+                       onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
+                       style="display:inline-flex;align-items:center;gap:.75rem;background:var(--primary-color);color:#fff;font-size:1.05rem;font-weight:900;padding:1.1rem 2.25rem;border-radius:16px;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 8px 30px rgba(var(--primary-color-rgb,34,197,94),.4);"
+                       onmouseover="this.style.transform='scale(1.03)'"
+                       onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-calculator"></i>
+                        Devis gratuit
+                        <i class="fas fa-arrow-right" style="font-size:.8rem;"></i>
                     </a>
                     <a href="tel:{{ $phoneRaw }}"
-                       class="inline-flex items-center gap-3 font-bold text-lg px-9 py-5 rounded-2xl border border-white/15 text-white hover:bg-white/08 hover:border-white/30 transition-all"
-                       onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','hero')">
-                        <span class="relative flex">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
-                            <i class="fas fa-phone relative text-emerald-400"></i>
+                       onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','hero')"
+                       style="display:inline-flex;align-items:center;gap:.75rem;border:1.5px solid rgba(255,255,255,.2);color:#fff;font-size:1.05rem;font-weight:700;padding:1.1rem 2.25rem;border-radius:16px;text-decoration:none;transition:background .2s,border-color .2s;"
+                       onmouseover="this.style.background='rgba(255,255,255,.07)';this.style.borderColor='rgba(255,255,255,.35)';"
+                       onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,.2)';">
+                        <span style="position:relative;display:inline-flex;">
+                            <span style="position:absolute;inset:0;border-radius:50%;background:#4ade80;opacity:.2;animation:pulse-dot 2s infinite;"></span>
+                            <i class="fas fa-phone" style="color:#4ade80;position:relative;"></i>
                         </span>
                         {{ $phone }}
                     </a>
                 </div>
 
-                {{-- Mini preuves sociales --}}
-                <div class="reveal reveal-4 flex flex-wrap items-center gap-6 text-sm text-white/40 font-medium">
-                    <div class="flex items-center gap-2">
-                        <div class="flex">@for($i=0;$i<5;$i++)<i class="fas fa-star text-amber-400 text-xs"></i>@endfor</div>
-                        <span class="text-white/70 font-bold">4.9</span>
-                        <span>· 120+ avis</span>
+                {{-- Social proof bar --}}
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;font-size:.85rem;color:rgba(255,255,255,.38);font-weight:600;">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <div style="display:flex;gap:2px;">
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                            <i class="fas fa-star" style="color:#fbbf24;font-size:.75rem;"></i>
+                        </div>
+                        <span style="color:rgba(255,255,255,.75);font-weight:800;">4.9</span>
+                        <span>&middot; 120+ avis Google</span>
                     </div>
-                    <div class="w-px h-4 bg-white/15"></div>
-                    <span><span class="text-white/70 font-bold">15+</span> ans d'expérience</span>
-                    <div class="w-px h-4 bg-white/15"></div>
-                    <span><span class="text-white/70 font-bold">60+</span> communes Oise</span>
+                    <div style="width:1px;height:16px;background:rgba(255,255,255,.12);"></div>
+                    <span><span style="color:rgba(255,255,255,.75);font-weight:800;">15+</span> ans d'expérience</span>
+                    <div style="width:1px;height:16px;background:rgba(255,255,255,.12);"></div>
+                    <span><span style="color:rgba(255,255,255,.75);font-weight:800;">60+</span> communes Oise</span>
                 </div>
             </div>
 
-            {{-- Panel flottant droit --}}
-            <div class="hidden lg:block">
-                <div class="rounded-3xl overflow-hidden border border-white/10"
-                     style="background:rgba(255,255,255,.04); backdrop-filter:blur(16px);">
-                    {{-- Top colored strip --}}
-                    <div class="h-1.5" style="background:linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color, #10b981));"></div>
-
-                    <div class="p-7">
-                        <div class="text-white/50 text-xs font-bold uppercase tracking-widest mb-5">Zone d'intervention · Oise (60)</div>
-
-                        <div class="flex flex-wrap gap-2 mb-5">
-                            @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Pont-Sainte-Maxence'] as $city)
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                                  style="background:rgba(var(--primary-color-rgb,34,197,94),.12);color:rgba(255,255,255,.8);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.2);">
-                                <i class="fas fa-map-marker-alt text-[9px]" style="color:var(--primary-color);"></i>
-                                {{ $city }}
+            {{-- ── Panel flottant droit (desktop) ─────── --}}
+            <div style="display:none;" class="hero-right-panel">
+                <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);backdrop-filter:blur(16px);">
+                    <div style="height:4px;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color,#16a34a),#4ade80);"></div>
+                    <div style="padding:1.75rem;">
+                        <div style="font-size:.68rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1.25rem;">
+                            Zone d'intervention · Oise (60)
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                            @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Pont-Ste-Maxence'] as $hcity)
+                            <span style="display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .85rem;border-radius:50px;font-size:.75rem;font-weight:600;background:rgba(var(--primary-color-rgb,34,197,94),.12);color:rgba(255,255,255,.75);border:1px solid rgba(var(--primary-color-rgb,34,197,94),.22);">
+                                <i class="fas fa-map-marker-alt" style="font-size:.6rem;color:var(--primary-color);"></i>
+                                {{ $hcity }}
                             </span>
                             @endforeach
                         </div>
-
-                        <div class="text-white/30 text-xs text-center mb-5">+ 60 autres communes du département</div>
-
+                        <div style="font-size:.75rem;color:rgba(255,255,255,.28);text-align:center;margin-bottom:1.25rem;">
+                            + 60 autres communes du département
+                        </div>
                         <a href="{{ route('form.step', 'propertyType') }}"
-                           class="block w-full text-center font-black py-4 rounded-xl text-sm transition-all hover:opacity-90"
-                           style="background:var(--primary-color); color:#fff;">
-                            <i class="fas fa-calculator mr-2"></i>Obtenir un devis gratuit
+                           style="display:block;width:100%;text-align:center;background:var(--primary-color);color:#fff;font-weight:900;font-size:.875rem;padding:.9rem 1rem;border-radius:12px;text-decoration:none;transition:opacity .2s;"
+                           onmouseover="this.style.opacity='.88'"
+                           onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-calculator" style="margin-right:.5rem;"></i>Obtenir un devis gratuit
                         </a>
                     </div>
                 </div>
-
-                {{-- Badge dévis --}}
-                <div class="mt-4 rounded-2xl p-4 border border-white/10 flex items-center gap-3"
-                     style="background:rgba(255,255,255,.04);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-                         style="background:rgba(34,197,94,.2);">
-                        <i class="fas fa-check text-emerald-400 text-sm"></i>
+                <div style="margin-top:.75rem;border-radius:16px;padding:1rem 1.25rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);display:flex;align-items:center;gap:.875rem;">
+                    <div style="width:2.5rem;height:2.5rem;border-radius:10px;background:rgba(74,222,128,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-check" style="color:#4ade80;font-size:.8rem;"></i>
                     </div>
                     <div>
-                        <div class="text-white/90 font-bold text-sm">Réponse garantie sous 24h</div>
-                        <div class="text-white/40 text-xs">Devis gratuit · Sans engagement</div>
+                        <div style="color:rgba(255,255,255,.88);font-weight:700;font-size:.85rem;">Réponse garantie sous 24h</div>
+                        <div style="color:rgba(255,255,255,.35);font-size:.75rem;">Devis gratuit · Sans engagement</div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
     {{-- Scroll indicator --}}
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
-        <span class="text-white text-xs font-medium uppercase tracking-widest">Scroll</span>
-        <div class="w-px h-10 bg-white/40"></div>
+    <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:.3;z-index:10;">
+        <span style="color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;">Scroll</span>
+        <div style="width:1px;height:2.5rem;background:rgba(255,255,255,.4);"></div>
     </div>
 </section>
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 2. MARQUEE CONFIANCE — ticker horizontal
-     ══════════════════════════════════════════════════════ --}}
-<div class="py-5 border-y overflow-hidden"
-     style="background:#06150d; border-color:rgba(255,255,255,.06);">
-    <div class="marquee-track">
-        @php $items = [
+<style>
+@media (min-width: 1024px) {
+    .hero-right-panel { display: block !important; }
+}
+</style>
+
+{{-- ══════════════════════════════════════════════════════════
+     §2  MARQUEE — Ticker de confiance
+     ══════════════════════════════════════════════════════════ --}}
+<div style="background:#0f1f13;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);padding:.9rem 0;overflow:hidden;">
+    <div class="marquee-v3-track">
+        @php
+        $mItems = [
             ['fas fa-shield-alt','Artisan assuré RC Pro'],
             ['fas fa-star','4.9★ sur Google'],
             ['fas fa-tree','500+ chantiers Oise'],
@@ -239,105 +586,79 @@
             ['fas fa-award','15+ ans d\'expérience'],
             ['fas fa-hand-holding-usd','Devis 100% gratuit'],
             ['fas fa-recycle','Éco-responsable'],
-        ]; @endphp
-        @foreach($items as $item)
-        <div class="flex items-center gap-2.5 px-8 flex-shrink-0">
-            <i class="{{ $item[0] }} text-xs" style="color:var(--primary-color);"></i>
-            <span class="text-white/50 text-sm font-semibold whitespace-nowrap">{{ $item[1] }}</span>
+        ];
+        @endphp
+        @foreach($mItems as $mi)
+        <div style="display:flex;align-items:center;gap:.625rem;padding:0 2rem;flex-shrink:0;">
+            <i class="{{ $mi[0] }}" style="color:var(--primary-color);font-size:.75rem;"></i>
+            <span style="color:rgba(255,255,255,.48);font-size:.82rem;font-weight:600;white-space:nowrap;">{{ $mi[1] }}</span>
         </div>
-        <div class="text-white/15 flex-shrink-0">·</div>
+        <span style="color:rgba(255,255,255,.12);flex-shrink:0;">&middot;</span>
         @endforeach
     </div>
 </div>
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 3. SERVICES — Bento Grid éditorial
-     ══════════════════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════
+     §3  SERVICES — Grille éditoriale magazine
+     ══════════════════════════════════════════════════════════ --}}
 @if(($homeConfig['sections']['services']['enabled'] ?? true) && count($svcList) > 0)
-<section class="py-24 bg-gray-50">
+<section style="background:#fff;padding:6rem 0;">
     <div class="lp-shell">
 
-        {{-- Header section --}}
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+        {{-- Header --}}
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3.5rem;">
             <div>
-                <p class="text-xs font-black uppercase tracking-[.2em] mb-4"
-                   style="color:var(--primary-color);">Nos prestations</p>
-                <h2 class="font-black text-gray-900 leading-tight"
-                    style="font-size:clamp(2rem,4.5vw,3.5rem);">
-                    {{ $homeConfig['sections']['services']['title'] ?? 'Ce qu\'on fait' }}<br>
-                    <span class="text-gray-300">dans l'Oise (60)</span>
+                <span class="lp-label"><i class="fas fa-leaf"></i> Nos prestations</span>
+                <h2 style="font-size:clamp(1.9rem,4.5vw,3.2rem);font-weight:900;color:#0f172a;line-height:1.05;margin:0;">
+                    {{ $homeConfig['sections']['services']['title'] ?? 'Services d\'élagage' }}<br>
+                    <span style="color:#94a3b8;">dans l'Oise (60)</span>
                 </h2>
             </div>
-            <a href="{{ route('services.index') }}"
-               class="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-xl border-2 flex-shrink-0 transition-all hover:scale-[1.02]"
-               style="border-color:var(--primary-color); color:var(--primary-color);"
-               onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
-               onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';">
-                Voir tous les services <i class="fas fa-arrow-right text-xs"></i>
+            <a href="{{ route('services.index') }}" class="btn-outline-green">
+                Tous les services <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
             </a>
         </div>
 
-        {{-- Bento grid --}}
-        @php $limit = min(count($svcList), $homeConfig['sections']['services']['limit'] ?? 6); @endphp
-        <div class="grid gap-4"
-             style="grid-template-columns: repeat(12, 1fr);">
-
-            @foreach($svcList as $i => $svc)
-            @if($i >= $limit) @break @endif
-            @php
-                // Alternance des tailles : grand-petit-petit / petit-grand / etc.
-                $patterns = [
-                    0 => 'col-span-12 md:col-span-7 row-span-2',
-                    1 => 'col-span-12 md:col-span-5',
-                    2 => 'col-span-12 md:col-span-5',
-                    3 => 'col-span-12 md:col-span-5',
-                    4 => 'col-span-12 md:col-span-7',
-                    5 => 'col-span-12 md:col-span-12 lg:col-span-12',
-                ];
-                $colClass = $patterns[$i] ?? 'col-span-12 md:col-span-4';
-                $isLarge  = ($i === 0 || $i === 4);
-            @endphp
+        {{-- Grid --}}
+        @php $svcLimit = min(count($svcList), $homeConfig['sections']['services']['limit'] ?? 6); @endphp
+        <div class="svc-grid">
+            @foreach($svcList as $si => $svc)
+            @if($si >= $svcLimit) @break @endif
             <a href="{{ route('services.show', $svc['slug']) }}"
-               class="svc-card group relative overflow-hidden rounded-3xl {{ $colClass }} block"
-               style="min-height: {{ $isLarge ? '380px' : '220px' }};"
-               onclick="if(typeof trackServiceClick==='function')trackServiceClick('{{ $svc['name'] }}','{{ request()->url() }}')">
+               class="svc-card-v3"
+               onclick="if(typeof trackServiceClick==='function')trackServiceClick('{{ addslashes($svc['name']) }}','{{ request()->url() }}')">
 
-                {{-- Background --}}
+                {{-- Image ou fallback dégradé --}}
                 @if(!empty($svc['featured_image']))
-                <div style="position:absolute;inset:0;overflow:hidden;">
-                    <img src="{{ url($svc['featured_image']) }}" alt="{{ $svc['name'] }}"
-                         style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease;"
-                         class="svc-card-img" loading="lazy">
-                    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(6,21,13,.95) 0%, rgba(6,21,13,.5) 50%, rgba(6,21,13,.15) 100%);"></div>
-                </div>
+                    <img class="svc-card-v3-img"
+                         src="{{ url($svc['featured_image']) }}"
+                         alt="{{ $svc['name'] }}"
+                         loading="lazy">
                 @else
-                <div class="absolute inset-0" style="background:linear-gradient(135deg, #06150d 0%, #0d3b22 60%, #1a5c35 100%);"></div>
-                <i class="{{ $svc['icon'] ?? 'fas fa-tree' }} absolute text-[8rem] opacity-[.06] top-1/2 right-4 -translate-y-1/2" style="color:#fff;"></i>
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0d3b22 0%,#1a5c35 60%,#0d6e2e 100%);"></div>
+                    <i class="{{ $svc['icon'] ?? 'fas fa-tree' }}"
+                       style="position:absolute;font-size:6rem;opacity:.06;color:#fff;top:50%;right:1rem;transform:translateY(-50%);pointer-events:none;"></i>
                 @endif
 
-                {{-- Hover overlay --}}
-                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
-                     style="background:linear-gradient(135deg, rgba(var(--primary-color-rgb,34,197,94),.25) 0%, transparent 70%);"></div>
+                <div class="svc-card-v3-overlay"></div>
 
-                {{-- Content --}}
-                <div class="absolute inset-0 p-7 flex flex-col justify-end">
-                    {{-- Icon badge --}}
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white mb-4 flex-shrink-0 self-start border border-white/20"
-                         style="background:rgba(var(--primary-color-rgb,34,197,94),.25); backdrop-filter:blur(8px);">
-                        <i class="{{ $svc['icon'] ?? 'fas fa-tree' }} text-sm"></i>
+                {{-- Hover tint --}}
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(var(--primary-color-rgb,34,197,94),.22) 0%,transparent 70%);opacity:0;transition:opacity .35s;" class="svc-hover-tint"></div>
+
+                <div class="svc-card-v3-content">
+                    <div style="width:2.25rem;height:2.25rem;border-radius:10px;background:rgba(var(--primary-color-rgb,34,197,94),.22);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:.875rem;flex-shrink:0;backdrop-filter:blur(6px);">
+                        <i class="{{ $svc['icon'] ?? 'fas fa-tree' }}" style="color:#fff;font-size:.8rem;"></i>
                     </div>
-                    <h3 class="text-white font-black mb-2 leading-tight"
-                        style="font-size:{{ $isLarge ? 'clamp(1.4rem,2.5vw,2rem)' : '1.1rem' }};">
+                    <h3 style="color:#fff;font-weight:900;font-size:1.1rem;line-height:1.2;margin:0 0 .4rem;">
                         {{ $svc['name'] }}
                     </h3>
-                    @if($isLarge)
-                    <p class="text-white/65 text-sm leading-relaxed mb-4 max-w-sm">
-                        {{ \Illuminate\Support\Str::limit($svc['short_description'] ?? '', 120) }}
+                    @if(!empty($svc['short_description']))
+                    <p style="color:rgba(255,255,255,.6);font-size:.8rem;line-height:1.6;margin:0 0 .75rem;">
+                        {{ \Illuminate\Support\Str::limit($svc['short_description'], 90) }}
                     </p>
                     @endif
-                    <div class="flex items-center gap-2 text-sm font-bold opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                         style="color:var(--primary-color);">
-                        En savoir plus <i class="fas fa-arrow-right text-xs"></i>
+                    <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:700;color:var(--primary-color);opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s;" class="svc-cta-arrow">
+                        Découvrir <i class="fas fa-arrow-right" style="font-size:.65rem;"></i>
                     </div>
                 </div>
             </a>
@@ -346,84 +667,90 @@
 
     </div>
 </section>
+<style>
+.svc-card-v3:hover .svc-hover-tint { opacity: 1 !important; }
+.svc-card-v3:hover .svc-cta-arrow  { opacity: 1 !important; transform: translateY(0) !important; }
+</style>
 @endif
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 4. ABOUT — Dark éditorial, chiffres massifs
-     ══════════════════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════
+     §4  À PROPOS — Dark éditorial, photo + texte
+     ══════════════════════════════════════════════════════════ --}}
 @if($homeConfig['sections']['about']['enabled'] ?? true)
-<section class="relative py-28 overflow-hidden" style="background:#06150d;">
-    {{-- Halo --}}
-    <div class="absolute top-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none"
-         style="background:radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 65%); transform:translate(-40%,-40%);"></div>
+<section style="background:#0f1f13;padding:6rem 0;position:relative;overflow:hidden;">
+    {{-- Halo décoratif --}}
+    <div style="position:absolute;top:0;left:0;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.1) 0%,transparent 65%);transform:translate(-40%,-40%);pointer-events:none;z-index:0;"></div>
 
-    <div class="lp-shell relative z-10">
-        <div class="grid lg:grid-cols-2 gap-16 xl:gap-24" style="align-items:stretch;">
+    <div class="lp-shell" style="position:relative;z-index:1;">
+        <div class="about-grid">
 
-            {{-- Photo + chiffres en dessous --}}
-            <div class="relative flex flex-col">
+            {{-- Colonne gauche : photo + stats --}}
+            <div class="about-col-left">
                 @php $aboutPhoto = $homeConfig['about']['image'] ?? null; @endphp
-                @if($aboutPhoto)
-                {{-- Photo principale — s'étire pour remplir la hauteur du texte --}}
-                <div class="relative rounded-2xl overflow-hidden flex-1 mb-4" style="min-height:280px;">
-                    <img src="{{ asset(ltrim($aboutPhoto, '/')) }}"
-                         alt="{{ $homeConfig['sections']['about']['title'] ?? 'À propos' }}"
-                         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
-                    {{-- Badge overlay --}}
+                <div class="about-photo-wrap" style="flex:1;">
+                    @if($aboutPhoto)
+                        <img src="{{ asset(ltrim($aboutPhoto, '/')) }}"
+                             alt="{{ $homeConfig['sections']['about']['title'] ?? 'À propos' }}"
+                             loading="lazy">
+                    @else
+                        <div style="position:absolute;inset:0;background:linear-gradient(145deg,#0d3b22,#1a5c35);"></div>
+                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-tree" style="font-size:8rem;color:rgba(255,255,255,.06);"></i>
+                        </div>
+                    @endif
+                    {{-- Badge logo --}}
                     @if(setting('company_logo'))
-                    <div class="absolute bottom-4 right-4 w-14 h-14 rounded-xl overflow-hidden border-2 shadow-xl flex items-center justify-center"
-                         style="border-color:rgba(255,255,255,.2); background:#fff;">
-                        <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" class="w-10 h-auto object-contain">
+                    <div style="position:absolute;bottom:1rem;right:1rem;width:3.5rem;height:3.5rem;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.2);background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.3);">
+                        <img src="{{ asset(setting('company_logo')) }}"
+                             alt="{{ setting('company_name') }}"
+                             style="width:2.25rem;height:auto;object-fit:contain;">
                     </div>
                     @endif
                 </div>
-                @endif
 
-                {{-- Chiffres compacts sous la photo --}}
-                <div class="grid grid-cols-4 gap-3 flex-shrink-0">
+                {{-- Statistiques --}}
+                <div class="about-stats-row">
                     @foreach([
-                        ['500+','Chantiers','text-emerald-400'],
-                        ['15+','Ans exp.','text-blue-400'],
-                        ['60+','Communes','text-violet-400'],
-                        ['4.9★','Avis Google','text-amber-400'],
-                    ] as $stat)
-                    <div class="rounded-xl p-3 border border-white/08 text-center"
-                         style="background:rgba(255,255,255,.03);">
-                        <div class="{{ $stat[2] }} font-black text-lg leading-tight mb-0.5">{{ $stat[0] }}</div>
-                        <div class="text-white/40 text-[10px] leading-tight font-medium">{{ $stat[1] }}</div>
+                        ['500+','Chantiers','#4ade80'],
+                        ['15+','Ans exp.','#60a5fa'],
+                        ['60+','Communes','#a78bfa'],
+                        ['4.9★','Google','#fbbf24'],
+                    ] as [$sv, $sl, $sc])
+                    <div style="border-radius:14px;padding:.875rem .5rem;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);text-align:center;">
+                        <div style="color:{{ $sc }};font-weight:900;font-size:1rem;line-height:1.2;margin-bottom:.2rem;">{{ $sv }}</div>
+                        <div style="color:rgba(255,255,255,.38);font-size:.68rem;font-weight:600;line-height:1.3;">{{ $sl }}</div>
                     </div>
                     @endforeach
                 </div>
             </div>
 
-            {{-- Texte --}}
-            <div>
-                <p class="text-xs font-black uppercase tracking-[.2em] mb-5 text-emerald-400">À propos</p>
-                <h2 class="font-black text-white leading-[1.05] mb-6"
-                    style="font-size:clamp(1.8rem,3.5vw,3rem);">
+            {{-- Colonne droite : texte --}}
+            <div style="display:flex;flex-direction:column;justify-content:center;">
+                <span class="lp-label" style="color:#4ade80;"><i class="fas fa-leaf"></i> À propos</span>
+                <h2 style="font-size:clamp(1.75rem,3.5vw,2.8rem);font-weight:900;color:#fff;line-height:1.08;margin:0 0 1.25rem;">
                     {{ $homeConfig['sections']['about']['title'] ?? 'Votre élagueur de confiance dans l\'Oise' }}
                 </h2>
-                <p class="text-white/55 leading-relaxed mb-6 text-base">
+                <p style="color:rgba(255,255,255,.52);font-size:.95rem;line-height:1.8;margin-bottom:1.75rem;">
                     {{ $homeConfig['sections']['about']['text'] ?? 'Louis Hoffmann est élagueur professionnel certifié, intervenant dans tout le département 60 (Oise) : Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon et toutes les communes environnantes. Avec plus de 15 ans d\'expérience, nous garantissons des interventions sécurisées, soignées et respectueuses de l\'environnement.' }}
                 </p>
 
-                <ul class="lp-check text-white/70 text-sm mb-8 space-y-1">
+                <ul class="lp-checklist" style="margin-bottom:2rem;">
                     <li>Artisan certifié, assuré en responsabilité civile professionnelle</li>
-                    <li>Équipements professionnels et sécurité NF</li>
+                    <li>Équipements professionnels, respect des normes de sécurité</li>
                     <li>Valorisation des déchets verts — broyage sur place possible</li>
                     <li>Devis gratuit, transparent, sans engagement</li>
                     <li>Réponse sous 24h pour toute intervention dans le 60</li>
                 </ul>
 
-                <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('contact') }}"
-                       class="inline-flex items-center gap-2.5 font-bold px-7 py-4 rounded-xl text-white transition-all hover:opacity-90"
-                       style="background:var(--primary-color);">
-                        <i class="fas fa-envelope"></i> Nous contacter
+                <div style="display:flex;flex-wrap:wrap;gap:.875rem;">
+                    <a href="{{ route('contact') }}" class="btn-solid-green">
+                        <i class="fas fa-envelope" style="font-size:.85rem;"></i> Nous contacter
                     </a>
                     <a href="{{ route('form.step', 'propertyType') }}"
-                       class="inline-flex items-center gap-2.5 font-bold px-7 py-4 rounded-xl border border-white/20 text-white hover:bg-white/08 transition-all">
-                        <i class="fas fa-calculator"></i> Devis gratuit
+                       style="display:inline-flex;align-items:center;gap:.6rem;font-weight:700;font-size:.9rem;padding:.85rem 1.75rem;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);color:#fff;text-decoration:none;transition:background .2s,border-color .2s;"
+                       onmouseover="this.style.background='rgba(255,255,255,.07)'"
+                       onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-calculator" style="font-size:.85rem;"></i> Devis gratuit
                     </a>
                 </div>
             </div>
@@ -433,217 +760,224 @@
 </section>
 @endif
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 5. PROCESSUS — Numéros massifs, horizontal
-     ══════════════════════════════════════════════════════ --}}
-<section class="py-24 bg-white">
+{{-- ══════════════════════════════════════════════════════════
+     §5  PROCESSUS — 4 étapes, horizontal desktop
+     ══════════════════════════════════════════════════════════ --}}
+<section style="background:#fff;padding:6rem 0;">
     <div class="lp-shell">
 
-        <div class="text-center mb-16">
-            <p class="text-xs font-black uppercase tracking-[.2em] mb-4" style="color:var(--primary-color);">Simple & rapide</p>
-            <h2 class="font-black text-gray-900 leading-tight" style="font-size:clamp(1.8rem,4vw,3rem);">
-                Comment ça se passe ?
+        <div style="text-align:center;margin-bottom:4rem;">
+            <span class="lp-label"><i class="fas fa-route"></i> Comment ça marche</span>
+            <h2 style="font-size:clamp(1.75rem,4vw,2.8rem);font-weight:900;color:#0f172a;margin:0;">
+                Simple, rapide, professionnel
             </h2>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-0 relative">
-            {{-- Ligne de connexion desktop --}}
-            <div class="hidden lg:block absolute top-[3.5rem] left-[12.5%] right-[12.5%] h-px"
-                 style="background:linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));"></div>
+        <div class="process-grid">
+            <div class="process-line"></div>
 
             @foreach([
-                [1,'fas fa-phone-alt','Prise de contact','Appelez ou remplissez le formulaire. Réponse sous 24h partout dans l\'Oise (60).','emerald'],
-                [2,'fas fa-search-location','Visite & devis','Déplacement gratuit (Compiègne, Beauvais, Senlis…) pour évaluer et chiffrer.','sky'],
-                [3,'fas fa-calendar-check','Planification','Date calée selon vos dispo et la saison, en respectant les réglementations locales.','violet'],
-                [4,'fas fa-hard-hat','Travaux & nettoyage','Intervention sécurisée, chantier nettoyé intégralement, broyage possible.','amber'],
-            ] as [$n, $icon, $title, $text, $color])
-            @php $colors = ['emerald'=>['bg'=>'bg-emerald-500','light'=>'bg-emerald-50','txt'=>'text-emerald-600'],'sky'=>['bg'=>'bg-sky-500','light'=>'bg-sky-50','txt'=>'text-sky-600'],'violet'=>['bg'=>'bg-violet-500','light'=>'bg-violet-50','txt'=>'text-violet-600'],'amber'=>['bg'=>'bg-amber-500','light'=>'bg-amber-50','txt'=>'text-amber-600']]; $c=$colors[$color]; @endphp
-            <div class="relative flex flex-col items-center text-center px-6 py-8 group">
-                {{-- Number circle --}}
-                <div class="relative mb-7 z-10">
-                    <div class="w-16 h-16 rounded-2xl {{ $c['bg'] }} flex items-center justify-center text-white font-black text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        {{ $n }}
+                [1,'fas fa-phone-alt','Prise de contact','Appelez ou remplissez le formulaire en ligne. Réponse garantie sous 24h dans tout le département 60.','#10b981','#d1fae5','#065f46'],
+                [2,'fas fa-search-location','Visite & devis','Déplacement gratuit sur site pour évaluer et chiffrer précisément — Compiègne, Beauvais, Senlis…','#3b82f6','#dbeafe','#1e3a8a'],
+                [3,'fas fa-calendar-check','Planification','Date calée selon vos disponibilités et la saison, en respectant les réglementations locales.','#8b5cf6','#ede9fe','#4c1d95'],
+                [4,'fas fa-hard-hat','Travaux & nettoyage','Intervention sécurisée, chantier intégralement nettoyé, valorisation des déchets verts.','#f59e0b','#fef3c7','#78350f'],
+            ] as [$pn, $picon, $ptitle, $ptext, $pc, $plight, $pdark])
+            <div style="position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.5rem 1.25rem;z-index:1;" class="process-step">
+                {{-- Numéro --}}
+                <div style="position:relative;margin-bottom:1.5rem;">
+                    <div style="width:3.5rem;height:3.5rem;border-radius:14px;background:{{ $pc }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;box-shadow:0 8px 24px {{ $pc }}40;transition:transform .3s;" class="process-num">
+                        {{ $pn }}
                     </div>
-                    <div class="absolute inset-0 rounded-2xl {{ $c['bg'] }} opacity-20 scale-[1.5] group-hover:scale-[1.7] transition-transform duration-300"></div>
+                    <div style="position:absolute;inset:-8px;border-radius:20px;background:{{ $pc }};opacity:.14;z-index:-1;"></div>
                 </div>
-                <div class="w-10 h-10 rounded-xl {{ $c['light'] }} flex items-center justify-center mb-4">
-                    <i class="{{ $icon }} {{ $c['txt'] }}"></i>
+                {{-- Icône --}}
+                <div style="width:2.5rem;height:2.5rem;border-radius:12px;background:{{ $plight }};display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+                    <i class="{{ $picon }}" style="color:{{ $pdark }};font-size:.9rem;"></i>
                 </div>
-                <h3 class="font-black text-gray-900 text-base mb-2">{{ $title }}</h3>
-                <p class="text-gray-500 text-sm leading-relaxed">{{ $text }}</p>
+                <h3 style="font-weight:900;color:#0f172a;font-size:.95rem;margin:0 0 .5rem;">{{ $ptitle }}</h3>
+                <p style="color:#64748b;font-size:.83rem;line-height:1.7;margin:0;">{{ $ptext }}</p>
             </div>
             @endforeach
         </div>
 
-        <div class="text-center mt-14">
+        <div style="text-align:center;margin-top:3.5rem;">
             <a href="{{ route('form.step', 'propertyType') }}"
-               class="inline-flex items-center gap-2.5 text-white font-black px-10 py-5 rounded-2xl shadow-xl transition-all hover:scale-[1.02]"
-               style="background:linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                <i class="fas fa-calculator"></i> Démarrer mon devis gratuit
+               style="display:inline-flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color,#16a34a));color:#fff;font-size:1rem;font-weight:900;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;box-shadow:0 8px 30px rgba(var(--primary-color-rgb,34,197,94),.3);transition:transform .2s,box-shadow .2s;"
+               onmouseover="this.style.transform='scale(1.02)'"
+               onmouseout="this.style.transform='scale(1)'">
+                <i class="fas fa-calculator"></i>
+                Démarrer mon devis gratuit
             </a>
         </div>
     </div>
 </section>
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 6. ZONES OISE — Fond sombre, pills modernes
-     ══════════════════════════════════════════════════════ --}}
-<section style="background:#f0faf2; padding:5rem 0; border-top:1px solid #d1ead8; border-bottom:1px solid #d1ead8;">
+{{-- ══════════════════════════════════════════════════════════
+     §6  ZONES D'INTERVENTION — Pills villes Oise
+     ══════════════════════════════════════════════════════════ --}}
+<section style="background:#f0faf4;padding:5rem 0;border-top:1px solid #c6e9d0;border-bottom:1px solid #c6e9d0;">
     <div class="lp-shell">
-        {{-- Header section --}}
-        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3rem;">
-            <div>
-                <span style="display:inline-flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--primary-color);margin-bottom:.75rem;">
-                    <i class="fas fa-map-marker-alt"></i> Zone d'intervention
-                </span>
-                <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;color:#111827;line-height:1.1;margin:0;">
-                    Tout le département <span style="color:var(--primary-color);">60 — Oise</span>
+        <div class="zones-layout">
+
+            {{-- Gauche --}}
+            <div class="zones-left">
+                <span class="lp-label"><i class="fas fa-map-marker-alt"></i> Zone d'intervention</span>
+                <h2 style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;color:#0f172a;line-height:1.1;margin:0 0 .875rem;">
+                    Tout le département<br><span style="color:var(--primary-color);">60 — Oise</span>
                 </h2>
-                <p style="font-size:.9rem;color:#6b7280;margin-top:.75rem;max-width:480px;line-height:1.7;">
-                    Nous intervenons dans l'ensemble des communes de l'Oise et des départements limitrophes (Aisne, Somme, Val-d'Oise…)
+                <p style="font-size:.875rem;color:#4b5563;line-height:1.75;margin-bottom:1.5rem;">
+                    Nous intervenons dans l'ensemble des communes de l'Oise et des départements limitrophes — Aisne, Somme, Val-d'Oise.
                 </p>
-            </div>
-            <a href="{{ route('contact') }}"
-               style="display:inline-flex;align-items:center;gap:.6rem;font-size:.875rem;font-weight:700;padding:.75rem 1.5rem;border-radius:12px;border:2px solid var(--primary-color);color:var(--primary-color);text-decoration:none;transition:all .2s;white-space:nowrap;"
-               onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
-               onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';">
-                Vérifier ma commune <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
-            </a>
-        </div>
-
-        {{-- Pills des villes --}}
-        @php
-            $displayCities = isset($favoriteCities) && $favoriteCities->count() > 0 ? $favoriteCities : collect([]);
-            $oiseFallback = [
-                ['Compiègne','60200'],['Beauvais','60000'],['Senlis','60300'],
-                ['Chantilly','60500'],['Creil','60100'],['Noyon','60400'],
-                ['Verberie','60410'],['Clermont','60600'],['Pont-Sainte-Maxence','60700'],
-                ['Méru','60110'],['Liancourt','60140'],['Gouvieux','60270'],
-                ['Lacroix-Saint-Ouen','60610'],['Margny-lès-Compiègne','60280'],
-                ['Ribécourt-Dreslincourt','60170'],['Éstrées-Saint-Denis','60190'],
-                ['Bresles','60590'],['Longueil-Annel','60150'],
-            ];
-        @endphp
-
-        <div style="display:flex;flex-wrap:wrap;gap:.625rem;">
-            @if($displayCities->count() > 0)
-                @foreach($displayCities as $city)
-                <a href="{{ route('ads.index') }}?city={{ $city->slug }}"
-                   style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px solid #c6e4cf;background:#fff;color:#374151;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .18s;box-shadow:0 1px 3px rgba(0,0,0,.06);"
-                   onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)';this.style.background='rgba(var(--primary-color-rgb,34,197,94),.06)';"
-                   onmouseout="this.style.borderColor='#c6e4cf';this.style.color='#374151';this.style.background='#fff';">
-                    <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.7rem;"></i>
-                    {{ $city->name }}
-                    @if($city->postal_code)
-                    <span style="color:#9ca3af;font-size:.75rem;font-family:monospace;">{{ $city->postal_code }}</span>
-                    @endif
+                <a href="{{ route('contact') }}" class="btn-outline-green" style="font-size:.82rem;padding:.65rem 1.25rem;">
+                    Vérifier ma commune <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
                 </a>
-                @endforeach
-            @else
-                @foreach($oiseFallback as [$name, $postal])
-                <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px solid #c6e4cf;background:#fff;color:#374151;font-size:.82rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06);">
-                    <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.7rem;"></i>
-                    {{ $name }}
-                    <span style="color:#9ca3af;font-size:.75rem;font-family:monospace;">{{ $postal }}</span>
+            </div>
+
+            {{-- Droite : pills --}}
+            <div class="zones-right">
+                @php
+                    $displayCities = isset($favoriteCities) && $favoriteCities->count() > 0 ? $favoriteCities : collect([]);
+                    $oiseFallback = [
+                        ['Compiègne','60200'],['Beauvais','60000'],['Senlis','60300'],
+                        ['Chantilly','60500'],['Creil','60100'],['Noyon','60400'],
+                        ['Verberie','60410'],['Clermont','60600'],['Pont-Sainte-Maxence','60700'],
+                        ['Méru','60110'],['Liancourt','60140'],['Gouvieux','60270'],
+                        ['Lacroix-Saint-Ouen','60610'],['Margny-lès-Compiègne','60280'],
+                        ['Ribécourt-Dreslincourt','60170'],['Éstrées-Saint-Denis','60190'],
+                        ['Bresles','60590'],['Longueil-Annel','60150'],
+                    ];
+                @endphp
+                <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                    @if($displayCities->count() > 0)
+                        @foreach($displayCities as $dcity)
+                        <a href="{{ route('ads.index') }}?city={{ $dcity->slug }}"
+                           style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:50px;border:1px solid #b8dfca;background:#fff;color:#1f4730;font-size:.8rem;font-weight:600;text-decoration:none;transition:all .18s;box-shadow:0 1px 3px rgba(0,0,0,.05);"
+                           onmouseover="this.style.borderColor='var(--primary-color)';this.style.color='var(--primary-color)';this.style.background='rgba(var(--primary-color-rgb,34,197,94),.07)';"
+                           onmouseout="this.style.borderColor='#b8dfca';this.style.color='#1f4730';this.style.background='#fff';">
+                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.65rem;"></i>
+                            {{ $dcity->name }}
+                            @if($dcity->postal_code)
+                            <span style="color:#9ca3af;font-size:.72rem;font-family:monospace;">{{ $dcity->postal_code }}</span>
+                            @endif
+                        </a>
+                        @endforeach
+                    @else
+                        @foreach($oiseFallback as [$zname, $zpostal])
+                        <div style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:50px;border:1px solid #b8dfca;background:#fff;color:#1f4730;font-size:.8rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+                            <i class="fas fa-map-pin" style="color:var(--primary-color);font-size:.65rem;"></i>
+                            {{ $zname }}
+                            <span style="color:#9ca3af;font-size:.72rem;font-family:monospace;">{{ $zpostal }}</span>
+                        </div>
+                        @endforeach
+                        <div style="display:inline-flex;align-items:center;padding:.45rem 1rem;border-radius:50px;border:1px dashed #b8dfca;background:transparent;color:#9ca3af;font-size:.78rem;font-style:italic;">
+                            + 40 autres communes…
+                        </div>
+                    @endif
                 </div>
-                @endforeach
-                <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:50px;border:1px dashed #c6e4cf;background:transparent;color:#9ca3af;font-size:.8rem;font-style:italic;">
-                    + 40 autres communes…
-                </div>
-            @endif
+            </div>
+
         </div>
     </div>
 </section>
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 7. TÉMOIGNAGES — Éditorial, grande citation
-     ══════════════════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════
+     §7  TÉMOIGNAGES — Grande citation + cartes
+     ══════════════════════════════════════════════════════════ --}}
 @if(($homeConfig['sections']['reviews']['enabled'] ?? true) && !empty($reviews) && count($reviews) > 0)
-<section class="py-24 bg-gray-50">
+<section style="background:#f8f9fa;padding:6rem 0;">
     <div class="lp-shell">
 
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem;margin-bottom:3.5rem;">
             <div>
-                <p class="text-xs font-black uppercase tracking-[.2em] mb-4" style="color:var(--primary-color);">Témoignages</p>
-                <h2 class="font-black text-gray-900 leading-tight" style="font-size:clamp(1.8rem,4vw,3rem);">
+                <span class="lp-label"><i class="fas fa-quote-left"></i> Témoignages</span>
+                <h2 style="font-size:clamp(1.75rem,4vw,2.8rem);font-weight:900;color:#0f172a;margin:0;">
                     {{ $homeConfig['sections']['reviews']['title'] ?? 'Ce que disent nos clients' }}
                 </h2>
                 @if(isset($averageRating) && $averageRating > 0)
-                <div class="flex items-center gap-2.5 mt-3">
-                    <div class="flex gap-0.5">@for($i=1;$i<=5;$i++)<i class="fas fa-star text-base {{ $i<=round($averageRating)?'text-amber-400':'text-gray-200' }}"></i>@endfor</div>
-                    <span class="font-black text-gray-900 text-xl">{{ number_format($averageRating,1) }}/5</span>
-                    @if(isset($totalReviews))<span class="text-gray-400 text-sm">({{ $totalReviews }} avis)</span>@endif
+                <div style="display:flex;align-items:center;gap:.75rem;margin-top:.75rem;">
+                    <div style="display:flex;gap:3px;">
+                        @for($ri = 1; $ri <= 5; $ri++)
+                        <i class="fas fa-star" style="font-size:.9rem;color:{{ $ri <= round($averageRating) ? '#fbbf24' : '#e5e7eb' }};"></i>
+                        @endfor
+                    </div>
+                    <span style="font-weight:900;color:#0f172a;font-size:1.2rem;">{{ number_format($averageRating, 1) }}/5</span>
+                    @if(isset($totalReviews))
+                    <span style="color:#94a3b8;font-size:.875rem;">({{ $totalReviews }} avis)</span>
+                    @endif
                 </div>
                 @endif
             </div>
-            <a href="{{ route('reviews.all') }}"
-               class="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-xl border-2 flex-shrink-0 transition-all"
-               style="border-color:var(--primary-color); color:var(--primary-color);"
-               onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
-               onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';">
-                Lire tous les avis <i class="fas fa-star text-xs"></i>
+            <a href="{{ route('reviews.all') }}" class="btn-outline-green" style="font-size:.82rem;padding:.65rem 1.25rem;">
+                Tous les avis <i class="fas fa-star" style="font-size:.7rem;"></i>
             </a>
         </div>
 
-        {{-- Avis en 2 styles : 1 grand + N petits (max 5) --}}
-        <div class="grid lg:grid-cols-3 gap-5">
-            @foreach($reviews->take(min(5, $homeConfig['sections']['reviews']['limit'] ?? 5)) as $ri => $review)
-            @if($ri === 0)
-            {{-- Grand avis éditorial --}}
-            <div class="lg:col-span-2 rounded-3xl p-8 md:p-10 flex flex-col justify-between relative overflow-hidden"
-                 style="background:linear-gradient(135deg, #06150d 0%, #0d3b22 60%, #1a5c35 100%);">
-                <div class="text-[7rem] font-black leading-none text-white/05 absolute -top-4 -left-2 select-none">"</div>
-                <div class="flex gap-1 mb-5 relative z-10">
-                    @for($i=1;$i<=5;$i++)<i class="fas fa-star {{ $i<=$review->rating?'text-amber-400':'text-white/20' }} text-base"></i>@endfor
+        <div class="reviews-grid">
+            @foreach($reviews->take(min(5, $homeConfig['sections']['reviews']['limit'] ?? 5)) as $rvi => $review)
+            @if($rvi === 0)
+            {{-- Grande carte sombre --}}
+            <div style="background:linear-gradient(135deg,#0f1f13 0%,#1a4a28 60%,#0d3b22 100%);border-radius:24px;padding:2.5rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;grid-column:span 1;"
+                 class="review-featured">
+                <div style="position:absolute;top:-1rem;left:-.5rem;font-size:8rem;font-weight:900;color:rgba(255,255,255,.04);line-height:1;pointer-events:none;user-select:none;">&ldquo;</div>
+                <div>
+                    <div style="display:flex;gap:3px;margin-bottom:1.25rem;">
+                        @for($ri2=1;$ri2<=5;$ri2++)
+                        <i class="fas fa-star" style="font-size:.875rem;color:{{ $ri2<=$review->rating ? '#fbbf24' : 'rgba(255,255,255,.18)' }};"></i>
+                        @endfor
+                    </div>
+                    <p style="color:rgba(255,255,255,.82);font-size:1.15rem;line-height:1.7;font-weight:500;font-style:italic;margin:0 0 2rem;">
+                        &ldquo;{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail, très professionnel.', 220) }}&rdquo;
+                    </p>
                 </div>
-                <p class="text-white/85 text-xl md:text-2xl font-semibold leading-relaxed mb-8 relative z-10 italic">
-                    "{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail, très professionnel.', 220) }}"
-                </p>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/20">
+                <div style="display:flex;align-items:center;gap:.875rem;">
+                    <div style="width:3rem;height:3rem;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.18);">
                         @if($review->author_photo_url)
-                        <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
+                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" style="width:100%;height:100%;object-fit:cover;">
                         @else
-                        <div class="w-full h-full flex items-center justify-center text-white font-black text-lg" style="background:var(--primary-color);">
-                            {{ strtoupper(substr($review->author_name??'C',0,1)) }}
-                        </div>
+                            <div style="width:100%;height:100%;background:var(--primary-color);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.1rem;">
+                                {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
+                            </div>
                         @endif
                     </div>
                     <div>
-                        <div class="text-white font-bold">{{ $review->author_name }}</div>
-                        <div class="text-white/40 text-xs">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
+                        <div style="color:#fff;font-weight:700;font-size:.9rem;">{{ $review->author_name }}</div>
+                        <div style="color:rgba(255,255,255,.38);font-size:.75rem;">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
                     </div>
-                    @if($review->source && str_contains($review->source,'Google'))
-                    <div class="ml-auto flex items-center gap-1.5 bg-white/08 px-3 py-1.5 rounded-full">
-                        <i class="fab fa-google text-blue-400 text-xs"></i>
-                        <span class="text-white/50 text-xs font-semibold">Google</span>
+                    @if($review->source && str_contains($review->source, 'Google'))
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.07);padding:.35rem .75rem;border-radius:50px;">
+                        <i class="fab fa-google" style="color:#60a5fa;font-size:.75rem;"></i>
+                        <span style="color:rgba(255,255,255,.45);font-size:.7rem;font-weight:600;">Google</span>
                     </div>
                     @endif
                 </div>
             </div>
             @else
-            {{-- Petits avis --}}
-            <div class="rounded-3xl bg-white border border-gray-100 p-6 flex flex-col shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5 relative overflow-hidden">
-                <div class="absolute top-4 right-5 text-5xl font-black text-gray-50 leading-none select-none">"</div>
-                <div class="flex gap-0.5 mb-4">
-                    @for($i=1;$i<=5;$i++)<i class="fas fa-star text-xs {{ $i<=$review->rating?'text-amber-400':'text-gray-200' }}"></i>@endfor
+            {{-- Petite carte blanche --}}
+            <div style="background:#fff;border:1px solid #f1f5f9;border-radius:20px;padding:1.75rem;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.05);transition:box-shadow .25s,transform .25s;position:relative;overflow:hidden;"
+                 onmouseover="this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.transform='translateY(-3px)';"
+                 onmouseout="this.style.boxShadow='0 2px 12px rgba(0,0,0,.05)';this.style.transform='translateY(0)';">
+                <div style="position:absolute;top:.75rem;right:1rem;font-size:3.5rem;font-weight:900;color:#f8fafc;line-height:1;pointer-events:none;user-select:none;">&rdquo;</div>
+                <div style="display:flex;gap:2px;margin-bottom:1rem;">
+                    @for($ri3=1;$ri3<=5;$ri3++)
+                    <i class="fas fa-star" style="font-size:.75rem;color:{{ $ri3<=$review->rating ? '#fbbf24' : '#e5e7eb' }};"></i>
+                    @endfor
                 </div>
-                <p class="text-gray-600 text-sm italic leading-relaxed flex-1 mb-5">
-                    "{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail.', 160) }}"
+                <p style="color:#475569;font-size:.855rem;line-height:1.7;font-style:italic;flex:1;margin:0 0 1.25rem;">
+                    &ldquo;{{ \Illuminate\Support\Str::limit($review->review_text ?? 'Excellent travail.', 160) }}&rdquo;
                 </p>
-                <div class="flex items-center gap-2.5 pt-4 border-t border-gray-100">
-                    <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                <div style="display:flex;align-items:center;gap:.625rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
+                    <div style="width:2.25rem;height:2.25rem;border-radius:50%;overflow:hidden;flex-shrink:0;">
                         @if($review->author_photo_url)
-                        <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
+                            <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" style="width:100%;height:100%;object-fit:cover;">
                         @else
-                        <div class="w-full h-full flex items-center justify-center text-white text-xs font-black" style="background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));">
-                            {{ strtoupper(substr($review->author_name??'C',0,1)) }}
-                        </div>
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color,#16a34a));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.85rem;">
+                                {{ strtoupper(substr($review->author_name ?? 'C', 0, 1)) }}
+                            </div>
                         @endif
                     </div>
                     <div>
-                        <div class="font-bold text-gray-900 text-xs">{{ $review->author_name }}</div>
-                        <div class="text-gray-400 text-[10px]">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
+                        <div style="font-weight:700;color:#0f172a;font-size:.8rem;">{{ $review->author_name }}</div>
+                        <div style="color:#94a3b8;font-size:.7rem;">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('F Y') : '' }}</div>
                     </div>
                 </div>
             </div>
@@ -653,52 +987,51 @@
 
     </div>
 </section>
+<style>
+@media (min-width: 1024px) {
+    .review-featured { grid-column: span 2 !important; }
+}
+</style>
 @endif
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 8. FAQ — Accordéon minimal
-     ══════════════════════════════════════════════════════ --}}
-<section class="py-24 bg-white">
+{{-- ══════════════════════════════════════════════════════════
+     §8  FAQ — Accordéon propre, sticky gauche
+     ══════════════════════════════════════════════════════════ --}}
+<section style="background:#fff;padding:6rem 0;">
     <div class="lp-shell">
-        <div class="grid lg:grid-cols-[380px_1fr] gap-16 items-start">
+        <div class="faq-layout">
 
-            {{-- Texte gauche --}}
-            <div class="lg:sticky lg:top-24">
-                <p class="text-xs font-black uppercase tracking-[.2em] mb-5" style="color:var(--primary-color);">FAQ</p>
-                <h2 class="font-black text-gray-900 leading-tight mb-5"
-                    style="font-size:clamp(1.8rem,3.5vw,2.8rem);">
+            {{-- Gauche sticky --}}
+            <div style="position:sticky;top:6rem;align-self:flex-start;">
+                <span class="lp-label"><i class="fas fa-question-circle"></i> FAQ</span>
+                <h2 style="font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:900;color:#0f172a;line-height:1.1;margin:0 0 1rem;">
                     Vos questions,<br>nos réponses
                 </h2>
-                <p class="text-gray-500 text-base leading-relaxed mb-8">
-                    Tout ce que vous devez savoir avant de nous contacter pour votre projet d'élagage dans l'Oise.
+                <p style="color:#64748b;font-size:.9rem;line-height:1.75;margin-bottom:1.75rem;">
+                    Tout ce que vous devez savoir avant de nous confier votre projet d'élagage dans l'Oise.
                 </p>
-                <a href="{{ route('contact') }}"
-                   class="inline-flex items-center gap-2 font-bold text-sm px-6 py-3.5 rounded-xl text-white transition-all hover:opacity-90"
-                   style="background:var(--primary-color);">
-                    <i class="fas fa-envelope text-xs"></i> Poser une question
+                <a href="{{ route('contact') }}" class="btn-solid-green" style="font-size:.85rem;">
+                    <i class="fas fa-envelope" style="font-size:.8rem;"></i> Poser une question
                 </a>
             </div>
 
-            {{-- Accordéon --}}
-            <div class="divide-y divide-gray-100">
+            {{-- Droite accordéon --}}
+            <div>
                 @foreach([
-                    ['Intervenez-vous dans toute l\'Oise ?','Oui, nous couvrons l\'ensemble du département 60 : Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon, Verberie, Clermont, Méru, Liancourt, Pont-Sainte-Maxence et toutes les communes alentour. Nous intervenons également dans les départements limitrophes (Aisne, Somme, Val-d\'Oise…).'],
-                    ['Combien coûte un élagage dans l\'Oise ?','Le tarif dépend du type d\'arbre, de sa hauteur, de son accessibilité et des travaux à effectuer. C\'est pourquoi nous proposons un devis gratuit et sans engagement après visite sur place. Comptez en général entre 150€ et 800€ pour un élagage standard.'],
+                    ['Intervenez-vous dans toute l\'Oise ?','Oui, nous couvrons l\'ensemble du département 60 : Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon, Verberie, Clermont, Méru, Liancourt, Pont-Sainte-Maxence et toutes les communes alentour. Nous intervenons également dans les départements limitrophes (Aisne, Somme, Val-d\'Oise).'],
+                    ['Combien coûte un élagage dans l\'Oise ?','Le tarif dépend du type d\'arbre, de sa hauteur, de son accessibilité et des travaux à effectuer. C\'est pourquoi nous proposons un devis gratuit et sans engagement après visite sur place. Comptez en général entre 150 € et 800 € pour un élagage standard.'],
                     ['Avez-vous les certifications nécessaires ?','Absolument. Louis Hoffmann est artisan certifié, assuré en responsabilité civile professionnelle. Nous respectons toutes les normes de sécurité et les réglementations en vigueur dans le département 60.'],
                     ['Que faites-vous des déchets verts ?','Nous broyons les branches sur place si vous le souhaitez (le broyat peut servir de paillis). Les rémanents peuvent aussi être évacués et valorisés en composterie ou énergie verte.'],
                     ['En quelle saison effectuer l\'élagage ?','L\'élagage se pratique idéalement en fin d\'hiver (février-mars) ou en été (juillet-août). Certains arbres ont leurs propres rythmes. L\'abattage peut se faire toute l\'année. Nous vous conseillons lors du devis.'],
                     ['Puis-je obtenir un devis rapidement ?','Oui. Remplissez notre formulaire en ligne ou appelez-nous directement. Nous vous répondons sous 24h et nous déplaçons gratuitement pour établir un devis détaillé.'],
-                ] as $fi => $faq)
-                <div class="faq-item py-0">
-                    <details class="group">
-                        <summary class="flex items-center justify-between gap-4 py-5 cursor-pointer">
-                            <span class="font-bold text-gray-900 text-base pr-4">{{ $faq[0] }}</span>
-                            <div class="faq-icon w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                                 style="border-color:var(--primary-color); color:var(--primary-color);">
-                                <i class="fas fa-plus text-xs"></i>
-                            </div>
+                ] as $faq)
+                <div class="faq-item">
+                    <details>
+                        <summary>
+                            <span>{{ $faq[0] }}</span>
+                            <div class="faq-icon"><i class="fas fa-plus"></i></div>
                         </summary>
-                        <div class="pb-5 text-gray-500 text-sm leading-relaxed">{{ $faq[1] }}</div>
+                        <div class="faq-body">{{ $faq[1] }}</div>
                     </details>
                 </div>
                 @endforeach
@@ -708,62 +1041,65 @@
     </div>
 </section>
 
-{{-- ╔══════════════════════════════════════════════════════
-     § 9. CTA FINAL — Plein-écran, impact max
-     ══════════════════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════
+     §9  CTA FINAL — Gradient sombre, impact maximal
+     ══════════════════════════════════════════════════════════ --}}
 @if($homeConfig['sections']['cta']['enabled'] ?? true)
-{{-- Séparateur visuel avant le CTA --}}
-<div style="height:4px; background:linear-gradient(90deg, var(--primary-color), var(--secondary-color, #1a5c35), var(--primary-color));"></div>
+<div style="height:3px;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color,#16a34a),var(--primary-color));"></div>
 
-<section class="relative overflow-hidden"
-         style="background:linear-gradient(160deg, #0d3320 0%, #1a5c35 50%, #0d3320 100%);">
-    {{-- Motif discret --}}
-    <div class="absolute inset-0 opacity-[.04]"
-         style="background-image:radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px); background-size:28px 28px;"></div>
-    {{-- Halo --}}
-    <div class="absolute top-0 left-1/2 w-[800px] h-[500px] rounded-full pointer-events-none opacity-30"
-         style="background:radial-gradient(ellipse, rgba(74,222,128,.25) 0%, transparent 65%); transform:translateX(-50%) translateY(-40%);"></div>
+<section style="background:linear-gradient(155deg,#0a2214 0%,#1a5c35 50%,#0a2214 100%);position:relative;overflow:hidden;">
+    {{-- Motif pointillé --}}
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:28px 28px;opacity:.03;pointer-events:none;"></div>
+    {{-- Halo central --}}
+    <div style="position:absolute;top:0;left:50%;width:900px;height:600px;border-radius:50%;background:radial-gradient(ellipse,rgba(74,222,128,.2) 0%,transparent 65%);transform:translateX(-50%) translateY(-45%);pointer-events:none;"></div>
 
-    <div class="lp-shell relative z-10 text-center" style="padding-top:7rem; padding-bottom:7rem;">
+    <div class="lp-shell" style="position:relative;z-index:1;text-align:center;padding-top:7rem;padding-bottom:7rem;">
 
-        <div class="inline-flex items-center gap-2.5 bg-white/06 border border-white/12 rounded-full px-5 py-2 mb-8">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-white/70 text-xs font-bold uppercase tracking-widest">Département 60 — Oise · Picardie</span>
+        {{-- Badge pill --}}
+        <div style="display:inline-flex;align-items:center;gap:.625rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:50px;padding:.5rem 1.25rem;margin-bottom:2rem;">
+            <span style="width:.5rem;height:.5rem;border-radius:50%;background:#4ade80;animation:pulse-dot 2s infinite;display:inline-block;"></span>
+            <span style="color:rgba(255,255,255,.65);font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;">Département 60 — Oise · Picardie</span>
         </div>
 
-        <h2 class="font-black text-white leading-[.95] mb-6 tracking-tight"
-            style="font-size:clamp(2.5rem,7vw,6rem);">
-            {{ $homeConfig['sections']['cta']['title'] ?? 'Besoin d\'un élagueur<br>dans l\'Oise ?' }}
+        {{-- H2 --}}
+        <h2 style="font-size:clamp(2.4rem,7vw,5.5rem);font-weight:900;color:#fff;line-height:.95;letter-spacing:-.02em;margin:0 0 1.5rem;">
+            {!! nl2br(e($homeConfig['sections']['cta']['title'] ?? "Besoin d'un élagueur\ndans l'Oise ?")) !!}
         </h2>
 
-        <p class="text-white/50 text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
-            Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon — devis gratuit, réponse sous 24h, artisan certifié et assuré.
+        <p style="color:rgba(255,255,255,.48);font-size:1.1rem;line-height:1.75;max-width:600px;margin:0 auto 3rem;">
+            Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon —
+            devis gratuit, réponse sous 24h, artisan certifié et assuré.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-14">
+        {{-- CTAs --}}
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin-bottom:3.5rem;">
             <a href="{{ route('form.step', 'propertyType') }}"
-               class="group inline-flex items-center justify-center gap-3 bg-white font-black text-lg px-10 py-5 rounded-2xl shadow-2xl hover:bg-gray-50 hover:scale-[1.03] transition-all"
-               style="color:var(--primary-color);"
-               onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')">
-                <i class="fas fa-calculator group-hover:rotate-6 transition-transform"></i>
+               onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')"
+               style="display:inline-flex;align-items:center;gap:.75rem;background:#fff;color:var(--primary-color);font-size:1.05rem;font-weight:900;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;box-shadow:0 10px 40px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s;"
+               onmouseover="this.style.transform='scale(1.03)';this.style.background='#f0fdf4';"
+               onmouseout="this.style.transform='scale(1)';this.style.background='#fff';">
+                <i class="fas fa-calculator"></i>
                 Devis gratuit en ligne
             </a>
             <a href="tel:{{ $phoneRaw }}"
-               class="inline-flex items-center justify-center gap-3 border-2 border-white/20 text-white font-bold text-lg px-10 py-5 rounded-2xl hover:bg-white/08 hover:border-white/40 transition-all"
-               onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','cta-final')">
-                <span class="relative flex">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-25"></span>
-                    <i class="fas fa-phone relative text-emerald-400"></i>
+               onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ $phoneRaw }}','cta-final')"
+               style="display:inline-flex;align-items:center;gap:.75rem;border:1.5px solid rgba(255,255,255,.22);color:#fff;font-size:1.05rem;font-weight:700;padding:1.1rem 2.5rem;border-radius:16px;text-decoration:none;transition:background .2s,border-color .2s;"
+               onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.4)';"
+               onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,255,255,.22)';">
+                <span style="position:relative;display:inline-flex;">
+                    <span style="position:absolute;inset:0;border-radius:50%;background:#4ade80;opacity:.22;animation:pulse-dot 2s infinite;"></span>
+                    <i class="fas fa-phone" style="color:#4ade80;position:relative;"></i>
                 </span>
                 {{ $phone }}
             </a>
         </div>
 
         {{-- Trust pills --}}
-        <div class="flex flex-wrap justify-center gap-4">
-            @foreach(['Devis 100% gratuit','Sans engagement','Réponse sous 24h','Artisan certifié','Tout le dép. 60'] as $g)
-            <div class="flex items-center gap-2 bg-white/05 border border-white/08 px-4 py-2 rounded-full text-white/50 text-xs font-semibold">
-                <i class="fas fa-check text-emerald-400 text-[10px]"></i> {{ $g }}
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;">
+            @foreach(['Devis 100% gratuit','Sans engagement','Réponse sous 24h','Artisan certifié','Tout le dép. 60'] as $tpill)
+            <div style="display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:.45rem 1.1rem;border-radius:50px;color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;">
+                <i class="fas fa-check" style="color:#4ade80;font-size:.65rem;"></i>
+                {{ $tpill }}
             </div>
             @endforeach
         </div>
@@ -772,7 +1108,9 @@
 </section>
 @endif
 
-{{-- Sections optionnelles --}}
+{{-- ══════════════════════════════════════════════════════════
+     Sections partials complémentaires
+     ══════════════════════════════════════════════════════════ --}}
 @include('home.partials.ecology-financing')
 @include('home.partials.portfolio')
 @include('home.partials.featured-partner')
@@ -783,4 +1121,5 @@
 function trackServiceClick(n,p){ fetch('/api/track-service-click?service='+encodeURIComponent(n),{method:'GET'}).catch(()=>{}); }
 function trackFormClick(p){ fetch('/api/track-form-click',{method:'GET'}).catch(()=>{}); }
 </script>
+
 </div>
