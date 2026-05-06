@@ -752,37 +752,43 @@
             });
         @endphp
         @if(count($validLogos) > 0)
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;margin-bottom:{{ !empty($partFeatured) ? '40px' : '0' }};">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:{{ ($pfEnabled && $pfHasContent) ? '40px' : '0' }};">
             @foreach($validLogos as $logo)
             @php
-                $logoUrl = is_array($logo) ? trim((string)($logo['logo'] ?? $logo['url'] ?? $logo['image'] ?? '')) : trim((string)$logo);
-                $logoAlt = is_array($logo) ? (string)($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
+                $logoUrl  = is_array($logo) ? trim((string)($logo['logo'] ?? $logo['url'] ?? $logo['image'] ?? '')) : trim((string)$logo);
+                $logoAlt  = is_array($logo) ? (string)($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
                 $logoLink = is_array($logo) ? trim((string)($logo['url'] ?? '')) : '';
                 $logoSrc  = strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/'));
+                $logoBox  = 'width:100%;height:88px;background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:14px;display:flex;align-items:center;justify-content:center;padding:14px 16px;box-shadow:0 1px 4px rgba(30,20,10,.05);transition:box-shadow .2s,border-color .2s;';
             @endphp
-            @php $logoTag = '<div style="height:72px;padding:12px 24px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(30,20,10,.06);transition:box-shadow .2s;" onmouseover="this.style.boxShadow=\'0 6px 20px rgba(30,20,10,.12)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,20,10,.06)\'"><img src="'.e($logoSrc).'" alt="'.e($logoAlt).'" style="max-height:44px;max-width:130px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>'; @endphp
             @if($logoLink)
-                <a href="{{ $logoLink }}" target="_blank" rel="noopener" style="text-decoration:none;">{!! $logoTag !!}</a>
+            <a href="{{ $logoLink }}" target="_blank" rel="noopener" style="text-decoration:none;display:block;" onmouseover="this.firstElementChild.style.boxShadow='0 6px 20px rgba(30,20,10,.1)';this.firstElementChild.style.borderColor='var(--primary-color,#B7472A)'" onmouseout="this.firstElementChild.style.boxShadow='0 1px 4px rgba(30,20,10,.05)';this.firstElementChild.style.borderColor='rgba(30,20,10,.07)'">
+                <div style="{{ $logoBox }}"><img src="{{ $logoSrc }}" alt="{{ $logoAlt }}" style="max-height:52px;max-width:110px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.closest('a').style.display='none'"></div>
+            </a>
             @else
-                {!! $logoTag !!}
+            <div style="{{ $logoBox }}" onmouseover="this.style.boxShadow='0 6px 20px rgba(30,20,10,.1)';this.style.borderColor='var(--primary-color,#B7472A)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(30,20,10,.05)';this.style.borderColor='rgba(30,20,10,.07)'">
+                <img src="{{ $logoSrc }}" alt="{{ $logoAlt }}" style="max-height:52px;max-width:110px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display='none'">
+            </div>
             @endif
             @endforeach
         </div>
         @endif
-        @if(!empty($partFeatured) && is_array($partFeatured))
         @php
-            $pf = $partFeatured;
-            $pfImg = isset($pf['image']) ? (strpos($pf['image'],'http')===0 ? $pf['image'] : asset(ltrim($pf['image'],'/'))): null;
+            $pf = is_array($partFeatured) ? $partFeatured : [];
+            $pfEnabled = (bool)($pf['enabled'] ?? false);
+            $pfHasContent = !empty($pf['title']) || !empty($pf['body']) || !empty($pf['image']);
+            $pfImg = !empty($pf['image']) ? (strpos($pf['image'],'http')===0 ? $pf['image'] : asset(ltrim($pf['image'],'/'))) : null;
         @endphp
-        <div style="background:#fff;border:1px solid var(--ln);border-radius:20px;padding:32px;display:grid;grid-template-columns:{{ $pfImg ? '120px 1fr' : '1fr' }};gap:28px;align-items:center;max-width:680px;margin:0 auto;box-shadow:var(--s2);">
+        @if($pfEnabled && $pfHasContent)
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:20px;padding:32px;display:grid;grid-template-columns:{{ $pfImg ? '140px 1fr' : '1fr' }};gap:28px;align-items:center;max-width:680px;margin:0 auto;box-shadow:var(--s2);">
             @if($pfImg)
-            <img src="{{ $pfImg }}" alt="{{ $pf['title'] ?? 'Partenaire' }}" style="width:120px;height:80px;object-fit:contain;border-radius:10px;background:var(--bgs);padding:8px;">
+            <img src="{{ $pfImg }}" alt="{{ $pf['title'] ?? 'Partenaire' }}" style="width:140px;height:90px;object-fit:contain;border-radius:10px;background:var(--bgs);padding:8px;">
             @endif
             <div>
                 @if(!empty($pf['title']))<div style="font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">{{ $pf['title'] }}</div>@endif
                 @if(!empty($pf['subtitle']))<div style="font-size:13px;color:var(--p);font-weight:600;margin-bottom:10px;">{{ $pf['subtitle'] }}</div>@endif
                 @if(!empty($pf['body']))<p style="color:var(--ink3);font-size:14.5px;line-height:1.6;margin:0;">{{ $pf['body'] }}</p>@endif
-                @if(!empty($pf['link']))<a href="{{ $pf['link'] }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--p);text-decoration:none;">Voir le partenaire <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>@endif
+                @if(!empty($pf['link_url']))<a href="{{ $pf['link_url'] }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--p);text-decoration:none;">{{ $pf['link_label'] ?? 'Voir le partenaire' }} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>@endif
             </div>
         </div>
         @endif
@@ -791,30 +797,162 @@
 @endif
 
 
-{{-- ═══ §8 VILLES ══════════════════════════════════════════════ --}}
-@if(isset($favoriteCities) && $favoriteCities->count() > 0)
-<section class="at-sec tight" style="background:var(--bgs);">
+{{-- ═══ §8 ZONE D'INTERVENTION (villes + carte) ══════════════════════════════════════════════ --}}
+@php
+    $ziHasCities = isset($favoriteCities) && $favoriteCities->count() > 0;
+    $ziHasMap    = !empty($departmentsMap['show']);
+@endphp
+@if($ziHasCities || $ziHasMap)
+@if($ziHasMap)
+@push('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+@endpush
+@endif
+<style>
+.zi-grid{display:grid;grid-template-columns:1fr 2fr;gap:2rem;align-items:start;}
+@media(max-width:800px){.zi-grid{grid-template-columns:1fr;}}
+.zi-pill{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem 1rem;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.82);text-decoration:none;font-size:.875rem;font-weight:600;transition:background .18s,border-color .18s;}
+.zi-pill:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28);}
+.zi-dept-li{border-radius:1rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);padding:1rem;}
+.zi-dept-link{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:600;color:#fff;text-decoration:none;font-size:.9375rem;transition:color .18s;}
+.zi-dept-link:hover{color:var(--primary-color,#B7472A);}
+.zi-dept-badge{display:inline-flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:.5rem;color:#fff;font-size:.75rem;font-weight:800;margin-right:.75rem;flex-shrink:0;background:linear-gradient(135deg,var(--primary-color,#B7472A),var(--secondary-color,#D4572C));}
+.zi-city-chip{display:inline-block;border-radius:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:.3rem .7rem;font-size:.8125rem;font-weight:500;color:rgba(255,255,255,.72);text-decoration:none;transition:border-color .18s,background .18s;}
+.zi-city-chip:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);}
+.zi-map-wrap{border-radius:1.25rem;overflow:hidden;border:1px solid rgba(255,255,255,.12);height:460px;}
+@media(max-width:800px){.zi-map-wrap{height:320px;}}
+</style>
+<section style="background:#1F1A14;padding:5rem 0;">
     <div class="at-w">
-        <div class="at-sh" style="max-width:720px;">
-            <div class="at-ey">Zone d'intervention</div>
-            <h2>On intervient à {{ $city }} et dans un rayon de 30 km.</h2>
-            <p>Une demande hors zone ? Appelez-nous, on regarde au cas par cas.</p>
+        {{-- Intro --}}
+        <div style="max-width:700px;margin-bottom:2.5rem;">
+            <div class="at-ey" style="color:rgba(255,255,255,.4);">Zone d'intervention</div>
+            <h2 style="font-family:'Fraunces',serif;font-size:clamp(1.75rem,4vw,2.75rem);font-weight:700;color:#fff;line-height:1.2;margin:.75rem 0 1rem;">On intervient à {{ $city }} et dans un rayon de 30&nbsp;km.</h2>
+            <p style="color:rgba(255,255,255,.58);font-size:1.0625rem;line-height:1.65;">Une demande hors zone&nbsp;? Appelez-nous, on regarde au cas par cas.</p>
         </div>
-        <div class="at-pills">
+
+        {{-- Villes --}}
+        @if($ziHasCities)
+        <div style="display:flex;flex-wrap:wrap;gap:.625rem;margin-bottom:{{ $ziHasMap ? '3.5rem' : '0' }};">
             @foreach($favoriteCities as $fc)
-            <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="at-pill">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="zi-pill">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 {{ $fc->name }}
             </a>
             @endforeach
         </div>
+        @endif
+
+        {{-- Carte + départements --}}
+        @if($ziHasMap)
+        @php
+            $ziItems         = $departmentsMap['items'] ?? [];
+            $ziGeoUrl        = $departmentsMap['geoJsonUrl'] ?? '';
+            $ziUseCityCollapse = count($ziItems) > 1;
+        @endphp
+        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:3rem;">
+            <div style="margin-bottom:2rem;">
+                <div class="at-ey" style="color:rgba(255,255,255,.4);">Nos départements d'intervention</div>
+                <p style="color:rgba(255,255,255,.52);font-size:.9375rem;line-height:1.65;margin-top:.5rem;">
+                    Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d'intervention
+                    @if($ziUseCityCollapse) ; déployez «&nbsp;Villes desservies&nbsp;» pour afficher les principales communes.
+                    @else et les principales villes desservies. @endif
+                </p>
+            </div>
+            <div class="zi-grid">
+                {{-- Liste départements --}}
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1rem;">
+                    @foreach($ziItems as $row)
+                    <li class="zi-dept-li">
+                        <a href="{{ $row['url'] }}" class="zi-dept-link">
+                            <span style="display:flex;align-items:center;min-width:0;">
+                                <span class="zi-dept-badge">{{ $row['code'] }}</span>
+                                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $row['name'] }}</span>
+                            </span>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        @if(!empty($row['cities']) && is_array($row['cities']))
+                            @if($ziUseCityCollapse)
+                            <details style="margin-top:.875rem;border:1px solid rgba(255,255,255,.08);border-radius:.75rem;background:rgba(255,255,255,.03);">
+                                <summary style="cursor:pointer;list-style:none;padding:.6rem .875rem;font-size:.8125rem;font-weight:600;color:rgba(255,255,255,.55);">Villes desservies</summary>
+                                <div style="padding:.625rem .875rem .75rem;border-top:1px solid rgba(255,255,255,.06);">
+                                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                                        @foreach($row['cities'] as $ziCity)
+                                        <a href="{{ $ziCity['url'] }}" class="zi-city-chip">{{ $ziCity['name'] }}</a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </details>
+                            @else
+                            <div style="margin-top:.875rem;display:flex;flex-wrap:wrap;gap:.5rem;">
+                                @foreach($row['cities'] as $ziCity)
+                                <a href="{{ $ziCity['url'] }}" class="zi-city-chip">{{ $ziCity['name'] }}</a>
+                                @endforeach
+                            </div>
+                            @endif
+                        @endif
+                    </li>
+                    @endforeach
+                </ul>
+
+                {{-- Carte Leaflet --}}
+                <div class="zi-map-wrap">
+                    <div id="zi-map" style="width:100%;height:100%;" role="img" aria-label="Carte des départements d'intervention"></div>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </section>
+@if($ziHasMap)
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function(){
+    var items=@json($departmentsMap['items']??[]);
+    var geoUrl=@json($departmentsMap['geoJsonUrl']??'');
+    var primary=getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()||'#B7472A';
+    var secondary=getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()||'#D4572C';
+    function normalizeCode(c){c=String(c||'').trim().toUpperCase();if(c==='2A'||c==='2B')return c;if(/^\d+$/.test(c))return c.padStart(2,'0');return c;}
+    var highlight=new Set(items.map(function(it){return normalizeCode(it.code);}));
+    var urlByCode={};items.forEach(function(it){urlByCode[normalizeCode(it.code)]=it.url;});
+    var map=L.map('zi-map',{scrollWheelZoom:false,zoomControl:true,attributionControl:false});
+    fetch(geoUrl,{credentials:'same-origin'})
+    .then(function(r){return r.json();})
+    .then(function(geojson){
+        var layer=L.geoJSON(geojson,{
+            style:function(feat){
+                var code=normalizeCode(feat.properties&&feat.properties.code);
+                var on=highlight.has(code);
+                return{color:on?primary:'#374151',weight:on?2:0.5,fillColor:on?secondary:'#1f2937',fillOpacity:on?0.7:0.4};
+            },
+            onEachFeature:function(feature,lyr){
+                var nom=(feature.properties&&feature.properties.nom)?feature.properties.nom:'';
+                var code=normalizeCode(feature.properties&&feature.properties.code);
+                lyr.bindTooltip(nom+(code?' ('+code+')':''),{sticky:true});
+                lyr.on('click',function(){if(highlight.has(code)&&urlByCode[code])window.location.href=urlByCode[code];});
+            }
+        });
+        layer.addTo(map);
+        var targetBounds=null;
+        if(geojson.features&&geojson.features.length){
+            geojson.features.forEach(function(feat){
+                var code=normalizeCode(feat.properties&&feat.properties.code);
+                if(!highlight.has(code))return;
+                try{var b=L.geoJSON(feat).getBounds();if(b&&b.isValid())targetBounds=targetBounds?targetBounds.extend(b):b;}catch(e){}
+            });
+        }
+        try{
+            if(targetBounds&&targetBounds.isValid()){map.fitBounds(targetBounds,{padding:[32,32],maxZoom:highlight.size===1?10:9});}
+            else{map.fitBounds(layer.getBounds(),{padding:[24,24]});}
+        }catch(e){}
+        setTimeout(function(){try{map.invalidateSize();}catch(e2){}},100);
+        window.addEventListener('resize',function(){try{map.invalidateSize();}catch(e3){}});
+    })
+    .catch(function(){document.getElementById('zi-map').innerHTML='<div style="padding:2rem;text-align:center;color:#f87171;font-size:.875rem;">Impossible de charger la carte.</div>';});
+})();
+</script>
 @endif
-
-
-{{-- ═══ §8b CARTE FRANCE ══════════════════════════════════════ --}}
-@include('home.partials.france-departments-map')
+@endif
 
 
 {{-- ═══ §9 FORMULAIRE CONTACT ════════════════════════════════ --}}
