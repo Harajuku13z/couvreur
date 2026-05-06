@@ -746,22 +746,26 @@
             @if($partIntro)<p style="color:var(--ink3);font-size:16px;margin-top:10px;max-width:580px;margin-left:auto;margin-right:auto;">{{ $partIntro }}</p>@endif
         </div>
         @php
-            $validLogos = array_filter($partLogos, function($logo) {
-                $u = is_string($logo) ? $logo : ($logo['url'] ?? $logo['image'] ?? '');
-                return !empty(trim((string)$u));
+            $validLogos = array_filter(is_array($partLogos) ? $partLogos : [], function($logo) {
+                $u = is_array($logo) ? trim((string)($logo['logo'] ?? $logo['url'] ?? $logo['image'] ?? '')) : trim((string)$logo);
+                return !empty($u);
             });
         @endphp
         @if(count($validLogos) > 0)
         <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;margin-bottom:{{ !empty($partFeatured) ? '40px' : '0' }};">
             @foreach($validLogos as $logo)
             @php
-                $logoUrl = is_string($logo) ? trim($logo) : trim((string)($logo['url'] ?? $logo['image'] ?? ''));
+                $logoUrl = is_array($logo) ? trim((string)($logo['logo'] ?? $logo['url'] ?? $logo['image'] ?? '')) : trim((string)$logo);
                 $logoAlt = is_array($logo) ? (string)($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
-                $logoSrc = strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/'));
+                $logoLink = is_array($logo) ? trim((string)($logo['url'] ?? '')) : '';
+                $logoSrc  = strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/'));
             @endphp
-            <div style="height:72px;padding:12px 24px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(30,20,10,.06);transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 6px 20px rgba(30,20,10,.12)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(30,20,10,.06)'">
-                <img src="{{ $logoSrc }}" alt="{{ $logoAlt }}" style="max-height:44px;max-width:130px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display='none'">
-            </div>
+            @php $logoTag = '<div style="height:72px;padding:12px 24px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(30,20,10,.06);transition:box-shadow .2s;" onmouseover="this.style.boxShadow=\'0 6px 20px rgba(30,20,10,.12)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(30,20,10,.06)\'"><img src="'.e($logoSrc).'" alt="'.e($logoAlt).'" style="max-height:44px;max-width:130px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>'; @endphp
+            @if($logoLink)
+                <a href="{{ $logoLink }}" target="_blank" rel="noopener" style="text-decoration:none;">{!! $logoTag !!}</a>
+            @else
+                {!! $logoTag !!}
+            @endif
             @endforeach
         </div>
         @endif
@@ -807,6 +811,10 @@
     </div>
 </section>
 @endif
+
+
+{{-- ═══ §8b CARTE FRANCE ══════════════════════════════════════ --}}
+@include('home.partials.france-departments-map')
 
 
 {{-- ═══ §9 FORMULAIRE CONTACT ════════════════════════════════ --}}
