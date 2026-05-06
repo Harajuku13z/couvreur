@@ -813,7 +813,7 @@
 .zn-box{width:100%;max-width:1180px;margin:0 auto;}
 .zn-lbl{display:flex;align-items:center;gap:12px;color:#7d7a76;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:28px;}
 .zn-lbl-bar{width:24px;height:2px;background:linear-gradient(90deg,#4a9cff,#75e0c0);border-radius:100px;flex-shrink:0;}
-.zn-cols{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;}
+.zn-cols{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:stretch;}
 @media(max-width:900px){.zn-cols{grid-template-columns:1fr;gap:40px;}}
 .zn-left h2{margin:0;font-family:'Fraunces',Georgia,serif;font-size:clamp(32px,4vw,54px);line-height:1.06;font-weight:800;letter-spacing:-1.4px;color:#fff;}
 .zn-left>p,.zn-dept-hdr p{margin:20px 0 0;color:#a9a39d;font-size:16px;line-height:1.7;}
@@ -832,8 +832,8 @@
 .zn-dept-info p{margin:4px 0 0;color:#9f9891;font-size:13px;line-height:1.4;}
 .zn-dept-arr{position:relative;z-index:1;color:#9f9891;font-size:20px;transition:.25s ease;}
 .zn-dept-card:hover .zn-dept-arr{color:#75e0c0;transform:translateX(4px);}
-.zn-map-wrap{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.14);height:520px;box-shadow:0 26px 80px rgba(0,0,0,.4);}
-@media(max-width:900px){.zn-map-wrap{height:360px;}}
+.zn-map-wrap{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.14);height:100%;min-height:400px;box-shadow:0 26px 80px rgba(0,0,0,.4);}
+@media(max-width:900px){.zn-map-wrap{height:360px;min-height:360px;}}
 #zn-leaflet{width:100%;height:100%;}
 </style>
 <section class="zn-sec">
