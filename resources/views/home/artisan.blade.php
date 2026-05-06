@@ -450,10 +450,10 @@
                 $svcImg = null;
                 if (!empty($svc['featured_image'])) {
                     $raw = $svc['featured_image'];
-                    $svcImg = strpos($raw,'http')===0 ? $raw : url($raw);
+                    $svcImg = strpos($raw,'http')===0 ? $raw : asset(ltrim($raw,'/'));
                 } elseif (!empty($svc['image'])) {
                     $raw = $svc['image'];
-                    $svcImg = strpos($raw,'http')===0 ? $raw : url($raw);
+                    $svcImg = strpos($raw,'http')===0 ? $raw : asset(ltrim($raw,'/'));
                 }
                 $svcName  = $svc['name']  ?? $svc['title'] ?? 'Service';
                 $svcShort = $svc['short_description'] ?? $svc['description'] ?? '';
@@ -591,27 +591,23 @@
             {{-- ▌ PANNEAU ÉCOLOGIE --}}
             @if($ecoEnabled)
             @php $ecoBgImg = $homeConfig['ecology']['image'] ?? null; @endphp
-            <div style="position:relative;border-radius:20px;overflow:hidden;min-height:400px;display:flex;align-items:flex-end;">
-                {{-- Background --}}
-                <div style="position:absolute;inset:0;{{ $ecoBgImg ? 'background-image:url('.asset(ltrim($ecoBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F2A18 0%,#14331e 50%,#0d2016 100%);' }}"></div>
-                {{-- Overlay gradient du bas --}}
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,22,13,.97) 0%,rgba(8,22,13,.75) 50%,rgba(8,22,13,.3) 100%);"></div>
-                {{-- Feuille déco --}}
-                <div style="position:absolute;top:20px;right:24px;font-size:100px;opacity:.12;line-height:1;pointer-events:none;">🌿</div>
-                {{-- Contenu --}}
-                <div style="position:relative;z-index:1;padding:40px 36px;width:100%;">
-                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ADE80;margin-bottom:14px;">
-                        <span style="width:18px;height:2px;background:#4ADE80;border-radius:2px;display:block;"></span>
+            <div style="position:relative;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="position:absolute;inset:0;{{ $ecoBgImg ? 'background-image:url('.asset(ltrim($ecoBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(145deg,#0d2016 0%,#14331e 60%,#0F2A18 100%);' }}"></div>
+                <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(8,22,13,.55) 0%,rgba(8,22,13,.82) 100%);"></div>
+                <div style="position:absolute;bottom:-20px;right:-10px;font-size:200px;opacity:.07;line-height:1;pointer-events:none;user-select:none;">🌿</div>
+                <div style="position:relative;z-index:1;padding:44px 40px 44px;">
+                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ADE80;margin-bottom:16px;">
+                        <span style="width:18px;height:2px;background:#4ADE80;border-radius:2px;display:block;flex-shrink:0;"></span>
                         Engagement environnemental
                     </div>
-                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(20px,1.8vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 16px;">Notre Engagement Écologique</h3>
-                    <p style="color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.7;margin:0 0 24px;">
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">Notre Engagement Écologique</h3>
+                    <p style="color:rgba(255,255,255,.7);font-size:14.5px;line-height:1.72;margin:0 0 28px;">
                         Nous privilégions des matériaux respectueux de l'environnement : tuiles recyclables, isolants naturels et peintures écologiques. Nos travaux d'isolation et de rénovation visent à réduire les consommations d'énergie et à améliorer la performance thermique de votre logement. En choisissant notre entreprise, vous contribuez à une rénovation durable et responsable.
                     </p>
                     <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">♻️ Matériaux recyclables</div>
-                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🌱 Isolants naturels</div>
-                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🏠 Éco-rénovation</div>
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">♻️ Matériaux recyclables</div>
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🌱 Isolants naturels</div>
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🏠 Éco-rénovation</div>
                     </div>
                 </div>
             </div>
@@ -620,33 +616,30 @@
             {{-- ▌ PANNEAU FINANCEMENT --}}
             @if($finEnabled)
             @php $finBgImg = $homeConfig['financing']['image'] ?? null; @endphp
-            <div style="position:relative;border-radius:20px;overflow:hidden;min-height:400px;display:flex;align-items:flex-end;">
-                {{-- Background --}}
-                <div style="position:absolute;inset:0;{{ $finBgImg ? 'background-image:url('.asset(ltrim($finBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F1A35 0%,#162040 50%,#0c1628 100%);' }}"></div>
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,14,32,.97) 0%,rgba(8,14,32,.75) 50%,rgba(8,14,32,.3) 100%);"></div>
-                {{-- Déco --}}
-                <div style="position:absolute;top:20px;right:24px;font-size:90px;opacity:.12;line-height:1;pointer-events:none;">💡</div>
-                {{-- Contenu --}}
-                <div style="position:relative;z-index:1;padding:40px 36px;width:100%;">
-                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#60A5FA;margin-bottom:14px;">
-                        <span style="width:18px;height:2px;background:#60A5FA;border-radius:2px;display:block;"></span>
+            <div style="position:relative;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="position:absolute;inset:0;{{ $finBgImg ? 'background-image:url('.asset(ltrim($finBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(145deg,#0c1628 0%,#162040 60%,#0F1A35 100%);' }}"></div>
+                <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(8,14,32,.55) 0%,rgba(8,14,32,.82) 100%);"></div>
+                <div style="position:absolute;bottom:-20px;right:-10px;font-size:200px;opacity:.07;line-height:1;pointer-events:none;user-select:none;">💡</div>
+                <div style="position:relative;z-index:1;padding:44px 40px 44px;">
+                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#60A5FA;margin-bottom:16px;">
+                        <span style="width:18px;height:2px;background:#60A5FA;border-radius:2px;display:block;flex-shrink:0;"></span>
                         Financement &amp; Aides
                     </div>
-                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(20px,1.8vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 16px;">Aides et Financements Disponibles</h3>
-                    <p style="color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.7;margin:0 0 20px;">
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">Aides et Financements Disponibles</h3>
+                    <p style="color:rgba(255,255,255,.7);font-size:14.5px;line-height:1.72;margin:0 0 22px;">
                         Grâce aux dispositifs comme MaPrimeRénov', l'Éco-prêt à taux zéro (Éco-PTZ), ou encore les Certificats d'Économie d'Énergie (CEE), vos travaux de rénovation énergétique peuvent être partiellement financés. Nous vous accompagnons dans vos démarches administratives pour faciliter l'obtention des aides et subventions disponibles.
                     </p>
-                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-                        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;">
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(96,165,250,.2);border-radius:12px;">
                             <span style="font-size:22px;flex-shrink:0;">🏠</span>
-                            <div><div style="font-weight:700;font-size:14px;color:#fff;">MaPrimeRénov'</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);">Aide de l'État pour la rénovation</div></div>
+                            <div><div style="font-weight:700;font-size:14px;color:#fff;">MaPrimeRénov'</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);margin-top:2px;">Aide de l'État pour la rénovation</div></div>
                         </div>
-                        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(96,165,250,.2);border-radius:12px;">
                             <span style="font-size:22px;flex-shrink:0;">⚡</span>
-                            <div><div style="font-weight:700;font-size:14px;color:#fff;">Éco-PTZ &amp; Certificats CEE</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);">Économies d'énergie certifiées</div></div>
+                            <div><div style="font-weight:700;font-size:14px;color:#fff;">Éco-PTZ &amp; Certificats CEE</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);margin-top:2px;">Économies d'énergie certifiées</div></div>
                         </div>
                     </div>
-                    <div style="padding:12px 16px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);border-radius:12px;font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.55;">
+                    <div style="padding:13px 16px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.22);border-radius:12px;font-size:13.5px;color:rgba(255,255,255,.78);line-height:1.58;">
                         💡 Nos experts vous conseillent gratuitement sur les solutions les plus avantageuses.
                     </div>
                 </div>
@@ -752,18 +745,23 @@
             <h2>{{ $partTitle }}</h2>
             @if($partIntro)<p style="color:var(--ink3);font-size:16px;margin-top:10px;max-width:580px;margin-left:auto;margin-right:auto;">{{ $partIntro }}</p>@endif
         </div>
-        @if(count($partLogos) > 0)
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:20px;margin-bottom:{{ !empty($partFeatured) ? '40px' : '0' }};">
-            @foreach($partLogos as $logo)
+        @php
+            $validLogos = array_filter($partLogos, function($logo) {
+                $u = is_string($logo) ? $logo : ($logo['url'] ?? $logo['image'] ?? '');
+                return !empty(trim((string)$u));
+            });
+        @endphp
+        @if(count($validLogos) > 0)
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;margin-bottom:{{ !empty($partFeatured) ? '40px' : '0' }};">
+            @foreach($validLogos as $logo)
             @php
-                $logoUrl = is_string($logo) ? $logo : ($logo['url'] ?? $logo['image'] ?? '');
-                $logoAlt = is_array($logo) ? ($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
+                $logoUrl = is_string($logo) ? trim($logo) : trim((string)($logo['url'] ?? $logo['image'] ?? ''));
+                $logoAlt = is_array($logo) ? (string)($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
+                $logoSrc = strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/'));
             @endphp
-            @if($logoUrl)
-            <div style="height:64px;padding:12px 20px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:var(--s1);">
-                <img src="{{ strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/')) }}" alt="{{ $logoAlt }}" style="max-height:40px;max-width:120px;width:auto;object-fit:contain;filter:grayscale(40%);transition:filter .2s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(40%)'">
+            <div style="height:72px;padding:12px 24px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(30,20,10,.06);transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 6px 20px rgba(30,20,10,.12)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(30,20,10,.06)'">
+                <img src="{{ $logoSrc }}" alt="{{ $logoAlt }}" style="max-height:44px;max-width:130px;width:auto;height:auto;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display='none'">
             </div>
-            @endif
             @endforeach
         </div>
         @endif
