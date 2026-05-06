@@ -10,597 +10,339 @@
 
 @push('head')
 <style>
-    /* Hero : image nette + léger voile sombre (comme la home), pas de blend-mode qui “mange” la photo */
-    .contact-hero-inner {
-        min-height: 280px;
-    }
-    @media (min-width: 768px) {
-        .contact-hero-inner {
-            min-height: 380px;
-        }
-    }
-    .contact-hero h1,
-    .contact-hero p,
-    .contact-hero a:not(.bg-white) {
-        color: white !important;
-    }
-    .contact-hero .fas,
-    .contact-hero .fab,
-    .contact-hero i {
-        color: white !important;
-    }
-    .contact-card {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .contact-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-        border-color: var(--primary-color);
-    }
-    
-    .contact-card .icon-wrapper {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        transition: all 0.3s ease;
-    }
-    
-    .contact-card:hover .icon-wrapper {
-        transform: scale(1.1) rotate(5deg);
-    }
-    
-    .form-input {
-        transition: all 0.3s ease;
-    }
-    
-    .form-input:focus {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    
-    .gradient-cta {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .gradient-cta::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s ease;
-    }
-    
-    .gradient-cta:hover::before {
-        left: 100%;
-    }
-    
-    .faq-item {
-        transition: all 0.3s ease;
-    }
-    
-    .faq-item:hover {
-        transform: translateX(8px);
-        border-color: var(--primary-color);
-    }
-    
-    .pulse-dot {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.5;
-        }
-    }
-    
-    .floating {
-        animation: floating 3s ease-in-out infinite;
-    }
-    
-    @keyframes floating {
-        0%, 100% {
-            transform: translateY(0px);
-        }
-        50% {
-            transform: translateY(-10px);
-        }
-    }
-    
-    .map-container {
-        position: relative;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    }
-    
-    .section-divider {
-        height: 4px;
-        width: 80px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-        margin: 0 auto 2rem;
-        border-radius: 2px;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap');
+.ct{font-family:'Manrope',sans-serif;background:#FAF7F2;color:#1F1A14;}
+.ct h1,.ct h2,.ct h3{font-family:'Fraunces',serif;}
+/* Hero */
+.ct-hero{background:#1F1A14;position:relative;overflow:hidden;padding:5rem 0 4rem;text-align:center;}
+.ct-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,.04) 0%,transparent 60%);}
+.ct-hero-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+.ct-hero-overlay{position:absolute;inset:0;background:rgba(15,12,8,.65);}
+.ct-eyebrow{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);display:block;margin-bottom:1rem;}
+.ct-hero-title{font-size:clamp(2.5rem,6vw,4rem);font-weight:700;color:#fff;line-height:1.1;margin-bottom:1rem;}
+.ct-hero-sub{font-size:1.1rem;color:rgba(255,255,255,.7);max-width:520px;margin:0 auto 2.5rem;}
+.ct-hero-actions{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;}
+.ct-btn-white{display:inline-flex;align-items:center;gap:.6rem;padding:.85rem 1.75rem;border-radius:999px;background:#fff;color:#1F1A14;font-weight:700;text-decoration:none;transition:all .2s;font-family:'Manrope',sans-serif;}
+.ct-btn-white:hover{background:#F2EDE4;transform:translateY(-2px);}
+.ct-btn-ghost{display:inline-flex;align-items:center;gap:.6rem;padding:.85rem 1.75rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.25);color:#fff;font-weight:600;text-decoration:none;transition:all .2s;font-family:'Manrope',sans-serif;}
+.ct-btn-ghost:hover{background:rgba(255,255,255,.1);transform:translateY(-2px);}
+/* Alerts */
+.ct-alert{padding:1rem 1.25rem;border-radius:.75rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:.75rem;}
+.ct-alert-success{background:#D1FAE5;border-left:4px solid #059669;color:#064E3B;}
+.ct-alert-error{background:#FEE2E2;border-left:4px solid #DC2626;color:#7F1D1D;}
+/* Main layout */
+.ct-main{padding:4rem 0;}
+.ct-grid{display:grid;grid-template-columns:2fr 3fr;gap:3rem;align-items:start;}
+@media(max-width:900px){.ct-grid{grid-template-columns:1fr;gap:2rem;}}
+/* Info cards */
+.ct-info-card{background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:.875rem;padding:1.25rem 1.5rem;display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.ct-info-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(30,20,10,.08);border-color:rgba(30,20,10,.15);}
+.ct-info-icon{width:48px;height:48px;border-radius:.625rem;background:linear-gradient(135deg,var(--primary-color,#3b82f6),var(--secondary-color,#10b981));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ct-info-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9C8E84;margin-bottom:.2rem;}
+.ct-info-value{font-size:.9375rem;font-weight:600;color:#1F1A14;text-decoration:none;}
+.ct-info-value:hover{color:var(--primary-color,#3b82f6);}
+.ct-info-note{font-size:.75rem;color:#9C8E84;margin-top:.15rem;}
+.ct-cta-box{background:#1F1A14;border-radius:1rem;padding:2rem;margin-top:1.5rem;text-align:center;}
+.ct-cta-box-title{font-family:'Fraunces',serif;font-size:1.375rem;font-weight:700;color:#fff;margin-bottom:.5rem;}
+.ct-cta-box-sub{font-size:.875rem;color:rgba(255,255,255,.6);margin-bottom:1.25rem;}
+.ct-btn-primary{display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.5rem;border-radius:999px;background:var(--primary-color,#3b82f6);color:#fff;font-weight:700;text-decoration:none;font-family:'Manrope',sans-serif;transition:opacity .2s,transform .2s;}
+.ct-btn-primary:hover{opacity:.9;transform:translateY(-2px);}
+/* Form */
+.ct-form-wrap{background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:1rem;padding:2.5rem;}
+.ct-form-title{font-size:1.625rem;font-weight:700;color:#1F1A14;margin-bottom:.25rem;}
+.ct-form-sub{font-size:.9375rem;color:#6B6157;margin-bottom:2rem;}
+.ct-label{display:block;font-size:.8125rem;font-weight:700;color:#3D3530;margin-bottom:.4rem;}
+.ct-input,.ct-textarea,.ct-select{width:100%;padding:.75rem 1rem;border:1.5px solid rgba(30,20,10,.12);border-radius:.625rem;font-family:'Manrope',sans-serif;font-size:.9375rem;color:#1F1A14;background:#fff;transition:border-color .2s,box-shadow .2s;outline:none;box-sizing:border-box;}
+.ct-input:focus,.ct-textarea:focus,.ct-select:focus{border-color:var(--primary-color,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.ct-textarea{resize:vertical;min-height:130px;}
+.ct-file{width:100%;padding:.75rem 1rem;border:1.5px dashed rgba(30,20,10,.15);border-radius:.625rem;font-family:'Manrope',sans-serif;font-size:.875rem;color:#6B6157;background:#FAF7F2;cursor:pointer;box-sizing:border-box;}
+.ct-row2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+@media(max-width:560px){.ct-row2{grid-template-columns:1fr;}}
+.ct-field{margin-bottom:1.25rem;}
+.ct-submit{width:100%;padding:1rem;border:none;border-radius:999px;background:linear-gradient(135deg,var(--primary-color,#3b82f6),var(--secondary-color,#10b981));color:#fff;font-family:'Manrope',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .2s;display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:1.5rem;}
+.ct-submit:hover{opacity:.9;transform:translateY(-2px);}
+.ct-privacy{font-size:.75rem;color:#9C8E84;text-align:center;margin-top:.75rem;display:flex;align-items:center;justify-content:center;gap:.3rem;}
+/* Map */
+.ct-map-section{padding:4rem 0;background:#F2EDE4;}
+.ct-map-title{font-family:'Fraunces',serif;font-size:clamp(1.75rem,4vw,2.5rem);font-weight:700;color:#1F1A14;text-align:center;margin-bottom:.5rem;}
+.ct-map-sub{font-size:1rem;color:#6B6157;text-align:center;margin-bottom:2.5rem;}
+.ct-map-wrap{border-radius:1rem;overflow:hidden;box-shadow:0 16px 48px rgba(30,20,10,.12);}
+/* FAQ */
+.ct-faq-section{padding:4rem 0;}
+.ct-faq-title{font-family:'Fraunces',serif;font-size:clamp(1.75rem,4vw,2.5rem);font-weight:700;color:#1F1A14;text-align:center;margin-bottom:.5rem;}
+.ct-faq-sub{font-size:1rem;color:#6B6157;text-align:center;margin-bottom:2.5rem;}
+.ct-faq-item{background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:.75rem;margin-bottom:.75rem;overflow:hidden;transition:border-color .2s;}
+.ct-faq-item:hover{border-color:rgba(30,20,10,.18);}
+.ct-faq-q{width:100%;background:none;border:none;padding:1.25rem 1.5rem;text-align:left;font-family:'Manrope',sans-serif;font-size:.9375rem;font-weight:700;color:#1F1A14;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1rem;}
+.ct-faq-a{padding:0 1.5rem 1.25rem;font-size:.875rem;color:#6B6157;line-height:1.7;border-top:1px solid rgba(30,20,10,.06);}
 </style>
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-    <!-- Hero (même logique que la home : image en fond + overlay sombre lisible) -->
-    <section class="contact-hero relative text-white overflow-hidden rounded-b-3xl shadow-lg mb-2">
+<div class="ct">
+    {{-- Hero --}}
+    <section class="ct-hero">
         @if(!empty($contactHeroImage))
-            <div class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-                 style="background-image: url('{{ asset($contactHeroImage) }}');"></div>
-            <div class="absolute inset-0 z-[1] bg-black/45"></div>
-        @else
-            <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);"></div>
+            <div class="ct-hero-img" style="background-image:url('{{ asset($contactHeroImage) }}');"></div>
+            <div class="ct-hero-overlay"></div>
         @endif
-        <div class="absolute inset-0 z-[2] opacity-[0.07] pointer-events-none"
-             style="background-image: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E\");"></div>
-        <div class="site-shell contact-hero-inner relative z-10 flex flex-col items-center justify-center text-center py-16 md:py-24">
-            <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-5 floating shadow-inner">
-                <i class="fas fa-envelope-open-text text-3xl md:text-4xl" style="color: white;"></i>
-            </div>
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 md:mb-6 tracking-tight" style="color: white;">
-                Contact
-            </h1>
-            <p class="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-white/95 leading-relaxed">
-                Une question, un projet ? Notre équipe vous répond rapidement — devis gratuit ou message ci-dessous.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="{{ route('form.step', 'propertyType') }}" 
-                   class="group bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl inline-flex items-center">
-                    <i class="fas fa-calculator mr-2 group-hover:rotate-12 transition-transform" style="color: #1f2937;"></i>
+        <div class="site-shell" style="position:relative;z-index:1;">
+            <span class="ct-eyebrow">Nous contacter</span>
+            <h1 class="ct-hero-title">Parlons de<br><em style="font-style:italic;color:rgba(255,255,255,.55);">votre projet</em></h1>
+            <p class="ct-hero-sub">Une question, un projet ? Notre équipe vous répond rapidement — devis gratuit sous 24h.</p>
+            <div class="ct-hero-actions">
+                <a href="{{ route('form.step', 'propertyType') }}" class="ct-btn-white">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     Devis gratuit en 2 min
                 </a>
-                <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
-                   class="group bg-white/20 backdrop-blur-sm px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105 shadow-xl inline-flex items-center"
-                   style="color: white;"
-                   onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
-                    <span class="relative flex h-3 w-3 mr-3">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                    </span>
-                    <i class="fas fa-phone mr-2 group-hover:rotate-12 transition-transform" style="color: white;"></i>
+                @if(!empty($companySettings['phone']))
+                <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" class="ct-btn-ghost"
+                   @if(method_exists(App\Http\Controllers\Controller::class,'trackPhoneCall')) onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}','contact')" @endif>
+                    <span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.3);"></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5c-.11-1.08.72-2 1.8-2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 5.69 5.69l1.67-1.67a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
                     {{ $companySettings['phone'] }}
                 </a>
+                @endif
             </div>
         </div>
     </section>
 
-    @if(session('success'))
-    <div class="site-shell pt-8">
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 px-6 py-4 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle text-green-500 text-2xl mr-3"></i>
-                <span class="text-green-800 font-medium">{{ session('success') }}</span>
+    {{-- Alerts --}}
+    <div class="site-shell" style="padding-top:2rem;">
+        @if(session('success'))
+        <div class="ct-alert ct-alert-success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>{{ session('success') }}</span>
+        </div>
+        @endif
+        @if($errors->any())
+        <div class="ct-alert ct-alert-error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+                <p style="font-weight:700;margin-bottom:.25rem;">Veuillez corriger les erreurs suivantes :</p>
+                <ul style="list-style:disc;padding-left:1.25rem;font-size:.875rem;">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         </div>
+        @endif
+        @if(session('error'))
+        <div class="ct-alert ct-alert-error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>{{ session('error') }}</span>
+        </div>
+        @endif
     </div>
-    @endif
 
-    @if($errors->any())
-    <div class="site-shell pt-8">
-        <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md mb-6">
-            <div class="flex items-start">
-                <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3 mt-1"></i>
+    {{-- Main content --}}
+    <section class="ct-main">
+        <div class="site-shell">
+            <div class="ct-grid">
+                {{-- Colonne infos --}}
                 <div>
-                    <p class="text-red-800 font-semibold mb-2">Certaines informations sont manquantes ou invalides :</p>
-                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
+                    <p style="font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9C8E84;margin-bottom:.75rem;">Coordonnées</p>
+                    <h2 style="font-family:'Fraunces',serif;font-size:1.875rem;font-weight:700;color:#1F1A14;margin-bottom:1.75rem;line-height:1.2;">Comment<br>nous joindre ?</h2>
 
-    @if(session('error'))
-    <div class="site-shell pt-8">
-        <div class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 px-6 py-4 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-red-500 text-2xl mr-3"></i>
-                <span class="text-red-800 font-medium">{{ session('error') }}</span>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <div class="site-shell py-12 md:py-20">
-        <div class="grid lg:grid-cols-5 gap-10 lg:gap-14 mb-16 md:mb-20">
-            <!-- Informations de contact - 2 colonnes -->
-            <div class="lg:col-span-2">
-                <div class="sticky top-8">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                        <i class="fas fa-address-card mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
-                        Coordonnées
-                    </h2>
-                    <div class="section-divider ml-0"></div>
-                    <p class="text-gray-600 mb-8 text-lg">
-                        Plusieurs moyens de nous contacter, choisissez celui qui vous convient
-                    </p>
-                    
-                    <div class="space-y-6">
-                        <!-- Adresse -->
-                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
-                            <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
-                                <i class="fas fa-map-marker-alt text-2xl" style="color: white;"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Notre adresse</h3>
-                                <p class="text-gray-600 leading-relaxed">
-                                    @if($companySettings['address'])
-                                        {{ $companySettings['address'] }}<br>
-                                    @endif
-                                    @if($companySettings['postal_code'] || $companySettings['city'])
-                                        {{ $companySettings['postal_code'] }} {{ $companySettings['city'] }}<br>
-                                    @endif
-                                    {{ $companySettings['country'] }}
-                                </p>
-                            </div>
+                    {{-- Adresse --}}
+                    @if(!empty($companySettings['address']) || !empty($companySettings['city']))
+                    <div class="ct-info-card">
+                        <div class="ct-info-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                         </div>
-                        
-                        <!-- Téléphone -->
-                        @if($companySettings['phone'])
-                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
-                            <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
-                                <i class="fas fa-phone-alt text-2xl" style="color: white;"></i>
+                        <div>
+                            <div class="ct-info-label">Notre adresse</div>
+                            <div class="ct-info-value">
+                                @if(!empty($companySettings['address'])){{ $companySettings['address'] }},@endif
+                                {{ $companySettings['postal_code'] ?? '' }} {{ $companySettings['city'] ?? '' }}
                             </div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Appelez-nous</h3>
-                                <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" 
-                                   class="text-primary hover:text-secondary transition-colors text-xl font-bold inline-flex items-center group"
-                                   onclick="trackPhoneCall('{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}', 'contact')">
-                                    {{ $companySettings['phone'] }}
-                                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                                </a>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    <i class="far fa-clock mr-1"></i>Lun - Ven : 9h - 18h
-                                </p>
-                            </div>
-                        </div>
-                        @endif
-                        
-                        <!-- Email -->
-                        @if($companySettings['email'])
-                        <div class="contact-card contact-info-card flex items-start bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-slate-800">
-                            <div class="icon-wrapper w-16 h-16 text-white rounded-2xl flex items-center justify-center mr-5 flex-shrink-0">
-                                <i class="fas fa-envelope text-2xl" style="color: white;"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Écrivez-nous</h3>
-                                <a href="mailto:{{ $companySettings['email'] }}" 
-                                   class="text-primary hover:text-secondary transition-colors text-lg font-semibold inline-flex items-center group break-all">
-                                    {{ $companySettings['email'] }}
-                                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform flex-shrink-0"></i>
-                                </a>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    <i class="fas fa-reply mr-1"></i>Réponse sous 24h
-                                </p>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-                    
-                    <!-- CTA vers simulateur -->
-                    <div class="mt-8 p-8 gradient-cta rounded-2xl shadow-xl relative">
-                        <div class="relative z-10">
-                            <div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
-                                <i class="fas fa-rocket text-3xl" style="color: white;"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold mb-3" style="color: white;">
-                                Besoin d'un devis rapide ?
-                            </h3>
-                            <p class="mb-6 opacity-95 text-lg" style="color: white;">
-                                Utilisez notre simulateur intelligent pour obtenir une estimation personnalisée en moins de 2 minutes
-                            </p>
-                            <a href="{{ route('form.step', 'propertyType') }}" 
-                               class="inline-flex items-center bg-white text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-calculator mr-2"></i>
-                                Lancer le simulateur
-                                <i class="fas fa-arrow-right ml-2"></i>
-                            </a>
+                            <div class="ct-info-note">{{ $companySettings['country'] ?? 'France' }}</div>
                         </div>
                     </div>
+                    @endif
+
+                    {{-- Téléphone --}}
+                    @if(!empty($companySettings['phone']))
+                    <div class="ct-info-card">
+                        <div class="ct-info-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 5c-.11-1.08.72-2 1.8-2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 5.69 5.69l1.67-1.67a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                        </div>
+                        <div>
+                            <div class="ct-info-label">Appelez-nous</div>
+                            <a href="tel:{{ $companySettings['phone_raw'] ?? $companySettings['phone'] }}" class="ct-info-value">{{ $companySettings['phone'] }}</a>
+                            <div class="ct-info-note">Lun–Ven : 9h – 18h</div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Email --}}
+                    @if(!empty($companySettings['email']))
+                    <div class="ct-info-card">
+                        <div class="ct-info-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <div>
+                            <div class="ct-info-label">Écrivez-nous</div>
+                            <a href="mailto:{{ $companySettings['email'] }}" class="ct-info-value" style="word-break:break-all;">{{ $companySettings['email'] }}</a>
+                            <div class="ct-info-note">Réponse sous 24h</div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- CTA simulateur --}}
+                    <div class="ct-cta-box">
+                        <div style="width:48px;height:48px;border-radius:.625rem;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <div class="ct-cta-box-title">Devis rapide</div>
+                        <div class="ct-cta-box-sub">Obtenez une estimation personnalisée en moins de 2 minutes</div>
+                        <a href="{{ route('form.step', 'propertyType') }}" class="ct-btn-primary">
+                            Lancer le simulateur
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Formulaire de contact - 3 colonnes -->
-            <div class="lg:col-span-3 form-section">
-                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl ring-1 ring-gray-100 dark:ring-slate-800 p-8 md:p-12 border border-gray-100/80 dark:border-slate-800">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                        <i class="fas fa-paper-plane mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
-                        Envoyez un message
-                    </h2>
-                    <div class="section-divider ml-0"></div>
-                    <p class="text-gray-600 mb-8 text-lg">
-                        Remplissez le formulaire ci-dessous et nous vous recontacterons rapidement
-                    </p>
-                    
-                    <form action="{{ route('contact.send') }}" method="POST" id="contactForm" class="space-y-6" enctype="multipart/form-data">
+
+                {{-- Formulaire --}}
+                <div class="ct-form-wrap" id="contactForm">
+                    <div class="ct-form-title">Envoyez un message</div>
+                    <div class="ct-form-sub">Remplissez le formulaire et nous vous recontacterons rapidement</div>
+
+                    <form action="{{ route('contact.send') }}" method="POST" enctype="multipart/form-data" id="ct-form">
                         @csrf
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="name" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-user mr-2 text-primary"></i>Nom complet *
-                                </label>
-                                <input type="text" 
-                                       id="name" 
-                                       name="name" 
-                                       required
-                                       minlength="3"
-                                       placeholder="Jean Dupont"
-                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                        <div class="ct-row2">
+                            <div class="ct-field">
+                                <label for="name" class="ct-label">Nom complet *</label>
+                                <input type="text" id="name" name="name" required minlength="3" placeholder="Jean Dupont" class="ct-input" value="{{ old('name') }}">
                             </div>
-                            
-                            <div>
-                                <label for="email" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-envelope mr-2 text-primary"></i>Email *
-                                </label>
-                                <input type="email" 
-                                       id="email" 
-                                       name="email" 
-                                       required
-                                       placeholder="jean.dupont@exemple.fr"
-                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                            <div class="ct-field">
+                                <label for="email" class="ct-label">Email *</label>
+                                <input type="email" id="email" name="email" required placeholder="jean.dupont@exemple.fr" class="ct-input" value="{{ old('email') }}">
                             </div>
                         </div>
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="phone" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-phone mr-2 text-primary"></i>Téléphone *
-                                </label>
-                                <input type="tel" 
-                                       id="phone" 
-                                       name="phone"
-                                       required
-                                       minlength="6"
-                                       placeholder="06 12 34 56 78"
-                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                        <div class="ct-row2">
+                            <div class="ct-field">
+                                <label for="phone" class="ct-label">Téléphone *</label>
+                                <input type="tel" id="phone" name="phone" required minlength="6" placeholder="06 12 34 56 78" class="ct-input" value="{{ old('phone') }}">
                             </div>
-                            
-                            <div>
-                                <label for="postal_code" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-map-pin mr-2 text-primary"></i>Code postal *
-                                </label>
-                                <input type="text" 
-                                       id="postal_code" 
-                                       name="postal_code"
-                                       required
-                                       minlength="4"
-                                       placeholder="22540"
-                                       maxlength="10"
-                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                            <div class="ct-field">
+                                <label for="postal_code" class="ct-label">Code postal *</label>
+                                <input type="text" id="postal_code" name="postal_code" required minlength="4" maxlength="10" placeholder="21800" class="ct-input" value="{{ old('postal_code') }}">
                             </div>
                         </div>
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="city" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-city mr-2 text-primary"></i>Ville *
-                                </label>
-                                <input type="text" 
-                                       id="city" 
-                                       name="city"
-                                       required
-                                       minlength="2"
-                                       placeholder="Dijon"
-                                       class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                        <div class="ct-row2">
+                            <div class="ct-field">
+                                <label for="city" class="ct-label">Ville *</label>
+                                <input type="text" id="city" name="city" required minlength="2" placeholder="Chevigny-Saint-Sauveur" class="ct-input" value="{{ old('city') }}">
                             </div>
-                            
-                            <div>
-                                <label for="callback_time" class="block text-sm font-bold text-gray-700 mb-2">
-                                    <i class="fas fa-clock mr-2 text-primary"></i>Quand vous rappeler ? *
-                                </label>
-                                <select id="callback_time" 
-                                        name="callback_time"
-                                        required
-                                        class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                            <div class="ct-field">
+                                <label for="callback_time" class="ct-label">Quand vous rappeler ? *</label>
+                                <select id="callback_time" name="callback_time" required class="ct-select">
                                     <option value="">Sélectionnez un créneau</option>
-                                    <option value="matin">🌅 Matin (9h - 12h)</option>
-                                    <option value="apres-midi">☀️ Après-midi (14h - 17h)</option>
-                                    <option value="soir">🌆 Soir (17h - 19h)</option>
-                                    <option value="flexible">🔄 Flexible</option>
+                                    <option value="matin" {{ old('callback_time')=='matin'?'selected':'' }}>Matin (9h – 12h)</option>
+                                    <option value="apres-midi" {{ old('callback_time')=='apres-midi'?'selected':'' }}>Après-midi (14h – 17h)</option>
+                                    <option value="soir" {{ old('callback_time')=='soir'?'selected':'' }}>Soir (17h – 19h)</option>
+                                    <option value="flexible" {{ old('callback_time')=='flexible'?'selected':'' }}>Flexible</option>
                                 </select>
                             </div>
                         </div>
-                        
-                        <div>
-                            <label for="service_interest" class="block text-sm font-bold text-gray-700 mb-2">
-                                <i class="fas fa-briefcase mr-2 text-primary"></i>Service qui vous intéresse *
-                            </label>
-                            <select id="service_interest" 
-                                    name="service_interest"
-                                    required
-                                    class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                        <div class="ct-field">
+                            <label for="service_interest" class="ct-label">Service qui vous intéresse *</label>
+                            <select id="service_interest" name="service_interest" required class="ct-select">
                                 <option value="">Sélectionnez un service</option>
                                 @php
-                                    $servicesData = \App\Models\Setting::get('services', '[]');
-                                    $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
-                                    if (!is_array($services)) {
-                                        $services = [];
-                                    }
-                                    $visibleServices = array_filter($services, function($service) {
-                                        return is_array($service) && ($service['is_visible'] ?? true);
-                                    });
+                                    $svcRaw = \App\Models\Setting::get('services','[]');
+                                    $svcList = is_string($svcRaw) ? json_decode($svcRaw,true) : ($svcRaw??[]);
+                                    if(!is_array($svcList)) $svcList=[];
                                 @endphp
-                                @foreach($visibleServices as $service)
-                                    @if(is_array($service) && isset($service['name']))
-                                    <option value="{{ $service['name'] }}">{{ $service['name'] }}</option>
+                                @foreach($svcList as $svc)
+                                    @if(is_array($svc) && isset($svc['name']) && ($svc['is_visible']??true))
+                                    <option value="{{ $svc['name'] }}" {{ old('service_interest')==$svc['name']?'selected':'' }}>{{ $svc['name'] }}</option>
                                     @endif
                                 @endforeach
-                                <option value="Autre">Autre</option>
+                                <option value="Autre" {{ old('service_interest')=='Autre'?'selected':'' }}>Autre</option>
                             </select>
-                            <p class="text-xs text-gray-500 mt-2 flex items-center">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Ou <a href="{{ route('form.step', 'propertyType') }}" class="text-primary hover:underline font-semibold mx-1">utilisez notre simulateur</a> pour un devis personnalisé
-                            </p>
                         </div>
-                        
-                        <div>
-                            <label for="subject" class="block text-sm font-bold text-gray-700 mb-2">
-                                <i class="fas fa-tag mr-2 text-primary"></i>Sujet *
-                            </label>
-                            <input type="text" 
-                                   id="subject" 
-                                   name="subject" 
-                                   required
-                                   minlength="6"
-                                   placeholder="Résumé de votre demande"
-                                   class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                        <div class="ct-field">
+                            <label for="subject" class="ct-label">Sujet *</label>
+                            <input type="text" id="subject" name="subject" required minlength="6" placeholder="Résumé de votre demande" class="ct-input" value="{{ old('subject') }}">
                         </div>
-                        
-                        <div>
-                            <label for="message" class="block text-sm font-bold text-gray-700 mb-2">
-                                <i class="fas fa-comment-alt mr-2 text-primary"></i>Message *
-                            </label>
-                            <textarea id="message" 
-                                      name="message" 
-                                      rows="6"
-                                      required
-                                      minlength="6"
-                                      placeholder="Décrivez votre projet ou votre demande en détail..."
-                                      class="form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"></textarea>
+                        <div class="ct-field">
+                            <label for="message" class="ct-label">Message *</label>
+                            <textarea id="message" name="message" rows="5" required minlength="6" placeholder="Décrivez votre projet en détail..." class="ct-textarea">{{ old('message') }}</textarea>
                         </div>
-                        
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">
-                                <i class="fas fa-image mr-2 text-primary"></i>Photos (optionnel)
-                            </label>
-                            <input type="file"
-                                   id="attachments"
-                                   name="attachments[]"
-                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                   multiple
-                                   class="form-input w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all bg-gray-50">
-                            <p class="text-xs text-gray-500 mt-2 flex items-center">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Vous pouvez ajouter une ou plusieurs photos de votre projet (JPEG, PNG, WEBP, max 5 Mo par image).
-                            </p>
+                        <div class="ct-field">
+                            <label for="attachments" class="ct-label">Photos (optionnel)</label>
+                            <input type="file" id="attachments" name="attachments[]" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" multiple class="ct-file">
+                            <div style="font-size:.75rem;color:#9C8E84;margin-top:.35rem;">JPEG, PNG, WEBP — max 5 Mo par image</div>
                         </div>
-                        
+
                         {{-- reCAPTCHA --}}
                         @if(setting('recaptcha_enabled', false) && setting('recaptcha_site_key') && setting('recaptcha_secret_key'))
                         <div id="recaptcha-container"></div>
                         <input type="hidden" name="recaptcha_token" id="recaptcha_token">
                         @endif
-                        
-                        <button type="submit" 
-                                id="submitBtn"
-                                class="w-full text-white px-6 py-5 rounded-xl font-bold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
-                                style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-                            <i class="fas fa-paper-plane mr-2"></i>
+
+                        <button type="submit" class="ct-submit" id="submitBtn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             Envoyer le message
-                            <i class="fas fa-arrow-right ml-2"></i>
                         </button>
-                        
-                        <p class="text-xs text-gray-500 text-center mt-4">
-                            <i class="fas fa-lock mr-1"></i>
+                        <div class="ct-privacy">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                             Vos données sont protégées et ne seront jamais partagées
-                        </p>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
-        
-        <!-- Google Maps -->
-        @php
-            $address = $companySettings['address'] ?? '';
-            $city = $companySettings['city'] ?? '';
-            $postalCode = $companySettings['postal_code'] ?? '';
-            $country = $companySettings['country'] ?? 'France';
-            $fullAddress = trim(implode(' ', array_filter([$address, $postalCode, $city, $country])));
-            $mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($fullAddress);
-        @endphp
-        
-        @if($fullAddress)
-        <div class="mt-20 md:mt-24">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                    <i class="fas fa-map-marked-alt mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
-                    Nous trouver
-                </h2>
-                <div class="section-divider"></div>
-                <p class="text-xl text-gray-600">
-                    Venez nous rendre visite à notre bureau
-                </p>
-            </div>
-            
-            <div class="map-container">
-                <div class="w-full" style="height: 500px;">
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        style="border:0" 
-                        loading="lazy" 
-                        allowfullscreen
-                        referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.google.com/maps?q={{ urlencode($fullAddress) }}&output=embed">
-                    </iframe>
-                </div>
+    </section>
+
+    {{-- Google Maps --}}
+    @php
+        $addr = $companySettings['address'] ?? '';
+        $mapCity = $companySettings['city'] ?? '';
+        $mapZip = $companySettings['postal_code'] ?? '';
+        $mapCountry = $companySettings['country'] ?? 'France';
+        $fullAddr = trim(implode(' ', array_filter([$addr, $mapZip, $mapCity, $mapCountry])));
+    @endphp
+    @if($fullAddr)
+    <section class="ct-map-section">
+        <div class="site-shell">
+            <h2 class="ct-map-title">Nous trouver</h2>
+            <p class="ct-map-sub">Venez nous rendre visite ou appelez-nous directement</p>
+            <div class="ct-map-wrap">
+                <iframe width="100%" height="420" style="border:0;display:block;" loading="lazy" allowfullscreen
+                    src="https://www.google.com/maps?q={{ urlencode($fullAddr) }}&output=embed"></iframe>
             </div>
         </div>
-        @endif
-        
-        <!-- Section FAQ -->
-        @if(count($faqs) > 0)
-        <div class="mt-20 md:mt-24">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                    <i class="fas fa-question-circle mr-3 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
-                    Questions Fréquentes
-                </h2>
-                <div class="section-divider"></div>
-                <p class="text-xl text-gray-600">
-                    Les réponses aux questions les plus posées
-                </p>
-            </div>
-            
-            {{-- Liste des FAQ --}}
-            <div class="max-w-4xl mx-auto space-y-4" id="faqList">
-                @foreach($faqs as $index => $faq)
-                <div class="faq-item bg-white dark:bg-slate-900 border-2 border-gray-100 dark:border-slate-800 rounded-2xl shadow-md hover:shadow-xl transition-all" 
-                     data-question="{{ strtolower($faq['question'] ?? '') }}" 
-                     data-answer="{{ strtolower($faq['answer'] ?? '') }}">
-                    <div class="px-8 py-6">
-                        <div class="font-bold text-gray-900 dark:text-white mb-4 text-lg">
-                            <i class="fas fa-comment-dots mr-3 text-primary"></i>
-                            {{ $faq['question'] ?? '' }}
-                        </div>
-                        <div class="text-gray-700 leading-relaxed pl-10 text-lg border-l-4 ml-2" style="border-color: var(--primary-color);">
-                            <i class="fas fa-reply mr-2" style="color: var(--primary-color);"></i>
-                            {!! nl2br(e($faq['answer'] ?? '')) !!}
-                        </div>
-                    </div>
-                </div>
+    </section>
+    @endif
+
+    {{-- FAQ --}}
+    @if(!empty($faqs) && count($faqs) > 0)
+    <section class="ct-faq-section">
+        <div class="site-shell">
+            <h2 class="ct-faq-title">Questions fréquentes</h2>
+            <p class="ct-faq-sub">Les réponses aux questions les plus posées</p>
+            <div style="max-width:760px;margin:0 auto;">
+                @foreach($faqs as $faq)
+                <details class="ct-faq-item">
+                    <summary class="ct-faq-q" style="cursor:pointer;list-style:none;">
+                        <span>{{ $faq['question'] ?? '' }}</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;transition:transform .3s;"><polyline points="6 9 12 15 18 9"/></svg>
+                    </summary>
+                    <div class="ct-faq-a">{!! nl2br(e($faq['answer'] ?? '')) !!}</div>
+                </details>
                 @endforeach
-            </div>
-            
-            <div class="text-center mt-12">
-                <p class="text-gray-600 text-lg mb-4">
-                    <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>
-                    Vous n'avez pas trouvé la réponse à votre question ?
-                </p>
-                <a href="#contactForm" 
-                   class="inline-flex items-center text-primary hover:text-secondary font-bold text-lg transition-colors">
-                    Contactez-nous directement
-                    <i class="fas fa-arrow-down ml-2"></i>
-                </a>
+                <div style="text-align:center;margin-top:2rem;">
+                    <p style="font-size:.875rem;color:#6B6157;margin-bottom:.75rem;">Vous n'avez pas trouvé la réponse à votre question ?</p>
+                    <a href="#contactForm" style="font-size:.875rem;font-weight:700;color:var(--primary-color,#3b82f6);text-decoration:none;">Contactez-nous directement →</a>
+                </div>
             </div>
         </div>
-        @endif
-    </div>
+    </section>
+    @endif
 </div>
 
 @push('scripts')
@@ -609,176 +351,28 @@
 @include('form.partials.recaptcha')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof grecaptcha !== 'undefined') {
-        grecaptcha.ready(function() {
-            grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
-                document.getElementById('recaptcha_token').value = token;
-            });
-        });
-    }
-    
-    // Recharger le token avant la soumission
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Empêcher la soumission immédiate
-        
-        const submitBtn = document.getElementById('submitBtn');
-        const form = this;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours... <i class="fas fa-hourglass-half ml-2"></i>';
-        
-        // Générer le token reCAPTCHA si nécessaire
-        if (typeof grecaptcha !== 'undefined' && '{{ setting('recaptcha_site_key') }}' && {{ setting('recaptcha_enabled', false) ? 'true' : 'false' }}) {
+    var form = document.getElementById('ct-form');
+    var btn = document.getElementById('submitBtn');
+    if(!form || !btn) return;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Envoi en cours...';
+        if(typeof grecaptcha !== 'undefined') {
             grecaptcha.ready(function() {
-                grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action: 'contact'}).then(function(token) {
+                grecaptcha.execute('{{ setting('recaptcha_site_key') }}', {action:'contact'}).then(function(token) {
                     document.getElementById('recaptcha_token').value = token;
-                    // Soumettre le formulaire une fois le token obtenu
                     form.submit();
-                }).catch(function(error) {
-                    console.error('reCAPTCHA error:', error);
-                    // Soumettre quand même si reCAPTCHA échoue (ne pas bloquer l'utilisateur)
-                    form.submit();
-                });
+                }).catch(function(){ form.submit(); });
             });
-        } else {
-            // Pas de reCAPTCHA, soumettre directement
-            form.submit();
-        }
+        } else { form.submit(); }
     });
 });
 </script>
 @endif
-
-<script>
-// Animation au scroll pour les éléments
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver(function(entries) {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observer les cartes de contact
-document.querySelectorAll('.contact-card').forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(30px)';
-    card.style.transition = 'all 0.6s ease';
-    observer.observe(card);
-});
-
-// Animation du formulaire
-const formInputs = document.querySelectorAll('.form-input');
-formInputs.forEach((input, index) => {
-    input.addEventListener('focus', function() {
-        this.parentElement.querySelector('label')?.classList.add('text-primary');
-    });
-    
-    input.addEventListener('blur', function() {
-        if (!this.value) {
-            this.parentElement.querySelector('label')?.classList.remove('text-primary');
-        }
-    });
-});
-
-// Smooth scroll pour les liens internes
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// Validation temps réel du formulaire
-const emailInput = document.getElementById('email');
-const phoneInput = document.getElementById('phone');
-
-emailInput?.addEventListener('blur', function() {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (this.value && !emailRegex.test(this.value)) {
-        this.classList.add('border-red-500');
-        this.classList.remove('border-gray-200');
-        
-        if (!this.nextElementSibling?.classList.contains('error-message')) {
-            const errorMsg = document.createElement('p');
-            errorMsg.className = 'error-message text-red-500 text-sm mt-1';
-            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Email invalide';
-            this.parentElement.appendChild(errorMsg);
-        }
-    } else {
-        this.classList.remove('border-red-500');
-        this.classList.add('border-gray-200');
-        this.nextElementSibling?.remove();
-    }
-});
-
-phoneInput?.addEventListener('blur', function() {
-    const phoneRegex = /^[\d\s\+\-\(\)]{10,}$/;
-    if (this.value && !phoneRegex.test(this.value)) {
-        this.classList.add('border-red-500');
-        this.classList.remove('border-gray-200');
-        
-        if (!this.nextElementSibling?.classList.contains('error-message')) {
-            const errorMsg = document.createElement('p');
-            errorMsg.className = 'error-message text-red-500 text-sm mt-1';
-            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Numéro de téléphone invalide';
-            this.parentElement.appendChild(errorMsg);
-        }
-    } else {
-        this.classList.remove('border-red-500');
-        this.classList.add('border-gray-200');
-        this.nextElementSibling?.remove();
-    }
-});
-
-// Compteur de caractères pour le message
-const messageTextarea = document.getElementById('message');
-if (messageTextarea) {
-    const counterDiv = document.createElement('div');
-    counterDiv.className = 'text-sm text-gray-500 text-right mt-1';
-    counterDiv.innerHTML = '<i class="fas fa-align-left mr-1"></i><span id="charCount">0</span> caractères';
-    messageTextarea.parentElement.appendChild(counterDiv);
-    
-    messageTextarea.addEventListener('input', function() {
-        document.getElementById('charCount').textContent = this.value.length;
-        
-        if (this.value.length > 500) {
-            counterDiv.classList.add('text-primary', 'font-semibold');
-        } else {
-            counterDiv.classList.remove('text-primary', 'font-semibold');
-        }
-    });
-}
-
-// Animation des icônes au survol
-document.querySelectorAll('.contact-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        const icon = this.querySelector('i');
-        if (icon) {
-            icon.style.transform = 'scale(1.2) rotate(10deg)';
-            icon.style.transition = 'transform 0.3s ease';
-        }
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        const icon = this.querySelector('i');
-        if (icon) {
-            icon.style.transform = 'scale(1) rotate(0deg)';
-        }
-    });
-});
-</script>
+<style>
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+details.ct-faq-item[open] summary svg{transform:rotate(180deg);}
+</style>
 @endpush
 @endsection

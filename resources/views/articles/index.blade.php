@@ -1,17 +1,13 @@
 @extends('layouts.app')
 
 @php
-    // Définir les variables pour le SEO centralisé
     $currentPage = $currentPage ?? 'blog';
     $pageType = 'website';
-    
-    // Récupérer les meta tags depuis SeoHelper
     $seoData = \App\Helpers\SeoHelper::generateMetaTags('blog', [
         'title' => 'Blog et Astuces',
         'description' => 'Découvrez nos articles et conseils d\'experts en rénovation et couverture',
         'image' => file_exists(public_path('images/og-blog.jpg')) ? asset('images/og-blog.jpg') : null,
     ]);
-    
     $pageTitle = $seoData['title'];
     $pageDescription = $seoData['description'];
     $pageImage = $seoData['og:image'];
@@ -19,126 +15,96 @@
 
 @push('head')
 <style>
-    /* Variables de couleurs de branding */
-    :root {
-        --primary-color: {{ setting('primary_color', '#3b82f6') }};
-        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-        --accent-color: {{ setting('accent_color', '#f59e0b') }};
-    }
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap');
+.bl{font-family:'Manrope',sans-serif;background:#FAF7F2;color:#1F1A14;}
+.bl h1,.bl h2,.bl h3{font-family:'Fraunces',serif;}
+.bl-hero{background:#1F1A14;position:relative;overflow:hidden;padding:5rem 0 4rem;text-align:center;}
+.bl-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,.04) 0%,transparent 60%);}
+.bl-eyebrow{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);display:block;margin-bottom:1rem;}
+.bl-hero-title{font-size:clamp(2.25rem,5vw,3.5rem);font-weight:700;color:#fff;line-height:1.15;margin-bottom:1rem;}
+.bl-hero-sub{font-size:1.1rem;color:rgba(255,255,255,.65);max-width:520px;margin:0 auto;}
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;padding:4rem 0;}
+.bl-card{background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:1rem;overflow:hidden;transition:transform .3s,box-shadow .3s,border-color .3s;}
+.bl-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(30,20,10,.1);border-color:rgba(30,20,10,.15);}
+.bl-card-img{height:200px;overflow:hidden;position:relative;background:#F2EDE4;}
+.bl-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;display:block;}
+.bl-card:hover .bl-card-img img{transform:scale(1.05);}
+.bl-card-body{padding:1.5rem;}
+.bl-card-meta{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;}
+.bl-tag{font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:rgba(30,20,10,.06);color:#6B6157;text-transform:uppercase;letter-spacing:.06em;}
+.bl-date{font-size:.75rem;color:#9C8E84;}
+.bl-card-title{font-size:1.125rem;font-weight:700;color:#1F1A14;margin-bottom:.5rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.bl-card-title a{text-decoration:none;color:inherit;transition:color .2s;}
+.bl-card-title a:hover{color:var(--primary-color,#3b82f6);}
+.bl-card-desc{font-size:.8125rem;color:#6B6157;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:1rem;}
+.bl-card-link{font-size:.8125rem;font-weight:700;color:var(--primary-color,#3b82f6);text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;transition:gap .2s;}
+.bl-card-link:hover{gap:.7rem;}
+.bl-empty{text-align:center;padding:5rem 1rem;}
+.bl-pagination{display:flex;justify-content:center;padding-bottom:4rem;}
 </style>
-@endpush
 
-@section('head')
-<!-- SEO Meta Tags -->
-<meta name="robots" content="index, follow">
-<meta name="author" content="{{ setting('company_name') }}">
-<meta name="publisher" content="{{ setting('company_name') }}">
-
-<!-- Google Analytics -->
+{{-- Google/Facebook analytics --}}
 @if(setting('google_analytics_id'))
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ setting('google_analytics_id') }}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{{ setting('google_analytics_id') }}');
-</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ setting('google_analytics_id') }}');</script>
 @endif
-
-<!-- Facebook Pixel -->
-@if(setting('facebook_pixel_id'))
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '{{ setting('facebook_pixel_id') }}');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageView&noscript=1" /></noscript>
-@endif
-@endsection
+@endpush
 
 @section('content')
-<div class="min-h-screen bg-gray-50 dark:bg-slate-950">
-    <!-- En-tête : titres en noir / lisibles (aligné site-shell) -->
-    <header class="border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-12 md:py-16">
-        <div class="site-shell text-center">
-            <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color: var(--primary-color);">Blog</p>
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Blog et Astuces</h1>
-            <p class="text-lg md:text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Découvrez nos conseils d'experts pour tous vos projets de rénovation
-            </p>
+<div class="bl">
+    {{-- Hero --}}
+    <section class="bl-hero">
+        <div class="site-shell" style="position:relative;z-index:1;">
+            <span class="bl-eyebrow">Blog & conseils</span>
+            <h1 class="bl-hero-title">Nos articles d'experts</h1>
+            <p class="bl-hero-sub">Découvrez nos conseils et astuces pour tous vos projets de rénovation et de couverture</p>
         </div>
-    </header>
+    </section>
 
-    <!-- Grille d'articles -->
-    <div class="site-shell py-12 md:py-16">
-        @if($articles->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {{-- Grille articles --}}
+    <section style="background:#FAF7F2;">
+        <div class="site-shell">
+            @if($articles->count() > 0)
+            <div class="bl-grid">
                 @foreach($articles as $article)
-                    <article class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-                        @if($article->featured_image)
-                            <div class="aspect-w-16 aspect-h-9">
-                                <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" 
-                                     class="w-full h-48 object-cover">
-                            </div>
-                        @endif
-                        
-                        <div class="p-6">
-                            <div class="flex items-center text-sm text-gray-500 mb-3">
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold mr-3"
-                                      style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); color: var(--primary-color);">
-                                    Article
-                                </span>
-                                <span>{{ $article->published_at->format('d/m/Y') }}</span>
-                            </div>
-                            
-                            <h2 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                            <a href="{{ route('blog.show', $article) }}" class="transition-colors"
-                               style="--hover-color: var(--primary-color);"
-                               onmouseover="this.style.color='var(--primary-color)';"
-                               onmouseout="this.style.color='rgb(17 24 39)';">
-                                {{ $article->title }}
-                            </a>
-                            </h2>
-                            
-                            @if($article->meta_description)
-                                <p class="text-gray-600 mb-4 line-clamp-3">{{ $article->meta_description }}</p>
-                            @endif
-                            
-                            <a href="{{ route('blog.show', $article) }}" 
-                               class="inline-flex items-center font-semibold transition-colors"
-                               style="color: var(--primary-color);"
-                               onmouseover="this.style.color='var(--secondary-color)';"
-                               onmouseout="this.style.color='var(--primary-color)';">
-                                Lire la suite
-                                <i class="fas fa-arrow-right ml-2"></i>
-                            </a>
+                <article class="bl-card">
+                    @if($article->featured_image)
+                    <div class="bl-card-img">
+                        <img src="{{ asset($article->featured_image) }}" alt="{{ $article->title }}" loading="lazy">
+                    </div>
+                    @endif
+                    <div class="bl-card-body">
+                        <div class="bl-card-meta">
+                            <span class="bl-tag">Article</span>
+                            <span class="bl-date">{{ $article->published_at->format('d/m/Y') }}</span>
                         </div>
-                    </article>
+                        <h2 class="bl-card-title">
+                            <a href="{{ route('blog.show', $article) }}">{{ $article->title }}</a>
+                        </h2>
+                        @if($article->meta_description)
+                        <p class="bl-card-desc">{{ $article->meta_description }}</p>
+                        @endif
+                        <a href="{{ route('blog.show', $article) }}" class="bl-card-link">
+                            Lire la suite
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </article>
                 @endforeach
             </div>
-
             @if($articles->hasPages())
-                <div class="mt-12">
-                    {{ $articles->links() }}
-                </div>
+            <div class="bl-pagination">{{ $articles->links() }}</div>
             @endif
-        @else
-            <div class="text-center py-16 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/50">
-                <div class="text-gray-400 dark:text-slate-600 text-6xl mb-4">
-                    <i class="fas fa-newspaper" aria-hidden="true"></i>
+            @else
+            <div class="bl-empty">
+                <div style="width:80px;height:80px;border-radius:50%;background:#F2EDE4;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9C8E84" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Aucun article disponible</h3>
-                <p class="text-gray-600 dark:text-slate-400">Les articles seront bientôt disponibles.</p>
+                <h3 style="font-family:'Fraunces',serif;font-size:1.5rem;color:#1F1A14;margin-bottom:.5rem;">Aucun article disponible</h3>
+                <p style="color:#6B6157;">Les articles seront bientôt disponibles. Revenez bientôt !</p>
             </div>
-        @endif
-    </div>
+            @endif
+        </div>
+    </section>
 </div>
 @endsection
