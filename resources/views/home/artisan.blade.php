@@ -741,52 +741,83 @@
                 <h3 style="font-size:21px; margin-bottom:6px;">Demande de devis gratuit</h3>
                 <p style="color:var(--ink3); font-size:13.5px; margin-bottom:22px;">Réponse sous 24h · Sans engagement</p>
 
-                <form action="{{ route('contact.send') }}" method="POST" class="at-form">
+                @if($errors->any())
+                <div style="padding:12px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:10px; color:#DC2626; font-size:13.5px; margin-bottom:12px;">
+                    @foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach
+                </div>
+                @endif
+
+                <form action="{{ route('contact.send') }}" method="POST" enctype="multipart/form-data" class="at-form">
                     @csrf
-                    @if($errors->any())
-                    <div style="padding:12px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:10px; color:#DC2626; font-size:13.5px; margin-bottom:4px;">
-                        @foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach
-                    </div>
-                    @endif
 
                     <div class="at-frow">
                         <div class="at-field">
-                            <label>Votre nom *</label>
-                            <input type="text" name="name" value="{{ old('name') }}" placeholder="Marie Dupont" required>
+                            <label>Nom complet *</label>
+                            <input type="text" name="name" value="{{ old('name') }}" placeholder="Jean Dupont" required minlength="3">
                         </div>
                         <div class="at-field">
-                            <label>Téléphone *</label>
-                            <input type="tel" name="phone" value="{{ old('phone') }}" placeholder="06 12 34 56 78" required>
+                            <label>Email *</label>
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="jean@email.fr" required>
                         </div>
                     </div>
-                    <div class="at-field">
-                        <label>Email</label>
-                        <input type="email" name="email" value="{{ old('email') }}" placeholder="marie@email.fr">
+                    <div class="at-frow">
+                        <div class="at-field">
+                            <label>Téléphone *</label>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" placeholder="06 12 34 56 78" required minlength="6">
+                        </div>
+                        <div class="at-field">
+                            <label>Code postal *</label>
+                            <input type="text" name="postal_code" value="{{ old('postal_code') }}" placeholder="21800" required minlength="4" maxlength="10">
+                        </div>
+                    </div>
+                    <div class="at-frow">
+                        <div class="at-field">
+                            <label>Ville *</label>
+                            <input type="text" name="city" value="{{ old('city') }}" placeholder="Chevigny-Saint-Sauveur" required minlength="2">
+                        </div>
+                        <div class="at-field">
+                            <label>Quand vous rappeler ? *</label>
+                            <select name="callback_time" required>
+                                <option value="">Choisissez un créneau</option>
+                                <option value="matin" {{ old('callback_time')=='matin'?'selected':'' }}>Matin (9h – 12h)</option>
+                                <option value="apres-midi" {{ old('callback_time')=='apres-midi'?'selected':'' }}>Après-midi (14h – 17h)</option>
+                                <option value="soir" {{ old('callback_time')=='soir'?'selected':'' }}>Soir (17h – 19h)</option>
+                                <option value="flexible" {{ old('callback_time')=='flexible'?'selected':'' }}>Flexible</option>
+                            </select>
+                        </div>
                     </div>
                     @if(!empty($svcList))
                     <div class="at-field">
-                        <label>Type de besoin</label>
-                        <select name="service">
-                            <option value="">Sélectionnez…</option>
+                        <label>Service qui vous intéresse *</label>
+                        <select name="service_interest" required>
+                            <option value="">Sélectionnez un service</option>
                             @foreach($svcList as $svc)
-                            <option value="{{ $svc['name']??'' }}" {{ old('service')==($svc['name']??'') ? 'selected' : '' }}>
-                                {{ $svc['name'] ?? '' }}
-                            </option>
+                            <option value="{{ $svc['name']??'' }}" {{ old('service_interest')==($svc['name']??'') ? 'selected' : '' }}>{{ $svc['name'] ?? '' }}</option>
                             @endforeach
+                            <option value="Autre" {{ old('service_interest')=='Autre'?'selected':'' }}>Autre</option>
                         </select>
                     </div>
                     @endif
                     <div class="at-field">
-                        <label>Décrivez votre projet</label>
-                        <textarea name="message" placeholder="Quelques détails sur votre besoin…">{{ old('message') }}</textarea>
+                        <label>Sujet *</label>
+                        <input type="text" name="subject" value="{{ old('subject') }}" placeholder="Résumé de votre demande" required minlength="6">
+                    </div>
+                    <div class="at-field">
+                        <label>Message *</label>
+                        <textarea name="message" rows="4" placeholder="Décrivez votre projet en détail…" required minlength="6">{{ old('message') }}</textarea>
+                    </div>
+                    <div class="at-field">
+                        <label>Photos (optionnel)</label>
+                        <input type="file" name="attachments[]" accept="image/jpeg,image/png,image/jpg,image/webp" multiple style="padding:.55rem .875rem;border:1.5px dashed rgba(30,20,10,.15);border-radius:.625rem;font-size:.875rem;color:var(--ink3);background:var(--bgs);cursor:pointer;width:100%;box-sizing:border-box;">
                     </div>
                     <input type="hidden" name="source" value="homepage">
                     <button type="submit" class="at-submit">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                         Envoyer ma demande
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
-                    <p style="font-size:11.5px; color:var(--ink3); text-align:center; margin-top:6px;">
-                        En envoyant, vous acceptez d'être recontacté par {{ $name }}.
+                    <p style="font-size:11.5px; color:var(--ink3); text-align:center; margin-top:8px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Vos données sont protégées · Réponse sous 24h
                     </p>
                 </form>
                 @endif

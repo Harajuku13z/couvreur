@@ -1,20 +1,14 @@
 @extends('layouts.app')
 
 @php
-    // Utiliser les titres et descriptions complets (sans troncature)
     $pageTitle = $article->meta_title ?: $article->title;
     $pageDescription = $article->meta_description;
-    
-    // Filtrer les mots-clés pour enlever les mots vides
     $metaKeywords = $article->meta_keywords;
     if ($metaKeywords) {
-        $keywordsArray = array_map('trim', explode(',', $metaKeywords));
-        $stopWords = ['votre', 'notre', 'mieux', 'bien', 'bon', 'meilleur', 'orange', 'le', 'la', 'les'];
-        $filteredKeywords = array_filter($keywordsArray, function($kw) use ($stopWords) {
-            $kwLower = strtolower(trim($kw));
-            return !empty($kw) && strlen($kw) >= 3 && !in_array($kwLower, $stopWords);
-        });
-        $metaKeywords = !empty($filteredKeywords) ? implode(', ', $filteredKeywords) : null;
+        $kws = array_map('trim', explode(',', $metaKeywords));
+        $stop = ['votre','notre','mieux','bien','bon','meilleur','le','la','les'];
+        $kws = array_filter($kws, fn($k) => !empty($k) && strlen($k)>=3 && !in_array(strtolower(trim($k)),$stop));
+        $metaKeywords = !empty($kws) ? implode(', ', $kws) : null;
     }
 @endphp
 @section('title', $pageTitle)
@@ -22,16 +16,9 @@
 @section('keywords', $metaKeywords)
 
 @php
-    // Passer les métadonnées spécifiques à l'article au layout principal
-    // IMPORTANT: Ne pas tronquer les titres - utiliser le titre complet
-    $pageTitle = $article->meta_title ?: $article->title;
-    $pageDescription = $article->meta_description;
-    $pageKeywords = $article->meta_keywords;
-    $pageImage = $article->featured_image ? asset($article->featured_image) : asset(setting('default_blog_og_image', 'images/og-blog.jpg'));
+    $pageImage = $article->featured_image ? asset($article->featured_image) : asset(setting('default_blog_og_image','images/og-blog.jpg'));
     $pageType = 'article';
     $currentPage = 'article';
-    
-    // S'assurer que les titres Open Graph et Twitter utilisent le titre complet (sans troncature)
     $ogTitle = $pageTitle;
     $twitterTitle = $pageTitle;
     $ogDescription = $pageDescription;
@@ -40,1088 +27,349 @@
 
 @push('head')
 <style>
-    :root {
-        --primary-color: {{ setting('primary_color', '#3b82f6') }};
-        --secondary-color: {{ setting('secondary_color', '#1e40af') }};
-        --accent-color: {{ setting('accent_color', '#f59e0b') }};
-    }
-    
-    /* S'assurer que le titre de l'article ne soit jamais tronqué */
-    .article-hero h1 {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        white-space: normal;
-        text-overflow: unset;
-        overflow: visible;
-        max-width: 100%;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap');
+/* Page wrapper */
+.ar{font-family:'Manrope',sans-serif;background:#FAF7F2;color:#1F1A14;}
+/* Hero */
+.ar-hero{position:relative;min-height:58vh;display:flex;align-items:flex-end;overflow:hidden;}
+.ar-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
+.ar-hero-gradient{position:absolute;inset:0;background:linear-gradient(to top, rgba(15,12,8,.85) 0%, rgba(15,12,8,.45) 55%, rgba(15,12,8,.15) 100%);}
+.ar-hero-no-img{position:absolute;inset:0;background:#1F1A14;}
+.ar-hero-no-img::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,.04),transparent 60%);}
+.ar-hero-inner{position:relative;z-index:1;width:100%;padding:2.5rem 0 3rem;}
+.ar-hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:1.25rem;}
+.ar-hero-title{font-family:'Fraunces',serif;font-size:clamp(1.875rem,4.5vw,3.25rem);font-weight:700;color:#fff;line-height:1.15;margin-bottom:1.25rem;word-break:break-word;}
+.ar-hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;}
+.ar-meta-pill{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);}
+/* Layout */
+.ar-layout{display:grid;grid-template-columns:1fr 300px;gap:3rem;padding:3.5rem 0 5rem;align-items:start;}
+@media(max-width:960px){.ar-layout{grid-template-columns:1fr;gap:2rem;}}
+/* Article content */
+.ar-body{background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:1rem;padding:2.5rem;min-width:0;}
+@media(max-width:640px){.ar-body{padding:1.5rem;}}
+/* Article typography */
+.ar-content{font-size:1.0625rem;line-height:1.8;color:#3D3530;}
+.ar-content h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;color:#1F1A14;margin:1.5rem 0 1rem;line-height:1.2;}
+.ar-content h2{font-family:'Fraunces',serif;font-size:1.625rem;font-weight:700;color:#1F1A14;margin:2.5rem 0 1rem;padding-bottom:.75rem;border-bottom:2px solid rgba(30,20,10,.08);line-height:1.25;}
+.ar-content h3{font-size:1.25rem;font-weight:700;color:#1F1A14;margin:2rem 0 .75rem;padding-left:.875rem;border-left:3px solid var(--primary-color,#B7472A);line-height:1.3;}
+.ar-content h4{font-size:1.125rem;font-weight:700;color:#2A2420;margin:1.5rem 0 .5rem;}
+.ar-content p{margin-bottom:1.25rem;line-height:1.8;color:#3D3530;}
+.ar-content ul,.ar-content ol{margin:1.25rem 0 1.25rem 1.5rem;color:#3D3530;}
+.ar-content ul{list-style:disc;}
+.ar-content ol{list-style:decimal;}
+.ar-content li{margin-bottom:.625rem;line-height:1.75;}
+.ar-content strong{font-weight:700;color:#1F1A14;}
+.ar-content em{font-style:italic;}
+.ar-content a{color:var(--primary-color,#B7472A);text-decoration:underline;text-underline-offset:2px;}
+.ar-content a:hover{opacity:.8;}
+.ar-content img{max-width:100%;height:auto;border-radius:.75rem;margin:1.5rem 0;}
+.ar-content blockquote{border-left:3px solid var(--primary-color,#B7472A);padding:1rem 1.25rem;margin:1.5rem 0;background:#FAF7F2;border-radius:0 .5rem .5rem 0;font-style:italic;color:#6B6157;}
+.ar-content code{background:#F2EDE4;padding:.1rem .35rem;border-radius:.25rem;font-size:.875em;font-family:monospace;}
+.ar-content pre{background:#1F1A14;color:#E8DED2;padding:1.25rem;border-radius:.75rem;overflow-x:auto;margin:1.5rem 0;font-size:.875rem;}
+.ar-content pre code{background:transparent;padding:0;color:inherit;}
+.ar-content hr{border:none;border-top:1px solid rgba(30,20,10,.1);margin:2rem 0;}
+.ar-content table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:.9375rem;}
+.ar-content th,.ar-content td{padding:.75rem 1rem;border:1px solid rgba(30,20,10,.1);text-align:left;}
+.ar-content th{background:#F2EDE4;font-weight:700;color:#1F1A14;}
+.ar-content .cta-final{margin:2.5rem 0;padding:2rem;background:#1F1A14;border-radius:1rem;color:#fff;}
+.ar-content .cta-final h3{font-family:'Fraunces',serif;color:#fff;border:none;padding:0;font-size:1.5rem;margin:0 0 .75rem;}
+.ar-content .cta-final p{color:rgba(255,255,255,.75);margin-bottom:1rem;}
+.ar-content #faq{margin:2.5rem 0;padding:2rem;background:#F2EDE4;border-radius:1rem;border:none;}
+.ar-content #faq h2{font-family:'Fraunces',serif;font-size:1.5rem;border:none;padding:0;margin:0 0 1.5rem;}
+.ar-content #faq > div[itemscope]{background:#fff;border-radius:.75rem;padding:1.25rem 1.5rem;margin-bottom:.875rem;border-left:3px solid var(--primary-color,#B7472A);}
+.ar-content #faq h3{border:none;padding:0;font-size:1.0625rem;margin:0 0 .5rem;}
+/* Suggested links */
+.ar-links{margin-top:2rem;padding:1.5rem;background:#FAF7F2;border:1px solid rgba(30,20,10,.08);border-radius:.875rem;}
+.ar-links-title{font-size:1rem;font-weight:700;color:#1F1A14;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.ar-links-grid{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;}
+@media(max-width:500px){.ar-links-grid{grid-template-columns:1fr;}}
+.ar-link-item{display:flex;align-items:center;gap:.625rem;padding:.75rem 1rem;background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:.625rem;text-decoration:none;color:#3D3530;font-size:.8125rem;font-weight:600;transition:all .2s;}
+.ar-link-item:hover{border-color:var(--primary-color,#B7472A);color:var(--primary-color,#B7472A);}
+/* Share */
+.ar-share{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding-top:1.5rem;margin-top:1.5rem;border-top:1px solid rgba(30,20,10,.08);}
+.ar-share-label{font-size:.8125rem;font-weight:700;color:#6B6157;}
+.ar-share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:999px;font-size:.8125rem;font-weight:700;text-decoration:none;transition:opacity .18s;}
+.ar-share-fb{background:#1877F2;color:#fff;}
+.ar-share-wa{background:#25D366;color:#fff;}
+.ar-share-em{background:#6B6157;color:#fff;}
+.ar-share-cp{background:#F2EDE4;color:#3D3530;border:none;cursor:pointer;font-family:'Manrope',sans-serif;}
+.ar-share-btn:hover{opacity:.85;}
+.ar-copy-ok{display:none;font-size:.75rem;color:#059669;font-weight:700;padding:.3rem .75rem;background:#D1FAE5;border-radius:999px;}
+/* Article meta bottom */
+.ar-meta-bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;padding-top:1.25rem;margin-top:1.25rem;border-top:1px solid rgba(30,20,10,.08);font-size:.8125rem;color:#9C8E84;}
+.ar-keyword{display:inline-flex;padding:.2rem .6rem;border-radius:999px;background:rgba(30,20,10,.05);color:#6B6157;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+/* Sidebar */
+.ar-sidebar{position:sticky;top:90px;}
+.ar-sidebar-card{background:#1F1A14;border-radius:1rem;padding:1.75rem;color:#fff;margin-bottom:1.25rem;}
+.ar-sidebar-card-light{background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:1rem;padding:1.5rem;margin-bottom:1.25rem;}
+.ar-sc-logo{width:48px;height:48px;border-radius:.75rem;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+.ar-sc-name{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:.25rem;}
+.ar-sc-sub{font-size:.8125rem;color:rgba(255,255,255,.55);margin-bottom:1.25rem;}
+.ar-sc-info{display:flex;align-items:center;gap:.625rem;font-size:.8125rem;color:rgba(255,255,255,.6);margin-bottom:.625rem;text-decoration:none;}
+.ar-sc-info:hover{color:#fff;}
+.ar-sc-info svg{flex-shrink:0;opacity:.7;}
+.ar-btn-devis{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.875rem;border-radius:999px;background:var(--primary-color,#B7472A);color:#fff;font-weight:700;font-size:.9375rem;text-decoration:none;transition:opacity .18s,transform .18s;margin-top:1.25rem;}
+.ar-btn-devis:hover{opacity:.9;transform:translateY(-2px);}
+.ar-btn-phone{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-weight:600;font-size:.9375rem;text-decoration:none;transition:background .18s;margin-top:.625rem;}
+.ar-btn-phone:hover{background:rgba(255,255,255,.08);}
+.ar-trust-row{display:flex;justify-content:center;gap:1.25rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.07);}
+.ar-trust-item{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:rgba(255,255,255,.45);}
+/* Reviews sidebar */
+.ar-review{border-bottom:1px solid rgba(30,20,10,.07);padding-bottom:1.25rem;margin-bottom:1.25rem;}
+.ar-review:last-child{border:none;padding:0;margin:0;}
+.ar-stars{color:#F59E0B;font-size:.75rem;margin-bottom:.35rem;letter-spacing:.05em;}
+.ar-review-text{font-size:.8125rem;color:#6B6157;line-height:1.6;margin-bottom:.5rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.ar-reviewer{display:flex;align-items:center;gap:.5rem;}
+.ar-reviewer-avatar{width:28px;height:28px;border-radius:50%;background:var(--primary-color,#B7472A);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0;}
+.ar-reviewer-name{font-size:.8125rem;font-weight:700;color:#1F1A14;}
+/* Mobile CTA bar */
+.ar-mobile-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:#1F1A14;border-top:1px solid rgba(255,255,255,.08);padding:.875rem 1.25rem;display:flex;gap:.625rem;}
+@media(min-width:961px){.ar-mobile-cta{display:none!important;}}
+.ar-mob-btn-devis{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.75rem;border-radius:999px;background:var(--primary-color,#B7472A);color:#fff;font-weight:700;font-size:.875rem;text-decoration:none;}
+.ar-mob-btn-phone{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;}
 </style>
-<!-- Métadonnées spécifiques aux articles -->
+
+<!-- Article schema -->
 <meta property="article:published_time" content="{{ $article->created_at->toISOString() }}">
-<meta property="article:author" content="{{ setting('company_name', 'Sauser Couverture') }}">
+<meta property="article:author" content="{{ setting('company_name','Expert') }}">
 <meta property="article:section" content="Blog">
 <meta property="article:tag" content="{{ $article->focus_keyword ?? 'Rénovation' }}">
 
-<style>
-/* Styles pour le contenu généré par ChatGPT avec Tailwind CSS */
-.article-content {
-    line-height: 1.8;
-    color: #374151;
-    font-size: 1.1rem;
-}
-
-.article-content .text-link {
-    color: var(--primary-color, #3b82f6);
-    text-decoration: underline;
-    word-break: break-all;
-}
-
-.article-content .text-link:hover {
-    color: var(--secondary-color, #1e40af);
-    text-decoration: none;
-}
-
-/* S'assurer que le contenu Tailwind s'affiche correctement */
-.article-content .max-w-7xl {
-    max-width: 80rem;
-}
-
-.article-content .text-4xl {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-}
-
-.article-content .text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
-}
-
-.article-content .text-xl {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-}
-
-.article-content .bg-white {
-    background-color: #ffffff;
-}
-
-.article-content .bg-green-50 {
-    background-color: #f0fdf4;
-}
-
-.article-content .bg-blue-50 {
-    background-color: #eff6ff;
-}
-
-.article-content .rounded-xl {
-    border-radius: 0.75rem;
-}
-
-.article-content .shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-.article-content .hover\:shadow-lg:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.article-content .transition {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-}
-
-.article-content .duration-300 {
-    transition-duration: 300ms;
-}
-
-.article-content .text-gray-900 {
-    color: #111827;
-}
-
-.article-content .text-gray-800 {
-    color: #1f2937;
-}
-
-.article-content .text-gray-700 {
-    color: #374151;
-}
-
-.article-content .text-blue-500 {
-    color: #3b82f6;
-}
-
-.article-content .text-white {
-    color: #ffffff;
-}
-
-.article-content .bg-blue-500 {
-    background-color: #3b82f6;
-}
-
-.article-content .hover\:bg-blue-600:hover {
-    background-color: #2563eb;
-}
-
-.article-content .font-bold {
-    font-weight: 700;
-}
-
-.article-content .font-semibold {
-    font-weight: 600;
-}
-
-.article-content .mb-2 {
-    margin-bottom: 0.5rem;
-}
-
-.article-content .mb-4 {
-    margin-bottom: 1rem;
-}
-
-.article-content .mb-6 {
-    margin-bottom: 1.5rem;
-}
-
-.article-content .my-4 {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-}
-
-.article-content .p-4 {
-    padding: 1rem;
-}
-
-.article-content .p-6 {
-    padding: 1.5rem;
-}
-
-.article-content .px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-
-.article-content .py-3 {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-}
-
-.article-content .rounded-lg {
-    border-radius: 0.5rem;
-}
-
-.article-content .inline-block {
-    display: inline-block;
-}
-
-.article-content .text-center {
-    text-align: center;
-}
-
-.article-content .list-disc {
-    list-style-type: disc;
-}
-
-.article-content .list-inside {
-    list-style-position: inside;
-}
-
-/* Styles pour les titres et éléments HTML de base */
-.article-content h1 {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-    font-weight: 700;
-    color: #111827;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.article-content h2 {
-    font-size: 2rem;
-    line-height: 2.5rem;
-    font-weight: 700;
-    color: #111827;
-    margin-top: 2.5rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 3px solid var(--primary-color, #3b82f6);
-}
-
-.article-content h3 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    padding-left: 0.75rem;
-    border-left: 4px solid var(--accent-color, #f59e0b);
-}
-
-.article-content h4 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 600;
-    color: #374151;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-}
-
-.article-content p {
-    margin-bottom: 1.25rem;
-    line-height: 1.8;
-    color: #374151;
-    text-align: justify;
-}
-
-.article-content br {
-    display: block;
-    content: "";
-    margin-top: 0.5rem;
-}
-
-.article-content ul,
-.article-content ol {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-}
-
-.article-content ul.list-icon {
-    list-style: none;
-    padding-left: 0;
-    margin: 1.5rem 0;
-}
-
-.article-content ul.list-icon li {
-    position: relative;
-    padding-left: 2rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.75;
-}
-
-.article-content ul.list-icon li::before {
-    content: "✓";
-    position: absolute;
-    left: 0;
-    color: var(--primary-color, #3b82f6);
-    font-weight: bold;
-    font-size: 1.2rem;
-}
-
-.article-content ul:not(.list-icon) {
-    list-style-type: disc;
-    margin: 1.5rem 0;
-    padding-left: 2rem;
-}
-
-.article-content ol {
-    list-style-type: decimal;
-    margin: 1.5rem 0;
-    padding-left: 2rem;
-}
-
-.article-content li {
-    margin-bottom: 0.75rem;
-    line-height: 1.8;
-}
-
-.article-content strong {
-    font-weight: 700;
-    color: #111827;
-}
-
-.article-content em {
-    font-style: italic;
-}
-
-.article-content a {
-    color: #3b82f6;
-    text-decoration: underline;
-}
-
-.article-content a:hover {
-    color: #2563eb;
-}
-
-.article-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.5rem;
-    margin: 1.5rem 0;
-}
-
-.article-content blockquote {
-    border-left: 4px solid #3b82f6;
-    padding-left: 1rem;
-    margin: 1.5rem 0;
-    font-style: italic;
-    color: #6b7280;
-}
-
-.article-content code {
-    background-color: #f3f4f6;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-family: monospace;
-    font-size: 0.875em;
-}
-
-.article-content pre {
-    background-color: #1f2937;
-    color: #f9fafb;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    overflow-x: auto;
-    margin: 1.5rem 0;
-}
-
-.article-content pre code {
-    background-color: transparent;
-    padding: 0;
-    color: inherit;
-}
-
-.article-content hr {
-    border: none;
-    border-top: 2px solid #e5e7eb;
-    margin: 2rem 0;
-}
-
-/* Styles pour la FAQ */
-.article-content #faq {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background-color: #f9fafb;
-    border-radius: 0.75rem;
-    border: 1px solid #e5e7eb;
-}
-
-.article-content #faq h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: #111827;
-    margin-top: 0;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 3px solid var(--primary-color, #3b82f6);
-}
-
-.article-content #faq > div[itemscope] {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    border-left: 4px solid var(--primary-color, #3b82f6);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.article-content #faq h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    padding-left: 0;
-    border-left: none;
-}
-
-.article-content #faq div[itemscope][itemprop="acceptedAnswer"] {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.article-content #faq div[itemscope][itemprop="acceptedAnswer"] p {
-    margin-bottom: 0;
-    color: #374151;
-    line-height: 1.75;
-}
-
-/* Styles pour le CTA final */
-.article-content .cta-final {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    padding: 2.5rem;
-    background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, var(--secondary-color, #1e40af) 100%);
-    border-radius: 1rem;
-    color: #ffffff;
-    text-align: center;
-}
-
-.article-content .cta-final h3 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    padding-left: 0;
-    border-left: none;
-}
-
-.article-content .cta-final p {
-    color: #ffffff;
-    margin-bottom: 1.5rem;
-}
-
-.article-content .cta-final ul {
-    text-align: left;
-    display: inline-block;
-    margin-bottom: 2rem;
-    color: #ffffff;
-}
-
-.article-content .cta-final li {
-    margin-bottom: 0.75rem;
-    color: #ffffff;
-}
-
-.article-content .cta-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-}
-
-@media (min-width: 640px) {
-    .article-content .cta-buttons {
-        flex-direction: row;
-        justify-content: center;
-    }
-}
-
-.article-content .cta-buttons a {
-    display: inline-block;
-    padding: 1rem 2rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.article-content .cta-buttons .btn-primary {
-    background-color: #ffffff;
-    color: var(--primary-color, #3b82f6);
-}
-
-.article-content .cta-buttons .btn-primary:hover {
-    background-color: #f3f4f6;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.article-content .cta-buttons .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    border: 2px solid #ffffff;
-}
-
-.article-content .cta-buttons .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Styles pour la conclusion */
-.article-content .article-conclusion {
-    margin-top: 3rem;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background-color: #f0f9ff;
-    border-radius: 0.75rem;
-    border-left: 4px solid var(--accent-color, #f59e0b);
-}
-
-.article-content .article-conclusion h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #111827;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--accent-color, #f59e0b);
-}
-
-.article-content .article-conclusion p {
-    color: #374151;
-    line-height: 1.8;
-}
-
-.article-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1.5rem 0;
-}
-
-.article-content th,
-.article-content td {
-    padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    text-align: left;
-}
-
-.article-content th {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: #111827;
-}
-
-.article-content .list-decimal {
-    list-style-type: decimal;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .article-content .max-w-7xl {
-        max-width: 100%;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    
-    .article-content .text-4xl {
-        font-size: 1.875rem;
-        line-height: 2.25rem;
-    }
-    
-    .article-content .text-2xl {
-        font-size: 1.25rem;
-        line-height: 1.75rem;
-    }
-    }
-</style>
-
-<!-- Google Analytics -->
 @if(setting('google_analytics_id'))
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ setting('google_analytics_id') }}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{{ setting('google_analytics_id') }}');
-  
-  // Track article view
-  gtag('event', 'article_view', {
-    'article_title': '{{ $article->title }}',
-    'article_category': '{{ $article->category }}',
-    'page_location': '{{ request()->url() }}'
-  });
-</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ setting('google_analytics_id') }}');</script>
 @endif
-
-<!-- JavaScript pour les boutons de partage -->
-<script>
-function copyToClipboard(text) {
-    // Utiliser l'API moderne Clipboard si disponible
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(function() {
-            showCopyMessage();
-        }).catch(function(err) {
-            console.error('Erreur lors de la copie: ', err);
-            fallbackCopyTextToClipboard(text);
-        });
-    } else {
-        // Fallback pour les navigateurs plus anciens
-        fallbackCopyTextToClipboard(text);
-    }
-}
-
-function fallbackCopyTextToClipboard(text) {
-    var textArea = document.createElement("textarea");
-    textArea.value = text;
-    
-    // Éviter le défilement vers le bas sur iOS
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-    textArea.style.opacity = "0";
-    
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-        var successful = document.execCommand('copy');
-        if (successful) {
-            showCopyMessage();
-        } else {
-            console.error('Fallback: Impossible de copier le texte');
-        }
-    } catch (err) {
-        console.error('Fallback: Erreur lors de la copie ', err);
-    }
-    
-    document.body.removeChild(textArea);
-}
-
-function showCopyMessage() {
-    var message = document.getElementById('copy-message');
-    message.classList.remove('hidden');
-    
-    // Masquer le message après 3 secondes
-    setTimeout(function() {
-        message.classList.add('hidden');
-    }, 3000);
-}
-
-// Fonction pour basculer l'affichage des boutons de partage flottants
-function toggleShareButtons() {
-    var shareButtons = document.getElementById('share-buttons');
-    var mainButton = document.querySelector('button[onclick="toggleShareButtons()"]');
-    
-    if (shareButtons.classList.contains('hidden')) {
-        shareButtons.classList.remove('hidden');
-        mainButton.style.transform = 'rotate(45deg)';
-        mainButton.style.backgroundColor = '#dc2626'; // Rouge pour indiquer la fermeture
-    } else {
-        shareButtons.classList.add('hidden');
-        mainButton.style.transform = 'rotate(0deg)';
-        mainButton.style.backgroundColor = '#2563eb'; // Bleu par défaut
-    }
-}
-
-// Améliorer l'expérience utilisateur sur mobile
-document.addEventListener('DOMContentLoaded', function() {
-    // Ajouter des effets hover sur les boutons de partage
-    var shareButtons = document.querySelectorAll('.group');
-    shareButtons.forEach(function(button) {
-        button.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-        });
-        
-        button.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'none';
-        });
-    });
-    
-    // Fermer les boutons flottants quand on clique ailleurs
-    document.addEventListener('click', function(event) {
-        var shareContainer = document.querySelector('.fixed.bottom-4.right-4');
-        var shareButtons = document.getElementById('share-buttons');
-        
-        if (shareContainer && !shareContainer.contains(event.target) && !shareButtons.classList.contains('hidden')) {
-            toggleShareButtons();
-        }
-    });
-    
-    // Ajouter une animation d'apparition progressive pour les boutons flottants
-    var floatingButtons = document.querySelectorAll('#share-buttons a, #share-buttons button');
-    floatingButtons.forEach(function(button, index) {
-        button.style.transitionDelay = (index * 0.1) + 's';
-    });
-});
-</script>
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section avec image mise en avant -->
-    <div class="relative min-h-[60vh] flex items-center justify-center overflow-hidden"
-         @if($article->featured_image)
-         style="background-image: url('{{ asset($article->featured_image) }}'); background-size: cover; background-position: center; background-attachment: scroll;"
-         @else
-         style="background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));"
-         @endif>
-        <!-- Overlay sombre pour améliorer la lisibilité -->
+<div class="ar">
+    {{-- Hero --}}
+    <div class="ar-hero">
         @if($article->featured_image)
-        <div class="absolute inset-0 bg-black/50 z-0"></div>
+            <div class="ar-hero-bg" style="background-image:url('{{ asset($article->featured_image) }}');"></div>
+            <div class="ar-hero-gradient"></div>
         @else
-        <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-black/50 z-0"></div>
+            <div class="ar-hero-no-img"></div>
         @endif
-        
-        <div class="max-w-6xl mx-auto px-4 text-center text-white relative z-10 py-16 article-hero">
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg">{{ $article->title }}</h1>
-            <div class="flex items-center justify-center space-x-4 flex-wrap gap-2">
+        <div class="site-shell ar-hero-inner">
+            <div class="ar-hero-eyebrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Blog &amp; Conseils
+            </div>
+            <h1 class="ar-hero-title">{{ $article->title }}</h1>
+            <div class="ar-hero-meta">
                 @if($article->published_at)
-                <span class="flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
-                    <i class="fas fa-calendar mr-2"></i>Publié le {{ $article->published_at->format('d/m/Y') }}
+                <span class="ar-meta-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ $article->published_at->format('d/m/Y') }}
                 </span>
                 @endif
-                <span class="flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm">
-                    <i class="fas fa-clock mr-2"></i>Lecture
+                <span class="ar-meta-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    {{ $article->estimated_reading_time ?? '5' }} min de lecture
                 </span>
+                @if($article->focus_keyword)
+                <span class="ar-meta-pill">{{ $article->focus_keyword }}</span>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-6xl mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <!-- Article Content -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div class="p-8">
-                        <!-- Article Content - HTML généré directement par ChatGPT -->
-                        <div class="article-content prose prose-lg max-w-none">
-                            @php
-                                // Le contenu est déjà en HTML depuis ChatGPT
-                                $content = \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article');
-                                
-                                // Convertir les URLs en liens cliquables (pour les URLs qui ne sont pas déjà dans des balises <a>)
-                                // On évite de modifier les liens existants
-                                $content = preg_replace_callback(
-                                    '/(?<!href=["\'])(?<!>)(https?:\/\/[^\s<>"\'\)]+)(?![^<]*<\/a>)/',
-                                    function($matches) {
-                                        return '<a href="' . $matches[1] . '" target="_blank" rel="noopener noreferrer" class="text-link">' . $matches[1] . '</a>';
-                                    },
-                                    $content
-                                );
-                            @endphp
-                            {!! $content !!}
-                        </div>
-                        
-                        {{-- Liens suggérés --}}
-                        @php
-                            $suggestedLinks = \App\Helpers\InternalLinkingHelper::getSuggestedLinks('article', 5);
-                        @endphp
-                        @if(count($suggestedLinks) > 0)
-                        <div class="mt-12 p-6 rounded-lg border" style="background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1); border-color: var(--primary-color, #3b82f6);">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">
-                                <i class="fas fa-link mr-2 text-primary"></i>Articles et Services Connexes
-                            </h3>
-                            <div class="grid md:grid-cols-2 gap-4">
-                                @foreach($suggestedLinks as $link)
-                                <a href="{{ $link['url'] }}" class="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
-                                    <i class="fas {{ $link['type'] === 'service' ? 'fa-tools' : 'fa-newspaper' }} mr-3" style="color: var(--primary-color, #3b82f6);"></i>
-                                    <span class="text-gray-800 hover:underline" style="--hover-color: var(--primary-color, #3b82f6);">{{ $link['title'] }}</span>
-                                    <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
-                                </a>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-                        
-                        <!-- Boutons de partage social -->
-                        <div class="mt-8 pt-6 border-t border-gray-200">
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div class="flex items-center">
-                                    <span class="text-sm font-medium text-gray-700 mr-3">
-                                        <i class="fas fa-share-alt mr-2"></i>Partager cet article :
-                                    </span>
-                                </div>
-                                
-                                <div class="flex items-center space-x-3">
-                                    <!-- Facebook -->
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: var(--primary-color, #3b82f6);" onmouseover="this.style.backgroundColor='var(--secondary-color, #1e40af)'" onmouseout="this.style.backgroundColor='var(--primary-color, #3b82f6)'">
-                                        <i class="fab fa-facebook-f"></i>
-                                        <span class="hidden sm:inline">Facebook</span>
-                                    </a>
-                                    
-                                    <!-- WhatsApp -->
-                                    <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       class="text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group" style="background-color: #25D366;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                        <i class="fab fa-whatsapp"></i>
-                                        <span class="hidden sm:inline">WhatsApp</span>
-                                    </a>
-                                    
-                                    <!-- Email -->
-                                    <a href="mailto:?subject={{ urlencode($article->title) }}&body={{ urlencode('Je vous partage cet article intéressant : ' . request()->url()) }}" 
-                                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group">
-                                        <i class="fas fa-envelope"></i>
-                                        <span class="hidden sm:inline">Email</span>
-                                    </a>
-                                    
-                                    <!-- Copier le lien -->
-                                    <button onclick="copyToClipboard('{{ request()->url() }}')" 
-                                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 group"
-                                            title="Copier le lien">
-                                        <i class="fas fa-copy"></i>
-                                        <span class="hidden sm:inline">Copier</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Message de confirmation pour la copie -->
-                            <div id="copy-message" class="hidden mt-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                                <i class="fas fa-check-circle mr-2"></i>Lien copié dans le presse-papiers !
-                            </div>
-                        </div>
-                        
-                        <!-- Informations supplémentaires -->
-                        <div class="mt-8 pt-6 border-t border-gray-200">
-                            <div class="flex flex-wrap items-center justify-between text-sm text-gray-500">
-                                <div class="flex items-center space-x-4">
-                                    @if($article->published_at)
-                                    <span class="flex items-center">
-                                        <i class="fas fa-calendar mr-2"></i>
-                                        Publié le {{ $article->published_at->format('d/m/Y') }}
-                                    </span>
-                                    @endif
-                                    <span class="flex items-center">
-                                        <i class="fas fa-clock mr-2"></i>
-                                        {{ $article->estimated_reading_time ?? '5' }} min de lecture
-                                    </span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                        {{ $article->focus_keyword ?? 'Rénovation' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    {{-- Layout --}}
+    <div class="site-shell ar-layout">
+        {{-- Contenu article --}}
+        <div>
+            <div class="ar-body">
+                <div class="ar-content">
+                    @php
+                        $content = \App\Helpers\InternalLinkingHelper::generateInternalLinks($article->content_html, 'article');
+                        $content = preg_replace_callback(
+                            '/(?<!href=["\'])(?<!>)(https?:\/\/[^\s<>"\'\)]+)(?![^<]*<\/a>)/',
+                            fn($m) => '<a href="'.$m[1].'" target="_blank" rel="noopener noreferrer">'.$m[1].'</a>',
+                            $content
+                        );
+                    @endphp
+                    {!! $content !!}
                 </div>
-            </div>
 
-            <!-- Sidebar -->
-            <div class="lg:col-span-1">
-                <div class="space-y-6">
-
-                    <!-- Company Info -->
-                    <div class="rounded-xl shadow-xl p-6 text-white" style="background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-building text-2xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">{{ setting('company_name') }}</h3>
-                            <p class="text-sm opacity-90">Votre partenaire rénovation</p>
-                        </div>
-                        
-                        <div class="space-y-4 mb-6">
-                            <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt mr-3 opacity-80"></i>
-                                <span class="text-sm">
-                                    @php
-                                        $address = setting('company_address', '');
-                                        $city = setting('company_city', '');
-                                        $postalCode = setting('company_postal_code', '');
-                                        $country = setting('company_country', 'France');
-                                        
-                                        $fullAddress = [];
-                                        if ($address) $fullAddress[] = $address;
-                                        if ($postalCode && $city) {
-                                            $fullAddress[] = $postalCode . ' ' . $city;
-                                        } elseif ($city) {
-                                            $fullAddress[] = $city;
-                                        } elseif ($postalCode) {
-                                            $fullAddress[] = $postalCode;
-                                        }
-                                        if ($country) $fullAddress[] = $country;
-                                        
-                                        $fullAddressString = implode(', ', $fullAddress);
-                                    @endphp
-                                    {{ $fullAddressString ?: setting('company_address') }}
-                                </span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-phone mr-3 opacity-80"></i>
-                                <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:opacity-80 transition-opacity">
-                                    {{ setting('company_phone') }}
-                                </a>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-envelope mr-3 opacity-80"></i>
-                                <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:opacity-80 transition-opacity">
-                                    {{ setting('company_email') }}
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <!-- Boutons d'action -->
-                        <div class="space-y-3">
-                            <a href="{{ route('form.step', 'propertyType') }}" 
-                               class="w-full bg-white py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center" style="color: var(--primary-color, #3b82f6);">
-                                <i class="fas fa-calculator mr-2"></i>
-                                Devis Gratuit
-                            </a>
-                            <a href="tel:{{ setting('company_phone_raw') }}" 
-                               class="w-full text-white py-3 px-4 rounded-lg font-bold transition-opacity flex items-center justify-center" style="background-color: var(--accent-color, #f59e0b);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                <i class="fas fa-phone mr-2"></i>
-                                Appeler Maintenant
-                            </a>
-                        </div>
-                        
-                        <!-- Trust badges -->
-                        <div class="mt-6 pt-4 border-t border-white border-opacity-20">
-                            <div class="flex justify-center space-x-4 text-xs">
-                                <div class="flex items-center">
-                                    <i class="fas fa-shield-alt mr-1 opacity-80"></i>
-                                    <span class="opacity-90">Garantie</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-certificate mr-1 opacity-80"></i>
-                                    <span class="opacity-90">Certifié</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-star mr-1 opacity-80"></i>
-                                    <span class="opacity-90">5★</span>
-                                </div>
-                            </div>
-                        </div>
+                {{-- Liens connexes --}}
+                @php $suggestedLinks = \App\Helpers\InternalLinkingHelper::getSuggestedLinks('article', 4); @endphp
+                @if(count($suggestedLinks) > 0)
+                <div class="ar-links">
+                    <div class="ar-links-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        Articles et services connexes
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Contact Section -->
-        <div class="mt-8 lg:hidden">
-            <div class="grid grid-cols-1 gap-6">
-                <!-- Company Info -->
-                <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-xl p-6 text-white">
-                    <div class="text-center mb-6">
-                        <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-building text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold mb-2">{{ setting('company_name') }}</h3>
-                        <p class="text-blue-100 text-sm">Votre partenaire rénovation</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex items-center">
-                            <i class="fas fa-map-marker-alt text-blue-200 mr-3"></i>
-                            <span class="text-sm">
-                                @php
-                                    $address = setting('company_address', '');
-                                    $city = setting('company_city', '');
-                                    $postalCode = setting('company_postal_code', '');
-                                    $country = setting('company_country', 'France');
-                                    
-                                    $fullAddress = [];
-                                    if ($address) $fullAddress[] = $address;
-                                    if ($postalCode && $city) {
-                                        $fullAddress[] = $postalCode . ' ' . $city;
-                                    } elseif ($city) {
-                                        $fullAddress[] = $city;
-                                    } elseif ($postalCode) {
-                                        $fullAddress[] = $postalCode;
-                                    }
-                                    if ($country) $fullAddress[] = $country;
-                                    
-                                    $fullAddressString = implode(', ', $fullAddress);
-                                @endphp
-                                {{ $fullAddressString ?: setting('company_address') }}
-                            </span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-phone text-green-300 mr-3"></i>
-                            <a href="tel:{{ setting('company_phone_raw') }}" class="text-sm hover:text-green-200 transition-colors">
-                                {{ setting('company_phone') }}
-                            </a>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-envelope text-blue-200 mr-3"></i>
-                            <a href="mailto:{{ setting('company_email') }}" class="text-sm hover:text-blue-200 transition-colors">
-                                {{ setting('company_email') }}
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- Boutons d'action -->
-                    <div class="space-y-3">
-                        <a href="{{ route('form.step', 'propertyType') }}" 
-                           class="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">
-                            <i class="fas fa-calculator mr-2"></i>
-                            Devis Gratuit
+                    <div class="ar-links-grid">
+                        @foreach($suggestedLinks as $link)
+                        <a href="{{ $link['url'] }}" class="ar-link-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            {{ $link['title'] }}
                         </a>
-                        <a href="tel:{{ setting('company_phone_raw') }}" 
-                           class="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 transition-colors flex items-center justify-center">
-                            <i class="fas fa-phone mr-2"></i>
-                            Appeler Maintenant
-                        </a>
-                    </div>
-                    
-                    <!-- Trust badges -->
-                    <div class="mt-6 pt-4 border-t border-white border-opacity-20">
-                        <div class="flex justify-center space-x-4 text-xs">
-                            <div class="flex items-center">
-                                <i class="fas fa-shield-alt text-yellow-300 mr-1"></i>
-                                <span class="text-blue-100">Garantie</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-certificate text-yellow-300 mr-1"></i>
-                                <span class="text-blue-100">Certifié</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-star text-yellow-300 mr-1"></i>
-                                <span class="text-blue-100">5★</span>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
-            </div>
-        </div>
+                @endif
 
-        <!-- Boutons de partage flottants pour mobile -->
-        <div class="fixed bottom-4 right-4 z-50 lg:hidden">
-            <div class="flex flex-col space-y-3">
-                <!-- Bouton principal de partage -->
-                <button onclick="toggleShareButtons()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                    <i class="fas fa-share-alt text-xl"></i>
-                </button>
-                
-                <!-- Boutons de partage individuels (masqués par défaut) -->
-                <div id="share-buttons" class="hidden flex flex-col space-y-2">
-                    <!-- Facebook -->
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-facebook-f"></i>
+                {{-- Partage --}}
+                <div class="ar-share">
+                    <span class="ar-share-label">Partager :</span>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}&quote={{ urlencode($article->title) }}"
+                       target="_blank" rel="noopener noreferrer" class="ar-share-btn ar-share-fb">
+                        <i class="fab fa-facebook-f"></i> Facebook
                     </a>
-                    
-                    <!-- WhatsApp -->
-                    <a href="https://wa.me/?text={{ urlencode($article->title . ' - ' . request()->url()) }}" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fab fa-whatsapp"></i>
+                    <a href="https://wa.me/?text={{ urlencode($article->title.' - '.request()->url()) }}"
+                       target="_blank" rel="noopener noreferrer" class="ar-share-btn ar-share-wa">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
                     </a>
-                    
-                    <!-- Email -->
-                    <a href="mailto:?subject={{ urlencode($article->title) }}&body={{ urlencode('Je vous partage cet article intéressant : ' . request()->url()) }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fas fa-envelope"></i>
+                    <a href="mailto:?subject={{ urlencode($article->title) }}&body={{ urlencode('Je vous partage cet article : '.request()->url()) }}"
+                       class="ar-share-btn ar-share-em">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Email
                     </a>
-                    
-                    <!-- Copier le lien -->
-                    <button onclick="copyToClipboard('{{ request()->url() }}')" 
-                            class="bg-gray-500 hover:bg-gray-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-                        <i class="fas fa-copy"></i>
+                    <button onclick="copyUrl()" class="ar-share-btn ar-share-cp">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copier
                     </button>
+                    <span class="ar-copy-ok" id="copy-ok">✓ Lien copié</span>
+                </div>
+
+                {{-- Meta bottom --}}
+                <div class="ar-meta-bottom">
+                    <div style="display:flex;align-items:center;gap:.75rem;">
+                        @if($article->published_at)
+                        <span>Publié le {{ $article->published_at->format('d/m/Y') }}</span>
+                        @endif
+                        <span>· {{ $article->estimated_reading_time ?? '5' }} min de lecture</span>
+                    </div>
+                    @if($article->focus_keyword)
+                    <span class="ar-keyword">{{ $article->focus_keyword }}</span>
+                    @endif
                 </div>
             </div>
+
+            {{-- Avis clients (mobile / sous contenu) --}}
+            @if(isset($reviews) && count($reviews) > 0)
+            <div style="background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:1rem;padding:2rem;margin-top:1.5rem;" class="hidden lg:hidden">
+                {{-- répété dans sidebar --}}
+            </div>
+            @endif
         </div>
 
-        <!-- Reviews Section -->
-        @if(isset($reviews) && count($reviews) > 0)
-        <div class="mt-12">
-            <div class="bg-white rounded-lg shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Avis Clients</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    @foreach($reviews as $review)
-                        <div class="bg-gray-50 rounded-lg p-6">
-                            <div class="flex items-center mb-4">
-                                <div class="flex text-yellow-400">
-                                    @for($i = 0; $i < 5; $i++)
-                                        <i class="fas fa-star"></i>
-                                    @endfor
-                                </div>
-                            </div>
-                            <p class="text-gray-700 mb-4">"{{ $review->review_text }}"</p>
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                    {{ substr($review->author_name, 0, 1) }}
-                                </div>
-                                <div class="ml-3">
-                                    <p class="font-semibold text-gray-900">{{ $review->author_name }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+        {{-- Sidebar --}}
+        <aside class="ar-sidebar">
+            {{-- Card entreprise --}}
+            <div class="ar-sidebar-card">
+                <div class="ar-sc-logo">
+                    @if(setting('company_logo'))
+                    <img src="{{ asset(setting('company_logo')) }}" alt="{{ setting('company_name') }}" style="height:2rem;width:auto;object-fit:contain;filter:brightness(0) invert(1);">
+                    @else
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    @endif
+                </div>
+                <div class="ar-sc-name">{{ setting('company_name') }}</div>
+                <div class="ar-sc-sub">Votre expert local en {{ setting('company_specialization','rénovation') }}</div>
+
+                @php
+                    $scAddr = setting('company_address','');
+                    $scCity = setting('company_city','');
+                    $scZip  = setting('company_postal_code','');
+                    $scFullAddr = trim(implode(', ', array_filter([$scAddr, trim($scZip.' '.$scCity)])));
+                @endphp
+
+                @if($scFullAddr)
+                <div class="ar-sc-info">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ $scFullAddr }}
+                </div>
+                @endif
+                @if(setting('company_phone'))
+                <a href="tel:{{ setting('company_phone_raw') }}" class="ar-sc-info">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                    {{ setting('company_phone') }}
+                </a>
+                @endif
+                @if(setting('company_email'))
+                <a href="mailto:{{ setting('company_email') }}" class="ar-sc-info" style="word-break:break-all;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    {{ setting('company_email') }}
+                </a>
+                @endif
+
+                <a href="{{ route('form.step','propertyType') }}" class="ar-btn-devis">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    Devis gratuit en ligne
+                </a>
+                @if(setting('company_phone'))
+                <a href="tel:{{ setting('company_phone_raw') }}" class="ar-btn-phone">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                    Appeler maintenant
+                </a>
+                @endif
+
+                <div class="ar-trust-row">
+                    <div class="ar-trust-item">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Garantie
+                    </div>
+                    <div class="ar-trust-item">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                        Certifié
+                    </div>
+                    <div class="ar-trust-item">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        5★
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {{-- Avis clients --}}
+            @if(isset($reviews) && count($reviews) > 0)
+            <div class="ar-sidebar-card-light">
+                <div style="font-size:.8125rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9C8E84;margin-bottom:1rem;">Avis clients</div>
+                @foreach($reviews->take(3) as $review)
+                <div class="ar-review">
+                    <div class="ar-stars">★★★★★</div>
+                    <div class="ar-review-text">"{{ $review->review_text }}"</div>
+                    <div class="ar-reviewer">
+                        <div class="ar-reviewer-avatar">{{ mb_substr($review->author_name,0,1) }}</div>
+                        <span class="ar-reviewer-name">{{ $review->author_name }}</span>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </aside>
+    </div>
+
+    {{-- Mobile CTA bar --}}
+    <div class="ar-mobile-cta">
+        <a href="{{ route('form.step','propertyType') }}" class="ar-mob-btn-devis">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Devis gratuit
+        </a>
+        @if(setting('company_phone'))
+        <a href="tel:{{ setting('company_phone_raw') }}" class="ar-mob-btn-phone">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+        </a>
         @endif
-
     </div>
 </div>
+
+<script>
+function copyUrl(){
+    var url='{{ request()->url() }}';
+    if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(url).then(function(){showOk();});
+    } else {
+        var t=document.createElement('textarea');t.value=url;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showOk();
+    }
+}
+function showOk(){
+    var el=document.getElementById('copy-ok');
+    if(!el) return;
+    el.style.display='inline-flex';
+    setTimeout(function(){el.style.display='none';},3000);
+}
+</script>
 @endsection

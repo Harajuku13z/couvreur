@@ -1,16 +1,17 @@
-{{-- ===== HEADER — Fond noir, design éditorial ===== --}}
+{{-- ===== HEADER — Fond blanc, texte sombre ===== --}}
 <style>
 #site-header {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 1000;
-    background: #111111;
-    border-bottom: 1px solid rgba(255,255,255,.08);
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,.07);
     transition: background .25s ease, box-shadow .25s ease;
 }
 #site-header.scrolled {
-    background: #0a0a0a;
-    box-shadow: 0 4px 32px rgba(0,0,0,.4);
+    background: rgba(255,255,255,.97);
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    backdrop-filter: blur(12px);
 }
 
 /* Logo */
@@ -20,20 +21,19 @@
     max-width: 160px;
     object-fit: contain;
     display: block;
-    filter: brightness(0) invert(1);
 }
 @media(min-width:640px){ .site-logo-img { max-width: 180px; height: 3rem; } }
 .site-logo-text {
     font-weight: 800;
     font-size: 1rem;
-    color: #fff;
+    color: #1F1A14;
     letter-spacing: -.02em;
     line-height: 1.2;
 }
 
 /* Nav links */
 .nav-link {
-    color: rgba(255,255,255,.75);
+    color: #5C5046;
     font-weight: 600;
     font-size: .88rem;
     letter-spacing: .01em;
@@ -41,7 +41,7 @@
     position: relative;
     text-decoration: none;
 }
-.nav-link:hover { color: #fff; }
+.nav-link:hover { color: #1F1A14; }
 .nav-link::after {
     content: '';
     position: absolute;
@@ -53,10 +53,10 @@
     border-radius: 2px;
 }
 .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
-.nav-link.active { color: #fff; }
+.nav-link.active { color: #1F1A14; }
 
 /* Hamburger */
-#hamburger span { background: rgba(255,255,255,.85) !important; }
+#hamburger span { background: #1F1A14 !important; }
 
 /* Dropdown */
 .nav-dropdown { position: relative; }
@@ -66,14 +66,14 @@
     left: 50%;
     transform: translateX(-50%) translateY(6px);
     min-width: 230px;
-    background: #1a1a1a;
+    background: #ffffff;
     border-radius: 14px;
-    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    box-shadow: 0 16px 48px rgba(0,0,0,.12);
     padding: 8px 0;
     opacity: 0;
     visibility: hidden;
     transition: opacity .2s, transform .2s;
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid rgba(0,0,0,.07);
 }
 .nav-dropdown:hover .nav-dropdown-menu {
     opacity: 1;
@@ -87,16 +87,16 @@
     padding: 10px 18px;
     font-size: .86rem;
     font-weight: 600;
-    color: rgba(255,255,255,.75);
+    color: #5C5046;
     transition: background .15s, color .15s;
     text-decoration: none;
 }
 .nav-dropdown-menu a:hover {
-    background: rgba(255,255,255,.06);
-    color: #fff;
+    background: #FAF7F2;
+    color: #1F1A14;
 }
 .nav-dropdown-menu a:first-child {
-    border-bottom: 1px solid rgba(255,255,255,.07);
+    border-bottom: 1px solid rgba(0,0,0,.06);
     color: var(--primary-color, #B7472A);
     font-size: .78rem;
     text-transform: uppercase;
@@ -113,8 +113,8 @@
     font-size: .83rem;
     padding: 8px 16px;
     border-radius: 10px;
-    border: 1.5px solid rgba(255,255,255,.2);
-    color: rgba(255,255,255,.85);
+    border: 1.5px solid rgba(0,0,0,.12);
+    color: #5C5046;
     text-decoration: none;
     transition: border-color .18s, color .18s, background .18s;
     letter-spacing: .01em;
@@ -122,6 +122,7 @@
 .hdr-btn-phone:hover {
     border-color: var(--primary-color);
     color: var(--primary-color);
+    background: rgba(0,0,0,.02);
 }
 .hdr-btn-devis {
     display: flex;
@@ -138,7 +139,7 @@
 }
 .hdr-btn-devis:hover { filter: brightness(.88); transform: translateY(-1px); }
 
-/* Mobile menu — noir */
+/* Mobile menu — noir (overlay plein écran) */
 #mobile-menu {
     display: none;
     position: fixed;
@@ -209,7 +210,7 @@
                 <div class="nav-dropdown">
                     <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1.5 {{ request()->routeIs('services.*') ? 'active' : '' }}">
                         Services
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;opacity:.6;"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;opacity:.5;"><path d="m6 9 6 6 6-6"/></svg>
                     </a>
                     <div class="nav-dropdown-menu">
                         <a href="{{ route('services.index') }}">
@@ -219,7 +220,7 @@
                         @foreach($navFeatured as $svc)
                             @if(isset($svc['name'], $svc['slug']))
                             <a href="{{ route('services.show', $svc['slug']) }}">
-                                <i class="{{ $svc['icon'] ?? 'fas fa-wrench' }}" style="font-size:.7rem;opacity:.7;"></i>
+                                <i class="{{ $svc['icon'] ?? 'fas fa-wrench' }}" style="font-size:.7rem;opacity:.6;"></i>
                                 {{ $svc['name'] }}
                             </a>
                             @endif
@@ -250,9 +251,9 @@
 
             {{-- Hamburger --}}
             <button id="hamburger" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg" onclick="openMobileMenu()" aria-label="Menu">
-                <span class="block w-6 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
-                <span class="block w-6 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
-                <span class="block w-4 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:#1F1A14;"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:#1F1A14;"></span>
+                <span class="block w-4 h-0.5 rounded transition-all" style="background:#1F1A14;"></span>
             </button>
         </div>
     </div>

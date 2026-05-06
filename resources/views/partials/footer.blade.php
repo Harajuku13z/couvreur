@@ -1,209 +1,174 @@
-<!-- Footer -->
-<footer class="site-footer py-16">
-    <div class="site-shell">
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Company Info -->
-            <div class="lg:col-span-2">
-                <div class="mb-6">
-                    {{-- h2 : premier titre de section du pied de page (hiérarchie après le h1 de la page) --}}
-                    <h2 class="text-2xl font-bold" style="color: var(--footer-text);">{{ setting('company_name', 'Votre Entreprise') }}</h2>
-                </div>
-                
-                <p class="site-footer-link mb-6 text-sm leading-relaxed max-w-md">
-                    @php
-                        try {
-                            $description = setting('company_description', '');
-                            if (empty($description)) {
-                                $description = 'Expert en travaux de rénovation et de couverture. Devis gratuit, qualité garantie. Nous intervenons rapidement pour tous vos projets de toiture, façade et isolation.';
-                            }
-                        } catch (Exception $e) {
-                            $description = 'Expert en travaux de rénovation et de couverture. Devis gratuit, qualité garantie. Nous intervenons rapidement pour tous vos projets de toiture, façade et isolation.';
-                        }
-                    @endphp
-                    {{ $description }}
-                </p>
-                
-                <div class="flex flex-col space-y-4">
-                    @php
-                        $phoneMain = setting('company_phone', '');
-                        $phone2 = setting('company_phone_2', '');
-                        $phone3 = setting('company_phone_3', '');
-                    @endphp
-                    @if($phoneMain)
-                    <div class="flex space-x-4">
-                        <a href="tel:{{ setting('company_phone_raw', $phoneMain) }}" class="site-footer-link">
-                            <i class="fas fa-phone mr-2"></i>
-                            {{ $phoneMain }}
-                        </a>
-                    </div>
-                    @endif
-                    @if($phone2)
-                    <div class="flex space-x-4 text-sm">
-                        <a href="tel:{{ setting('company_phone_2_raw', $phone2) }}" class="site-footer-link">
-                            <i class="fas fa-phone mr-2"></i>
-                            {{ $phone2 }}
-                        </a>
-                    </div>
-                    @endif
-                    @if($phone3)
-                    <div class="flex space-x-4 text-sm">
-                        <a href="tel:{{ setting('company_phone_3_raw', $phone3) }}" class="site-footer-link">
-                            <i class="fas fa-phone mr-2"></i>
-                            {{ $phone3 }}
-                        </a>
-                    </div>
-                    @endif
-                    
-                    <!-- Address -->
-                    @php
-                        $address = setting('company_address', '');
-                        $city = setting('company_city', '');
-                        $postalCode = setting('company_postal_code', '');
-                        $country = setting('company_country', 'France');
-                        
-                        $fullAddress = [];
-                        if ($address) $fullAddress[] = $address;
-                        if ($postalCode && $city) {
-                            $fullAddress[] = $postalCode . ' ' . $city;
-                        } elseif ($city) {
-                            $fullAddress[] = $city;
-                        } elseif ($postalCode) {
-                            $fullAddress[] = $postalCode;
-                        }
-                        if ($country) $fullAddress[] = $country;
-                        
-                        $fullAddressString = implode(', ', $fullAddress);
-                        $hours = setting('company_hours', '');
-                    @endphp
-                    @if($fullAddressString)
-                    <div class="flex items-start space-x-4">
-                        <i class="fas fa-map-marker-alt mt-1 site-footer-link"></i>
-                        <div class="site-footer-link">
-                            {{ $fullAddressString }}
-                        </div>
-                    </div>
-                    @endif
-                    @if(!empty($hours))
-                    <div class="flex items-start space-x-4">
-                        <i class="far fa-clock mt-1 site-footer-link"></i>
-                        <div class="site-footer-link text-sm">
-                            {{ $hours }}
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <!-- Social Media Icons -->
-                    @php
-                        $socialNetworks = [
-                            'facebook_url' => ['icon' => 'fab fa-facebook', 'color' => 'hover:text-blue-400', 'label' => 'Suivez-nous sur Facebook'],
-                            'instagram_url' => ['icon' => 'fab fa-instagram', 'color' => 'hover:text-pink-400', 'label' => 'Suivez-nous sur Instagram'],
-                            'twitter_url' => ['icon' => 'fab fa-twitter', 'color' => 'hover:text-blue-300', 'label' => 'Suivez-nous sur Twitter'],
-                            'linkedin_url' => ['icon' => 'fab fa-linkedin', 'color' => 'hover:text-blue-500', 'label' => 'Suivez-nous sur LinkedIn'],
-                            'youtube_url' => ['icon' => 'fab fa-youtube', 'color' => 'hover:text-red-400', 'label' => 'Suivez-nous sur YouTube'],
-                            'tiktok_url' => ['icon' => 'fab fa-tiktok', 'color' => 'hover:text-gray-300', 'label' => 'Suivez-nous sur TikTok'],
-                            'pinterest_url' => ['icon' => 'fab fa-pinterest', 'color' => 'hover:text-red-500', 'label' => 'Suivez-nous sur Pinterest'],
-                            'snapchat_url' => ['icon' => 'fab fa-snapchat', 'color' => 'hover:text-yellow-400', 'label' => 'Suivez-nous sur Snapchat'],
-                            'whatsapp_url' => ['icon' => 'fab fa-whatsapp', 'color' => 'hover:text-green-400', 'label' => 'Contactez-nous sur WhatsApp'],
-                            'telegram_url' => ['icon' => 'fab fa-telegram', 'color' => 'hover:text-blue-400', 'label' => 'Contactez-nous sur Telegram'],
-                        ];
-                        
-                        $activeSocialNetworks = array_filter($socialNetworks, function($key) {
-                            return !empty(setting($key));
-                        }, ARRAY_FILTER_USE_KEY);
-                    @endphp
-                    
-                    @if(count($activeSocialNetworks) > 0)
-                    <div class="flex space-x-4">
-                        @foreach($activeSocialNetworks as $key => $network)
-                            <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" 
-                               class="site-footer-link {{ $network['color'] }} transition-colors text-xl"
-                               aria-label="{{ $network['label'] }}">
-                                <i class="{{ $network['icon'] }}" aria-hidden="true"></i>
-                            </a>
-                        @endforeach
-                    </div>
-                    @endif
-                </div>
-            </div>
-            
-            <!-- Quick Links -->
+<!-- Footer — fond noir -->
+<style>
+.sf{background:#0F0C09;color:rgba(255,255,255,.65);font-family:'Manrope',sans-serif;}
+.sf-inner{max-width:1200px;margin:0 auto;padding:4rem 1.5rem 2rem;}
+.sf-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3rem;}
+@media(max-width:768px){.sf-grid{grid-template-columns:1fr;gap:2rem;}.sf-inner{padding:3rem 1.25rem 2rem;}}
+.sf-brand-name{font-size:1.25rem;font-weight:800;color:#fff;margin-bottom:.75rem;font-family:'Fraunces',serif;}
+.sf-desc{font-size:.875rem;line-height:1.7;color:rgba(255,255,255,.5);max-width:340px;margin-bottom:1.5rem;}
+.sf-contact-item{display:flex;align-items:center;gap:.625rem;font-size:.875rem;color:rgba(255,255,255,.6);margin-bottom:.625rem;text-decoration:none;transition:color .18s;}
+.sf-contact-item:hover{color:#fff;}
+.sf-contact-icon{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sf-socials{display:flex;gap:.625rem;margin-top:1.25rem;}
+.sf-social{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);text-decoration:none;transition:background .18s,color .18s;}
+.sf-social:hover{background:rgba(255,255,255,.14);color:#fff;}
+.sf-col-title{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:1rem;}
+.sf-link{display:block;font-size:.875rem;color:rgba(255,255,255,.55);text-decoration:none;margin-bottom:.5rem;transition:color .18s;}
+.sf-link:hover{color:#fff;}
+.sf-bottom{border-top:1px solid rgba(255,255,255,.07);margin-top:3rem;padding-top:1.5rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;}
+.sf-copy{font-size:.8125rem;color:rgba(255,255,255,.35);}
+.sf-legal{display:flex;flex-wrap:wrap;gap:1.25rem;}
+.sf-legal a{font-size:.8125rem;color:rgba(255,255,255,.35);text-decoration:none;transition:color .18s;}
+.sf-legal a:hover{color:rgba(255,255,255,.7);}
+.sf-made{font-size:.75rem;color:rgba(255,255,255,.25);text-align:center;margin-top:1rem;}
+.sf-made a{color:rgba(255,255,255,.35);text-decoration:none;}
+.sf-made a:hover{color:rgba(255,255,255,.6);}
+</style>
+
+<footer class="sf">
+    <div class="sf-inner">
+        <div class="sf-grid">
+            <!-- Colonne entreprise -->
             <div>
-                <h3 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Liens Rapides</h3>
-                <ul class="space-y-2">
-                    <li><a href="{{ url('/') }}" class="site-footer-link">Accueil</a></li>
-                    <li><a href="{{ route('services.index') }}" class="site-footer-link">Nos Services</a></li>
-                    <li><a href="{{ route('portfolio.index') }}" class="site-footer-link">Nos Réalisations</a></li>
-                    <li><a href="{{ route('blog.index') }}" class="site-footer-link">Blog et Astuces</a></li>
-                    <li><a href="{{ route('ads.index') }}" class="site-footer-link">Nos Annonces</a></li>
-                    <li><a href="{{ route('reviews.all') }}" class="site-footer-link">Nos Avis Clients</a></li>
-                    <li><a href="{{ route('form.step', 'propertyType') }}" class="site-footer-link">Devis Gratuit</a></li>
-                </ul>
+                <div class="sf-brand-name">{{ setting('company_name', 'Votre Entreprise') }}</div>
+                <p class="sf-desc">
+                    @php
+                        try { $sfDesc = setting('company_description', ''); }
+                        catch(Exception $e){ $sfDesc=''; }
+                        if(empty($sfDesc)) $sfDesc='Expert en travaux de rénovation et de couverture. Devis gratuit, qualité garantie.';
+                    @endphp
+                    {{ $sfDesc }}
+                </p>
+
+                @php
+                    $sfPhone  = setting('company_phone','');
+                    $sfPhone2 = setting('company_phone_2','');
+                    $sfPhone3 = setting('company_phone_3','');
+                    $sfEmail  = setting('company_email','');
+                    $sfAddr   = setting('company_address','');
+                    $sfCity   = setting('company_city','');
+                    $sfZip    = setting('company_postal_code','');
+                    $sfHours  = setting('company_hours','');
+                @endphp
+
+                @if($sfPhone)
+                <a href="tel:{{ setting('company_phone_raw',$sfPhone) }}" class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    {{ $sfPhone }}
+                </a>
+                @endif
+                @if($sfPhone2)
+                <a href="tel:{{ setting('company_phone_2_raw',$sfPhone2) }}" class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    {{ $sfPhone2 }}
+                </a>
+                @endif
+                @if($sfPhone3)
+                <a href="tel:{{ setting('company_phone_3_raw',$sfPhone3) }}" class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 1.97.67 2.9a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.32 1.9.54 2.9.67A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    {{ $sfPhone3 }}
+                </a>
+                @endif
+                @if($sfEmail)
+                <a href="mailto:{{ $sfEmail }}" class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </span>
+                    {{ $sfEmail }}
+                </a>
+                @endif
+                @if($sfAddr || $sfCity)
+                <div class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </span>
+                    {{ implode(', ', array_filter([$sfAddr, trim($sfZip.' '.$sfCity)])) }}
+                </div>
+                @endif
+                @if($sfHours)
+                <div class="sf-contact-item">
+                    <span class="sf-contact-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </span>
+                    {{ $sfHours }}
+                </div>
+                @endif
+
+                {{-- Réseaux sociaux --}}
+                @php
+                    $sfSocials = [
+                        'facebook_url'  => ['icon'=>'fab fa-facebook-f',  'label'=>'Facebook'],
+                        'instagram_url' => ['icon'=>'fab fa-instagram',   'label'=>'Instagram'],
+                        'twitter_url'   => ['icon'=>'fab fa-twitter',     'label'=>'Twitter'],
+                        'linkedin_url'  => ['icon'=>'fab fa-linkedin-in', 'label'=>'LinkedIn'],
+                        'youtube_url'   => ['icon'=>'fab fa-youtube',     'label'=>'YouTube'],
+                        'tiktok_url'    => ['icon'=>'fab fa-tiktok',      'label'=>'TikTok'],
+                        'whatsapp_url'  => ['icon'=>'fab fa-whatsapp',    'label'=>'WhatsApp'],
+                    ];
+                    $sfActiveSocials = array_filter($sfSocials, fn($k) => !empty(setting($k)), ARRAY_FILTER_USE_KEY);
+                @endphp
+                @if(count($sfActiveSocials) > 0)
+                <div class="sf-socials">
+                    @foreach($sfActiveSocials as $key => $net)
+                    <a href="{{ setting($key) }}" target="_blank" rel="noopener noreferrer" class="sf-social" aria-label="{{ $net['label'] }}">
+                        <i class="{{ $net['icon'] }}" style="font-size:.85rem;"></i>
+                    </a>
+                    @endforeach
+                </div>
+                @endif
             </div>
-            
+
+            <!-- Liens rapides -->
+            <div>
+                <div class="sf-col-title">Navigation</div>
+                <a href="{{ url('/') }}" class="sf-link">Accueil</a>
+                <a href="{{ route('services.index') }}" class="sf-link">Nos Services</a>
+                <a href="{{ route('portfolio.index') }}" class="sf-link">Nos Réalisations</a>
+                <a href="{{ route('blog.index') }}" class="sf-link">Blog et Astuces</a>
+                <a href="{{ route('ads.index') }}" class="sf-link">Nos Annonces</a>
+                <a href="{{ route('reviews.all') }}" class="sf-link">Avis Clients</a>
+                <a href="{{ route('form.step', 'propertyType') }}" class="sf-link" style="color:var(--primary-color,#B7472A);font-weight:700;">Devis Gratuit →</a>
+            </div>
+
             <!-- Services -->
             <div>
-                <h3 class="text-lg font-semibold mb-4" style="color: var(--footer-text);">Nos Services</h3>
-                <ul class="space-y-2">
-                    @php
-                        $servicesData = \App\Models\Setting::get('services', '[]');
-                        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
-                        
-                        // S'assurer que $services est toujours un tableau
-                        if (!is_array($services)) {
-                            $services = [];
-                        }
-                        
-                        $visibleServices = array_filter($services, function($service) {
-                            return is_array($service) && ($service['is_visible'] ?? true) && ($service['is_featured'] ?? false);
-                        });
-                    @endphp
-                    
-                    @if(count($visibleServices) > 0)
-                        @foreach(array_slice($visibleServices, 0, 4) as $service)
-                            @if(is_array($service) && isset($service['name']) && isset($service['slug']))
-                            <li>
-                                <a href="{{ route('services.show', $service['slug']) }}" class="site-footer-link">
-                                    {{ $service['name'] }}
-                                </a>
-                            </li>
-                            @endif
-                        @endforeach
-                    @else
-                        <li><a href="{{ route('services.index') }}" class="site-footer-link">Voir tous nos services</a></li>
-                    @endif
-                    <li><a href="{{ route('contact') }}" class="site-footer-link">Contact</a></li>
-                </ul>
+                <div class="sf-col-title">Nos Services</div>
+                @php
+                    $sfSvcRaw = \App\Models\Setting::get('services','[]');
+                    $sfSvcs = is_string($sfSvcRaw) ? json_decode($sfSvcRaw,true) : ($sfSvcRaw??[]);
+                    if(!is_array($sfSvcs)) $sfSvcs=[];
+                    $sfFeatured = array_filter($sfSvcs, fn($s) => is_array($s) && ($s['is_visible']??true) && ($s['is_featured']??false));
+                @endphp
+                @if(count($sfFeatured) > 0)
+                    @foreach(array_slice($sfFeatured, 0, 5) as $svc)
+                        @if(is_array($svc) && isset($svc['name'], $svc['slug']))
+                        <a href="{{ route('services.show', $svc['slug']) }}" class="sf-link">{{ $svc['name'] }}</a>
+                        @endif
+                    @endforeach
+                @else
+                <a href="{{ route('services.index') }}" class="sf-link">Voir tous nos services</a>
+                @endif
+                <a href="{{ route('contact') }}" class="sf-link" style="margin-top:.5rem;">Contact</a>
             </div>
         </div>
-        
-        <!-- Bottom Bar -->
-        <div class="border-t site-footer-border mt-12 pt-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="site-footer-link text-sm">
-                    © {{ date('Y') }} {{ setting('company_name', 'Votre Entreprise') }}. Tous droits réservés.
-                </div>
-                <div class="flex space-x-6 mt-4 md:mt-0">
-                    <a href="{{ route('legal.mentions') }}" class="site-footer-link text-sm">Mentions Légales</a>
-                    <a href="{{ route('legal.privacy') }}" class="site-footer-link text-sm">Politique de Confidentialité</a>
-                    <a href="{{ route('legal.cgv') }}" class="site-footer-link text-sm">CGV</a>
-                </div>
+
+        <!-- Bottom bar -->
+        <div class="sf-bottom">
+            <div class="sf-copy">© {{ date('Y') }} {{ setting('company_name','Votre Entreprise') }}. Tous droits réservés.</div>
+            <div class="sf-legal">
+                <a href="{{ route('legal.mentions') }}">Mentions légales</a>
+                <a href="{{ route('legal.privacy') }}">Confidentialité</a>
+                <a href="{{ route('legal.cgv') }}">CGV</a>
             </div>
-            <div class="mt-4 pt-4 border-t site-footer-border">
-                <div class="text-center">
-                    <p class="site-footer-link text-xs">
-                        Ce site a été créé par <a href="https://www.osmoseconsulting.fr" target="_blank" class="site-footer-link font-medium">Osmose*</a> avec amour ❤️
-                    </p>
-                </div>
-            </div>
+        </div>
+        <div class="sf-made">
+            Créé par <a href="https://www.osmoseconsulting.fr" target="_blank" rel="noopener">Osmose*</a> avec ❤
         </div>
     </div>
 </footer>
-
-
-
-
-
-
-
-
-
