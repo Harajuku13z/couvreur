@@ -505,13 +505,17 @@
 
 
 {{-- ═══ §4 COMMENT ÇA MARCHE ═══════════════════════════════════ --}}
-<section class="at-sec" style="background:var(--bgs);">
-    <div class="at-w">
-        <div class="at-sh" style="text-align:center; margin-inline:auto;">
-            <div class="at-ey" style="justify-content:center;">Comment ça marche</div>
-            <h2>De l'appel au chantier fini, en 4 étapes.</h2>
+<section style="background:#1F1A14; padding:88px 0; position:relative; overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 60% 50%,color-mix(in srgb,var(--primary-color,#B7472A) 18%,transparent),transparent);pointer-events:none;"></div>
+    <div class="at-w" style="position:relative;z-index:1;">
+        <div style="text-align:center; margin-bottom:60px;">
+            <div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary-color,#B7472A);margin-bottom:14px;">
+                <span style="display:block;width:22px;height:2px;background:var(--primary-color,#B7472A);border-radius:2px;"></span>
+                Comment ça marche
+            </div>
+            <h2 style="font-family:'Fraunces',ui-serif,Georgia,serif;color:#fff;font-size:clamp(26px,3vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.1;margin:0;">De l'appel au chantier fini, <span style="color:var(--primary-color,#B7472A);">en 4 étapes.</span></h2>
         </div>
-        <div class="at-how-grid">
+        <div class="at-how-grid" style="position:relative;">
             @php
             $steps = [
                 ['n'=>'01','t'=>'Vous nous contactez','d'=>'Par téléphone ou via le formulaire. Réponse garantie sous 24h.','svg'=>'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>'],
@@ -520,14 +524,19 @@
                 ['n'=>'04','t'=>'On réalise','d'=>'Chantier propre, équipe formée, livraison dans les délais.','svg'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>'],
             ];
             @endphp
-            @foreach($steps as $step)
-            <div class="at-card" style="padding:26px;">
-                <div class="at-how-n">{{ $step['n'] }}</div>
-                <div class="at-how-ico">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $step['svg'] !!}</svg>
+            @foreach($steps as $i => $step)
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:32px 24px;position:relative;transition:background .2s,border-color .2s;" onmouseover="this.style.background='rgba(255,255,255,.09)';this.style.borderColor='var(--primary-color,#B7472A)'" onmouseout="this.style.background='rgba(255,255,255,.05)';this.style.borderColor='rgba(255,255,255,.09)'">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                    <div style="width:52px;height:52px;border-radius:14px;background:var(--primary-color,#B7472A);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 8px 24px color-mix(in srgb,var(--primary-color,#B7472A) 45%,transparent);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $step['svg'] !!}</svg>
+                    </div>
+                    <span style="font-size:42px;font-weight:800;font-family:'Fraunces',serif;color:rgba(255,255,255,.08);line-height:1;letter-spacing:-.03em;">{{ $step['n'] }}</span>
                 </div>
-                <h3 style="font-size:18px;">{{ $step['t'] }}</h3>
-                <p style="color:var(--ink3); font-size:13.5px; margin-top:8px; line-height:1.6;">{{ $step['d'] }}</p>
+                <h3 style="font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:-.02em;">{{ $step['t'] }}</h3>
+                <p style="color:rgba(255,255,255,.55);font-size:14px;line-height:1.65;margin:0;">{{ $step['d'] }}</p>
+                @if($i < 3)
+                <div style="position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:2px;height:40px;background:linear-gradient(to bottom,transparent,var(--primary-color,#B7472A),transparent);display:none;" class="at-step-divider"></div>
+                @endif
             </div>
             @endforeach
         </div>
@@ -578,6 +587,99 @@
                     @endforeach
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+@endif
+
+
+{{-- ═══ §5b ÉCOLOGIE ═══════════════════════════════════════════ --}}
+@php
+    $ecoEnabled = $homeConfig['ecology']['enabled'] ?? false;
+    $ecoTitle   = $homeConfig['ecology']['title']   ?? 'Engagés pour l\'environnement';
+    $ecoContent = $homeConfig['ecology']['content'] ?? '';
+    $ecoBadges  = $homeConfig['ecology']['badges']  ?? [];
+    $ecoBadgeMap = [
+        'materiaux_recycles' => ['label'=>'Matériaux recyclés','emoji'=>'♻️','color'=>'#16A34A'],
+        'energies_vertes'    => ['label'=>'Énergies vertes',   'emoji'=>'🌱','color'=>'#059669'],
+    ];
+@endphp
+@if($ecoEnabled)
+<section class="at-sec" style="background:#F0FAF4; border-top:1px solid rgba(22,163,74,.12); border-bottom:1px solid rgba(22,163,74,.12);">
+    <div class="at-w">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:48px;align-items:center;">
+            <div>
+                <div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#16A34A;margin-bottom:14px;">
+                    <span style="display:block;width:22px;height:2px;background:#16A34A;border-radius:2px;"></span>
+                    Engagement environnemental
+                </div>
+                <h2 style="font-family:'Fraunces',serif;color:#1F1A14;font-size:clamp(24px,2.5vw,38px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 16px;">{{ $ecoTitle }}</h2>
+                @if($ecoContent)
+                <p style="color:#4A3F32;font-size:16.5px;line-height:1.65;margin:0 0 28px;">{{ $ecoContent }}</p>
+                @endif
+                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                    @foreach($ecoBadges as $badgeKey)
+                    @php $bm = $ecoBadgeMap[$badgeKey] ?? null; @endphp
+                    @if($bm)
+                    <div style="display:inline-flex;align-items:center;gap:10px;padding:12px 20px;background:#fff;border:1.5px solid rgba(22,163,74,.2);border-radius:12px;box-shadow:0 2px 8px rgba(22,163,74,.08);">
+                        <span style="font-size:22px;">{{ $bm['emoji'] }}</span>
+                        <span style="font-weight:600;font-size:14px;color:#1F1A14;">{{ $bm['label'] }}</span>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+            </div>
+            <div style="display:flex;justify-content:center;">
+                <div style="width:220px;height:220px;border-radius:50%;background:linear-gradient(135deg,#D1FAE5,#A7F3D0);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px rgba(22,163,74,.15);">
+                    <div style="text-align:center;">
+                        <div style="font-size:64px;line-height:1;margin-bottom:8px;">🌿</div>
+                        <div style="font-weight:700;font-size:13px;color:#059669;letter-spacing:.06em;text-transform:uppercase;">Éco-responsable</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
+
+{{-- ═══ §5c FINANCEMENT ════════════════════════════════════════ --}}
+@php
+    $finEnabled = $homeConfig['financing']['enabled'] ?? false;
+    $finTitle   = $homeConfig['financing']['title']   ?? 'Des aides pour financer vos travaux';
+    $finContent = $homeConfig['financing']['content'] ?? '';
+    $finBadges  = $homeConfig['financing']['badges']  ?? [];
+    $finBadgeMap = [
+        'maprimerenov'    => ['label'=>'MaPrimeRénov\'','emoji'=>'🏠','desc'=>'Aide de l\'État jusqu\'à 90%','color'=>'#1D4ED8'],
+        'certificats_cee' => ['label'=>'Certificats CEE','emoji'=>'⚡','desc'=>'Économies d\'énergie certifiées','color'=>'#7C3AED'],
+    ];
+@endphp
+@if($finEnabled)
+<section class="at-sec" style="background:#EFF6FF; border-top:1px solid rgba(29,78,216,.1); border-bottom:1px solid rgba(29,78,216,.1);">
+    <div class="at-w">
+        <div style="text-align:center;margin-bottom:48px;">
+            <div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1D4ED8;margin-bottom:14px;">
+                <span style="display:block;width:22px;height:2px;background:#1D4ED8;border-radius:2px;"></span>
+                Financement & Aides
+            </div>
+            <h2 style="font-family:'Fraunces',serif;color:#1F1A14;font-size:clamp(24px,2.5vw,38px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 14px;">{{ $finTitle }}</h2>
+            @if($finContent)
+            <p style="color:#4A3F32;font-size:16.5px;line-height:1.65;max-width:620px;margin:0 auto;">{{ $finContent }}</p>
+            @endif
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:760px;margin:0 auto;">
+            @foreach($finBadges as $badgeKey)
+            @php $fm = $finBadgeMap[$badgeKey] ?? null; @endphp
+            @if($fm)
+            <div style="background:#fff;border:1.5px solid rgba(29,78,216,.12);border-radius:18px;padding:28px 24px;display:flex;gap:20px;align-items:flex-start;box-shadow:0 4px 16px rgba(29,78,216,.06);">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,{{ $fm['color'] }},{{ $fm['color'] }}cc);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">{{ $fm['emoji'] }}</div>
+                <div>
+                    <div style="font-weight:700;font-size:17px;color:#1F1A14;margin-bottom:6px;">{{ $fm['label'] }}</div>
+                    <div style="color:#6B6157;font-size:14px;line-height:1.5;">{{ $fm['desc'] }}</div>
+                </div>
+            </div>
+            @endif
+            @endforeach
         </div>
     </div>
 </section>
@@ -645,7 +747,7 @@
                     </div>
                     <svg width="19" height="19" viewBox="0 0 24 24"><path d="M22.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.5c2-1.9 3.3-4.7 3.3-8.1Z" fill="#4285F4"/><path d="M12 23c3 0 5.5-1 7.3-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.3v2.8C4.1 20.5 7.8 23 12 23Z" fill="#34A853"/><path d="M5.8 14.1a6.7 6.7 0 0 1 0-4.2V7.1H2.3a11 11 0 0 0 0 9.8l3.5-2.8Z" fill="#FBBC05"/><path d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 12 1C7.8 1 4.1 3.5 2.3 7.1l3.5 2.8C6.7 7.3 9.1 5.4 12 5.4Z" fill="#EA4335"/></svg>
                 </div>
-                <p style="font-size:14.5px; line-height:1.65; color:var(--ink2); flex:1;">« {{ $rev->comment ?? $rev->content ?? '' }} »</p>
+                <p style="font-size:14.5px; line-height:1.65; color:var(--ink2); flex:1;">« {{ $rev->review_text ?? '' }} »</p>
                 <div class="at-avis-foot">
                     <div class="at-avis-av">{{ mb_strtoupper(mb_substr($rev->author_name??'C',0,1)) }}</div>
                     <div>
@@ -656,6 +758,59 @@
             </div>
             @endforeach
         </div>
+    </div>
+</section>
+@endif
+
+
+{{-- ═══ §7b PARTENAIRES ════════════════════════════════════════ --}}
+@php
+    $partEnabled  = $homeConfig['partners']['enabled']  ?? false;
+    $partTitle    = $homeConfig['partners']['title']    ?? 'Nos partenaires de confiance';
+    $partLogos    = $homeConfig['partners']['logos']    ?? [];
+    $partFeatured = $homeConfig['partners']['featured'] ?? null;
+    $partIntro    = $homeConfig['partners']['intro']    ?? '';
+@endphp
+@if($partEnabled && (count($partLogos) > 0 || !empty($partFeatured)))
+<section class="at-sec tight" style="background:var(--bgs);">
+    <div class="at-w">
+        <div class="at-sh" style="text-align:center; margin-inline:auto; margin-bottom:36px;">
+            <div class="at-ey" style="justify-content:center;">Partenaires</div>
+            <h2>{{ $partTitle }}</h2>
+            @if($partIntro)<p style="color:var(--ink3);font-size:16px;margin-top:10px;max-width:580px;margin-left:auto;margin-right:auto;">{{ $partIntro }}</p>@endif
+        </div>
+        @if(count($partLogos) > 0)
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:20px;margin-bottom:{{ !empty($partFeatured) ? '40px' : '0' }};">
+            @foreach($partLogos as $logo)
+            @php
+                $logoUrl = is_string($logo) ? $logo : ($logo['url'] ?? $logo['image'] ?? '');
+                $logoAlt = is_array($logo) ? ($logo['name'] ?? $logo['alt'] ?? 'Partenaire') : 'Partenaire';
+            @endphp
+            @if($logoUrl)
+            <div style="height:64px;padding:12px 20px;background:#fff;border:1px solid rgba(30,20,10,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:var(--s1);">
+                <img src="{{ strpos($logoUrl,'http')===0 ? $logoUrl : asset(ltrim($logoUrl,'/')) }}" alt="{{ $logoAlt }}" style="max-height:40px;max-width:120px;width:auto;object-fit:contain;filter:grayscale(40%);transition:filter .2s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(40%)'">
+            </div>
+            @endif
+            @endforeach
+        </div>
+        @endif
+        @if(!empty($partFeatured) && is_array($partFeatured))
+        @php
+            $pf = $partFeatured;
+            $pfImg = isset($pf['image']) ? (strpos($pf['image'],'http')===0 ? $pf['image'] : asset(ltrim($pf['image'],'/'))): null;
+        @endphp
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:20px;padding:32px;display:grid;grid-template-columns:{{ $pfImg ? '120px 1fr' : '1fr' }};gap:28px;align-items:center;max-width:680px;margin:0 auto;box-shadow:var(--s2);">
+            @if($pfImg)
+            <img src="{{ $pfImg }}" alt="{{ $pf['title'] ?? 'Partenaire' }}" style="width:120px;height:80px;object-fit:contain;border-radius:10px;background:var(--bgs);padding:8px;">
+            @endif
+            <div>
+                @if(!empty($pf['title']))<div style="font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">{{ $pf['title'] }}</div>@endif
+                @if(!empty($pf['subtitle']))<div style="font-size:13px;color:var(--p);font-weight:600;margin-bottom:10px;">{{ $pf['subtitle'] }}</div>@endif
+                @if(!empty($pf['body']))<p style="color:var(--ink3);font-size:14.5px;line-height:1.6;margin:0;">{{ $pf['body'] }}</p>@endif
+                @if(!empty($pf['link']))<a href="{{ $pf['link'] }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--p);text-decoration:none;">Voir le partenaire <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>@endif
+            </div>
+        </div>
+        @endif
     </div>
 </section>
 @endif
