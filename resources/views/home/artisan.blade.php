@@ -738,11 +738,11 @@
 
 {{-- ═══ §7b PARTENAIRES ════════════════════════════════════════ --}}
 @php
-    $partEnabled  = $homeConfig['partners']['enabled']  ?? false;
-    $partTitle    = $homeConfig['partners']['title']    ?? 'Nos partenaires de confiance';
-    $partLogos    = $homeConfig['partners']['logos']    ?? [];
-    $partFeatured = $homeConfig['partners']['featured'] ?? null;
-    $partIntro    = $homeConfig['partners']['intro']    ?? '';
+    $partEnabled  = (bool)($homeConfig['partners']['enabled']  ?? false);
+    $partTitle    = is_string($homeConfig['partners']['title']    ?? '') ? ($homeConfig['partners']['title']    ?? 'Nos partenaires de confiance') : 'Nos partenaires de confiance';
+    $partIntro    = is_string($homeConfig['partners']['intro']    ?? '') ? ($homeConfig['partners']['intro']    ?? '') : '';
+    $partLogos    = is_array($homeConfig['partners']['logos']    ?? []) ? ($homeConfig['partners']['logos']    ?? []) : [];
+    $partFeatured = is_array($homeConfig['partners']['featured'] ?? null) ? ($homeConfig['partners']['featured'] ?? null) : null;
 @endphp
 @if($partEnabled && (count($partLogos) > 0 || !empty($partFeatured)))
 <section class="at-sec tight" style="background:var(--bgs);">
