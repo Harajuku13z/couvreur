@@ -797,161 +797,107 @@
 @endif
 
 
-{{-- ═══ §8 ZONE D'INTERVENTION (villes + carte) ══════════════════════════════════════════════ --}}
+{{-- ═══ §8 ZONE D'INTERVENTION ══════════════════════════════════════════════ --}}
 @php
     $ziHasCities = isset($favoriteCities) && $favoriteCities->count() > 0;
     $ziHasMap    = !empty($departmentsMap['show']);
 @endphp
 @if($ziHasCities || $ziHasMap)
-@if($ziHasMap)
-@push('head')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-@endpush
-@endif
 <style>
-.zi-grid{display:grid;grid-template-columns:1fr 2fr;gap:2rem;align-items:start;}
-@media(max-width:800px){.zi-grid{grid-template-columns:1fr;}}
-.zi-pill{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem 1rem;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.82);text-decoration:none;font-size:.875rem;font-weight:600;transition:background .18s,border-color .18s;}
-.zi-pill:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28);}
-.zi-dept-li{border-radius:1rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);padding:1rem;}
-.zi-dept-link{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:600;color:#fff;text-decoration:none;font-size:.9375rem;transition:color .18s;}
-.zi-dept-link:hover{color:var(--primary-color,#B7472A);}
-.zi-dept-badge{display:inline-flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:.5rem;color:#fff;font-size:.75rem;font-weight:800;margin-right:.75rem;flex-shrink:0;background:linear-gradient(135deg,var(--primary-color,#B7472A),var(--secondary-color,#D4572C));}
-.zi-city-chip{display:inline-block;border-radius:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:.3rem .7rem;font-size:.8125rem;font-weight:500;color:rgba(255,255,255,.72);text-decoration:none;transition:border-color .18s,background .18s;}
-.zi-city-chip:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);}
-.zi-map-wrap{border-radius:1.25rem;overflow:hidden;border:1px solid rgba(255,255,255,.12);height:460px;}
-@media(max-width:800px){.zi-map-wrap{height:320px;}}
+.zn-sec{background:radial-gradient(circle at top left,rgba(80,160,255,.08),transparent 35%),#17120f;color:#fff;padding:90px 20px;font-family:'Manrope',Arial,sans-serif;}
+.zn-box{width:100%;max-width:1180px;margin:0 auto;}
+.zn-lbl{display:flex;align-items:center;gap:12px;color:#7d7a76;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:28px;}
+.zn-lbl-bar{width:24px;height:2px;background:linear-gradient(90deg,#4a9cff,#75e0c0);border-radius:100px;flex-shrink:0;}
+.zn-hero{max-width:740px;}
+.zn-hero h2{margin:0;font-family:'Fraunces',Georgia,serif;font-size:clamp(38px,6vw,68px);line-height:1.03;font-weight:800;letter-spacing:-1.8px;color:#fff;}
+.zn-hero p,.zn-dept-hdr p{margin:24px 0 0;color:#a9a39d;font-size:17px;line-height:1.7;}
+.zn-tags{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px;}
+.zn-tag{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;color:#d7d1ca;font-size:14px;font-weight:600;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:999px;backdrop-filter:blur(10px);transition:.25s ease;text-decoration:none;}
+.zn-tag:hover{transform:translateY(-2px);border-color:rgba(117,224,192,.45);background:rgba(117,224,192,.08);color:#fff;}
+.zn-sep{width:100%;height:1px;margin:58px 0;background:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.02));}
+.zn-dept-hdr{margin-bottom:34px;}
+.zn-dept-hdr p{max-width:950px;}
+.zn-content{display:grid;grid-template-columns:380px 1fr;gap:32px;align-items:stretch;}
+@media(max-width:900px){.zn-content{grid-template-columns:1fr;}}
+.zn-dept-card{position:relative;display:flex;align-items:center;gap:18px;min-height:86px;padding:22px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,.28);overflow:hidden;transition:.3s ease;text-decoration:none;color:inherit;}
+.zn-dept-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(117,224,192,.12),transparent);opacity:0;transition:.3s ease;}
+.zn-dept-card:hover{transform:translateY(-4px);border-color:rgba(117,224,192,.35);}
+.zn-dept-card:hover::before{opacity:1;}
+.zn-dept-num{position:relative;z-index:1;width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:800;border-radius:12px;background:linear-gradient(135deg,#4a9cff,#75e0c0);box-shadow:0 12px 30px rgba(74,156,255,.25);}
+.zn-dept-info{position:relative;z-index:1;flex:1;}
+.zn-dept-info h3{margin:0;font-size:18px;color:#fff;font-family:'Fraunces',Georgia,serif;}
+.zn-dept-info p{margin:6px 0 0;color:#9f9891;font-size:14px;line-height:1.5;}
+.zn-dept-arr{position:relative;z-index:1;color:#9f9891;font-size:22px;transition:.25s ease;}
+.zn-dept-card:hover .zn-dept-arr{color:#75e0c0;transform:translateX(4px);}
+.zn-map{position:relative;min-height:420px;border-radius:26px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04)),#9aa1ab;border:1px solid rgba(255,255,255,.14);box-shadow:0 26px 90px rgba(0,0,0,.38);}
+.zn-map::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(39,47,58,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(39,47,58,.35) 1px,transparent 1px);background-size:80px 80px;opacity:.25;}
+.zn-map-ctrl{position:absolute;z-index:3;top:16px;left:16px;display:grid;overflow:hidden;border-radius:10px;box-shadow:0 12px 25px rgba(0,0,0,.25);}
+.zn-map-btn{width:38px;height:38px;border:0;background:#fff;color:#1b1b1b;font-size:24px;font-weight:500;cursor:default;line-height:1;padding:0;}
+.zn-map-btn:first-child{border-bottom:1px solid #e1e1e1;}
+.zn-map-area{position:absolute;inset:0;display:grid;place-items:center;}
+.zn-map-shape{width:min(42vw,360px);height:min(42vw,360px);background:linear-gradient(135deg,#75e0c0,#67d6a5);clip-path:polygon(48% 0%,62% 8%,78% 12%,85% 28%,94% 43%,88% 60%,91% 78%,72% 88%,56% 100%,39% 92%,21% 90%,12% 74%,5% 59%,12% 43%,8% 27%,22% 16%,33% 5%);border:3px solid #4a9cff;filter:drop-shadow(0 20px 35px rgba(0,0,0,.18));}
+.zn-map-pin{position:absolute;right:32px;bottom:28px;display:inline-flex;align-items:center;gap:10px;padding:12px 16px;color:#fff;font-size:14px;font-weight:700;background:rgba(23,18,15,.78);border:1px solid rgba(255,255,255,.12);border-radius:999px;backdrop-filter:blur(12px);}
+.zn-map-dot{width:10px;height:10px;background:#75e0c0;border-radius:50%;box-shadow:0 0 0 6px rgba(117,224,192,.16);flex-shrink:0;}
+@media(max-width:560px){.zn-hero h2{font-size:42px;}.zn-dept-card{padding:18px;}.zn-map{min-height:320px;border-radius:22px;}.zn-map-shape{width:260px;height:260px;}.zn-map-pin{left:18px;right:18px;justify-content:center;}}
 </style>
-<section style="background:#1F1A14;padding:5rem 0;">
-    <div class="at-w">
+<section class="zn-sec">
+    <div class="zn-box">
         {{-- Intro --}}
-        <div style="max-width:700px;margin-bottom:2.5rem;">
-            <div class="at-ey" style="color:rgba(255,255,255,.4);">Zone d'intervention</div>
-            <h2 style="font-family:'Fraunces',serif;font-size:clamp(1.75rem,4vw,2.75rem);font-weight:700;color:#fff;line-height:1.2;margin:.75rem 0 1rem;">On intervient à {{ $city }} et dans un rayon de 30&nbsp;km.</h2>
-            <p style="color:rgba(255,255,255,.58);font-size:1.0625rem;line-height:1.65;">Une demande hors zone&nbsp;? Appelez-nous, on regarde au cas par cas.</p>
-        </div>
-
-        {{-- Villes --}}
-        @if($ziHasCities)
-        <div style="display:flex;flex-wrap:wrap;gap:.625rem;margin-bottom:{{ $ziHasMap ? '3.5rem' : '0' }};">
-            @foreach($favoriteCities as $fc)
-            <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="zi-pill">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                {{ $fc->name }}
-            </a>
-            @endforeach
-        </div>
-        @endif
-
-        {{-- Carte + départements --}}
-        @if($ziHasMap)
-        @php
-            $ziItems         = $departmentsMap['items'] ?? [];
-            $ziGeoUrl        = $departmentsMap['geoJsonUrl'] ?? '';
-            $ziUseCityCollapse = count($ziItems) > 1;
-        @endphp
-        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:3rem;">
-            <div style="margin-bottom:2rem;">
-                <div class="at-ey" style="color:rgba(255,255,255,.4);">Nos départements d'intervention</div>
-                <p style="color:rgba(255,255,255,.52);font-size:.9375rem;line-height:1.65;margin-top:.5rem;">
-                    Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d'intervention
-                    @if($ziUseCityCollapse) ; déployez «&nbsp;Villes desservies&nbsp;» pour afficher les principales communes.
-                    @else et les principales villes desservies. @endif
-                </p>
+        <div class="zn-hero">
+            <div class="zn-lbl"><span class="zn-lbl-bar"></span>Zone d'intervention</div>
+            <h2>On intervient à {{ $city }}<br>et dans un rayon de 30&nbsp;km.</h2>
+            <p>Une demande hors zone&nbsp;? Appelez-nous, on regarde au cas par cas.</p>
+            @if($ziHasCities)
+            <div class="zn-tags">
+                @foreach($favoriteCities as $fc)
+                <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="zn-tag">📍 {{ $fc->name }}</a>
+                @endforeach
             </div>
-            <div class="zi-grid">
-                {{-- Liste départements --}}
-                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1rem;">
-                    @foreach($ziItems as $row)
-                    <li class="zi-dept-li">
-                        <a href="{{ $row['url'] }}" class="zi-dept-link">
-                            <span style="display:flex;align-items:center;min-width:0;">
-                                <span class="zi-dept-badge">{{ $row['code'] }}</span>
-                                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $row['name'] }}</span>
-                            </span>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
-                        @if(!empty($row['cities']) && is_array($row['cities']))
-                            @if($ziUseCityCollapse)
-                            <details style="margin-top:.875rem;border:1px solid rgba(255,255,255,.08);border-radius:.75rem;background:rgba(255,255,255,.03);">
-                                <summary style="cursor:pointer;list-style:none;padding:.6rem .875rem;font-size:.8125rem;font-weight:600;color:rgba(255,255,255,.55);">Villes desservies</summary>
-                                <div style="padding:.625rem .875rem .75rem;border-top:1px solid rgba(255,255,255,.06);">
-                                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
-                                        @foreach($row['cities'] as $ziCity)
-                                        <a href="{{ $ziCity['url'] }}" class="zi-city-chip">{{ $ziCity['name'] }}</a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </details>
-                            @else
-                            <div style="margin-top:.875rem;display:flex;flex-wrap:wrap;gap:.5rem;">
-                                @foreach($row['cities'] as $ziCity)
-                                <a href="{{ $ziCity['url'] }}" class="zi-city-chip">{{ $ziCity['name'] }}</a>
-                                @endforeach
-                            </div>
-                            @endif
-                        @endif
-                    </li>
-                    @endforeach
-                </ul>
+            @endif
+        </div>
 
-                {{-- Carte Leaflet --}}
-                <div class="zi-map-wrap">
-                    <div id="zi-map" style="width:100%;height:100%;" role="img" aria-label="Carte des départements d'intervention"></div>
+        @if($ziHasMap)
+        @php $ziItems = $departmentsMap['items'] ?? []; @endphp
+        <div class="zn-sep"></div>
+        <div class="zn-dept-hdr">
+            <div class="zn-lbl"><span class="zn-lbl-bar"></span>Nos départements d'intervention</div>
+            <p>Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d'intervention et les principales villes desservies.</p>
+        </div>
+        <div class="zn-content">
+            {{-- Liste --}}
+            <div style="display:flex;flex-direction:column;gap:16px;">
+                @foreach($ziItems as $row)
+                @php $ziRowCities = is_array($row['cities'] ?? null) ? $row['cities'] : []; @endphp
+                <a href="{{ $row['url'] }}" class="zn-dept-card">
+                    <div class="zn-dept-num">{{ $row['code'] }}</div>
+                    <div class="zn-dept-info">
+                        <h3>{{ $row['name'] }}</h3>
+                        @if(!empty($ziRowCities))
+                        <p>{{ implode(', ', array_slice(array_map(fn($c) => $c['name'] ?? '', $ziRowCities), 0, 3)) }}{{ count($ziRowCities) > 3 ? '&hellip;' : '' }}</p>
+                        @endif
+                    </div>
+                    <div class="zn-dept-arr">→</div>
+                </a>
+                @endforeach
+            </div>
+            {{-- Carte stylisée --}}
+            <div class="zn-map">
+                <div class="zn-map-ctrl">
+                    <button class="zn-map-btn" aria-hidden="true">+</button>
+                    <button class="zn-map-btn" aria-hidden="true">−</button>
+                </div>
+                <div class="zn-map-area">
+                    <div class="zn-map-shape"></div>
+                    <div class="zn-map-pin">
+                        <span class="zn-map-dot"></span>
+                        {{ $city }}
+                    </div>
                 </div>
             </div>
         </div>
         @endif
     </div>
 </section>
-@if($ziHasMap)
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script>
-(function(){
-    var items=@json($departmentsMap['items']??[]);
-    var geoUrl=@json($departmentsMap['geoJsonUrl']??'');
-    var primary=getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()||'#B7472A';
-    var secondary=getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()||'#D4572C';
-    function normalizeCode(c){c=String(c||'').trim().toUpperCase();if(c==='2A'||c==='2B')return c;if(/^\d+$/.test(c))return c.padStart(2,'0');return c;}
-    var highlight=new Set(items.map(function(it){return normalizeCode(it.code);}));
-    var urlByCode={};items.forEach(function(it){urlByCode[normalizeCode(it.code)]=it.url;});
-    var map=L.map('zi-map',{scrollWheelZoom:false,zoomControl:true,attributionControl:false});
-    fetch(geoUrl,{credentials:'same-origin'})
-    .then(function(r){return r.json();})
-    .then(function(geojson){
-        var layer=L.geoJSON(geojson,{
-            style:function(feat){
-                var code=normalizeCode(feat.properties&&feat.properties.code);
-                var on=highlight.has(code);
-                return{color:on?primary:'#374151',weight:on?2:0.5,fillColor:on?secondary:'#1f2937',fillOpacity:on?0.7:0.4};
-            },
-            onEachFeature:function(feature,lyr){
-                var nom=(feature.properties&&feature.properties.nom)?feature.properties.nom:'';
-                var code=normalizeCode(feature.properties&&feature.properties.code);
-                lyr.bindTooltip(nom+(code?' ('+code+')':''),{sticky:true});
-                lyr.on('click',function(){if(highlight.has(code)&&urlByCode[code])window.location.href=urlByCode[code];});
-            }
-        });
-        layer.addTo(map);
-        var targetBounds=null;
-        if(geojson.features&&geojson.features.length){
-            geojson.features.forEach(function(feat){
-                var code=normalizeCode(feat.properties&&feat.properties.code);
-                if(!highlight.has(code))return;
-                try{var b=L.geoJSON(feat).getBounds();if(b&&b.isValid())targetBounds=targetBounds?targetBounds.extend(b):b;}catch(e){}
-            });
-        }
-        try{
-            if(targetBounds&&targetBounds.isValid()){map.fitBounds(targetBounds,{padding:[32,32],maxZoom:highlight.size===1?10:9});}
-            else{map.fitBounds(layer.getBounds(),{padding:[24,24]});}
-        }catch(e){}
-        setTimeout(function(){try{map.invalidateSize();}catch(e2){}},100);
-        window.addEventListener('resize',function(){try{map.invalidateSize();}catch(e3){}});
-    })
-    .catch(function(){document.getElementById('zi-map').innerHTML='<div style="padding:2rem;text-align:center;color:#f87171;font-size:.875rem;">Impossible de charger la carte.</div>';});
-})();
-</script>
-@endif
 @endif
 
 
