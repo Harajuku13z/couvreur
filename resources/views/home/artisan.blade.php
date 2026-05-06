@@ -217,64 +217,18 @@
 
 /* ── §3 SERVICES ───────────────────────────────────────────── */
 .at-svc-hdr { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px; gap:24px; flex-wrap:wrap; }
-.at-svc-grid {
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:3px;
+.at-svc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px; }
+.at-svc-card { overflow:hidden; display:flex; flex-direction:column; cursor:pointer; transition:transform .15s, box-shadow .15s; text-decoration:none; }
+.at-svc-card:hover { transform:translateY(-3px); box-shadow:var(--s2); }
+.at-svc-photo {
+    height:210px; position:relative; overflow:hidden;
+    background:var(--bgs); background-size:cover; background-position:center;
+    border-radius:var(--r) var(--r) 0 0;
 }
-@media(max-width:900px){ .at-svc-grid{ grid-template-columns:repeat(2,1fr); } }
-@media(max-width:560px){ .at-svc-grid{ grid-template-columns:1fr; } }
-.at-svc-card {
-    position:relative; overflow:hidden; cursor:pointer;
-    height:320px; display:block; text-decoration:none;
-    background:#1F1A14;
-}
-.at-svc-card:first-child { grid-column:span 2; height:380px; }
-@media(max-width:900px){ .at-svc-card:first-child{ grid-column:span 1; height:320px; } }
-.at-svc-card-bg {
-    position:absolute; inset:0;
-    background-size:cover; background-position:center;
-    transition:transform .55s cubic-bezier(.25,.46,.45,.94);
-}
-.at-svc-card:hover .at-svc-card-bg { transform:scale(1.06); }
-.at-svc-card-ov {
-    position:absolute; inset:0;
-    background:linear-gradient(to top, rgba(10,7,4,.92) 0%, rgba(10,7,4,.45) 55%, rgba(10,7,4,.08) 100%);
-    transition:background .3s;
-}
-.at-svc-card:hover .at-svc-card-ov { background:linear-gradient(to top, rgba(10,7,4,.96) 0%, rgba(10,7,4,.55) 55%, rgba(10,7,4,.14) 100%); }
-.at-svc-card-ico {
-    position:absolute; top:18px; left:18px;
-    width:38px; height:38px; border-radius:9px;
-    background:var(--p); color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 12px rgba(0,0,0,.3);
-}
-.at-svc-card-body {
-    position:absolute; bottom:0; left:0; right:0; padding:28px 24px;
-    color:#fff;
-}
-.at-svc-card-body h3 {
-    font-family:var(--fd); font-size:clamp(17px,1.6vw,22px); font-weight:700;
-    color:#fff; letter-spacing:-.02em; margin-bottom:8px;
-}
-.at-svc-card-body p {
-    font-size:13.5px; color:rgba(255,255,255,.65); line-height:1.55;
-    margin:0 0 14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-.at-svc-card-link {
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:12.5px; font-weight:700; color:var(--p);
-    text-transform:uppercase; letter-spacing:.07em;
-    opacity:0; transform:translateY(6px); transition:opacity .25s,transform .25s;
-}
-.at-svc-card:hover .at-svc-card-link { opacity:1; transform:translateY(0); }
-.at-svc-card-no-img { background:linear-gradient(135deg,#2A2420,#1F1A14); }
-.at-svc-ico { display:none; }
-.at-svc-photo { display:none; }
-.at-svc-photo-inner { display:none; }
-.at-svc-body { display:none; }
-.at-svc-more { display:none; }
+.at-svc-photo-inner { width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s; }
+.at-svc-card:hover .at-svc-photo-inner { transform:scale(1.04); }
+.at-svc-body { padding:22px; display:flex; flex-direction:column; gap:9px; flex:1; }
+.at-svc-more { display:inline-flex; align-items:center; gap:6px; color:var(--p); font-weight:600; font-size:13.5px; margin-top:auto; padding-top:8px; }
 
 /* ── §4 COMMENT ÇA MARCHE ──────────────────────────────────── */
 .at-how-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
@@ -506,30 +460,24 @@
                 $svcSlug  = $svc['slug']  ?? \Illuminate\Support\Str::slug($svcName);
                 $svcIcon  = $svc['icon']  ?? '';
             @endphp
-            <a href="{{ route('services.show', $svcSlug) }}" class="at-svc-card{{ !$svcImg ? ' at-svc-card-no-img' : '' }}">
-                {{-- Background image --}}
-                <div class="at-svc-card-bg"
-                    {{ $svcImg ? "style=background-image:url('".e($svcImg)."')" : '' }}>
-                    @if(!$svcImg)
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                        @if($svcIcon)<i class="{{ $svcIcon }}" style="font-size:3.5rem;color:var(--p);opacity:.2;"></i>
-                        @else<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="1" style="opacity:.2;" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>@endif
-                    </div>
+            <a href="{{ route('services.show', $svcSlug) }}" class="at-card at-svc-card">
+                <div class="at-svc-photo">
+                    @if($svcImg)
+                        <img src="{{ $svcImg }}" alt="{{ $svcName }}" class="at-svc-photo-inner" loading="lazy">
+                    @else
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ps),var(--bgs));display:flex;align-items:center;justify-content:center;">
+                            <i class="{{ $svcIcon ?: 'fas fa-wrench' }}" style="font-size:2.5rem;color:var(--p);opacity:.35;"></i>
+                        </div>
                     @endif
                 </div>
-                <div class="at-svc-card-ov"></div>
-                {{-- Icon badge --}}
-                <div class="at-svc-card-ico">
-                    @if($svcIcon)<i class="{{ $svcIcon }}" style="font-size:.85rem;color:#fff;"></i>
-                    @else<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>@endif
-                </div>
-                {{-- Content --}}
-                <div class="at-svc-card-body">
+                <div class="at-svc-body">
                     <h3>{{ $svcName }}</h3>
-                    @if($svcShort)<p>{{ Str::limit($svcShort, 100) }}</p>@endif
-                    <span class="at-svc-card-link">
-                        Découvrir
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    @if($svcShort)
+                    <p style="color:var(--ink3); font-size:14px; line-height:1.55;">{{ Str::limit($svcShort, 120) }}</p>
+                    @endif
+                    <span class="at-svc-more">
+                        En savoir plus
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </span>
                 </div>
             </a>
@@ -632,111 +580,80 @@
 {{-- ═══ §5b ÉCOLOGIE + FINANCEMENT (section fusionnée) ═══════ --}}
 @php
     $ecoEnabled = $homeConfig['ecology']['enabled']   ?? false;
-    $ecoTitle   = $homeConfig['ecology']['title']     ?? 'Engagés pour l\'environnement';
-    $ecoContent = $homeConfig['ecology']['content']   ?? '';
-    $ecoBadges  = $homeConfig['ecology']['badges']    ?? [];
-    $ecoBgImg   = $homeConfig['ecology']['image']     ?? null;
-
     $finEnabled = $homeConfig['financing']['enabled'] ?? false;
-    $finTitle   = $homeConfig['financing']['title']   ?? 'Des aides pour financer vos travaux';
-    $finContent = $homeConfig['financing']['content'] ?? '';
-    $finBadges  = $homeConfig['financing']['badges']  ?? [];
-    $finBgImg   = $homeConfig['financing']['image']   ?? null;
-
-    $ecoBadgeMap = [
-        'materiaux_recycles' => ['label'=>'Matériaux recyclés','emoji'=>'♻️'],
-        'energies_vertes'    => ['label'=>'Énergies vertes',   'emoji'=>'🌱'],
-    ];
-    $finBadgeMap = [
-        'maprimerenov'    => ['label'=>'MaPrimeRénov\'','emoji'=>'🏠','desc'=>'Aide de l\'État jusqu\'à 90%'],
-        'certificats_cee' => ['label'=>'Certificats CEE','emoji'=>'⚡','desc'=>'Économies d\'énergie certifiées'],
-    ];
-
     $bothActive = $ecoEnabled && $finEnabled;
 @endphp
 @if($ecoEnabled || $finEnabled)
-<section style="overflow:hidden;">
-    <div style="display:grid;grid-template-columns:{{ $bothActive ? '1fr 1fr' : '1fr' }};">
+<section class="at-sec" style="background:var(--bgs);">
+    <div class="at-w">
+        <div style="display:grid;grid-template-columns:{{ $bothActive ? '1fr 1fr' : '1fr' }};gap:24px;align-items:stretch;">
 
-        {{-- ▌ PANNEAU ÉCOLOGIE --}}
-        @if($ecoEnabled)
-        <div style="position:relative;min-height:480px;display:flex;align-items:center;">
-            {{-- Background --}}
-            <div style="position:absolute;inset:0;
-                {{ $ecoBgImg ? 'background-image:url('.asset(ltrim($ecoBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F2A18 0%,#1a3d22 40%,#0d2016 100%);' }}">
-            </div>
-            {{-- Overlay --}}
-            <div style="position:absolute;inset:0;background:{{ $ecoBgImg ? 'linear-gradient(to right, rgba(10,25,15,.88) 0%, rgba(10,25,15,.65) 100%)' : 'radial-gradient(ellipse 80% 70% at 20% 50%, rgba(22,163,74,.18), transparent)' }};"></div>
-            {{-- Content --}}
-            <div style="position:relative;z-index:1;padding:{{ $bothActive ? '64px 48px' : '80px max(48px,calc(50% - 480px))' }};width:100%;">
-                <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ADE80;margin-bottom:16px;">
-                    <span style="display:block;width:20px;height:2px;background:#4ADE80;border-radius:2px;"></span>
-                    Engagement environnemental
-                </div>
-                <h2 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(22px,2.2vw,34px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 14px;max-width:420px;">{{ $ecoTitle }}</h2>
-                @if($ecoContent)
-                <p style="color:rgba(255,255,255,.65);font-size:15.5px;line-height:1.65;margin:0 0 28px;max-width:400px;">{{ $ecoContent }}</p>
-                @endif
-                @if(!empty($ecoBadges))
-                <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                    @foreach($ecoBadges as $bk)
-                    @php $bm=$ecoBadgeMap[$bk]??null; @endphp
-                    @if($bm)
-                    <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;backdrop-filter:blur(8px);">
-                        <span style="font-size:18px;">{{ $bm['emoji'] }}</span>
-                        <span style="font-weight:600;font-size:13.5px;color:#fff;">{{ $bm['label'] }}</span>
+            {{-- ▌ PANNEAU ÉCOLOGIE --}}
+            @if($ecoEnabled)
+            @php $ecoBgImg = $homeConfig['ecology']['image'] ?? null; @endphp
+            <div style="position:relative;border-radius:20px;overflow:hidden;min-height:400px;display:flex;align-items:flex-end;">
+                {{-- Background --}}
+                <div style="position:absolute;inset:0;{{ $ecoBgImg ? 'background-image:url('.asset(ltrim($ecoBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F2A18 0%,#14331e 50%,#0d2016 100%);' }}"></div>
+                {{-- Overlay gradient du bas --}}
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,22,13,.97) 0%,rgba(8,22,13,.75) 50%,rgba(8,22,13,.3) 100%);"></div>
+                {{-- Feuille déco --}}
+                <div style="position:absolute;top:20px;right:24px;font-size:100px;opacity:.12;line-height:1;pointer-events:none;">🌿</div>
+                {{-- Contenu --}}
+                <div style="position:relative;z-index:1;padding:40px 36px;width:100%;">
+                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ADE80;margin-bottom:14px;">
+                        <span style="width:18px;height:2px;background:#4ADE80;border-radius:2px;display:block;"></span>
+                        Engagement environnemental
                     </div>
-                    @endif
-                    @endforeach
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(20px,1.8vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 16px;">Notre Engagement Écologique</h3>
+                    <p style="color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.7;margin:0 0 24px;">
+                        Nous privilégions des matériaux respectueux de l'environnement : tuiles recyclables, isolants naturels et peintures écologiques. Nos travaux d'isolation et de rénovation visent à réduire les consommations d'énergie et à améliorer la performance thermique de votre logement. En choisissant notre entreprise, vous contribuez à une rénovation durable et responsable.
+                    </p>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">♻️ Matériaux recyclables</div>
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🌱 Isolants naturels</div>
+                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🏠 Éco-rénovation</div>
+                    </div>
                 </div>
-                @endif
             </div>
-            {{-- Decorative leaf --}}
-            <div style="position:absolute;bottom:-30px;right:-20px;font-size:180px;opacity:.05;line-height:1;pointer-events:none;user-select:none;">🌿</div>
-        </div>
-        @endif
+            @endif
 
-        {{-- ▌ PANNEAU FINANCEMENT --}}
-        @if($finEnabled)
-        <div style="position:relative;min-height:480px;display:flex;align-items:center;">
-            {{-- Background --}}
-            <div style="position:absolute;inset:0;
-                {{ $finBgImg ? 'background-image:url('.asset(ltrim($finBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F1A2E 0%,#1a2d4a 40%,#0d1828 100%);' }}">
-            </div>
-            {{-- Overlay --}}
-            <div style="position:absolute;inset:0;background:{{ $finBgImg ? 'linear-gradient(to right, rgba(10,18,36,.88) 0%, rgba(10,18,36,.65) 100%)' : 'radial-gradient(ellipse 80% 70% at 80% 50%, rgba(59,130,246,.15), transparent)' }};"></div>
-            {{-- Content --}}
-            <div style="position:relative;z-index:1;padding:{{ $bothActive ? '64px 48px' : '80px max(48px,calc(50% - 480px))' }};width:100%;">
-                <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#60A5FA;margin-bottom:16px;">
-                    <span style="display:block;width:20px;height:2px;background:#60A5FA;border-radius:2px;"></span>
-                    Financement & aides
-                </div>
-                <h2 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(22px,2.2vw,34px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 14px;max-width:420px;">{{ $finTitle }}</h2>
-                @if($finContent)
-                <p style="color:rgba(255,255,255,.65);font-size:15.5px;line-height:1.65;margin:0 0 28px;max-width:400px;">{{ $finContent }}</p>
-                @endif
-                @if(!empty($finBadges))
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                    @foreach($finBadges as $bk)
-                    @php $fm=$finBadgeMap[$bk]??null; @endphp
-                    @if($fm)
-                    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;backdrop-filter:blur(8px);">
-                        <span style="font-size:26px;flex-shrink:0;">{{ $fm['emoji'] }}</span>
-                        <div>
-                            <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:3px;">{{ $fm['label'] }}</div>
-                            @if(!empty($fm['desc']))<div style="font-size:12.5px;color:rgba(255,255,255,.55);">{{ $fm['desc'] }}</div>@endif
+            {{-- ▌ PANNEAU FINANCEMENT --}}
+            @if($finEnabled)
+            @php $finBgImg = $homeConfig['financing']['image'] ?? null; @endphp
+            <div style="position:relative;border-radius:20px;overflow:hidden;min-height:400px;display:flex;align-items:flex-end;">
+                {{-- Background --}}
+                <div style="position:absolute;inset:0;{{ $finBgImg ? 'background-image:url('.asset(ltrim($finBgImg,'/')).'); background-size:cover; background-position:center;' : 'background:linear-gradient(160deg,#0F1A35 0%,#162040 50%,#0c1628 100%);' }}"></div>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,14,32,.97) 0%,rgba(8,14,32,.75) 50%,rgba(8,14,32,.3) 100%);"></div>
+                {{-- Déco --}}
+                <div style="position:absolute;top:20px;right:24px;font-size:90px;opacity:.12;line-height:1;pointer-events:none;">💡</div>
+                {{-- Contenu --}}
+                <div style="position:relative;z-index:1;padding:40px 36px;width:100%;">
+                    <div style="display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#60A5FA;margin-bottom:14px;">
+                        <span style="width:18px;height:2px;background:#60A5FA;border-radius:2px;display:block;"></span>
+                        Financement &amp; Aides
+                    </div>
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(20px,1.8vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 16px;">Aides et Financements Disponibles</h3>
+                    <p style="color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.7;margin:0 0 20px;">
+                        Grâce aux dispositifs comme MaPrimeRénov', l'Éco-prêt à taux zéro (Éco-PTZ), ou encore les Certificats d'Économie d'Énergie (CEE), vos travaux de rénovation énergétique peuvent être partiellement financés. Nous vous accompagnons dans vos démarches administratives pour faciliter l'obtention des aides et subventions disponibles.
+                    </p>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;">
+                            <span style="font-size:22px;flex-shrink:0;">🏠</span>
+                            <div><div style="font-weight:700;font-size:14px;color:#fff;">MaPrimeRénov'</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);">Aide de l'État pour la rénovation</div></div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;">
+                            <span style="font-size:22px;flex-shrink:0;">⚡</span>
+                            <div><div style="font-weight:700;font-size:14px;color:#fff;">Éco-PTZ &amp; Certificats CEE</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);">Économies d'énergie certifiées</div></div>
                         </div>
                     </div>
-                    @endif
-                    @endforeach
+                    <div style="padding:12px 16px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);border-radius:12px;font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.55;">
+                        💡 Nos experts vous conseillent gratuitement sur les solutions les plus avantageuses.
+                    </div>
                 </div>
-                @endif
             </div>
-            {{-- Decorative --}}
-            <div style="position:absolute;bottom:-20px;right:-10px;font-size:160px;opacity:.05;line-height:1;pointer-events:none;user-select:none;">🏗️</div>
-        </div>
-        @endif
+            @endif
 
+        </div>
     </div>
 </section>
 @endif
