@@ -1,62 +1,79 @@
-{{-- ===== HEADER — toujours fond blanc, logo contraint ===== --}}
+{{-- ===== HEADER — Fond noir, design éditorial ===== --}}
 <style>
 #site-header {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 1000;
-    background: #fff;
-    box-shadow: 0 1px 0 rgba(0,0,0,.08);
-    transition: box-shadow .25s ease;
+    background: #111111;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    transition: background .25s ease, box-shadow .25s ease;
 }
 #site-header.scrolled {
-    box-shadow: 0 2px 20px rgba(0,0,0,.1);
+    background: #0a0a0a;
+    box-shadow: 0 4px 32px rgba(0,0,0,.4);
 }
 
-/* Logo : toujours version dark */
-#site-header .logo-light { display: none !important; }
-#site-header .logo-dark  { display: block !important; }
+/* Logo */
+.site-logo-img {
+    height: 2.75rem;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+    display: block;
+    filter: brightness(0) invert(1);
+}
+@media(min-width:640px){ .site-logo-img { max-width: 180px; height: 3rem; } }
+.site-logo-text {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+}
 
 /* Nav links */
 .nav-link {
-    color: #374151;
+    color: rgba(255,255,255,.75);
     font-weight: 600;
-    font-size: .92rem;
-    transition: color .2s;
+    font-size: .88rem;
+    letter-spacing: .01em;
+    transition: color .18s;
     position: relative;
     text-decoration: none;
 }
-.nav-link:hover { color: var(--primary-color); }
+.nav-link:hover { color: #fff; }
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: -4px; left: 0; right: 0;
+    bottom: -3px; left: 0; right: 0;
     height: 2px;
-    background: var(--primary-color);
+    background: var(--primary-color, #B7472A);
     transform: scaleX(0);
-    transition: transform .25s ease;
+    transition: transform .22s ease;
     border-radius: 2px;
 }
 .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+.nav-link.active { color: #fff; }
 
-/* Hamburger — toujours sombre */
-#hamburger span { background: #374151 !important; }
+/* Hamburger */
+#hamburger span { background: rgba(255,255,255,.85) !important; }
 
 /* Dropdown */
 .nav-dropdown { position: relative; }
 .nav-dropdown-menu {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(6px);
-    min-width: 220px;
-    background: #fff;
+    min-width: 230px;
+    background: #1a1a1a;
     border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.14);
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
     padding: 8px 0;
     opacity: 0;
     visibility: hidden;
     transition: opacity .2s, transform .2s;
-    border: 1px solid rgba(0,0,0,.06);
+    border: 1px solid rgba(255,255,255,.08);
 }
 .nav-dropdown:hover .nav-dropdown-menu {
     opacity: 1;
@@ -68,69 +85,113 @@
     align-items: center;
     gap: 10px;
     padding: 10px 18px;
-    font-size: .88rem;
+    font-size: .86rem;
     font-weight: 600;
-    color: #374151;
+    color: rgba(255,255,255,.75);
     transition: background .15s, color .15s;
     text-decoration: none;
 }
 .nav-dropdown-menu a:hover {
-    background: rgba(var(--primary-color-rgb,34,197,94),.07);
-    color: var(--primary-color);
+    background: rgba(255,255,255,.06);
+    color: #fff;
 }
 .nav-dropdown-menu a:first-child {
-    border-bottom: 1px solid #f3f4f6;
-    color: var(--primary-color);
-    font-size: .82rem;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    color: var(--primary-color, #B7472A);
+    font-size: .78rem;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .08em;
     padding-bottom: 12px;
 }
 
-/* Logo max-width mobile */
-.site-logo-img {
-    height: 2.75rem;
-    width: auto;
-    max-width: 140px;
-    object-fit: contain;
-    display: block;
+/* CTA buttons header */
+.hdr-btn-phone {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: .83rem;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,.2);
+    color: rgba(255,255,255,.85);
+    text-decoration: none;
+    transition: border-color .18s, color .18s, background .18s;
+    letter-spacing: .01em;
 }
-@media(min-width:640px){ .site-logo-img { max-width: 180px; height: 3rem; } }
+.hdr-btn-phone:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.hdr-btn-devis {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: .83rem;
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: var(--primary-color, #B7472A);
+    color: #fff;
+    text-decoration: none;
+    transition: filter .18s, transform .18s;
+}
+.hdr-btn-devis:hover { filter: brightness(.88); transform: translateY(-1px); }
 
-/* Mobile menu */
+/* Mobile menu — noir */
 #mobile-menu {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 999;
-    background: #fff;
+    background: #111111;
     overflow-y: auto;
     flex-direction: column;
 }
 #mobile-menu.open { display: flex; }
+.mob-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: .95rem;
+    color: rgba(255,255,255,.8);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.mob-link:hover, .mob-link.active { background: rgba(255,255,255,.07); color: #fff; }
+.mob-link-sub {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 10px 44px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: .87rem;
+    color: rgba(255,255,255,.55);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.mob-link-sub:hover { background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); }
 </style>
 
 <header id="site-header">
     <div class="site-shell">
-        <div class="flex items-center justify-between py-3 md:py-3.5">
+        <div class="flex items-center justify-between" style="padding-top:14px; padding-bottom:14px;">
 
             {{-- Logo --}}
-            <a href="{{ url('/') }}" class="flex items-center flex-shrink-0" style="min-width:0;">
+            <a href="{{ url('/') }}" class="flex items-center gap-3 flex-shrink-0" style="min-width:0;">
                 @if(setting('company_logo'))
                     <img src="{{ asset(setting('company_logo')) }}"
-                         alt="{{ setting('company_name', 'Louis Hoffmann Élagage') }}"
-                         class="logo-dark site-logo-img">
+                         alt="{{ setting('company_name') }}"
+                         class="site-logo-img">
                 @else
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-                             style="background: var(--primary-color);">
-                            <i class="fas fa-tree text-sm"></i>
-                        </div>
-                        <span class="font-extrabold text-gray-900 text-base leading-tight truncate"
-                              style="max-width:160px;">
-                            {{ setting('company_name', 'Louis Hoffmann') }}
-                        </span>
+                    <div style="width:36px;height:36px;border-radius:10px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-home" style="color:#fff;font-size:.8rem;"></i>
                     </div>
+                    <span class="site-logo-text" style="max-width:160px;">{{ setting('company_name', 'Votre Entreprise') }}</span>
                 @endif
             </a>
 
@@ -142,21 +203,23 @@
                 $navFeatured = array_filter($navServices, fn($s) => is_array($s) && ($s['is_menu'] ?? false) && ($s['is_visible'] ?? true));
             @endphp
 
-            <nav class="hidden md:flex items-center gap-6 lg:gap-8">
+            <nav class="hidden md:flex items-center gap-7 lg:gap-9">
                 <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">Accueil</a>
 
                 <div class="nav-dropdown">
-                    <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1 {{ request()->routeIs('services.*') ? 'active' : '' }}">
-                        Services <i class="fas fa-chevron-down text-[10px] mt-0.5 ml-0.5"></i>
+                    <a href="{{ route('services.index') }}" class="nav-link flex items-center gap-1.5 {{ request()->routeIs('services.*') ? 'active' : '' }}">
+                        Services
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;opacity:.6;"><path d="m6 9 6 6 6-6"/></svg>
                     </a>
                     <div class="nav-dropdown-menu">
                         <a href="{{ route('services.index') }}">
-                            <i class="fas fa-list-ul text-xs"></i> Tous nos services
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                            Tous nos services
                         </a>
                         @foreach($navFeatured as $svc)
                             @if(isset($svc['name'], $svc['slug']))
                             <a href="{{ route('services.show', $svc['slug']) }}">
-                                <i class="{{ $svc['icon'] ?? 'fas fa-leaf' }} text-xs opacity-60"></i>
+                                <i class="{{ $svc['icon'] ?? 'fas fa-wrench' }}" style="font-size:.7rem;opacity:.7;"></i>
                                 {{ $svc['name'] }}
                             </a>
                             @endif
@@ -172,126 +235,112 @@
             {{-- Desktop CTAs --}}
             <div class="hidden md:flex items-center gap-3">
                 <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
-                   class="flex items-center gap-2 font-bold text-sm px-4 py-2.5 rounded-xl border-2 transition-all"
-                   style="border-color:var(--primary-color); color:var(--primary-color);"
-                   onmouseover="this.style.background='var(--primary-color)';this.style.color='#fff';"
-                   onmouseout="this.style.background='transparent';this.style.color='var(--primary-color)';"
+                   class="hdr-btn-phone"
                    onclick="if(typeof trackPhoneCall==='function')trackPhoneCall('{{ setting('company_phone_raw', setting('company_phone')) }}','header')">
-                    <i class="fas fa-phone text-xs"></i>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
                     {{ setting('company_phone', '06 42 21 41 51') }}
                 </a>
                 <a href="{{ route('form.step', 'propertyType') }}"
-                   class="flex items-center gap-2 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-sm hover:opacity-90 transition-all"
-                   style="background: var(--primary-color);"
+                   class="hdr-btn-devis"
                    onclick="if(typeof trackFormClick==='function')trackFormClick('{{ request()->url() }}')">
-                    <i class="fas fa-file-alt text-xs"></i>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     Devis gratuit
                 </a>
             </div>
 
             {{-- Hamburger --}}
             <button id="hamburger" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg" onclick="openMobileMenu()" aria-label="Menu">
-                <span class="block w-6 h-0.5 rounded transition-all" style="background:#374151;"></span>
-                <span class="block w-6 h-0.5 rounded transition-all" style="background:#374151;"></span>
-                <span class="block w-4 h-0.5 rounded transition-all" style="background:#374151;"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
+                <span class="block w-6 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
+                <span class="block w-4 h-0.5 rounded transition-all" style="background:rgba(255,255,255,.8);"></span>
             </button>
-
         </div>
     </div>
 </header>
 
 {{-- Mobile Menu --}}
 <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu navigation">
-    {{-- Header menu --}}
-    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
-        <a href="{{ url('/') }}" class="flex items-center gap-2" style="min-width:0;">
+    <div class="flex items-center justify-between px-5 py-4 flex-shrink-0" style="border-bottom:1px solid rgba(255,255,255,.08);">
+        <a href="{{ url('/') }}" class="flex items-center gap-3" style="min-width:0;">
             @if(setting('company_logo'))
                 <img src="{{ asset(setting('company_logo')) }}"
                      alt="{{ setting('company_name') }}"
-                     style="height:auto;width:auto;max-height:2.5rem;max-width:140px;object-fit:contain;display:block;">
+                     style="height:2.2rem;width:auto;max-width:130px;object-fit:contain;display:block;filter:brightness(0) invert(1);">
             @else
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:var(--primary-color);">
-                    <i class="fas fa-tree text-xs"></i>
+                <div style="width:32px;height:32px;border-radius:9px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-home" style="color:#fff;font-size:.75rem;"></i>
                 </div>
-                <span class="font-extrabold text-gray-900 truncate" style="max-width:160px;">{{ setting('company_name', 'Louis Hoffmann') }}</span>
+                <span style="font-weight:800;color:#fff;font-size:.95rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ setting('company_name') }}</span>
             @endif
         </a>
         <button onclick="closeMobileMenu()"
-                class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors flex-shrink-0"
+                style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);border:none;cursor:pointer;flex-shrink:0;"
                 aria-label="Fermer">
-            <i class="fas fa-times"></i>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
     </div>
 
-    {{-- Nav links --}}
-    <nav class="flex-1 px-5 py-6 space-y-1 overflow-y-auto">
-        <a href="{{ url('/') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-home text-sm w-4 text-center" style="color:var(--primary-color);"></i> Accueil
+    <nav class="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
+        <a href="{{ url('/') }}" class="mob-link {{ request()->is('/') ? 'active' : '' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Accueil
         </a>
-        <a href="{{ route('services.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-tree text-sm w-4 text-center" style="color:var(--primary-color);"></i> Nos Services
+        <a href="{{ route('services.index') }}" class="mob-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg>
+            Nos Services
         </a>
         @foreach($navFeatured as $svc)
             @if(isset($svc['name'], $svc['slug']))
-            <a href="{{ route('services.show', $svc['slug']) }}"
-               class="flex items-center gap-3 pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                <i class="{{ $svc['icon'] ?? 'fas fa-leaf' }} text-xs" style="color:var(--primary-color);"></i>
+            <a href="{{ route('services.show', $svc['slug']) }}" class="mob-link-sub">
+                <i class="{{ $svc['icon'] ?? 'fas fa-wrench' }}" style="color:var(--primary-color);font-size:.75rem;"></i>
                 {{ $svc['name'] }}
             </a>
             @endif
         @endforeach
-        <a href="{{ route('portfolio.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-images text-sm w-4 text-center" style="color:var(--primary-color);"></i> Réalisations
+        <a href="{{ route('portfolio.index') }}" class="mob-link {{ request()->routeIs('portfolio.*') ? 'active' : '' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+            Réalisations
         </a>
-        <a href="{{ route('blog.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-book-open text-sm w-4 text-center" style="color:var(--primary-color);"></i> Blog
+        <a href="{{ route('blog.index') }}" class="mob-link {{ request()->routeIs('blog.*') ? 'active' : '' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Blog
         </a>
-        <a href="{{ route('contact') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-envelope text-sm w-4 text-center" style="color:var(--primary-color);"></i> Contact
+        <a href="{{ route('contact') }}" class="mob-link {{ request()->routeIs('contact') ? 'active' : '' }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Contact
         </a>
     </nav>
 
-    {{-- CTAs --}}
-    <div class="px-5 pb-8 pt-3 space-y-3 border-t border-gray-100 flex-shrink-0">
+    <div class="px-4 pb-8 pt-4 space-y-3 flex-shrink-0" style="border-top:1px solid rgba(255,255,255,.08);">
         <a href="{{ route('form.step', 'propertyType') }}"
-           class="flex items-center justify-center gap-2 text-white font-bold py-4 rounded-2xl text-base shadow-lg"
-           style="background: var(--primary-color);">
-            <i class="fas fa-file-alt"></i> Devis gratuit en ligne
+           class="flex items-center justify-center gap-2 font-bold py-4 rounded-2xl text-base"
+           style="background:var(--primary-color);color:#fff;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Devis gratuit en ligne
         </a>
         <a href="tel:{{ setting('company_phone_raw', setting('company_phone')) }}"
            class="flex items-center justify-center gap-2 font-bold py-4 rounded-2xl border-2 text-base transition-colors"
-           style="border-color:var(--primary-color); color:var(--primary-color);">
-            <i class="fas fa-phone"></i> {{ setting('company_phone', '06 42 21 41 51') }}
+           style="border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.85);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+            {{ setting('company_phone', '06 42 21 41 51') }}
         </a>
     </div>
 </div>
 
-{{-- Spacer sous le header fixe --}}
+{{-- Spacer --}}
 <div style="height:60px;" class="md:hidden"></div>
-<div style="height:68px;" class="hidden md:block"></div>
+<div style="height:65px;" class="hidden md:block"></div>
 
 <script>
 (function(){
-    const header = document.getElementById('site-header');
-    if(!header) return;
+    const h = document.getElementById('site-header');
+    if(!h) return;
     window.addEventListener('scroll', function(){
-        header.classList.toggle('scrolled', window.scrollY > 20);
+        h.classList.toggle('scrolled', window.scrollY > 20);
     }, { passive: true });
 })();
-
-function openMobileMenu() {
-    const m = document.getElementById('mobile-menu');
-    if(m){ m.classList.add('open'); document.body.style.overflow = 'hidden'; }
-}
-function closeMobileMenu() {
-    const m = document.getElementById('mobile-menu');
-    if(m){ m.classList.remove('open'); document.body.style.overflow = ''; }
-}
-
-function trackFormClick(page) {
-    fetch('/api/track-form-click', { method: 'GET' }).catch(()=>{});
-}
-function trackPhoneCall(num, loc) {
-    fetch('/api/track-phone-call?num='+encodeURIComponent(num)+'&loc='+encodeURIComponent(loc||''), {method:'GET'}).catch(()=>{});
-}
+function openMobileMenu(){const m=document.getElementById('mobile-menu');if(m){m.classList.add('open');document.body.style.overflow='hidden';}}
+function closeMobileMenu(){const m=document.getElementById('mobile-menu');if(m){m.classList.remove('open');document.body.style.overflow='';}}
+function trackFormClick(p){fetch('/api/track-form-click',{method:'GET'}).catch(()=>{});}
+function trackPhoneCall(n,l){fetch('/api/track-phone-call?num='+encodeURIComponent(n)+'&loc='+encodeURIComponent(l||''),{method:'GET'}).catch(()=>{});}
 </script>

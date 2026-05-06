@@ -1,70 +1,90 @@
 {{-- ============================================================
      PAGE ACCUEIL — Design Artisan Editorial
-     Converti depuis le prototype React/JSX (Site web artisan-2.zip)
      Police : Fraunces (display) + Manrope (corps)
-     Palette : fond chaud #FAF7F2 · encre #1F1A14 · primary depuis settings
+     Palette : fond chaud #FAF7F2 · primary depuis settings
+     Données : toutes issues de homeConfig + Laravel DB
      ============================================================ --}}
 
 @php
-    $phone    = $companySettings['phone'] ?? setting('company_phone', '06 42 21 41 51');
+    $phone    = $companySettings['phone'] ?? setting('company_phone', '');
     $phoneRaw = preg_replace('/\s+/', '', $phone);
     $city     = $companySettings['city'] ?? setting('company_city', 'Paris');
     $name     = $companySettings['name'] ?? setting('company_name', 'Votre Entreprise');
 
-    $heroTitle = $homeConfig['sections']['hero']['title']
-              ?? $homeConfig['hero']['title']
-              ?? ($name . ' — ' . $city);
-    $heroSub   = $homeConfig['sections']['hero']['subtitle']
-              ?? $homeConfig['hero']['subtitle']
-              ?? 'Réparation, rénovation ou neuf — on intervient vite, on vous explique tout, et on garantit le travail.';
+    /* Hero */
+    $heroTitle   = $homeConfig['hero']['title']    ?? $name;
+    $heroSub     = $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'travaux de rénovation') . '. Devis gratuit, intervention rapide, qualité garantie.';
+    $heroCta     = $homeConfig['hero']['cta_text'] ?? 'Devis gratuit en 1 min';
+    $showPhone   = $homeConfig['hero']['show_phone'] ?? true;
+    $heroImg     = $homeConfig['hero']['background_image'] ?? null;
+    $heroImgUrl  = $heroImg ? asset(ltrim($heroImg, '/')) : null;
 
-    $heroImg    = $homeConfig['hero']['background_image'] ?? null;
-    $heroImgUrl = $heroImg ? asset(ltrim($heroImg, '/')) : null;
+    /* Stats (depuis homeConfig ou défaut) */
+    $statsData = $homeConfig['stats'] ?? [
+        ['label'=>'Chantiers réalisés','value'=>'500+'],
+        ['label'=>'Note Google','value'=>($totalReviews > 0 ? number_format($averageRating,1,',','').'/5' : '5/5')],
+        ['label'=>'Délai de réponse','value'=>'24h'],
+        ['label'=>'Garantie décennale','value'=>'10 ans'],
+    ];
 
-    $svcList = array_values(array_filter(
-        is_array($services) ? $services : [],
-        fn($s) => is_array($s) && ($s['is_visible'] ?? true)
-    ));
+    /* Sections flags */
+    $secServices  = $homeConfig['sections']['services']  ?? ['enabled'=>true,'title'=>'Nos Services','limit'=>6];
+    $secPortfolio = $homeConfig['sections']['portfolio'] ?? ['enabled'=>true,'title'=>'Nos Réalisations','limit'=>3];
+    $secReviews   = $homeConfig['sections']['reviews']   ?? ['enabled'=>true,'title'=>'Avis Clients','limit'=>3];
+    $secAbout     = $homeConfig['sections']['about']     ?? ['enabled'=>true,'title'=>'Pourquoi nous choisir ?'];
+    $secCta       = $homeConfig['sections']['cta']       ?? ['enabled'=>true,'title'=>'Un projet ? Parlons-en.'];
 
+    /* About */
+    $aboutEnabled = $homeConfig['about']['enabled'] ?? ($secAbout['enabled'] ?? true);
+    $aboutTitle   = $homeConfig['about']['title']   ?? ($secAbout['title'] ?? 'Un artisan, pas une multinationale.');
+    $aboutContent = $homeConfig['about']['content'] ?? $homeConfig['sections']['about']['text'] ?? '';
+    $aboutImg     = $homeConfig['about']['image']   ?? null;
+    $aboutImgUrl  = $aboutImg ? asset(ltrim($aboutImg, '/')) : null;
+
+    /* Services */
+    $allSvc  = is_array($services) ? $services : [];
+    $svcList = array_values(array_filter($allSvc, fn($s) => is_array($s) && ($s['is_visible'] ?? true)));
+    $svcLimit = (int)($secServices['limit'] ?? 6);
+
+    /* Portfolio */
+    $portLimit = (int)($secPortfolio['limit'] ?? 3);
+    $displayedPortfolio = array_slice($portfolioItems ?? [], 0, $portLimit);
+
+    /* Reviews */
+    $revLimit = (int)($secReviews['limit'] ?? 3);
     $ratingVal = round((float)($averageRating ?? 5), 1);
     $reviewCount = (int)($totalReviews ?? 0);
-
-    $displayedReviews = $reviews->take(3);
-    $displayedPortfolio = array_slice($portfolioItems ?? [], 0, 3);
+    $displayedReviews = $reviews->take($revLimit);
 @endphp
 
-{{-- Fonts Fraunces + Manrope si pas déjà chargées --}}
 @push('head')
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500,30;9..144,700,30;9..144,800,30&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
 <style>
-/* ────────────────────────────────────────────────────────────
-   ARTISAN DESIGN SYSTEM — Editorial Warm
-   ──────────────────────────────────────────────────────────── */
-.art-root {
-    --primary:      var(--primary-color, #B7472A);
-    --primary-dark: color-mix(in srgb, var(--primary) 75%, #000);
-    --primary-soft: color-mix(in srgb, var(--primary) 10%, transparent);
-    --primary-fg:   #fff;
+/* ── DESIGN SYSTEM ─────────────────────────────────────────── */
+.at {
+    --p:    var(--primary-color, #B7472A);
+    --pd:   color-mix(in srgb, var(--p) 75%, #000);
+    --ps:   color-mix(in srgb, var(--p) 12%, transparent);
+    --pf:   #fff;
 
-    --bg:       #FAF7F2;
-    --bg-soft:  #F2EDE4;
-    --bg-card:  #FFFFFF;
-    --ink:      #1F1A14;
-    --ink-2:    #4A3F32;
-    --ink-3:    #7A6E5F;
-    --line:     rgba(31,26,20,.10);
-    --line-s:   rgba(31,26,20,.18);
+    --bg:      #FAF7F2;
+    --bgs:     #F2EDE4;
+    --bgc:     #FFFFFF;
+    --ink:     #1F1A14;
+    --ink2:    #4A3F32;
+    --ink3:    #7A6E5F;
+    --ln:      rgba(31,26,20,.10);
+    --lns:     rgba(31,26,20,.18);
 
-    --sh-sm: 0 1px 2px rgba(31,26,20,.05), 0 1px 3px rgba(31,26,20,.08);
-    --sh-md: 0 4px 12px rgba(31,26,20,.06), 0 2px 4px rgba(31,26,20,.04);
-    --sh-lg: 0 12px 40px rgba(31,26,20,.10), 0 4px 12px rgba(31,26,20,.06);
+    --s1: 0 1px 2px rgba(31,26,20,.05), 0 1px 3px rgba(31,26,20,.08);
+    --s2: 0 4px 14px rgba(31,26,20,.07), 0 2px 4px rgba(31,26,20,.04);
+    --s3: 0 12px 40px rgba(31,26,20,.10);
 
-    --r:    14px;
-    --r-sm: 10px;
-    --r-lg: 22px;
+    --r:   14px;
+    --rsm: 10px;
+    --rlg: 22px;
 
     --fd: "Fraunces", ui-serif, Georgia, serif;
     --fb: "Manrope", ui-sans-serif, system-ui, sans-serif;
@@ -75,443 +95,405 @@
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
 }
-.art-root *, .art-root *::before, .art-root *::after {
-    box-sizing: border-box;
+.at *, .at *::before, .at *::after { box-sizing: border-box; }
+.at h1,.at h2,.at h3,.at h4 {
+    font-family: var(--fd); font-weight: 700;
+    letter-spacing: -.025em; color: var(--ink); margin: 0;
 }
-.art-root h1, .art-root h2, .art-root h3, .art-root h4 {
-    font-family: var(--fd);
-    font-weight: 700;
-    letter-spacing: -.025em;
-    color: var(--ink);
-    margin: 0;
-}
-.art-root h1 { font-size: clamp(40px,5.2vw,68px); line-height: 1.04; }
-.art-root h2 { font-size: clamp(28px,3.2vw,42px); line-height: 1.1; }
-.art-root h3 { font-size: clamp(18px,1.5vw,22px); line-height: 1.25; }
-.art-root p  { margin: 0; }
-.art-root a  { color: inherit; text-decoration: none; }
+.at h1 { font-size: clamp(38px,5vw,66px); line-height: 1.04; }
+.at h2 { font-size: clamp(26px,3vw,42px); line-height: 1.1; }
+.at h3 { font-size: clamp(17px,1.4vw,21px); line-height: 1.25; }
+.at p  { margin: 0; }
+.at a  { color: inherit; text-decoration: none; }
 
-/* Container */
-.art-w {
-    width: 100%;
-    max-width: var(--cw);
-    margin: 0 auto;
-    padding: 0 24px;
-}
+/* Conteneur */
+.at-w { width:100%; max-width:var(--cw); margin:0 auto; padding:0 24px; }
 
 /* Sections */
-.art-sec { padding: 88px 0; }
-.art-sec.tight { padding: 56px 0; }
+.at-sec  { padding: 88px 0; }
+.at-sec.tight { padding: 56px 0; }
+
+/* Eyebrow */
+.at-ey {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--p); margin-bottom: 14px;
+}
+.at-ey::before { content:''; display:block; width:22px; height:2px; background:var(--p); border-radius:2px; }
 
 /* Section header */
-.art-sh { margin-bottom: 48px; max-width: 720px; }
-.art-sh p { color: var(--ink-3); font-size: 17px; margin-top: 12px; }
-.art-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 700; letter-spacing: .12em;
-    text-transform: uppercase; color: var(--primary);
-    margin-bottom: 14px;
-}
-.art-eyebrow::before {
-    content: ''; display: block; width: 24px; height: 2px;
-    background: var(--primary); border-radius: 2px;
-}
+.at-sh { margin-bottom: 48px; max-width: 720px; }
+.at-sh p { color: var(--ink3); font-size: 17px; margin-top: 12px; }
 
-/* Buttons */
-.art-btn {
+/* Boutons */
+.at-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     height: 52px; padding: 0 24px; border: 0; border-radius: 999px;
     font-family: var(--fb); font-weight: 600; font-size: 15px;
     cursor: pointer; transition: all .15s; text-decoration: none;
 }
-.art-btn-primary {
-    background: var(--primary); color: var(--primary-fg);
-}
-.art-btn-primary:hover { filter: brightness(.9); transform: translateY(-1px); }
-.art-btn-ghost {
-    background: var(--bg-card); color: var(--ink);
-    border: 1.5px solid var(--line-s);
-}
-.art-btn-ghost:hover { background: var(--bg-soft); }
-.art-btn-outline {
-    background: transparent; color: var(--ink);
-    border: 1.5px solid var(--line-s);
-}
-.art-btn-lg { height: 60px; padding: 0 32px; font-size: 16px; }
-.art-btn-sm { height: 40px; padding: 0 16px; font-size: 14px; }
+.at-btn-p  { background: var(--p); color: var(--pf); }
+.at-btn-p:hover { filter: brightness(.88); transform: translateY(-1px); }
+.at-btn-g  { background: var(--bgc); color: var(--ink); border: 1.5px solid var(--lns); }
+.at-btn-g:hover { background: var(--bgs); }
+.at-btn-lg { height: 60px; padding: 0 32px; font-size: 16px; }
 
-/* Cards */
-.art-card {
-    background: var(--bg-card);
-    border-radius: var(--r);
-    box-shadow: var(--sh-sm);
-    border: 1px solid var(--line);
-}
+/* Card */
+.at-card { background: var(--bgc); border-radius: var(--r); box-shadow: var(--s1); border: 1px solid var(--ln); }
 
-/* Photo helper */
-.art-photo {
-    position: relative; overflow: hidden; background: var(--bg-soft);
-    border-radius: var(--r) var(--r) 0 0;
+/* Photo (background-image) */
+.at-photo {
+    position: relative; overflow: hidden; background: var(--bgs);
     background-size: cover; background-position: center;
 }
+.at-photo img { width:100%; height:100%; object-fit:cover; display:block; }
 
-/* Star */
-.art-stars { color: #FFD166; display: flex; gap: 2px; }
-.art-stars-google { color: #F5A623; }
-
-/* ── §1 HERO ─────────────────────────────────────────────── */
-.art-hero {
+/* ── §1 HERO ───────────────────────────────────────────────── */
+.at-hero {
     position: relative; min-height: min(720px, 88vh);
-    display: flex; align-items: stretch; overflow: hidden;
+    display: flex; align-items: stretch; overflow: hidden; padding: 0 !important;
 }
-.art-hero-bg {
-    position: absolute; inset: 0;
-    background-size: cover; background-position: center;
+.at-hero-bg  { position:absolute; inset:0; background-size:cover; background-position:center; }
+.at-hero-ov1 { position:absolute; inset:0; background:linear-gradient(180deg,rgba(12,10,8,.52) 0%,rgba(12,10,8,.42) 50%,rgba(12,10,8,.88) 100%); }
+.at-hero-ov2 { position:absolute; inset:0; background:linear-gradient(90deg,rgba(12,10,8,.72) 0%,rgba(12,10,8,.18) 70%,transparent 100%); }
+.at-hero-in  {
+    position:relative; z-index:2; color:#fff;
+    display:flex; align-items:center;
+    width:100%; max-width:var(--cw); margin:0 auto;
+    padding: 88px 24px 110px;
 }
-.art-hero-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg,rgba(15,12,8,.55) 0%,rgba(15,12,8,.45) 50%,rgba(15,12,8,.85) 100%);
+.at-hero-box { max-width: 780px; }
+.at-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 14px; border-radius:999px;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+    backdrop-filter:blur(8px); font-size:13px; font-weight:600; color:#fff;
+    margin-bottom:24px;
 }
-.art-hero-overlay2 {
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg,rgba(15,12,8,.7) 0%,rgba(15,12,8,.2) 70%,transparent 100%);
+.at-badge-dot { width:8px; height:8px; border-radius:50%; background:#6FCF97; animation:atpulse 2s infinite; }
+@keyframes atpulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.25)} }
+.at-hero-ctas { display:flex; gap:12px; margin-top:36px; flex-wrap:wrap; }
+.at-btn-tel {
+    display:inline-flex; align-items:center; gap:8px;
+    height:60px; padding:0 28px; border-radius:999px;
+    background:rgba(255,255,255,.12); color:#fff;
+    border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(8px);
+    font-weight:600; font-size:15px; text-decoration:none;
+    transition:background .15s;
 }
-.art-hero-inner {
-    position: relative; z-index: 2;
-    padding-top: 80px; padding-bottom: 100px;
-    color: #fff; display: flex; align-items: center;
-    width: 100%; max-width: var(--cw); margin: 0 auto; padding-left: 24px; padding-right: 24px;
+.at-btn-tel:hover { background:rgba(255,255,255,.2); }
+.at-hero-trust { display:flex; align-items:center; gap:24px; margin-top:44px; flex-wrap:wrap; }
+.at-trust-div  { width:1px; height:32px; background:rgba(255,255,255,.2); }
+.at-avatars    { display:flex; }
+.at-avatar {
+    width:36px; height:36px; border-radius:50%;
+    border:2px solid rgba(255,255,255,.9);
+    font-weight:700; font-size:13px; color:#fff;
+    display:flex; align-items:center; justify-content:center;
 }
-.art-hero-content { max-width: 760px; }
-.art-hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px; border-radius: 999px;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
-    backdrop-filter: blur(8px);
-    font-size: 13px; font-weight: 600; letter-spacing: .3px;
-    margin-bottom: 24px; color: #fff;
+.at-hero-logosbar {
+    position:absolute; bottom:0; left:0; right:0; z-index:3;
+    padding:13px 24px;
+    background:rgba(0,0,0,.38); backdrop-filter:blur(12px);
+    border-top:1px solid rgba(255,255,255,.1);
+    display:flex; justify-content:center; gap:36px; flex-wrap:wrap;
+    font-size:11.5px; color:rgba(255,255,255,.72);
+    font-weight:600; letter-spacing:.3px; text-transform:uppercase;
+    font-family: var(--fb);
 }
-.art-hero-badge-dot {
-    width: 8px; height: 8px; border-radius: 50%; background: #6FCF97;
-    animation: art-pulse 2s infinite;
-}
-@keyframes art-pulse {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50%      { opacity: .6; transform: scale(1.2); }
-}
-.art-hero-ctas { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
-.art-hero-cta-tel {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.12); color: #fff;
-    border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(8px);
-}
-.art-hero-trust { display: flex; align-items: center; gap: 28px; margin-top: 44px; flex-wrap: wrap; }
-.art-hero-trust-divider { width: 1px; height: 36px; background: rgba(255,255,255,.2); }
-.art-hero-avatars { display: flex; }
-.art-hero-avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,.95);
-    font-weight: 700; font-size: 14px; color: #fff;
-    display: flex; align-items: center; justify-content: center;
-}
-.art-hero-logosbar {
-    position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
-    padding: 14px 24px;
-    background: rgba(0,0,0,.4); backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255,255,255,.1);
-    display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
-    font-size: 12px; color: rgba(255,255,255,.75);
-    font-weight: 600; letter-spacing: .3px; text-transform: uppercase;
-}
-.art-hero-logosbar span { display: inline-flex; align-items: center; gap: 6px; }
+.at-hero-logosbar span { display:inline-flex; align-items:center; gap:6px; }
 
-/* ── §2 STATS ───────────────────────────────────────────── */
-.art-stats { padding: 56px 0; background: var(--ink); color: var(--bg); }
-.art-stats-grid {
-    display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; text-align: center;
+/* ── §2 STATS ──────────────────────────────────────────────── */
+.at-stats { padding:56px 0; background:#111111; color:#fff; }
+.at-stats-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:24px; text-align:center;
 }
-.art-stat-n {
-    font-family: var(--fd); font-weight: 700;
-    font-size: clamp(36px,4vw,52px); letter-spacing: -.02em;
-    line-height: 1; color: var(--primary);
+.at-stat-n {
+    font-family:var(--fd); font-weight:700;
+    font-size:clamp(34px,4vw,52px); letter-spacing:-.02em; line-height:1;
+    color:var(--p);
 }
-.art-stat-l { font-size: 14px; color: rgba(250,247,242,.65); margin-top: 8px; letter-spacing: .3px; }
+.at-stat-l { font-size:13.5px; color:rgba(255,255,255,.55); margin-top:8px; letter-spacing:.3px; }
 
-/* ── §3 SERVICES ─────────────────────────────────────────── */
-.art-svc-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; gap: 24px; flex-wrap: wrap; }
-.art-svc-grid   { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 20px; }
-.art-svc-card   { overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform .15s, box-shadow .15s; }
-.art-svc-card:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
-.art-svc-icon {
-    position: absolute; top: 12px; left: 12px;
-    width: 40px; height: 40px; border-radius: 10px;
-    background: rgba(255,255,255,.95); color: var(--primary);
-    display: flex; align-items: center; justify-content: center;
+/* ── §3 SERVICES ───────────────────────────────────────────── */
+.at-svc-hdr { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px; gap:24px; flex-wrap:wrap; }
+.at-svc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px; }
+.at-svc-card { overflow:hidden; display:flex; flex-direction:column; cursor:pointer; transition:transform .15s, box-shadow .15s; }
+.at-svc-card:hover { transform:translateY(-3px); box-shadow:var(--s2); }
+.at-svc-photo {
+    height:210px; position:relative; overflow:hidden;
+    background:var(--bgs); background-size:cover; background-position:center;
+    border-radius:var(--r) var(--r) 0 0;
 }
-.art-svc-body { padding: 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.art-svc-more { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-weight: 600; font-size: 14px; margin-top: auto; }
-
-/* ── §4 HOW IT WORKS ─────────────────────────────────────── */
-.art-how-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-.art-how-n { font-family: var(--fd); font-weight: 700; font-size: 14px; color: var(--primary); letter-spacing: .5px; margin-bottom: 14px; }
-.art-how-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-
-/* ── §5 WHY US ───────────────────────────────────────────── */
-.art-why-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 64px; align-items: center; }
-.art-why-img  { border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 4/5; background-size: cover; background-position: center; position: relative; }
-.art-why-quote {
-    position: absolute; bottom: 20px; left: 20px; right: 20px; padding: 18px;
-    background: rgba(255,255,255,.95); border-radius: var(--r-sm); backdrop-filter: blur(8px);
+.at-svc-photo-inner { width:100%; height:100%; object-fit:cover; display:block; }
+.at-svc-ico {
+    position:absolute; top:12px; left:12px;
+    width:38px; height:38px; border-radius:9px;
+    background:rgba(255,255,255,.95); color:var(--p);
+    display:flex; align-items:center; justify-content:center;
 }
-.art-why-benefits { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-top: 28px; }
-.art-why-benefit  { display: flex; gap: 12px; align-items: flex-start; }
-.art-why-ico { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; }
+.at-svc-body { padding:22px; display:flex; flex-direction:column; gap:9px; flex:1; }
+.at-svc-more { display:inline-flex; align-items:center; gap:6px; color:var(--p); font-weight:600; font-size:13.5px; margin-top:auto; padding-top:8px; }
 
-/* ── §6 RÉALISATIONS ─────────────────────────────────────── */
-.art-real-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-.art-real-card { overflow: hidden; cursor: pointer; }
-.art-real-place { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,.95); color: var(--ink); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+/* ── §4 COMMENT ÇA MARCHE ──────────────────────────────────── */
+.at-how-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.at-how-n    { font-family:var(--fd); font-weight:700; font-size:13px; color:var(--p); letter-spacing:.5px; margin-bottom:12px; }
+.at-how-ico  { width:46px; height:46px; border-radius:12px; background:var(--ps); color:var(--p); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
 
-/* ── §7 AVIS ─────────────────────────────────────────────── */
-.art-avis-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 16px; }
-.art-avis-card { padding: 28px; display: flex; flex-direction: column; gap: 16px; height: 100%; }
-.art-avis-footer { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-.art-avis-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-soft); color: var(--ink-2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
-
-/* ── §8 VILLES ───────────────────────────────────────────── */
-.art-city-pill {
-    padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--line);
-    border-radius: 999px; font-size: 14px; font-weight: 500;
-    display: inline-flex; align-items: center; gap: 6px;
-    cursor: pointer; color: var(--ink); text-decoration: none;
-    transition: border-color .15s, color .15s;
+/* ── §5 ABOUT / POURQUOI NOUS ──────────────────────────────── */
+.at-why-grid { display:grid; grid-template-columns:1fr 1.3fr; gap:60px; align-items:center; }
+.at-why-img  { border-radius:var(--rlg); overflow:hidden; aspect-ratio:4/5; background-size:cover; background-position:center; position:relative; min-height:360px; }
+.at-why-qcard {
+    position:absolute; bottom:20px; left:20px; right:20px; padding:18px;
+    background:rgba(255,255,255,.96); border-radius:var(--rsm); backdrop-filter:blur(8px);
 }
-.art-city-pill:hover { border-color: var(--primary); color: var(--primary); }
-.art-city-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.at-benefits { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:28px; }
+.at-benefit  { display:flex; gap:12px; align-items:flex-start; }
+.at-ben-ico  { width:38px; height:38px; border-radius:9px; flex-shrink:0; background:var(--ps); color:var(--p); display:flex; align-items:center; justify-content:center; }
 
-/* ── §9 CONTACT ──────────────────────────────────────────── */
-.art-contact-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 56px; align-items: flex-start; }
-.art-contact-item {
-    display: flex; align-items: center; gap: 14px; padding: 18px;
-    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--r);
-    text-decoration: none; color: var(--ink);
-}
-.art-contact-ico { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.art-contact-label { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
-.art-contact-val   { font-weight: 700; font-size: 17px; }
+/* ── §6 PORTFOLIO ──────────────────────────────────────────── */
+.at-real-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.at-real-tag  { position:absolute; top:12px; left:12px; background:rgba(255,255,255,.95); color:var(--ink); padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; }
 
-/* Form */
-.art-form { display: flex; flex-direction: column; gap: 14px; }
-.art-field { display: flex; flex-direction: column; gap: 6px; }
-.art-field label { font-size: 13px; font-weight: 500; color: var(--ink-2); }
-.art-field input, .art-field select, .art-field textarea {
-    width: 100%; padding: 0 14px; height: 48px;
-    border: 1px solid var(--line-s); border-radius: 10px;
-    font-family: var(--fb); font-size: 15px; background: var(--bg-card);
-    color: var(--ink); outline: none; transition: border-color .15s;
-}
-.art-field input:focus, .art-field select:focus, .art-field textarea:focus {
-    border-color: var(--primary);
-}
-.art-field textarea { height: 96px; padding-top: 12px; resize: vertical; }
-.art-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.art-submit {
-    width: 100%; height: 54px; margin-top: 8px;
-    background: var(--primary); color: var(--primary-fg);
-    border: 0; border-radius: 999px; font-family: var(--fb);
-    font-size: 16px; font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: filter .15s, transform .15s;
-}
-.art-submit:hover { filter: brightness(.9); transform: translateY(-1px); }
+/* ── §7 AVIS ───────────────────────────────────────────────── */
+.at-avis-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:16px; }
+.at-avis-card { padding:26px; display:flex; flex-direction:column; gap:14px; }
+.at-avis-foot { display:flex; align-items:center; gap:12px; padding-top:12px; border-top:1px solid var(--ln); }
+.at-avis-av   { width:34px; height:34px; border-radius:50%; background:var(--bgs); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; color:var(--ink2); }
 
-/* CTA strip */
-.art-cta-strip { padding: 64px 0; background: var(--ink); color: var(--bg); }
-.art-cta-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 32px; }
-
-/* Inline SVG icons */
-.art-ico { display: inline-flex; align-items: center; justify-content: center; }
-.art-ico svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ── RESPONSIVE ───────────────────────────────────────────── */
-@media (max-width: 900px) {
-    .art-stats-grid  { grid-template-columns: repeat(2,1fr); gap: 32px; }
-    .art-how-grid    { grid-template-columns: repeat(2,1fr); }
-    .art-why-grid    { grid-template-columns: 1fr; gap: 32px; }
-    .art-real-grid   { grid-template-columns: 1fr; }
-    .art-contact-grid{ grid-template-columns: 1fr; gap: 32px; }
-    .art-hero-logosbar { gap: 20px; font-size: 11px; }
-    .art-hero-trust-divider { display: none; }
+/* ── §8 VILLES ─────────────────────────────────────────────── */
+.at-pills { display:flex; flex-wrap:wrap; gap:8px; }
+.at-pill {
+    padding:9px 16px; background:var(--bgc); border:1px solid var(--ln);
+    border-radius:999px; font-size:13.5px; font-weight:500;
+    display:inline-flex; align-items:center; gap:6px;
+    color:var(--ink); text-decoration:none; transition:border-color .15s, color .15s;
 }
-@media (max-width: 640px) {
-    .art-how-grid  { grid-template-columns: 1fr; }
-    .art-svc-grid  { grid-template-columns: 1fr; }
-    .art-avis-grid { grid-template-columns: 1fr; }
-    .art-form-row  { grid-template-columns: 1fr; }
-    .art-why-benefits { grid-template-columns: 1fr; }
-    .art-sec { padding: 56px 0; }
+.at-pill:hover { border-color:var(--p); color:var(--p); }
+
+/* ── §9 CONTACT FORM ───────────────────────────────────────── */
+.at-cg { display:grid; grid-template-columns:1fr 1.3fr; gap:56px; align-items:flex-start; }
+.at-ci {
+    display:flex; align-items:center; gap:14px; padding:17px;
+    background:var(--bgc); border:1px solid var(--ln); border-radius:var(--r);
+    text-decoration:none; color:var(--ink);
+}
+.at-ci-ico { width:42px; height:42px; border-radius:11px; background:var(--ps); color:var(--p); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.at-ci-lbl { font-size:11.5px; color:var(--ink3); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+.at-ci-val { font-weight:700; font-size:16px; }
+
+/* Formulaire */
+.at-form   { display:flex; flex-direction:column; gap:13px; }
+.at-frow   { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+.at-field  { display:flex; flex-direction:column; gap:5px; }
+.at-field label { font-size:12.5px; font-weight:600; color:var(--ink2); }
+.at-field input,.at-field select,.at-field textarea {
+    width:100%; padding:0 14px; height:46px;
+    border:1.5px solid var(--lns); border-radius:10px;
+    font-family:var(--fb); font-size:14.5px; background:var(--bgc);
+    color:var(--ink); outline:none; transition:border-color .15s;
+}
+.at-field input:focus,.at-field select:focus,.at-field textarea:focus { border-color:var(--p); }
+.at-field textarea { height:90px; padding-top:12px; resize:vertical; }
+.at-submit {
+    width:100%; height:52px; margin-top:6px;
+    background:var(--p); color:var(--pf); border:0;
+    border-radius:999px; font-family:var(--fb); font-size:15px; font-weight:600;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:filter .15s, transform .15s;
+}
+.at-submit:hover { filter:brightness(.88); transform:translateY(-1px); }
+
+/* ── §10 CTA STRIP ─────────────────────────────────────────── */
+.at-cta-strip { padding:64px 0; background:#111111; color:#fff; }
+.at-cta-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:32px; }
+
+/* ── §11 FAQ ───────────────────────────────────────────────── */
+.at-faq-item { padding:20px 24px; cursor:pointer; }
+.at-faq-item summary { font-weight:700; font-size:16px; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--ink); user-select:none; }
+.at-faq-item summary::-webkit-details-marker { display:none; }
+.at-faq-item[open] summary { color:var(--p); }
+.at-faq-item[open] .at-faq-icon { transform:rotate(45deg); }
+.at-faq-icon { width:24px; height:24px; border-radius:50%; background:var(--ps); color:var(--p); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .2s; }
+.at-faq-body { margin-top:12px; color:var(--ink2); font-size:14.5px; line-height:1.65; }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media(max-width:960px){
+    .at-stats-grid { grid-template-columns:repeat(2,1fr); gap:28px; }
+    .at-how-grid   { grid-template-columns:repeat(2,1fr); }
+    .at-why-grid   { grid-template-columns:1fr; gap:32px; }
+    .at-real-grid  { grid-template-columns:1fr 1fr; }
+    .at-cg         { grid-template-columns:1fr; gap:32px; }
+    .at-hero-logosbar { gap:18px; font-size:10.5px; }
+    .at-trust-div  { display:none; }
+}
+@media(max-width:640px){
+    .at-how-grid   { grid-template-columns:1fr; }
+    .at-svc-grid   { grid-template-columns:1fr; }
+    .at-avis-grid  { grid-template-columns:1fr; }
+    .at-frow       { grid-template-columns:1fr; }
+    .at-benefits   { grid-template-columns:1fr; }
+    .at-real-grid  { grid-template-columns:1fr; }
+    .at-sec        { padding:56px 0; }
+    .at-hero-in    { padding:72px 20px 100px; }
 }
 </style>
 @endpush
 
-<div class="art-root">
+<div class="at">
 
-{{-- ═══════════════════════════════════════════════
-     §1  HERO FULL-BLEED
-═══════════════════════════════════════════════ --}}
-<section class="art-hero" style="padding: 0;">
-    {{-- Background image --}}
-    <div class="art-hero-bg"
-         style="{{ $heroImgUrl ? 'background-image:url(' . e($heroImgUrl) . ');' : 'background:#1F1A14;' }}">
-    </div>
-    <div class="art-hero-overlay"></div>
-    <div class="art-hero-overlay2"></div>
+{{-- ═══ §1 HERO ═══════════════════════════════════════════════ --}}
+<section class="at-hero">
+    <div class="at-hero-bg" style="{{ $heroImgUrl ? 'background-image:url('.e($heroImgUrl).');' : 'background:#1a1a1a;' }}"></div>
+    <div class="at-hero-ov1"></div>
+    <div class="at-hero-ov2"></div>
 
-    <div class="art-hero-inner">
-        <div class="art-hero-content">
-
-            {{-- Badge disponible --}}
-            <div class="art-hero-badge">
-                <span class="art-hero-badge-dot"></span>
+    <div class="at-hero-in">
+        <div class="at-hero-box">
+            <div class="at-badge">
+                <span class="at-badge-dot"></span>
                 Disponible aujourd'hui · {{ $city }}
             </div>
 
-            {{-- Titre --}}
             <h1 style="color:#fff;">{{ $heroTitle }}</h1>
 
-            {{-- Sous-titre --}}
-            <p style="font-size:clamp(17px,1.4vw,21px); color:rgba(255,255,255,.88); margin-top:24px; max-width:620px; line-height:1.55;">
+            <p style="font-size:clamp(16px,1.4vw,20px); color:rgba(255,255,255,.85); margin-top:22px; max-width:620px; line-height:1.6;">
                 {{ $heroSub }}
             </p>
 
-            {{-- CTAs --}}
-            <div class="art-hero-ctas">
-                <a href="#contact-form"
-                   class="art-btn art-btn-primary art-btn-lg"
-                   style="box-shadow:0 8px 30px rgba(0,0,0,.35);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Devis gratuit en 1 min
+            <div class="at-hero-ctas">
+                <a href="#at-contact"
+                   class="at-btn at-btn-p at-btn-lg"
+                   style="box-shadow:0 8px 28px rgba(0,0,0,.32);">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    {{ $heroCta }}
                 </a>
-                <a href="tel:{{ $phoneRaw }}"
-                   class="art-btn art-btn-lg art-hero-cta-tel">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+                @if($showPhone && $phone)
+                <a href="tel:{{ $phoneRaw }}" class="at-btn-tel">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
                     {{ $phone }}
                 </a>
+                @endif
             </div>
 
-            {{-- Trust badges --}}
-            <div class="art-hero-trust">
+            <div class="at-hero-trust">
                 @if($reviewCount > 0)
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="art-hero-avatars">
-                        @foreach($displayedReviews->take(4) as $idx => $rev)
-                            <div class="art-hero-avatar"
-                                 style="background:{{ ['#D9C7A0','#C2B59B','#A89B7E','#8C7B5E'][$idx % 4] }}; margin-left:{{ $idx === 0 ? '0' : '-10px' }};">
-                                {{ mb_strtoupper(mb_substr($rev->author_name ?? 'C', 0, 1)) }}
-                            </div>
+                    <div class="at-avatars">
+                        @foreach($reviews->take(4) as $ri => $rv)
+                        <div class="at-avatar" style="background:{{ ['#D9C7A0','#C2B59B','#A89B7E','#8C7B5E'][$ri%4] }}; margin-left:{{ $ri===0?'0':'-9px' }};">
+                            {{ mb_strtoupper(mb_substr($rv->author_name??'C',0,1)) }}
+                        </div>
                         @endforeach
                     </div>
                     <div>
-                        <div style="display:flex; align-items:center; gap:8px; color:#FFD166;">
-                            @for($s=1;$s<=5;$s++)<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor
-                            <span style="color:#fff; margin-left:6px; font-weight:700; font-size:14px;">{{ number_format($ratingVal, 1, ',', '') }} / 5</span>
+                        <div style="display:flex; align-items:center; gap:6px; color:#FFD166;">
+                            @for($s=1;$s<=5;$s++)<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor
+                            <span style="color:#fff; font-weight:700; font-size:13.5px;">{{ number_format($ratingVal,1,',','') }}/5</span>
                         </div>
-                        <div style="font-size:13px; color:rgba(255,255,255,.7);">{{ $reviewCount }} avis Google vérifiés</div>
+                        <div style="font-size:12px; color:rgba(255,255,255,.65);">{{ $reviewCount }} avis Google</div>
                     </div>
                 </div>
-                <div class="art-hero-trust-divider"></div>
+                <div class="at-trust-div"></div>
                 @endif
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                <div style="display:flex; align-items:center; gap:9px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
                     <div>
-                        <div style="font-weight:700; font-size:14px; color:#fff;">Garantie décennale</div>
-                        <div style="font-size:13px; color:rgba(255,255,255,.7);">Artisan certifié</div>
+                        <div style="font-weight:700; font-size:13.5px; color:#fff;">Garantie décennale</div>
+                        <div style="font-size:12px; color:rgba(255,255,255,.6);">Artisan certifié</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Logos bar --}}
-    <div class="art-hero-logosbar">
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Garantie décennale</span>
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="m15.5 12.5 2.5 9-6-3-6 3 2.5-9"/></svg> Artisan certifié</span>
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Devis gratuit</span>
+    <div class="at-hero-logosbar">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Garantie décennale</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="m15.5 12.5 2.5 9-6-3-6 3 2.5-9"/></svg> Artisan certifié</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Devis 100% gratuit</span>
         @if($reviewCount > 0)
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> {{ number_format($ratingVal, 1, ',', '') }}/5 Google</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> {{ number_format($ratingVal,1,',','') }}/5 Google</span>
         @endif
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> +de 500 chantiers</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> Intervention rapide</span>
     </div>
 </section>
 
 
-{{-- ═══════════════════════════════════════════════
-     §2  STATS — bande sombre
-═══════════════════════════════════════════════ --}}
-<section class="art-stats">
-    <div class="art-w">
-        <div class="art-stats-grid">
+{{-- ═══ §2 STATS ════════════════════════════════════════════════ --}}
+<section class="at-stats">
+    <div class="at-w">
+        <div class="at-stats-grid">
+            @foreach($statsData as $stat)
             <div>
-                <div class="art-stat-n">500+</div>
-                <div class="art-stat-l">Chantiers réalisés</div>
+                <div class="at-stat-n">{{ $stat['value'] }}</div>
+                <div class="at-stat-l">{{ $stat['label'] }}</div>
             </div>
-            <div>
-                <div class="art-stat-n">{{ $reviewCount > 0 ? number_format($ratingVal, 1, ',', '') . '/5' : '5/5' }}</div>
-                <div class="art-stat-l">Note Google {{ $reviewCount > 0 ? '· ' . $reviewCount . ' avis' : '' }}</div>
-            </div>
-            <div>
-                <div class="art-stat-n">24h</div>
-                <div class="art-stat-l">Délai de réponse moyen</div>
-            </div>
-            <div>
-                <div class="art-stat-n">10 ans</div>
-                <div class="art-stat-l">Garantie décennale</div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
 
 
-{{-- ═══════════════════════════════════════════════
-     §3  SERVICES avec photos
-═══════════════════════════════════════════════ --}}
-@if(!empty($svcList))
-<section class="art-sec">
-    <div class="art-w">
-        <div class="art-svc-header">
-            <div class="art-sh" style="margin-bottom:0;">
-                <div class="art-eyebrow">Nos services</div>
-                <h2>Tout ce qu'on peut faire pour vous</h2>
+{{-- ═══ §3 SERVICES ════════════════════════════════════════════ --}}
+@if(($secServices['enabled'] ?? true) && !empty($svcList))
+<section class="at-sec">
+    <div class="at-w">
+        <div class="at-svc-hdr">
+            <div class="at-sh" style="margin-bottom:0;">
+                <div class="at-ey">Nos services</div>
+                <h2>{{ $secServices['title'] ?? 'Tout ce qu\'on peut faire pour vous' }}</h2>
                 <p>Un seul interlocuteur, un travail soigné, un devis clair.</p>
             </div>
-            <a href="{{ route('services.index') }}" class="art-btn art-btn-ghost">
+            <a href="{{ route('services.index') }}" class="at-btn at-btn-g">
                 Voir tous les services
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </div>
-        <div class="art-svc-grid">
-            @foreach(array_slice($svcList, 0, 6) as $svc)
+        <div class="at-svc-grid">
+            @foreach(array_slice($svcList, 0, $svcLimit) as $svc)
             @php
+                /* Image : featured_image en priorité, puis image */
                 $svcImg = null;
-                if (!empty($svc['image'])) {
-                    $svcImg = strpos($svc['image'], 'http') === 0 ? $svc['image'] : asset(ltrim($svc['image'], '/'));
+                if (!empty($svc['featured_image'])) {
+                    $raw = $svc['featured_image'];
+                    $svcImg = strpos($raw,'http')===0 ? $raw : url($raw);
+                } elseif (!empty($svc['image'])) {
+                    $raw = $svc['image'];
+                    $svcImg = strpos($raw,'http')===0 ? $raw : url($raw);
                 }
-                $svcName = $svc['name'] ?? $svc['title'] ?? 'Service';
-                $svcDesc = $svc['description'] ?? $svc['desc'] ?? '';
-                $svcSlug = $svc['slug'] ?? \Illuminate\Support\Str::slug($svcName);
+                $svcName  = $svc['name']  ?? $svc['title'] ?? 'Service';
+                $svcShort = $svc['short_description'] ?? $svc['description'] ?? '';
+                $svcSlug  = $svc['slug']  ?? \Illuminate\Support\Str::slug($svcName);
+                $svcIcon  = $svc['icon']  ?? '';
             @endphp
-            <a href="{{ route('services.show', $svcSlug) }}" class="art-card art-svc-card">
-                <div class="art-photo" style="height:200px; {{ $svcImg ? 'background-image:url(' . e($svcImg) . ');' : 'background:linear-gradient(135deg, var(--primary-soft), var(--bg-soft));' }}">
-                    <div class="art-svc-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <a href="{{ route('services.show', $svcSlug) }}" class="at-card at-svc-card">
+                {{-- Photo --}}
+                <div class="at-svc-photo">
+                    @if($svcImg)
+                        <img src="{{ $svcImg }}" alt="{{ $svcName }}" class="at-svc-photo-inner" loading="lazy">
+                    @else
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ps),var(--bgs));display:flex;align-items:center;justify-content:center;">
+                            <i class="{{ $svcIcon ?: 'fas fa-wrench' }}" style="font-size:2.5rem;color:var(--p);opacity:.35;"></i>
+                        </div>
+                    @endif
+                    {{-- Badge icône --}}
+                    <div class="at-svc-ico">
+                        @if($svcIcon)
+                            <i class="{{ $svcIcon }}" style="font-size:.8rem;"></i>
+                        @else
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        @endif
                     </div>
                 </div>
-                <div class="art-svc-body">
+                {{-- Corps --}}
+                <div class="at-svc-body">
                     <h3>{{ $svcName }}</h3>
-                    <p style="color:var(--ink-3); font-size:14.5px; line-height:1.55; flex:1;">{{ Str::limit($svcDesc, 120) }}</p>
-                    <span class="art-svc-more">
+                    @if($svcShort)
+                    <p style="color:var(--ink3); font-size:14px; line-height:1.55;">{{ Str::limit($svcShort, 120) }}</p>
+                    @endif
+                    <span class="at-svc-more">
                         En savoir plus
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </span>
                 </div>
             </a>
@@ -522,38 +504,30 @@
 @endif
 
 
-{{-- ═══════════════════════════════════════════════
-     §4  COMMENT ÇA MARCHE
-═══════════════════════════════════════════════ --}}
-<section class="art-sec" style="background:var(--bg-soft);">
-    <div class="art-w">
-        <div class="art-sh" style="text-align:center; margin-inline:auto;">
-            <div class="art-eyebrow" style="justify-content:center;">Comment ça marche</div>
-            <h2>De l'appel au chantier fini, en 4 étapes simples.</h2>
+{{-- ═══ §4 COMMENT ÇA MARCHE ═══════════════════════════════════ --}}
+<section class="at-sec" style="background:var(--bgs);">
+    <div class="at-w">
+        <div class="at-sh" style="text-align:center; margin-inline:auto;">
+            <div class="at-ey" style="justify-content:center;">Comment ça marche</div>
+            <h2>De l'appel au chantier fini, en 4 étapes.</h2>
         </div>
-        <div class="art-how-grid">
+        <div class="at-how-grid">
             @php
             $steps = [
-                ['n'=>'01','t'=>'Vous nous appelez','d'=>'Premier échange par téléphone, gratuit et sans engagement.','icon'=>'phone'],
-                ['n'=>'02','t'=>'Visite chez vous','d'=>'On se déplace pour voir le chantier et vous écouter.','icon'=>'home'],
-                ['n'=>'03','t'=>'Devis sous 24h','d'=>'Détaillé, ligne par ligne, prix garanti.','icon'=>'mail'],
-                ['n'=>'04','t'=>'On réalise','d'=>'Chantier propre, équipe formée, livraison à la date prévue.','icon'=>'tools'],
-            ];
-            $stepIcons = [
-                'phone'=>'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>',
-                'home' =>'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-                'mail' =>'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
-                'tools'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>',
+                ['n'=>'01','t'=>'Vous nous contactez','d'=>'Par téléphone ou via le formulaire. Réponse garantie sous 24h.','svg'=>'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>'],
+                ['n'=>'02','t'=>'Visite chez vous','d'=>'On se déplace pour évaluer le chantier, gratuitement.','svg'=>'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'],
+                ['n'=>'03','t'=>'Devis sous 24h','d'=>'Détaillé, ligne par ligne, sans surprise.','svg'=>'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>'],
+                ['n'=>'04','t'=>'On réalise','d'=>'Chantier propre, équipe formée, livraison dans les délais.','svg'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>'],
             ];
             @endphp
             @foreach($steps as $step)
-            <div class="art-card" style="padding:28px;">
-                <div class="art-how-n">{{ $step['n'] }}</div>
-                <div class="art-how-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">{!! $stepIcons[$step['icon']] !!}</svg>
+            <div class="at-card" style="padding:26px;">
+                <div class="at-how-n">{{ $step['n'] }}</div>
+                <div class="at-how-ico">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $step['svg'] !!}</svg>
                 </div>
-                <h3 style="font-size:19px;">{{ $step['t'] }}</h3>
-                <p style="color:var(--ink-3); font-size:14px; margin-top:8px; line-height:1.55;">{{ $step['d'] }}</p>
+                <h3 style="font-size:18px;">{{ $step['t'] }}</h3>
+                <p style="color:var(--ink3); font-size:13.5px; margin-top:8px; line-height:1.6;">{{ $step['d'] }}</p>
             </div>
             @endforeach
         </div>
@@ -561,51 +535,44 @@
 </section>
 
 
-{{-- ═══════════════════════════════════════════════
-     §5  POURQUOI NOUS
-═══════════════════════════════════════════════ --}}
-<section class="art-sec">
-    <div class="art-w">
-        <div class="art-why-grid">
+{{-- ═══ §5 À PROPOS / POURQUOI NOUS ═══════════════════════════ --}}
+@if($aboutEnabled)
+<section class="at-sec">
+    <div class="at-w">
+        <div class="at-why-grid">
             {{-- Image --}}
-            @php
-                $aboutImg = $homeConfig['about']['image'] ?? null;
-                $aboutImgUrl = $aboutImg ? asset(ltrim($aboutImg, '/')) : null;
-            @endphp
-            <div class="art-why-img"
-                 style="{{ $aboutImgUrl ? 'background-image:url(' . e($aboutImgUrl) . ');' : 'background:linear-gradient(135deg,var(--bg-soft),var(--ink));' }}">
-                <div class="art-why-quote">
+            <div class="at-why-img"
+                 style="{{ $aboutImgUrl ? 'background-image:url('.e($aboutImgUrl).');' : 'background:linear-gradient(135deg,#E8DDD4,#1a1a1a);' }}">
+                <div class="at-why-qcard">
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--primary)" stroke="none"><path d="M9.4 7C5.9 7 3 9.9 3 13.4V19h6v-6H6c0-2 1.4-3.4 3.4-3.4V7Zm11.6 0c-3.5 0-6.4 2.9-6.4 6.4V19h6v-6h-3c0-2 1.4-3.4 3.4-3.4V7Z"/></svg>
-                        <span style="font-weight:600; font-size:13.5px;">{{ $homeConfig['sections']['about']['title'] ?? 'Votre artisan de confiance' }}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--primary-color,#B7472A)" stroke="none"><path d="M9.4 7C5.9 7 3 9.9 3 13.4V19h6v-6H6c0-2 1.4-3.4 3.4-3.4V7Zm11.6 0c-3.5 0-6.4 2.9-6.4 6.4V19h6v-6h-3c0-2 1.4-3.4 3.4-3.4V7Z"/></svg>
+                        <span style="font-weight:600; font-size:13px; color:var(--ink);">{{ $aboutTitle }}</span>
                     </div>
-                    <div style="font-size:12.5px; color:var(--ink-3);">— {{ $name }}, {{ $city }}</div>
+                    <div style="font-size:12px; color:var(--ink3);">— {{ $name }}, {{ $city }}</div>
                 </div>
             </div>
             {{-- Texte --}}
             <div>
-                <div class="art-eyebrow">Pourquoi nous ?</div>
-                <h2>Un artisan, pas une multinationale.</h2>
-                <p style="color:var(--ink-2); margin-top:16px; font-size:17px; line-height:1.6;">
-                    {{ $homeConfig['sections']['about']['text'] ?? 'On habite le coin, on connaît les maisons d\'ici, et on tient à notre réputation. Pas de sous-traitance, pas de surprise sur le devis, pas de client laissé sans nouvelles.' }}
+                <div class="at-ey">Pourquoi nous ?</div>
+                <h2>{{ $aboutTitle }}</h2>
+                <p style="color:var(--ink2); margin-top:16px; font-size:16.5px; line-height:1.65;">
+                    {{ $aboutContent ?: 'On habite le coin, on connaît les maisons d\'ici, et on tient à notre réputation. Pas de sous-traitance, pas de surprise sur le devis, pas de client laissé sans nouvelles.' }}
                 </p>
-                <div class="art-why-benefits">
-                    @php
-                    $benefits = [
-                        ['icon'=>'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>','t'=>'Rapide','d'=>'Devis sous 24h.'],
-                        ['icon'=>'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>','t'=>'Garanti','d'=>'Décennale incluse.'],
-                        ['icon'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>','t'=>'Soigné','d'=>'Chantier propre.'],
-                        ['icon'=>'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>','t'=>'Humain','d'=>'Un seul interlocuteur.'],
-                    ];
-                    @endphp
-                    @foreach($benefits as $b)
-                    <div class="art-why-benefit">
-                        <div class="art-why-ico">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">{!! $b['icon'] !!}</svg>
+                <div class="at-benefits">
+                    @php $bens = [
+                        ['svg'=>'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>','t'=>'Rapide','d'=>'Devis sous 24h.'],
+                        ['svg'=>'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>','t'=>'Garanti','d'=>'Décennale incluse.'],
+                        ['svg'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>','t'=>'Soigné','d'=>'Chantier propre.'],
+                        ['svg'=>'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>','t'=>'Humain','d'=>'Un seul interlocuteur.'],
+                    ]; @endphp
+                    @foreach($bens as $b)
+                    <div class="at-benefit">
+                        <div class="at-ben-ico">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $b['svg'] !!}</svg>
                         </div>
                         <div>
-                            <div style="font-weight:700; font-size:16px;">{{ $b['t'] }}</div>
-                            <div style="color:var(--ink-3); font-size:14px; margin-top:2px;">{{ $b['d'] }}</div>
+                            <div style="font-weight:700; font-size:15px;">{{ $b['t'] }}</div>
+                            <div style="color:var(--ink3); font-size:13px; margin-top:2px;">{{ $b['d'] }}</div>
                         </div>
                     </div>
                     @endforeach
@@ -614,44 +581,44 @@
         </div>
     </div>
 </section>
+@endif
 
 
-{{-- ═══════════════════════════════════════════════
-     §6  RÉALISATIONS
-═══════════════════════════════════════════════ --}}
-@if(!empty($displayedPortfolio))
-<section class="art-sec" style="background:var(--bg-soft);">
-    <div class="art-w">
-        <div class="art-svc-header">
-            <div class="art-sh" style="margin-bottom:0;">
-                <div class="art-eyebrow">Réalisations</div>
-                <h2>Des chantiers récents, dans votre région</h2>
+{{-- ═══ §6 RÉALISATIONS ════════════════════════════════════════ --}}
+@if(($secPortfolio['enabled'] ?? true) && !empty($displayedPortfolio))
+<section class="at-sec" style="background:var(--bgs);">
+    <div class="at-w">
+        <div class="at-svc-hdr">
+            <div class="at-sh" style="margin-bottom:0;">
+                <div class="at-ey">Réalisations</div>
+                <h2>{{ $secPortfolio['title'] ?? 'Des chantiers récents, dans votre région' }}</h2>
                 <p>Photos prises sur place, jamais de stock.</p>
             </div>
-            <a href="{{ route('portfolio.index') }}" class="art-btn art-btn-ghost">
+            <a href="{{ route('portfolio.index') }}" class="at-btn at-btn-g">
                 Toutes nos réalisations
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </div>
-        <div class="art-real-grid">
+        <div class="at-real-grid">
             @foreach($displayedPortfolio as $item)
             @php
-                $imgs = $item['images'] ?? [];
-                $firstImg = is_array($imgs) && count($imgs) > 0 ? $imgs[0] : null;
-                $imgUrl = $firstImg ? (strpos($firstImg, 'http') === 0 ? $firstImg : asset(ltrim($firstImg, '/'))) : null;
+                $imgs   = $item['images'] ?? [];
+                $pImg   = null;
+                if (is_array($imgs) && count($imgs) > 0) {
+                    $raw  = $imgs[0];
+                    $pImg = strpos($raw,'http')===0 ? $raw : asset(ltrim($raw,'/'));
+                }
                 $pSlug = $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'] ?? 'realisation');
+                $pLoc  = $item['city'] ?? $item['location'] ?? '';
             @endphp
-            <a href="{{ route('portfolio.show', $pSlug) }}" class="art-card art-real-card">
-                <div class="art-photo" style="height:240px; {{ $imgUrl ? 'background-image:url(' . e($imgUrl) . ');' : 'background:linear-gradient(135deg,var(--primary-soft),var(--bg-soft));' }}">
-                    @if(!empty($item['city']) || !empty($item['location']))
-                    <div class="art-real-place">
-                        📍 {{ $item['city'] ?? $item['location'] ?? '' }}
-                    </div>
-                    @endif
+            <a href="{{ route('portfolio.show', $pSlug) }}" class="at-card" style="overflow:hidden;cursor:pointer;display:block;transition:transform .15s, box-shadow .15s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--s2)'" onmouseout="this.style.transform='none';this.style.boxShadow=''">
+                <div class="at-photo" style="height:240px; {{ $pImg ? 'background-image:url('.e($pImg).');' : 'background:linear-gradient(135deg,var(--ps),var(--bgs));' }}">
+                    @if($pImg)<img src="{{ $pImg }}" alt="{{ $item['title']??'' }}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">@endif
+                    @if($pLoc)<div class="at-real-tag">📍 {{ $pLoc }}</div>@endif
                 </div>
-                <div style="padding:20px;">
-                    <h3 style="font-size:18px; margin-bottom:6px;">{{ $item['title'] ?? 'Réalisation' }}</h3>
-                    <p style="color:var(--ink-3); font-size:14px;">{{ Str::limit($item['description'] ?? '', 100) }}</p>
+                <div style="padding:18px 20px;">
+                    <h3 style="font-size:17px; margin-bottom:6px;">{{ $item['title'] ?? 'Réalisation' }}</h3>
+                    <p style="color:var(--ink3); font-size:13.5px; line-height:1.55;">{{ Str::limit($item['description'] ?? '', 100) }}</p>
                 </div>
             </a>
             @endforeach
@@ -661,35 +628,29 @@
 @endif
 
 
-{{-- ═══════════════════════════════════════════════
-     §7  AVIS CLIENTS
-═══════════════════════════════════════════════ --}}
-@if($displayedReviews->count() > 0)
-<section class="art-sec">
-    <div class="art-w">
-        <div class="art-sh" style="text-align:center; margin-inline:auto;">
-            <div class="art-eyebrow" style="justify-content:center;">Ce qu'on en dit</div>
-            <h2>{{ $reviewCount }} avis · {{ number_format($ratingVal, 1, ',', '') }} sur 5 sur Google</h2>
-            <p style="margin:12px auto 0;">Pas de tri, pas de filtre.</p>
+{{-- ═══ §7 AVIS CLIENTS ═══════════════════════════════════════ --}}
+@if(($secReviews['enabled'] ?? true) && $displayedReviews->count() > 0)
+<section class="at-sec">
+    <div class="at-w">
+        <div class="at-sh" style="text-align:center; margin-inline:auto;">
+            <div class="at-ey" style="justify-content:center;">Ce qu'on en dit</div>
+            <h2>{{ $secReviews['title'] ?? $reviewCount.' avis · '.number_format($ratingVal,1,',','').' / 5 sur Google' }}</h2>
         </div>
-        <div class="art-avis-grid">
-            @foreach($displayedReviews as $review)
-            <div class="art-card art-avis-card">
+        <div class="at-avis-grid">
+            @foreach($displayedReviews as $rev)
+            <div class="at-card at-avis-card">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div class="art-stars art-stars-google">
-                        @for($s=1;$s<=(int)($review->rating ?? 5);$s++)
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        @endfor
+                    <div style="display:flex; color:#F5A623; gap:2px;">
+                        @for($s=1;$s<=(int)($rev->rating??5);$s++)<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor
                     </div>
-                    {{-- Google G --}}
-                    <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.5c2-1.9 3.3-4.7 3.3-8.1Z" fill="#4285F4"/><path d="M12 23c3 0 5.5-1 7.3-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.3v2.8C4.1 20.5 7.8 23 12 23Z" fill="#34A853"/><path d="M5.8 14.1a6.7 6.7 0 0 1 0-4.2V7.1H2.3a11 11 0 0 0 0 9.8l3.5-2.8Z" fill="#FBBC05"/><path d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 12 1C7.8 1 4.1 3.5 2.3 7.1l3.5 2.8C6.7 7.3 9.1 5.4 12 5.4Z" fill="#EA4335"/></svg>
+                    <svg width="19" height="19" viewBox="0 0 24 24"><path d="M22.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h5.9c-.3 1.4-1 2.5-2.2 3.3v2.7h3.5c2-1.9 3.3-4.7 3.3-8.1Z" fill="#4285F4"/><path d="M12 23c3 0 5.5-1 7.3-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.3v2.8C4.1 20.5 7.8 23 12 23Z" fill="#34A853"/><path d="M5.8 14.1a6.7 6.7 0 0 1 0-4.2V7.1H2.3a11 11 0 0 0 0 9.8l3.5-2.8Z" fill="#FBBC05"/><path d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 12 1C7.8 1 4.1 3.5 2.3 7.1l3.5 2.8C6.7 7.3 9.1 5.4 12 5.4Z" fill="#EA4335"/></svg>
                 </div>
-                <p style="font-size:15px; line-height:1.6; color:var(--ink-2); flex:1;">« {{ $review->comment ?? $review->content ?? '' }} »</p>
-                <div class="art-avis-footer">
-                    <div class="art-avis-avatar">{{ mb_strtoupper(mb_substr($review->author_name ?? 'C', 0, 1)) }}</div>
+                <p style="font-size:14.5px; line-height:1.65; color:var(--ink2); flex:1;">« {{ $rev->comment ?? $rev->content ?? '' }} »</p>
+                <div class="at-avis-foot">
+                    <div class="at-avis-av">{{ mb_strtoupper(mb_substr($rev->author_name??'C',0,1)) }}</div>
                     <div>
-                        <div style="font-weight:600; font-size:14px;">{{ $review->author_name ?? 'Client' }}</div>
-                        <div style="font-size:12px; color:var(--ink-3);">{{ $review->review_date ? \Carbon\Carbon::parse($review->review_date)->translatedFormat('d M Y') : '' }}</div>
+                        <div style="font-weight:600; font-size:13.5px;">{{ $rev->author_name ?? 'Client' }}</div>
+                        <div style="font-size:12px; color:var(--ink3);">{{ $rev->review_date ? \Carbon\Carbon::parse($rev->review_date)->translatedFormat('d M Y') : '' }}</div>
                     </div>
                 </div>
             </div>
@@ -700,21 +661,19 @@
 @endif
 
 
-{{-- ═══════════════════════════════════════════════
-     §8  ZONE D'INTERVENTION
-═══════════════════════════════════════════════ --}}
+{{-- ═══ §8 VILLES ══════════════════════════════════════════════ --}}
 @if(isset($favoriteCities) && $favoriteCities->count() > 0)
-<section class="art-sec tight" style="background:var(--bg-soft);">
-    <div class="art-w">
-        <div class="art-sh" style="max-width:720px;">
-            <div class="art-eyebrow">Zone d'intervention</div>
+<section class="at-sec tight" style="background:var(--bgs);">
+    <div class="at-w">
+        <div class="at-sh" style="max-width:720px;">
+            <div class="at-ey">Zone d'intervention</div>
             <h2>On intervient à {{ $city }} et dans un rayon de 30 km.</h2>
-            <p style="color:var(--ink-3);">Une demande hors zone ? Appelez-nous, on regarde au cas par cas.</p>
+            <p>Une demande hors zone ? Appelez-nous, on regarde au cas par cas.</p>
         </div>
-        <div class="art-city-pills">
+        <div class="at-pills">
             @foreach($favoriteCities as $fc)
-            <a href="{{ route('ads.index') . '?city=' . $fc->slug }}" class="art-city-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="at-pill">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 {{ $fc->name }}
             </a>
             @endforeach
@@ -724,118 +683,137 @@
 @endif
 
 
-{{-- ═══════════════════════════════════════════════
-     §9  FORMULAIRE CONTACT
-═══════════════════════════════════════════════ --}}
-<section class="art-sec" id="contact-form" style="padding:88px 0; background:var(--bg);">
-    <div class="art-w">
-        <div class="art-contact-grid">
-            {{-- Infos --}}
+{{-- ═══ §9 FORMULAIRE CONTACT ════════════════════════════════ --}}
+<section class="at-sec" id="at-contact" style="background:var(--bg);">
+    <div class="at-w">
+        <div class="at-cg">
+            {{-- Infos contact --}}
             <div>
-                <div class="art-eyebrow">Demandez votre devis</div>
+                <div class="at-ey">Demandez votre devis</div>
                 <h2>Parlons de votre projet.</h2>
-                <p style="color:var(--ink-3); font-size:17px; margin-top:16px; line-height:1.6;">
-                    Remplissez le formulaire ou appelez-nous directement. On vous rappelle dans les 24h, devis détaillé sans engagement.
+                <p style="color:var(--ink3); font-size:16.5px; margin-top:14px; line-height:1.65;">
+                    Remplissez le formulaire ou appelez-nous. On vous rappelle dans les 24h, devis détaillé sans engagement.
                 </p>
-                <div style="display:flex; flex-direction:column; gap:18px; margin-top:32px;">
-                    <a href="tel:{{ $phoneRaw }}" class="art-contact-item">
-                        <div class="art-contact-ico">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+                <div style="display:flex; flex-direction:column; gap:14px; margin-top:28px;">
+                    @if($phone)
+                    <a href="tel:{{ $phoneRaw }}" class="at-ci">
+                        <div class="at-ci-ico">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
                         </div>
                         <div>
-                            <div class="art-contact-label">Téléphone</div>
-                            <div class="art-contact-val">{{ $phone }}</div>
+                            <div class="at-ci-lbl">Téléphone</div>
+                            <div class="at-ci-val">{{ $phone }}</div>
                         </div>
                     </a>
-                    <div class="art-contact-item">
-                        <div class="art-contact-ico">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    @endif
+                    <div class="at-ci">
+                        <div class="at-ci-ico">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                         </div>
                         <div>
-                            <div class="art-contact-label">Horaires</div>
-                            <div class="art-contact-val" style="font-size:15px;">Lun–Sam · 8h – 19h</div>
+                            <div class="at-ci-lbl">Horaires</div>
+                            <div class="at-ci-val" style="font-size:15px;">Lun–Sam · 8h – 19h</div>
                         </div>
                     </div>
-                    <div class="art-contact-item">
-                        <div class="art-contact-ico">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <div class="at-ci">
+                        <div class="at-ci-ico">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                         </div>
                         <div>
-                            <div class="art-contact-label">Zone</div>
-                            <div class="art-contact-val" style="font-size:15px;">{{ $city }} et 30 km autour</div>
+                            <div class="at-ci-lbl">Zone</div>
+                            <div class="at-ci-val" style="font-size:15px;">{{ $city }} et 30 km autour</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Formulaire --}}
-            <div class="art-card" style="padding:32px;">
-                <h3 style="font-size:22px; margin-bottom:6px;">Demande de devis gratuit</h3>
-                <p style="color:var(--ink-3); font-size:14px; margin-bottom:24px;">Réponse sous 24h · Sans engagement</p>
+            <div class="at-card" style="padding:32px;">
+                @if(session('success') || session('contact_success'))
+                <div style="text-align:center; padding:20px 0;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:var(--ps);color:var(--p);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    </div>
+                    <h3>Message envoyé !</h3>
+                    <p style="color:var(--ink3); margin-top:10px;">On vous rappelle dans les 24h.</p>
+                </div>
+                @else
+                <h3 style="font-size:21px; margin-bottom:6px;">Demande de devis gratuit</h3>
+                <p style="color:var(--ink3); font-size:13.5px; margin-bottom:22px;">Réponse sous 24h · Sans engagement</p>
 
-                <form action="{{ route('contact.send') }}" method="POST" class="art-form">
+                <form action="{{ route('contact.send') }}" method="POST" class="at-form">
                     @csrf
-                    <div class="art-form-row">
-                        <div class="art-field">
-                            <label for="art-name">Votre nom *</label>
-                            <input type="text" id="art-name" name="name" placeholder="Marie Dupont" required>
+                    @if($errors->any())
+                    <div style="padding:12px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:10px; color:#DC2626; font-size:13.5px; margin-bottom:4px;">
+                        @foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach
+                    </div>
+                    @endif
+
+                    <div class="at-frow">
+                        <div class="at-field">
+                            <label>Votre nom *</label>
+                            <input type="text" name="name" value="{{ old('name') }}" placeholder="Marie Dupont" required>
                         </div>
-                        <div class="art-field">
-                            <label for="art-phone">Téléphone *</label>
-                            <input type="tel" id="art-phone" name="phone" placeholder="06 12 34 56 78" required>
+                        <div class="at-field">
+                            <label>Téléphone *</label>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" placeholder="06 12 34 56 78" required>
                         </div>
                     </div>
-                    <div class="art-field">
-                        <label for="art-email">Email</label>
-                        <input type="email" id="art-email" name="email" placeholder="marie@email.fr">
+                    <div class="at-field">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="marie@email.fr">
                     </div>
                     @if(!empty($svcList))
-                    <div class="art-field">
-                        <label for="art-service">Type de besoin</label>
-                        <select id="art-service" name="service">
+                    <div class="at-field">
+                        <label>Type de besoin</label>
+                        <select name="service">
                             <option value="">Sélectionnez…</option>
                             @foreach($svcList as $svc)
-                            <option value="{{ $svc['name'] ?? $svc['title'] ?? '' }}">{{ $svc['name'] ?? $svc['title'] ?? '' }}</option>
+                            <option value="{{ $svc['name']??'' }}" {{ old('service')==($svc['name']??'') ? 'selected' : '' }}>
+                                {{ $svc['name'] ?? '' }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
                     @endif
-                    <div class="art-field">
-                        <label for="art-message">Décrivez votre projet</label>
-                        <textarea id="art-message" name="message" placeholder="Quelques détails sur ce dont vous avez besoin…"></textarea>
+                    <div class="at-field">
+                        <label>Décrivez votre projet</label>
+                        <textarea name="message" placeholder="Quelques détails sur votre besoin…">{{ old('message') }}</textarea>
                     </div>
-                    <button type="submit" class="art-submit">
+                    <input type="hidden" name="source" value="homepage">
+                    <button type="submit" class="at-submit">
                         Envoyer ma demande
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
-                    <p style="font-size:12px; color:var(--ink-3); text-align:center; margin-top:4px;">
+                    <p style="font-size:11.5px; color:var(--ink3); text-align:center; margin-top:6px;">
                         En envoyant, vous acceptez d'être recontacté par {{ $name }}.
                     </p>
                 </form>
+                @endif
             </div>
         </div>
     </div>
 </section>
 
 
-{{-- ═══════════════════════════════════════════════
-     §10  FAQ (si dispo)
-═══════════════════════════════════════════════ --}}
+{{-- ═══ §10 FAQ ════════════════════════════════════════════════ --}}
 @if(!empty($faqs))
-<section class="art-sec" style="background:var(--bg-soft);">
-    <div class="art-w">
-        <div class="art-sh" style="text-align:center; margin-inline:auto;">
-            <div class="art-eyebrow" style="justify-content:center;">Questions fréquentes</div>
+<section class="at-sec" style="background:var(--bgs);">
+    <div class="at-w">
+        <div class="at-sh" style="text-align:center; margin-inline:auto;">
+            <div class="at-ey" style="justify-content:center;">Questions fréquentes</div>
             <h2>On répond à tout.</h2>
         </div>
-        <div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:12px;">
-            @foreach(array_slice($faqs, 0, 6) as $faq)
-            <details class="art-card" style="padding:20px 24px; cursor:pointer;">
-                <summary style="font-weight:700; font-size:17px; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--ink);">
+        <div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">
+            @foreach(array_slice($faqs,0,7) as $faq)
+            <details class="at-card at-faq-item">
+                <summary>
                     {{ $faq['question'] ?? $faq['q'] ?? '' }}
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
+                    <div class="at-faq-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </div>
                 </summary>
-                <p style="margin-top:12px; color:var(--ink-2); font-size:15px; line-height:1.6;">{{ $faq['answer'] ?? $faq['r'] ?? $faq['a'] ?? '' }}</p>
+                <div class="at-faq-body">{{ $faq['answer'] ?? $faq['r'] ?? $faq['a'] ?? '' }}</div>
             </details>
             @endforeach
         </div>
@@ -843,4 +821,36 @@
 </section>
 @endif
 
-</div>{{-- .art-root --}}
+
+{{-- ═══ §11 CTA STRIP ══════════════════════════════════════════ --}}
+@if($secCta['enabled'] ?? true)
+<section class="at-cta-strip">
+    <div class="at-w">
+        <div class="at-cta-inner">
+            <div style="max-width:540px;">
+                <h2 style="color:#fff; font-family:var(--fd);">{!! nl2br(e($secCta['title'] ?? "Un projet ? Un devis sous 24h, c'est promis.")) !!}</h2>
+                <p style="color:rgba(255,255,255,.65); margin-top:12px; font-size:16px; line-height:1.6;">
+                    Échange rapide par téléphone, déplacement gratuit, devis détaillé sans engagement.
+                </p>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                @if($phone)
+                <a href="tel:{{ $phoneRaw }}"
+                   class="at-btn at-btn-lg"
+                   style="background:var(--p);color:var(--pf);">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+                    {{ $phone }}
+                </a>
+                @endif
+                <a href="#at-contact"
+                   class="at-btn at-btn-lg"
+                   style="background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,.28);">
+                    Demander un devis
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
+</div>{{-- .at --}}
