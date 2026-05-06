@@ -750,6 +750,9 @@
                 $u = is_array($logo) ? trim((string)($logo['logo'] ?? $logo['url'] ?? $logo['image'] ?? '')) : trim((string)$logo);
                 return !empty($u);
             });
+            $pf = is_array($partFeatured) ? $partFeatured : [];
+            $pfEnabled = (bool)($pf['enabled'] ?? false);
+            $pfHasContent = !empty($pf['title']) || !empty($pf['body']) || !empty($pf['image']);
         @endphp
         @if(count($validLogos) > 0)
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:{{ ($pfEnabled && $pfHasContent) ? '40px' : '0' }};">
@@ -774,9 +777,6 @@
         </div>
         @endif
         @php
-            $pf = is_array($partFeatured) ? $partFeatured : [];
-            $pfEnabled = (bool)($pf['enabled'] ?? false);
-            $pfHasContent = !empty($pf['title']) || !empty($pf['body']) || !empty($pf['image']);
             $pfImg = !empty($pf['image']) ? (strpos($pf['image'],'http')===0 ? $pf['image'] : asset(ltrim($pf['image'],'/'))) : null;
         @endphp
         @if($pfEnabled && $pfHasContent)
