@@ -803,69 +803,62 @@
     $ziHasMap    = !empty($departmentsMap['show']);
 @endphp
 @if($ziHasCities || $ziHasMap)
+@if($ziHasMap)
+@push('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+@endpush
+@endif
 <style>
 .zn-sec{background:radial-gradient(circle at top left,rgba(80,160,255,.08),transparent 35%),#17120f;color:#fff;padding:90px 20px;font-family:'Manrope',Arial,sans-serif;}
 .zn-box{width:100%;max-width:1180px;margin:0 auto;}
 .zn-lbl{display:flex;align-items:center;gap:12px;color:#7d7a76;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:28px;}
 .zn-lbl-bar{width:24px;height:2px;background:linear-gradient(90deg,#4a9cff,#75e0c0);border-radius:100px;flex-shrink:0;}
-.zn-hero{max-width:740px;}
-.zn-hero h2{margin:0;font-family:'Fraunces',Georgia,serif;font-size:clamp(38px,6vw,68px);line-height:1.03;font-weight:800;letter-spacing:-1.8px;color:#fff;}
-.zn-hero p,.zn-dept-hdr p{margin:24px 0 0;color:#a9a39d;font-size:17px;line-height:1.7;}
-.zn-tags{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px;}
-.zn-tag{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;color:#d7d1ca;font-size:14px;font-weight:600;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:999px;backdrop-filter:blur(10px);transition:.25s ease;text-decoration:none;}
+.zn-cols{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;}
+@media(max-width:900px){.zn-cols{grid-template-columns:1fr;gap:40px;}}
+.zn-left h2{margin:0;font-family:'Fraunces',Georgia,serif;font-size:clamp(32px,4vw,54px);line-height:1.06;font-weight:800;letter-spacing:-1.4px;color:#fff;}
+.zn-left>p,.zn-dept-hdr p{margin:20px 0 0;color:#a9a39d;font-size:16px;line-height:1.7;}
+.zn-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;}
+.zn-tag{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;color:#d7d1ca;font-size:13px;font-weight:600;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:999px;backdrop-filter:blur(10px);transition:.25s ease;text-decoration:none;}
 .zn-tag:hover{transform:translateY(-2px);border-color:rgba(117,224,192,.45);background:rgba(117,224,192,.08);color:#fff;}
-.zn-sep{width:100%;height:1px;margin:58px 0;background:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.02));}
-.zn-dept-hdr{margin-bottom:34px;}
-.zn-dept-hdr p{max-width:950px;}
-.zn-content{display:grid;grid-template-columns:380px 1fr;gap:32px;align-items:stretch;}
-@media(max-width:900px){.zn-content{grid-template-columns:1fr;}}
-.zn-dept-card{position:relative;display:flex;align-items:center;gap:18px;min-height:86px;padding:22px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,.28);overflow:hidden;transition:.3s ease;text-decoration:none;color:inherit;}
+.zn-sep-h{width:100%;height:1px;margin:36px 0;background:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.02));}
+.zn-dept-hdr{margin-bottom:24px;}
+.zn-dept-card{position:relative;display:flex;align-items:center;gap:16px;min-height:72px;padding:18px 20px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);border-radius:18px;overflow:hidden;transition:.3s ease;text-decoration:none;color:inherit;margin-bottom:12px;}
 .zn-dept-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(117,224,192,.12),transparent);opacity:0;transition:.3s ease;}
-.zn-dept-card:hover{transform:translateY(-4px);border-color:rgba(117,224,192,.35);}
+.zn-dept-card:hover{transform:translateY(-3px);border-color:rgba(117,224,192,.35);}
 .zn-dept-card:hover::before{opacity:1;}
-.zn-dept-num{position:relative;z-index:1;width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:800;border-radius:12px;background:linear-gradient(135deg,#4a9cff,#75e0c0);box-shadow:0 12px 30px rgba(74,156,255,.25);}
+.zn-dept-num{position:relative;z-index:1;width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#4a9cff,#75e0c0);box-shadow:0 8px 24px rgba(74,156,255,.3);}
 .zn-dept-info{position:relative;z-index:1;flex:1;}
-.zn-dept-info h3{margin:0;font-size:18px;color:#fff;font-family:'Fraunces',Georgia,serif;}
-.zn-dept-info p{margin:6px 0 0;color:#9f9891;font-size:14px;line-height:1.5;}
-.zn-dept-arr{position:relative;z-index:1;color:#9f9891;font-size:22px;transition:.25s ease;}
+.zn-dept-info h3{margin:0;font-size:17px;color:#fff;font-family:'Fraunces',Georgia,serif;}
+.zn-dept-info p{margin:4px 0 0;color:#9f9891;font-size:13px;line-height:1.4;}
+.zn-dept-arr{position:relative;z-index:1;color:#9f9891;font-size:20px;transition:.25s ease;}
 .zn-dept-card:hover .zn-dept-arr{color:#75e0c0;transform:translateX(4px);}
-.zn-map{position:relative;min-height:420px;border-radius:26px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04)),#9aa1ab;border:1px solid rgba(255,255,255,.14);box-shadow:0 26px 90px rgba(0,0,0,.38);}
-.zn-map::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(39,47,58,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(39,47,58,.35) 1px,transparent 1px);background-size:80px 80px;opacity:.25;}
-.zn-map-ctrl{position:absolute;z-index:3;top:16px;left:16px;display:grid;overflow:hidden;border-radius:10px;box-shadow:0 12px 25px rgba(0,0,0,.25);}
-.zn-map-btn{width:38px;height:38px;border:0;background:#fff;color:#1b1b1b;font-size:24px;font-weight:500;cursor:default;line-height:1;padding:0;}
-.zn-map-btn:first-child{border-bottom:1px solid #e1e1e1;}
-.zn-map-area{position:absolute;inset:0;display:grid;place-items:center;}
-.zn-map-shape{width:min(42vw,360px);height:min(42vw,360px);background:linear-gradient(135deg,#75e0c0,#67d6a5);clip-path:polygon(48% 0%,62% 8%,78% 12%,85% 28%,94% 43%,88% 60%,91% 78%,72% 88%,56% 100%,39% 92%,21% 90%,12% 74%,5% 59%,12% 43%,8% 27%,22% 16%,33% 5%);border:3px solid #4a9cff;filter:drop-shadow(0 20px 35px rgba(0,0,0,.18));}
-.zn-map-pin{position:absolute;right:32px;bottom:28px;display:inline-flex;align-items:center;gap:10px;padding:12px 16px;color:#fff;font-size:14px;font-weight:700;background:rgba(23,18,15,.78);border:1px solid rgba(255,255,255,.12);border-radius:999px;backdrop-filter:blur(12px);}
-.zn-map-dot{width:10px;height:10px;background:#75e0c0;border-radius:50%;box-shadow:0 0 0 6px rgba(117,224,192,.16);flex-shrink:0;}
-@media(max-width:560px){.zn-hero h2{font-size:42px;}.zn-dept-card{padding:18px;}.zn-map{min-height:320px;border-radius:22px;}.zn-map-shape{width:260px;height:260px;}.zn-map-pin{left:18px;right:18px;justify-content:center;}}
+.zn-map-wrap{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.14);height:520px;box-shadow:0 26px 80px rgba(0,0,0,.4);}
+@media(max-width:900px){.zn-map-wrap{height:360px;}}
+#zn-leaflet{width:100%;height:100%;}
 </style>
 <section class="zn-sec">
     <div class="zn-box">
-        {{-- Intro --}}
-        <div class="zn-hero">
-            <div class="zn-lbl"><span class="zn-lbl-bar"></span>Zone d'intervention</div>
-            <h2>On intervient à {{ $city }}<br>et dans un rayon de 30&nbsp;km.</h2>
-            <p>Une demande hors zone&nbsp;? Appelez-nous, on regarde au cas par cas.</p>
-            @if($ziHasCities)
-            <div class="zn-tags">
-                @foreach($favoriteCities as $fc)
-                <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="zn-tag">📍 {{ $fc->name }}</a>
-                @endforeach
-            </div>
-            @endif
-        </div>
+        <div class="zn-cols">
+            {{-- Colonne gauche : tout le texte --}}
+            <div class="zn-left">
+                <div class="zn-lbl"><span class="zn-lbl-bar"></span>Zone d'intervention</div>
+                <h2>On intervient à {{ $city }}<br>et dans un rayon de 30&nbsp;km.</h2>
+                <p>Une demande hors zone&nbsp;? Appelez-nous, on regarde au cas par cas.</p>
+                @if($ziHasCities)
+                <div class="zn-tags">
+                    @foreach($favoriteCities as $fc)
+                    <a href="{{ route('ads.index') }}?city={{ $fc->slug }}" class="zn-tag">📍 {{ $fc->name }}</a>
+                    @endforeach
+                </div>
+                @endif
 
-        @if($ziHasMap)
-        @php $ziItems = $departmentsMap['items'] ?? []; @endphp
-        <div class="zn-sep"></div>
-        <div class="zn-dept-hdr">
-            <div class="zn-lbl"><span class="zn-lbl-bar"></span>Nos départements d'intervention</div>
-            <p>Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d'intervention et les principales villes desservies.</p>
-        </div>
-        <div class="zn-content">
-            {{-- Liste --}}
-            <div style="display:flex;flex-direction:column;gap:16px;">
+                @if($ziHasMap)
+                @php $ziItems = $departmentsMap['items'] ?? []; @endphp
+                <div class="zn-sep-h"></div>
+                <div class="zn-dept-hdr">
+                    <div class="zn-lbl"><span class="zn-lbl-bar"></span>Nos départements d'intervention</div>
+                    <p>Nous sommes présents dans tous ces départements. Retrouvez ci-dessous nos secteurs d'intervention et les principales villes desservies.</p>
+                </div>
                 @foreach($ziItems as $row)
                 @php $ziRowCities = is_array($row['cities'] ?? null) ? $row['cities'] : []; @endphp
                 <a href="{{ $row['url'] }}" class="zn-dept-card">
@@ -873,31 +866,61 @@
                     <div class="zn-dept-info">
                         <h3>{{ $row['name'] }}</h3>
                         @if(!empty($ziRowCities))
-                        <p>{{ implode(', ', array_slice(array_map(fn($c) => $c['name'] ?? '', $ziRowCities), 0, 3)) }}{{ count($ziRowCities) > 3 ? '&hellip;' : '' }}</p>
+                        <p>{{ implode(', ', array_slice(array_map(fn($c) => $c['name'] ?? '', $ziRowCities), 0, 3)) }}{{ count($ziRowCities) > 3 ? '…' : '' }}</p>
                         @endif
                     </div>
                     <div class="zn-dept-arr">→</div>
                 </a>
                 @endforeach
+                @endif
             </div>
-            {{-- Carte stylisée --}}
-            <div class="zn-map">
-                <div class="zn-map-ctrl">
-                    <button class="zn-map-btn" aria-hidden="true">+</button>
-                    <button class="zn-map-btn" aria-hidden="true">−</button>
-                </div>
-                <div class="zn-map-area">
-                    <div class="zn-map-shape"></div>
-                    <div class="zn-map-pin">
-                        <span class="zn-map-dot"></span>
-                        {{ $city }}
-                    </div>
-                </div>
+
+            {{-- Colonne droite : carte Leaflet --}}
+            @if($ziHasMap)
+            <div class="zn-map-wrap">
+                <div id="zn-leaflet" role="img" aria-label="Carte des départements d'intervention"></div>
             </div>
+            @endif
         </div>
-        @endif
     </div>
 </section>
+@if($ziHasMap)
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function(){
+    var items=@json($departmentsMap['items']??[]);
+    var geoUrl=@json($departmentsMap['geoJsonUrl']??'');
+    var primary=getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()||'#4a9cff';
+    var secondary=getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()||'#75e0c0';
+    function nc(c){c=String(c||'').trim().toUpperCase();if(c==='2A'||c==='2B')return c;if(/^\d+$/.test(c))return c.padStart(2,'0');return c;}
+    var hl=new Set(items.map(function(it){return nc(it.code);}));
+    var byCode={};items.forEach(function(it){byCode[nc(it.code)]=it.url;});
+    var map=L.map('zn-leaflet',{scrollWheelZoom:false,zoomControl:true,attributionControl:false});
+    fetch(geoUrl,{credentials:'same-origin'})
+    .then(function(r){return r.json();})
+    .then(function(geo){
+        var layer=L.geoJSON(geo,{
+            style:function(f){var c=nc(f.properties&&f.properties.code),on=hl.has(c);return{color:on?primary:'#374151',weight:on?2:.5,fillColor:on?secondary:'#1f2937',fillOpacity:on?.65:.35};},
+            onEachFeature:function(f,l){
+                var nom=(f.properties&&f.properties.nom)||'';
+                var c=nc(f.properties&&f.properties.code);
+                l.bindTooltip(nom+(c?' ('+c+')':''),{sticky:true});
+                l.on('click',function(){if(hl.has(c)&&byCode[c])window.location.href=byCode[c];});
+            }
+        }).addTo(map);
+        var tb=null;
+        geo.features&&geo.features.forEach(function(f){
+            var c=nc(f.properties&&f.properties.code);
+            if(!hl.has(c))return;
+            try{var b=L.geoJSON(f).getBounds();if(b.isValid())tb=tb?tb.extend(b):b;}catch(e){}
+        });
+        try{tb&&tb.isValid()?map.fitBounds(tb,{padding:[32,32],maxZoom:hl.size===1?10:9}):map.fitBounds(layer.getBounds(),{padding:[24,24]});}catch(e){}
+        setTimeout(function(){try{map.invalidateSize();}catch(e){}},100);
+        window.addEventListener('resize',function(){try{map.invalidateSize();}catch(e){}});
+    }).catch(function(){document.getElementById('zn-leaflet').innerHTML='<div style="padding:2rem;text-align:center;color:#f87171;font-size:.875rem;">Carte indisponible.</div>';});
+})();
+</script>
+@endif
 @endif
 
 
