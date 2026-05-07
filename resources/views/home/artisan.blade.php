@@ -299,6 +299,11 @@
 }
 .at-submit:hover { filter:brightness(.88); transform:translateY(-1px); }
 
+/* ── §5b ECO / FINANCEMENT ─────────────────────────────────── */
+.at-ecofin-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch; }
+.at-ecofin-grid.at-ecofin-single { grid-template-columns:1fr; }
+@media(max-width:768px){ .at-ecofin-grid { grid-template-columns:1fr !important; } }
+
 /* ── §10 CTA STRIP ─────────────────────────────────────────── */
 .at-cta-strip { padding:64px 0; background:#111111; color:#fff; }
 .at-cta-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:32px; }
@@ -463,7 +468,7 @@
             <a href="{{ route('services.show', $svcSlug) }}" class="at-card at-svc-card">
                 <div class="at-svc-photo">
                     @if($svcImg)
-                        <img src="{{ $svcImg }}" alt="{{ $svcName }}" class="at-svc-photo-inner" loading="lazy">
+                        <img src="{{ $svcImg }}" alt="{{ $svcName }}" class="at-svc-photo-inner">
                     @else
                         <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ps),var(--bgs));display:flex;align-items:center;justify-content:center;">
                             <i class="{{ $svcIcon ?: 'fas fa-wrench' }}" style="font-size:2.5rem;color:var(--p);opacity:.35;"></i>
@@ -586,7 +591,7 @@
 @if($ecoEnabled || $finEnabled)
 <section class="at-sec" style="background:var(--bgs);">
     <div class="at-w">
-        <div style="display:grid;grid-template-columns:{{ $bothActive ? '1fr 1fr' : '1fr' }};gap:24px;align-items:stretch;">
+        <div class="at-ecofin-grid{{ $bothActive ? '' : ' at-ecofin-single' }}">
 
             {{-- ▌ PANNEAU ÉCOLOGIE --}}
             @if($ecoEnabled)
