@@ -187,7 +187,12 @@
                 @if(setting('company_logo'))
                     <img src="{{ asset(setting('company_logo')) }}"
                          alt="{{ setting('company_name') }}"
-                         class="site-logo-img">
+                         class="site-logo-img"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <span class="flex items-center gap-3" style="display:none;">
+                        <span style="width:36px;height:36px;border-radius:10px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-home" style="color:#fff;font-size:.8rem;"></i></span>
+                        <span class="site-logo-text" style="max-width:160px;">{{ setting('company_name', 'Votre Entreprise') }}</span>
+                    </span>
                 @else
                     <div style="width:36px;height:36px;border-radius:10px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i class="fas fa-home" style="color:#fff;font-size:.8rem;"></i>
@@ -266,7 +271,12 @@
             @if(setting('company_logo'))
                 <img src="{{ asset(setting('company_logo')) }}"
                      alt="{{ setting('company_name') }}"
-                     style="height:2.2rem;width:auto;max-width:130px;object-fit:contain;display:block;filter:brightness(0) invert(1);">
+                     style="height:2.2rem;width:auto;max-width:130px;object-fit:contain;display:block;filter:brightness(0) invert(1);"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <span class="flex items-center gap-3" style="display:none;">
+                    <span style="width:32px;height:32px;border-radius:9px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-home" style="color:#fff;font-size:.75rem;"></i></span>
+                    <span style="font-weight:800;color:#fff;font-size:.95rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ setting('company_name') }}</span>
+                </span>
             @else
                 <div style="width:32px;height:32px;border-radius:9px;background:var(--primary-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <i class="fas fa-home" style="color:#fff;font-size:.75rem;"></i>

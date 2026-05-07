@@ -153,7 +153,7 @@
     position: relative; min-height: min(720px, 88vh);
     display: flex; align-items: stretch; overflow: hidden; padding: 0 !important;
 }
-.at-hero-bg  { position:absolute; inset:0; background-size:cover; background-position:center; }
+.at-hero-bg  { position:absolute; inset:0; background-color:#1a1a1a; background-size:cover; background-position:center; }
 .at-hero-ov1 { position:absolute; inset:0; background:linear-gradient(180deg,rgba(12,10,8,.52) 0%,rgba(12,10,8,.42) 50%,rgba(12,10,8,.88) 100%); }
 .at-hero-ov2 { position:absolute; inset:0; background:linear-gradient(90deg,rgba(12,10,8,.72) 0%,rgba(12,10,8,.18) 70%,transparent 100%); }
 .at-hero-in  {
@@ -336,6 +336,11 @@
     .at-real-grid  { grid-template-columns:1fr; }
     .at-sec        { padding:56px 0; }
     .at-hero-in    { padding:72px 20px 100px; }
+    .at-hero-trust { flex-direction:column; align-items:flex-start; gap:14px; }
+    .at-trust-div  { display:none !important; }
+    .at-hero-ctas  { flex-direction:column; width:100%; }
+    .at-hero-ctas .at-btn, .at-hero-ctas .at-btn-tel { width:100%; justify-content:center; }
+    .at-hero-logosbar { gap:14px; flex-wrap:wrap; justify-content:flex-start; padding:12px 16px; }
 }
 </style>
 @endpush
@@ -344,7 +349,7 @@
 
 {{-- ═══ §1 HERO ═══════════════════════════════════════════════ --}}
 <section class="at-hero">
-    <div class="at-hero-bg" style="{{ $heroImgUrl ? 'background-image:url('.e($heroImgUrl).');' : 'background:#1a1a1a;' }}"></div>
+    <div class="at-hero-bg" style="{{ $heroImgUrl ? 'background-image:url(\"'.e($heroImgUrl).'\");' : '' }}"></div>
     <div class="at-hero-ov1"></div>
     <div class="at-hero-ov2"></div>
 
@@ -540,7 +545,7 @@
         <div class="at-why-grid">
             {{-- Image --}}
             <div class="at-why-img"
-                 style="{{ $aboutImgUrl ? 'background-image:url('.e($aboutImgUrl).');' : 'background:linear-gradient(135deg,#E8DDD4,#1a1a1a);' }}">
+                 style="{{ $aboutImgUrl ? 'background-image:url(\"'.e($aboutImgUrl).'\");' : 'background:linear-gradient(135deg,#E8DDD4,#1a1a1a);' }}">
                 <div class="at-why-qcard">
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--primary-color,#B7472A)" stroke="none"><path d="M9.4 7C5.9 7 3 9.9 3 13.4V19h6v-6H6c0-2 1.4-3.4 3.4-3.4V7Zm11.6 0c-3.5 0-6.4 2.9-6.4 6.4V19h6v-6h-3c0-2 1.4-3.4 3.4-3.4V7Z"/></svg>
