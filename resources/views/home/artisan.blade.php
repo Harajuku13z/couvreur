@@ -340,7 +340,8 @@
     .at-trust-div  { display:none !important; }
     .at-hero-ctas  { flex-direction:column; width:100%; }
     .at-hero-ctas .at-btn, .at-hero-ctas .at-btn-tel { width:100%; justify-content:center; }
-    .at-hero-logosbar { gap:14px; flex-wrap:wrap; justify-content:flex-start; padding:12px 16px; }
+    .at-hero-logosbar { display:none; }
+    .at-hero-in    { padding-bottom:48px; }
 }
 </style>
 @endpush
