@@ -330,7 +330,7 @@
 
         <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:.35rem .9rem;margin-bottom:1.25rem;">
             <i class="{{ $service['icon'] ?? 'fas fa-tree' }}" style="color:var(--primary-color);font-size:.75rem;"></i>
-            <span style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.75);">Département 60 · Oise</span>
+            <span style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.75);">{{ setting('company_city', 'Votre région') }}</span>
         </div>
 
         <h1 style="font-size:clamp(2rem,5vw,3.5rem);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-.025em;margin-bottom:1rem;">
@@ -404,7 +404,7 @@
             <div class="sp-adv-list">
                 @foreach([
                     ['fas fa-shield-alt', 'Assuré & certifié', 'Assurance RC Pro à jour, équipes formées. Vos biens et votre propriété sont couverts en toutes circonstances.'],
-                    ['fas fa-map-marker-alt', 'Tout le département 60', 'Compiègne, Beauvais, Senlis, Chantilly, Creil, Noyon et toutes les communes de l\'Oise — on se déplace chez vous.'],
+                    ['fas fa-map-marker-alt', 'Intervention locale', setting('company_city','Votre ville') . ' et les communes alentour — on se déplace chez vous.'],
                     ['fas fa-clock', 'Réactivité garantie', 'Devis sous 24h, intervention programmée à votre convenance. Urgences traitées en priorité.'],
                     ['fas fa-file-invoice', 'Devis gratuit & transparent', 'Devis détaillé écrit avant chaque intervention. Ce qui est signé est ce qui est facturé. Zéro surprise.'],
                     ['fas fa-broom', 'Chantier propre, déchets évacués', 'Branches, troncs, souches, broyat — tout repart avec nous. Votre propriété est laissée impeccable.'],
@@ -423,8 +423,8 @@
 
         {{-- CTA intermédiaire --}}
         <div class="sp-cta-band">
-            <h3>Prêt pour votre {{ $service['name'] }} dans l'Oise ?</h3>
-            <p>Devis gratuit, réponse sous 24h — artisan local certifié, tout le département 60.</p>
+            <h3>Prêt pour votre {{ $service['name'] }} à {{ setting('company_city','votre ville') }} ?</h3>
+            <p>Devis gratuit, réponse sous 24h — artisan local certifié, {{ setting('company_city','votre région') }} et alentours.</p>
             <a href="{{ route('form.step', 'propertyType') }}" class="sp-cta-btn">
                 <i class="fas fa-file-alt"></i> Obtenir mon devis gratuit
             </a>
@@ -513,7 +513,7 @@
             <div class="sb-cta-title">
                 <i class="fas fa-file-alt" style="margin-right:.4rem;"></i>Devis gratuit
             </div>
-            <div class="sb-cta-sub">Sans engagement · Réponse sous 24h<br>pour tout le département 60</div>
+            <div class="sb-cta-sub">Sans engagement · Réponse sous 24h<br>{{ setting('company_city','votre région') }} et alentours</div>
             <a href="{{ route('form.step', 'propertyType') }}" class="sb-cta-btn">
                 Obtenir mon devis <i class="fas fa-arrow-right" style="font-size:.75rem;margin-left:.25rem;"></i>
             </a>
@@ -547,7 +547,7 @@
             </div>
             <div class="sb-body">
                 @php $raisons = [
-                    'Artisan local depuis 20+ ans dans l\'Oise',
+                    'Artisan local à ' . setting('company_city','votre ville'),
                     'Assurance RC Pro complète à jour',
                     'Équipe certifiée, matériel professionnel',
                     'Devis écrit, tarif transparent',
@@ -597,10 +597,10 @@
             <div class="sb-body">
                 @php
                     $infoItems = [
-                        ['fas fa-building', 'Société', setting('company_name', 'Louis Hoffmann Élagage')],
-                        ['fas fa-map-marker-alt', 'Adresse', setting('company_address', '2 Rue Saint-Corneille, 60200 Compiègne')],
-                        ['fas fa-phone', 'Téléphone', '<a href="tel:' . setting('company_phone_raw', setting('company_phone')) . '">' . setting('company_phone', '06 42 21 41 51') . '</a>'],
-                        ['fas fa-envelope', 'Email', '<a href="mailto:' . setting('company_email', 'contact@artisan-louis-hoffmann.fr') . '">' . setting('company_email', 'contact@artisan-louis-hoffmann.fr') . '</a>'],
+                        ['fas fa-building', 'Société', setting('company_name', 'Votre Entreprise')],
+                        ['fas fa-map-marker-alt', 'Adresse', setting('company_address', '')],
+                        ['fas fa-phone', 'Téléphone', '<a href="tel:' . setting('company_phone_raw', setting('company_phone')) . '">' . setting('company_phone', '') . '</a>'],
+                        ['fas fa-envelope', 'Email', '<a href="mailto:' . setting('company_email', '') . '">' . setting('company_email', '') . '</a>'],
                     ];
                 @endphp
                 <div>
@@ -624,10 +624,13 @@
             </div>
             <div class="sb-body">
                 <div style="line-height:1;">
-                    @foreach(['Compiègne','Beauvais','Senlis','Chantilly','Creil','Noyon','Verberie','Méru','Clermont','Pontoise'] as $ville)
+                    @php
+                        $zoneCities = setting('intervention_cities', '');
+                        $zoneList = $zoneCities ? array_slice(array_map('trim', explode(',', $zoneCities)), 0, 10) : [setting('company_city','Votre ville')];
+                    @endphp
+                    @foreach($zoneList as $ville)
                     <span class="sp-zone-pill">{{ $ville }}</span>
                     @endforeach
-                    <span class="sp-zone-pill" style="background:rgba(0,0,0,.04);border-color:#e5e7eb;color:#6b7280;">+50 communes</span>
                 </div>
             </div>
         </div>
