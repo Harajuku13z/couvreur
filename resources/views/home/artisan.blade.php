@@ -150,12 +150,14 @@
 
 /* ── §1 HERO ───────────────────────────────────────────────── */
 .at-hero {
-    position: relative; min-height: min(720px, 88vh);
+    position: relative; min-height: 720px; min-height: min(720px, 88vh);
     display: flex; align-items: stretch; overflow: hidden; padding: 0 !important;
+    background: #1a1a1a;
 }
-.at-hero-bg  { position:absolute; inset:0; background-color:#1a1a1a; background-size:cover; background-position:center; }
-.at-hero-ov1 { position:absolute; inset:0; background:linear-gradient(180deg,rgba(12,10,8,.52) 0%,rgba(12,10,8,.42) 50%,rgba(12,10,8,.88) 100%); }
-.at-hero-ov2 { position:absolute; inset:0; background:linear-gradient(90deg,rgba(12,10,8,.72) 0%,rgba(12,10,8,.18) 70%,transparent 100%); }
+.at-hero-bg  { position:absolute; top:0; right:0; bottom:0; left:0; background:#1a1a1a; }
+.at-hero-bg img { width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+.at-hero-ov1 { position:absolute; top:0; right:0; bottom:0; left:0; background:linear-gradient(180deg,rgba(12,10,8,.45) 0%,rgba(12,10,8,.35) 50%,rgba(12,10,8,.82) 100%); }
+.at-hero-ov2 { position:absolute; top:0; right:0; bottom:0; left:0; background:linear-gradient(90deg,rgba(12,10,8,.55) 0%,rgba(12,10,8,.1) 70%,transparent 100%); }
 .at-hero-in  {
     position:relative; z-index:2; color:#fff;
     display:flex; align-items:center;
@@ -237,7 +239,8 @@
 
 /* ── §5 ABOUT / POURQUOI NOUS ──────────────────────────────── */
 .at-why-grid { display:grid; grid-template-columns:1fr 1.3fr; gap:60px; align-items:center; }
-.at-why-img  { border-radius:var(--rlg); overflow:hidden; aspect-ratio:4/5; background-size:cover; background-position:center; position:relative; min-height:360px; }
+.at-why-img  { border-radius:var(--rlg); overflow:hidden; aspect-ratio:4/5; position:relative; min-height:360px; background:#E8DDD4; }
+.at-why-img > img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
 .at-why-qcard {
     position:absolute; bottom:20px; left:20px; right:20px; padding:18px;
     background:rgba(255,255,255,.96); border-radius:var(--rsm); backdrop-filter:blur(8px);
@@ -350,7 +353,9 @@
 
 {{-- ═══ §1 HERO ═══════════════════════════════════════════════ --}}
 <section class="at-hero">
-    <div class="at-hero-bg" style="{{ $heroImgUrl ? 'background-image:url(\"'.e($heroImgUrl).'\");' : '' }}"></div>
+    <div class="at-hero-bg">
+        @if($heroImgUrl)<img src="{{ $heroImgUrl }}" alt="" aria-hidden="true" fetchpriority="high">@endif
+    </div>
     <div class="at-hero-ov1"></div>
     <div class="at-hero-ov2"></div>
 
@@ -545,8 +550,8 @@
     <div class="at-w">
         <div class="at-why-grid">
             {{-- Image --}}
-            <div class="at-why-img"
-                 style="{{ $aboutImgUrl ? 'background-image:url(\"'.e($aboutImgUrl).'\");' : 'background:linear-gradient(135deg,#E8DDD4,#1a1a1a);' }}">
+            <div class="at-why-img"{{ !$aboutImgUrl ? ' style="background:linear-gradient(135deg,#E8DDD4,#1a1a1a);"' : '' }}>
+                @if($aboutImgUrl)<img src="{{ $aboutImgUrl }}" alt="{{ $name }}" loading="lazy">@endif
                 <div class="at-why-qcard">
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--primary-color,#B7472A)" stroke="none"><path d="M9.4 7C5.9 7 3 9.9 3 13.4V19h6v-6H6c0-2 1.4-3.4 3.4-3.4V7Zm11.6 0c-3.5 0-6.4 2.9-6.4 6.4V19h6v-6h-3c0-2 1.4-3.4 3.4-3.4V7Z"/></svg>
