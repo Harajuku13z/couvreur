@@ -115,7 +115,7 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <div class="flex items-center">
                     <input type="checkbox" name="trust_badges[garantie_decennale]" id="garantie_decennale" value="1" 
-                           {{ ($config['trust_badges']['garantie_decennale'] ?? true) ? 'checked' : '' }}
+                           {{ ($config['trust_badges']['garantie_decennale'] ?? false) ? 'checked' : '' }}
                            class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                     <label for="garantie_decennale" class="ml-2 text-sm font-medium text-gray-700">
                         <i class="fas fa-shield-alt mr-1"></i>Garantie Décennale
@@ -124,7 +124,7 @@
                 
                 <div class="flex items-center">
                     <input type="checkbox" name="trust_badges[certifie_rge]" id="certifie_rge" value="1" 
-                           {{ ($config['trust_badges']['certifie_rge'] ?? true) ? 'checked' : '' }}
+                           {{ ($config['trust_badges']['certifie_rge'] ?? false) ? 'checked' : '' }}
                            class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                     <label for="certifie_rge" class="ml-2 text-sm font-medium text-gray-700">
                         <i class="fas fa-certificate mr-1"></i>Certifié RGE
@@ -133,7 +133,7 @@
                 
                 <div class="flex items-center">
                     <input type="checkbox" name="trust_badges[show_rating]" id="show_rating" value="1" 
-                           {{ ($config['trust_badges']['show_rating'] ?? true) ? 'checked' : '' }}
+                           {{ ($config['trust_badges']['show_rating'] ?? false) ? 'checked' : '' }}
                            class="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500">
                     <label for="show_rating" class="ml-2 text-sm font-medium text-gray-700">
                         <i class="fas fa-star mr-1"></i>Afficher la Note et Avis
@@ -313,13 +313,13 @@
                     <div class="grid sm:grid-cols-2 gap-3">
                         <div class="flex items-center">
                             <input type="checkbox" name="ecology[badges][materiaux_recycles]" id="eco_badge_materiaux" value="1"
-                                   {{ ($config['ecology']['badges']['materiaux_recycles'] ?? true) ? 'checked' : '' }}
+                                   {{ ($config['ecology']['badges']['materiaux_recycles'] ?? false) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                             <label for="eco_badge_materiaux" class="ml-2 text-sm text-gray-700">Matériaux recyclés ♻️</label>
                         </div>
                         <div class="flex items-center">
                             <input type="checkbox" name="ecology[badges][energies_vertes]" id="eco_badge_energies" value="1"
-                                   {{ ($config['ecology']['badges']['energies_vertes'] ?? true) ? 'checked' : '' }}
+                                   {{ ($config['ecology']['badges']['energies_vertes'] ?? false) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                             <label for="eco_badge_energies" class="ml-2 text-sm text-gray-700">Énergies vertes 🌱</label>
                         </div>
@@ -365,13 +365,13 @@
                     <div class="grid sm:grid-cols-2 gap-3">
                         <div class="flex items-center">
                             <input type="checkbox" name="financing[badges][maprimerenov]" id="fin_badge_mpr" value="1"
-                                   {{ ($config['financing']['badges']['maprimerenov'] ?? true) ? 'checked' : '' }}
+                                   {{ ($config['financing']['badges']['maprimerenov'] ?? false) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
                             <label for="fin_badge_mpr" class="ml-2 text-sm text-gray-700">MaPrimeRénov' 🏠</label>
                         </div>
                         <div class="flex items-center">
                             <input type="checkbox" name="financing[badges][certificats_cee]" id="fin_badge_cee" value="1"
-                                   {{ ($config['financing']['badges']['certificats_cee'] ?? true) ? 'checked' : '' }}
+                                   {{ ($config['financing']['badges']['certificats_cee'] ?? false) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
                             <label for="fin_badge_cee" class="ml-2 text-sm text-gray-700">Certificats CEE 💰</label>
                         </div>

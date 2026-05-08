@@ -6,8 +6,8 @@
                   && !empty(trim((string) ($homeConfig['financing']['content'] ?? '')));
     $ecoBadges  = $homeConfig['ecology']['badges']  ?? [];
     $finBadges  = $homeConfig['financing']['badges'] ?? [];
-    $showEcoMat = (bool)($ecoBadges['materiaux_recycles'] ?? true);
-    $showEcoEn  = (bool)($ecoBadges['energies_vertes']    ?? true);
+    $showEcoMat = (bool)($ecoBadges['materiaux_recycles'] ?? false);
+    $showEcoEn  = (bool)($ecoBadges['energies_vertes']    ?? false);
     $showMpr    = (bool)($finBadges['maprimerenov']        ?? false);
     $showCee    = (bool)($finBadges['certificats_cee']     ?? false);
 @endphp

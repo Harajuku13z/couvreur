@@ -1615,9 +1615,9 @@ class ConfigController extends Controller
                     'magazine_side_image' => null,
                 ],
                 'trust_badges' => [
-                    'garantie_decennale' => true,
-                    'certifie_rge' => true,
-                    'show_rating' => true,
+                    'garantie_decennale' => false,
+                    'certifie_rge' => false,
+                    'show_rating' => false,
                 ],
                 'about' => [
                     'enabled' => false,
@@ -1630,8 +1630,8 @@ class ConfigController extends Controller
                     'title' => 'Notre Engagement Écologique',
                     'content' => '',
                     'badges' => [
-                        'materiaux_recycles' => true,
-                        'energies_vertes' => true,
+                        'materiaux_recycles' => false,
+                        'energies_vertes' => false,
                     ],
                 ],
                 'financing' => [
@@ -1639,8 +1639,8 @@ class ConfigController extends Controller
                     'title' => 'Aides et Financements Disponibles',
                     'content' => '',
                     'badges' => [
-                        'maprimerenov' => true,
-                        'certificats_cee' => true,
+                        'maprimerenov' => false,
+                        'certificats_cee' => false,
                     ],
                 ],
                 'departments_map' => [
@@ -1749,14 +1749,14 @@ class ConfigController extends Controller
             $config['ecology'] = [];
         }
         $config['ecology']['badges'] = array_merge(
-            ['materiaux_recycles' => true, 'energies_vertes' => true],
+            ['materiaux_recycles' => false, 'energies_vertes' => false],
             $config['ecology']['badges'] ?? []
         );
         if (!isset($config['financing']) || !is_array($config['financing'])) {
             $config['financing'] = [];
         }
         $config['financing']['badges'] = array_merge(
-            ['maprimerenov' => true, 'certificats_cee' => true],
+            ['maprimerenov' => false, 'certificats_cee' => false],
             $config['financing']['badges'] ?? []
         );
         if (!isset($config['departments_map']) || !is_array($config['departments_map'])) {
