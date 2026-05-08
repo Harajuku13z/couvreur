@@ -60,17 +60,19 @@
 .ps-card-link{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;color:var(--primary-color,#B7472A);transition:gap .18s;}
 .ps-card:hover .ps-card-link{gap:10px;}
 
-/* ── Services list (second section) ── */
-.ps-list-sec{background:#F2EDE4;padding:60px 0;}
-.ps-list-head{margin-bottom:36px;}
-.ps-list-ey{display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(30,20,10,.38);margin-bottom:14px;}
-.ps-list-head h2{font-size:clamp(1.5rem,3.5vw,2.25rem);font-weight:800;color:#1F1A14;line-height:1.15;letter-spacing:-.02em;margin:0;}
-.ps-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
-.ps-list-card{background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:14px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .18s,border-color .18s,transform .18s;text-decoration:none;color:inherit;cursor:pointer;}
-.ps-list-card:hover{box-shadow:0 10px 30px rgba(30,20,10,.09);border-color:rgba(30,20,10,.13);transform:translateY(-2px);}
-.ps-list-ico{width:44px;height:44px;border-radius:12px;background:rgba(var(--primary-rgb,183,71,42),.1);color:var(--primary-color,#B7472A);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ps-list-info h3{font-size:16px;font-weight:700;margin:0 0 5px;color:#1F1A14;}
-.ps-list-info p{font-size:13px;color:#6B6157;line-height:1.55;margin:0;}
+/* ── Annonces section ── */
+.ps-ads-sec{background:#F2EDE4;padding:60px 0;}
+.ps-ads-head{margin-bottom:36px;}
+.ps-ads-ey{display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(30,20,10,.38);margin-bottom:14px;}
+.ps-ads-head h2{font-size:clamp(1.5rem,3.5vw,2.25rem);font-weight:800;color:#1F1A14;line-height:1.15;letter-spacing:-.02em;margin:0;}
+.ps-ads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.ps-ad-card{background:#fff;border:1px solid rgba(30,20,10,.07);border-radius:14px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .18s,border-color .18s,transform .18s;text-decoration:none;color:inherit;}
+.ps-ad-card:hover{box-shadow:0 10px 30px rgba(30,20,10,.09);border-color:var(--primary-color,#B7472A);transform:translateY(-2px);}
+.ps-ad-ico{width:40px;height:40px;border-radius:10px;background:rgba(var(--primary-rgb,183,71,42),.08);color:var(--primary-color,#B7472A);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ps-ad-info{flex:1;min-width:0;}
+.ps-ad-city{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(30,20,10,.35);margin-bottom:5px;}
+.ps-ad-title{font-size:15px;font-weight:700;color:#1F1A14;line-height:1.35;margin:0 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ps-ad-link{font-size:12px;font-weight:600;color:var(--primary-color,#B7472A);display:inline-flex;align-items:center;gap:4px;margin-top:6px;}
 
 /* ── CTA ── */
 .ps-cta{background:#1F1A14;padding:72px 0;text-align:center;}
@@ -166,34 +168,54 @@
         </div>
     </section>
 
-    {{-- ── Liste exhaustive ── --}}
-    @if(isset($visibleServices) && $visibleServices->count() > 0)
-    <section class="ps-list-sec">
+    {{-- ── Annonces ville favorite ── --}}
+    @php
+        try {
+            $favAds = \App\Models\Ad::whereHas('city', fn($q) => $q->where('is_favorite', true))
+                ->where('status', 'published')
+                ->inRandomOrder()
+                ->limit(6)
+                ->get();
+        } catch(\Exception $e) {
+            $favAds = collect();
+        }
+        $favCityName = \App\Models\City::where('is_favorite', true)->value('name') ?? $companyCity;
+    @endphp
+    @if($favAds->count() > 0)
+    <section class="ps-ads-sec">
         <div class="ps-shell">
-            <div class="ps-list-head">
-                <div class="ps-list-ey">
+            <div class="ps-ads-head">
+                <div class="ps-ads-ey">
                     <span style="width:20px;height:2px;background:var(--primary-color,#B7472A);border-radius:2px;display:block;"></span>
-                    Tous nos services
+                    Nos annonces
                 </div>
-                <h2>L'expertise d'un artisan complet,<br>sans sous-traitance.</h2>
+                <h2>Interventions à {{ $favCityName }}</h2>
             </div>
-            <div class="ps-list-grid">
-                @foreach($visibleServices as $service)
-                @php
-                    $slug    = $service['slug'] ?? \Illuminate\Support\Str::slug($service['name'] ?? 'service');
-                    $svcDesc = $service['short_description'] ?? $service['description'] ?? '';
-                    $svcIcon = $service['icon'] ?? 'fas fa-tools';
-                @endphp
-                <a href="{{ route('services.show', $slug) }}" class="ps-list-card">
-                    <div class="ps-list-ico">
-                        <i class="{{ $svcIcon }}" style="font-size:1.25rem;"></i>
+            <div class="ps-ads-grid">
+                @foreach($favAds as $ad)
+                <a href="{{ route('ads.show', $ad->slug) }}" class="ps-ad-card">
+                    <div class="ps-ad-ico">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
-                    <div class="ps-list-info">
-                        <h3>{{ $service['name'] }}</h3>
-                        @if($svcDesc)<p>{{ Str::limit($svcDesc, 100) }}</p>@endif
+                    <div class="ps-ad-info">
+                        <div class="ps-ad-city">{{ $favCityName }}</div>
+                        <div class="ps-ad-title">{{ $ad->title }}</div>
+                        @if($ad->meta_description)
+                        <div style="font-size:12.5px;color:#6B6157;line-height:1.5;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $ad->meta_description }}</div>
+                        @endif
+                        <span class="ps-ad-link">
+                            Voir l'annonce
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
                     </div>
                 </a>
                 @endforeach
+            </div>
+            <div style="text-align:center;margin-top:28px;">
+                <a href="{{ route('ads.index') }}" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--primary-color,#B7472A);text-decoration:none;border:1.5px solid var(--primary-color,#B7472A);padding:10px 24px;border-radius:999px;transition:background .18s,color .18s;" onmouseover="this.style.background='var(--primary-color,#B7472A)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--primary-color,#B7472A)'">
+                    Voir toutes nos annonces
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
             </div>
         </div>
     </section>
