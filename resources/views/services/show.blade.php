@@ -389,7 +389,7 @@
 
         {{-- Article IA / contenu principal --}}
         <div class="sp-card">
-            <div class="sp-prose prose max-w-none">
+            <div class="sp-prose max-w-none">
                 {!! $service['description'] !!}
             </div>
         </div>
