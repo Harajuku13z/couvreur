@@ -60,7 +60,8 @@
 @push('head')
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500,30;9..144,700,30;9..144,800,30&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500,30;9..144,700,30;9..144,800,30&family=Manrope:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500,30;9..144,700,30;9..144,800,30&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
 /* ── DESIGN SYSTEM ─────────────────────────────────────────── */
 .at {
@@ -821,7 +822,8 @@
 @if($ziHasCities || $ziHasMap)
 @if($ziHasMap)
 @push('head')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" crossorigin="" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""></noscript>
 @endpush
 @endif
 <style>
@@ -901,39 +903,45 @@
     </div>
 </section>
 @if($ziHasMap)
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 (function(){
     var items=@json($departmentsMap['items']??[]);
     var geoUrl=@json($departmentsMap['geoJsonUrl']??'');
-    var primary=getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()||'#4a9cff';
-    var secondary=getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()||'#75e0c0';
-    function nc(c){c=String(c||'').trim().toUpperCase();if(c==='2A'||c==='2B')return c;if(/^\d+$/.test(c))return c.padStart(2,'0');return c;}
-    var hl=new Set(items.map(function(it){return nc(it.code);}));
-    var byCode={};items.forEach(function(it){byCode[nc(it.code)]=it.url;});
-    var map=L.map('zn-leaflet',{scrollWheelZoom:false,zoomControl:true,attributionControl:false});
-    fetch(geoUrl,{credentials:'same-origin'})
-    .then(function(r){return r.json();})
-    .then(function(geo){
-        var layer=L.geoJSON(geo,{
-            style:function(f){var c=nc(f.properties&&f.properties.code),on=hl.has(c);return{color:on?primary:'#374151',weight:on?2:.5,fillColor:on?secondary:'#1f2937',fillOpacity:on?.65:.35};},
-            onEachFeature:function(f,l){
-                var nom=(f.properties&&f.properties.nom)||'';
+    function initLeafletMap(){
+        var primary=getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()||'#4a9cff';
+        var secondary=getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()||'#75e0c0';
+        function nc(c){c=String(c||'').trim().toUpperCase();if(c==='2A'||c==='2B')return c;if(/^\d+$/.test(c))return c.padStart(2,'0');return c;}
+        var hl=new Set(items.map(function(it){return nc(it.code);}));
+        var byCode={};items.forEach(function(it){byCode[nc(it.code)]=it.url;});
+        var map=L.map('zn-leaflet',{scrollWheelZoom:false,zoomControl:true,attributionControl:false});
+        fetch(geoUrl,{credentials:'same-origin'})
+        .then(function(r){return r.json();})
+        .then(function(geo){
+            var layer=L.geoJSON(geo,{
+                style:function(f){var c=nc(f.properties&&f.properties.code),on=hl.has(c);return{color:on?primary:'#374151',weight:on?2:.5,fillColor:on?secondary:'#1f2937',fillOpacity:on?.65:.35};},
+                onEachFeature:function(f,l){
+                    var nom=(f.properties&&f.properties.nom)||'';
+                    var c=nc(f.properties&&f.properties.code);
+                    l.bindTooltip(nom+(c?' ('+c+')':''),{sticky:true});
+                    l.on('click',function(){if(hl.has(c)&&byCode[c])window.location.href=byCode[c];});
+                }
+            }).addTo(map);
+            var tb=null;
+            geo.features&&geo.features.forEach(function(f){
                 var c=nc(f.properties&&f.properties.code);
-                l.bindTooltip(nom+(c?' ('+c+')':''),{sticky:true});
-                l.on('click',function(){if(hl.has(c)&&byCode[c])window.location.href=byCode[c];});
-            }
-        }).addTo(map);
-        var tb=null;
-        geo.features&&geo.features.forEach(function(f){
-            var c=nc(f.properties&&f.properties.code);
-            if(!hl.has(c))return;
-            try{var b=L.geoJSON(f).getBounds();if(b.isValid())tb=tb?tb.extend(b):b;}catch(e){}
-        });
-        try{tb&&tb.isValid()?map.fitBounds(tb,{padding:[32,32],maxZoom:hl.size===1?10:9}):map.fitBounds(layer.getBounds(),{padding:[24,24]});}catch(e){}
-        setTimeout(function(){try{map.invalidateSize();}catch(e){}},100);
-        window.addEventListener('resize',function(){try{map.invalidateSize();}catch(e){}});
-    }).catch(function(){document.getElementById('zn-leaflet').innerHTML='<div style="padding:2rem;text-align:center;color:#f87171;font-size:.875rem;">Carte indisponible.</div>';});
+                if(!hl.has(c))return;
+                try{var b=L.geoJSON(f).getBounds();if(b.isValid())tb=tb?tb.extend(b):b;}catch(e){}
+            });
+            try{tb&&tb.isValid()?map.fitBounds(tb,{padding:[32,32],maxZoom:hl.size===1?10:9}):map.fitBounds(layer.getBounds(),{padding:[24,24]});}catch(e){}
+            setTimeout(function(){try{map.invalidateSize();}catch(e){}},100);
+            window.addEventListener('resize',function(){try{map.invalidateSize();}catch(e){}});
+        }).catch(function(){document.getElementById('zn-leaflet').innerHTML='<div style="padding:2rem;text-align:center;color:#f87171;font-size:.875rem;">Carte indisponible.</div>';});
+    }
+    var s=document.createElement('script');
+    s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.crossOrigin='';
+    s.onload=initLeafletMap;
+    document.body.appendChild(s);
 })();
 </script>
 @endif

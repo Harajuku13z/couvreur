@@ -384,17 +384,16 @@
     <!-- Articles CSS (critique, chargé en premier) -->
     <link rel="stylesheet" href="{{ asset('css/articles.css') }}">
     
-    <!-- Font Awesome (chargement non bloquant — meilleure perf LCP / FCP) -->
+    <!-- Font Awesome (non-bloquant) -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
-    
-    <!-- Tailwind CSS (darkMode: class — synchronisé avec data-theme via script + classe .dark sur <html>) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind CSS (différé — non bloquant) -->
     <script>
-        try {
-            tailwind.config = { darkMode: 'class' };
-        } catch (e) { /* CDN */ }
+        // Config disponible avant chargement Tailwind
+        window.tailwindConfig = { darkMode: 'class' };
     </script>
+    <script defer src="https://cdn.tailwindcss.com" onload="try{tailwind.config=window.tailwindConfig;}catch(e){}"></script>
     
     <style>
         :root,
