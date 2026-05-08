@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -484,15 +485,12 @@ class ServicesController extends Controller
      */
     private function handleImageUpload($file, $prefix = 'service')
     {
-        $fileName = $prefix . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $uploadPath = public_path('uploads/services');
-        
-        if (!file_exists($uploadPath)) {
-            mkdir($uploadPath, 0755, true);
-        }
-        
-        $file->move($uploadPath, $fileName);
-        
-        return 'uploads/services/' . $fileName;
+        // Compression automatique : 1200×900 max, qualité 82%
+        return ImageHelper::uploadAndCompress(
+            $file,
+            public_path('uploads/services'),
+            $prefix,
+            1200, 900, 82
+        );
     }
 }

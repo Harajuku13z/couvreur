@@ -50,17 +50,20 @@
 }
 .sp-card:last-child { margin-bottom: 0; }
 
-/* ── Prose content ── */
-.sp-prose { color: #374151; line-height: 1.8; }
-.sp-prose h2 { font-size: 1.35rem; font-weight: 800; color: #111827; margin: 1.75rem 0 .75rem; }
-.sp-prose h3 { font-size: 1.1rem; font-weight: 700; color: #111827; margin: 1.4rem 0 .6rem; }
-.sp-prose p { margin-bottom: 1rem; font-size: .975rem; }
+/* ── Prose content ── force dark text even when html.dark is active */
+.sp-prose { color: #374151 !important; line-height: 1.8; }
+.sp-prose h2 { font-size: 1.35rem; font-weight: 800; color: #111827 !important; margin: 1.75rem 0 .75rem; }
+.sp-prose h3 { font-size: 1.1rem; font-weight: 700; color: #111827 !important; margin: 1.4rem 0 .6rem; }
+.sp-prose p { margin-bottom: 1rem; font-size: .975rem; color: #374151 !important; }
 .sp-prose ul { padding-left: 1.25rem; margin-bottom: 1rem; }
-.sp-prose ul li { margin-bottom: .4rem; font-size: .975rem; }
-.sp-prose strong { color: #111827; }
+.sp-prose ul li { margin-bottom: .4rem; font-size: .975rem; color: #374151 !important; }
+.sp-prose strong { color: #111827 !important; }
+.sp-prose a { color: inherit !important; }
 .sp-prose img, .sp-prose video, .sp-prose iframe { max-width:100%!important; height:auto; border-radius: 10px; }
-.sp-prose table { width:100%; border-collapse:collapse; font-size:.9rem; }
-.sp-prose td, .sp-prose th { padding:.5rem .75rem; border:1px solid #e5e7eb; word-break:break-word; }
+.sp-prose table { width:100%; border-collapse:collapse; font-size:.9rem; color: #374151 !important; }
+.sp-prose td, .sp-prose th { padding:.5rem .75rem; border:1px solid #e5e7eb; word-break:break-word; color: #374151 !important; }
+/* reset Tailwind prose dark-mode overrides */
+.sp-prose, .sp-prose * { --tw-prose-body: #374151; --tw-prose-headings: #111827; --tw-prose-bold: #111827; --tw-prose-links: #374151; }
 
 /* ── Forcer 1 colonne dans le contenu IA (neutralise les grids générés) ── */
 .sp-prose div[class*="grid"],
@@ -89,23 +92,24 @@
     border-left: none !important;
 }
 
-/* ── Styles contenu IA nouveau template colonne unique ── */
-.ai-content-single { color: #374151; line-height: 1.8; }
-.ai-content-single p { margin-bottom: 1.1rem; font-size: .975rem; }
-.ai-intro { font-size: 1.05rem !important; color: #1f2937; font-weight: 500; }
+/* ── Styles contenu IA nouveau template colonne unique ── force dark text vs html.dark */
+.ai-content-single { color: #374151 !important; line-height: 1.8; }
+.ai-content-single p { margin-bottom: 1.1rem; font-size: .975rem; color: #374151 !important; }
+.ai-content-single h2, .ai-content-single h3, .ai-content-single h4 { color: #111827 !important; }
+.ai-intro { font-size: 1.05rem !important; color: #1f2937 !important; font-weight: 500; }
 .ai-garantie {
     border-left: 3px solid var(--primary-color);
     padding: 1rem 1.25rem; margin: 1.75rem 0;
     background: #f0fdf4; border-radius: 0 10px 10px 0;
 }
-.ai-garantie h3 { font-size: 1rem; font-weight: 700; color: #111827; margin: 0 0 .4rem; }
-.ai-garantie p { font-size: .9rem; color: #374151; margin: 0; }
-.ai-h3-prestations { font-size: 1.15rem; font-weight: 800; color: #111827; margin: 1.75rem 0 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: .5rem; }
+.ai-garantie h3 { font-size: 1rem; font-weight: 700; color: #111827 !important; margin: 0 0 .4rem; }
+.ai-garantie p { font-size: .9rem; color: #374151 !important; margin: 0; }
+.ai-h3-prestations { font-size: 1.15rem; font-weight: 800; color: #111827 !important; margin: 1.75rem 0 1rem; border-bottom: 2px solid #e5e7eb; padding-bottom: .5rem; }
 .ai-prestations-list { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: .6rem; }
-.ai-prestations-list li { display: flex; align-items: flex-start; gap: .65rem; font-size: .925rem; color: #374151; line-height: 1.5; }
+.ai-prestations-list li { display: flex; align-items: flex-start; gap: .65rem; font-size: .925rem; color: #374151 !important; line-height: 1.5; }
 .ai-prestations-list li i { color: var(--primary-color); font-size: .8rem; flex-shrink: 0; margin-top: .2rem; }
 .ai-faq-block { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
-.ai-faq-block h4 { font-size: 1rem; font-weight: 800; color: #111827; margin: 0 0 1rem; }
+.ai-faq-block h4 { font-size: 1rem; font-weight: 800; color: #111827 !important; margin: 0 0 1rem; }
 .ai-faq-block details { border-bottom: 1px solid #e5e7eb; }
 .ai-faq-block details:last-child { border-bottom: none; }
 .ai-faq-block summary { padding: .7rem 0; cursor: pointer; font-weight: 600; font-size: .875rem; color: #1f2937; list-style: none; }
