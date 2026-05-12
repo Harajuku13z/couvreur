@@ -28,6 +28,11 @@ class Deploy extends Command
         $branch = (string) $this->option('branch');
         $maintenanceEnabled = !$this->option('no-maintenance');
         $maintenanceActivated = false;
+        $releaseContext = [
+            'branch' => $branch,
+            'commit' => null,
+            'date' => now()->format('Y-m-d H:i:s'),
+        ];
 
         $this->components->info('Demarrage du deploy pour le site courant');
         $this->line('Racine projet: ' . base_path());
@@ -45,8 +50,6 @@ class Deploy extends Command
                 $this->guardAgainstTrackedGitChanges();
             }
 
-            $this->updateReleaseMetadata();
-
             if ($maintenanceEnabled) {
                 $this->line('Activation du mode maintenance...');
                 Artisan::call('down', ['--render' => 'errors::503']);
@@ -57,9 +60,12 @@ class Deploy extends Command
                 $this->runProcess(['git', 'fetch', 'origin', $branch], 'Recuperation des changements Git');
                 $this->runProcess(['git', 'checkout', $branch], 'Bascule sur la branche ' . $branch);
                 $this->runProcess(['git', 'pull', '--ff-only', 'origin', $branch], 'Mise a jour du code');
+                $releaseContext['commit'] = $this->captureProcess(['git', 'rev-parse', '--short', 'HEAD']);
             } else {
                 $this->comment('Etape Git ignoree.');
             }
+
+            $this->updateReleaseMetadata($releaseContext);
 
             if (!$this->option('skip-composer')) {
                 $this->runProcess(
@@ -169,12 +175,17 @@ class Deploy extends Command
         );
     }
 
-    private function updateReleaseMetadata(): void
+    private function updateReleaseMetadata(array $releaseContext): void
     {
+        $defaultReleaseName = 'Deploy ' . strtoupper((string) ($releaseContext['branch'] ?? 'main'));
+        $defaultReleaseVersion = trim((string) ($releaseContext['branch'] ?? 'main')) .
+            (($releaseContext['commit'] ?? null) ? '-' . $releaseContext['commit'] : '');
+        $defaultReleaseDate = (string) ($releaseContext['date'] ?? now()->format('Y-m-d H:i:s'));
+
         $updates = array_filter([
-            'APP_RELEASE_NAME' => $this->option('release-name'),
-            'APP_VERSION' => $this->option('release-version'),
-            'APP_RELEASE_DATE' => $this->option('release-date'),
+            'APP_RELEASE_NAME' => $this->option('release-name') ?: $defaultReleaseName,
+            'APP_VERSION' => $this->option('release-version') ?: $defaultReleaseVersion,
+            'APP_RELEASE_DATE' => $this->option('release-date') ?: $defaultReleaseDate,
         ], fn ($value) => is_string($value) && trim($value) !== '');
 
         if (empty($updates)) {
