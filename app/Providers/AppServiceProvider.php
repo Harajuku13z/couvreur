@@ -6,11 +6,13 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use App\Listeners\UpdateSitemapListener;
 use App\Events\AdCreated;
 use App\Events\AdUpdated;
 use App\Events\ArticleCreated;
 use App\Events\ServiceUpdated;
+use App\Helpers\SeoHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -95,6 +97,22 @@ class AppServiceProvider extends ServiceProvider
             }
         } catch (\Exception $e) {
             Log::error('Erreur lors de la configuration email: ' . $e->getMessage());
+        }
+
+        try {
+            $rootUrl = SeoHelper::getBaseSiteUrl();
+
+            if ($rootUrl !== '') {
+                config(['app.url' => $rootUrl]);
+                URL::forceRootUrl($rootUrl);
+
+                $scheme = parse_url($rootUrl, PHP_URL_SCHEME);
+                if (is_string($scheme) && in_array($scheme, ['http', 'https'], true)) {
+                    URL::forceScheme($scheme);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Impossible de normaliser l\'URL racine du site: ' . $e->getMessage());
         }
     }
 }

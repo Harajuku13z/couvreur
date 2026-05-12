@@ -9,6 +9,43 @@ use Illuminate\Support\Arr;
 class SeoHelper
 {
     /**
+     * Retourne l'URL racine du site sous la forme https://domaine.tld[:port]
+     * même si APP_URL ou site_url contiennent un chemin parasite comme /public.
+     */
+    public static function getBaseSiteUrl(?string $url = null): string
+    {
+        $baseUrl = trim((string) ($url ?: Setting::get('site_url', config('app.url'))));
+
+        if ($baseUrl === '') {
+            $baseUrl = (string) config('app.url', 'https://localhost');
+        }
+
+        $baseUrl = self::normalizeAbsoluteCanonicalUrl($baseUrl);
+        $parts = @parse_url($baseUrl);
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return self::normalizeAbsoluteCanonicalUrl((string) config('app.url', 'https://localhost'));
+        }
+
+        $origin = $parts['scheme'] . '://' . $parts['host'];
+
+        if (! empty($parts['port'])) {
+            $origin .= ':' . $parts['port'];
+        }
+
+        return $origin;
+    }
+
+    /**
+     * Normalise une URL de site saisie dans l'admin pour éviter les chemins
+     * incorrects comme /public ou /index.php dans les liens générés.
+     */
+    public static function normalizeSiteUrlInput(?string $url): string
+    {
+        return self::getBaseSiteUrl((string) $url);
+    }
+
+    /**
      * Force une URL absolue en https:// (exigence Lighthouse / SEO : canonical valide).
      * Gère site_url mal configuré : "domaine.fr", "//domaine.fr", "http://...".
      */
@@ -52,21 +89,7 @@ class SeoHelper
     public static function getCanonicalUrl(?Request $request = null): string
     {
         $request = $request ?? request();
-        $baseUrl = rtrim((string) Setting::get('site_url', config('app.url')), '/');
-        if ($baseUrl === '') {
-            $baseUrl = config('app.url');
-        }
-        // Base invalide (hôte seul, sans http) → normaliser
-        $baseUrl = self::normalizeAbsoluteCanonicalUrl($baseUrl);
-        // Ne garder que origine (scheme + host [+ port]) si jamais un chemin traîne dans site_url
-        $parts = @parse_url($baseUrl);
-        if (is_array($parts) && isset($parts['scheme'], $parts['host'])) {
-            $origin = $parts['scheme'] . '://' . $parts['host'];
-            if (! empty($parts['port'])) {
-                $origin .= ':' . $parts['port'];
-            }
-            $baseUrl = $origin;
-        }
+        $baseUrl = self::getBaseSiteUrl();
 
         $path = '/' . ltrim($request->path(), '/');
         if ($path === '//') {

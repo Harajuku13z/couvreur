@@ -127,9 +127,9 @@ Route::post('/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCa
             }
         })->name('cron.run');
         
-        // Route pour exécuter le scheduler via HTTP (pour services externes comme EasyCron, cron-job.org)
-        // Protégée par token pour la sécurité
-        // EasyCron peut attendre jusqu'à 5 minutes - on exécute tout et on répond uniquement à la fin
+// Route pour exécuter le scheduler via HTTP (pour services externes comme EasyCron, cron-job.org)
+// Protégée par token pour la sécurité
+// EasyCron peut attendre jusqu'à 5 minutes - on exécute tout et on répond uniquement à la fin
         Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
             // Augmenter le timeout pour permettre la génération complète (5 minutes max pour EasyCron)
             set_time_limit(300); // 5 minutes
@@ -204,6 +204,18 @@ Route::post('/api/track-phone-call', [FormControllerSimple::class, 'trackPhoneCa
                 ], 500);
             }
         })->name('schedule.run');
+
+// Rediriger proprement les URLs polluées par /public vers les URLs canoniques
+Route::get('/public/{path?}', function (\Illuminate\Http\Request $request, ?string $path = null) {
+    $target = '/' . ltrim((string) $path, '/');
+    $target = $target === '/' ? '/' : rtrim($target, '/');
+
+    if ($request->getQueryString()) {
+        $target .= '?' . $request->getQueryString();
+    }
+
+    return redirect($target, 301);
+})->where('path', '.*');
 
 // Route publique pour la page d'accueil
 Route::get('/', [HomeController::class, 'index'])->name('home');

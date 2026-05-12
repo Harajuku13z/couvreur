@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SeoHelper;
 use Illuminate\Http\Request;
 use App\Services\SimpleIndexationService;
 use App\Models\Setting;
@@ -136,7 +137,7 @@ class SimpleIndexationController extends Controller
             'google_search_console_credentials' => 'nullable|string',
         ]);
         
-        Setting::set('site_url', $request->input('site_url'), 'string', 'seo');
+        Setting::set('site_url', SeoHelper::normalizeSiteUrlInput($request->input('site_url')), 'string', 'seo');
         
         if ($request->filled('google_search_console_credentials')) {
             $credentials = $request->input('google_search_console_credentials');
@@ -159,4 +160,3 @@ class SimpleIndexationController extends Controller
         return back()->with('success', 'Configuration sauvegardée avec succès !');
     }
 }
-

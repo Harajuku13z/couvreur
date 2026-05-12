@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SeoHelper;
 use Illuminate\Http\Request;
 use App\Services\SimpleIndexationService;
 use App\Services\SitemapService;
@@ -48,7 +49,9 @@ class IndexationController extends Controller
         $adsAutoNoindexLowQuality = filter_var($adsAutoNoindexLowQuality, FILTER_VALIDATE_BOOLEAN);
         
         // URL du site
-        $siteUrl = Setting::get('site_url', request()->getSchemeAndHttpHost());
+        $siteUrl = SeoHelper::normalizeSiteUrlInput(
+            (string) Setting::get('site_url', request()->getSchemeAndHttpHost())
+        );
         $sitemapIndexUrl = rtrim($siteUrl, '/') . '/sitemap.xml';
         $sitemapFiles = $this->getSitemapFiles();
         $latestAuditReports = $this->getLatestAuditReports();
@@ -80,7 +83,7 @@ class IndexationController extends Controller
             'google_search_console_credentials' => 'nullable|string',
         ]);
         
-        Setting::set('site_url', $request->input('site_url'), 'string', 'seo');
+        Setting::set('site_url', SeoHelper::normalizeSiteUrlInput($request->input('site_url')), 'string', 'seo');
         
         if ($request->filled('google_search_console_credentials')) {
             $credentials = $request->input('google_search_console_credentials');
