@@ -10,6 +10,10 @@ class Setting extends Model
 {
     use HasFactory;
 
+    protected static array $runtimeValues = [];
+    protected static array $runtimeGroups = [];
+    protected static bool $runtimeLoadedAll = false;
+
     protected $fillable = [
         'key',
         'value',
@@ -20,8 +24,12 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
+        if (array_key_exists($key, self::$runtimeValues)) {
+            return self::$runtimeValues[$key];
+        }
+
         try {
-            return Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
+            $value = Cache::remember("setting_{$key}", 3600, function () use ($key, $default) {
                 try {
                     $setting = self::where('key', $key)->first();
                     if (!$setting) {
@@ -34,15 +42,21 @@ class Setting extends Model
                     return $default;
                 }
             });
+            self::$runtimeValues[$key] = $value;
+
+            return $value;
         } catch (\Exception $e) {
             // Si le cache n'est pas accessible (ex: cache DB), retourner la valeur par défaut
             \Log::warning("Impossible d'accéder au cache pour le setting '{$key}': " . $e->getMessage());
+            self::$runtimeValues[$key] = $default;
             return $default;
         }
     }
 
     public static function set(string $key, mixed $value, string $type = 'string', string $group = 'general', ?string $description = null): void
     {
+        $castValue = is_array($value) ? $value : self::castValue($value, $type);
+
         self::updateOrCreate(
             ['key' => $key],
             [
@@ -53,17 +67,30 @@ class Setting extends Model
             ]
         );
         Cache::forget("setting_{$key}");
+        self::$runtimeValues[$key] = $castValue;
+        self::$runtimeLoadedAll = false;
+        unset(self::$runtimeGroups[$group]);
     }
 
     public static function getGroup(string $group): array
     {
+        if (array_key_exists($group, self::$runtimeGroups)) {
+            return self::$runtimeGroups[$group];
+        }
+
+        if (self::$runtimeLoadedAll && array_key_exists($group, self::$runtimeGroups)) {
+            return self::$runtimeGroups[$group];
+        }
+
         try {
-            return Cache::remember("settings_group_{$group}", 3600, function () use ($group) {
+            $values = Cache::remember("settings_group_{$group}", 3600, function () use ($group) {
                 try {
                     $settings = self::where('group', $group)->get();
                     $result = [];
                     foreach ($settings as $setting) {
-                        $result[$setting->key] = self::castValue($setting->value, $setting->type);
+                        $castValue = self::castValue($setting->value, $setting->type);
+                        $result[$setting->key] = $castValue;
+                        self::$runtimeValues[$setting->key] = $castValue;
                     }
                     return $result;
                 } catch (\Exception $e) {
@@ -71,28 +98,44 @@ class Setting extends Model
                     return [];
                 }
             });
+            self::$runtimeGroups[$group] = $values;
+
+            return $values;
         } catch (\Exception $e) {
             \Log::warning("Impossible d'accéder au cache pour le groupe '{$group}': " . $e->getMessage());
+            self::$runtimeGroups[$group] = [];
             return [];
         }
     }
 
     public static function getAll(): array
     {
+        if (self::$runtimeLoadedAll) {
+            return self::$runtimeValues;
+        }
+
         try {
-            return Cache::remember('all_settings', 3600, function () {
+            $values = Cache::remember('all_settings', 3600, function () {
                 try {
                     $settings = self::all();
                     $result = [];
+                    $groups = [];
                     foreach ($settings as $setting) {
-                        $result[$setting->key] = self::castValue($setting->value, $setting->type);
+                        $castValue = self::castValue($setting->value, $setting->type);
+                        $result[$setting->key] = $castValue;
+                        $groups[$setting->group][$setting->key] = $castValue;
                     }
+                    self::$runtimeGroups = $groups;
                     return $result;
                 } catch (\Exception $e) {
                     \Log::warning("Impossible d'accéder à tous les settings: " . $e->getMessage());
                     return [];
                 }
             });
+            self::$runtimeValues = $values;
+            self::$runtimeLoadedAll = true;
+
+            return $values;
         } catch (\Exception $e) {
             \Log::warning("Impossible d'accéder au cache pour tous les settings: " . $e->getMessage());
             return [];
@@ -132,6 +175,9 @@ class Setting extends Model
     public static function clearCache(): void
     {
         Cache::flush();
+        self::$runtimeValues = [];
+        self::$runtimeGroups = [];
+        self::$runtimeLoadedAll = false;
     }
 
     public static function isSetupCompleted(): bool
@@ -144,5 +190,3 @@ class Setting extends Model
         self::set('setup_completed', true, 'boolean', 'general', 'Initial setup completed');
     }
 }
-
-

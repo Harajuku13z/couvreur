@@ -8,20 +8,23 @@ use App\Models\City;
 use App\Support\FrenchDepartments;
 use App\Services\DepartmentTopCitiesService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function index()
     {
+        $allSettings = Setting::getAll();
+
         // Get homepage configuration
-        $homeConfig = $this->getHomeConfig();
+        $homeConfig = $this->getHomeConfig($allSettings);
         
         // Set current page for SEO
         $currentPage = 'home';
         
         // Get services
-        $servicesData = Setting::get('services', '[]');
+        $servicesData = $this->settingValue($allSettings, 'services', '[]');
         $allServices = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
         
         // Si pas de services, créer des services par défaut
@@ -57,7 +60,7 @@ class HomeController extends Controller
         });
         
         // Get portfolio items (réalisations)
-        $portfolioData = Setting::get('portfolio_items', '[]');
+        $portfolioData = $this->settingValue($allSettings, 'portfolio_items', '[]');
         $portfolioItems = is_string($portfolioData) ? json_decode($portfolioData, true) : ($portfolioData ?? []);
         
         // Trier les réalisations par date de création/modification décroissante (plus récentes en premier)
@@ -96,45 +99,55 @@ class HomeController extends Controller
             }
         }
         
-        // Get reviews
-        $reviews = Review::where('is_active', true)
-            ->orderBy('review_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->take(6)
-            ->get();
-        
-        // Calculate average rating
-        $averageRating = Review::where('is_active', true)->avg('rating') ?? 5;
-        $totalReviews = Review::where('is_active', true)->count();
-        
-        // Compteur de confiance : minimum 100 + nombre de submissions réussies
-        $completedSubmissions = \App\Models\Submission::where('status', 'COMPLETED')->count();
-        $trustCounter = max(100, 100 + $completedSubmissions); // Minimum 100, puis + submissions réussies
+        // Get reviews — cached 10 min
+        $reviewsData = Cache::remember('home_reviews', 600, function () {
+            $list = Review::where('is_active', true)
+                ->orderBy('review_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->take(6)
+                ->get();
+            $avg = Review::where('is_active', true)->avg('rating') ?? 5;
+            $cnt = Review::where('is_active', true)->count();
+            $subs = \App\Models\Submission::where('status', 'COMPLETED')->count();
+            return compact('list', 'avg', 'cnt', 'subs');
+        });
+        $reviews = $reviewsData['list'];
+        $averageRating = $reviewsData['avg'];
+        $totalReviews  = $reviewsData['cnt'];
+        $completedSubmissions = $reviewsData['subs'];
+        $trustCounter = max(100, 100 + $completedSubmissions);
         
         // Get company settings
         $companySettings = [
-            'name' => Setting::get('company_name', 'Votre Entreprise'),
-            'phone' => Setting::get('company_phone', ''),
-            'email' => Setting::get('company_email', ''),
-            'address' => Setting::get('company_address', ''),
-            'city' => Setting::get('company_city', 'Paris'),
-            'region' => Setting::get('company_region', 'Île-de-France'),
-            'description' => Setting::get('company_description', ''),
-            'certifications' => Setting::get('company_certifications', ''),
+            'name' => $this->settingValue($allSettings, 'company_name', 'Votre Entreprise'),
+            'phone' => $this->settingValue($allSettings, 'company_phone', ''),
+            'phone_raw' => $this->settingValue($allSettings, 'company_phone_raw', ''),
+            'phone_2' => $this->settingValue($allSettings, 'company_phone_2', ''),
+            'phone_2_raw' => $this->settingValue($allSettings, 'company_phone_2_raw', ''),
+            'email' => $this->settingValue($allSettings, 'company_email', ''),
+            'address' => $this->settingValue($allSettings, 'company_address', ''),
+            'city' => $this->settingValue($allSettings, 'company_city', 'Paris'),
+            'region' => $this->settingValue($allSettings, 'company_region', 'Île-de-France'),
+            'description' => $this->settingValue($allSettings, 'company_description', ''),
+            'certifications' => $this->settingValue($allSettings, 'company_certifications', ''),
+            'specialization' => $this->settingValue($allSettings, 'company_specialization', 'Travaux de Rénovation'),
+            'logo' => $this->settingValue($allSettings, 'company_logo', ''),
         ];
         
-        // Villes principales (pour le maillage interne sur la home)
-        $favoriteCities = City::where('is_favorite', true)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->take(12)
-            ->get();
+        // Villes principales — cached 1h
+        $favoriteCities = Cache::remember('home_favorite_cities', 3600, function () {
+            return City::where('is_favorite', true)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->take(12)
+                ->get();
+        });
         
         // Get branding colors
         $branding = [
-            'primary_color' => Setting::get('primary_color', '#3b82f6'),
-            'secondary_color' => Setting::get('secondary_color', '#10b981'),
-            'accent_color' => Setting::get('accent_color', '#f59e0b'),
+            'primary_color' => $this->settingValue($allSettings, 'primary_color', '#3b82f6'),
+            'secondary_color' => $this->settingValue($allSettings, 'secondary_color', '#10b981'),
+            'accent_color' => $this->settingValue($allSettings, 'accent_color', '#f59e0b'),
         ];
         
         // Préparer les variables SEO pour la page d'accueil
@@ -148,15 +161,15 @@ class HomeController extends Controller
         ];
         
         // FAQ (peut être configuré dans les settings)
-        $faqsData = Setting::get('faqs', '[]');
+        $faqsData = $this->settingValue($allSettings, 'faqs', '[]');
         $faqs = is_string($faqsData) ? json_decode($faqsData, true) : ($faqsData ?? []);
         if (!is_array($faqs)) {
             $faqs = [];
         }
 
         $departmentsMap = $this->buildDepartmentsMapViewData($homeConfig);
-        
-        return view('home', compact(
+
+        $response = view('home', compact(
             'homeConfig',
             'services',
             'portfolioItems',
@@ -177,14 +190,17 @@ class HomeController extends Controller
             'favoriteCities',
             'departmentsMap'
         ));
+
+        // Cache HTTP côté navigateur/CDN : 2 min public, revalidation
+        return response($response)->header('Cache-Control', 'public, max-age=120, stale-while-revalidate=60');
     }
     
     /**
      * Get or generate homepage configuration
      */
-    private function getHomeConfig()
+    private function getHomeConfig(array $allSettings = [])
     {
-        $config = Setting::get('homepage_config', null);
+        $config = $this->settingValue($allSettings, 'homepage_config', null);
         
         if ($config && is_string($config)) {
             $config = json_decode($config, true);
@@ -195,8 +211,8 @@ class HomeController extends Controller
             $config = [
                 'layout' => 'classic',
                 'hero' => [
-                    'title' => Setting::get('company_name', 'Votre Entreprise'),
-                    'subtitle' => 'Expert en ' . (Setting::get('company_specialization', 'Travaux de Rénovation')),
+                    'title' => $this->settingValue($allSettings, 'company_name', 'Votre Entreprise'),
+                    'subtitle' => 'Expert en ' . $this->settingValue($allSettings, 'company_specialization', 'Travaux de Rénovation'),
                     'cta_text' => 'Demander un Devis Gratuit',
                     'show_phone' => true,
                     'background_image' => null,
@@ -278,6 +294,19 @@ class HomeController extends Controller
             return $default;
         }
 
+        $cacheKey = 'home_departments_map:' . md5(json_encode($dm));
+
+        return Cache::remember($cacheKey, 3600, function () use ($dm, $default) {
+            return $this->computeDepartmentsMapViewData($dm, $default);
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $dm
+     * @param array<string, mixed> $default
+     */
+    private function computeDepartmentsMapViewData(array $dm, array $default): array
+    {
         $codes = $dm['codes'] ?? [];
         if (!is_array($codes)) {
             $codes = [];
@@ -292,10 +321,12 @@ class HomeController extends Controller
             $overrides = [];
         }
 
-        $hasPopulationColumn = Schema::hasColumn('cities', 'population');
+        $hasPopulationColumn = Cache::rememberForever('cities:has_population_column', function () {
+            return Schema::hasColumn('cities', 'population');
+        });
         $topCitiesService = $hasPopulationColumn ? null : app(DepartmentTopCitiesService::class);
+        $departmentMeta = [];
 
-        $items = [];
         foreach ($codes as $raw) {
             $code = FrenchDepartments::normalizeCode((string) $raw);
             $name = FrenchDepartments::nameFromCode($code);
@@ -303,16 +334,56 @@ class HomeController extends Controller
                 continue;
             }
 
+            $aliases = [$name, $code];
+            if (preg_match('/^\d{2,3}$/', (string) $code)) {
+                $aliases[] = (string) (int) $code;
+            }
+
+            $departmentMeta[$code] = [
+                'code' => $code,
+                'raw' => (string) $raw,
+                'name' => $name,
+                'aliases' => array_values(array_unique(array_filter($aliases))),
+            ];
+        }
+
+        if ($departmentMeta === []) {
+            return $default;
+        }
+
+        $citiesByDepartmentCode = [];
+
+        if ($hasPopulationColumn) {
+            $allAliases = [];
+            foreach ($departmentMeta as $meta) {
+                $allAliases = array_merge($allAliases, $meta['aliases']);
+            }
+
+            $candidateCities = City::query()
+                ->where('is_active', true)
+                ->whereIn('department', array_values(array_unique($allAliases)))
+                ->orderByDesc('is_favorite')
+                ->orderByRaw('COALESCE(population, 0) DESC')
+                ->orderBy('name')
+                ->get();
+
+            foreach ($departmentMeta as $code => $meta) {
+                $citiesByDepartmentCode[$code] = $candidateCities
+                    ->filter(fn ($city) => in_array((string) $city->department, $meta['aliases'], true))
+                    ->take(20)
+                    ->values();
+            }
+        }
+
+        $items = [];
+        foreach ($departmentMeta as $code => $meta) {
+            $name = $meta['name'];
+            $raw = $meta['raw'];
+
             $url = $overrides[$code] ?? $overrides[$raw] ?? $overrides[(string) (int) $code] ?? null;
             if (empty($url)) {
                 if ($hasPopulationColumn) {
-                    $city = City::query()
-                        ->where('is_active', true)
-                        ->where('department', $name)
-                        ->orderByDesc('is_favorite')
-                        ->orderByRaw('COALESCE(population, 0) DESC')
-                        ->orderBy('name')
-                        ->first();
+                    $city = $citiesByDepartmentCode[$code]->first() ?? null;
 
                     $url = $city
                         ? route('ads.index') . '?city=' . urlencode($city->slug)
@@ -349,21 +420,7 @@ class HomeController extends Controller
             }
 
             if ($hasPopulationColumn) {
-                $citiesInDept = City::query()
-                    ->where('is_active', true)
-                    ->where(function ($q) use ($name, $code) {
-                        $q->where('department', $name)
-                            ->orWhere('department', $code);
-                        // Certaines bases enregistrent le département en chiffres seuls (ex. 49 ou 9 pour 09)
-                        if (preg_match('/^\d{2,3}$/', (string) $code)) {
-                            $q->orWhere('department', (string) (int) $code);
-                        }
-                    })
-                    ->orderByDesc('is_favorite')
-                    ->orderByRaw('COALESCE(population, 0) DESC')
-                    ->orderBy('name')
-                    ->limit(20)
-                    ->get();
+                $citiesInDept = $citiesByDepartmentCode[$code] ?? collect();
 
                 $citiesForView = $citiesInDept->map(function ($c) {
                     return [
@@ -429,9 +486,12 @@ class HomeController extends Controller
             'geoJsonUrl' => $default['geoJsonUrl'],
         ];
     }
+
+    private function settingValue(array $allSettings, string $key, mixed $default = null): mixed
+    {
+        return array_key_exists($key, $allSettings) ? $allSettings[$key] : $default;
+    }
 }
-
-
 
 
 

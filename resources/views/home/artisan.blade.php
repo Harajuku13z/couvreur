@@ -6,14 +6,15 @@
      ============================================================ --}}
 
 @php
-    $phone    = $companySettings['phone'] ?? setting('company_phone', '');
+    $phone    = $companySettings['phone'] ?? '';
     $phoneRaw = preg_replace('/\s+/', '', $phone);
-    $city     = $companySettings['city'] ?? setting('company_city', 'Paris');
-    $name     = $companySettings['name'] ?? setting('company_name', 'Votre Entreprise');
+    $city     = $companySettings['city'] ?? 'Paris';
+    $name     = $companySettings['name'] ?? 'Votre Entreprise';
+    $specialization = $companySettings['specialization'] ?? 'travaux de rénovation';
 
     /* Hero */
     $heroTitle   = $homeConfig['hero']['title']    ?? $name;
-    $heroSub     = $homeConfig['hero']['subtitle'] ?? 'Expert en ' . setting('company_specialization', 'travaux de rénovation') . '. Devis gratuit, intervention rapide, qualité garantie.';
+    $heroSub     = $homeConfig['hero']['subtitle'] ?? 'Expert en ' . $specialization . '. Devis gratuit, intervention rapide, qualité garantie.';
     $heroCta     = $homeConfig['hero']['cta_text'] ?? 'Devis gratuit en 1 min';
     $showPhone   = $homeConfig['hero']['show_phone'] ?? true;
     $heroImg     = $homeConfig['hero']['background_image'] ?? null;
