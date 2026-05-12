@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class SeoHelper
 {
@@ -125,6 +126,38 @@ class SeoHelper
                     || str_starts_with($key, 'msclkid');
             })
             ->toArray();
+    }
+
+    /**
+     * Retire les sections de financement/aides des contenus générés.
+     */
+    public static function stripFinancingContent(?string $html): string
+    {
+        $html = trim((string) $html);
+
+        if ($html === '') {
+            return '';
+        }
+
+        $patterns = [
+            '/<section\b[^>]*>.*?<h[1-6][^>]*>\s*Financement(?:\s*&(?:amp;)?\s*|\s+et\s+)?aides(?:\s+disponibles)?\s*<\/h[1-6]>.*?<\/section>/is',
+            '/<div\b[^>]*>\s*<h[1-6][^>]*>\s*Financement(?:\s*&(?:amp;)?\s*|\s+et\s+)?aides(?:\s+disponibles)?\s*<\/h[1-6]>\s*<p[^>]*>.*?<\/p>\s*<\/div>/is',
+            '/<p\b[^>]*>.*?(?:MaPrimeRénov|CEE|éco-PTZ|TVA réduite|aides gouvernementales|facilités de paiement|solutions de financement).*?<\/p>/is',
+            '/<li\b[^>]*>.*?(?:MaPrimeRénov|CEE|éco-PTZ|TVA réduite|aides gouvernementales|facilités de paiement|solutions de financement).*?<\/li>/is',
+        ];
+
+        $cleaned = preg_replace($patterns, '', $html) ?? $html;
+
+        $cleaned = str_ireplace(
+            ['Financement et aides disponibles', 'Financement & aides'],
+            '',
+            $cleaned
+        );
+
+        $cleaned = preg_replace("/\n{3,}/", "\n\n", $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/>\s+</', '><', $cleaned) ?? $cleaned;
+
+        return trim(Str::replaceMatches('/\s{2,}/', ' ', $cleaned));
     }
     /**
      * Convertir un chemin d'image en URL complète

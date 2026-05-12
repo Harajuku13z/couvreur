@@ -671,7 +671,7 @@ EXEMPLES DE PRESTATIONS SPÉCIFIQUES:
 GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$serviceName} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$serviceName} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$serviceName} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$serviceName}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$serviceName} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$serviceName}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$serviceName}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$serviceName}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$serviceName}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$serviceName} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$serviceName} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$serviceName} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$serviceName} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$serviceName}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$serviceName} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$serviceName} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$serviceName}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$serviceName}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$serviceName}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Organisation du chantier</h4><p>Nous planifions votre intervention de {$serviceName} avec un déroulé clair, des délais annoncés à l'avance et un suivi précis jusqu'à la fin du chantier.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$serviceName} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
   \"short_description\": \"Service professionnel de {$serviceName} à [VILLE] - Devis gratuit et intervention rapide\",
   \"long_description\": \"Notre entreprise spécialisée en {$serviceName} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
   \"icon\": \"fas fa-tools\",
@@ -1161,7 +1161,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
 GÉNÈRE UN JSON AVEC CES CHAMPS:
 
 {
-  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$keyword} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$keyword} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$keyword} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$keyword}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$keyword} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$keyword}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$keyword}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$keyword}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Financement et aides</h4><p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de {$keyword}.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$keyword} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
+  \"description\": \"<div class='grid md:grid-cols-2 gap-8'><div class='space-y-6'><div class='space-y-4'><p class='text-lg leading-relaxed'>Service professionnel de {$keyword} à [VILLE], une expertise reconnue dans [RÉGION].</p><p class='text-lg leading-relaxed'>Spécialistes en travaux de {$keyword} pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p></div><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Notre Engagement Qualité</h3><p class='leading-relaxed mb-3'>Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p><p class='leading-relaxed'>Chaque intervention de {$keyword} est réalisée selon les normes professionnelles les plus strictes.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Nos Prestations {$keyword}</h3><ul class='space-y-3'>[GÉNÈRE 10 PRESTATIONS SPÉCIFIQUES À {$keyword} AVEC DES DESCRIPTIONS DÉTAILLÉES]</ul><div class='bg-gray-50 p-6 rounded-lg mt-6'><h4 class='text-xl font-bold text-gray-900 mb-3'>FAQ</h4><div class='space-y-2'><p><strong>Q1: Combien coûte un service de {$keyword} à [VILLE]?</strong></p><p>A: Le prix dépend de la complexité et de l'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p><p><strong>Q2: Quel est le délai d'intervention pour {$keyword}?</strong></p><p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l'urgence de votre demande.</p><p><strong>Q3: Proposez-vous une garantie sur vos services de {$keyword}?</strong></p><p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p></div></div></div><div class='space-y-6'><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-xl font-bold text-gray-900 mb-3'>Pourquoi choisir ce service</h3><p class='leading-relaxed'>Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d'adapter nos services en conséquence.</p></div><h3 class='text-2xl font-bold text-gray-900 mb-4'>Notre Expertise Locale</h3><p class='leading-relaxed'>Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en {$keyword}.</p><div class='bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Organisation du chantier</h4><p>Nous planifions votre intervention de {$keyword} avec un déroulé clair, des délais annoncés à l'avance et un suivi précis jusqu'à la fin du chantier.</p></div><div class='bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600'><h4 class='text-xl font-bold text-gray-900 mb-3'>Besoin d'un devis?</h4><p class='mb-4'>Contactez-nous pour un devis gratuit pour {$keyword} à [VILLE].</p><a href='[FORM_URL]' class='inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300'>Demande de devis</a></div><div class='bg-gray-50 p-6 rounded-lg'><h4 class='text-lg font-bold text-gray-900 mb-3'>Informations Pratiques</h4><ul class='space-y-2 text-sm'><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Devis gratuit et sans engagement</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Intervention rapide sur [VILLE]</span></li><li class='flex items-center'><i class='fas fa-check text-green-600 mr-3 flex-shrink-0'></i><span>Garantie sur tous nos travaux</span></li></ul></div><div class='mt-8 pt-6 border-t border-gray-200'><div class='text-center'><h4 class='text-lg font-semibold text-gray-800 mb-4'>Partager ce service</h4><div class='flex justify-center items-center space-x-4'><a href='https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]' target='_blank' rel='noopener noreferrer' class='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-facebook-f text-lg'></i><span class='font-medium'>Facebook</span></a><a href='https://wa.me/?text=[TITRE] - [URL]' target='_blank' rel='noopener noreferrer' class='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fab fa-whatsapp text-lg'></i><span class='font-medium'>WhatsApp</span></a><a href='mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]' class='bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1'><i class='fas fa-envelope text-lg'></i><span class='font-medium'>Email</span></a></div></div></div></div>\",
   \"short_description\": \"Service professionnel de {$keyword} à [VILLE] - Devis gratuit et intervention rapide\",
   \"long_description\": \"Notre entreprise spécialisée en {$keyword} intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.\",
   \"icon\": \"fas fa-tools\",
@@ -1245,8 +1245,8 @@ EXEMPLES CONCRETS POUR {$keyword}:
                 <h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>
                 <p class="leading-relaxed">Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en ' . $keyword . '.</p>
                 <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
-                    <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
-                    <p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de ' . $keyword . '.</p>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">Organisation du chantier</h4>
+                    <p>Nous préparons chaque intervention de ' . $keyword . ' avec un déroulé clair, des délais annoncés à l\'avance et un suivi précis jusqu\'à la fin du chantier.</p>
                 </div>
                 <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
                     <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis?</h4>
@@ -1620,11 +1620,6 @@ EXEMPLES CONCRETS POUR {$keyword}:
     <p class="leading-relaxed text-gray-700">[pourquoi_choisir]</p>
   </section>
 
-  <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-    <h3 class="text-xl font-bold text-gray-900 mb-3">Financement et aides disponibles</h3>
-    <p class="leading-relaxed text-gray-700">[financement_aides]</p>
-  </section>
-
   <section class="rounded-2xl border border-slate-200 bg-gray-50 p-6">
     <h3 class="text-xl font-bold text-gray-900 mb-4">Questions fréquentes sur [service]</h3>
     <div class="space-y-3">[faq_liste]</div>
@@ -1854,11 +1849,11 @@ Entreprise: {$companyName}
   2. bloc engagement/garantie
   3. section prestations
   4. section \"pourquoi choisir\"
-  5. section financement/aides
-  6. FAQ visible
-  7. CTA devis
-  8. informations pratiques
+  5. FAQ visible
+  6. CTA devis
+  7. informations pratiques
 - Les textes doivent être denses, naturels, concrets et localement crédibles
+- INTERDICTION ABSOLUE de mentionner le financement, les aides, MaPrimeRénov, les CEE, l'éco-PTZ, la TVA réduite ou des facilités de paiement
 
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
 Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
@@ -1889,7 +1884,6 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
     {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"}
   ],
   \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Mentionne expertise, qualité, réactivité, garanties, savoir-faire local, etc.]\",
-  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon le service.]\",
   \"infos_pratiques\": [
     \"[Utilise EXACTEMENT les informations pratiques fournies ci-dessus - ne pas inventer]\"
   ],
@@ -2011,7 +2005,7 @@ RÈGLES STRICTES:
             }
             
             // Remplacer toute mention de vraie ville par [VILLE] dans tous les champs texte
-            $textFields = ['description_courte', 'description_longue', 'pourquoi_choisir', 'financement_aides', 
+            $textFields = ['description_courte', 'description_longue', 'pourquoi_choisir',
                           'meta_title', 'meta_description', 'meta_keywords', 'og_title', 'og_description', 
                           'twitter_title', 'twitter_description', 'texte_garantie', 'titre_garantie'];
             
@@ -2324,7 +2318,6 @@ RÈGLES STRICTES:
         $html = str_replace('[service]', $escape($serviceName), $html);
         $html = str_replace('[entreprise]', $escape($companyName), $html);
         $html = str_replace('[pourquoi_choisir]', $escape($data['pourquoi_choisir'] ?? ''), $html);
-        $html = str_replace('[financement_aides]', $escape($data['financement_aides'] ?? ''), $html);
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
         $html = str_replace('[URL]', $escape($serviceUrl), $html);
         $html = str_replace('[TITRE]', $escape($serviceName), $html);
@@ -2338,7 +2331,7 @@ RÈGLES STRICTES:
      */
     private function buildTemplatePromptForService($serviceName, $shortDescription, $companyInfo, $aiPrompt = null)
     {
-        // Déterminer les informations de financement selon le service
+        // Déterminer les informations d'organisation selon le service
         $financementInfo = $this->getFinancementInfoForService($serviceName);
         
         $basePrompt = "Tu es un expert technique en {$serviceName} avec une connaissance PROFONDE des prestations, techniques et matériaux spécifiques à ce domaine. Crée un template d'annonce TOTALEMENT personnalisé pour {$serviceName}.
@@ -2515,15 +2508,15 @@ Le champ \"description\" DOIT contenir un HTML COMPLET avec cette structure exac
     <p class=\"leading-relaxed mb-4\">ÉCRIRE ICI notre expérience: depuis [NOMBRE] années, nous intervenons sur [VILLE] et dans [RÉGION] pour des projets de {$serviceName}. Nous avons réalisé [MENTIONNER TYPES DE PROJETS: ex: plus de 200 chantiers d'isolation de combles, 150 rénovations de toiture, etc.]. Notre connaissance des spécificités régionales nous permet de proposer des solutions adaptées.</p>
     <p class=\"leading-relaxed\">ÉCRIRE ICI des exemples concrets: nous avons notamment [MENTIONNER 2-3 EXEMPLES CONCRETS de réalisations en {$serviceName} dans [RÉGION], avec détails techniques si possible]. Cette expérience locale nous permet de comprendre les besoins spécifiques des habitants de [VILLE] et de [RÉGION] en matière de {$serviceName}.</p>
     
-    <!-- SECTION 7: FINANCEMENT ET AIDES (PERSONNALISÉ SELON SERVICE) -->
+    <!-- SECTION 7: ORGANISATION DU CHANTIER -->
     <div class=\"bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600\">
-      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Financement et Aides pour {$serviceName}</h4>
-      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé pour {$serviceName}: mentionner pourquoi les aides sont importantes pour ce type de travaux (économies d'énergie, rénovation, amélioration de l'habitat). SOYEZ SPÉCIFIQUE à {$serviceName}, pas générique.</p>
+      <h4 class=\"text-xl font-bold text-gray-900 mb-3\">Organisation du chantier pour {$serviceName}</h4>
+      <p class=\"leading-relaxed mb-3\">ÉCRIRE ICI un paragraphe d'introduction personnalisé pour {$serviceName}: expliquer comment le chantier est préparé, sécurisé et planifié, avec un ton concret et spécifique au service.</p>
       
-      <!-- INFORMATIONS DE FINANCEMENT SPÉCIFIQUES À {$serviceName} - COPIER CE CONTENU TEL QUEL: -->
+      <!-- INFORMATIONS D'ORGANISATION SPÉCIFIQUES À {$serviceName} - COPIER CE CONTENU TEL QUEL: -->
       {$financementInfo}
       
-      <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion CONCRET: expliquer COMMENT notre équipe aide les clients (ex: montage de dossiers MaPrimeRénov, simulation CEE, accompagnement éco-PTZ, etc.). Mentionner des actions concrètes comme \"Nous remplissons votre dossier MaPrimeRénov\", \"Nous calculons votre éligibilité CEE\", etc.</p>
+      <p class=\"leading-relaxed mt-3\">ÉCRIRE ICI un paragraphe de conclusion CONCRET: expliquer comment notre équipe coordonne les étapes, informe le client et assure un suivi clair jusqu'à la livraison du chantier.</p>
     </div>
     
     <!-- SECTION 8: BESOIN D'UN DEVIS -->
@@ -2613,13 +2606,10 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
 - ⚠️⚠️⚠️ VALIDATION DES PRESTATIONS: Si les 10 prestations ne sont PAS spécifiques à {$serviceName} (ex: si {$serviceName} = 'Rénovation de façade' mais les prestations parlent de toiture ou autre chose), ta réponse sera REJETÉE et tu devras recommencer
 - Les 10 prestations DOIVENT être DIFFÉRENTES et COMPLÉMENTAIRES pour {$serviceName}
 - Chaque prestation DOIT être UNIQUE et ne pas se répéter
-- Pour la section FINANCEMENT ET AIDES (SECTION CRITIQUE):
-  * ⚠️⚠️⚠️ CRITIQUE: Le contenu HTML entre les balises COMMENTAIRES \"SECTION CRITIQUE - INFORMATIONS DE FINANCEMENT\" et \"FIN DU CONTENU À COPIER\" DOIT être COPIÉ EXACTEMENT tel quel dans le champ \"description\" du JSON
-  * ⚠️⚠️⚠️ CE CONTENU CONTIENT LES INFORMATIONS SPÉCIFIQUES SUR MaPrimeRénov, CEE, Éco-PTZ, TVA RÉDUITE - TU NE DOIS PAS LE MODIFIER
-  * ⚠️⚠️⚠️ NE REMPLACE PAS CE CONTENU PAR DU TEXTE GÉNÉRIQUE - SI TU NE COPIE PAS EXACTEMENT CE CONTENU, TA RÉPONSE SERA REJETÉE
-  * ÉCRIS UNIQUEMENT les paragraphes d'introduction et conclusion AVANT et APRÈS ce contenu (entre les balises <p class=\"leading-relaxed mb-3\">...</p>), en les personnalisant pour {$serviceName}
-  * INTERDIT d'utiliser \"Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de\" - utilise une phrase UNIQUE et SPÉCIFIQUE
-  * VALIDATION: Ta réponse sera vérifiée - si le contenu MaPrimeRénov ou CEE n'est pas présent exactement comme fourni ci-dessus, la génération sera rejetée
+- Pour la section ORGANISATION DU CHANTIER:
+  * Le contenu HTML entre les balises de cette section doit rester centré sur la préparation, la coordination et le suivi du chantier
+  * INTERDICTION ABSOLUE de parler de financement, d'aides, de MaPrimeRénov, de CEE, d'éco-PTZ ou de TVA réduite
+  * ÉCRIS UNIQUEMENT des actions concrètes liées au planning, à la sécurisation, à l'information client et au contrôle qualité
 ";
 
         if ($aiPrompt) {
@@ -2748,67 +2738,14 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
     }
 
     /**
-     * Obtenir les informations de financement selon le type de service
+     * Obtenir un bloc d'organisation générique selon le type de service.
      */
     private function getFinancementInfoForService($serviceName)
     {
-        $serviceLower = strtolower($serviceName);
-        
-        // Isolation thermique - MaPrimeRénov, CEE, etc.
-        if (strpos($serviceLower, 'isolation') !== false || 
-            strpos($serviceLower, 'thermique') !== false ||
-            strpos($serviceLower, 'isoler') !== false) {
-            return "
-      <p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Pour vos travaux d'isolation thermique, MaPrimeRénov est l'aide principale de l'État. Elle peut couvrir jusqu'à 90% du montant de vos travaux selon vos revenus (jusqu'à 75€/m² pour l'isolation des combles perdus, 100€/m² pour l'isolation des murs, 120€/m² pour l'isolation des planchers bas). Cette aide est versée directement à l'entreprise RGE et est cumulable avec les primes CEE et l'éco-PTZ.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Primes CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE pour l'isolation peuvent atteindre 50€/m² pour les combles, 25€/m² pour les murs, selon le niveau d'isolation et votre fournisseur d'énergie (EDF, Engie, Total Direct Énergie, etc.). Ces primes sont versées directement par les fournisseurs et sont cumulables avec MaPrimeRénov, permettant de réduire significativement le coût de vos travaux d'isolation.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ (Éco-prêt à taux zéro) :</strong> L'éco-prêt à taux zéro permet de financer jusqu'à 30 000€ de travaux d'isolation sans intérêts, sur 20 ans maximum. Accessible sans conditions de ressources, il finance jusqu'à 75€/m² d'isolation de combles ou 100€/m² d'isolation de murs. Il est cumulable avec MaPrimeRénov et les primes CEE.</p>
-      <p class=\"leading-relaxed\"><strong>TVA réduite à 5,5% :</strong> Tous les travaux d'isolation thermique bénéficient de la TVA réduite à 5,5% au lieu de 20% pour les logements de plus de 2 ans. Cette réduction s'applique à la fois sur la main d'œuvre et les matériaux, représentant une économie importante sur votre facture globale d'isolation.</p>";
-        }
-        
-        // Rénovation énergétique
-        if (strpos($serviceLower, 'rénovation') !== false && 
-            (strpos($serviceLower, 'énergét') !== false || strpos($serviceLower, 'energet') !== false)) {
-            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Aide principale pour la rénovation énergétique, pouvant atteindre jusqu'à 90% du montant des travaux selon vos revenus.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Complémentaire à MaPrimeRénov, les Certificats d'Économies d'Énergie offrent des primes additionnelles pour améliorer l'efficacité énergétique.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ :</strong> Prêt à taux zéro jusqu'à 50 000€ pour financer votre rénovation énergétique globale.</p>
-      <p class=\"leading-relaxed\"><strong>Chèque Énergie :</strong> Pour les ménages modestes, le chèque énergie peut être utilisé pour financer une partie des travaux.</p>";
-        }
-        
-        // Chauffage / PAC
-        if (strpos($serviceLower, 'chauffage') !== false || 
-            strpos($serviceLower, 'pompe à chaleur') !== false ||
-            strpos($serviceLower, 'pac') !== false) {
-            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Installation de pompes à chaleur éligible à MaPrimeRénov, jusqu'à 11 000€ selon vos revenus.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Prime additionnelle pour l'installation de systèmes de chauffage performants, cumulable avec MaPrimeRénov.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour l'installation d'équipements de chauffage dans les logements anciens.</p>
-      <p class=\"leading-relaxed\"><strong>Éco-PTZ :</strong> Financement jusqu'à 30 000€ sans intérêts pour remplacer votre système de chauffage.</p>";
-        }
-        
-        // Toiture / Couverture
-        if (strpos($serviceLower, 'toiture') !== false || 
-            strpos($serviceLower, 'couverture') !== false ||
-            strpos($serviceLower, 'charpente') !== false) {
-            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Rénovation de toiture éligible si couplée avec des travaux d'isolation, jusqu'à 75€/m² pour l'isolation des combles.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Aide disponible pour l'isolation de toiture lors d'une rénovation complète.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour les travaux de rénovation de toiture dans les logements de plus de 2 ans.</p>
-      <p class=\"leading-relaxed\"><strong>Crédit d'impôt :</strong> Certains travaux de toiture peuvent bénéficier d'un crédit d'impôt sous certaines conditions.</p>";
-        }
-        
-        // Fenêtres / Menuiserie
-        if (strpos($serviceLower, 'fenêtre') !== false || 
-            strpos($serviceLower, 'menuiserie') !== false ||
-            strpos($serviceLower, 'vitrage') !== false) {
-            return "<p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Remplacement de fenêtres par des modèles performants éligible à MaPrimeRénov, jusqu'à 75€ par menuiserie.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Prime CEE :</strong> Aide supplémentaire pour l'installation de fenêtres double vitrage performantes.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>TVA réduite :</strong> TVA à 5,5% pour le remplacement de menuiseries dans les logements anciens.</p>
-      <p class=\"leading-relaxed\"><strong>Crédit d'impôt :</strong> Possibilité de crédit d'impôt pour l'installation de fenêtres à haute performance énergétique.</p>";
-        }
-        
-        // Par défaut - financement général (mais toujours avec détails)
         return "
-      <p class=\"leading-relaxed mb-3\"><strong>MaPrimeRénov :</strong> Selon votre projet de {$serviceName} et vos revenus, vous pouvez bénéficier de MaPrimeRénov. Cette aide de l'État peut couvrir une partie significative de vos travaux. Notre équipe vous aide à monter votre dossier et vérifier votre éligibilité selon le type de travaux de {$serviceName} que vous souhaitez réaliser.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Primes CEE (Certificats d'Économies d'Énergie) :</strong> Les primes CEE sont versées par les fournisseurs d'énergie pour inciter à la rénovation énergétique. Pour vos travaux de {$serviceName}, nous vérifions votre éligibilité et calculons le montant de la prime que vous pouvez obtenir. Ces primes sont cumulables avec MaPrimeRénov.</p>
-      <p class=\"leading-relaxed mb-3\"><strong>Éco-PTZ (Éco-prêt à taux zéro) :</strong> Pour financer vos travaux de {$serviceName}, l'éco-prêt à taux zéro permet d'emprunter jusqu'à 50 000€ sans intérêts sur 20 ans. Accessible sans conditions de ressources, il peut couvrir une partie importante de votre projet.</p>
-      <p class=\"leading-relaxed\"><strong>TVA réduite à 5,5% :</strong> Pour vos travaux de {$serviceName} dans un logement de plus de 2 ans, vous bénéficiez de la TVA réduite à 5,5% au lieu de 20%, ce qui représente une économie significative sur l'ensemble de votre projet.</p>";
+      <p class=\"leading-relaxed mb-3\"><strong>Préparation du chantier :</strong> Nous validons avec vous les accès, les contraintes du site, les plages d'intervention et les points de vigilance propres à {$serviceName} avant tout démarrage.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Coordination des étapes :</strong> Notre équipe vous présente un déroulé clair des opérations, avec ordre des interventions, moyens techniques mobilisés et délais annoncés dès le devis.</p>
+      <p class=\"leading-relaxed mb-3\"><strong>Suivi et information :</strong> Pendant l'exécution, nous vous tenons informé de l'avancement, des contrôles réalisés et des éventuels ajustements utiles pour votre projet de {$serviceName}.</p>
+      <p class=\"leading-relaxed\"><strong>Livraison soignée :</strong> En fin de chantier, nous vérifions les finitions, la propreté des lieux et la conformité de l'intervention avant clôture avec vous.</p>";
     }
 }

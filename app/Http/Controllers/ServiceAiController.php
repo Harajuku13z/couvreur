@@ -307,7 +307,6 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
     {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"}
   ],
   \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à {$companyCity} dans le département {$companyDept}. Mentionne expertise, qualité, réactivité, garanties, savoir-faire local, etc.]\",
-  \"financement_aides\": \"[Génère un texte sur les aides disponibles: MaPrimeRénov, CEE, éco-PTZ, TVA réduite, etc. Adapte selon le service.]\",
   \"infos_pratiques\": [
     {$infosPratiquesJsonString}
   ],
@@ -333,7 +332,8 @@ RÈGLES STRICTES:
 10. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
 11. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules.
 12. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
-13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.";
+13. ⚠️ CRITIQUE: Le champ \"prestations\" DOIT contenir EXACTEMENT 10 prestations. PAS moins, PAS plus.
+14. INTERDICTION ABSOLUE de mentionner des financements, aides, MaPrimeRénov, CEE, éco-PTZ, TVA réduite ou facilités de paiement dans le contenu généré.";
             
             Log::info('Appel à AiService::callAI pour service', [
                 'service_name' => $serviceName,
@@ -773,7 +773,6 @@ RÈGLES STRICTES:
         $html = str_replace('[service]', $escape($serviceName), $html);
         $html = str_replace('[entreprise]', $escape($companyName), $html);
         $html = str_replace('[pourquoi_choisir]', $escape($data['pourquoi_choisir'] ?? ''), $html);
-        $html = str_replace('[financement_aides]', $escape($data['financement_aides'] ?? ''), $html);
         $html = str_replace('[infos_pratiques_liste]', $infosPratiquesHtml, $html);
         $html = str_replace('[URL]', $escape($serviceUrl), $html);
         $html = str_replace('[TITRE]', $escape($serviceName), $html);
@@ -781,4 +780,3 @@ RÈGLES STRICTES:
         return $html;
     }
 }
-

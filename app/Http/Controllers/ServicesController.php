@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Helpers\SeoHelper;
 use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -52,6 +53,8 @@ class ServicesController extends Controller
         if (!$service) {
             abort(404, 'Service non trouvé');
         }
+
+        $renderedServiceDescription = SeoHelper::stripFinancingContent($service['description'] ?? '');
         
         // Préparer les métadonnées SEO
         $pageTitle = $service['meta_title'] ?? ($service['name'] . ' - Expert professionnel');
@@ -83,7 +86,7 @@ class ServicesController extends Controller
             }
         }
         
-        return view('services.show', compact('service', 'pageTitle', 'pageDescription', 'pageKeywords', 'currentPage', 'ogTitle', 'ogDescription', 'twitterTitle', 'twitterDescription', 'pageImage'));
+        return view('services.show', compact('service', 'renderedServiceDescription', 'pageTitle', 'pageDescription', 'pageKeywords', 'currentPage', 'ogTitle', 'ogDescription', 'twitterTitle', 'twitterDescription', 'pageImage'));
     }
 
     /**

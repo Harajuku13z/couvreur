@@ -78,8 +78,8 @@
     width: 100% !important;
     margin-bottom: 1.25rem;
 }
-/* Masquer les blocs "Pourquoi choisir" et "Financement" générés par l'IA
-   (déjà présents dans nos blocs dédiés plus bas dans la page) */
+/* Neutraliser les anciens blocs décoratifs générés par l'IA
+   pour garder une lecture cohérente en mono-colonne. */
 .sp-prose div[class*="bg-green"],
 .sp-prose div[class*="bg-yellow"],
 .sp-prose div[class*="bg-amber"],
@@ -237,15 +237,6 @@
 }
 .sb-raison-text { font-size: .845rem; color: #374151; font-weight: 500; line-height: 1.45; }
 
-/* Financement */
-.sb-financement-item {
-    display: flex; align-items: center; gap: .65rem;
-    padding: .5rem 0; font-size: .845rem; color: #374151;
-    border-bottom: 1px dashed #f3f4f6;
-}
-.sb-financement-item:last-child { border-bottom: none; }
-.sb-financement-item i { color: var(--primary-color); font-size: .85rem; flex-shrink: 0; }
-
 /* Infos pratiques */
 .sb-info-item {
     display: flex; align-items: flex-start; gap: .65rem;
@@ -390,7 +381,7 @@
         {{-- Article IA / contenu principal --}}
         <div class="sp-card">
             <div class="sp-prose max-w-none">
-                {!! $service['description'] !!}
+                {!! $renderedServiceDescription !!}
             </div>
         </div>
 
@@ -580,31 +571,7 @@
             </div>
         </div>
 
-        {{-- 4. FINANCEMENT --}}
-        <div class="sb-block">
-            <div class="sb-head">
-                <i class="fas fa-hand-holding-usd"></i> Financement & aides
-            </div>
-            <div class="sb-body">
-                <p style="font-size:.8rem;color:#6b7280;margin-bottom:.85rem;line-height:1.55;">
-                    Certaines interventions peuvent bénéficier d'aides locales ou d'obligations de sécurité (arbres dangereux). Renseignez-vous auprès de votre mairie ou de votre assureur.
-                </p>
-                <div>
-                    @foreach([
-                        ['fas fa-leaf','Conseil personnalisé offert'],
-                        ['fas fa-file-alt','Attestation fournie sur demande'],
-                        ['fas fa-info-circle','Devis utilisable pour dossier assurance'],
-                    ] as $f)
-                    <div class="sb-financement-item">
-                        <i class="{{ $f[0] }}"></i>
-                        <span>{{ $f[1] }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        {{-- 5. INFOS PRATIQUES --}}
+        {{-- 4. INFOS PRATIQUES --}}
         <div class="sb-block">
             <div class="sb-head">
                 <i class="fas fa-info-circle"></i> Infos pratiques

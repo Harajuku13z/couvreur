@@ -402,6 +402,8 @@ class AdPublicController extends Controller
             return '<p>Contenu en cours de chargement...</p>';
         }
 
+        $contentHtml = SeoHelper::stripFinancingContent($contentHtml);
+
         $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
             $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
             $filtered = [];
