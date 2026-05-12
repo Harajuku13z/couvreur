@@ -5,6 +5,27 @@
 
 @section('content')
 <div class="p-4 md:p-6">
+    <div class="mb-6">
+        <div class="bg-slate-900 text-white rounded-2xl px-5 py-5 shadow-sm">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="text-xs uppercase tracking-[0.2em] text-slate-300 mb-2">Version du site</div>
+                    <div class="text-2xl font-bold">{{ $siteReleaseName }}</div>
+                    <div class="text-sm text-slate-200 mt-1">Release: {{ $siteVersion }}</div>
+                </div>
+                <div class="text-sm text-slate-200">
+                    <div class="font-semibold text-white">Mise à jour déployée</div>
+                    <div class="mt-1">
+                        {{ $siteReleaseDateFormatted ?: 'Date non renseignée' }}
+                    </div>
+                    <div class="text-xs text-slate-400 mt-2">
+                        Configurez <code class="text-slate-200">APP_RELEASE_NAME</code>, <code class="text-slate-200">APP_VERSION</code> et <code class="text-slate-200">APP_RELEASE_DATE</code> dans le <code class="text-slate-200">.env</code>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Menu rapide mobile -->
     <div class="md:hidden mb-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Accès rapide</h2>
@@ -386,6 +407,5 @@
     </div>
 </div>
 @endsection
-
 
 

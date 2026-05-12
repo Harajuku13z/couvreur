@@ -30,6 +30,8 @@ return [
 
     'version' => env('APP_VERSION', 'dev'),
 
+    'release_date' => env('APP_RELEASE_DATE'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

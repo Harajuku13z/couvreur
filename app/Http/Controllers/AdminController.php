@@ -14,6 +14,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Setting;
 use App\Mail\ContactNotification;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -184,6 +185,19 @@ class AdminController extends Controller
         // Taux de conversion
         $conversionRate = $totalSubmissions > 0 ? round(($completedSubmissions / $totalSubmissions) * 100, 2) : 0;
 
+        $siteReleaseName = config('app.release_name', 'SEO Indexation');
+        $siteVersion = config('app.version', 'dev');
+        $siteReleaseDate = config('app.release_date');
+        $siteReleaseDateFormatted = null;
+
+        if (!empty($siteReleaseDate)) {
+            try {
+                $siteReleaseDateFormatted = Carbon::parse($siteReleaseDate)->locale('fr')->translatedFormat('d/m/Y H:i');
+            } catch (\Throwable $e) {
+                $siteReleaseDateFormatted = $siteReleaseDate;
+            }
+        }
+
         return view('admin.dashboard', compact(
             'totalSubmissions',
             'completedSubmissions',
@@ -207,7 +221,10 @@ class AdminController extends Controller
             'submissionsByDay',
             'abandonmentsByDay',
             'avgCompletionTime',
-            'conversionRate'
+            'conversionRate',
+            'siteReleaseName',
+            'siteVersion',
+            'siteReleaseDateFormatted'
         ));
     }
 
