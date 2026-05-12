@@ -156,10 +156,13 @@ class Deploy extends Command
 
     private function guardAgainstTrackedGitChanges(): void
     {
-        $output = $this->captureProcess(['git', 'status', '--porcelain']);
-        $lines = array_values(array_filter(array_map('trim', preg_split('/\R/', $output) ?: [])));
+        $trackedChanges = $this->trackedGitChanges();
 
-        $trackedChanges = array_values(array_filter($lines, fn (string $line) => !str_starts_with($line, '?? ')));
+        if ($this->canAutoCleanVendorChanges($trackedChanges)) {
+            $this->warn('Des modifications locales ont ete detectees uniquement dans vendor/. Nettoyage automatique en cours...');
+            $this->runProcess(['git', 'restore', '--worktree', '--staged', 'vendor'], 'Nettoyage automatique de vendor');
+            $trackedChanges = $this->trackedGitChanges();
+        }
 
         if (empty($trackedChanges) || $this->option('allow-dirty')) {
             if (!empty($trackedChanges)) {
@@ -173,6 +176,47 @@ class Deploy extends Command
             "Le depot contient des modifications locales suivies. Lancez d'abord 'git status'. ".
             "Utilisez --allow-dirty uniquement si vous savez exactement ce que vous faites."
         );
+    }
+
+    private function trackedGitChanges(): array
+    {
+        $output = $this->captureProcess(['git', 'status', '--porcelain']);
+        $lines = array_values(array_filter(array_map('trim', preg_split('/\R/', $output) ?: [])));
+
+        return array_values(array_filter($lines, fn (string $line) => !str_starts_with($line, '?? ')));
+    }
+
+    private function canAutoCleanVendorChanges(array $trackedChanges): bool
+    {
+        if (empty($trackedChanges)) {
+            return false;
+        }
+
+        foreach ($trackedChanges as $line) {
+            $path = $this->extractPathFromGitStatusLine($line);
+
+            if ($path === null || !str_starts_with($path, 'vendor/')) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function extractPathFromGitStatusLine(string $line): ?string
+    {
+        $path = trim(substr($line, 3));
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_contains($path, ' -> ')) {
+            $parts = explode(' -> ', $path);
+            $path = trim((string) end($parts));
+        }
+
+        return $path !== '' ? $path : null;
     }
 
     private function updateReleaseMetadata(array $releaseContext): void
