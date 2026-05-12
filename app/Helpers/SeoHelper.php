@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class SeoHelper
 {
@@ -72,14 +73,8 @@ class SeoHelper
             $path = '/';
         }
 
-        $queryParams = $request->query();
-        $importantParams = ['page', 'ref', 'utm_source', 'utm_medium', 'utm_campaign'];
-        $filteredParams = [];
-        foreach ($importantParams as $param) {
-            if (isset($queryParams[$param])) {
-                $filteredParams[$param] = $queryParams[$param];
-            }
-        }
+        $queryParams = self::removeTrackingParameters($request->query());
+        $filteredParams = Arr::only($queryParams, ['page']);
         $query = empty($filteredParams) ? '' : '?' . http_build_query($filteredParams);
 
         $canonical = $baseUrl . $path . $query;
@@ -89,6 +84,24 @@ class SeoHelper
         }
 
         return self::normalizeAbsoluteCanonicalUrl($canonical);
+    }
+
+    /**
+     * Supprimer les paramètres marketing et de tracking d'une query string.
+     */
+    public static function removeTrackingParameters(array $queryParams): array
+    {
+        return collect($queryParams)
+            ->reject(function ($value, $key) {
+                $key = strtolower((string) $key);
+
+                return $key === 'ref'
+                    || str_starts_with($key, 'utm_')
+                    || str_starts_with($key, 'fbclid')
+                    || str_starts_with($key, 'gclid')
+                    || str_starts_with($key, 'msclkid');
+            })
+            ->toArray();
     }
     /**
      * Convertir un chemin d'image en URL complète

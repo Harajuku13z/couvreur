@@ -185,8 +185,10 @@
     <meta name="keywords" content="{{ e($keywordsValue) }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <!-- Canonical URL (basée sur site_url pour éviter "Duplicate without user-selected canonical") -->
+    <!-- Canonical URL (uniquement sur les pages indexables) -->
+    @if($shouldEmitCanonical ?? true)
     <link rel="canonical" href="{{ $canonicalUrl ?? \App\Helpers\SeoHelper::getCanonicalUrl() }}">
+    @endif
     
     <!-- Open Graph Meta Tags (améliorés pour Google) -->
     <meta property="og:title" content="{{ e($finalOgTitle) }}">

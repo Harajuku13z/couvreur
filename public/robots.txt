@@ -1,28 +1,19 @@
-# Robots.txt optimisé pour couvreur-chevigny-saint-sauveur.fr
-# Dernière mise à jour : 2025-11-19
+# Robots.txt SEO
+# Dernière mise à jour : 2026-05-12
 
 User-agent: *
 Allow: /
 
-# Sitemaps
-Sitemap: https://couvreur-chevigny-saint-sauveur.fr/sitemap.xml
-
-# Bloquer les pages d'administration
+# Zones privées
 Disallow: /admin/
 Disallow: /admin
 Disallow: /config/
 Disallow: /setup
-
-# Bloquer les endpoints API et cron
 Disallow: /api/
 Disallow: /schedule/run
 Disallow: /cron/run
 
-# Bloquer les paramètres d'URL (éviter duplication)
-Disallow: /*?*
-Disallow: /*&
-
-# Autoriser les ressources essentielles
+# Ressources
 Allow: /*.css$
 Allow: /*.js$
 Allow: /*.jpg$
@@ -34,7 +25,7 @@ Allow: /*.woff$
 Allow: /*.woff2$
 Allow: /*.ttf$
 
-# Bloquer fichiers sensibles
+# Fichiers sensibles
 Disallow: /*.log$
 Disallow: /*.sql$
 Disallow: /*.env$
@@ -42,30 +33,5 @@ Disallow: /*.git
 Disallow: /storage/
 Disallow: /vendor/
 
-# Crawl rate (pour ne pas surcharger le serveur)
-Crawl-delay: 0.5
-
-# User-agents spécifiques
-User-agent: Googlebot
-Allow: /
-
-User-agent: Googlebot-Image
-Allow: /images/
-Allow: /storage/images/
-
-User-agent: Bingbot
-Allow: /
-
-# Bloquer les mauvais bots
-User-agent: AhrefsBot
-Crawl-delay: 10
-
-User-agent: SemrushBot
-Crawl-delay: 10
-
-User-agent: MJ12bot
-Disallow: /
-
-User-agent: DotBot
-Disallow: /
-
+# Sitemaps
+Sitemap: https://artisan-louis-hoffmann.fr/sitemap.xml

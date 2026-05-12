@@ -9,6 +9,94 @@
 @section('keywords', !empty($pageKeywords) ? $pageKeywords . (!empty($extendedKeywords) ? ', ' . implode(', ', $extendedKeywords) : '') : (!empty($extendedKeywords) ? implode(', ', $extendedKeywords) : ''))
 
 @push('head')
+@php
+    $companyName = setting('company_name', 'Votre Entreprise');
+    $companyPhone = setting('company_phone_raw', '');
+    $companyAddress = setting('company_address', '');
+    $companyCity = setting('company_city', '');
+    $companyPostalCode = setting('company_postal_code', '');
+    $companyCountry = setting('company_country', 'France');
+    $companyRegion = setting('company_region', '');
+    $companyHours = setting('company_hours', '');
+    $companyLogo = setting('company_logo');
+    $companyLogoUrl = $companyLogo ? (str_starts_with($companyLogo, 'http') ? $companyLogo : asset($companyLogo)) : url('logo/logo.png');
+    $sameAs = array_values(array_filter([
+        setting('google_business_url'),
+        setting('facebook_url'),
+        setting('instagram_url'),
+        setting('linkedin_url'),
+    ]));
+    $businessType = Str::contains(Str::lower($serviceName . ' ' . $mainKeyword), ['toiture', 'couvreur', 'couverture', 'zinguerie'])
+        ? 'RoofingContractor'
+        : 'ProfessionalService';
+    $providerSchema = [
+        '@type' => $businessType,
+        'name' => $companyName,
+        'url' => url('/'),
+        'telephone' => $companyPhone,
+        'logo' => $companyLogoUrl,
+        'image' => $companyLogoUrl,
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $companyAddress,
+            'addressLocality' => $companyCity,
+            'addressRegion' => $companyRegion,
+            'postalCode' => $companyPostalCode,
+            'addressCountry' => $companyCountry ?: 'FR',
+        ],
+        'areaServed' => [
+            '@type' => 'City',
+            'name' => $cityModel->name ?? '',
+            'postalCode' => $cityModel->postal_code ?? '',
+        ],
+        'openingHours' => $companyHours,
+    ];
+    if (!empty($sameAs)) {
+        $providerSchema['sameAs'] = $sameAs;
+    }
+    $serviceSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Service',
+        'name' => $ad->title ?? $serviceName,
+        'serviceType' => $serviceName,
+        'description' => strip_tags($pageDescription ?? ''),
+        'url' => $canonicalUrl,
+        'areaServed' => [
+            '@type' => 'City',
+            'name' => $cityModel->name ?? '',
+            'postalCode' => $cityModel->postal_code ?? '',
+        ],
+        'provider' => $providerSchema,
+    ];
+    $localBusinessSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => $businessType,
+        'name' => $companyName,
+        'url' => url('/'),
+        'telephone' => $companyPhone,
+        'logo' => $companyLogoUrl,
+        'image' => $companyLogoUrl,
+        'description' => setting('company_description', strip_tags($pageDescription ?? '')),
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $companyAddress,
+            'addressLocality' => $companyCity,
+            'addressRegion' => $companyRegion,
+            'postalCode' => $companyPostalCode,
+            'addressCountry' => $companyCountry ?: 'FR',
+        ],
+        'areaServed' => [
+            [
+                '@type' => 'City',
+                'name' => $cityModel->name ?? '',
+                'postalCode' => $cityModel->postal_code ?? '',
+            ],
+        ],
+    ];
+    if (!empty($sameAs)) {
+        $localBusinessSchema['sameAs'] = $sameAs;
+    }
+@endphp
 <style>
     html, body { overflow-x: hidden; }
 
@@ -266,15 +354,32 @@
                         {{-- Contenu HTML de l'annonce --}}
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8 ad-content-wrap">
                             <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert">
-                                {!! $ad->content_html ?? '<p>Contenu en cours de chargement...</p>' !!}
+                                {!! $renderedContentHtml !!}
                             </div>
-
-                            @if(!empty($extendedKeywords))
-                            <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-                                {{ implode(', ', $extendedKeywords) }}
-                            </div>
-                            @endif
                         </div>
+
+                        <div class="bg-white border border-gray-100 rounded-2xl p-6 mb-8">
+                            <h2 class="text-xl font-bold text-gray-900 mb-2">Explorer nos prestations liées</h2>
+                            <p class="text-gray-700 mb-4">
+                                Consultez notre page <a href="{{ route('services.index') }}" class="font-semibold underline decoration-2 underline-offset-2">Services</a>
+                                pour parcourir l'ensemble du catalogue
+                                @if(!empty($serviceUrl))
+                                ou la page détaillée <a href="{{ $serviceUrl }}" class="font-semibold underline decoration-2 underline-offset-2">{{ $servicePage['name'] ?? $serviceName }}</a>.
+                                @endif
+                            </p>
+                        </div>
+
+                        @if(!empty($servicePage))
+                        <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8">
+                            <h2 class="text-xl font-bold text-gray-900 mb-2">Service associé</h2>
+                            <p class="text-gray-700 mb-4">
+                                Cette page locale complète notre page service principale pour <strong>{{ $servicePage['name'] ?? $mainKeyword }}</strong>.
+                            </p>
+                            <a href="{{ $serviceUrl }}" class="btn-primary">
+                                <i class="fas fa-link"></i> Voir la page service détaillée
+                            </a>
+                        </div>
+                        @endif
 
                         {{-- CTA banner inline (mobile + desktop) --}}
                         <div class="bottom-cta p-8 md:p-10 text-white text-center mb-10">
@@ -315,6 +420,10 @@
                                     <div class="relative overflow-hidden h-52">
                                         <img src="{{ asset($portfolioItem['images'][0]) }}"
                                              alt="{{ ($mainKeyword ?? '') . ' ' . $itemTitle }}"
+                                             loading="lazy"
+                                             decoding="async"
+                                             width="800"
+                                             height="520"
                                              class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
                                             <span class="text-white text-sm font-semibold"><i class="fas fa-search-plus mr-1"></i> Voir la réalisation</span>
@@ -337,6 +446,24 @@
                                 </a>
                             </div>
                             @endif
+                        </div>
+                        @endif
+
+                        @if(!empty($faqItems))
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-10">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-6">Questions fréquentes sur {{ $mainKeywordWithPostalCode }}</h2>
+                            <div class="space-y-4">
+                                @foreach($faqItems as $faq)
+                                <details class="group rounded-xl border border-gray-200 p-4">
+                                    <summary class="cursor-pointer list-none font-semibold text-gray-900 flex items-center justify-between gap-4">
+                                        <span>{{ $faq['question'] }}</span>
+                                        <i class="fas fa-plus text-gray-400 group-open:hidden"></i>
+                                        <i class="fas fa-minus text-gray-400 hidden group-open:inline-block"></i>
+                                    </summary>
+                                    <p class="text-gray-700 mt-3 leading-relaxed">{{ $faq['answer'] }}</p>
+                                </details>
+                                @endforeach
+                            </div>
                         </div>
                         @endif
 
@@ -437,7 +564,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($relatedAds as $relatedAd)
-                    <a href="{{ route('ads.show', $relatedAd->slug) }}" class="related-card block bg-gray-50 border border-gray-100 p-6 group">
+                    <a href="{{ route('ads.show', $relatedAd->slug) }}" class="related-card block bg-gray-50 border border-gray-100 p-6 group" aria-label="Voir {{ $relatedAd->title }} à {{ $cityModel->name ?? 'votre ville' }}">
                         <div class="flex items-start gap-4">
                             <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center"
                                  style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
@@ -450,10 +577,37 @@
                                 </h3>
                                 <p class="text-gray-500 text-sm line-clamp-2">{{ Str::limit($relatedAd->meta_description, 90) }}</p>
                                 <span class="mt-2 inline-flex items-center gap-1 text-sm font-semibold" style="color:var(--primary-color);">
-                                    Voir le service <i class="fas fa-arrow-right text-xs"></i>
+                                    Voir {{ Str::limit($relatedAd->title, 44) }} <i class="fas fa-arrow-right text-xs"></i>
                                 </span>
                             </div>
                         </div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
+    @if(isset($nearbyAds) && $nearbyAds->count() > 0)
+    <section class="py-14 bg-slate-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-10">
+                    <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:var(--primary-color);">Maillage local</p>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">
+                        Interventions proches pour {{ $mainKeyword }}
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    @foreach($nearbyAds as $nearbyAd)
+                    <a href="{{ route('ads.show', $nearbyAd->slug) }}" class="block bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition" aria-label="Voir {{ $nearbyAd->title }} à {{ $nearbyAd->city->name ?? 'proximité' }}">
+                        <div class="text-sm text-gray-500 mb-2">
+                            {{ $nearbyAd->city->name ?? 'Commune voisine' }}
+                            @if($nearbyAd->city->postal_code ?? null) ({{ $nearbyAd->city->postal_code }}) @endif
+                        </div>
+                        <h3 class="font-bold text-gray-900 mb-2">{{ $nearbyAd->title }}</h3>
+                        <p class="text-sm text-gray-600">{{ Str::limit($nearbyAd->meta_description, 95) }}</p>
                     </a>
                     @endforeach
                 </div>
@@ -493,7 +647,7 @@
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                                 @if($review->author_photo_url)
-                                <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" class="w-full h-full object-cover">
+                                <img src="{{ $review->author_photo_url }}" alt="{{ $review->author_name }}" loading="lazy" decoding="async" width="40" height="40" class="w-full h-full object-cover">
                                 @else
                                 <div class="w-full h-full flex items-center justify-center text-white font-bold text-sm"
                                      style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
@@ -530,30 +684,10 @@
 
 @push('head')
 <script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'Service',
-    'serviceType' => $mainKeyword ?? 'Service',
-    'provider' => [
-        '@type' => 'LocalBusiness',
-        'name' => setting('company_name', 'Votre Entreprise'),
-        'address' => [
-            '@type' => 'PostalAddress',
-            'addressLocality' => $cityModel->name ?? '',
-            'postalCode' => $cityModel->postal_code ?? '',
-            'addressCountry' => 'FR',
-        ],
-        'telephone' => setting('company_phone_raw', ''),
-        'url' => url('/'),
-    ],
-    'areaServed' => [
-        '@type' => 'City',
-        'name' => $cityModel->name ?? '',
-        'postalCode' => $cityModel->postal_code ?? '',
-    ],
-    'description' => strip_tags($pageDescription ?? ''),
-    'url' => url()->current(),
-] + (!empty($extendedKeywords) ? ['keywords' => implode(', ', array_slice($extendedKeywords, 0, 10))] : []), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+@json($localBusinessSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+</script>
+<script type="application/ld+json">
+@json($serviceSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
 </script>
 @endpush
 

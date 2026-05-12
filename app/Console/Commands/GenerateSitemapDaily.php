@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Http\Controllers\SitemapController;
+use App\Services\SitemapService;
 use Illuminate\Support\Facades\Log;
 
 class GenerateSitemapDaily extends Command
@@ -31,9 +31,11 @@ class GenerateSitemapDaily extends Command
         
         try {
             Log::info('🔄 Génération automatique du sitemap...');
-            
-            $sitemapController = app(SitemapController::class);
-            $sitemapController->index(); // Génère et met en cache le sitemap
+
+            $result = app(SitemapService::class)->generateSitemap();
+            if (!$result['success']) {
+                throw new \RuntimeException($result['error'] ?? 'Erreur inconnue lors de la génération du sitemap');
+            }
             
             Log::info('✅ Sitemap généré automatiquement avec succès');
             $this->info('✅ Sitemap généré automatiquement avec succès');
@@ -47,4 +49,3 @@ class GenerateSitemapDaily extends Command
         }
     }
 }
-

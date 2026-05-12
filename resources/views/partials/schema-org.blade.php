@@ -89,14 +89,13 @@
         }
     }
     
-    // Construire le schéma d'organisation (UN SEUL LocalBusiness avec toutes les infos)
-    // L'adresse est OBLIGATOIRE pour LocalBusiness
+    // Construire le schéma global d'organisation / service professionnel
     $organizationSchema = [
         "@context" => "https://schema.org",
-        "@type" => "LocalBusiness",
+        "@type" => ["Organization", "ProfessionalService"],
         "name" => $companyName,
         "url" => $companyUrl,
-        "address" => $addressSchema  // OBLIGATOIRE - toujours présent
+        "address" => $addressSchema
     ];
     
     // Ajouter les champs optionnels seulement s'ils ont une valeur
@@ -259,6 +258,7 @@
     
     // Ajouter les réseaux sociaux si disponibles
     $sameAs = [];
+    if (setting('google_business_url')) $sameAs[] = setting('google_business_url');
     if (setting('facebook_url')) $sameAs[] = setting('facebook_url');
     if (setting('instagram_url')) $sameAs[] = setting('instagram_url');
     if (setting('linkedin_url')) $sameAs[] = setting('linkedin_url');
@@ -320,32 +320,6 @@
             ]
         ];
     }
-    
-    // FAQ Schema (si FAQ présente)
-    $faqSchema = null;
-    if (isset($faqs) && is_array($faqs) && count($faqs) > 0) {
-        $faqItems = [];
-        foreach ($faqs as $faq) {
-            if (isset($faq['question']) && isset($faq['answer'])) {
-                $faqItems[] = [
-                    "@type" => "Question",
-                    "name" => $faq['question'],
-                    "acceptedAnswer" => [
-                        "@type" => "Answer",
-                        "text" => $faq['answer']
-                    ]
-                ];
-            }
-        }
-        
-        if (!empty($faqItems)) {
-            $faqSchema = [
-                "@context" => "https://schema.org",
-                "@type" => "FAQPage",
-                "mainEntity" => $faqItems
-            ];
-        }
-    }
 @endphp
 
 {{-- Organisation Schema --}}
@@ -359,13 +333,6 @@
 @if($serviceSchema)
 <script type="application/ld+json">
 {!! json_encode($serviceSchema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
-</script>
-@endif
-
-{{-- FAQ Schema --}}
-@if($faqSchema)
-<script type="application/ld+json">
-{!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endif
 
@@ -393,4 +360,3 @@
 {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endif
-

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Ad;
 use App\Models\City;
 use App\Models\Review;
+use App\Models\Setting;
+use App\Helpers\SeoHelper;
+use Illuminate\Support\Str;
 
 class AdPublicController extends Controller
 {
@@ -24,7 +27,20 @@ class AdPublicController extends Controller
     public function show(string $slug)
     {
         // Chercher l'annonce par slug avec relation template
-        $ad = Ad::with('template', 'city')->where('slug', $slug)->where('status', 'published')->firstOrFail();
+        $ad = Ad::with('template', 'city')->where('slug', $slug)->firstOrFail();
+        $auditService = app(\App\Services\AdSeoAuditService::class);
+
+        if ($ad->status === 'archived') {
+            $redirectUrl = $ad->template?->service_slug
+                ? route('services.show', $ad->template->service_slug)
+                : route('services.index');
+
+            return redirect($redirectUrl, 301);
+        }
+
+        if ($ad->status !== 'published') {
+            abort(404);
+        }
         
         $cityModel = $ad->city;
         
@@ -34,6 +50,7 @@ class AdPublicController extends Controller
         
         // Variables pour le SEO - utiliser getMetaForCity si template existe
         $currentPage = 'ads';
+        $canonicalUrl = SeoHelper::normalizeAbsoluteCanonicalUrl(route('ads.show', $ad->slug));
         
         // Récupérer l'image du template ou de l'annonce
         $featuredImage = null;
@@ -97,6 +114,7 @@ class AdPublicController extends Controller
         if (empty($mainKeyword) && $ad->template) {
             $mainKeyword = $ad->template->service_name ?? '';
         }
+        $serviceName = $ad->template->service_name ?? $mainKeyword ?? $ad->title ?? 'Service';
         
         // Ajouter le code postal au mot-clé si présent
         $postalCode = $cityModel->postal_code ?? '';
@@ -117,9 +135,21 @@ class AdPublicController extends Controller
             return isset($item['is_visible']) ? $item['is_visible'] : true;
         });
         
-        // Générer les mots-clés étendus pour le SEO (invisibles mais visibles pour Google)
+        $pageTitle = $this->buildAdPageTitle($ad, $cityModel, $serviceName, $pageTitle);
+        $pageDescription = $this->buildAdPageDescription($ad, $cityModel, $serviceName, $pageDescription);
+        $ogTitle = $pageTitle;
+        $ogDescription = $pageDescription;
+        $twitterTitle = $pageTitle;
+        $twitterDescription = $pageDescription;
+
+        // Générer les mots-clés étendus pour le SEO
         $extendedKeywords = $this->generateExtendedKeywords($mainKeyword, $cityModel, $pageKeywords);
-        
+        $seoAudit = $auditService->analyze($ad);
+        $robotsMeta = $auditService->shouldAutoNoindex()
+            ? $seoAudit['recommended_robots']
+            : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+        $shouldEmitCanonical = !str_contains(Str::lower($robotsMeta), 'noindex');
+
         $pageImage = $featuredImage ? asset($featuredImage) : null;
         $pageType = 'website';
         
@@ -129,6 +159,54 @@ class AdPublicController extends Controller
             ->where('status', 'published')
             ->take(3)
             ->get();
+
+        $servicePage = null;
+        $servicesData = Setting::get('services', '[]');
+        $services = is_string($servicesData) ? json_decode($servicesData, true) : ($servicesData ?? []);
+        if (is_array($services) && $ad->template?->service_slug) {
+            $servicePage = collect($services)->first(function ($service) use ($ad) {
+                return is_array($service)
+                    && ($service['slug'] ?? null) === $ad->template->service_slug
+                    && ($service['is_visible'] ?? true);
+            });
+        }
+        $serviceUrl = $servicePage
+            ? route('services.show', $servicePage['slug'])
+            : route('services.index');
+
+        $nearbyAds = Ad::with('city')
+            ->where('status', 'published')
+            ->where('id', '!=', $ad->id)
+            ->when($ad->template_id, fn ($query) => $query->where('template_id', $ad->template_id), function ($query) use ($ad) {
+                $query->where('keyword', $ad->keyword);
+            })
+            ->whereHas('city', function ($query) use ($cityModel) {
+                $query->where('region', $cityModel->region);
+            })
+            ->limit(4)
+            ->get();
+
+        $faqItems = [
+            [
+                'question' => "Comment obtenir un devis pour {$mainKeywordWithPostalCode} ?",
+                'answer' => "Nous préparons un devis gratuit après un premier échange sur votre besoin à {$cityModel->name}. Selon le projet, une visite technique peut être organisée pour affiner le chiffrage.",
+            ],
+            [
+                'question' => "Intervenez-vous uniquement à {$cityModel->name} ?",
+                'answer' => "Non. Cette page cible {$cityModel->name}, mais l'équipe intervient aussi dans les communes voisines de la région pour les demandes similaires.",
+            ],
+            [
+                'question' => "Quels délais pour une intervention {$mainKeyword} ?",
+                'answer' => "Les délais dépendent du niveau d'urgence, des matériaux et de la saison. Pour les demandes courantes, nous revenons généralement sous 24 heures avec une première réponse.",
+            ],
+        ];
+
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => route('home')],
+            ['name' => 'Services', 'url' => route('services.index')],
+            ['name' => $ad->title ?? $serviceName, 'url' => $canonicalUrl],
+        ];
+        $renderedContentHtml = $this->optimizeContentHtml($ad->content_html);
         
         return view('ads.show', compact(
             'ad', 
@@ -148,7 +226,18 @@ class AdPublicController extends Controller
             'portfolioItems',
             'mainKeyword',
             'mainKeywordWithPostalCode',
-            'extendedKeywords'
+            'extendedKeywords',
+            'seoAudit',
+            'robotsMeta',
+            'canonicalUrl',
+            'shouldEmitCanonical',
+            'servicePage',
+            'serviceUrl',
+            'nearbyAds',
+            'faqItems',
+            'breadcrumbs',
+            'renderedContentHtml',
+            'serviceName'
         ));
     }
     
@@ -191,7 +280,73 @@ class AdPublicController extends Controller
         // Retourner des mots-clés uniques
         return array_unique(array_filter($keywords));
     }
+
+    protected function buildAdPageTitle(Ad $ad, City $city, string $serviceName, ?string $existingTitle = null): string
+    {
+        $cityName = trim((string) $city->name);
+        $postalCode = trim((string) ($city->postal_code ?? ''));
+        $cityLabel = trim($cityName . ($postalCode ? ' ' . $postalCode : ''));
+
+        $title = trim((string) ($existingTitle ?: $ad->meta_title ?: $ad->title ?: $serviceName));
+
+        if (!Str::contains(Str::lower($title), Str::lower($serviceName))) {
+            $title .= ' - ' . $serviceName;
+        }
+
+        if (!Str::contains(Str::lower($title), Str::lower($cityName))) {
+            $title .= ' à ' . $cityLabel;
+        }
+
+        return Str::limit(trim(preg_replace('/\s+/', ' ', $title)), 68, '');
+    }
+
+    protected function buildAdPageDescription(Ad $ad, City $city, string $serviceName, ?string $existingDescription = null): string
+    {
+        $cityName = trim((string) $city->name);
+        $postalCode = trim((string) ($city->postal_code ?? ''));
+        $location = trim($cityName . ($postalCode ? ' (' . $postalCode . ')' : ''));
+
+        $description = trim((string) strip_tags($existingDescription ?: $ad->meta_description ?: ''));
+
+        if ($description === '') {
+            $description = "{$serviceName} à {$location}. Devis gratuit, intervention rapide et accompagnement sur mesure par une entreprise locale.";
+        }
+
+        if (!Str::contains(Str::lower($description), Str::lower($cityName))) {
+            $description = "{$serviceName} à {$location}. {$description}";
+        }
+
+        if (!Str::contains(Str::lower($description), 'devis')) {
+            $description .= ' Devis gratuit sur demande.';
+        }
+
+        return Str::limit(trim(preg_replace('/\s+/', ' ', $description)), 165, '');
+    }
+
+    protected function optimizeContentHtml(?string $contentHtml): string
+    {
+        $contentHtml = trim((string) $contentHtml);
+
+        if ($contentHtml === '') {
+            return '<p>Contenu en cours de chargement...</p>';
+        }
+
+        return preg_replace_callback('/<img\b([^>]*)>/i', function ($matches) {
+            $attributes = $matches[1];
+
+            if (!preg_match('/\bloading=/i', $attributes)) {
+                $attributes .= ' loading="lazy"';
+            }
+
+            if (!preg_match('/\bdecoding=/i', $attributes)) {
+                $attributes .= ' decoding="async"';
+            }
+
+            if (!preg_match('/\bfetchpriority=/i', $attributes)) {
+                $attributes .= ' fetchpriority="low"';
+            }
+
+            return '<img' . $attributes . '>';
+        }, $contentHtml) ?? $contentHtml;
+    }
 }
-
-
-

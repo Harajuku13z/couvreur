@@ -26,6 +26,13 @@ Schedule::command('index:urls-daily')
         return \App\Models\Setting::get('daily_indexing_enabled', false);
     });
 
+// Audit SEO récurrent pour suivre la qualité réelle des annonces.
+Schedule::command('seo:audit-ads --sample=1000')
+    ->name('seo-audit-ads')
+    ->dailyAt('01:30')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Génération automatique du sitemap chaque jour à 3h du matin
 Schedule::command('sitemap:generate-daily')
     ->name('generate-sitemap')
