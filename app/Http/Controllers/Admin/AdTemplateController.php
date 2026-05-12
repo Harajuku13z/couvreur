@@ -104,6 +104,41 @@ class AdTemplateController extends Controller
     }
 
     /**
+     * Régénérer le template en mono-colonne et republier son contenu sur les annonces liées.
+     */
+    public function regenerateTemplate(AdTemplate $template)
+    {
+        $normalizedContent = $this->normalizeTemplateContentToSingleColumn($template->content_html);
+        $template->content_html = $normalizedContent;
+        $template->save();
+
+        $updatedAds = 0;
+
+        $template->load('ads.city');
+
+        foreach ($template->ads as $ad) {
+            if (!$ad->city) {
+                continue;
+            }
+
+            $metaForCity = $template->getMetaForCity($ad->city, false);
+
+            $ad->update([
+                'content_html' => $template->getContentForCity($ad->city, false),
+                'meta_title' => $metaForCity['meta_title'] ?? $ad->meta_title,
+                'meta_description' => $metaForCity['meta_description'] ?? $ad->meta_description,
+            ]);
+
+            $updatedAds++;
+        }
+
+        return back()->with(
+            'success',
+            "Template régénéré en mono-colonne. {$updatedAds} annonce(s) liée(s) ont été mises à jour."
+        );
+    }
+
+    /**
      * Mettre à jour le template personnalisé
      */
     public function update(Request $request, AdTemplate $template)
@@ -1901,10 +1936,9 @@ RÈGLES STRICTES:
                     foreach ($departements as $dept) {
                         $jsonData[$field] = preg_replace('/\b(département|département de|dans le département|du département) ' . preg_quote($dept, '/') . '\b/i', '$1 [DÉPARTEMENT]', $jsonData[$field]);
                         $jsonData[$field] = preg_replace('/\b' . preg_quote($dept, '/') . '\b/i', '[DÉPARTEMENT]', $jsonData[$field]);
-                    }
-                }
-            }
-            
+        }
+    }
+
             // Vérifier aussi dans les prestations et FAQ
             if (isset($jsonData['prestations']) && is_array($jsonData['prestations'])) {
                 foreach ($jsonData['prestations'] as $key => $prestation) {
@@ -1965,6 +1999,7 @@ RÈGLES STRICTES:
                 'twitter_description' => $jsonData['twitter_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
                 'meta_keywords' => $jsonData['meta_keywords'] ?? ($serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [DÉPARTEMENT], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]')
             ];
+        }
         } catch (\Exception $e) {
             Log::error('Erreur génération template: ' . $e->getMessage(), [
                     'service_name' => $serviceName,
@@ -2575,6 +2610,34 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
             'twitter_title' => $cleanText($aiData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
             'twitter_description' => $cleanText($aiData['twitter_description'] ?? 'Service professionnel à [VILLE]', 500),
         ];
+    }
+
+    private function normalizeTemplateContentToSingleColumn(string $contentHtml): string
+    {
+        $normalized = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
+            $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
+            $filtered = [];
+
+            foreach ($classes as $class) {
+                if ($class === '') {
+                    continue;
+                }
+
+                if (preg_match('/^(grid|inline-grid|grid-cols-\d+|sm:grid-cols-\d+|md:grid-cols-\d+|lg:grid-cols-\d+|xl:grid-cols-\d+)$/', $class)) {
+                    continue;
+                }
+
+                $filtered[] = $class;
+            }
+
+            if (!in_array('space-y-6', $filtered, true)) {
+                $filtered[] = 'space-y-6';
+            }
+
+            return 'class="' . implode(' ', array_values(array_unique($filtered))) . '"';
+        }, $contentHtml);
+
+        return $normalized ?: $contentHtml;
     }
 
     /**

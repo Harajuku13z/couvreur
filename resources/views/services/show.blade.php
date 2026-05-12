@@ -459,9 +459,20 @@
             <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));">
                 @foreach($relatedPortfolio as $item)
                 <article style="border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;background:#fff;">
-                    @if(isset($item['images']) && is_array($item['images']) && count($item['images']) > 0)
+                    @php
+                        $servicePortfolioImage = null;
+                        if (!empty($item['images'])) {
+                            $rawImage = is_array($item['images']) ? ($item['images'][0] ?? null) : $item['images'];
+                            if (!empty($rawImage)) {
+                                $servicePortfolioImage = str_starts_with((string) $rawImage, 'http')
+                                    ? $rawImage
+                                    : asset(ltrim((string) $rawImage, '/'));
+                            }
+                        }
+                    @endphp
+                    @if($servicePortfolioImage)
                     <div style="height:140px;overflow:hidden;background:#f3f4f6;">
-                        <img src="{{ url($item['images'][0]) }}" alt="{{ $item['title'] }}"
+                        <img src="{{ $servicePortfolioImage }}" alt="{{ $item['title'] }}"
                              style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
                     </div>
                     @endif

@@ -4,6 +4,12 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
+
     <!-- En-tête -->
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -20,6 +26,13 @@
                 <i class="fas fa-edit"></i>
                 <span>Personnaliser</span>
             </a>
+            <form method="POST" action="{{ route('admin.ads.templates.regenerate-template', $template->id) }}" onsubmit="return confirm('Régénérer ce template en mono-colonne et mettre à jour les annonces liées ?')">
+                @csrf
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                    <i class="fas fa-rotate-right"></i>
+                    <span>Régénérer le template</span>
+                </button>
+            </form>
             <button onclick="generateAdsFromTemplate({{ $template->id }})" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
                 <i class="fas fa-plus-circle"></i>
                 <span>Générer des Annonces</span>

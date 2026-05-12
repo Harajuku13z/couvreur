@@ -15,6 +15,13 @@
             <h1 class="text-3xl font-bold text-gray-900">Personnaliser le Template</h1>
             <p class="text-gray-600 mt-2">{{ $template->service_name }}</p>
         </div>
+        <form method="POST" action="{{ route('admin.ads.templates.regenerate-template', $template->id) }}" onsubmit="return confirm('Régénérer ce template en mono-colonne et mettre à jour les annonces liées ?')">
+            @csrf
+            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <i class="fas fa-rotate-right"></i>
+                <span>Régénérer le template</span>
+            </button>
+        </form>
     </div>
 
     @if($errors->any())
@@ -277,4 +284,3 @@
 </script>
 @endpush
 @endsection
-

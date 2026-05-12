@@ -379,6 +379,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
                 Route::post('/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks'])->name('generate-all-links');
                 Route::get('/generate-all-links', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAllLinks']);
                 Route::post('/generate-ads', [App\Http\Controllers\Admin\AdTemplateController::class, 'generateAdsFromTemplate'])->name('generate-ads');
+                Route::post('/{template}/regenerate-template', [App\Http\Controllers\Admin\AdTemplateController::class, 'regenerateTemplate'])->name('regenerate-template');
                 Route::get('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'show'])->name('show');
                 Route::get('/{template}/edit', [App\Http\Controllers\Admin\AdTemplateController::class, 'edit'])->name('edit');
                 Route::put('/{template}', [App\Http\Controllers\Admin\AdTemplateController::class, 'update'])->name('update');

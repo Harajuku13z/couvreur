@@ -131,9 +131,34 @@ class AdPublicController extends Controller
             $portfolioItems = [];
         }
         // Filtrer seulement les éléments visibles
-        $portfolioItems = array_filter($portfolioItems, function($item) {
-            return isset($item['is_visible']) ? $item['is_visible'] : true;
-        });
+        $portfolioItems = array_values(array_filter(array_map(function ($item) {
+            if (!is_array($item)) {
+                return null;
+            }
+
+            $rawImages = $item['images'] ?? [];
+            if (is_string($rawImages) && $rawImages !== '') {
+                $rawImages = [$rawImages];
+            } elseif (!is_array($rawImages)) {
+                $rawImages = [];
+            }
+
+            $images = array_values(array_filter(array_map(function ($image) {
+                $image = trim((string) $image);
+                if ($image === '') {
+                    return null;
+                }
+
+                return str_starts_with($image, 'http') ? $image : asset(ltrim($image, '/'));
+            }, $rawImages)));
+
+            $item['images'] = $images;
+            $item['slug'] = $item['slug'] ?? Str::slug($item['title'] ?? 'realisation');
+
+            return $item;
+        }, $portfolioItems), function($item) {
+            return is_array($item) && (isset($item['is_visible']) ? $item['is_visible'] : true);
+        }));
         
         $pageTitle = $this->buildAdPageTitle($ad, $cityModel, $serviceName, $pageTitle);
         $pageDescription = $this->buildAdPageDescription($ad, $cityModel, $serviceName, $pageDescription);
@@ -330,6 +355,29 @@ class AdPublicController extends Controller
         if ($contentHtml === '') {
             return '<p>Contenu en cours de chargement...</p>';
         }
+
+        $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
+            $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
+            $filtered = [];
+
+            foreach ($classes as $class) {
+                if ($class === '') {
+                    continue;
+                }
+
+                if (preg_match('/^(grid|inline-grid|grid-cols-\d+|sm:grid-cols-\d+|md:grid-cols-\d+|lg:grid-cols-\d+|xl:grid-cols-\d+)$/', $class)) {
+                    continue;
+                }
+
+                $filtered[] = $class;
+            }
+
+            if (!in_array('space-y-6', $filtered, true)) {
+                $filtered[] = 'space-y-6';
+            }
+
+            return 'class="' . implode(' ', array_values(array_unique($filtered))) . '"';
+        }, $contentHtml) ?? $contentHtml;
 
         return preg_replace_callback('/<img\b([^>]*)>/i', function ($matches) {
             $attributes = $matches[1];

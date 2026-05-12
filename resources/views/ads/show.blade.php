@@ -166,6 +166,23 @@
     .ad-content-wrap table { width: 100% !important; table-layout: fixed; }
     .ad-content-wrap pre, .ad-content-wrap code { white-space: pre-wrap !important; }
     .ad-content-wrap a { color: var(--primary-color); }
+    .ad-content-wrap div[class*="grid"],
+    .ad-content-wrap div[class*="flex"],
+    .ad-content-wrap div[class*="columns"] {
+        display: block !important;
+    }
+    .ad-content-wrap div[class*="grid"] > *,
+    .ad-content-wrap div[class*="flex"] > *,
+    .ad-content-wrap div[class*="columns"] > * {
+        display: block !important;
+        width: 100% !important;
+        margin-bottom: 1.25rem;
+    }
+    .ad-content-wrap div[class*="grid"] > *:last-child,
+    .ad-content-wrap div[class*="flex"] > *:last-child,
+    .ad-content-wrap div[class*="columns"] > *:last-child {
+        margin-bottom: 0;
+    }
 
     /* ── Cards services similaires ────────────────────────────── */
     .related-card {
@@ -411,14 +428,15 @@
                             </h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 @foreach(array_slice($portfolioItems, 0, 4) as $portfolioItem)
-                                @if(is_array($portfolioItem) && !empty($portfolioItem['images']) && is_array($portfolioItem['images']))
+                                @if(is_array($portfolioItem) && !empty($portfolioItem['images']))
                                 @php
                                     $itemTitle = $portfolioItem['title'] ?? 'Réalisation';
                                     $itemSlug  = !empty($portfolioItem['slug']) ? $portfolioItem['slug'] : Str::slug($itemTitle);
+                                    $portfolioImage = is_array($portfolioItem['images']) ? ($portfolioItem['images'][0] ?? null) : $portfolioItem['images'];
                                 @endphp
                                 <a href="{{ route('portfolio.show', $itemSlug) }}" class="related-card block bg-white shadow-sm border border-gray-100 group">
                                     <div class="relative overflow-hidden h-52">
-                                        <img src="{{ asset($portfolioItem['images'][0]) }}"
+                                        <img src="{{ $portfolioImage }}"
                                              alt="{{ ($mainKeyword ?? '') . ' ' . $itemTitle }}"
                                              loading="lazy"
                                              decoding="async"
