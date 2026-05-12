@@ -54,6 +54,8 @@ class IndexationController extends Controller
         );
         $sitemapIndexUrl = rtrim($siteUrl, '/') . '/sitemap.xml';
         $sitemapFiles = $this->getSitemapFiles();
+        $sitemapCoverage = app(SitemapService::class)->getCoverageSummary();
+        $inventorySitemapUrl = rtrim($siteUrl, '/') . '/sitemap/inventory-all.xml';
         $latestAuditReports = $this->getLatestAuditReports();
         $siteReleaseName = config('app.release_name', 'SEO Indexation');
         $siteVersion = config('app.version', 'dev');
@@ -66,6 +68,8 @@ class IndexationController extends Controller
             'siteUrl',
             'sitemapIndexUrl',
             'sitemapFiles',
+            'sitemapCoverage',
+            'inventorySitemapUrl',
             'adsAutoNoindexLowQuality',
             'latestAuditReports',
             'siteReleaseName',
@@ -376,6 +380,7 @@ class IndexationController extends Controller
                     'filename' => basename($file),
                     'relative_path' => $relativePath,
                     'category' => $this->humanizeSitemapName(basename($file)),
+                    'is_inventory' => str_starts_with(basename($file), 'inventory-all'),
                     'url_count' => $urlCount,
                     'size_kb' => round(filesize($file) / 1024, 1),
                     'modified_at' => date('d/m/Y H:i', filemtime($file)),
@@ -410,7 +415,7 @@ class IndexationController extends Controller
     protected function humanizeSitemapName(string $filename): string
     {
         $name = str_replace('.xml', '', $filename);
-        $name = str_replace(['ads-service-', 'ads-department-', 'pages-core'], ['Services annonces ', 'Département ', 'Pages coeur'], $name);
+        $name = str_replace(['inventory-all', 'ads-service-', 'ads-department-', 'pages-core'], ['Inventaire complet', 'Services annonces ', 'Département ', 'Pages coeur'], $name);
         $name = str_replace(['services', 'articles', 'portfolio'], ['Services', 'Articles', 'Portfolio'], $name);
 
         return Str::headline($name);

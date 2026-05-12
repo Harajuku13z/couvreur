@@ -114,7 +114,7 @@
                             <i class="fas fa-sitemap mr-2 text-violet-600"></i>Architecture des sitemaps
                         </h2>
                         <p class="text-sm text-gray-600 mt-1">
-                            Le sitemap principal est désormais un index. Les annonces sont distribuées dans des sous-sitemaps thématiques par service.
+                            Le sitemap principal est désormais un index SEO propre. Un sitemap d’inventaire complet regroupe aussi toutes les pages publiées pour contrôle interne.
                         </p>
                     </div>
                     <a href="{{ $sitemapIndexUrl }}" target="_blank"
@@ -127,6 +127,37 @@
                     <div class="text-sm text-violet-900">
                         <div class="font-semibold mb-2">URL canonique du sitemap à soumettre dans Search Console</div>
                         <code class="block bg-white border border-violet-200 rounded-lg px-3 py-2 text-sm break-all">{{ $sitemapIndexUrl }}</code>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Services publiés</div>
+                        <div class="text-2xl font-bold text-gray-900">{{ number_format($sitemapCoverage['services_total'] ?? 0) }}</div>
+                    </div>
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Annonces publiées</div>
+                        <div class="text-2xl font-bold text-gray-900">{{ number_format($sitemapCoverage['ads_total_published'] ?? 0) }}</div>
+                    </div>
+                    <div class="rounded-2xl border border-green-200 bg-green-50 px-4 py-4">
+                        <div class="text-xs uppercase tracking-wider text-green-700 mb-1">Annonces SEO incluses</div>
+                        <div class="text-2xl font-bold text-green-700">{{ number_format($sitemapCoverage['ads_total_indexable'] ?? 0) }}</div>
+                    </div>
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+                        <div class="text-xs uppercase tracking-wider text-amber-700 mb-1">Annonces exclues du sitemap SEO</div>
+                        <div class="text-2xl font-bold text-amber-700">{{ number_format($sitemapCoverage['ads_total_excluded'] ?? 0) }}</div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 mb-5 text-sm text-slate-700">
+                    <div class="font-semibold text-slate-900 mb-2">Lecture rapide</div>
+                    <div>Le sitemap SEO principal contient {{ number_format($sitemapCoverage['primary_urls_total'] ?? 0) }} URLs.</div>
+                    <div>Le sitemap d’inventaire complet contient {{ number_format($sitemapCoverage['inventory_urls_total'] ?? 0) }} URLs publiées.</div>
+                    <div class="mt-2">
+                        Soumettez à Google uniquement <code>{{ $sitemapIndexUrl }}</code>. Le fichier d’inventaire sert surtout à vérifier que toutes les pages existent bien côté site.
+                    </div>
+                    <div class="mt-2">
+                        Sitemap d’inventaire : <a href="{{ $inventorySitemapUrl }}" target="_blank" class="text-blue-600 hover:underline">{{ $inventorySitemapUrl }}</a>
                     </div>
                 </div>
 
@@ -147,7 +178,14 @@
                             @foreach($sitemapFiles as $file)
                             <tr class="border-b border-gray-100">
                                 <td class="py-4 pr-4 font-medium text-gray-900">{{ $file['filename'] }}</td>
-                                <td class="py-4 pr-4 text-gray-600">{{ $file['category'] }}</td>
+                                <td class="py-4 pr-4 text-gray-600">
+                                    {{ $file['category'] }}
+                                    @if($file['is_inventory'] ?? false)
+                                    <div class="mt-1">
+                                        <span class="inline-flex px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">Inventaire complet</span>
+                                    </div>
+                                    @endif
+                                </td>
                                 <td class="py-4 pr-4 text-center">
                                     <span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">{{ number_format($file['url_count']) }}</span>
                                 </td>

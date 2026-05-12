@@ -3,6 +3,14 @@
 @section('title', 'Créer un Article')
 
 @section('content')
+@php
+    $articleMenuLinksUrl = Route::has('admin.articles.menu-links')
+        ? route('admin.articles.menu-links')
+        : route('admin.articles.get-menu-links');
+    $articleImagesAvailableUrl = Route::has('admin.articles.images.available')
+        ? route('admin.articles.images.available')
+        : route('admin.articles.get-available-images');
+@endphp
 <div class="max-w-4xl mx-auto py-10">
     <div class="mb-6">
         <h1 class="text-3xl font-bold">Créer un Article</h1>
@@ -430,7 +438,7 @@ function openLinkModal() {
         linkLoading.classList.remove('hidden');
         linkList.classList.add('hidden');
         
-        fetch('{{ route("admin.articles.menu-links") }}')
+        fetch('{{ $articleMenuLinksUrl }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -633,7 +641,7 @@ function loadGallery() {
     loading.classList.remove('hidden');
     container.classList.add('hidden');
     
-    fetch('{{ route("admin.articles.images.available") }}')
+    fetch('{{ $articleImagesAvailableUrl }}')
         .then(response => response.json())
         .then(data => {
             if (data.success) {

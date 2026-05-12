@@ -18,9 +18,6 @@
                     <div class="mt-1">
                         {{ $siteReleaseDateFormatted ?: 'Date non renseignée' }}
                     </div>
-                    <div class="text-xs text-slate-400 mt-2">
-                        Configurez <code class="text-slate-200">APP_RELEASE_NAME</code>, <code class="text-slate-200">APP_VERSION</code> et <code class="text-slate-200">APP_RELEASE_DATE</code> dans le <code class="text-slate-200">.env</code>.
-                    </div>
                 </div>
             </div>
         </div>
@@ -407,5 +404,4 @@
     </div>
 </div>
 @endsection
-
 

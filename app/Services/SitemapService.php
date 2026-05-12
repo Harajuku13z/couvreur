@@ -42,6 +42,7 @@ class SitemapService
     {
         try {
             $buckets = $this->collectSitemapBuckets();
+            $inventoryUrls = $this->collectInventoryUrls();
             $sitemapDir = public_path('sitemap');
 
             if (!is_dir($sitemapDir)) {
@@ -50,6 +51,7 @@ class SitemapService
 
             $writtenFiles = [];
             $indexEntries = [];
+            $inventoryEntries = [];
 
             foreach ($buckets as $bucketName => $urls) {
                 $chunks = array_chunk($urls, $this->maxUrlsPerSitemap);
@@ -71,6 +73,27 @@ class SitemapService
                 }
             }
 
+            $inventoryChunks = array_chunk($inventoryUrls, $this->maxUrlsPerSitemap);
+            foreach ($inventoryChunks as $chunkIndex => $chunk) {
+                if (empty($chunk)) {
+                    continue;
+                }
+
+                $suffix = count($inventoryChunks) > 1 ? '-' . ($chunkIndex + 1) : '';
+                $filename = 'inventory-all' . $suffix . '.xml';
+                $path = $sitemapDir . '/' . $filename;
+
+                file_put_contents($path, $this->renderUrlSet($chunk));
+
+                $writtenFiles[] = $filename;
+                $inventoryEntries[] = [
+                    'filename' => $filename,
+                    'url' => $this->baseUrl . '/sitemap/' . $filename,
+                    'lastmod' => Carbon::now()->toAtomString(),
+                    'urls_count' => count($chunk),
+                ];
+            }
+
             $this->cleanupSitemapDirectory($writtenFiles);
             $this->cleanupLegacyRootSitemaps();
             $indexXml = $this->renderSitemapIndex($indexEntries);
@@ -82,7 +105,9 @@ class SitemapService
             return [
                 'success' => true,
                 'sitemaps' => $indexEntries,
+                'inventory_sitemaps' => $inventoryEntries,
                 'total_urls' => collect($buckets)->flatten(1)->count(),
+                'inventory_total_urls' => count($inventoryUrls),
                 'index_path' => public_path('sitemap.xml'),
                 'index_url' => $this->baseUrl . '/sitemap.xml',
             ];
@@ -124,7 +149,9 @@ class SitemapService
         $files = glob(public_path('sitemap/*.xml')) ?: [];
 
         foreach ($files as $file) {
-            if (basename($file) === 'sitemap_index.xml') {
+            $basename = basename($file);
+
+            if ($basename === 'sitemap_index.xml' || str_starts_with($basename, 'inventory-all')) {
                 continue;
             }
 
@@ -147,6 +174,26 @@ class SitemapService
         return $allUrls;
     }
 
+    public function getCoverageSummary(): array
+    {
+        $services = $this->getServices();
+        $articles = $this->getArticles();
+        $portfolio = $this->getPortfolio();
+        $allAds = $this->getAds(false);
+        $indexableAds = $this->getAds(true);
+
+        return [
+            'services_total' => count($services),
+            'articles_total' => count($articles),
+            'portfolio_total' => count($portfolio),
+            'ads_total_published' => count($allAds),
+            'ads_total_indexable' => count($indexableAds),
+            'ads_total_excluded' => max(0, count($allAds) - count($indexableAds)),
+            'primary_urls_total' => count($this->collectPrimaryUrls()),
+            'inventory_urls_total' => count($this->collectInventoryUrls()),
+        ];
+    }
+
     protected function collectSitemapBuckets(): array
     {
         $buckets = [
@@ -156,7 +203,7 @@ class SitemapService
             'portfolio' => $this->collectPortfolioPages(),
         ];
 
-        foreach ($this->getAds() as $ad) {
+        foreach ($this->getAds(true) as $ad) {
             $serviceSlug = $this->slugifyBucket($ad['service_slug'] ?: $ad['service_name'] ?: $ad['keyword']);
             $department = $this->slugifyBucket($ad['department'] ?: 'sans-departement');
             $bucketName = $serviceSlug ? 'ads-service-' . $serviceSlug : 'ads-department-' . $department;
@@ -173,6 +220,35 @@ class SitemapService
             ->map(fn ($urls) => array_values(array_filter($urls)))
             ->filter(fn ($urls) => !empty($urls))
             ->toArray();
+    }
+
+    protected function collectPrimaryUrls(): array
+    {
+        return collect($this->collectSitemapBuckets())
+            ->flatten(1)
+            ->values()
+            ->all();
+    }
+
+    protected function collectInventoryUrls(): array
+    {
+        $urls = array_merge(
+            $this->collectCorePages(),
+            $this->collectServicePages(),
+            $this->collectArticlePages(),
+            $this->collectPortfolioPages()
+        );
+
+        foreach ($this->getAds(false) as $ad) {
+            $urls[] = [
+                'url' => $this->baseUrl . '/ads/' . $ad['slug'],
+                'priority' => $ad['is_indexable'] ? 0.75 : 0.45,
+                'changefreq' => 'monthly',
+                'lastmod' => $ad['updated_at'] ?? Carbon::now(),
+            ];
+        }
+
+        return array_values(array_filter($urls));
     }
 
     protected function collectCorePages(): array
@@ -353,22 +429,27 @@ class SitemapService
         return [];
     }
 
-    protected function getAds(): array
+    protected function getAds(bool $onlyIndexable = true): array
     {
         try {
             return Ad::with(['city:id,department', 'template:id,service_slug,service_name'])
                 ->where('status', 'published')
                 ->orderByDesc('updated_at')
                 ->get()
-                ->filter(fn ($ad) => $this->adSeoAuditService->analyze($ad)['is_indexable'])
-                ->map(fn ($ad) => [
-                    'slug' => $ad->slug,
-                    'updated_at' => $ad->updated_at,
-                    'keyword' => $ad->keyword,
-                    'department' => $ad->city->department ?? null,
-                    'service_slug' => $ad->template->service_slug ?? null,
-                    'service_name' => $ad->template->service_name ?? null,
-                ])
+                ->map(function ($ad) {
+                    $audit = $this->adSeoAuditService->analyze($ad);
+
+                    return [
+                        'slug' => $ad->slug,
+                        'updated_at' => $ad->updated_at,
+                        'keyword' => $ad->keyword,
+                        'department' => $ad->city->department ?? null,
+                        'service_slug' => $ad->template->service_slug ?? null,
+                        'service_name' => $ad->template->service_name ?? null,
+                        'is_indexable' => $audit['is_indexable'],
+                    ];
+                })
+                ->filter(fn ($ad) => $onlyIndexable ? $ad['is_indexable'] : true)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('⚠️ Impossible de récupérer les annonces: ' . $e->getMessage());
