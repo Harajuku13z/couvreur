@@ -403,6 +403,8 @@ class AdPublicController extends Controller
         }
 
         $contentHtml = SeoHelper::stripFinancingContent($contentHtml);
+        $contentHtml = $this->stripGeneratedPracticalInfoSection($contentHtml);
+        $contentHtml = $this->normalizeGeneratedTextColors($contentHtml);
 
         $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
             $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
@@ -444,5 +446,47 @@ class AdPublicController extends Controller
 
             return '<img' . $attributes . '>';
         }, $contentHtml) ?? $contentHtml;
+    }
+
+    protected function stripGeneratedPracticalInfoSection(string $contentHtml): string
+    {
+        $patterns = [
+            '/<section\b[^>]*>.*?<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>.*?<\/section>/is',
+            '/<div\b[^>]*>\s*<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>.*?<\/div>\s*(?=<(?:section|div|h[1-6]|$))/is',
+            '/<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>\s*<ul\b[^>]*>.*?<\/ul>/is',
+        ];
+
+        return preg_replace($patterns, '', $contentHtml) ?? $contentHtml;
+    }
+
+    protected function normalizeGeneratedTextColors(string $contentHtml): string
+    {
+        $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
+            $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
+            $normalized = [];
+
+            foreach ($classes as $class) {
+                if ($class === '') {
+                    continue;
+                }
+
+                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-(gray|slate|neutral|zinc)-(400|500|600|700|800)$/', $class)) {
+                    $normalized[] = preg_replace('/-(gray|slate|neutral|zinc)-(400|500|600|700|800)$/', '-gray-900', $class);
+                    continue;
+                }
+
+                $normalized[] = $class;
+            }
+
+            return 'class="' . implode(' ', array_values(array_unique($normalized))) . '"';
+        }, $contentHtml) ?? $contentHtml;
+
+        $contentHtml = preg_replace(
+            '/color\s*:\s*(#6b7280|#4b5563|#374151|#1f2937|rgb\(107,\s*114,\s*128\)|rgb\(75,\s*85,\s*99\)|rgb\(55,\s*65,\s*81\)|rgb\(31,\s*41,\s*55\))/i',
+            'color:#111827',
+            $contentHtml
+        ) ?? $contentHtml;
+
+        return $contentHtml;
     }
 }

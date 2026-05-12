@@ -144,18 +144,24 @@
     box-shadow: 0 1px 4px rgba(0,0,0,.05);
 }
 .sp-card:last-child { margin-bottom: 0; }
-.sp-prose { color: #374151 !important; line-height: 1.8; }
+.sp-prose { color: #111827 !important; line-height: 1.8; }
 .sp-prose h2 { font-size: 1.35rem; font-weight: 800; color: #111827 !important; margin: 1.75rem 0 .75rem; }
 .sp-prose h3 { font-size: 1.1rem; font-weight: 700; color: #111827 !important; margin: 1.4rem 0 .6rem; }
-.sp-prose p { margin-bottom: 1rem; font-size: .975rem; color: #374151 !important; }
+.sp-prose p { margin-bottom: 1rem; font-size: .975rem; color: #111827 !important; }
 .sp-prose ul { padding-left: 1.25rem; margin-bottom: 1rem; }
-.sp-prose ul li { margin-bottom: .4rem; font-size: .975rem; color: #374151 !important; }
+.sp-prose ul li { margin-bottom: .4rem; font-size: .975rem; color: #111827 !important; }
+.sp-prose ol { padding-left: 1.25rem; margin-bottom: 1rem; }
+.sp-prose ol li,
+.sp-prose span,
+.sp-prose blockquote,
+.sp-prose td,
+.sp-prose th { color: #111827 !important; }
 .sp-prose strong { color: #111827 !important; }
 .sp-prose a { color: inherit !important; }
 .sp-prose img, .sp-prose video, .sp-prose iframe { max-width:100%!important; height:auto; border-radius:10px; display:block; }
-.sp-prose table { width:100%; border-collapse:collapse; font-size:.9rem; color:#374151 !important; }
-.sp-prose td, .sp-prose th { padding:.5rem .75rem; border:1px solid #e5e7eb; word-break:break-word; color:#374151 !important; }
-.sp-prose, .sp-prose * { --tw-prose-body: #374151; --tw-prose-headings: #111827; --tw-prose-bold: #111827; --tw-prose-links: #374151; }
+.sp-prose table { width:100%; border-collapse:collapse; font-size:.9rem; color:#111827 !important; }
+.sp-prose td, .sp-prose th { padding:.5rem .75rem; border:1px solid #e5e7eb; word-break:break-word; color:#111827 !important; }
+.sp-prose, .sp-prose * { --tw-prose-body: #111827; --tw-prose-headings: #111827; --tw-prose-bold: #111827; --tw-prose-links: #111827; }
 .sp-prose div[class*="grid"],
 .sp-prose div[class*="flex"],
 .sp-prose div[class*="columns"] {

@@ -1634,11 +1634,6 @@ EXEMPLES CONCRETS POUR {$keyword}:
     </a>
   </section>
 
-  <section class="rounded-2xl border border-slate-200 bg-white p-6">
-    <h3 class="text-lg font-bold text-gray-900 mb-3">Informations pratiques</h3>
-    <ul class="space-y-3 text-sm">[infos_pratiques_liste]</ul>
-  </section>
-
   <section class="pt-4 border-t border-gray-200">
     <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
     <div class="flex flex-wrap gap-3">
@@ -1851,7 +1846,7 @@ Entreprise: {$companyName}
   4. section \"pourquoi choisir\"
   5. FAQ visible
   6. CTA devis
-  7. informations pratiques
+  7. partage de page
 - Les textes doivent être denses, naturels, concrets et localement crédibles
 - INTERDICTION ABSOLUE de mentionner le financement, les aides, MaPrimeRénov, les CEE, l'éco-PTZ, la TVA réduite ou des facilités de paiement
 
@@ -1884,9 +1879,6 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
     {\"question\": \"[Question fréquente réelle sur {$serviceName}]\", \"reponse\": \"[Réponse détaillée et professionnelle]\"}
   ],
   \"pourquoi_choisir\": \"[Génère un texte détaillant pourquoi choisir {$companyName} pour {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Mentionne expertise, qualité, réactivité, garanties, savoir-faire local, etc.]\",
-  \"infos_pratiques\": [
-    \"[Utilise EXACTEMENT les informations pratiques fournies ci-dessus - ne pas inventer]\"
-  ],
   \"meta_title\": \"{$serviceName} à [VILLE] ([CODE_POSTAL]) | Devis gratuit\",
   \"meta_description\": \"{$serviceName} à [VILLE] ([CODE_POSTAL]) dans le département [DÉPARTEMENT] : intervention locale, devis gratuit, accompagnement rapide et travail soigné.\",
   \"meta_keywords\": \"{$serviceName}, {$serviceName} [VILLE], {$serviceName} [CODE_POSTAL], {$serviceName} [DÉPARTEMENT], entreprise {$serviceName} [VILLE], artisan {$serviceName} [VILLE], devis {$serviceName} [VILLE], prix {$serviceName} [VILLE], service {$serviceName} [VILLE], professionnel {$serviceName} [VILLE], spécialiste {$serviceName} [DÉPARTEMENT], intervention {$serviceName} [VILLE], travaux {$serviceName} [VILLE], urgence {$serviceName} [VILLE], qualité {$serviceName}\",
@@ -1911,10 +1903,9 @@ RÈGLES STRICTES:
 12. La meta title doit rester concise, utile et CTR-friendly. Vise 55-65 caractères.
 13. La meta description doit être naturelle, locale, non dupliquée et orientée intention de contact. Vise 140-165 caractères.
 14. Les questions de FAQ doivent être réalistes, précises et directement liées au service.
-11. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
-12. Les guillemets dans les valeurs doivent être échappés avec \\
-13. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
-14. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
+11. Les guillemets dans les valeurs doivent être échappés avec \\
+12. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
+13. ⚠️ MOTS-CLÉS: Le champ meta_keywords DOIT contenir AU MINIMUM 15-20 mots-clés pertinents et variés, séparés par des virgules. Inclus:
     - Le nom du service et ses variations (avec et sans [VILLE])
     - Des termes techniques spécifiques au métier (ex: pour toiture: zinguerie, charpente, étanchéité, isolation, etc.)
     - Des mots-clés d'action (rénovation, réparation, installation, entretien, etc.)
@@ -1922,8 +1913,9 @@ RÈGLES STRICTES:
     - Des termes géographiques avec [VILLE] et [DÉPARTEMENT]
     - Des termes commerciaux (devis gratuit, intervention rapide, garantie, etc.)
     - Des matériaux ou techniques spécifiques au service
-15. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel
-16. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.";
+14. VÉRIFIE avant d'envoyer: tous les textes contiennent [VILLE] et [DÉPARTEMENT], PAS de nom de ville réel
+15. ⚠️ INTERDIT ABSOLU de copier les exemples entre [crochets]. Génère du contenu professionnel réel.
+16. N'ajoute pas de section ni de liste \"Informations pratiques\" dans le HTML généré, car cette information est déjà affichée par la page.";
             
             Log::info('Appel à AiService::callAI pour template', [
                 'service_name' => $serviceName,
