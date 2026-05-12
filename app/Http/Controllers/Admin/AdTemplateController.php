@@ -104,13 +104,49 @@ class AdTemplateController extends Controller
     }
 
     /**
-     * Régénérer le template en mono-colonne et republier son contenu sur les annonces liées.
+     * Régénérer le template via l'IA avec la structure page service puis republier sur les annonces liées.
      */
     public function regenerateTemplate(AdTemplate $template)
     {
-        $normalizedContent = $this->normalizeTemplateContentToSingleColumn($template->content_html);
-        $template->content_html = $normalizedContent;
-        $template->save();
+        try {
+            $companyInfo = $this->getCompanyInfo();
+            $storedPrompt = $this->extractStoredTemplatePrompt($template);
+            $shortDescription = trim((string) ($template->short_description ?: $template->service_name ?: $template->name));
+
+            $aiContent = $this->generateCompleteTemplateContent(
+                $template->service_name ?: $template->name,
+                $shortDescription,
+                $companyInfo,
+                $storedPrompt
+            );
+
+            $template->update([
+                'content_html' => $aiContent['description'] ?? $template->content_html,
+                'short_description' => $aiContent['short_description'] ?? $template->short_description,
+                'long_description' => $aiContent['long_description'] ?? $template->long_description,
+                'icon' => $aiContent['icon'] ?? $template->icon,
+                'meta_title' => $aiContent['meta_title'] ?? $template->meta_title,
+                'meta_description' => $aiContent['meta_description'] ?? $template->meta_description,
+                'meta_keywords' => $aiContent['meta_keywords'] ?? $template->meta_keywords,
+                'og_title' => $aiContent['og_title'] ?? $template->og_title,
+                'og_description' => $aiContent['og_description'] ?? $template->og_description,
+                'twitter_title' => $aiContent['twitter_title'] ?? $template->twitter_title,
+                'twitter_description' => $aiContent['twitter_description'] ?? $template->twitter_description,
+                'ai_response_data' => $aiContent,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erreur régénération IA du template annonce', [
+                'template_id' => $template->id,
+                'service_name' => $template->service_name,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with(
+                'error',
+                'Impossible de régénérer le template via l’IA : ' . $e->getMessage()
+            );
+        }
 
         $updatedAds = 0;
 
@@ -127,6 +163,7 @@ class AdTemplateController extends Controller
                 'content_html' => $template->getContentForCity($ad->city, false),
                 'meta_title' => $metaForCity['meta_title'] ?? $ad->meta_title,
                 'meta_description' => $metaForCity['meta_description'] ?? $ad->meta_description,
+                'meta_keywords' => $metaForCity['meta_keywords'] ?? $ad->meta_keywords,
             ]);
 
             $updatedAds++;
@@ -134,7 +171,7 @@ class AdTemplateController extends Controller
 
         return back()->with(
             'success',
-            "Template régénéré en mono-colonne. {$updatedAds} annonce(s) liée(s) ont été mises à jour."
+            "Template régénéré avec l’IA selon la structure page service. {$updatedAds} annonce(s) liée(s) ont été mises à jour."
         );
     }
 
@@ -1545,6 +1582,19 @@ EXEMPLES CONCRETS POUR {$keyword}:
             'company_email' => setting('company_email', ''),
             'company_address' => setting('company_address', ''),
         ];
+    }
+
+    private function extractStoredTemplatePrompt(AdTemplate $template): ?string
+    {
+        $storedPrompt = $template->ai_prompt_used;
+
+        if (is_array($storedPrompt)) {
+            $storedPrompt = $storedPrompt['prompt'] ?? null;
+        }
+
+        $storedPrompt = is_string($storedPrompt) ? trim($storedPrompt) : null;
+
+        return $storedPrompt !== '' ? $storedPrompt : null;
     }
 
     private function getServicePageTemplateMarkup(): string
