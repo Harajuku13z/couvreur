@@ -3,378 +3,329 @@
 @section('title', 'Indexation Google')
 
 @section('content')
-<div class="p-6">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">
-            <i class="fas fa-search mr-3"></i>Indexation Google
-        </h1>
-        <p class="text-gray-600">Vérifiez et indexez vos pages dans Google</p>
+<div class="p-6 space-y-8">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-search mr-3"></i>Indexation Google
+            </h1>
+            <p class="text-gray-600">
+                Pilotez l’indexation selon la nouvelle logique SEO: canonical propre, annonces faibles en <code>noindex, follow</code>,
+                audit qualité et sitemaps thématiques.
+            </p>
+        </div>
+
+        <div class="bg-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm min-w-[280px]">
+            <div class="text-xs uppercase tracking-[0.2em] text-slate-300 mb-2">Version du site</div>
+            <div class="text-lg font-bold">{{ $siteReleaseName }}</div>
+            <div class="text-sm text-slate-200 mt-1">Release: {{ $siteVersion }}</div>
+            <div class="text-xs text-slate-400 mt-3">
+                Mettez à jour <code class="text-slate-200">APP_RELEASE_NAME</code> et <code class="text-slate-200">APP_VERSION</code> dans le <code class="text-slate-200">.env</code> après chaque déploiement.
+            </div>
+        </div>
     </div>
 
-    <!-- Messages -->
     @if(session('success'))
-    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg shadow">
-        <div class="flex items-center">
-            <i class="fas fa-check-circle mr-3 text-2xl"></i>
-            <span class="font-medium">{{ session('success') }}</span>
-        </div>
+    <div class="bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-xl">
+        <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow">
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-triangle mr-3 text-2xl"></i>
-            <span class="font-medium">{{ session('error') }}</span>
-        </div>
+    <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl">
+        <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('error') }}
     </div>
     @endif
 
-    <!-- Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- URLs Sitemap -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm font-medium text-gray-500 uppercase mb-1">URLs Sitemap</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ number_format($stats['total_sitemap'] ?? 0) }}</div>
-                </div>
-                <div class="text-blue-500">
-                    <i class="fas fa-sitemap text-4xl opacity-20"></i>
-                </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">URLs dans les sitemaps</div>
+            <div class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_sitemap'] ?? 0) }}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">URLs indexées</div>
+            <div class="text-3xl font-bold text-green-600">{{ number_format($stats['indexed'] ?? 0) }}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">Non indexées</div>
+            <div class="text-3xl font-bold text-amber-600">{{ number_format($stats['not_indexed'] ?? 0) }}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">Taux d’indexation</div>
+            <div class="text-3xl font-bold text-indigo-600">
+                {{ $stats['total_tracked'] > 0 ? round($stats['indexed'] / $stats['total_tracked'] * 100, 1) : 0 }}%
             </div>
         </div>
-
-        <!-- Indexées -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm font-medium text-gray-500 uppercase mb-1">Indexées ✅</div>
-                    <div class="text-3xl font-bold text-green-600">{{ number_format($stats['indexed'] ?? 0) }}</div>
-                </div>
-                <div class="text-green-500">
-                    <i class="fas fa-check-circle text-4xl opacity-20"></i>
-                </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="text-xs uppercase tracking-wider text-gray-500 mb-2">Noindex auto annonces faibles</div>
+            <div class="text-lg font-bold {{ $adsAutoNoindexLowQuality ? 'text-green-600' : 'text-red-600' }}">
+                {{ $adsAutoNoindexLowQuality ? 'Activé' : 'Désactivé' }}
             </div>
         </div>
+    </div>
 
-        <!-- Non Indexées -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm font-medium text-gray-500 uppercase mb-1">Non Indexées ⚠️</div>
-                    <div class="text-3xl font-bold text-yellow-600">{{ number_format($stats['not_indexed'] ?? 0) }}</div>
-                </div>
-                <div class="text-yellow-500">
-                    <i class="fas fa-exclamation-triangle text-4xl opacity-20"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Taux -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm font-medium text-gray-500 uppercase mb-1">Taux Indexation</div>
-                    <div class="text-3xl font-bold text-purple-600">
-                        {{ $stats['total_tracked'] > 0 ? round($stats['indexed'] / $stats['total_tracked'] * 100, 1) : 0 }}%
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div class="xl:col-span-2 space-y-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">
+                            <i class="fas fa-bolt mr-2 text-blue-600"></i>Actions rapides
+                        </h2>
+                        <p class="text-sm text-gray-600 mt-1">Vérifiez, indexez et régénérez les sitemaps sans quitter cette page.</p>
                     </div>
                 </div>
-                <div class="text-purple-500">
-                    <i class="fas fa-chart-pie text-4xl opacity-20"></i>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onclick="verifierUrls()"
+                            class="rounded-2xl bg-blue-600 hover:bg-blue-700 text-white p-6 text-left shadow-sm transition"
+                            id="btn-verify">
+                        <i class="fas fa-search-plus text-3xl mb-3 block"></i>
+                        <span class="font-semibold text-lg block">Vérifier 50 URLs</span>
+                        <span class="text-blue-100 text-sm">Inspection via Google</span>
+                    </button>
+
+                    <button onclick="indexerUrls()"
+                            class="rounded-2xl bg-green-600 hover:bg-green-700 text-white p-6 text-left shadow-sm transition"
+                            id="btn-index">
+                        <i class="fas fa-rocket text-3xl mb-3 block"></i>
+                        <span class="font-semibold text-lg block">Indexer 150 URLs</span>
+                        <span class="text-green-100 text-sm">Demande via API</span>
+                    </button>
+
+                    <button onclick="regenererSitemap()"
+                            class="rounded-2xl bg-violet-600 hover:bg-violet-700 text-white p-6 text-left shadow-sm transition"
+                            id="btn-sitemap">
+                        <i class="fas fa-sitemap text-3xl mb-3 block"></i>
+                        <span class="font-semibold text-lg block">Régénérer les sitemaps</span>
+                        <span class="text-violet-100 text-sm">Index + sous-sitemaps</span>
+                    </button>
+                </div>
+
+                <div id="results-zone" class="mt-6 hidden">
+                    <div id="results-content"></div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Actions Rapides -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 -m-6 mb-6 rounded-t-xl">
-            <h2 class="text-xl font-bold flex items-center">
-                <i class="fas fa-bolt mr-3"></i>Actions Rapides
-            </h2>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="text-center">
-                <button onclick="verifierUrls()" 
-                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-8 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
-                        id="btn-verify">
-                    <i class="fas fa-search-plus text-5xl mb-3 block"></i>
-                    <span class="text-xl block">Vérifier 50 URLs</span>
-                </button>
-                <p class="text-gray-600 text-sm mt-3">
-                    <i class="fas fa-info-circle mr-1"></i>Interroge Google (2-3 min)
-                </p>
-            </div>
-
-            <div class="text-center">
-                <button onclick="indexerUrls()" 
-                        class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-8 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
-                        id="btn-index">
-                    <i class="fas fa-rocket text-5xl mb-3 block"></i>
-                    <span class="text-xl block">Indexer 150 URLs</span>
-                </button>
-                <p class="text-gray-600 text-sm mt-3">
-                    <i class="fas fa-paper-plane mr-1"></i>Envoie à Google API
-                </p>
-            </div>
-
-            <div class="text-center">
-                <button onclick="window.location.reload()" 
-                        class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-8 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200">
-                    <i class="fas fa-sync-alt text-5xl mb-3 block"></i>
-                    <span class="text-xl block">Actualiser</span>
-                </button>
-                <p class="text-gray-600 text-sm mt-3">
-                    <i class="fas fa-chart-line mr-1"></i>Recharge stats
-                </p>
-            </div>
-        </div>
-
-        <!-- Zone résultats -->
-        <div id="results-zone" class="mt-6 hidden">
-            <hr class="my-4 border-gray-300">
-            <div id="results-content"></div>
-        </div>
-    </div>
-
-    <!-- Index de Sitemap -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-purple-500">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-list mr-3"></i>Index de Sitemap
-        </h2>
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <p class="text-sm text-gray-700 mb-2">
-                <strong>URL de l'index de sitemap :</strong>
-            </p>
-            <div class="flex items-center justify-between bg-white rounded-lg p-3 border border-purple-300">
-                <code class="text-purple-700 font-mono text-sm flex-1 break-all">
-                    {{ $siteUrl }}/sitemap/sitemap_index.xml
-                </code>
-                <a href="{{ $siteUrl }}/sitemap/sitemap_index.xml" target="_blank" 
-                   class="ml-4 inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition">
-                    <i class="fas fa-external-link-alt mr-2"></i>Ouvrir
-                </a>
-            </div>
-            <p class="text-xs text-gray-600 mt-3">
-                <i class="fas fa-info-circle mr-1"></i>Cet index référence tous les sitemaps du site. 
-                Vous pouvez le soumettre à Google Search Console.
-            </p>
-        </div>
-    </div>
-
-    <!-- Liste des Sitemaps -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">
-                <i class="fas fa-sitemap mr-3"></i>Sitemaps du Site
-            </h2>
-            <button onclick="regenererSitemap()" 
-                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg shadow hover:shadow-lg transition"
-                    id="btn-sitemap">
-                <i class="fas fa-sync mr-2"></i>Régénérer Tous
-            </button>
-        </div>
-
-        <?php
-        $sitemapFiles = glob(public_path('sitemap*.xml'));
-        $sitemapFiles = array_filter($sitemapFiles, function($file) {
-            return basename($file) !== 'sitemap_index.xml';
-        });
-        ?>
-
-        @if(!empty($sitemapFiles))
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fichier</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">URLs</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Taille</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Modifié</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($sitemapFiles as $file)
-                        <?php
-                        $filename = basename($file);
-                        $urlCount = 0;
-                        try {
-                            $xml = simplexml_load_file($file);
-                            if ($xml && isset($xml->url)) {
-                                $urlCount = count($xml->url);
-                            }
-                        } catch (\Exception $e) {
-                            $urlCount = 0;
-                        }
-                        ?>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <i class="fas fa-file-code text-blue-500 mr-3"></i>
-                                    <span class="text-sm font-medium text-gray-900">{{ $filename }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    {{ number_format($urlCount) }} URLs
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                {{ number_format(filesize($file) / 1024, 1) }} KB
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                {{ date('d/m/Y H:i', filemtime($file)) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <a href="{{ url($filename) }}" target="_blank" 
-                                   class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg mr-2 transition">
-                                    <i class="fas fa-eye mr-2"></i>Voir
-                                </a>
-                                @if($isGoogleConfigured)
-                                <button onclick="soumettreGoogle('{{ $filename }}')" 
-                                        class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition">
-                                    <i class="fas fa-upload mr-2"></i>Soumettre
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-                <div class="flex items-start">
-                    <i class="fas fa-info-circle text-blue-500 text-xl mr-3 mt-1"></i>
-                    <div class="text-sm text-blue-800">
-                        <p class="font-semibold mb-1">Info Sitemaps</p>
-                        <p>Le sitemap principal est <code class="bg-blue-200 px-2 py-1 rounded">sitemap.xml</code>. 
-                        Si vous avez beaucoup d'URLs (> 2000), plusieurs fichiers sont créés automatiquement.</p>
-                        <p class="mt-2">
-                            <strong>Index de sitemap :</strong> 
-                            <a href="{{ url('/sitemap/sitemap_index.xml') }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-                                {{ url('/sitemap/sitemap_index.xml') }}
-                            </a>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">
+                            <i class="fas fa-sitemap mr-2 text-violet-600"></i>Architecture des sitemaps
+                        </h2>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Le sitemap principal est désormais un index. Les annonces sont distribuées dans des sous-sitemaps thématiques par service.
                         </p>
                     </div>
+                    <a href="{{ $sitemapIndexUrl }}" target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-violet-50 text-violet-700 rounded-xl text-sm font-semibold border border-violet-200">
+                        <i class="fas fa-external-link-alt mr-2"></i>Ouvrir l’index
+                    </a>
                 </div>
-            </div>
-        @else
-            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mr-4"></i>
-                    <div>
-                        <p class="text-yellow-800 font-semibold mb-1">Aucun sitemap généré</p>
-                        <p class="text-yellow-700 text-sm">Cliquez sur "Régénérer Tous" pour créer le sitemap.</p>
+
+                <div class="bg-violet-50 border border-violet-200 rounded-2xl p-4 mb-5">
+                    <div class="text-sm text-violet-900">
+                        <div class="font-semibold mb-2">URL canonique du sitemap à soumettre dans Search Console</div>
+                        <code class="block bg-white border border-violet-200 rounded-lg px-3 py-2 text-sm break-all">{{ $sitemapIndexUrl }}</code>
                     </div>
                 </div>
-            </div>
-        @endif
-    </div>
 
-    <!-- Configuration -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-        <div class="flex items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">
-                <i class="fas fa-cog mr-3"></i>Configuration Google Search Console
-            </h2>
-            @if($isGoogleConfigured)
-                <span class="ml-auto px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
-                    <i class="fas fa-check-circle mr-2"></i>Configuré ✅
-                </span>
-            @else
-                <span class="ml-auto px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold rounded-full">
-                    <i class="fas fa-times-circle mr-2"></i>Non configuré ❌
-                </span>
-            @endif
+                @if(!empty($sitemapFiles))
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wider">
+                                <th class="text-left py-3 pr-4">Fichier</th>
+                                <th class="text-left py-3 pr-4">Segment</th>
+                                <th class="text-center py-3 pr-4">URLs</th>
+                                <th class="text-center py-3 pr-4">Taille</th>
+                                <th class="text-center py-3 pr-4">Modifié</th>
+                                <th class="text-right py-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($sitemapFiles as $file)
+                            <tr class="border-b border-gray-100">
+                                <td class="py-4 pr-4 font-medium text-gray-900">{{ $file['filename'] }}</td>
+                                <td class="py-4 pr-4 text-gray-600">{{ $file['category'] }}</td>
+                                <td class="py-4 pr-4 text-center">
+                                    <span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">{{ number_format($file['url_count']) }}</span>
+                                </td>
+                                <td class="py-4 pr-4 text-center text-gray-600">{{ $file['size_kb'] }} KB</td>
+                                <td class="py-4 pr-4 text-center text-gray-600">{{ $file['modified_at'] }}</td>
+                                <td class="py-4 text-right">
+                                    <div class="inline-flex items-center gap-2">
+                                        <a href="{{ $file['public_url'] }}" target="_blank"
+                                           class="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">
+                                            Voir
+                                        </a>
+                                        @if($isGoogleConfigured)
+                                        <button onclick="soumettreGoogle('{{ $file['relative_path'] }}', this)"
+                                                class="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white">
+                                            Soumettre
+                                        </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4">
+                    Aucun sous-sitemap détecté. Lancez une régénération pour créer `public/sitemap/*.xml`.
+                </div>
+                @endif
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 mb-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-code-branch text-slate-700 mt-1"></i>
+                        <div class="text-sm text-slate-700">
+                            <div class="font-semibold text-slate-900">Mise à jour actuellement affichée</div>
+                            <div class="mt-1">{{ $siteReleaseName }} <span class="text-slate-500">({{ $siteVersion }})</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-sliders-h mr-2 text-emerald-600"></i>Configuration SEO et Search Console
+                </h2>
+
+                <form method="POST" action="{{ route('admin.indexation.update') }}" class="space-y-6">
+                    @csrf
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">URL du site</label>
+                        <input type="url" name="site_url" value="{{ $siteUrl }}" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-2">Cette URL sert de base aux canonicals et aux sitemaps.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Credentials JSON Google Search Console</label>
+                        <textarea name="google_search_console_credentials" rows="8"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder='{"type":"service_account", ...}'>{{ $googleCredentials }}</textarea>
+                        <p class="text-xs text-gray-500 mt-2">Compte de service utilisé pour l’inspection d’URL et les demandes d’indexation.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="flex items-start gap-3 p-4 rounded-2xl border border-gray-200 bg-gray-50">
+                            <input type="checkbox" name="daily_indexing_enabled" value="1" class="mt-1"
+                                   {{ $dailyIndexingEnabled ? 'checked' : '' }}>
+                            <span>
+                                <span class="block font-semibold text-gray-800">Indexation quotidienne automatique</span>
+                                <span class="block text-sm text-gray-600">150 URLs/jour via cron à 02h00.</span>
+                            </span>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-4 rounded-2xl border border-gray-200 bg-gray-50">
+                            <input type="checkbox" name="ads_auto_noindex_low_quality" value="1" class="mt-1"
+                                   {{ $adsAutoNoindexLowQuality ? 'checked' : '' }}>
+                            <span>
+                                <span class="block font-semibold text-gray-800">Noindex auto pour annonces faibles</span>
+                                <span class="block text-sm text-gray-600">Laisse crawlable, retire du sitemap et garde le maillage.</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm">
+                        <i class="fas fa-save mr-2"></i>Sauvegarder
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <form method="POST" action="{{ route('admin.indexation.update') }}" class="space-y-6">
-            @csrf
-            
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">URL du site</label>
-                <input type="url" name="site_url" value="{{ $siteUrl }}" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                <p class="mt-2 text-sm text-gray-600">
-                    <i class="fas fa-lightbulb mr-1"></i>Ex: https://couvreur-chevigny-saint-sauveur.fr
-                </p>
+        <div class="space-y-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-check-double mr-2 text-slate-700"></i>Règles actives
+                </h2>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li class="flex gap-3">
+                        <i class="fas fa-link text-blue-600 mt-1"></i>
+                        <span>Canonical affichée uniquement sur les annonces indexables.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="fas fa-ban text-amber-600 mt-1"></i>
+                        <span>Annonces faibles en <code>noindex, follow</code>, sans blocage dans <code>robots.txt</code>.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="fas fa-code text-violet-600 mt-1"></i>
+                        <span>Schema FAQ retiré du JSON-LD. Le contenu FAQ reste visible sur la page.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <i class="fas fa-map-signs text-emerald-600 mt-1"></i>
+                        <span>JSON-LD local: <code>RoofingContractor</code> / <code>ProfessionalService</code> + <code>Service</code> + breadcrumbs.</span>
+                    </li>
+                </ul>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Credentials JSON Google Search Console</label>
-                <textarea name="google_search_console_credentials" rows="8" 
-                          class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                          placeholder='{"type": "service_account", "project_id": "...", ...}'>{{ $googleCredentials }}</textarea>
-                <p class="mt-2 text-sm text-gray-600">
-                    <i class="fas fa-key mr-1"></i>Collez le JSON de votre compte de service
-                </p>
-            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-file-medical-alt mr-2 text-amber-600"></i>Audit SEO annonces
+                </h2>
+                <div class="space-y-4 text-sm text-gray-700">
+                    <div class="rounded-xl bg-gray-900 text-gray-100 p-4 font-mono text-xs overflow-x-auto">
+                        php artisan seo:audit-ads --sample=500<br>
+                        php artisan seo:audit-ads --all
+                    </div>
+                    <p>Rapports générés dans <code>storage/app/seo-audits/</code>. Utilisez-les pour réécrire, fusionner ou laisser en noindex les pages faibles.</p>
 
-            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                    <label class="text-sm font-bold text-gray-700">Indexation quotidienne automatique</label>
-                    <p class="text-xs text-gray-600 mt-1">150 URLs indexées chaque jour à 02h00</p>
+                    @if(!empty($latestAuditReports))
+                    <div>
+                        <div class="font-semibold text-gray-900 mb-2">Derniers rapports détectés</div>
+                        <div class="space-y-2">
+                            @foreach($latestAuditReports as $report)
+                            <div class="rounded-xl border border-gray-200 px-4 py-3">
+                                <div class="font-medium text-gray-900">{{ $report['filename'] }}</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ $report['modified_at'] }} • {{ $report['size_kb'] }} KB</div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="daily_indexing_enabled" value="1" class="sr-only peer" 
-                           {{ $dailyIndexingEnabled ? 'checked' : '' }}>
-                    <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
             </div>
 
-            <div class="pt-4">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
-                    <i class="fas fa-save mr-2"></i>Sauvegarder Configuration
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Instructions CLI -->
-    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">
-            <i class="fas fa-terminal mr-3 text-gray-600"></i>Alternative : CLI (100% fiable)
-        </h2>
-        <p class="text-gray-700 mb-4 font-medium">Si les boutons ne fonctionnent pas, utilisez ces commandes :</p>
-        
-        <div class="bg-gray-900 text-green-400 p-6 rounded-lg font-mono text-sm overflow-x-auto">
-            <div class="mb-3"><span class="text-gray-500"># Voir statistiques</span><br><span class="text-white">php artisan indexation:simple stats</span></div>
-            <div class="mb-3"><span class="text-gray-500"># Vérifier 100 URLs</span><br><span class="text-white">php artisan indexation:simple verify --limit=100</span></div>
-            <div class="mb-3"><span class="text-gray-500"># Indexer 150 URLs non indexées</span><br><span class="text-white">php artisan indexation:simple index --limit=150</span></div>
-            <div class="mb-3"><span class="text-gray-500"># Vérifier 1 URL spécifique</span><br><span class="text-white">php artisan indexation:simple verify --url="https://..."</span></div>
-            <div><span class="text-gray-500"># Indexer 1 URL spécifique</span><br><span class="text-white">php artisan indexation:simple index --url="https://..."</span></div>
-        </div>
-
-        <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-            <div class="flex items-start">
-                <i class="fas fa-book text-blue-500 text-xl mr-3 mt-1"></i>
-                <div class="text-sm text-blue-800">
-                    <p class="font-semibold">Guide complet disponible</p>
-                    <p class="mt-1">Consultez <code class="bg-blue-200 px-2 py-1 rounded">INDEXATION_REFONTE_COMPLETE.md</code> pour toutes les instructions</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-terminal mr-2 text-gray-700"></i>Commandes utiles
+                </h2>
+                <div class="rounded-xl bg-gray-900 text-gray-100 p-4 font-mono text-xs overflow-x-auto space-y-3">
+                    <div>php artisan indexation:simple stats</div>
+                    <div>php artisan indexation:simple verify --limit=100</div>
+                    <div>php artisan indexation:simple index --limit=150</div>
+                    <div>php artisan sitemap:generate-daily</div>
+                    <div>php artisan seo:audit-ads --sample=1000</div>
                 </div>
+                <p class="text-xs text-gray-500 mt-3">
+                    Après déploiement, inspectez quelques URLs dans Search Console pour vérifier canonical, couverture et prise en compte des nouveaux schémas.
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Fonction vérifier URLs
+function showResult(html) {
+    const zone = document.getElementById('results-zone');
+    const content = document.getElementById('results-content');
+    zone.classList.remove('hidden');
+    content.innerHTML = html;
+}
+
 function verifierUrls() {
     const btn = document.getElementById('btn-verify');
-    const resultsZone = document.getElementById('results-zone');
-    const resultsContent = document.getElementById('results-content');
-    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-3 block"></i><span class="text-xl">Vérification...</span>';
-    
-    resultsZone.classList.remove('hidden');
-    resultsContent.innerHTML = '<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg"><i class="fas fa-spinner fa-spin mr-2"></i>Vérification de 50 URLs en cours... Cela peut prendre 2-3 minutes.</div>';
-    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-3xl mb-3 block"></i><span class="font-semibold text-lg block">Vérification...</span><span class="text-blue-100 text-sm">Inspection via Google</span>';
+
+    showResult('<div class="rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 px-5 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Vérification de 50 URLs en cours...</div>');
+
     fetch('{{ route("admin.indexation.verify-urls") }}', {
         method: 'POST',
         headers: {
@@ -385,51 +336,47 @@ function verifierUrls() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            const stats = data.stats || {};
-            let html = '<div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">';
-            html += '<h3 class="text-lg font-bold text-green-800 mb-3"><i class="fas fa-check-circle mr-2"></i>Vérification terminée !</h3>';
-            html += `<p class="text-green-800 font-semibold mb-3">${stats.verified || 0} URLs vérifiées</p>`;
-            html += '<ul class="space-y-2 text-green-700">';
-            html += `<li><i class="fas fa-check text-green-600 mr-2"></i>Indexées : ${stats.indexed || 0}</li>`;
-            html += `<li><i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>Non indexées : ${stats.not_indexed || 0}</li>`;
-            html += `<li><i class="fas fa-times text-red-600 mr-2"></i>Erreurs : ${stats.errors || 0}</li>`;
-            if (stats.remaining > 0) {
-                html += `<li><i class="fas fa-redo text-blue-600 mr-2"></i>Restantes : ${stats.remaining} (cliquez à nouveau pour continuer)</li>`;
-            }
-            html += '</ul></div>';
-            resultsContent.innerHTML = html;
-        } else {
-            resultsContent.innerHTML = `<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"><i class="fas fa-times mr-2"></i><span class="text-red-800 font-semibold">${data.message || 'Erreur'}</span></div>`;
+        if (!data.success) {
+            throw new Error(data.message || 'Erreur inconnue');
         }
+
+        const stats = data.stats || {};
+        showResult(`
+            <div class="rounded-2xl bg-green-50 border border-green-200 text-green-800 px-5 py-4">
+                <div class="font-semibold mb-2"><i class="fas fa-check-circle mr-2"></i>Vérification terminée</div>
+                <div class="text-sm space-y-1">
+                    <div>Vérifiées: ${stats.verified || 0}</div>
+                    <div>Indexées: ${stats.indexed || 0}</div>
+                    <div>Non indexées: ${stats.not_indexed || 0}</div>
+                    <div>Erreurs: ${stats.errors || 0}</div>
+                    <div>Restantes: ${stats.remaining || 0}</div>
+                </div>
+            </div>
+        `);
     })
     .catch(error => {
-        console.error('Erreur:', error);
-        resultsContent.innerHTML = `<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <p class="text-red-800 font-semibold"><i class="fas fa-times mr-2"></i>Erreur réseau</p>
-            <p class="text-red-700 text-sm mt-2">Utilisez CLI : <code class="bg-red-200 px-2 py-1 rounded">php artisan indexation:simple verify --limit=50</code></p>
-        </div>`;
+        showResult(`
+            <div class="rounded-2xl bg-red-50 border border-red-200 text-red-800 px-5 py-4">
+                <div class="font-semibold"><i class="fas fa-times-circle mr-2"></i>${error.message}</div>
+                <div class="text-sm mt-2">Fallback CLI: <code>php artisan indexation:simple verify --limit=50</code></div>
+            </div>
+        `);
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-search-plus text-5xl mb-3 block"></i><span class="text-xl block">Vérifier 50 URLs</span>';
+        btn.innerHTML = '<i class="fas fa-search-plus text-3xl mb-3 block"></i><span class="font-semibold text-lg block">Vérifier 50 URLs</span><span class="text-blue-100 text-sm">Inspection via Google</span>';
     });
 }
 
-// Fonction indexer URLs
 function indexerUrls() {
-    if (!confirm('Indexer 150 URLs non indexées ?\n\nCela peut prendre 1-2 minutes.')) return;
-    
+    if (!confirm('Indexer 150 URLs non indexées ?')) return;
+
     const btn = document.getElementById('btn-index');
-    const resultsZone = document.getElementById('results-zone');
-    const resultsContent = document.getElementById('results-content');
-    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-3 block"></i><span class="text-xl">Indexation...</span>';
-    
-    resultsZone.classList.remove('hidden');
-    resultsContent.innerHTML = '<div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg"><i class="fas fa-spinner fa-spin mr-2"></i>Indexation en cours...</div>';
-    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-3xl mb-3 block"></i><span class="font-semibold text-lg block">Indexation...</span><span class="text-green-100 text-sm">Demande via API</span>';
+
+    showResult('<div class="rounded-2xl bg-green-50 border border-green-200 text-green-800 px-5 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Envoi des demandes d’indexation en cours...</div>');
+
     fetch('{{ route("admin.indexation.index-urls") }}', {
         method: 'POST',
         headers: {
@@ -440,42 +387,43 @@ function indexerUrls() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            let html = '<div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">';
-            html += '<h3 class="text-lg font-bold text-green-800 mb-3"><i class="fas fa-check-circle mr-2"></i>Indexation terminée !</h3>';
-            html += `<p class="text-green-800 font-semibold mb-2">${data.success_count || 0} URLs envoyées à Google</p>`;
-            if (data.failed_count > 0) {
-                html += `<p class="text-yellow-700"><i class="fas fa-exclamation-triangle mr-2"></i>${data.failed_count} URLs échouées</p>`;
-            }
-            html += '<p class="text-green-700 text-sm mt-3"><i class="fas fa-clock mr-2"></i>Les pages seront indexées dans 3-7 jours.</p>';
-            html += '</div>';
-            resultsContent.innerHTML = html;
-        } else {
-            resultsContent.innerHTML = `<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"><i class="fas fa-times mr-2"></i><span class="text-red-800 font-semibold">${data.message || 'Erreur'}</span></div>`;
+        if (!data.success) {
+            throw new Error(data.message || 'Erreur inconnue');
         }
+
+        showResult(`
+            <div class="rounded-2xl bg-green-50 border border-green-200 text-green-800 px-5 py-4">
+                <div class="font-semibold mb-2"><i class="fas fa-check-circle mr-2"></i>Indexation terminée</div>
+                <div class="text-sm space-y-1">
+                    <div>Demandes envoyées: ${data.success_count || 0}</div>
+                    <div>Échecs: ${data.failed_count || 0}</div>
+                    <div>Total traité: ${data.total || 0}</div>
+                </div>
+            </div>
+        `);
     })
     .catch(error => {
-        console.error('Erreur:', error);
-        resultsContent.innerHTML = `<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <p class="text-red-800 font-semibold"><i class="fas fa-times mr-2"></i>Erreur réseau</p>
-            <p class="text-red-700 text-sm mt-2">Utilisez CLI : <code class="bg-red-200 px-2 py-1 rounded">php artisan indexation:simple index --limit=150</code></p>
-        </div>`;
+        showResult(`
+            <div class="rounded-2xl bg-red-50 border border-red-200 text-red-800 px-5 py-4">
+                <div class="font-semibold"><i class="fas fa-times-circle mr-2"></i>${error.message}</div>
+                <div class="text-sm mt-2">Fallback CLI: <code>php artisan indexation:simple index --limit=150</code></div>
+            </div>
+        `);
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-rocket text-5xl mb-3 block"></i><span class="text-xl block">Indexer 150 URLs</span>';
+        btn.innerHTML = '<i class="fas fa-rocket text-3xl mb-3 block"></i><span class="font-semibold text-lg block">Indexer 150 URLs</span><span class="text-green-100 text-sm">Demande via API</span>';
     });
 }
 
-// Fonction régénérer sitemap
 function regenererSitemap() {
-    if (!confirm('Régénérer le sitemap ?')) return;
-    
+    if (!confirm('Régénérer l’index sitemap et tous les sous-sitemaps ?')) return;
+
     const btn = document.getElementById('btn-sitemap');
     const originalHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Génération...';
-    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-3xl mb-3 block"></i><span class="font-semibold text-lg block">Génération...</span><span class="text-violet-100 text-sm">Index + sous-sitemaps</span>';
+
     fetch('{{ route("admin.indexation.update-sitemap") }}', {
         method: 'POST',
         headers: {
@@ -484,15 +432,17 @@ function regenererSitemap() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            alert('✅ Sitemap régénéré avec succès !');
-            window.location.reload();
-        } else {
-            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+        if (!data.success) {
+            throw new Error(data.message || 'Erreur inconnue');
         }
+        window.location.reload();
     })
     .catch(error => {
-        alert('❌ Erreur : ' + error.message);
+        showResult(`
+            <div class="rounded-2xl bg-red-50 border border-red-200 text-red-800 px-5 py-4">
+                <div class="font-semibold"><i class="fas fa-times-circle mr-2"></i>${error.message}</div>
+            </div>
+        `);
     })
     .finally(() => {
         btn.disabled = false;
@@ -500,38 +450,45 @@ function regenererSitemap() {
     });
 }
 
-// Fonction soumettre sitemap
-function soumettreGoogle(filename) {
-    if (!confirm(`Soumettre "${filename}" à Google ?\n\nIndexera jusqu'à 200 URLs.\nDurée : 1-2 minutes.`)) return;
-    
-    const btn = event.target;
-    const originalHtml = btn.innerHTML;
+function soumettreGoogle(filename, buttonEl) {
+    if (!confirm(`Soumettre ${filename} à Google ?`)) return;
+
+    const btn = buttonEl;
+    const original = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
-    
+    btn.innerHTML = 'Envoi...';
+
     fetch('{{ route("admin.indexation.submit-sitemap") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ filename: filename })
+        body: JSON.stringify({ filename })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            alert(`✅ Sitemap soumis !\n\n${data.success_count || 0} URLs envoyées à Google`);
-            window.location.reload();
-        } else {
-            alert('❌ Erreur : ' + (data.message || 'Erreur inconnue'));
+        if (!data.success) {
+            throw new Error(data.message || 'Erreur inconnue');
         }
+
+        showResult(`
+            <div class="rounded-2xl bg-green-50 border border-green-200 text-green-800 px-5 py-4">
+                <div class="font-semibold"><i class="fas fa-check-circle mr-2"></i>${data.message}</div>
+                <div class="text-sm mt-2">URLs envoyées: ${data.success_count || 0} • Échecs: ${data.failed_count || 0}</div>
+            </div>
+        `);
     })
     .catch(error => {
-        alert('❌ Erreur : ' + error.message);
+        showResult(`
+            <div class="rounded-2xl bg-red-50 border border-red-200 text-red-800 px-5 py-4">
+                <div class="font-semibold"><i class="fas fa-times-circle mr-2"></i>${error.message}</div>
+            </div>
+        `);
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = originalHtml;
+        btn.innerHTML = original;
     });
 }
 </script>

@@ -9,6 +9,7 @@ use App\Services\GoogleSearchConsoleService;
 use App\Models\Setting;
 use App\Models\UrlIndexationStatus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Contrôleur d'indexation SIMPLIFIÉ et FONCTIONNEL
@@ -41,16 +42,31 @@ class IndexationController extends Controller
         // Indexation quotidienne
         $dailyIndexingEnabled = Setting::get('daily_indexing_enabled', false);
         $dailyIndexingEnabled = filter_var($dailyIndexingEnabled, FILTER_VALIDATE_BOOLEAN);
+
+        // Qualité SEO
+        $adsAutoNoindexLowQuality = Setting::get('ads_auto_noindex_low_quality', true);
+        $adsAutoNoindexLowQuality = filter_var($adsAutoNoindexLowQuality, FILTER_VALIDATE_BOOLEAN);
         
         // URL du site
         $siteUrl = Setting::get('site_url', request()->getSchemeAndHttpHost());
+        $sitemapIndexUrl = rtrim($siteUrl, '/') . '/sitemap.xml';
+        $sitemapFiles = $this->getSitemapFiles();
+        $latestAuditReports = $this->getLatestAuditReports();
+        $siteReleaseName = config('app.release_name', 'SEO Indexation');
+        $siteVersion = config('app.version', 'dev');
         
         return view('admin.indexation.index', compact(
             'stats',
             'isGoogleConfigured',
             'googleCredentials',
             'dailyIndexingEnabled',
-            'siteUrl'
+            'siteUrl',
+            'sitemapIndexUrl',
+            'sitemapFiles',
+            'adsAutoNoindexLowQuality',
+            'latestAuditReports',
+            'siteReleaseName',
+            'siteVersion'
         ));
     }
 
@@ -83,11 +99,20 @@ class IndexationController extends Controller
             Setting::set('google_search_console_credentials', $credentials, 'json', 'seo');
         }
         
-        // Indexation quotidienne
-        if ($request->has('daily_indexing_enabled')) {
-            $enabled = $request->boolean('daily_indexing_enabled');
-            Setting::set('daily_indexing_enabled', $enabled, 'boolean', 'seo');
-        }
+        // Les cases à cocher doivent pouvoir enregistrer aussi la valeur false.
+        Setting::set(
+            'daily_indexing_enabled',
+            $request->boolean('daily_indexing_enabled'),
+            'boolean',
+            'seo'
+        );
+
+        Setting::set(
+            'ads_auto_noindex_low_quality',
+            $request->boolean('ads_auto_noindex_low_quality'),
+            'boolean',
+            'seo'
+        );
         
         Setting::clearCache();
         
@@ -241,7 +266,7 @@ class IndexationController extends Controller
                 'filename' => 'required|string'
             ]);
             
-            $filename = $request->input('filename', 'sitemap.xml');
+            $filename = ltrim($request->input('filename', 'sitemap.xml'), '/');
             $sitemapPath = public_path($filename);
             
             if (!file_exists($sitemapPath)) {
@@ -262,8 +287,35 @@ class IndexationController extends Controller
             
             // Extraire URLs
             $urls = [];
-            foreach ($xml->url as $url) {
-                $urls[] = (string)$url->loc;
+
+            if (isset($xml->url)) {
+                foreach ($xml->url as $url) {
+                    $urls[] = (string) $url->loc;
+                }
+            } elseif (isset($xml->sitemap)) {
+                foreach ($xml->sitemap as $sitemapEntry) {
+                    $loc = (string) $sitemapEntry->loc;
+                    if (!$loc) {
+                        continue;
+                    }
+
+                    $path = parse_url($loc, PHP_URL_PATH);
+                    if (!$path) {
+                        continue;
+                    }
+
+                    $nestedPath = public_path(ltrim($path, '/'));
+                    if (!file_exists($nestedPath)) {
+                        continue;
+                    }
+
+                    $nestedXml = simplexml_load_file($nestedPath);
+                    if ($nestedXml && isset($nestedXml->url)) {
+                        foreach ($nestedXml->url as $url) {
+                            $urls[] = (string) $url->loc;
+                        }
+                    }
+                }
             }
             
             if (empty($urls)) {
@@ -297,5 +349,67 @@ class IndexationController extends Controller
             ], 500);
         }
     }
-}
 
+    protected function getSitemapFiles(): array
+    {
+        $files = glob(public_path('sitemap/*.xml')) ?: [];
+
+        $mapped = collect($files)
+            ->filter(fn ($file) => basename($file) !== 'sitemap_index.xml')
+            ->map(function ($file) {
+                $relativePath = 'sitemap/' . basename($file);
+                $urlCount = 0;
+
+                try {
+                    $xml = simplexml_load_file($file);
+                    if ($xml && isset($xml->url)) {
+                        $urlCount = count($xml->url);
+                    }
+                } catch (\Throwable $e) {
+                    $urlCount = 0;
+                }
+
+                return [
+                    'filename' => basename($file),
+                    'relative_path' => $relativePath,
+                    'category' => $this->humanizeSitemapName(basename($file)),
+                    'url_count' => $urlCount,
+                    'size_kb' => round(filesize($file) / 1024, 1),
+                    'modified_at' => date('d/m/Y H:i', filemtime($file)),
+                    'public_url' => url($relativePath),
+                ];
+            })
+            ->sortBy('filename')
+            ->values()
+            ->all();
+
+        return $mapped;
+    }
+
+    protected function getLatestAuditReports(): array
+    {
+        $reports = glob(storage_path('app/seo-audits/*')) ?: [];
+
+        return collect($reports)
+            ->sortByDesc(fn ($path) => filemtime($path))
+            ->take(5)
+            ->map(function ($path) {
+                return [
+                    'filename' => basename($path),
+                    'modified_at' => date('d/m/Y H:i', filemtime($path)),
+                    'size_kb' => round(filesize($path) / 1024, 1),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function humanizeSitemapName(string $filename): string
+    {
+        $name = str_replace('.xml', '', $filename);
+        $name = str_replace(['ads-service-', 'ads-department-', 'pages-core'], ['Services annonces ', 'Département ', 'Pages coeur'], $name);
+        $name = str_replace(['services', 'articles', 'portfolio'], ['Services', 'Articles', 'Portfolio'], $name);
+
+        return Str::headline($name);
+    }
+}

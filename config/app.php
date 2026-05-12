@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Release Metadata
+    |--------------------------------------------------------------------------
+    |
+    | Ces valeurs servent à afficher clairement la version déployée dans
+    | l'interface d'administration. Mettez-les à jour à chaque déploiement
+    | important pour identifier rapidement la release active sur le serveur.
+    |
+    */
+
+    'release_name' => env('APP_RELEASE_NAME', 'SEO Indexation'),
+
+    'version' => env('APP_VERSION', 'dev'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
