@@ -28,6 +28,7 @@ class Deploy extends Command
         $branch = (string) $this->option('branch');
         $maintenanceEnabled = !$this->option('no-maintenance');
         $maintenanceActivated = false;
+        $skipGit = (bool) $this->option('skip-git');
         $releaseContext = [
             'branch' => $branch,
             'commit' => null,
@@ -46,8 +47,8 @@ class Deploy extends Command
 
             $this->reportUploadsDirectory();
 
-            if (!$this->option('skip-git')) {
-                $this->guardAgainstTrackedGitChanges();
+            if (!$skipGit) {
+                $skipGit = $this->shouldSkipGitAutomatically($branch);
             }
 
             if ($maintenanceEnabled) {
@@ -56,13 +57,14 @@ class Deploy extends Command
                 $maintenanceActivated = true;
             }
 
-            if (!$this->option('skip-git')) {
+            if (!$skipGit) {
                 $this->runProcess(['git', 'fetch', 'origin', $branch], 'Recuperation des changements Git');
                 $this->runProcess(['git', 'checkout', $branch], 'Bascule sur la branche ' . $branch);
                 $this->runProcess(['git', 'pull', '--ff-only', 'origin', $branch], 'Mise a jour du code');
                 $releaseContext['commit'] = $this->captureProcess(['git', 'rev-parse', '--short', 'HEAD']);
             } else {
                 $this->comment('Etape Git ignoree.');
+                $releaseContext['commit'] = $this->captureProcess(['git', 'rev-parse', '--short', 'HEAD']);
             }
 
             $this->updateReleaseMetadata($releaseContext);
@@ -176,6 +178,43 @@ class Deploy extends Command
             "Le depot contient des modifications locales suivies. Lancez d'abord 'git status'. ".
             "Utilisez --allow-dirty uniquement si vous savez exactement ce que vous faites."
         );
+    }
+
+    private function shouldSkipGitAutomatically(string $branch): bool
+    {
+        $trackedChanges = $this->trackedGitChanges();
+
+        if (empty($trackedChanges)) {
+            return false;
+        }
+
+        if ($this->option('allow-dirty')) {
+            $this->warn('Des modifications git suivies existent, mais --allow-dirty autorise le deploy.');
+            return false;
+        }
+
+        if ($this->canAutoCleanVendorChanges($trackedChanges)) {
+            $this->warn('Des modifications locales ont ete detectees uniquement dans vendor/. Nettoyage automatique en cours...');
+            $this->runProcess(['git', 'restore', '--worktree', '--staged', 'vendor'], 'Nettoyage automatique de vendor');
+            return false;
+        }
+
+        $this->runProcess(['git', 'fetch', 'origin', $branch], 'Verification de l etat distant');
+
+        $localHead = $this->captureProcess(['git', 'rev-parse', 'HEAD']);
+        $remoteHead = $this->captureProcess(['git', 'rev-parse', 'origin/' . $branch]);
+
+        if ($localHead === $remoteHead) {
+            $this->warn(
+                "Le depot contient des modifications locales suivies, mais le site est deja a jour sur origin/{$branch}. ".
+                'Le deploy continue sans etape Git.'
+            );
+            return true;
+        }
+
+        $this->guardAgainstTrackedGitChanges();
+
+        return false;
     }
 
     private function trackedGitChanges(): array
