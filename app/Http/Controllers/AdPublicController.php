@@ -8,6 +8,7 @@ use App\Models\Review;
 use App\Models\Setting;
 use App\Helpers\SeoHelper;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class AdPublicController extends Controller
 {
@@ -226,6 +227,24 @@ class AdPublicController extends Controller
             ],
         ];
 
+        $reviewSummary = Cache::remember('ads_public_review_summary', 600, function () {
+            $items = Review::where('is_active', true)
+                ->orderBy('review_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->take(4)
+                ->get();
+
+            return [
+                'items' => $items,
+                'average' => (float) (Review::where('is_active', true)->avg('rating') ?? 0),
+                'count' => (int) Review::where('is_active', true)->count(),
+            ];
+        });
+
+        $activeReviews = $reviewSummary['items'];
+        $averageReviewRating = $reviewSummary['average'];
+        $reviewCount = $reviewSummary['count'];
+
         $breadcrumbs = [
             ['name' => 'Accueil', 'url' => route('home')],
             ['name' => 'Services', 'url' => route('services.index')],
@@ -260,6 +279,9 @@ class AdPublicController extends Controller
             'serviceUrl',
             'nearbyAds',
             'faqItems',
+            'activeReviews',
+            'averageReviewRating',
+            'reviewCount',
             'breadcrumbs',
             'renderedContentHtml',
             'serviceName'
@@ -281,16 +303,27 @@ class AdPublicController extends Controller
         // Ajouter des variations avec la ville et le code postal
         $cityName = $city->name ?? '';
         $postalCode = $city->postal_code ?? '';
+        $department = $city->department ?? '';
+        $region = $city->region ?? '';
         
         if (!empty($mainKeyword)) {
             $keywords[] = $mainKeyword;
             if ($cityName) {
                 $keywords[] = $mainKeyword . ' ' . $cityName;
                 $keywords[] = $cityName . ' ' . $mainKeyword;
+                $keywords[] = 'devis ' . $mainKeyword . ' ' . $cityName;
+                $keywords[] = 'entreprise ' . $mainKeyword . ' ' . $cityName;
             }
             if ($postalCode) {
                 $keywords[] = $mainKeyword . ' ' . $postalCode;
                 $keywords[] = $postalCode . ' ' . $mainKeyword;
+            }
+            if ($department) {
+                $keywords[] = $mainKeyword . ' ' . $department;
+                $keywords[] = 'artisan ' . $mainKeyword . ' ' . $department;
+            }
+            if ($region) {
+                $keywords[] = $mainKeyword . ' ' . $region;
             }
             if ($cityName && $postalCode) {
                 $keywords[] = $mainKeyword . ' ' . $cityName . ' ' . $postalCode;
@@ -310,16 +343,24 @@ class AdPublicController extends Controller
     {
         $cityName = trim((string) $city->name);
         $postalCode = trim((string) ($city->postal_code ?? ''));
-        $cityLabel = trim($cityName . ($postalCode ? ' ' . $postalCode : ''));
+        $cityLabel = trim($cityName . ($postalCode ? ' (' . $postalCode . ')' : ''));
 
         $title = trim((string) ($existingTitle ?: $ad->meta_title ?: $ad->title ?: $serviceName));
 
-        if (!Str::contains(Str::lower($title), Str::lower($serviceName))) {
-            $title .= ' - ' . $serviceName;
+        if ($title === '' || Str::contains(Str::lower($title), 'service professionnel')) {
+            $title = "{$serviceName} à {$cityLabel} | Devis gratuit";
         }
 
-        if (!Str::contains(Str::lower($title), Str::lower($cityName))) {
+        if (!Str::contains(Str::lower($title), Str::lower($serviceName))) {
+            $title = "{$serviceName} - {$title}";
+        }
+
+        if ($cityName !== '' && !Str::contains(Str::lower($title), Str::lower($cityName))) {
             $title .= ' à ' . $cityLabel;
+        }
+
+        if (!Str::contains(Str::lower($title), 'devis') && mb_strlen($title) < 56) {
+            $title .= ' | Devis gratuit';
         }
 
         return Str::limit(trim(preg_replace('/\s+/', ' ', $title)), 68, '');
@@ -329,16 +370,21 @@ class AdPublicController extends Controller
     {
         $cityName = trim((string) $city->name);
         $postalCode = trim((string) ($city->postal_code ?? ''));
+        $department = trim((string) ($city->department ?? ''));
         $location = trim($cityName . ($postalCode ? ' (' . $postalCode . ')' : ''));
 
         $description = trim((string) strip_tags($existingDescription ?: $ad->meta_description ?: ''));
 
         if ($description === '') {
-            $description = "{$serviceName} à {$location}. Devis gratuit, intervention rapide et accompagnement sur mesure par une entreprise locale.";
+            $description = "{$serviceName} à {$location}" . ($department ? " dans le département {$department}" : '') . ". Devis gratuit, intervention rapide et accompagnement sur mesure par une entreprise locale.";
         }
 
         if (!Str::contains(Str::lower($description), Str::lower($cityName))) {
             $description = "{$serviceName} à {$location}. {$description}";
+        }
+
+        if ($department !== '' && !Str::contains(Str::lower($description), Str::lower($department))) {
+            $description .= " Intervention dans le département {$department}.";
         }
 
         if (!Str::contains(Str::lower($description), 'devis')) {

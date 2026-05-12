@@ -686,6 +686,7 @@ EXEMPLES CONCRETS POUR {$serviceName}:
         try {
             // Nettoyer le contenu
             $cleanContent = $this->cleanHtmlContent($aiContent);
+            $seoFallbacks = $this->getSeoFallbacksForTemplate($serviceName, strip_tags($cleanContent));
             
             Log::info('Contenu nettoyé pour validation', [
                 'service' => $serviceName,
@@ -705,13 +706,13 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                     'short_description' => Str::limit($plainText, 140),
                     'long_description' => Str::limit($plainText, 500),
                     'icon' => 'fas fa-tools',
-                    'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                    'meta_description' => Str::limit($plainText, 160),
-                    'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                    'og_description' => Str::limit($plainText, 160),
-                    'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                    'twitter_description' => Str::limit($plainText, 160),
-                    'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'
+                    'meta_title' => $seoFallbacks['meta_title'],
+                    'meta_description' => Str::limit($plainText, 160) ?: $seoFallbacks['meta_description'],
+                    'og_title' => $seoFallbacks['og_title'],
+                    'og_description' => Str::limit($plainText, 160) ?: $seoFallbacks['og_description'],
+                    'twitter_title' => $seoFallbacks['twitter_title'],
+                    'twitter_description' => Str::limit($plainText, 160) ?: $seoFallbacks['twitter_description'],
+                    'meta_keywords' => $seoFallbacks['meta_keywords']
                 ];
             }
             
@@ -730,13 +731,13 @@ EXEMPLES CONCRETS POUR {$serviceName}:
                         'short_description' => Str::limit($plainText, 140),
                         'long_description' => Str::limit($plainText, 500),
                         'icon' => 'fas fa-tools',
-                        'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                        'meta_description' => Str::limit($plainText, 160),
-                        'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                        'og_description' => Str::limit($plainText, 160),
-                        'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
-                        'twitter_description' => Str::limit($plainText, 160),
-                        'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'
+                        'meta_title' => $seoFallbacks['meta_title'],
+                        'meta_description' => Str::limit($plainText, 160) ?: $seoFallbacks['meta_description'],
+                        'og_title' => $seoFallbacks['og_title'],
+                        'og_description' => Str::limit($plainText, 160) ?: $seoFallbacks['og_description'],
+                        'twitter_title' => $seoFallbacks['twitter_title'],
+                        'twitter_description' => Str::limit($plainText, 160) ?: $seoFallbacks['twitter_description'],
+                        'meta_keywords' => $seoFallbacks['meta_keywords']
                     ];
                 }
                 
@@ -942,93 +943,14 @@ EXEMPLES CONCRETS POUR {$serviceName}:
     private function generateFallbackTemplateContent($service)
     {
         $serviceName = $service['name'];
-        $serviceSlug = $service['slug'];
-        
-        // Contenu HTML de fallback avec la même structure que l'IA
-        $contentHtml = '<div class="grid md:grid-cols-2 gap-8">
-            <div class="space-y-6">
-                <div class="space-y-4">
-                    <p class="text-lg leading-relaxed">Service professionnel de ' . $serviceName . ' à [VILLE], une expertise reconnue dans [RÉGION].</p>
-                    <p class="text-lg leading-relaxed">Spécialistes en travaux de ' . $serviceName . ' pour une qualité supérieure. Nous maîtrisons les techniques modernes garantissant des résultats durables.</p>
-                </div>
-                <div class="bg-blue-50 p-6 rounded-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Notre Engagement Qualité</h3>
-                    <p class="leading-relaxed mb-3">Nous garantissons la satisfaction totale de nos clients à [VILLE] et dans toute la région de [RÉGION].</p>
-                    <p class="leading-relaxed">Chaque intervention de ' . $serviceName . ' est réalisée selon les normes professionnelles les plus strictes.</p>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations ' . $serviceName . '</h3>
-                <ul class="space-y-3"><!-- PRESTATIONS SUPPRIMÉES - FONCTION DÉPRÉCIÉE --></ul>
-                <div class="bg-gray-50 p-6 rounded-lg mt-6">
-                    <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ</h4>
-                    <div class="space-y-2">
-                        <p><strong>Q1: Combien coûte un service de ' . $serviceName . ' à [VILLE]?</strong></p>
-                        <p>A: Le prix dépend de la complexité et de l\'ampleur des travaux. Nous proposons des devis gratuits et personnalisés.</p>
-                        <p><strong>Q2: Quel est le délai d\'intervention pour ' . $serviceName . '?</strong></p>
-                        <p>A: Nous nous engageons à intervenir rapidement, généralement sous 24-48h selon l\'urgence de votre demande.</p>
-                        <p><strong>Q3: Proposez-vous une garantie sur vos services de ' . $serviceName . '?</strong></p>
-                        <p>A: Oui, tous nos travaux sont garantis selon les normes professionnelles en vigueur.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="space-y-6">
-                <div class="bg-green-50 p-6 rounded-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir ce service</h3>
-                    <p class="leading-relaxed">Notre expertise locale à [VILLE] nous permet de comprendre les spécificités de votre région et d\'adapter nos services en conséquence.</p>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">Notre Expertise Locale</h3>
-                <p class="leading-relaxed">Depuis plusieurs années, nous intervenons sur [VILLE] et sa région, développant une connaissance approfondie des besoins locaux en ' . $serviceName . '.</p>
-                <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
-                    <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
-                    <p>Nous vous accompagnons dans vos démarches pour bénéficier des aides financières disponibles pour vos travaux de ' . $serviceName . '.</p>
-                </div>
-                <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
-                    <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis?</h4>
-                    <p class="mb-4">Contactez-nous pour un devis gratuit pour ' . $serviceName . ' à [VILLE].</p>
-                    <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
-                </div>
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Devis gratuit et sans engagement</span></li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Intervention rapide sur [VILLE]</span></li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i><span>Garantie sur tous nos travaux</span></li>
-                    </ul>
-                </div>
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="text-center">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
-                        <div class="flex justify-center items-center space-x-4">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                <i class="fab fa-facebook-f text-lg"></i>
-                                <span class="font-medium">Facebook</span>
-                            </a>
-                            <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                <i class="fab fa-whatsapp text-lg"></i>
-                                <span class="font-medium">WhatsApp</span>
-                            </a>
-                            <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                <i class="fas fa-envelope text-lg"></i>
-                                <span class="font-medium">Email</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>';
+        $seoFallbacks = $this->getSeoFallbacksForTemplate($serviceName);
 
-        return [
-            'description' => $contentHtml,
-            'short_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE] - Devis gratuit et intervention rapide',
-            'long_description' => 'Notre entreprise spécialisée en ' . $serviceName . ' intervient sur [VILLE] et dans toute la région de [RÉGION]. Nous proposons des services complets incluant diagnostic, réparation, installation et maintenance. Notre équipe d\'experts maîtrise les techniques les plus modernes pour garantir des résultats durables et performants. Nous nous adaptons aux spécificités climatiques locales et respectons toutes les normes professionnelles en vigueur.',
+        return array_merge($seoFallbacks, [
+            'description' => $this->getServicePageTemplateMarkup(),
+            'short_description' => "Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide et accompagnement local.",
+            'long_description' => "Notre entreprise spécialisée en {$serviceName} intervient à [VILLE], [CODE_POSTAL], dans le département [DÉPARTEMENT]. Nous adaptons chaque intervention aux contraintes du chantier, aux matériaux en place et au niveau de finition attendu pour garantir un résultat durable et soigné.",
             'icon' => 'fas fa-tools',
-            'meta_title' => $serviceName . ' à [VILLE] - Service professionnel',
-            'meta_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
-            'meta_keywords' => $serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]',
-            'og_title' => $serviceName . ' à [VILLE] - Service professionnel',
-            'og_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
-            'twitter_title' => $serviceName . ' à [VILLE] - Service professionnel',
-            'twitter_description' => 'Service professionnel de ' . $serviceName . ' à [VILLE]. Devis gratuit, intervention rapide, garantie sur tous nos travaux.',
-        ];
+        ]);
     }
 
     /**
@@ -1625,6 +1547,169 @@ EXEMPLES CONCRETS POUR {$keyword}:
         ];
     }
 
+    private function getServicePageTemplateMarkup(): string
+    {
+        return '<div class="space-y-8">
+  <div class="space-y-4">
+    <p class="text-lg leading-relaxed font-medium text-gray-800">[description_courte]</p>
+    <p class="leading-relaxed text-gray-700">[description_longue]</p>
+  </div>
+
+  <section class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
+    <p class="leading-relaxed text-gray-700">[texte_garantie]</p>
+  </section>
+
+  <section>
+    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos prestations [service]</h3>
+    <ul class="space-y-4">[prestations_liste]</ul>
+  </section>
+
+  <section class="rounded-2xl border border-slate-200 bg-white p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [entreprise] pour [service]</h3>
+    <p class="leading-relaxed text-gray-700">[pourquoi_choisir]</p>
+  </section>
+
+  <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-3">Financement et aides disponibles</h3>
+    <p class="leading-relaxed text-gray-700">[financement_aides]</p>
+  </section>
+
+  <section class="rounded-2xl border border-slate-200 bg-gray-50 p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-4">Questions fréquentes sur [service]</h3>
+    <div class="space-y-3">[faq_liste]</div>
+  </section>
+
+  <section class="rounded-2xl bg-gradient-to-r from-blue-50 to-green-50 border border-blue-100 p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis pour [service] ?</h3>
+    <p class="leading-relaxed text-gray-700 mb-4">Contactez [entreprise] pour un devis gratuit et une réponse rapide concernant votre projet à [VILLE].</p>
+    <a href="[FORM_URL]" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300">
+      <i class="fas fa-file-alt"></i>
+      <span>Demande de devis</span>
+    </a>
+  </section>
+
+  <section class="rounded-2xl border border-slate-200 bg-white p-6">
+    <h3 class="text-lg font-bold text-gray-900 mb-3">Informations pratiques</h3>
+    <ul class="space-y-3 text-sm">[infos_pratiques_liste]</ul>
+  </section>
+
+  <section class="pt-4 border-t border-gray-200">
+    <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
+    <div class="flex flex-wrap gap-3">
+      <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-full transition-all duration-300">
+        <i class="fab fa-facebook-f text-lg"></i>
+        <span class="font-medium">Facebook</span>
+      </a>
+      <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full transition-all duration-300">
+        <i class="fab fa-whatsapp text-lg"></i>
+        <span class="font-medium">WhatsApp</span>
+      </a>
+      <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-5 py-3 rounded-full transition-all duration-300">
+        <i class="fas fa-envelope text-lg"></i>
+        <span class="font-medium">Email</span>
+      </a>
+    </div>
+  </section>
+</div>';
+    }
+
+    private function getServiceSpecificSeoTerms(string $serviceName): array
+    {
+        $serviceLower = Str::lower($serviceName);
+
+        return match (true) {
+            Str::contains($serviceLower, ['toiture', 'couverture', 'zinguerie', 'charpente']) => [
+                'zinguerie',
+                'charpente',
+                'etancheite',
+                'hydrofuge',
+                'demoussage',
+                'reparation toiture',
+                'renovation couverture',
+            ],
+            Str::contains($serviceLower, ['elagage', 'elaguer', 'abattage', 'arbre']) => [
+                'elagage raisonne',
+                'abattage securise',
+                'taille douce',
+                'haubanage',
+                'rogne de souche',
+                'taille fruitiere',
+                'mise en securite arbre',
+            ],
+            Str::contains($serviceLower, ['facade', 'ravalement', 'enduit']) => [
+                'ravalement',
+                'enduit facade',
+                'hydrofuge facade',
+                'reprise fissures',
+                'nettoyage facade',
+                'peinture siloxane',
+                'rejointoiement',
+            ],
+            Str::contains($serviceLower, ['isolation', 'combles', 'thermique']) => [
+                'combles',
+                'soufflage',
+                'rampants',
+                'ponts thermiques',
+                'pare-vapeur',
+                'etancheite a l air',
+                'renovation energetique',
+            ],
+            default => [
+                'renovation',
+                'reparation',
+                'installation',
+                'entretien',
+                'diagnostic',
+                'devis gratuit',
+                'intervention rapide',
+            ],
+        };
+    }
+
+    private function getSeoFallbacksForTemplate(string $serviceName, ?string $plainText = null): array
+    {
+        $metaDescription = "{$serviceName} à [VILLE] ([CODE_POSTAL]) dans le département [DÉPARTEMENT] : intervention locale, devis gratuit, accompagnement rapide et travail soigné.";
+
+        if ($plainText) {
+            $candidate = trim(preg_replace('/\s+/', ' ', strip_tags($plainText)));
+            if ($candidate !== '') {
+                $metaDescription = Str::limit($candidate, 160, '');
+                if (!Str::contains(Str::lower($metaDescription), '[ville]')) {
+                    $metaDescription = "{$serviceName} à [VILLE] ([CODE_POSTAL]) : {$metaDescription}";
+                }
+            }
+        }
+
+        $keywordParts = array_merge(
+            [
+                $serviceName,
+                "{$serviceName} [VILLE]",
+                "{$serviceName} [CODE_POSTAL]",
+                "{$serviceName} [DÉPARTEMENT]",
+                "entreprise {$serviceName} [VILLE]",
+                "artisan {$serviceName} [VILLE]",
+                "devis {$serviceName} [VILLE]",
+                "prix {$serviceName} [VILLE]",
+                "professionnel {$serviceName} [VILLE]",
+                "specialiste {$serviceName} [DÉPARTEMENT]",
+                "travaux {$serviceName} [VILLE]",
+                "urgence {$serviceName} [VILLE]",
+            ],
+            $this->getServiceSpecificSeoTerms($serviceName)
+        );
+
+        return [
+            'meta_title' => "{$serviceName} à [VILLE] ([CODE_POSTAL]) | Devis gratuit",
+            'meta_description' => $metaDescription,
+            'meta_keywords' => implode(', ', array_values(array_unique(array_filter($keywordParts)))),
+            'og_title' => "{$serviceName} à [VILLE] | Entreprise locale",
+            'og_description' => "Découvrez notre service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit et réponse rapide.",
+            'twitter_title' => "{$serviceName} à [VILLE] | Devis gratuit",
+            'twitter_description' => "Entreprise locale pour {$serviceName} à [VILLE] ([CODE_POSTAL]). Demandez votre devis gratuit.",
+        ];
+    }
+
     /**
      * Générer un contenu complet de template via IA avec JSON simplifié
      */
@@ -1642,63 +1727,8 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $companyEmail = setting('company_email', '');
             $companyHours = setting('company_hours', '');
             
-            // Template HTML exact fourni par l'utilisateur
-            $template = '<div class="grid md:grid-cols-2 gap-8">
-  <div class="space-y-6">
-    <div class="space-y-4">
-      <p class="text-lg leading-relaxed">[description_courte]</p>
-      <p class="text-lg leading-relaxed">[description_longue]</p>
-    </div>
-    <div class="bg-blue-50 p-6 rounded-lg">
-      <h3 class="text-xl font-bold text-gray-900 mb-3">[titre_garantie]</h3>
-      <p class="leading-relaxed mb-3">[texte_garantie]</p>
-    </div>
-    <h3 class="text-2xl font-bold text-gray-900 mb-4">Nos Prestations [service]</h3>
-    <ul class="space-y-3">[prestations_liste]</ul>
-    <div class="bg-gray-50 p-6 rounded-lg mt-6">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">FAQ [service]</h4>
-      <div class="space-y-2">[faq_liste]</div>
-    </div>
-  </div>
-  <div class="space-y-6">
-    <div class="bg-green-50 p-6 rounded-lg">
-      <h3 class="text-xl font-bold text-gray-900 mb-3">Pourquoi choisir [service] avec [entreprise]</h3>
-      <p class="leading-relaxed">[pourquoi_choisir]</p>
-    </div>
-    <div class="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-600">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">Financement et aides</h4>
-      <p>[financement_aides]</p>
-    </div>
-    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border-l-4 border-blue-600">
-      <h4 class="text-xl font-bold text-gray-900 mb-3">Besoin d\'un devis ?</h4>
-      <p class="mb-4">Contactez-nous pour un devis gratuit pour [service].</p>
-      <a href="[FORM_URL]" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300">Demande de devis</a>
-    </div>
-    <div class="bg-gray-50 p-6 rounded-lg">
-      <h4 class="text-lg font-bold text-gray-900 mb-3">Informations Pratiques</h4>
-      <ul class="space-y-2 text-sm">[infos_pratiques_liste]</ul>
-    </div>
-    <div class="mt-8 pt-6 border-t border-gray-200">
-      <div class="text-center">
-        <h4 class="text-lg font-semibold text-gray-800 mb-4">Partager ce service</h4>
-        <div class="flex justify-center items-center space-x-4">
-          <a href="https://www.facebook.com/sharer/sharer.php?u=[URL]&quote=[TITRE]" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fab fa-facebook-f text-lg"></i>
-            <span class="font-medium">Facebook</span>
-          </a>
-          <a href="https://wa.me/?text=[TITRE] - [URL]" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fab fa-whatsapp text-lg"></i>
-            <span class="font-medium">WhatsApp</span>
-          </a>
-          <a href="mailto:?subject=[TITRE]&body=Je vous partage ce service intéressant : [URL]" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-full transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            <i class="fas fa-envelope text-lg"></i>
-            <span class="font-medium">Email</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>';
+            $template = $this->getServicePageTemplateMarkup();
+            $seoFallbacks = $this->getSeoFallbacksForTemplate($serviceName);
             
             // Prompt simplifié pour générer un JSON structuré
             $systemMessage = "Tu es un expert en rédaction web pour services de rénovation/couverture en France. Tu génères UNIQUEMENT du JSON valide. PAS de texte avant ou après le JSON. PAS de markdown. PAS de code blocks. JUSTE le JSON brut.
@@ -1742,11 +1772,11 @@ EXEMPLES CONCRETS POUR {$keyword}:
             $prestationsExamples = '';
             $serviceLower = mb_strtolower($serviceName);
             if (strpos($serviceLower, 'toiture') !== false || strpos($serviceLower, 'couverture') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Réparation toiture, Hydrofuge toiture, Remplacement tuiles, Zinguerie, Réfection charpente, etc.";
+                $prestationsExamples = "Exemples pour {$serviceName}: diagnostic par drone, reprise des tuiles ou ardoises, réfection du faîtage, écran sous-toiture, zinguerie, traitement hydrofuge, ventilation de toiture, isolation sous rampant.";
             } elseif (strpos($serviceLower, 'isolation') !== false || strpos($serviceLower, 'isol') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Isolation combles perdus, Isolation toiture, Isolation murs, Isolation sols, Traitement ponts thermiques, etc.";
+                $prestationsExamples = "Exemples pour {$serviceName}: isolation des combles perdus, soufflage de laine minérale, isolation des rampants, traitement des ponts thermiques, pare-vapeur, isolation biosourcée, reprise d'étanchéité à l'air.";
             } elseif (strpos($serviceLower, 'façade') !== false || strpos($serviceLower, 'ravalement') !== false) {
-                $prestationsExamples = "Exemples pour {$serviceName}: Ravalement façade, Enduit façade, Peinture façade, Nettoyage façade, Réfection parement, etc.";
+                $prestationsExamples = "Exemples pour {$serviceName}: décapage de façade, reprise des fissures, enduit monocouche, traitement hydrofuge, peinture siloxane, nettoyage basse pression, rejointoiement, réparation des modénatures.";
             } else {
                 $prestationsExamples = "Génère 10 prestations techniques spécifiques au {$serviceName} avec le vocabulaire professionnel du métier.";
             }
@@ -1758,6 +1788,7 @@ Entreprise: {$companyName}
 ⚠️⚠️⚠️ CRITIQUE - C'EST UN TEMPLATE ⚠️⚠️⚠️
 - Ceci est un TEMPLATE qui sera utilisé pour créer des annonces pour différentes villes
 - TU DOIS utiliser UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders
+- Tu peux utiliser aussi [RÉGION] et [CODE_POSTAL] si c'est utile dans les metas
 - INTERDIT ABSOLU d'utiliser une vraie ville comme Paris, Lyon, Marseille, etc.
 - INTERDIT ABSOLU d'utiliser un vrai département comme Paris, Seine-et-Marne, etc.
 - Utilise SEULEMENT les placeholders [VILLE] et [DÉPARTEMENT] dans TOUS les textes
@@ -1765,14 +1796,28 @@ Entreprise: {$companyName}
 
 {$infosPratiquesPrompt}
 
+⚠️⚠️⚠️ OBJECTIF DE DESIGN ⚠️⚠️⚠️
+- La page générée doit ressembler au niveau contenu à une vraie page service éditoriale, claire, premium et structurée
+- INTERDIT de produire une mise en page en 2 colonnes ou un bloc \"landing page\" désordonné
+- Le HTML doit suivre une logique mono-colonne par sections successives:
+  1. introduction
+  2. bloc engagement/garantie
+  3. section prestations
+  4. section \"pourquoi choisir\"
+  5. section financement/aides
+  6. FAQ visible
+  7. CTA devis
+  8. informations pratiques
+- Les textes doivent être denses, naturels, concrets et localement crédibles
+
 ⚠️⚠️⚠️ INSTRUCTIONS CRITIQUES - NE PAS COPIER LES EXEMPLES ⚠️⚠️⚠️
 Les valeurs JSON ci-dessous sont des EXEMPLES/INSTRUCTIONS. TU DOIS générer du VRAI contenu, PAS copier ces exemples !
 
 Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU RÉEL et PROFESSIONNEL :
 
 {
-  \"description_courte\": \"[Génère ici une description courte professionnelle de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. 150-200 caractères, mentionnant les bénéfices principaux.]\",
-  \"description_longue\": \"[Génère ici une description longue et détaillée du {$serviceName}. Intègre naturellement [VILLE] et [DÉPARTEMENT]. Parle des techniques utilisées, matériaux, bénéfices énergétiques, durabilité, qualité. 400-600 mots.]\",
+  \"description_courte\": \"[Génère ici une introduction premium et naturelle de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. 150-220 caractères, ton expert, bénéfice clair, sans formulation publicitaire pauvre.] \",
+  \"description_longue\": \"[Génère ici un texte éditorial détaillé sur {$serviceName}. Intègre naturellement [VILLE], [DÉPARTEMENT] et si utile [RÉGION]. Explique les cas d'usage, contraintes terrain, techniques, matériaux, bénéfices, déroulé d'intervention et attentes client. 450-700 mots.]\",
   \"titre_garantie\": \"[Génère un titre de garantie attractif, ex: 'Garantie décennale et satisfaction' ou 'Nos engagements qualité']\",
   \"texte_garantie\": \"[Génère un texte détaillant les garanties offertes: garantie décennale, assurance, normes respectées, chantier propre, suivi post-intervention, etc.]\",
   \"prestations\": [
@@ -1798,13 +1843,13 @@ Génère un JSON avec cette structure et remplis chaque champ avec du CONTENU R�
   \"infos_pratiques\": [
     \"[Utilise EXACTEMENT les informations pratiques fournies ci-dessus - ne pas inventer]\"
   ],
-  \"meta_title\": \"{$serviceName} à [VILLE] - Expert professionnel | Devis gratuit\",
-  \"meta_description\": \"Service professionnel de {$serviceName} à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.\",
-  \"meta_keywords\": \"{$serviceName}, {$serviceName} [VILLE], {$serviceName} [DÉPARTEMENT], expert {$serviceName}, {$serviceName} professionnel, entreprise {$serviceName}, artisan {$serviceName}, {$serviceName} certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, matériaux performants, techniques modernes, normes professionnelles, intervention [VILLE], service [VILLE], professionnel [VILLE]\",
-  \"og_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
-  \"og_description\": \"Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.\",
-  \"twitter_title\": \"{$serviceName} à [VILLE] - Expert professionnel\",
-  \"twitter_description\": \"Service professionnel de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.\"
+  \"meta_title\": \"{$serviceName} à [VILLE] ([CODE_POSTAL]) | Devis gratuit\",
+  \"meta_description\": \"{$serviceName} à [VILLE] ([CODE_POSTAL]) dans le département [DÉPARTEMENT] : intervention locale, devis gratuit, accompagnement rapide et travail soigné.\",
+  \"meta_keywords\": \"{$serviceName}, {$serviceName} [VILLE], {$serviceName} [CODE_POSTAL], {$serviceName} [DÉPARTEMENT], entreprise {$serviceName} [VILLE], artisan {$serviceName} [VILLE], devis {$serviceName} [VILLE], prix {$serviceName} [VILLE], service {$serviceName} [VILLE], professionnel {$serviceName} [VILLE], spécialiste {$serviceName} [DÉPARTEMENT], intervention {$serviceName} [VILLE], travaux {$serviceName} [VILLE], urgence {$serviceName} [VILLE], qualité {$serviceName}\",
+  \"og_title\": \"{$serviceName} à [VILLE] | Entreprise locale\",
+  \"og_description\": \"Découvrez notre service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit et réponse rapide.\",
+  \"twitter_title\": \"{$serviceName} à [VILLE] | Devis gratuit\",
+  \"twitter_description\": \"Entreprise locale pour {$serviceName} à [VILLE] ([CODE_POSTAL]). Demandez votre devis gratuit.\"
 }
 
 RÈGLES STRICTES:
@@ -1813,11 +1858,15 @@ RÈGLES STRICTES:
 3. PAS de texte après le }
 4. PAS de ```json ou ``` autour
 5. ⚠️ CRITIQUE: Les valeurs entre [crochets] ci-dessus sont des INSTRUCTIONS, PAS du contenu à copier. Tu DOIS générer du VRAI contenu professionnel qui remplace ces instructions.
-6. Les prestations DOIVENT être techniques et spécifiques au {$serviceName}. {$prestationsExamples}
+6. Les prestations DOIVENT être techniques, concrètes et spécifiques au {$serviceName}. {$prestationsExamples}
 7. Utilise le vocabulaire professionnel du métier de {$serviceName}
-8. ⚠️ CRITIQUE TEMPLATE: Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords, pourquoi_choisir), utilise UNIQUEMENT [VILLE] et [DÉPARTEMENT] comme placeholders. JAMAIS de vraie ville comme Paris, Lyon, Marseille, Bordeaux, etc. JAMAIS de vrai département.
+8. ⚠️ CRITIQUE TEMPLATE: Dans TOUS les textes (description_courte, description_longue, meta_title, meta_description, og_title, og_description, twitter_title, twitter_description, meta_keywords, pourquoi_choisir), utilise UNIQUEMENT des placeholders comme [VILLE], [DÉPARTEMENT], [RÉGION], [CODE_POSTAL]. JAMAIS de vraie ville comme Paris, Lyon, Marseille, Bordeaux, etc. JAMAIS de vrai département.
 9. Exemple CORRECT: \"Service de {$serviceName} à [VILLE] dans le département [DÉPARTEMENT]\"
 10. Exemple INCORRECT (INTERDIT): \"Service de {$serviceName} à Paris dans le département Paris\" ou toute autre ville réelle
+11. Le contenu doit ressembler à une page service premium, pas à un texte IA répétitif ni à une landing page générique.
+12. La meta title doit rester concise, utile et CTR-friendly. Vise 55-65 caractères.
+13. La meta description doit être naturelle, locale, non dupliquée et orientée intention de contact. Vise 140-165 caractères.
+14. Les questions de FAQ doivent être réalistes, précises et directement liées au service.
 11. Pour infos_pratiques, utilise EXACTEMENT les informations fournies ci-dessus (ne pas inventer)
 12. Les guillemets dans les valeurs doivent être échappés avec \\
 13. Assure-toi que le JSON est valide (vérifie les virgules, les accolades)
@@ -1991,13 +2040,13 @@ RÈGLES STRICTES:
                 'short_description' => $jsonData['description_courte'] ?? $shortDescription,
                 'long_description' => $jsonData['description_longue'] ?? '',
                 'icon' => 'fas fa-tools',
-                'meta_title' => $jsonData['meta_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel | Devis gratuit'),
-                'meta_description' => $jsonData['meta_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] et dans le département [DÉPARTEMENT]. Devis gratuit, intervention rapide.'),
-                'og_title' => $jsonData['og_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel'),
-                'og_description' => $jsonData['og_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
-                'twitter_title' => $jsonData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Expert professionnel'),
-                'twitter_description' => $jsonData['twitter_description'] ?? ('Service professionnel de ' . $serviceName . ' à [VILLE] dans le département [DÉPARTEMENT]. Devis gratuit.'),
-                'meta_keywords' => $jsonData['meta_keywords'] ?? ($serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [DÉPARTEMENT], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, satisfaction garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]')
+                'meta_title' => $jsonData['meta_title'] ?? $seoFallbacks['meta_title'],
+                'meta_description' => $jsonData['meta_description'] ?? $seoFallbacks['meta_description'],
+                'og_title' => $jsonData['og_title'] ?? $seoFallbacks['og_title'],
+                'og_description' => $jsonData['og_description'] ?? $seoFallbacks['og_description'],
+                'twitter_title' => $jsonData['twitter_title'] ?? $seoFallbacks['twitter_title'],
+                'twitter_description' => $jsonData['twitter_description'] ?? $seoFallbacks['twitter_description'],
+                'meta_keywords' => $jsonData['meta_keywords'] ?? $seoFallbacks['meta_keywords']
             ];
         }
         } catch (\Exception $e) {
@@ -2151,7 +2200,10 @@ RÈGLES STRICTES:
             $siteUrl = 'https://' . $siteUrl;
         }
         $serviceUrl = $siteUrl . '/services/' . \Illuminate\Support\Str::slug($serviceName);
-        $formUrl = setting('contact_form_url', '/contact');
+        $formUrl = setting('contact_form_url', $siteUrl . '/form/propertyType');
+        if (!str_starts_with((string) $formUrl, 'http')) {
+            $formUrl = rtrim($siteUrl, '/') . '/' . ltrim((string) $formUrl, '/');
+        }
         
         // Générer la liste des prestations
         $prestationsHtml = '';
@@ -2159,9 +2211,11 @@ RÈGLES STRICTES:
             foreach ($data['prestations'] as $prestation) {
                 $titre = htmlspecialchars($prestation['titre'] ?? '', ENT_QUOTES, 'UTF-8');
                 $description = htmlspecialchars($prestation['description'] ?? '', ENT_QUOTES, 'UTF-8');
-                $prestationsHtml .= '<li class="flex items-start">' .
-                    '<i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>' .
-                    '<span><strong>' . $titre . '</strong> - ' . $description . '</span>' .
+                $prestationsHtml .= '<li class="rounded-xl border border-slate-200 bg-slate-50 p-4">' .
+                    '<div class="flex items-start gap-3">' .
+                    '<i class="fas fa-check text-green-600 mt-1 flex-shrink-0"></i>' .
+                    '<span><strong class="text-gray-900">' . $titre . '</strong><br><span class="text-gray-700">' . $description . '</span></span>' .
+                    '</div>' .
                     '</li>';
             }
         }
@@ -2172,8 +2226,10 @@ RÈGLES STRICTES:
             foreach ($data['faq'] as $faq) {
                 $question = htmlspecialchars($faq['question'] ?? '', ENT_QUOTES, 'UTF-8');
                 $reponse = htmlspecialchars($faq['reponse'] ?? '', ENT_QUOTES, 'UTF-8');
-                $faqHtml .= '<p><strong>' . $question . '</strong></p>' .
-                    '<p>' . $reponse . '</p>';
+                $faqHtml .= '<details class="rounded-xl border border-slate-200 bg-white p-4">' .
+                    '<summary class="cursor-pointer font-semibold text-gray-900">' . $question . '</summary>' .
+                    '<p class="mt-3 text-gray-700">' . $reponse . '</p>' .
+                    '</details>';
             }
         }
         
@@ -2190,9 +2246,9 @@ RÈGLES STRICTES:
                     $info = (string)$info;
                 }
                 $infoEscaped = htmlspecialchars($info, ENT_QUOTES, 'UTF-8');
-                $infosPratiquesHtml .= '<li class="flex items-center">' .
-                    '<i class="fas fa-check text-green-600 mr-3 flex-shrink-0"></i>' .
-                    '<span>' . $infoEscaped . '</span>' .
+                $infosPratiquesHtml .= '<li class="flex items-start gap-3">' .
+                    '<i class="fas fa-check text-green-600 mt-1 flex-shrink-0"></i>' .
+                    '<span class="text-gray-700">' . $infoEscaped . '</span>' .
                     '</li>';
             }
         }
@@ -2596,19 +2652,20 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
             $text = trim($text);
             return $maxLength ? Str::limit($text, $maxLength) : $text;
         };
+        $seoFallbacks = $this->getSeoFallbacksForTemplate($serviceName, $description);
         
         return [
             'description' => $description,
             'short_description' => $cleanText($aiData['short_description'] ?? $shortDescription, 140),
             'long_description' => $cleanText($aiData['long_description'] ?? strip_tags($description), 500),
             'icon' => $aiData['icon'] ?? 'fas fa-tools',
-            'meta_title' => $cleanText($aiData['meta_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
-            'meta_description' => $cleanText($aiData['meta_description'] ?? 'Service professionnel à [VILLE]', 500),
-            'meta_keywords' => $aiData['meta_keywords'] ?? ($serviceName . ', ' . $serviceName . ' [VILLE], ' . $serviceName . ' [RÉGION], expert ' . $serviceName . ', ' . $serviceName . ' professionnel, entreprise ' . $serviceName . ', artisan ' . $serviceName . ', ' . $serviceName . ' certifié, rénovation, réparation, installation, intervention rapide, devis gratuit, qualité garantie, intervention [VILLE], service [VILLE], professionnel [VILLE]'),
-            'og_title' => $cleanText($aiData['og_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
-            'og_description' => $cleanText($aiData['og_description'] ?? 'Service professionnel à [VILLE]', 500),
-            'twitter_title' => $cleanText($aiData['twitter_title'] ?? ($serviceName . ' à [VILLE] - Service professionnel'), 160),
-            'twitter_description' => $cleanText($aiData['twitter_description'] ?? 'Service professionnel à [VILLE]', 500),
+            'meta_title' => $cleanText($aiData['meta_title'] ?? $seoFallbacks['meta_title'], 160),
+            'meta_description' => $cleanText($aiData['meta_description'] ?? $seoFallbacks['meta_description'], 500),
+            'meta_keywords' => $aiData['meta_keywords'] ?? $seoFallbacks['meta_keywords'],
+            'og_title' => $cleanText($aiData['og_title'] ?? $seoFallbacks['og_title'], 160),
+            'og_description' => $cleanText($aiData['og_description'] ?? $seoFallbacks['og_description'], 500),
+            'twitter_title' => $cleanText($aiData['twitter_title'] ?? $seoFallbacks['twitter_title'], 160),
+            'twitter_description' => $cleanText($aiData['twitter_description'] ?? $seoFallbacks['twitter_description'], 500),
         ];
     }
 
