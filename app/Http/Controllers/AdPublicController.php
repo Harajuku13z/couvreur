@@ -402,9 +402,7 @@ class AdPublicController extends Controller
             return '<p>Contenu en cours de chargement...</p>';
         }
 
-        $contentHtml = SeoHelper::stripFinancingContent($contentHtml);
-        $contentHtml = $this->stripGeneratedPracticalInfoSection($contentHtml);
-        $contentHtml = $this->normalizeGeneratedTextColors($contentHtml);
+        $contentHtml = SeoHelper::sanitizeAdContentHtml($contentHtml);
 
         $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
             $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
@@ -446,52 +444,5 @@ class AdPublicController extends Controller
 
             return '<img' . $attributes . '>';
         }, $contentHtml) ?? $contentHtml;
-    }
-
-    protected function stripGeneratedPracticalInfoSection(string $contentHtml): string
-    {
-        $patterns = [
-            '/<section\b[^>]*>.*?<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>.*?<\/section>/is',
-            '/<div\b[^>]*>\s*<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>.*?<\/div>\s*(?=<(?:section|div|h[1-6]|$))/is',
-            '/<h[1-6][^>]*>\s*Informations pratiques\s*<\/h[1-6]>\s*<ul\b[^>]*>.*?<\/ul>/is',
-        ];
-
-        return preg_replace($patterns, '', $contentHtml) ?? $contentHtml;
-    }
-
-    protected function normalizeGeneratedTextColors(string $contentHtml): string
-    {
-        $contentHtml = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
-            $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
-            $normalized = [];
-
-            foreach ($classes as $class) {
-                if ($class === '') {
-                    continue;
-                }
-
-                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-white(?:\/\d+)?$/', $class)) {
-                    $normalized[] = preg_replace('/white(?:\/\d+)?$/', 'gray-900', $class);
-                    continue;
-                }
-
-                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)$/', $class)) {
-                    $normalized[] = preg_replace('/-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)$/', '-gray-900', $class);
-                    continue;
-                }
-
-                $normalized[] = $class;
-            }
-
-            return 'class="' . implode(' ', array_values(array_unique($normalized))) . '"';
-        }, $contentHtml) ?? $contentHtml;
-
-        $contentHtml = preg_replace(
-            '/color\s*:\s*(#fff(?:fff)?|#f9fafb|#f3f4f6|#e5e7eb|#d1d5db|#9ca3af|#6b7280|#4b5563|#374151|#1f2937|white|rgb\(255,\s*255,\s*255\)|rgb\(249,\s*250,\s*251\)|rgb\(243,\s*244,\s*246\)|rgb\(229,\s*231,\s*235\)|rgb\(209,\s*213,\s*219\)|rgb\(156,\s*163,\s*175\)|rgb\(107,\s*114,\s*128\)|rgb\(75,\s*85,\s*99\)|rgb\(55,\s*65,\s*81\)|rgb\(31,\s*41,\s*55\)|rgba\(255,\s*255,\s*255,\s*(?:0?\.\d+|1(?:\.0+)?)\))/i',
-            'color:#111827',
-            $contentHtml
-        ) ?? $contentHtml;
-
-        return $contentHtml;
     }
 }
