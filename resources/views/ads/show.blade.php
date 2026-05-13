@@ -230,24 +230,16 @@
 .sp-prose div[class*="columns"] > *:last-child {
     margin-bottom: 0;
 }
-.sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700),
-.sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700) * {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+.sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]) {
+    background: #ffffff !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
 }
-html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]),
-html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]) :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div) {
-    color: #f8fafc !important;
-    -webkit-text-fill-color: #f8fafc !important;
-}
-html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, [class*="from-blue-50"], [class*="to-green-50"]) {
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
-}
-html[data-theme="dark"] main .sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700),
-html[data-theme="dark"] main .sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700) * {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+.sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]) :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a) {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
 }
 .sp-adv-list { display: flex; flex-direction: column; gap: .85rem; }
 .sp-adv-item {
