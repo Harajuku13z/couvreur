@@ -199,22 +199,55 @@
     text-shadow: none !important;
     filter: none !important;
 }
+.sp-prose :where(ul, ol) {
+    list-style-position: outside;
+    padding-left: 0;
+    margin-left: 0;
+}
+.sp-prose :where(ul, ol):not([class*="space-y"]) {
+    padding-left: 1.25rem;
+}
+.sp-prose li[class*="rounded"] {
+    list-style: none;
+    margin-left: 0;
+}
+.sp-prose li[class*="rounded"] > div[class*="flex"] {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: .75rem !important;
+}
 .sp-prose div[class*="grid"],
-.sp-prose div[class*="flex"],
 .sp-prose div[class*="columns"] {
     display: block !important;
 }
 .sp-prose div[class*="grid"] > *,
-.sp-prose div[class*="flex"] > *,
 .sp-prose div[class*="columns"] > * {
     display: block !important;
     width: 100% !important;
     margin-bottom: 1.25rem;
 }
 .sp-prose div[class*="grid"] > *:last-child,
-.sp-prose div[class*="flex"] > *:last-child,
 .sp-prose div[class*="columns"] > *:last-child {
     margin-bottom: 0;
+}
+.sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700),
+.sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700) * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]),
+html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, .bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700, [class*="from-blue-50"], [class*="to-green-50"]) :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div) {
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+}
+html[data-theme="dark"] main .sp-prose :where(.bg-white, .bg-gray-50, .bg-slate-50, [class*="from-blue-50"], [class*="to-green-50"]) {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+html[data-theme="dark"] main .sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700),
+html[data-theme="dark"] main .sp-prose :where(.bg-blue-600, .bg-blue-700, .bg-green-500, .bg-green-600, .bg-gray-600, .bg-gray-700) * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 .sp-adv-list { display: flex; flex-direction: column; gap: .85rem; }
 .sp-adv-item {
