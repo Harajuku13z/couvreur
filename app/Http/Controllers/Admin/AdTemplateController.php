@@ -2706,6 +2706,7 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
         $normalized = preg_replace_callback('/\bclass="([^"]*)"/i', function ($matches) {
             $classes = preg_split('/\s+/', trim($matches[1])) ?: [];
             $filtered = [];
+            $keptElementClasses = [];
 
             foreach ($classes as $class) {
                 if ($class === '') {
@@ -2719,7 +2720,28 @@ GÉNÈRE UN JSON AVEC CES CHAMPS:
                 $filtered[] = $class;
             }
 
-            if (!in_array('space-y-6', $filtered, true)) {
+            $keptElementClasses = array_filter($filtered, static function ($class) {
+                return ! preg_match('/^space-y-\d+$/', $class);
+            });
+
+            $shouldAddVerticalSpacing = ! array_intersect($keptElementClasses, [
+                'flex',
+                'inline-flex',
+                'items-start',
+                'items-center',
+                'gap-2',
+                'gap-3',
+                'text-lg',
+                'text-xl',
+                'text-2xl',
+                'font-bold',
+                'font-semibold',
+                'font-medium',
+                'leading-relaxed',
+                'flex-shrink-0',
+            ]);
+
+            if ($shouldAddVerticalSpacing && !in_array('space-y-6', $filtered, true)) {
                 $filtered[] = 'space-y-6';
             }
 

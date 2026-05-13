@@ -216,6 +216,25 @@
     align-items: flex-start !important;
     gap: .75rem !important;
 }
+.sp-prose li[class*="rounded"] > div[class*="flex"] > i,
+.sp-prose li[class*="rounded"] > div[class*="flex"] > svg {
+    flex: 0 0 auto !important;
+    margin-top: .28rem !important;
+}
+.sp-prose li[class*="rounded"] > div[class*="flex"] > span,
+.sp-prose li[class*="rounded"] > div[class*="flex"] > div {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-top: 0 !important;
+}
+.sp-prose li[class*="rounded"] > div[class*="flex"] :where(strong, span, p, div, i, svg)[class*="space-y-"] {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+.sp-prose li[class*="rounded"] > div[class*="flex"] br + span {
+    display: inline-block !important;
+    margin-top: .25rem !important;
+}
 .sp-prose div[class*="grid"],
 .sp-prose div[class*="columns"] {
     display: block !important;
