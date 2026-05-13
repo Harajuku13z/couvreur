@@ -241,6 +241,37 @@
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
 }
+html[data-theme="dark"] body.site-body main .sp-prose .bg-white,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-50,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-slate-50,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-blue-600,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-blue-700,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-green-500,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-green-600,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-600,
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-700,
+html[data-theme="dark"] body.site-body main .sp-prose [class*="from-blue-50"],
+html[data-theme="dark"] body.site-body main .sp-prose [class*="to-green-50"] {
+    background: #ffffff !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+}
+html[data-theme="dark"] body.site-body main .sp-prose .bg-white :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-50 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-slate-50 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-blue-600 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-blue-700 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-green-500 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-green-600 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-600 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose .bg-gray-700 :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose [class*="from-blue-50"] :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a),
+html[data-theme="dark"] body.site-body main .sp-prose [class*="to-green-50"] :where(p, li, span, strong, em, small, summary, h2, h3, h4, h5, h6, div, a) {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+}
 .sp-adv-list { display: flex; flex-direction: column; gap: .85rem; }
 .sp-adv-item {
     display: flex; align-items: flex-start; gap: 1rem;
