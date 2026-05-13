@@ -559,6 +559,20 @@
         html[data-theme="dark"] main .service-page-content .leading-relaxed {
             color: #cbd5e1 !important;
         }
+        /*
+         * Les annonces générées doivent rester lisibles même si le thème est sombre
+         * ou si Safari conserve un text fill clair injecté par le HTML IA.
+         */
+        html[data-theme="dark"] main .sp-prose,
+        html[data-theme="dark"] main .sp-prose :where(p, li, span, strong, em, small, blockquote, td, th, div, section, article, h2, h3, h4, h5, h6),
+        html[data-theme="light"] main .sp-prose,
+        html[data-theme="light"] main .sp-prose :where(p, li, span, strong, em, small, blockquote, td, th, div, section, article, h2, h3, h4, h5, h6) {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            opacity: 1 !important;
+            text-shadow: none !important;
+            filter: none !important;
+        }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);

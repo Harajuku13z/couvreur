@@ -199,13 +199,18 @@ class SeoHelper
                     continue;
                 }
 
-                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)$/', $class)) {
-                    $normalized[] = preg_replace('/-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)$/', '-gray-900', $class);
+                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)(?:\/\d+)?$/', $class)) {
+                    $normalized[] = preg_replace('/-(gray|slate|neutral|zinc|stone)-(50|100|200|300|400|500|600|700|800)(?:\/\d+)?$/', '-gray-900', $class);
                     continue;
                 }
 
-                if (preg_match('/^opacity-\d+$/', $class)) {
-                    $normalized[] = 'opacity-100';
+                if (preg_match('/^(text|sm:text|md:text|lg:text|xl:text)-transparent$/', $class)) {
+                    $normalized[] = preg_replace('/transparent$/', 'gray-900', $class);
+                    continue;
+                }
+
+                if (preg_match('/^(opacity|sm:opacity|md:opacity|lg:opacity|xl:opacity)-\d+$/', $class, $opacityMatch)) {
+                    $normalized[] = $opacityMatch[1] . '-100';
                     continue;
                 }
 
@@ -216,12 +221,14 @@ class SeoHelper
         }, $html) ?? $html;
 
         $html = preg_replace(
-            '/color\s*:\s*(#fff(?:fff)?|#f9fafb|#f3f4f6|#e5e7eb|#d1d5db|#9ca3af|#6b7280|#4b5563|#374151|#1f2937|white|rgb\(255,\s*255,\s*255\)|rgb\(249,\s*250,\s*251\)|rgb\(243,\s*244,\s*246\)|rgb\(229,\s*231,\s*235\)|rgb\(209,\s*213,\s*219\)|rgb\(156,\s*163,\s*175\)|rgb\(107,\s*114,\s*128\)|rgb\(75,\s*85,\s*99\)|rgb\(55,\s*65,\s*81\)|rgb\(31,\s*41,\s*55\)|rgba\(255,\s*255,\s*255,\s*(?:0?\.\d+|1(?:\.0+)?)\))/i',
+            '/color\s*:\s*(#fff(?:fff)?|#f9fafb|#f3f4f6|#e5e7eb|#d1d5db|#9ca3af|#6b7280|#4b5563|#374151|#1f2937|white|transparent|rgb\(255,\s*255,\s*255\)|rgb\(249,\s*250,\s*251\)|rgb\(243,\s*244,\s*246\)|rgb\(229,\s*231,\s*235\)|rgb\(209,\s*213,\s*219\)|rgb\(156,\s*163,\s*175\)|rgb\(107,\s*114,\s*128\)|rgb\(75,\s*85,\s*99\)|rgb\(55,\s*65,\s*81\)|rgb\(31,\s*41,\s*55\)|rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(?:0?\.\d+|1(?:\.0+)?)\s*\)|rgba\(\s*249\s*,\s*250\s*,\s*251\s*,\s*(?:0?\.\d+|1(?:\.0+)?)\s*\)|rgba\(\s*243\s*,\s*244\s*,\s*246\s*,\s*(?:0?\.\d+|1(?:\.0+)?)\s*\)|rgba\(\s*229\s*,\s*231\s*,\s*235\s*,\s*(?:0?\.\d+|1(?:\.0+)?)\s*\))/i',
             'color:#111827',
             $html
         ) ?? $html;
 
+        $html = preg_replace('/(?:-webkit-)?text-fill-color\s*:\s*[^;"]+;?/i', '-webkit-text-fill-color:#111827;', $html) ?? $html;
         $html = preg_replace('/opacity\s*:\s*(?:0(?:\.\d+)?|1(?:\.0+)?)\s*;?/i', 'opacity:1;', $html) ?? $html;
+        $html = preg_replace('/filter\s*:\s*opacity\([^)]+\)\s*;?/i', 'filter:none;', $html) ?? $html;
 
         return $html;
     }
