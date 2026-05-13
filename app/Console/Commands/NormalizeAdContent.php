@@ -20,13 +20,23 @@ class NormalizeAdContent extends Command
         $dryRun = (bool) $this->option('dry-run');
         $updateTemplates = (bool) $this->option('templates');
 
+        $this->newLine();
+        $this->info($dryRun
+            ? 'Analyse des annonces existantes en cours...'
+            : 'Normalisation des annonces existantes en cours...');
+
         $adsUpdated = 0;
         $adsChecked = 0;
+        $adsTotal = Ad::query()->whereNotNull('content_html')->count();
+
+        $this->line("Annonces à parcourir : {$adsTotal}");
+        $progressBar = $this->output->createProgressBar($adsTotal);
+        $progressBar->start();
 
         Ad::query()
             ->whereNotNull('content_html')
             ->orderBy('id')
-            ->chunkById(200, function ($ads) use (&$adsUpdated, &$adsChecked, $dryRun) {
+            ->chunkById(200, function ($ads) use (&$adsUpdated, &$adsChecked, $dryRun, $progressBar) {
                 foreach ($ads as $ad) {
                     $adsChecked++;
                     $original = (string) $ad->content_html;
@@ -41,22 +51,36 @@ class NormalizeAdContent extends Command
                     if (! $dryRun) {
                         $ad->forceFill(['content_html' => $normalized])->save();
                     }
+
+                    $progressBar->advance();
                 }
             });
 
+        $progressBar->finish();
+        $this->newLine(2);
         $this->info("Annonces vérifiées : {$adsChecked}");
         $this->info($dryRun
             ? "Annonces à corriger : {$adsUpdated}"
             : "Annonces corrigées : {$adsUpdated}");
 
         if ($updateTemplates) {
+            $this->newLine();
+            $this->info($dryRun
+                ? 'Analyse des templates d’annonces en cours...'
+                : 'Normalisation des templates d’annonces en cours...');
+
             $templatesUpdated = 0;
             $templatesChecked = 0;
+            $templatesTotal = AdTemplate::query()->whereNotNull('content_html')->count();
+
+            $this->line("Templates à parcourir : {$templatesTotal}");
+            $templateProgressBar = $this->output->createProgressBar($templatesTotal);
+            $templateProgressBar->start();
 
             AdTemplate::query()
                 ->whereNotNull('content_html')
                 ->orderBy('id')
-                ->chunkById(100, function ($templates) use (&$templatesUpdated, &$templatesChecked, $dryRun) {
+                ->chunkById(100, function ($templates) use (&$templatesUpdated, &$templatesChecked, $dryRun, $templateProgressBar) {
                     foreach ($templates as $template) {
                         $templatesChecked++;
                         $original = (string) $template->content_html;
@@ -71,9 +95,13 @@ class NormalizeAdContent extends Command
                         if (! $dryRun) {
                             $template->forceFill(['content_html' => $normalized])->save();
                         }
+
+                        $templateProgressBar->advance();
                     }
                 });
 
+            $templateProgressBar->finish();
+            $this->newLine(2);
             $this->info("Templates vérifiés : {$templatesChecked}");
             $this->info($dryRun
                 ? "Templates à corriger : {$templatesUpdated}"
