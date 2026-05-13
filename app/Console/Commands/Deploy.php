@@ -29,6 +29,7 @@ class Deploy extends Command
         $maintenanceEnabled = !$this->option('no-maintenance');
         $maintenanceActivated = false;
         $skipGit = (bool) $this->option('skip-git');
+        $siteAssetsBackupPath = null;
         $releaseContext = [
             'branch' => $branch,
             'commit' => null,
@@ -58,9 +59,12 @@ class Deploy extends Command
             }
 
             if (!$skipGit) {
+                $siteAssetsBackupPath = $this->backupSiteAssets();
                 $this->runProcess(['git', 'fetch', 'origin', $branch], 'Recuperation des changements Git');
                 $this->runProcess(['git', 'checkout', $branch], 'Bascule sur la branche ' . $branch);
                 $this->runProcess(['git', 'pull', '--ff-only', 'origin', $branch], 'Mise a jour du code');
+                $this->restoreSiteAssets($siteAssetsBackupPath);
+                $siteAssetsBackupPath = null;
                 $releaseContext['commit'] = $this->captureProcess(['git', 'rev-parse', '--short', 'HEAD']);
             } else {
                 $this->comment('Etape Git ignoree.');
@@ -111,10 +115,18 @@ class Deploy extends Command
 
             $this->newLine();
             $this->components->info('Deploy termine avec succes.');
-            $this->line('Les fichiers de medias dans public/uploads n\'ont pas ete modifies.');
+            $this->line('Les fichiers de medias locaux proteges ont ete preserves.');
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
+            if ($siteAssetsBackupPath !== null) {
+                try {
+                    $this->restoreSiteAssets($siteAssetsBackupPath);
+                } catch (\Throwable $restoreException) {
+                    $this->warn('Restauration des assets locaux impossible: ' . $restoreException->getMessage());
+                }
+            }
+
             if ($maintenanceActivated) {
                 $this->callSilent('up');
             }
@@ -150,10 +162,135 @@ class Deploy extends Command
 
         if (is_dir($uploadsPath)) {
             $this->line('Dossier images detecte: public/uploads');
+            $this->line('Assets locaux proteges: ' . implode(', ', $this->siteAssetPaths()));
             return;
         }
 
         $this->warn('Dossier public/uploads absent. Aucun media local a proteger dans ce chemin.');
+    }
+
+    private function siteAssetPaths(): array
+    {
+        return [
+            'public/logo',
+            'public/logoTop.png',
+            'public/favicon.ico',
+            'public/uploads',
+        ];
+    }
+
+    private function backupSiteAssets(): ?string
+    {
+        $paths = array_values(array_filter($this->siteAssetPaths(), function (string $relativePath) {
+            return file_exists(base_path($relativePath));
+        }));
+
+        if (empty($paths)) {
+            $this->warn('Aucun asset local a sauvegarder avant Git.');
+            return null;
+        }
+
+        $backupPath = storage_path('app/deploy-asset-backups/' . now()->format('Ymd-His'));
+
+        if (! is_dir($backupPath) && ! mkdir($backupPath, 0755, true) && ! is_dir($backupPath)) {
+            throw new \RuntimeException('Impossible de creer le dossier de sauvegarde des assets locaux');
+        }
+
+        foreach ($paths as $relativePath) {
+            $this->copyPath(base_path($relativePath), $backupPath . '/' . $relativePath);
+        }
+
+        $this->line('Sauvegarde assets locaux creee: storage/app/deploy-asset-backups/' . basename($backupPath));
+
+        return $backupPath;
+    }
+
+    private function restoreSiteAssets(?string $backupPath): void
+    {
+        if ($backupPath === null || ! is_dir($backupPath)) {
+            return;
+        }
+
+        foreach ($this->siteAssetPaths() as $relativePath) {
+            $source = $backupPath . '/' . $relativePath;
+
+            if (! file_exists($source)) {
+                continue;
+            }
+
+            $this->removePath(base_path($relativePath));
+            $this->copyPath($source, base_path($relativePath));
+        }
+
+        $this->line('Assets locaux restaures apres Git.');
+    }
+
+    private function copyPath(string $source, string $destination): void
+    {
+        if (is_dir($source)) {
+            if (! is_dir($destination) && ! mkdir($destination, 0755, true) && ! is_dir($destination)) {
+                throw new \RuntimeException('Impossible de creer le dossier: ' . $destination);
+            }
+
+            $items = scandir($source);
+
+            if ($items === false) {
+                throw new \RuntimeException('Impossible de lire le dossier: ' . $source);
+            }
+
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') {
+                    continue;
+                }
+
+                $this->copyPath($source . '/' . $item, $destination . '/' . $item);
+            }
+
+            return;
+        }
+
+        $destinationDirectory = dirname($destination);
+
+        if (! is_dir($destinationDirectory) && ! mkdir($destinationDirectory, 0755, true) && ! is_dir($destinationDirectory)) {
+            throw new \RuntimeException('Impossible de creer le dossier: ' . $destinationDirectory);
+        }
+
+        if (! copy($source, $destination)) {
+            throw new \RuntimeException('Impossible de copier: ' . $source);
+        }
+    }
+
+    private function removePath(string $path): void
+    {
+        if (! file_exists($path) && ! is_link($path)) {
+            return;
+        }
+
+        if (is_dir($path) && ! is_link($path)) {
+            $items = scandir($path);
+
+            if ($items === false) {
+                throw new \RuntimeException('Impossible de lire le dossier: ' . $path);
+            }
+
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') {
+                    continue;
+                }
+
+                $this->removePath($path . '/' . $item);
+            }
+
+            if (! rmdir($path)) {
+                throw new \RuntimeException('Impossible de supprimer le dossier: ' . $path);
+            }
+
+            return;
+        }
+
+        if (! unlink($path)) {
+            throw new \RuntimeException('Impossible de supprimer le fichier: ' . $path);
+        }
     }
 
     private function guardAgainstTrackedGitChanges(): void
