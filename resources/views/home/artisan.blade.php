@@ -235,7 +235,11 @@
 /* ── §2 STATS ──────────────────────────────────────────────── */
 .at-stats { padding:56px 0; background:#111111; color:#fff; }
 .at-stats-grid {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:24px; text-align:center;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 220px));
+    justify-content:center;
+    gap:24px;
+    text-align:center;
 }
 .at-stat-n {
     font-family:var(--fd); font-weight:700;
