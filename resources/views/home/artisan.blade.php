@@ -11,12 +11,19 @@
     $city     = $companySettings['city'] ?? 'Paris';
     $name     = $companySettings['name'] ?? 'Votre Entreprise';
     $specialization = $companySettings['specialization'] ?? 'travaux de rénovation';
+    $homeBool = static fn ($value, bool $default = false): bool => filter_var($value ?? $default, FILTER_VALIDATE_BOOLEAN);
+
+    /* Badges de confiance */
+    $trustBadges = $homeConfig['trust_badges'] ?? [];
+    $showGuarantee = $homeBool($trustBadges['garantie_decennale'] ?? null);
+    $showRge = $homeBool($trustBadges['certifie_rge'] ?? null);
+    $showRatingBadge = $homeBool($trustBadges['show_rating'] ?? null);
 
     /* Hero */
     $heroTitle   = $homeConfig['hero']['title']    ?? $name;
     $heroSub     = $homeConfig['hero']['subtitle'] ?? 'Expert en ' . $specialization . '. Devis gratuit, intervention rapide, qualité garantie.';
     $heroCta     = $homeConfig['hero']['cta_text'] ?? 'Devis gratuit en 1 min';
-    $showPhone   = $homeConfig['hero']['show_phone'] ?? true;
+    $showPhone   = $homeBool($homeConfig['hero']['show_phone'] ?? null, true);
     $heroImg     = $homeConfig['hero']['background_image'] ?? null;
     $heroImgUrl  = $heroImg ? asset(ltrim($heroImg, '/')) : null;
 
@@ -25,8 +32,25 @@
         ['label'=>'Chantiers réalisés','value'=>'500+'],
         ['label'=>'Note Google','value'=>($totalReviews > 0 ? number_format($averageRating,1,',','').'/5' : '5/5')],
         ['label'=>'Délai de réponse','value'=>'24h'],
-        ['label'=>'Garantie décennale','value'=>'10 ans'],
+        ...($showGuarantee ? [['label'=>'Garantie décennale','value'=>'10 ans']] : []),
     ];
+    $statsData = array_values(array_filter($statsData, static function ($stat) use ($showGuarantee, $showRge, $showRatingBadge) {
+        $label = mb_strtolower((string) ($stat['label'] ?? ''));
+
+        if (!$showGuarantee && str_contains($label, 'garantie')) {
+            return false;
+        }
+
+        if (!$showRge && (str_contains($label, 'rge') || str_contains($label, 'certifi'))) {
+            return false;
+        }
+
+        if (!$showRatingBadge && (str_contains($label, 'google') || str_contains($label, 'avis') || str_contains($label, 'note'))) {
+            return false;
+        }
+
+        return true;
+    }));
 
     /* Sections flags */
     $secServices  = $homeConfig['sections']['services']  ?? ['enabled'=>true,'title'=>'Nos Services','limit'=>6];
@@ -56,6 +80,7 @@
     $ratingVal = round((float)($averageRating ?? 5), 1);
     $reviewCount = (int)($totalReviews ?? 0);
     $displayedReviews = $reviews->take($revLimit);
+    $showReviewTrust = $showRatingBadge && $reviewCount > 0;
 @endphp
 
 @push('head')
@@ -389,8 +414,9 @@
                 @endif
             </div>
 
+            @if($showReviewTrust || $showGuarantee || $showRge)
             <div class="at-hero-trust">
-                @if($reviewCount > 0)
+                @if($showReviewTrust)
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div class="at-avatars">
                         @foreach($reviews->take(4) as $ri => $rv)
@@ -407,24 +433,45 @@
                         <div style="font-size:12px; color:rgba(255,255,255,.65);">{{ $reviewCount }} avis Google</div>
                     </div>
                 </div>
+                @endif
+
+                @if($showReviewTrust && ($showGuarantee || $showRge))
                 <div class="at-trust-div"></div>
                 @endif
+
+                @if($showGuarantee)
                 <div style="display:flex; align-items:center; gap:9px;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
                     <div>
                         <div style="font-weight:700; font-size:13.5px; color:#fff;">Garantie décennale</div>
-                        <div style="font-size:12px; color:rgba(255,255,255,.6);">Artisan certifié</div>
+                        <div style="font-size:12px; color:rgba(255,255,255,.6);">Travaux couverts</div>
                     </div>
                 </div>
+                @endif
+
+                @if($showRge)
+                <div style="display:flex; align-items:center; gap:9px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color,#B7472A)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="m15.5 12.5 2.5 9-6-3-6 3 2.5-9"/></svg>
+                    <div>
+                        <div style="font-weight:700; font-size:13.5px; color:#fff;">Certifié RGE</div>
+                        <div style="font-size:12px; color:rgba(255,255,255,.6);">Qualification visible</div>
+                    </div>
+                </div>
+                @endif
             </div>
+            @endif
         </div>
     </div>
 
     <div class="at-hero-logosbar">
+        @if($showGuarantee)
         <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Garantie décennale</span>
-        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="m15.5 12.5 2.5 9-6-3-6 3 2.5-9"/></svg> Artisan certifié</span>
+        @endif
+        @if($showRge)
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="m15.5 12.5 2.5 9-6-3-6 3 2.5-9"/></svg> Certifié RGE</span>
+        @endif
         <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Devis 100% gratuit</span>
-        @if($reviewCount > 0)
+        @if($showReviewTrust)
         <span><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> {{ number_format($ratingVal,1,',','') }}/5 Google</span>
         @endif
         <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> Intervention rapide</span>
@@ -597,9 +644,17 @@
 
 {{-- ═══ §5b ÉCOLOGIE + FINANCEMENT (section fusionnée) ═══════ --}}
 @php
-    $ecoEnabled = $homeConfig['ecology']['enabled']   ?? false;
-    $finEnabled = $homeConfig['financing']['enabled'] ?? false;
+    $ecoEnabled = $homeBool($homeConfig['ecology']['enabled'] ?? null);
+    $finEnabled = $homeBool($homeConfig['financing']['enabled'] ?? null);
     $bothActive = $ecoEnabled && $finEnabled;
+    $ecoBadges = $homeConfig['ecology']['badges'] ?? [];
+    $finBadges = $homeConfig['financing']['badges'] ?? [];
+    $showEcoRecycled = $homeBool($ecoBadges['materiaux_recycles'] ?? null);
+    $showEcoGreenEnergy = $homeBool($ecoBadges['energies_vertes'] ?? null);
+    $showMpr = $homeBool($finBadges['maprimerenov'] ?? null);
+    $showCee = $homeBool($finBadges['certificats_cee'] ?? null);
+    $ecoContent = trim((string) ($homeConfig['ecology']['content'] ?? '')) ?: "Nous privilégions des matériaux respectueux de l'environnement et des méthodes de travail responsables. Nos interventions visent à limiter les déchets, améliorer la durabilité des ouvrages et proposer des solutions adaptées à votre habitat.";
+    $finContent = trim((string) ($homeConfig['financing']['content'] ?? '')) ?: "Nous vous accompagnons dans l'étude des solutions de financement disponibles selon votre projet, votre logement et les dispositifs applicables au moment des travaux.";
 @endphp
 @if($ecoEnabled || $finEnabled)
 <section class="at-sec" style="background:var(--bgs);">
@@ -618,15 +673,20 @@
                         <span style="width:18px;height:2px;background:#4ADE80;border-radius:2px;display:block;flex-shrink:0;"></span>
                         Engagement environnemental
                     </div>
-                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">Notre Engagement Écologique</h3>
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">{{ $homeConfig['ecology']['title'] ?? 'Notre Engagement Écologique' }}</h3>
                     <p style="color:rgba(255,255,255,.7);font-size:14.5px;line-height:1.72;margin:0 0 28px;">
-                        Nous privilégions des matériaux respectueux de l'environnement : tuiles recyclables, isolants naturels et peintures écologiques. Nos travaux d'isolation et de rénovation visent à réduire les consommations d'énergie et à améliorer la performance thermique de votre logement. En choisissant notre entreprise, vous contribuez à une rénovation durable et responsable.
+                        {!! nl2br(e($ecoContent)) !!}
                     </p>
+                    @if($showEcoRecycled || $showEcoGreenEnergy)
                     <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        @if($showEcoRecycled)
                         <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">♻️ Matériaux recyclables</div>
-                        <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🌱 Isolants naturels</div>
+                        @endif
+                        @if($showEcoGreenEnergy)
                         <div style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;font-size:13px;font-weight:600;color:#fff;">🏠 Éco-rénovation</div>
+                        @endif
                     </div>
+                    @endif
                 </div>
             </div>
             @endif
@@ -643,23 +703,31 @@
                         <span style="width:18px;height:2px;background:#60A5FA;border-radius:2px;display:block;flex-shrink:0;"></span>
                         Financement &amp; Aides
                     </div>
-                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">Aides et Financements Disponibles</h3>
+                    <h3 style="font-family:'Fraunces',serif;color:#fff;font-size:clamp(21px,1.9vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 18px;">{{ $homeConfig['financing']['title'] ?? 'Aides et Financements Disponibles' }}</h3>
                     <p style="color:rgba(255,255,255,.7);font-size:14.5px;line-height:1.72;margin:0 0 22px;">
-                        Grâce aux dispositifs comme MaPrimeRénov', l'Éco-prêt à taux zéro (Éco-PTZ), ou encore les Certificats d'Économie d'Énergie (CEE), vos travaux de rénovation énergétique peuvent être partiellement financés. Nous vous accompagnons dans vos démarches administratives pour faciliter l'obtention des aides et subventions disponibles.
+                        {!! nl2br(e($finContent)) !!}
                     </p>
+                    @if($showMpr || $showCee)
                     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+                        @if($showMpr)
                         <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(96,165,250,.2);border-radius:12px;">
                             <span style="font-size:22px;flex-shrink:0;">🏠</span>
                             <div><div style="font-weight:700;font-size:14px;color:#fff;">MaPrimeRénov'</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);margin-top:2px;">Aide de l'État pour la rénovation</div></div>
                         </div>
+                        @endif
+                        @if($showCee)
                         <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(96,165,250,.2);border-radius:12px;">
                             <span style="font-size:22px;flex-shrink:0;">⚡</span>
                             <div><div style="font-weight:700;font-size:14px;color:#fff;">Éco-PTZ &amp; Certificats CEE</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);margin-top:2px;">Économies d'énergie certifiées</div></div>
                         </div>
+                        @endif
                     </div>
+                    @endif
+                    @if($showMpr || $showCee)
                     <div style="padding:13px 16px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.22);border-radius:12px;font-size:13.5px;color:rgba(255,255,255,.78);line-height:1.58;">
                         💡 Nos experts vous conseillent gratuitement sur les solutions les plus avantageuses.
                     </div>
+                    @endif
                 </div>
             </div>
             @endif
