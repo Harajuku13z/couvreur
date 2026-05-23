@@ -17,6 +17,7 @@ class Deploy extends Command
         {--skip-composer : Ne pas executer composer install}
         {--skip-migrate : Ne pas executer les migrations}
         {--skip-sitemap : Ne pas regenerer les sitemaps}
+        {--skip-domain-sync : Ne pas corriger automatiquement APP_URL/site_url depuis le domaine Hostinger}
         {--skip-backup-env : Ne pas creer de sauvegarde du .env}
         {--allow-dirty : Autoriser des modifications locales git suivies}
         {--no-maintenance : Ne pas activer le mode maintenance}';
@@ -72,6 +73,7 @@ class Deploy extends Command
             }
 
             $this->updateReleaseMetadata($releaseContext);
+            $this->syncCurrentDomainConfiguration();
 
             if (!$this->option('skip-composer')) {
                 $this->runProcess(
@@ -88,6 +90,8 @@ class Deploy extends Command
             } else {
                 $this->comment('Etape migration ignoree.');
             }
+
+            $this->repairPublicStorageLink();
 
             $this->line('Nettoyage des caches...');
             $this->callSilent('config:clear');
@@ -177,7 +181,6 @@ class Deploy extends Command
             'public/favicon.ico',
             'public/favicons',
             'public/images',
-            'public/storage',
             'public/uploads',
         ];
     }
@@ -296,6 +299,44 @@ class Deploy extends Command
         }
     }
 
+    private function repairPublicStorageLink(): void
+    {
+        $linkPath = public_path('storage');
+        $targetPath = storage_path('app/public');
+
+        if (! is_dir($targetPath) && ! mkdir($targetPath, 0755, true) && ! is_dir($targetPath)) {
+            throw new \RuntimeException('Impossible de creer storage/app/public');
+        }
+
+        if (is_link($linkPath)) {
+            $currentTarget = readlink($linkPath);
+
+            if ($currentTarget === $targetPath) {
+                $this->line('Lien public/storage valide.');
+                return;
+            }
+
+            if (! unlink($linkPath)) {
+                throw new \RuntimeException('Impossible de remplacer le lien public/storage');
+            }
+        } elseif (file_exists($linkPath)) {
+            if (is_dir($linkPath) && count(array_diff(scandir($linkPath) ?: [], ['.', '..'])) === 0) {
+                if (! rmdir($linkPath)) {
+                    throw new \RuntimeException('Impossible de remplacer le dossier public/storage vide');
+                }
+            } else {
+                $this->warn('public/storage existe deja et n est pas un lien vide. Verification manuelle recommandee.');
+                return;
+            }
+        }
+
+        if (! symlink($targetPath, $linkPath)) {
+            throw new \RuntimeException('Impossible de creer le lien public/storage');
+        }
+
+        $this->line('Lien public/storage repare.');
+    }
+
     private function guardAgainstTrackedGitChanges(): void
     {
         $trackedChanges = $this->trackedGitChanges();
@@ -411,6 +452,142 @@ class Deploy extends Command
             'APP_RELEASE_DATE' => $this->option('release-date') ?: $defaultReleaseDate,
         ], fn ($value) => is_string($value) && trim($value) !== '');
 
+        $this->writeEnvValues($updates);
+
+        if (! empty($updates)) {
+            $this->line('Variables de release mises a jour dans le .env');
+        }
+    }
+
+    private function syncCurrentDomainConfiguration(): void
+    {
+        if ($this->option('skip-domain-sync')) {
+            $this->comment('Synchronisation domaine ignoree.');
+            return;
+        }
+
+        $siteUrl = $this->inferCurrentSiteUrl();
+
+        if ($siteUrl === null) {
+            $this->warn('Domaine courant non detecte depuis le chemin du projet. APP_URL/site_url non modifies.');
+            return;
+        }
+
+        $oldUrls = array_filter(array_unique([
+            $this->readEnvValue('APP_URL'),
+            (string) config('app.url'),
+            $this->readSettingValue('site_url'),
+        ]));
+
+        $this->writeEnvValues(['APP_URL' => $siteUrl]);
+        config(['app.url' => $siteUrl]);
+        $this->line('APP_URL synchronise: ' . $siteUrl);
+
+        $this->syncSettingsSiteUrl($siteUrl, $oldUrls);
+    }
+
+    private function inferCurrentSiteUrl(): ?string
+    {
+        $path = str_replace('\\', '/', base_path());
+
+        if (! preg_match('#/domains/([^/]+)/public_html(?:/|$)#', $path, $matches)) {
+            return null;
+        }
+
+        $domain = strtolower(trim($matches[1]));
+
+        if ($domain === '' || ! str_contains($domain, '.')) {
+            return null;
+        }
+
+        return 'https://' . $domain;
+    }
+
+    private function readEnvValue(string $key): ?string
+    {
+        $envPath = base_path('.env');
+
+        if (! file_exists($envPath)) {
+            return null;
+        }
+
+        $content = (string) file_get_contents($envPath);
+
+        if (! preg_match('/^' . preg_quote($key, '/') . '=(.*)$/m', $content, $matches)) {
+            return null;
+        }
+
+        return trim(trim((string) $matches[1]), "\"'");
+    }
+
+    private function readSettingValue(string $key): ?string
+    {
+        try {
+            if (! class_exists(\App\Models\Setting::class)) {
+                return null;
+            }
+
+            $value = \App\Models\Setting::get($key, null);
+
+            return is_string($value) ? $value : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function syncSettingsSiteUrl(string $siteUrl, array $oldUrls): void
+    {
+        try {
+            if (! class_exists(\App\Models\Setting::class)) {
+                return;
+            }
+
+            \App\Models\Setting::set('site_url', $siteUrl, 'string', 'seo');
+
+            $oldHosts = array_values(array_filter(array_unique(array_map(function (string $url) use ($siteUrl) {
+                $host = parse_url($url, PHP_URL_HOST);
+                $currentHost = parse_url($siteUrl, PHP_URL_HOST);
+
+                return $host && $host !== $currentHost ? $host : null;
+            }, $oldUrls))));
+
+            if (empty($oldHosts)) {
+                $this->line('site_url synchronise en base.');
+                return;
+            }
+
+            $settings = \App\Models\Setting::query()
+                ->where(function ($query) use ($oldHosts) {
+                    foreach ($oldHosts as $host) {
+                        $query->orWhere('value', 'like', '%' . $host . '%');
+                    }
+                })
+                ->get();
+
+            foreach ($settings as $setting) {
+                $value = (string) $setting->value;
+
+                foreach ($oldHosts as $host) {
+                    $value = str_replace('https://' . $host, $siteUrl, $value);
+                    $value = str_replace('http://' . $host, $siteUrl, $value);
+                    $value = str_replace('https:\\/\\/' . $host, str_replace('/', '\\/', $siteUrl), $value);
+                    $value = str_replace('http:\\/\\/' . $host, str_replace('/', '\\/', $siteUrl), $value);
+                }
+
+                if ($value !== $setting->value) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+
+            $this->line('site_url et anciennes URLs synchronises en base.');
+        } catch (\Throwable $e) {
+            $this->warn('Synchronisation settings domaine impossible: ' . $e->getMessage());
+        }
+    }
+
+    private function writeEnvValues(array $updates): void
+    {
         if (empty($updates)) {
             return;
         }
@@ -430,7 +607,6 @@ class Deploy extends Command
         }
 
         file_put_contents($envPath, $content);
-        $this->line('Variables de release mises a jour dans le .env');
     }
 
     private function runProcess(array $command, string $label): void
