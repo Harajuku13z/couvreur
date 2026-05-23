@@ -175,6 +175,9 @@ class Deploy extends Command
             'public/logo',
             'public/logoTop.png',
             'public/favicon.ico',
+            'public/favicons',
+            'public/images',
+            'public/storage',
             'public/uploads',
         ];
     }
