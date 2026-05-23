@@ -619,7 +619,9 @@
                 <div class="at-benefits">
                     @php $bens = [
                         ['svg'=>'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>','t'=>'Rapide','d'=>'Devis sous 24h.'],
-                        ['svg'=>'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>','t'=>'Garanti','d'=>'Décennale incluse.'],
+                        $showGuarantee
+                            ? ['svg'=>'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>','t'=>'Garanti','d'=>'Décennale incluse.']
+                            : ['svg'=>'<path d="M20 6 9 17l-5-5"/>','t'=>'Fiable','d'=>'Devis clair.'],
                         ['svg'=>'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>','t'=>'Soigné','d'=>'Chantier propre.'],
                         ['svg'=>'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>','t'=>'Humain','d'=>'Un seul interlocuteur.'],
                     ]; @endphp
