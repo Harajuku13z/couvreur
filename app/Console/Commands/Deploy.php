@@ -403,7 +403,15 @@ class Deploy extends Command
         $output = $this->captureProcess(['git', 'status', '--porcelain']);
         $lines = array_values(array_filter(array_map('trim', preg_split('/\R/', $output) ?: [])));
 
-        return array_values(array_filter($lines, fn (string $line) => !str_starts_with($line, '?? ')));
+        return array_values(array_filter($lines, function (string $line) {
+            if (str_starts_with($line, '?? ')) {
+                return false;
+            }
+
+            $path = $this->extractPathFromGitStatusLine($line);
+
+            return $path !== 'public/robots.txt';
+        }));
     }
 
     private function canAutoCleanVendorChanges(array $trackedChanges): bool
@@ -484,6 +492,7 @@ class Deploy extends Command
         $this->line('APP_URL synchronise: ' . $siteUrl);
 
         $this->syncSettingsSiteUrl($siteUrl, $oldUrls);
+        $this->syncRobotsTxt($siteUrl);
     }
 
     private function inferCurrentSiteUrl(): ?string
@@ -584,6 +593,59 @@ class Deploy extends Command
         } catch (\Throwable $e) {
             $this->warn('Synchronisation settings domaine impossible: ' . $e->getMessage());
         }
+    }
+
+    private function syncRobotsTxt(string $siteUrl): void
+    {
+        $robotsPath = public_path('robots.txt');
+        $updatedAt = now()->format('Y-m-d');
+        $content = <<<ROBOTS
+# Robots.txt SEO
+# Domaine synchronise automatiquement par php artisan deploy
+# Derniere mise a jour : {$updatedAt}
+
+User-agent: *
+Allow: /
+
+# Zones privees
+Disallow: /admin/
+Disallow: /admin
+Disallow: /config/
+Disallow: /setup
+Disallow: /api/
+Disallow: /schedule/run
+Disallow: /cron/run
+
+# Ressources
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.woff$
+Allow: /*.woff2$
+Allow: /*.ttf$
+
+# Fichiers sensibles
+Disallow: /*.log$
+Disallow: /*.sql$
+Disallow: /*.env$
+Disallow: /*.git
+Disallow: /storage/
+Disallow: /vendor/
+
+# Sitemaps
+Sitemap: {$siteUrl}/sitemap.xml
+
+ROBOTS;
+
+        if (file_put_contents($robotsPath, $content) === false) {
+            throw new \RuntimeException('Impossible de synchroniser public/robots.txt');
+        }
+
+        $this->line('robots.txt synchronise: ' . $siteUrl . '/sitemap.xml');
     }
 
     private function writeEnvValues(array $updates): void
