@@ -174,6 +174,29 @@ class ConfigController extends Controller
     }
 
     /**
+     * Update admin login credentials from the protected configuration page.
+     */
+    public function updateAdminLogin(Request $request)
+    {
+        $validated = $request->validate([
+            'admin_email' => 'required|email|max:255',
+            'admin_password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        Setting::set('admin_username', $validated['admin_email'], 'string', 'admin');
+        Setting::set('admin_notification_email', $validated['admin_email'], 'string', 'email');
+
+        if (!empty($validated['admin_password'])) {
+            Setting::set('admin_password', bcrypt($validated['admin_password']), 'string', 'admin');
+        }
+
+        Setting::clearCache();
+
+        return redirect(route('config.index') . '#admin-login')
+            ->with('success', 'Identifiants de connexion admin mis à jour avec succès !');
+    }
+
+    /**
      * Update company settings
      */
     public function updateCompany(Request $request)
@@ -2517,7 +2540,6 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     }
 
 }
-
 
 
 

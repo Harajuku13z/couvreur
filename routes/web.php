@@ -450,6 +450,7 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
     Route::prefix('config')->name('config.')->middleware(['admin.auth'])->group(function () {
         Route::get('/', [ConfigController::class, 'index'])->name('index');
         Route::post('/company', [ConfigController::class, 'updateCompany'])->name('update.company');
+        Route::post('/admin-login', [ConfigController::class, 'updateAdminLogin'])->name('update.admin-login');
         Route::post('/branding', [ConfigController::class, 'updateBranding'])->name('update.branding');
         Route::post('/email', [ConfigController::class, 'updateEmail'])->name('update.email');
     Route::post('/ai', [ConfigController::class, 'updateAI'])->name('update.ai');

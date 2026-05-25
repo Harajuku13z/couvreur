@@ -40,6 +40,9 @@
                 <a href="#company" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active">
                     <i class="fas fa-building mr-2"></i>Entreprise
                 </a>
+                <a href="#admin-login" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-user-shield mr-2"></i>Accès admin
+                </a>
                 <a href="#branding" class="config-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" title="Logo, favicon et couleurs #hex">
                     <i class="fas fa-palette mr-2"></i>Branding <span class="text-xs font-normal text-gray-400">(couleurs #hex)</span>
                 </a>
@@ -140,6 +143,90 @@
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                         <i class="fas fa-save mr-2"></i>Enregistrer
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Login Settings -->
+    <div id="admin-login" class="config-section hidden">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-start justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Identifiants de connexion admin</h2>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Modifiez ici l'email utilisé pour se connecter à l'administration et le mot de passe admin.
+                    </p>
+                </div>
+                <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
+                    <i class="fas fa-lock"></i> Zone sensible
+                </span>
+            </div>
+
+            @if($errors->any())
+                <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <strong>Erreur :</strong>
+                    <ul class="mt-1 list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Identifiant actuel</div>
+                    <div class="font-semibold text-gray-900 break-all">{{ setting('admin_username', 'admin') }}</div>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Email de notification admin</div>
+                    <div class="font-semibold text-gray-900 break-all">{{ setting('admin_notification_email', setting('company_email')) }}</div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('config.update.admin-login') }}">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nouvel email de connexion admin *</label>
+                        <input type="email"
+                               name="admin_email"
+                               value="{{ old('admin_email', setting('admin_username', setting('admin_notification_email', setting('company_email')))) }}"
+                               required
+                               autocomplete="username"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="admin@votredomaine.com">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Cet email devient l'identifiant de connexion admin et l'email de notification principal.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nouveau mot de passe admin</label>
+                        <input type="password"
+                               name="admin_password"
+                               autocomplete="new-password"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Laisser vide pour ne pas changer">
+                        <p class="text-xs text-gray-500 mt-1">Minimum 6 caractères. Laissez vide pour conserver le mot de passe actuel.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le nouveau mot de passe</label>
+                        <input type="password"
+                               name="admin_password_confirmation"
+                               autocomplete="new-password"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Répéter le mot de passe">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer les accès admin
+                    </button>
+                    <p class="text-xs text-gray-500">
+                        Après changement de l'email ou du mot de passe, reconnectez-vous avec les nouveaux identifiants.
+                    </p>
                 </div>
             </form>
         </div>
