@@ -323,6 +323,12 @@
                             <i class="fas fa-bullhorn mr-3 text-gray-400 group-hover:text-gray-500"></i>
                             Annonces
                         </a>
+
+                        <a href="{{ route('admin.ads-pilot.index') }}" 
+                           class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.ads-pilot.*') ? 'active' : '' }}">
+                            <i class="fas fa-chart-line mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Ads Pilot
+                        </a>
                         
                         <a href="{{ route('admin.cities.index') }}" 
                            class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md {{ request()->routeIs('admin.cities.*') ? 'active' : '' }}">

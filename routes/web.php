@@ -301,6 +301,11 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
         Route::post('/phone-calls/{id}/update-city', [AdminController::class, 'updatePhoneCallCity'])->name('phone-calls.update-city');
             Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
             Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
+            Route::get('/ads-pilot', function () {
+                return view('admin.ads-pilot.index', [
+                    'adsPilotUrl' => config('app.ads_pilot_url'),
+                ]);
+            })->name('ads-pilot.index');
         
         // Route pour le dashboard devis & facturation
         Route::prefix('quotations')->name('quotations.')->group(function () {

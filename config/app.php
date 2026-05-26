@@ -73,6 +73,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Couvreur Ads Pilot URL
+    |--------------------------------------------------------------------------
+    |
+    | L'application Google Ads Pilot est une app Next.js séparée dans /ads.
+    | Renseignez l'URL publique ici lorsque vous la déployez sur un sous-domaine.
+    |
+    */
+
+    'ads_pilot_url' => env('ADS_PILOT_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
