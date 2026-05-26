@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\ArticleImage;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
@@ -34,6 +36,138 @@ class ArticleController extends Controller
         return view('admin.articles.generate');
     }
 
+    public function seoCreate()
+    {
+        $cities = collect();
+
+        try {
+            $query = City::query();
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('cities', 'is_active')) {
+                $query->where(function ($q) {
+                    $q->where('is_active', true)->orWhereNull('is_active');
+                });
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('cities', 'active')) {
+                $query->where(function ($q) {
+                    $q->where('active', true)->orWhereNull('active');
+                });
+            }
+
+            $cities = $query
+                ->orderBy('name')
+                ->limit(3000)
+                ->get(['id', 'name', 'postal_code', 'department', 'region']);
+        } catch (\Throwable $e) {
+            Log::warning('Impossible de charger les villes pour l assistant SEO article', [
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return view('admin.articles.seo-create', compact('cities'));
+    }
+
+    public function seoStore(Request $request)
+    {
+        @set_time_limit(300);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'city_id' => 'nullable|exists:cities,id',
+            'city_name' => 'nullable|string|max:180',
+            'keywords' => 'required|string|max:8000',
+            'secondary_keywords' => 'nullable|string|max:8000',
+            'brief' => 'nullable|string|max:8000',
+            'tone' => 'nullable|in:expert,local,practical,premium',
+            'word_count' => 'nullable|integer|min:900|max:3500',
+            'status' => 'required|in:draft,published',
+            'photos' => 'nullable|array|max:12',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
+            'photo_alt' => 'nullable|array',
+            'photo_alt.*' => 'nullable|string|max:255',
+            'photo_caption' => 'nullable|array',
+            'photo_caption.*' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $city = !empty($validated['city_id']) ? City::find($validated['city_id']) : null;
+            $cityName = trim($validated['city_name'] ?? '') ?: ($city?->name ?? setting('company_city', ''));
+            $primaryKeywords = $this->parseSeoKeywords($validated['keywords'], 80);
+            $secondaryKeywords = $this->parseSeoKeywords($validated['secondary_keywords'] ?? '', 80);
+            $allKeywords = array_values(array_unique(array_merge($primaryKeywords, $secondaryKeywords)));
+            $uploadedImages = $this->uploadSeoArticlePhotos($request, $validated['title'], $cityName, $allKeywords);
+
+            $payload = $this->generateLongSeoArticlePayload([
+                'title' => $validated['title'],
+                'city_name' => $cityName,
+                'keywords' => $primaryKeywords,
+                'secondary_keywords' => $secondaryKeywords,
+                'brief' => $validated['brief'] ?? '',
+                'tone' => $validated['tone'] ?? 'expert',
+                'word_count' => (int) ($validated['word_count'] ?? 1800),
+            ], $uploadedImages);
+
+            $contentHtml = $this->injectSeoArticleImages(
+                $payload['content_html'] ?? '',
+                $uploadedImages
+            );
+            $contentHtml = $this->normalizeImageUrlsInContent($contentHtml);
+            $plainText = trim(preg_replace('/\s+/', ' ', strip_tags($contentHtml)));
+            $readingTime = max(1, (int) ceil(str_word_count($plainText) / 220));
+            $featuredImage = $uploadedImages[0]['path'] ?? null;
+            $focusKeyword = $payload['focus_keyword'] ?? ($primaryKeywords[0] ?? $this->extractFocusKeyword($validated['title']));
+            $tags = array_slice(array_values(array_unique(array_filter(array_merge([$focusKeyword], $allKeywords)))), 0, 20);
+
+            $article = Article::create([
+                'title' => $validated['title'],
+                'slug' => $this->makeUniqueArticleSlug($validated['title'], $cityName),
+                'excerpt' => $payload['excerpt'] ?? Str::limit($plainText, 220),
+                'content_html' => $contentHtml,
+                'featured_image' => $featuredImage,
+                'meta_title' => Str::limit($payload['meta_title'] ?? $this->buildSeoMetaTitle($validated['title'], $cityName), 500, ''),
+                'meta_description' => Str::limit($payload['meta_description'] ?? $this->buildSeoMetaDescription($validated['title'], $cityName), 500, ''),
+                'meta_keywords' => Str::limit($payload['meta_keywords'] ?? implode(', ', $tags), 5000, ''),
+                'status' => $validated['status'],
+                'published_at' => $validated['status'] === 'published' ? now() : null,
+                'is_published' => $validated['status'] === 'published',
+                'city_id' => $city?->id,
+                'focus_keyword' => $focusKeyword,
+                'estimated_reading_time' => $readingTime,
+                'tags' => $tags,
+            ]);
+
+            foreach ($uploadedImages as $image) {
+                ArticleImage::create([
+                    'article_id' => $article->id,
+                    'image_path' => $image['path'],
+                    'alt_text' => $image['alt'],
+                    'keywords' => implode(', ', array_slice($allKeywords, 0, 12)),
+                    'title' => $image['title'],
+                    'description' => $image['caption'],
+                    'width' => $image['width'],
+                    'height' => $image['height'],
+                    'file_size' => $image['file_size'],
+                    'mime_type' => $image['mime_type'],
+                ]);
+            }
+
+            return redirect()
+                ->route('admin.articles.show', $article)
+                ->with('success', 'Article SEO créé avec succès. Vous pouvez le relire, ajuster le HTML et publier si besoin.');
+        } catch (\Throwable $e) {
+            Log::error('Erreur création article SEO IA', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Impossible de créer l article SEO: ' . $e->getMessage());
+        }
+    }
+
     public function store(Request $request)
     {
         // Validation conditionnelle selon le type d'input
@@ -42,7 +176,7 @@ class ArticleController extends Controller
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:2000',
+            'meta_keywords' => 'nullable|string|max:5000',
             'status' => 'required|in:draft,published'
         ];
         
@@ -126,7 +260,7 @@ class ArticleController extends Controller
             'content_html' => 'required|string',
             'meta_title' => 'nullable|string|max:500',
             'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:2000',
+            'meta_keywords' => 'nullable|string|max:5000',
             'status' => 'required|in:draft,published'
             ];
             
@@ -1009,6 +1143,281 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         
         // Fallback en cas d'échec
         return $this->generateFallbackContent($title, $keyword);
+    }
+
+    private function parseSeoKeywords(?string $keywords, int $limit = 60): array
+    {
+        $parts = preg_split('/[\n,;|]+/', (string) $keywords, -1, PREG_SPLIT_NO_EMPTY);
+        $clean = [];
+
+        foreach ($parts as $keyword) {
+            $keyword = trim(preg_replace('/\s+/', ' ', strip_tags($keyword)));
+
+            if ($keyword !== '' && mb_strlen($keyword) >= 2) {
+                $clean[] = mb_strtolower($keyword);
+            }
+        }
+
+        return array_slice(array_values(array_unique($clean)), 0, $limit);
+    }
+
+    private function uploadSeoArticlePhotos(Request $request, string $title, string $cityName, array $keywords): array
+    {
+        $photos = [];
+        $files = $request->file('photos', []);
+        $alts = $request->input('photo_alt', []);
+        $captions = $request->input('photo_caption', []);
+        $focusKeyword = $keywords[0] ?? $this->extractFocusKeyword($title);
+
+        foreach ($files as $index => $file) {
+            if (!$file || !$file->isValid()) {
+                continue;
+            }
+
+            $path = $this->handleImageUpload($file);
+            $imageInfo = @getimagesize(public_path($path));
+            $alt = trim($alts[$index] ?? '');
+            $caption = trim($captions[$index] ?? '');
+            $fallbackAlt = trim("{$focusKeyword} {$cityName} - {$title}");
+
+            $photos[] = [
+                'path' => $path,
+                'url' => asset($path),
+                'alt' => $alt ?: Str::limit($fallbackAlt, 250, ''),
+                'title' => Str::limit($alt ?: $fallbackAlt, 250, ''),
+                'caption' => $caption ?: Str::limit("Illustration de {$focusKeyword}" . ($cityName ? " à {$cityName}" : ''), 480, ''),
+                'width' => $imageInfo[0] ?? null,
+                'height' => $imageInfo[1] ?? null,
+                'file_size' => @filesize(public_path($path)) ?: null,
+                'mime_type' => $file->getMimeType(),
+            ];
+        }
+
+        return $photos;
+    }
+
+    private function generateLongSeoArticlePayload(array $brief, array $photos): array
+    {
+        $companyInfo = $this->getCompanyInfo();
+        $keywords = implode(', ', array_slice($brief['keywords'], 0, 45));
+        $secondaryKeywords = implode(', ', array_slice($brief['secondary_keywords'], 0, 45));
+        $cityName = $brief['city_name'] ?: ($companyInfo['company_city'] ?? '');
+        $wordCount = max(900, min(3500, (int) ($brief['word_count'] ?? 1800)));
+        $imageInstructions = empty($photos)
+            ? 'Aucune photo fournie: ne mets pas de placeholder image.'
+            : 'Insere exactement ces placeholders aux endroits naturels du contenu: ' . implode(', ', array_map(fn ($i) => '[IMAGE_' . ($i + 1) . ']', array_keys($photos))) . '.';
+
+        $systemMessage = "Tu es un redacteur SEO senior, specialiste des articles locaux pour artisans. Tu produis uniquement un JSON valide, sans markdown, sans texte avant ou apres.";
+
+        $prompt = "Cree un article SEO HTML long, utile et pret a publier.
+
+DONNEES:
+- Titre: {$brief['title']}
+- Ville liee: {$cityName}
+- Entreprise: {$companyInfo['company_name']}
+- Telephone: {$companyInfo['company_phone']}
+- Specialite: {$companyInfo['company_specialization']}
+- Adresse: {$companyInfo['company_address']}
+- Mot-cles principaux: {$keywords}
+- Mot-cles secondaires: {$secondaryKeywords}
+- Brief libre: {$brief['brief']}
+- Ton: {$brief['tone']}
+- Longueur cible: environ {$wordCount} mots
+- Photos: {$imageInstructions}
+
+OBJECTIF QUALITE:
+- Article original, local et vraiment utile pour un visiteur.
+- Integrer beaucoup de mots-cles, mais naturellement: pas de bourrage, pas de listes cachees, pas de contenu spam.
+- Structure claire type WordPress premium: introduction, sommaire, sections H2/H3, listes pratiques, FAQ, conclusion et appel a l'action.
+- Repondre aux intentions de recherche: prix/facteurs, delais, methodes, erreurs a eviter, choix d'un professionnel, conseils d'entretien.
+- Mentionner la ville et la zone locale sans repetition artificielle.
+- Ne pas inventer de certifications ou de garanties precises non fournies.
+- Ne pas parler de financement, MaPrimeRenov, aides CEE ou subventions.
+
+HTML ATTENDU:
+- Retourne uniquement le contenu du corps de l'article, sans <html>, <head>, <body>.
+- Utilise des sections lisibles avec classes Tailwind compatibles:
+  container: max-w-5xl mx-auto px-4 sm:px-6 lg:px-8
+  sections: bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 mb-8
+  titres: text-slate-950 / text-slate-900
+  textes: text-slate-800 leading-relaxed
+  listes: space-y-2 text-slate-800
+- Inclure un seul h1 au debut.
+- Inclure un sommaire avec ancres vers les H2.
+- Inclure 5 a 7 questions FAQ visibles en HTML, sans schema JSON-LD FAQPage.
+- Ajouter loading=\"lazy\" uniquement sur les images si tu generes une balise image. Sinon utilise seulement les placeholders fournis.
+
+FORMAT JSON STRICT:
+{
+  \"content_html\": \"HTML complet\",
+  \"meta_title\": \"Titre SEO unique 50-65 caracteres\",
+  \"meta_description\": \"Meta description engageante 140-160 caracteres\",
+  \"meta_keywords\": \"Liste longue de mots-cles separes par virgules\",
+  \"excerpt\": \"Resume court de 180-220 caracteres\",
+  \"focus_keyword\": \"mot-cle principal\",
+  \"tags\": [\"tag 1\", \"tag 2\", \"tag 3\"]
+}
+
+Reponds uniquement avec ce JSON valide.";
+
+        try {
+            $result = AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 12000,
+                'temperature' => 0.72,
+            ]);
+
+            $content = $result['content'] ?? '';
+            $data = $this->extractJsonPayload($content);
+
+            if (is_array($data) && !empty($data['content_html'])) {
+                $data['tags'] = is_array($data['tags'] ?? null) ? $data['tags'] : $this->parseSeoKeywords((string) ($data['tags'] ?? ''), 20);
+                return $data;
+            }
+        } catch (\Throwable $e) {
+            Log::error('Erreur generation article SEO long', [
+                'title' => $brief['title'] ?? null,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return $this->generateLongSeoFallbackPayload($brief, $photos);
+    }
+
+    private function extractJsonPayload(string $content): ?array
+    {
+        $content = trim($content);
+        $content = preg_replace('/^```(?:json)?\s*/i', '', $content);
+        $content = preg_replace('/\s*```$/', '', $content);
+        $decoded = json_decode($content, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        $start = strpos($content, '{');
+        $end = strrpos($content, '}');
+
+        if ($start === false || $end === false || $end <= $start) {
+            return null;
+        }
+
+        $json = substr($content, $start, $end - $start + 1);
+        $decoded = json_decode($json, true);
+
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded) ? $decoded : null;
+    }
+
+    private function injectSeoArticleImages(string $html, array $photos): string
+    {
+        if (empty($photos)) {
+            return preg_replace('/\[IMAGE_\d+\]/', '', $html);
+        }
+
+        foreach ($photos as $index => $photo) {
+            $placeholder = '[IMAGE_' . ($index + 1) . ']';
+            $figure = $this->buildSeoArticleFigure($photo);
+
+            if (str_contains($html, $placeholder)) {
+                $html = str_replace($placeholder, $figure, $html);
+                continue;
+            }
+
+            $html = $this->insertFigureAfterSection($html, $figure, $index + 1);
+        }
+
+        return preg_replace('/\[IMAGE_\d+\]/', '', $html);
+    }
+
+    private function buildSeoArticleFigure(array $photo): string
+    {
+        $src = htmlspecialchars(asset($photo['path']), ENT_QUOTES, 'UTF-8');
+        $alt = htmlspecialchars($photo['alt'], ENT_QUOTES, 'UTF-8');
+        $caption = htmlspecialchars($photo['caption'], ENT_QUOTES, 'UTF-8');
+        $width = $photo['width'] ? ' width="' . (int) $photo['width'] . '"' : '';
+        $height = $photo['height'] ? ' height="' . (int) $photo['height'] . '"' : '';
+
+        return '<figure class="my-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">'
+            . '<img src="' . $src . '" alt="' . $alt . '"' . $width . $height . ' loading="lazy" decoding="async" class="w-full h-auto object-cover">'
+            . '<figcaption class="px-5 py-3 text-sm text-slate-700 bg-slate-50">' . $caption . '</figcaption>'
+            . '</figure>';
+    }
+
+    private function insertFigureAfterSection(string $html, string $figure, int $sectionNumber): string
+    {
+        $offset = 0;
+
+        for ($i = 0; $i < $sectionNumber; $i++) {
+            $position = stripos($html, '</section>', $offset);
+
+            if ($position === false) {
+                return $html . $figure;
+            }
+
+            $offset = $position + strlen('</section>');
+        }
+
+        return substr($html, 0, $offset) . $figure . substr($html, $offset);
+    }
+
+    private function makeUniqueArticleSlug(string $title, ?string $cityName = null): string
+    {
+        $base = Str::slug(trim($title . ' ' . ($cityName ?: ''))) ?: 'article-seo';
+        $slug = $base;
+        $counter = 2;
+
+        while (Article::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    private function buildSeoMetaTitle(string $title, ?string $cityName = null): string
+    {
+        return trim($title . ($cityName ? " a {$cityName}" : '') . ' | Conseils expert');
+    }
+
+    private function buildSeoMetaDescription(string $title, ?string $cityName = null): string
+    {
+        $location = $cityName ? " a {$cityName}" : '';
+
+        return "Guide complet sur {$title}{$location}: conseils, methodes, erreurs a eviter et accompagnement professionnel.";
+    }
+
+    private function generateLongSeoFallbackPayload(array $brief, array $photos): array
+    {
+        $companyInfo = $this->getCompanyInfo();
+        $cityName = $brief['city_name'] ?: ($companyInfo['company_city'] ?? '');
+        $title = $brief['title'];
+        $keywords = array_slice($brief['keywords'] ?? [], 0, 16);
+        $focusKeyword = $keywords[0] ?? $this->extractFocusKeyword($title);
+        $keywordList = implode(', ', $keywords);
+        $imagePlaceholder = empty($photos) ? '' : '[IMAGE_1]';
+
+        $html = '<article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">'
+            . '<header class="mb-8"><p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Guide local</p>'
+            . '<h1 class="mt-3 text-3xl md:text-5xl font-bold text-slate-950 leading-tight">' . e($title) . ($cityName ? ' a ' . e($cityName) : '') . '</h1>'
+            . '<p class="mt-5 text-lg text-slate-800 leading-relaxed">Ce guide vous aide a comprendre les points essentiels, les bonnes pratiques et les criteres a verifier avant de lancer votre projet avec un professionnel local.</p></header>'
+            . '<nav class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8"><p class="font-semibold text-slate-950 mb-3">Sommaire</p><ol class="space-y-2 text-slate-800 list-decimal list-inside">'
+            . '<li><a href="#comprendre" class="underline">Comprendre le besoin</a></li><li><a href="#methodes" class="underline">Methodes et etapes</a></li><li><a href="#choisir" class="underline">Choisir le bon professionnel</a></li><li><a href="#faq" class="underline">Questions frequentes</a></li></ol></nav>'
+            . '<section id="comprendre" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 mb-8"><h2 class="text-2xl font-bold text-slate-950 mb-4">Comprendre votre projet' . ($cityName ? ' a ' . e($cityName) : '') . '</h2><p class="text-slate-800 leading-relaxed mb-4">' . e($title) . ' demande une analyse precise du contexte, de l etat existant, des contraintes techniques et du resultat attendu. Une preparation serieuse permet d eviter les mauvaises surprises et d obtenir un travail durable.</p><p class="text-slate-800 leading-relaxed">Les mots-cles importants a travailler naturellement sont: ' . e($keywordList) . '.</p></section>'
+            . $imagePlaceholder
+            . '<section id="methodes" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 mb-8"><h2 class="text-2xl font-bold text-slate-950 mb-4">Methodes, etapes et points de controle</h2><p class="text-slate-800 leading-relaxed mb-4">Un chantier reussi commence par un diagnostic, continue avec une methode adaptee, puis se termine par un controle propre du resultat.</p><ul class="space-y-2 text-slate-800 list-disc pl-6"><li>Identifier les contraintes d acces et de securite.</li><li>Choisir une technique adaptee au support et a l objectif.</li><li>Verifier la proprete, la finition et la durabilite de l intervention.</li><li>Conserver un contact clair avec l artisan pendant tout le chantier.</li></ul></section>'
+            . '<section id="choisir" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 mb-8"><h2 class="text-2xl font-bold text-slate-950 mb-4">Pourquoi choisir ' . e($companyInfo['company_name']) . '</h2><p class="text-slate-800 leading-relaxed">' . e($companyInfo['company_name']) . ' accompagne les particuliers avec une approche locale, des explications claires et un travail soigne. L objectif est simple: vous aider a prendre la bonne decision et obtenir un resultat propre.</p></section>'
+            . '<section id="faq" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 mb-8"><h2 class="text-2xl font-bold text-slate-950 mb-5">Questions frequentes</h2><div class="space-y-5"><div><h3 class="font-semibold text-slate-950">Quand demander un devis ?</h3><p class="text-slate-800">Idealement des que le besoin est identifie, afin de comparer les solutions avant que la situation ne se degrade.</p></div><div><h3 class="font-semibold text-slate-950">Combien de temps prevoir ?</h3><p class="text-slate-800">Le delai depend de la complexite, de l acces et de la disponibilite des materiaux ou equipements.</p></div><div><h3 class="font-semibold text-slate-950">Comment eviter les erreurs ?</h3><p class="text-slate-800">Demandez une explication claire de la methode, des limites et des points de controle avant validation.</p></div></div></section>'
+            . '<section class="bg-emerald-700 rounded-2xl p-6 md:p-8 text-white mb-8"><h2 class="text-2xl font-bold mb-3">Besoin d un avis professionnel ?</h2><p class="leading-relaxed mb-5">Contactez ' . e($companyInfo['company_name']) . ' pour obtenir un conseil adapte a votre situation.</p><a href="tel:' . e($companyInfo['company_phone']) . '" class="inline-flex px-5 py-3 rounded-xl bg-white text-emerald-800 font-semibold">Appeler maintenant</a></section>'
+            . '</article>';
+
+        return [
+            'content_html' => $html,
+            'meta_title' => $this->buildSeoMetaTitle($title, $cityName),
+            'meta_description' => $this->buildSeoMetaDescription($title, $cityName),
+            'meta_keywords' => implode(', ', array_slice(array_unique(array_merge([$focusKeyword], $keywords)), 0, 80)),
+            'excerpt' => Str::limit(strip_tags($html), 220),
+            'focus_keyword' => $focusKeyword,
+            'tags' => array_slice(array_unique(array_merge([$focusKeyword], $keywords)), 0, 20),
+        ];
     }
 
     /**

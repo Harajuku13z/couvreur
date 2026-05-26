@@ -7,6 +7,9 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 class="text-2xl md:text-3xl font-bold">Articles</h1>
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <a href="{{ route('admin.articles.seo.create') }}" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 text-center">
+                <i class="fas fa-magic mr-2"></i>Assistant SEO WordPress
+            </a>
             <a href="{{ route('admin.articles.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">
                 <i class="fas fa-plus mr-2"></i>Nouvel Article
             </a>

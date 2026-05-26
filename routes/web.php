@@ -350,20 +350,22 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
             Route::get('/create', [App\Http\Controllers\Admin\ArticleController::class, 'create'])->name('create');
             Route::get('/generate', [App\Http\Controllers\Admin\ArticleController::class, 'generate'])->name('generate');
             Route::get('/ai/form', [App\Http\Controllers\Admin\ArticleController::class, 'generate'])->name('ai.form');
+            Route::get('/seo/create', [App\Http\Controllers\Admin\ArticleController::class, 'seoCreate'])->name('seo.create');
+            Route::post('/seo', [App\Http\Controllers\Admin\ArticleController::class, 'seoStore'])->name('seo.store');
             Route::post('/', [App\Http\Controllers\Admin\ArticleController::class, 'store'])->name('store');
-            Route::get('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('show');
-            Route::get('/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('edit');
-            Route::put('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'update'])->name('update');
-            Route::delete('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'destroy'])->name('destroy');
             Route::delete('/', [App\Http\Controllers\Admin\ArticleController::class, 'destroyAll'])->name('destroy-all');
             Route::post('/generate-titles', [App\Http\Controllers\Admin\ArticleController::class, 'generateTitles'])->name('generate-titles');
             Route::post('/generate-content', [App\Http\Controllers\Admin\ArticleController::class, 'generateContent'])->name('generate-content');
             Route::post('/upload-image', [App\Http\Controllers\Admin\ArticleController::class, 'uploadImage'])->name('upload-image');
             Route::post('/images/{imageId}/metadata', [App\Http\Controllers\Admin\ArticleController::class, 'updateImageMetadata'])->name('update-image-metadata');
-            Route::get('/{articleId}/images', [App\Http\Controllers\Admin\ArticleController::class, 'getArticleImages'])->name('get-images');
             Route::get('/menu/links', [App\Http\Controllers\Admin\ArticleController::class, 'getMenuLinks'])->name('get-menu-links');
             Route::get('/images/available', [App\Http\Controllers\Admin\ArticleController::class, 'getAvailableImages'])->name('get-available-images');
             Route::post('/create-from-titles', [App\Http\Controllers\Admin\ArticleController::class, 'createFromTitles'])->name('create-from-titles');
+            Route::get('/{articleId}/images', [App\Http\Controllers\Admin\ArticleController::class, 'getArticleImages'])->name('get-images');
+            Route::get('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'show'])->name('show');
+            Route::get('/{article}/edit', [App\Http\Controllers\Admin\ArticleController::class, 'edit'])->name('edit');
+            Route::put('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'update'])->name('update');
+            Route::delete('/{article}', [App\Http\Controllers\Admin\ArticleController::class, 'destroy'])->name('destroy');
         });
         
         // Routes pour les annonces
