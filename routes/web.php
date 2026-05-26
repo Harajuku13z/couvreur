@@ -301,11 +301,12 @@ Route::get('/legal/cgv', [LegalController::class, 'cgv'])->name('legal.cgv');
         Route::post('/phone-calls/{id}/update-city', [AdminController::class, 'updatePhoneCallCity'])->name('phone-calls.update-city');
             Route::post('/phone-calls/delete-all', [AdminController::class, 'deleteAllPhoneCalls'])->name('phone-calls.delete-all');
             Route::get('/visits', [App\Http\Controllers\VisitsController::class, 'index'])->name('visits');
-            Route::get('/ads-pilot', function () {
-                return view('admin.ads-pilot.index', [
-                    'adsPilotUrl' => config('app.ads_pilot_url'),
-                ]);
-            })->name('ads-pilot.index');
+            Route::prefix('ads-pilot')->name('ads-pilot.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\AdsPilotController::class, 'index'])->name('index');
+                Route::post('/generate-campaign', [App\Http\Controllers\Admin\AdsPilotController::class, 'generateCampaign'])->name('generate-campaign');
+                Route::post('/scan', [App\Http\Controllers\Admin\AdsPilotController::class, 'scan'])->name('scan');
+                Route::post('/report', [App\Http\Controllers\Admin\AdsPilotController::class, 'report'])->name('report');
+            });
         
         // Route pour le dashboard devis & facturation
         Route::prefix('quotations')->name('quotations.')->group(function () {
