@@ -84,10 +84,6 @@ class ArticleController extends Controller
             'status' => 'required|in:draft,published',
             'photos' => 'nullable|array|max:12',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
-            'photo_alt' => 'nullable|array',
-            'photo_alt.*' => 'nullable|string|max:255',
-            'photo_caption' => 'nullable|array',
-            'photo_caption.*' => 'nullable|string|max:500',
         ]);
 
         try {
@@ -96,7 +92,15 @@ class ArticleController extends Controller
             $primaryKeywords = $this->parseSeoKeywords($validated['keywords'], 80);
             $secondaryKeywords = $this->parseSeoKeywords($validated['secondary_keywords'] ?? '', 80);
             $allKeywords = array_values(array_unique(array_merge($primaryKeywords, $secondaryKeywords)));
-            $uploadedImages = $this->uploadSeoArticlePhotos($request, $validated['title'], $cityName, $allKeywords);
+            $uploadedImages = $this->applyAiSeoMetadataToPhotos(
+                $this->uploadSeoArticlePhotos($request, $validated['title'], $cityName, $allKeywords),
+                [
+                    'title' => $validated['title'],
+                    'city_name' => $cityName,
+                    'keywords' => $allKeywords,
+                    'brief' => $validated['brief'] ?? '',
+                ]
+            );
 
             $payload = $this->generateLongSeoArticlePayload([
                 'title' => $validated['title'],
@@ -1165,8 +1169,6 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
     {
         $photos = [];
         $files = $request->file('photos', []);
-        $alts = $request->input('photo_alt', []);
-        $captions = $request->input('photo_caption', []);
         $focusKeyword = $keywords[0] ?? $this->extractFocusKeyword($title);
 
         foreach ($files as $index => $file) {
@@ -1176,16 +1178,16 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
 
             $path = $this->handleImageUpload($file);
             $imageInfo = @getimagesize(public_path($path));
-            $alt = trim($alts[$index] ?? '');
-            $caption = trim($captions[$index] ?? '');
             $fallbackAlt = trim("{$focusKeyword} {$cityName} - {$title}");
+            $fallbackCaption = trim("Illustration de {$focusKeyword}" . ($cityName ? " a {$cityName}" : ''));
 
             $photos[] = [
                 'path' => $path,
                 'url' => asset($path),
-                'alt' => $alt ?: Str::limit($fallbackAlt, 250, ''),
-                'title' => Str::limit($alt ?: $fallbackAlt, 250, ''),
-                'caption' => $caption ?: Str::limit("Illustration de {$focusKeyword}" . ($cityName ? " à {$cityName}" : ''), 480, ''),
+                'original_name' => $file->getClientOriginalName(),
+                'alt' => Str::limit($fallbackAlt, 180, ''),
+                'title' => Str::limit($fallbackAlt, 120, ''),
+                'caption' => Str::limit($fallbackCaption, 240, ''),
                 'width' => $imageInfo[0] ?? null,
                 'height' => $imageInfo[1] ?? null,
                 'file_size' => @filesize(public_path($path)) ?: null,
@@ -1194,6 +1196,132 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         }
 
         return $photos;
+    }
+
+    private function applyAiSeoMetadataToPhotos(array $photos, array $brief): array
+    {
+        if (empty($photos)) {
+            return [];
+        }
+
+        $photos = array_values(array_map(function (array $photo, int $index) use ($brief) {
+            return array_merge($photo, $this->fallbackPhotoSeoMetadata($photo, $index, $brief));
+        }, $photos, array_keys($photos)));
+
+        $cityName = trim((string) ($brief['city_name'] ?? ''));
+        $keywords = implode(', ', array_slice($brief['keywords'] ?? [], 0, 25));
+        $photoList = implode("\n", array_map(function (array $photo, int $index) {
+            $size = trim(($photo['width'] ?? '?') . 'x' . ($photo['height'] ?? '?'));
+
+            return '- index ' . $index
+                . ' | fichier: ' . ($photo['original_name'] ?? basename($photo['path']))
+                . ' | dimensions: ' . $size;
+        }, $photos, array_keys($photos)));
+
+        $systemMessage = 'Tu es un expert SEO image. Tu reponds uniquement avec un JSON valide, sans markdown.';
+        $prompt = "Genere les textes SEO des images pour un article local.
+
+CONTEXTE:
+- Titre article: {$brief['title']}
+- Ville: {$cityName}
+- Mots-cles: {$keywords}
+- Brief: {$brief['brief']}
+
+IMAGES:
+{$photoList}
+
+REGLES:
+- alt: description utile et naturelle, 70 a 125 caracteres si possible.
+- title: titre court, naturel, 50 a 90 caracteres.
+- caption: legende visible, informative, 90 a 180 caracteres.
+- Mentionne la ville seulement si c'est naturel.
+- Pas de bourrage de mots-cles, pas de repetition artificielle.
+- Evite les formules generiques du type \"image de\" ou \"photo de\".
+- Ne promets pas de garantie, financement, subvention ou certification non fournie.
+
+FORMAT JSON STRICT:
+{
+  \"images\": [
+    {\"index\": 0, \"alt\": \"...\", \"title\": \"...\", \"caption\": \"...\"}
+  ]
+}";
+
+        try {
+            $result = AiService::callAI($prompt, $systemMessage, [
+                'max_tokens' => 1800,
+                'temperature' => 0.35,
+                'timeout' => 45,
+            ]);
+
+            $data = $this->extractJsonPayload((string) ($result['content'] ?? ''));
+            $items = is_array($data['images'] ?? null) ? $data['images'] : [];
+
+            foreach ($items as $item) {
+                $index = (int) ($item['index'] ?? -1);
+
+                if (!isset($photos[$index])) {
+                    continue;
+                }
+
+                $photos[$index]['alt'] = $this->sanitizeImageSeoText(
+                    (string) ($item['alt'] ?? ''),
+                    $photos[$index]['alt'],
+                    180
+                );
+                $photos[$index]['title'] = $this->sanitizeImageSeoText(
+                    (string) ($item['title'] ?? ''),
+                    $photos[$index]['title'],
+                    120
+                );
+                $photos[$index]['caption'] = $this->sanitizeImageSeoText(
+                    (string) ($item['caption'] ?? ''),
+                    $photos[$index]['caption'],
+                    240
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Generation IA des textes alternatifs impossible, fallback applique', [
+                'title' => $brief['title'] ?? null,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return $photos;
+    }
+
+    private function fallbackPhotoSeoMetadata(array $photo, int $index, array $brief): array
+    {
+        $title = trim((string) ($brief['title'] ?? 'Article SEO'));
+        $cityName = trim((string) ($brief['city_name'] ?? ''));
+        $keywords = $brief['keywords'] ?? [];
+        $focusKeyword = trim((string) ($keywords[0] ?? $this->extractFocusKeyword($title)));
+        $fileLabel = Str::of($photo['original_name'] ?? basename($photo['path'] ?? ''))
+            ->beforeLast('.')
+            ->replace(['-', '_'], ' ')
+            ->squish()
+            ->lower()
+            ->value();
+
+        $context = trim($focusKeyword . ($cityName ? " a {$cityName}" : ''));
+        $alt = trim($context . ' - ' . ($fileLabel ?: $title));
+        $caption = trim(($cityName ? "{$cityName}: " : '') . "illustration du sujet {$focusKeyword} pour guider le lecteur.");
+
+        return [
+            'alt' => Str::limit($alt, 180, ''),
+            'title' => Str::limit(trim($focusKeyword . ($cityName ? " a {$cityName}" : '') . ' #' . ($index + 1)), 120, ''),
+            'caption' => Str::limit($caption, 240, ''),
+        ];
+    }
+
+    private function sanitizeImageSeoText(string $text, string $fallback, int $limit): string
+    {
+        $clean = trim(preg_replace('/\s+/', ' ', strip_tags($text)));
+
+        if ($clean === '') {
+            $clean = $fallback;
+        }
+
+        return Str::limit($clean, $limit, '');
     }
 
     private function generateLongSeoArticlePayload(array $brief, array $photos): array
@@ -1205,7 +1333,8 @@ Réponds UNIQUEMENT avec le JSON valide, sans texte avant ou après.";
         $wordCount = max(900, min(3500, (int) ($brief['word_count'] ?? 1800)));
         $imageInstructions = empty($photos)
             ? 'Aucune photo fournie: ne mets pas de placeholder image.'
-            : 'Insere exactement ces placeholders aux endroits naturels du contenu: ' . implode(', ', array_map(fn ($i) => '[IMAGE_' . ($i + 1) . ']', array_keys($photos))) . '.';
+            : 'Insere exactement ces placeholders aux endroits naturels du contenu: ' . implode(', ', array_map(fn ($i) => '[IMAGE_' . ($i + 1) . ']', array_keys($photos))) . ". Metadata SEO images:\n"
+                . implode("\n", array_map(fn ($photo, $i) => 'IMAGE_' . ($i + 1) . ' | alt: ' . $photo['alt'] . ' | legende: ' . $photo['caption'], $photos, array_keys($photos))) . '.';
 
         $systemMessage = "Tu es un redacteur SEO senior, specialiste des articles locaux pour artisans. Tu produis uniquement un JSON valide, sans markdown, sans texte avant ou apres.";
 

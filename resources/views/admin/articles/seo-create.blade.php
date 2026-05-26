@@ -109,7 +109,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-slate-950">Photos de l'article</h2>
-                        <p class="text-sm text-slate-600">Ajoutez plusieurs photos. Elles seront reliées à l'article avec alt text et légendes SEO.</p>
+                        <p class="text-sm text-slate-600">Ajoutez plusieurs photos. L'IA génère automatiquement les textes alternatifs, titres et légendes SEO.</p>
                     </div>
                 </div>
 
@@ -117,6 +117,7 @@
                     <i class="fas fa-cloud-upload-alt text-3xl text-slate-500"></i>
                     <span class="mt-3 text-base font-semibold text-slate-900">Sélectionner plusieurs photos</span>
                     <span class="mt-1 text-sm text-slate-600">JPG, PNG, WebP, AVIF jusqu'à 10 Mo par image</span>
+                    <span class="mt-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Alt text + légendes générés par l'IA</span>
                     <input id="photos" name="photos[]" type="file" multiple accept="image/*" class="hidden">
                 </label>
 
@@ -189,11 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.className = 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm';
                 card.innerHTML = `
                     <img src="${event.target.result}" alt="Aperçu image ${index + 1}" class="h-40 w-full rounded-xl object-cover">
-                    <div class="mt-3 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-700" for="photo_alt_${index}">Texte alternatif SEO</label>
-                        <input id="photo_alt_${index}" name="photo_alt[${index}]" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-950" placeholder="Ex: élagage d'arbre à Paris">
-                        <label class="block text-xs font-semibold text-slate-700" for="photo_caption_${index}">Légende</label>
-                        <input id="photo_caption_${index}" name="photo_caption[${index}]" type="text" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-950" placeholder="Légende affichée sous l'image">
+                    <div class="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
+                        <p class="font-semibold">Métadonnées SEO générées par l'IA</p>
+                        <p class="mt-1 text-xs text-emerald-800">Le texte alternatif, le titre image et la légende seront créés selon le titre, la ville, les mots-clés et le contenu de l'article.</p>
+                        <p class="mt-2 truncate text-xs text-slate-600">${file.name}</p>
                     </div>
                 `;
                 preview.appendChild(card);
