@@ -134,6 +134,7 @@ class IndexationController extends Controller
         try {
             $sitemapService = app(SitemapService::class);
             $result = $sitemapService->generateSitemap();
+            $robotsUrl = $this->syncRobotsTxt();
             
             if ($result['success']) {
                 // Générer aussi l'index de sitemap
@@ -141,9 +142,10 @@ class IndexationController extends Controller
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sitemap régénéré avec succès',
+                    'message' => 'Sitemap et robots.txt régénérés avec succès',
                     'total_urls' => $result['total_urls'] ?? 0,
-                    'index_url' => $indexResult['url'] ?? null
+                    'index_url' => $indexResult['url'] ?? null,
+                    'robots_url' => $robotsUrl,
                 ]);
             }
             
@@ -158,6 +160,50 @@ class IndexationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Automatisation simple : robots.txt + sitemap + envoi d'indexation.
+     */
+    public function runAutomation(Request $request)
+    {
+        try {
+            $limit = (int) $request->input('limit', 200);
+            $limit = max(1, min($limit, 200));
+
+            $sitemapService = app(SitemapService::class);
+            $sitemapResult = $sitemapService->generateSitemap();
+            $indexResult = $sitemapService->generateSitemapIndex();
+            $robotsUrl = $this->syncRobotsTxt();
+            $indexationResult = $this->indexationService->runDailyIndexing($limit);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Automatisation terminée',
+                'sitemap' => [
+                    'success' => (bool) ($sitemapResult['success'] ?? false),
+                    'total_urls' => $sitemapResult['total_urls'] ?? 0,
+                    'index_url' => $indexResult['url'] ?? $this->currentSiteUrl() . '/sitemap.xml',
+                    'robots_url' => $robotsUrl,
+                ],
+                'indexation' => [
+                    'success_count' => $indexationResult['success'] ?? $indexationResult['indexed'] ?? 0,
+                    'failed_count' => $indexationResult['failed'] ?? 0,
+                    'total' => $indexationResult['total'] ?? 0,
+                    'message' => $indexationResult['message'] ?? null,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur automatisation indexation', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -419,5 +465,65 @@ class IndexationController extends Controller
         $name = str_replace(['services', 'articles', 'portfolio'], ['Services', 'Articles', 'Portfolio'], $name);
 
         return Str::headline($name);
+    }
+
+    protected function syncRobotsTxt(): string
+    {
+        $siteUrl = $this->currentSiteUrl();
+        $updatedAt = now()->format('Y-m-d');
+        $content = <<<ROBOTS
+# Robots.txt SEO
+# Synchronise depuis l'administration indexation
+# Derniere mise a jour : {$updatedAt}
+
+User-agent: *
+Allow: /
+
+# Zones privees
+Disallow: /admin/
+Disallow: /admin
+Disallow: /config/
+Disallow: /setup
+Disallow: /api/
+Disallow: /schedule/run
+Disallow: /cron/run
+
+# Ressources
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.woff$
+Allow: /*.woff2$
+Allow: /*.ttf$
+
+# Fichiers sensibles
+Disallow: /*.log$
+Disallow: /*.sql$
+Disallow: /*.env$
+Disallow: /*.git
+Disallow: /storage/
+Disallow: /vendor/
+
+# Sitemaps
+Sitemap: {$siteUrl}/sitemap.xml
+
+ROBOTS;
+
+        if (file_put_contents(public_path('robots.txt'), $content) === false) {
+            throw new \RuntimeException('Impossible de générer public/robots.txt');
+        }
+
+        return $siteUrl . '/robots.txt';
+    }
+
+    protected function currentSiteUrl(): string
+    {
+        return rtrim(SeoHelper::normalizeSiteUrlInput(
+            (string) Setting::get('site_url', request()->getSchemeAndHttpHost())
+        ), '/');
     }
 }

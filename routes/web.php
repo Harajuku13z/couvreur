@@ -722,6 +722,7 @@ Route::get('/schedule/run', function (\Illuminate\Http\Request $request) {
     // Actions
         Route::post('/update', [App\Http\Controllers\IndexationController::class, 'update'])->name('update');
         Route::post('/update-sitemap', [App\Http\Controllers\IndexationController::class, 'updateSitemap'])->name('update-sitemap');
+        Route::post('/automation', [App\Http\Controllers\IndexationController::class, 'runAutomation'])->name('automation');
     Route::post('/verify-urls', [App\Http\Controllers\IndexationController::class, 'verifyUrls'])->name('verify-urls');
         Route::post('/index-urls', [App\Http\Controllers\IndexationController::class, 'indexUrls'])->name('index-urls');
     Route::post('/submit-sitemap', [App\Http\Controllers\IndexationController::class, 'submitSitemap'])->name('submit-sitemap');
