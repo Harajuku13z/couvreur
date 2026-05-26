@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(cuid())
+  name              String?
+  email             String             @unique
+  passwordHash      String?
+  createdAt         DateTime           @default(now())
+  googleAdsAccounts GoogleAdsAccount[]
+  businesses        ClientBusiness[]
+  campaigns         Campaign[]
+  recommendations   Recommendation[]
+  actionLogs        ActionLog[]
+  reports           Report[]
+  settings          UserSettings?
+}
+
+model GoogleAdsAccount {
+  id              String     @id @default(cuid())
+  userId          String
+  customerId      String
+  descriptiveName String
+  currencyCode    String?
+  timeZone        String?
+  accessToken     String
+  refreshToken    String
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns       Campaign[]
+
+  @@unique([userId, customerId])
+  @@index([userId])
+}
+
+model ClientBusiness {
+  id           String     @id @default(cuid())
+  userId       String
+  name         String
+  websiteUrl   String
+  phone        String
+  email        String?
+  address      String?
+  serviceAreas Json
+  services     Json
+  offer        String?
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns    Campaign[]
+
+  @@index([userId])
+}
+
+model Campaign {
+  id                    String             @id @default(cuid())
+  userId                String
+  googleAdsAccountId    String?
+  clientBusinessId      String?
+  googleCampaignId      String?
+  name                  String
+  status                String             @default("draft")
+  dailyBudget           Decimal            @db.Decimal(10, 2)
+  objective             String
+  locations             Json
+  schedule              Json
+  humanValidationMode   Boolean            @default(true)
+  autoNegativeKeywords  Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  googleAdsAccount      GoogleAdsAccount?  @relation(fields: [googleAdsAccountId], references: [id], onDelete: SetNull)
+  clientBusiness        ClientBusiness?    @relation(fields: [clientBusinessId], references: [id], onDelete: SetNull)
+  adGroups              AdGroup[]
+  keywords              Keyword[]
+  negativeKeywords      NegativeKeyword[]
+  searchTerms           SearchTerm[]
+  recommendations       Recommendation[]
+  actionLogs            ActionLog[]
+  reports               Report[]
+  jobRuns               JobRun[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AdGroup {
+  id              String    @id @default(cuid())
+  campaignId      String
+  googleAdGroupId String?
+  name            String
+  serviceType     String
+  createdAt       DateTime  @default(now())
+  campaign        Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  keywords        Keyword[]
+
+  @@index([campaignId])
+}
+
+model Keyword {
+  id         String    @id @default(cuid())
+  campaignId String
+  adGroupId  String?
+  text       String
+  matchType  String
+  status     String    @default("enabled")
+  source     String    @default("ai")
+  createdAt  DateTime  @default(now())
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  adGroup    AdGroup?  @relation(fields: [adGroupId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([adGroupId])
+}
+
+model NegativeKeyword {
+  id                 String     @id @default(cuid())
+  campaignId         String?
+  accountId          String?
+  text               String
+  matchType          String
+  reason             String
+  addedBy            String
+  googleResourceName String?
+  createdAt          DateTime   @default(now())
+  campaign           Campaign?  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([accountId])
+}
+
+model SearchTerm {
+  id               String   @id @default(cuid())
+  campaignId       String
+  term             String
+  clicks           Int      @default(0)
+  impressions      Int      @default(0)
+  costMicros       BigInt   @default(0)
+  conversions      Decimal  @default(0) @db.Decimal(10, 2)
+  date             DateTime
+  aiRelevanceScore Int?
+  aiDecision       String?
+  aiReason         String?
+  createdAt        DateTime @default(now())
+  campaign         Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, date])
+}
+
+model Recommendation {
+  id          String    @id @default(cuid())
+  userId      String
+  campaignId  String?
+  type        String
+  title       String
+  description String
+  confidence  Int
+  riskLevel   String
+  status      String    @default("pending")
+  payload     Json
+  createdAt   DateTime  @default(now())
+  reviewedAt  DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ActionLog {
+  id          String    @id @default(cuid())
+  userId      String
+  campaignId  String?
+  actionType  String
+  description String
+  payload     Json
+  status      String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([campaignId])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  userId      String
+  campaignId  String
+  type        String
+  periodStart DateTime
+  periodEnd   DateTime
+  summary     String
+  metrics     Json
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([campaignId])
+}
+
+model JobRun {
+  id         String    @id @default(cuid())
+  userId     String
+  campaignId String?
+  type       String
+  status     String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  error      String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([status])
+}
+
+model UserSettings {
+  id                              String   @id @default(cuid())
+  userId                          String   @unique
+  aiMode                          String   @default("recommendations")
+  scanFrequency                   String   @default("3h")
+  maxDailyBudget                  Decimal  @default(50) @db.Decimal(10, 2)
+  costAlertThreshold              Decimal  @default(25) @db.Decimal(10, 2)
+  reportEmail                     String?
+  whatsappPhone                   String?
+  telegramHandle                  String?
+  globalNegativeKeywords          Json
+  forbiddenZones                  Json
+  allowedHours                    Json
+  requireValidationBeforeBudgetUp Boolean  @default(true)
+  createdAt                       DateTime @default(now())
+  updatedAt                       DateTime @updatedAt
+  user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
